@@ -9,6 +9,8 @@ import 'package:morrow_v2/services/auth_service.dart';
 import 'package:morrow_v2/services/supabase_service.dart';
 import 'package:morrow_v2/services/encryption_service.dart';
 import 'package:morrow_v2/providers/feed_provider.dart';
+import 'package:morrow_v2/providers/profile_provider.dart';
+import 'package:morrow_v2/providers/community_provider.dart';
 import 'package:morrow_v2/providers/user_settings_provider.dart';
 import 'package:morrow_v2/providers/typing_indicator_provider.dart';
 import 'package:morrow_v2/providers/notification_provider.dart';
@@ -59,7 +61,6 @@ class ThemeProvider with ChangeNotifier {
     setTheme(_themeMode);
   }
 }
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
