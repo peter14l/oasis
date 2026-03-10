@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 /// Cross-platform notification manager
 ///
@@ -12,6 +14,9 @@ import 'package:flutter/foundation.dart';
 class NotificationManager {
   static NotificationManager? _instance;
   bool _isInitialized = false;
+  final FlutterLocalNotificationsPlugin _localNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+  int _notificationId = 0;
 
   /// Singleton instance
   static NotificationManager get instance {
@@ -35,12 +40,9 @@ class NotificationManager {
         _isInitialized = true;
         return true;
       } else if (_isMobile) {
-        // Mobile platforms: Would use flutter_local_notifications
-        // Currently stubbed out due to Windows build issues
-        debugPrint(
-          'NotificationManager: Initialized for mobile (${Platform.operatingSystem})',
-        );
         _isInitialized = true;
+        await _initLocalNotifications();
+        await _initFCM();
         return true;
       } else if (kIsWeb) {
         debugPrint('NotificationManager: Web notifications not supported');
@@ -163,27 +165,75 @@ class NotificationManager {
     required String body,
     String? payload,
   }) async {
-    // Mobile notification would use flutter_local_notifications here
-    // Currently stubbed out due to Windows compatibility issues
-    //
-    // Example implementation:
-    // await _flutterLocalNotificationsPlugin.show(
-    //   _notificationId++,
-    //   title,
-    //   body,
-    //   NotificationDetails(
-    //     android: AndroidNotificationDetails(
-    //       'morrow_channel',
-    //       'Morrow Notifications',
-    //       importance: Importance.high,
-    //       priority: Priority.high,
-    //     ),
-    //     iOS: DarwinNotificationDetails(),
-    //   ),
-    //   payload: payload,
-    // );
+    await _localNotificationsPlugin.show(
+      _notificationId++,
+      title,
+      body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'morrow_channel',
+          'Morrow Notifications',
+          channelDescription: 'Main notification channel for Morrow',
+          importance: Importance.max,
+          priority: Priority.high,
+          showWhen: true,
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      payload: payload,
+    );
 
     debugPrint('NotificationManager: [Mobile] [$title] $body');
+  }
+
+  /// Initialize local notifications for mobile
+  Future<void> _initLocalNotifications() async {
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
+    const iosSettings = DarwinInitializationSettings();
+    const initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+
+    await _localNotificationsPlugin.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (response) {
+        debugPrint('Notification tapped: ${response.payload}');
+      },
+    );
+  }
+
+  /// Initialize FCM integration
+  Future<void> _initFCM() async {
+    final messaging = FirebaseMessaging.instance;
+
+    // Request permissions (specifically for iOS/Android 13+)
+    await messaging.requestPermission(alert: true, badge: true, sound: true);
+
+    // Handle foreground messages
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      debugPrint(
+        'FCM Foreground message received: ${message.notification?.title}',
+      );
+      if (message.notification != null) {
+        showNotification(
+          title: message.notification!.title ?? 'New Notification',
+          body: message.notification!.body ?? '',
+          payload: message.data.toString(),
+        );
+      }
+    });
+
+    // Handle background/terminated message clicks
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      debugPrint('FCM Message opened app: ${message.data}');
+    });
   }
 
   /// Schedule a notification

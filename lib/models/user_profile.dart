@@ -14,6 +14,7 @@ class UserProfile {
   final int postsCount;
   final String? bannerUrl;
   final String? bannerColor;
+  final String? fcmToken;
   final DateTime createdAt;
 
   UserProfile({
@@ -32,6 +33,7 @@ class UserProfile {
     this.postsCount = 0,
     this.bannerUrl,
     this.bannerColor,
+    this.fcmToken,
     required this.createdAt,
   });
 
@@ -52,6 +54,7 @@ class UserProfile {
       postsCount: json['posts_count'] as int? ?? 0,
       bannerUrl: json['banner_url'] as String?,
       bannerColor: json['banner_color'] as String?,
+      fcmToken: json['fcm_token'] as String?,
       createdAt:
           json['created_at'] != null
               ? DateTime.parse(json['created_at'] as String)
@@ -76,6 +79,7 @@ class UserProfile {
       'posts_count': postsCount,
       'banner_url': bannerUrl,
       'banner_color': bannerColor,
+      'fcm_token': fcmToken,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -96,6 +100,7 @@ class UserProfile {
     int? postsCount,
     String? bannerUrl,
     String? bannerColor,
+    String? fcmToken,
     DateTime? createdAt,
   }) {
     return UserProfile(
@@ -114,6 +119,7 @@ class UserProfile {
       postsCount: postsCount ?? this.postsCount,
       bannerUrl: bannerUrl ?? this.bannerUrl,
       bannerColor: bannerColor ?? this.bannerColor,
+      fcmToken: fcmToken ?? this.fcmToken,
       createdAt: createdAt ?? this.createdAt,
     );
   }

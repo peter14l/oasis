@@ -2,12 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:morrow_v2/config/supabase_config.dart';
 import 'package:morrow_v2/models/comment.dart';
 import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:morrow_v2/services/notification_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 class CommentService {
   final _supabase = SupabaseService().client;
   final _uuid = const Uuid();
+  final NotificationService _notificationService = NotificationService();
 
   /// Get comments for a post
   Future<List<Comment>> getPostComments({
@@ -160,9 +162,57 @@ class CommentService {
         commentMap['username'] = profile['username'];
         commentMap['user_avatar'] = profile['avatar_url'];
       }
-      commentMap['is_liked'] = false;
+      final comment = Comment.fromJson(commentMap);
 
-      return Comment.fromJson(commentMap);
+      // Trigger notifications
+      try {
+        if (parentCommentId == null) {
+          // New top-level comment: Notify post owner
+          final postResponse =
+              await _supabase
+                  .from(SupabaseConfig.postsTable)
+                  .select('user_id')
+                  .eq('id', postId)
+                  .single();
+
+          final postOwnerId = postResponse['user_id'] as String;
+
+          if (postOwnerId != userId) {
+            await _notificationService.createNotification(
+              userId: postOwnerId,
+              type: 'comment',
+              actorId: userId,
+              postId: postId,
+              commentId: commentId,
+            );
+          }
+        } else {
+          // Reply: Notify original commenter
+          final parentCommentResponse =
+              await _supabase
+                  .from(SupabaseConfig.commentsTable)
+                  .select('user_id')
+                  .eq('id', parentCommentId)
+                  .single();
+
+          final parentCommentOwnerId =
+              parentCommentResponse['user_id'] as String;
+
+          if (parentCommentOwnerId != userId) {
+            await _notificationService.createNotification(
+              userId: parentCommentOwnerId,
+              type: 'reply',
+              actorId: userId,
+              postId: postId,
+              commentId: commentId,
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint('Error triggering comment notification: $e');
+      }
+
+      return comment;
     } catch (e) {
       debugPrint('Error creating comment: $e');
       rethrow;

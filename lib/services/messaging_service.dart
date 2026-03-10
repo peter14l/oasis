@@ -4,12 +4,14 @@ import 'package:morrow_v2/config/supabase_config.dart';
 import 'package:morrow_v2/models/message.dart';
 import 'package:morrow_v2/models/conversation.dart';
 import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:morrow_v2/services/notification_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 class MessagingService {
   final _supabase = SupabaseService().client;
   final _uuid = const Uuid();
+  final NotificationService _notificationService = NotificationService();
 
   /// Get user's conversations
   Future<List<Conversation>> getConversations({
@@ -336,7 +338,30 @@ class MessagingService {
         messageMap['sender_avatar'] = profile['avatar_url'];
       }
 
-      return Message.fromJson(messageMap);
+      final message = Message.fromJson(messageMap);
+
+      // Trigger notifications for other participants
+      try {
+        final participantsResponse = await _supabase
+            .from('conversation_participants')
+            .select('user_id')
+            .eq('conversation_id', conversationId)
+            .neq('user_id', senderId);
+
+        for (final participant in participantsResponse) {
+          final recipientId = participant['user_id'] as String;
+          await _notificationService.createNotification(
+            userId: recipientId,
+            type: 'dm',
+            actorId: senderId,
+            message: content,
+          );
+        }
+      } catch (e) {
+        debugPrint('Error triggering message notification: $e');
+      }
+
+      return message;
     } catch (e) {
       debugPrint('Error sending message: $e');
       rethrow;

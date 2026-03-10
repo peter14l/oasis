@@ -2,10 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:morrow_v2/config/supabase_config.dart';
 import 'package:morrow_v2/models/post.dart';
 import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:morrow_v2/services/notification_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FeedService {
   final _supabase = SupabaseService().client;
+  final NotificationService _notificationService = NotificationService();
 
   /// Get feed posts (For You feed)
   /// Uses the get_feed_posts function from the database
@@ -123,6 +125,30 @@ class FeedService {
         'user_id': userId,
         'post_id': postId,
       });
+
+      // Trigger notification for post owner
+      try {
+        final postResponse =
+            await _supabase
+                .from(SupabaseConfig.postsTable)
+                .select('user_id')
+                .eq('id', postId)
+                .single();
+
+        final postOwnerId = postResponse['user_id'] as String;
+
+        if (postOwnerId != userId) {
+          await _notificationService.createNotification(
+            userId: postOwnerId,
+            type: 'like',
+            actorId: userId,
+            postId: postId,
+          );
+        }
+      } catch (e) {
+        // Don't fail the like if notification fails
+        debugPrint('Error triggering like notification: $e');
+      }
     } catch (e) {
       debugPrint('Error liking post: $e');
       rethrow;

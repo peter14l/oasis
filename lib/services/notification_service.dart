@@ -3,6 +3,7 @@ import 'package:morrow_v2/config/supabase_config.dart';
 import 'package:morrow_v2/models/notification.dart';
 import 'package:morrow_v2/services/supabase_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class NotificationService {
   final _supabase = SupabaseService().client;
@@ -123,14 +124,15 @@ class NotificationService {
           callback: (payload) async {
             try {
               final notificationData = payload.newRecord;
-              
+
               // Fetch actor details
               if (notificationData['actor_id'] != null) {
-                final profile = await _supabase
-                    .from(SupabaseConfig.profilesTable)
-                    .select('username, avatar_url')
-                    .eq('id', notificationData['actor_id'])
-                    .single();
+                final profile =
+                    await _supabase
+                        .from(SupabaseConfig.profilesTable)
+                        .select('username, avatar_url')
+                        .eq('id', notificationData['actor_id'])
+                        .single();
 
                 notificationData['actor_name'] = profile['username'];
                 notificationData['actor_avatar'] = profile['avatar_url'];
@@ -176,5 +178,20 @@ class NotificationService {
       rethrow;
     }
   }
-}
 
+  /// Update FCM token for the user
+  Future<void> updateFcmToken(String userId) async {
+    try {
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+      if (fcmToken != null) {
+        await _supabase
+            .from(SupabaseConfig.profilesTable)
+            .update({'fcm_token': fcmToken})
+            .eq('id', userId);
+        debugPrint('FCM Token updated for user: $userId');
+      }
+    } catch (e) {
+      debugPrint('Error updating FCM token: $e');
+    }
+  }
+}

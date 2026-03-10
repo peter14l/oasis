@@ -3,12 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:morrow_v2/config/supabase_config.dart';
 import 'package:morrow_v2/models/post.dart';
 import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:morrow_v2/services/notification_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 class PostService {
   final _supabase = SupabaseService().client;
   final _uuid = const Uuid();
+  final NotificationService _notificationService = NotificationService();
 
   /// Create a new post
   Future<Post> createPost({
@@ -118,7 +120,29 @@ class PostService {
         postMap['community_name'] = community['name'];
       }
 
-      return Post.fromJson(postMap);
+      final post = Post.fromJson(postMap);
+
+      // Trigger notifications for followers
+      try {
+        final followersResponse = await _supabase
+            .from('follows')
+            .select('follower_id')
+            .eq('following_id', userId);
+
+        for (final follower in followersResponse) {
+          final followerId = follower['follower_id'] as String;
+          await _notificationService.createNotification(
+            userId: followerId,
+            type: 'post',
+            actorId: userId,
+            postId: postId,
+          );
+        }
+      } catch (e) {
+        debugPrint('Error triggering post notification: $e');
+      }
+
+      return post;
     } catch (e) {
       debugPrint('Error creating post: $e');
       rethrow;

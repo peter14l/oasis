@@ -22,6 +22,8 @@ import 'package:morrow_v2/services/subscription_service.dart';
 import 'package:morrow_v2/widgets/mesh_gradient_background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:morrow_v2/services/notification_manager.dart';
 
 // Theme Provider to manage theme mode
 class ThemeProvider with ChangeNotifier {
@@ -65,6 +67,14 @@ class ThemeProvider with ChangeNotifier {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize Firebase
+  try {
+    await Firebase.initializeApp();
+    debugPrint('Firebase initialized successfully');
+  } catch (e) {
+    debugPrint('Firebase initialization failed: $e');
+  }
+
   // Load environment variables
   await dotenv.load(fileName: ".env");
 
@@ -103,6 +113,9 @@ void main() async {
 
     // Initialize EnergyMeterService
     final energyMeterService = await EnergyMeterService.init();
+
+    // Initialize Notification Manager
+    await NotificationManager.instance.initialize();
 
     // Initialize SubscriptionService
     final subscriptionService = SubscriptionService();

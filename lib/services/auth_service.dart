@@ -11,9 +11,11 @@ import 'package:morrow_v2/config/supabase_config.dart';
 // Provider is used in other files that import this one
 import 'package:morrow_v2/services/supabase_service.dart';
 import 'package:morrow_v2/services/encryption_service.dart';
+import 'package:morrow_v2/services/notification_service.dart';
 
 class AuthService with ChangeNotifier {
   late final SupabaseClient _supabase;
+  final NotificationService _notificationService = NotificationService();
   StreamSubscription<AuthState>? _authStateSubscription;
 
   AuthService() {
@@ -92,6 +94,7 @@ class AuthService with ChangeNotifier {
       // Provision/restore E2E keys in the background immediately after login
       // (WhatsApp-style: keys are always ready before the user opens any chat)
       _provisionEncryptionKeys();
+      _notificationService.updateFcmToken(response.user!.id);
 
       return _userFromSupabaseUser(response.user!);
     } on AuthException catch (e) {
@@ -146,6 +149,7 @@ class AuthService with ChangeNotifier {
 
       // Generate E2E encryption keys immediately for new users
       _provisionEncryptionKeys();
+      _notificationService.updateFcmToken(response.user!.id);
 
       return _userFromSupabaseUser(response.user!);
     } on AuthException catch (e) {
@@ -181,14 +185,35 @@ class AuthService with ChangeNotifier {
       }
 
       // Check if user exists in our profiles table
-      final profile =
+      var profile =
           await _supabase
               .from(SupabaseConfig.profilesTable)
               .select()
               .eq('id', user.id)
               .maybeSingle();
 
-      // Create profile if it doesn't exist
+      // If not found by ID, try checking by email (in case linking wasn't automatic but user exists)
+      if (profile == null && user.email != null) {
+        profile =
+            await _supabase
+                .from(SupabaseConfig.profilesTable)
+                .select()
+                .eq('email', user.email!)
+                .maybeSingle();
+
+        if (profile != null) {
+          // If found by email, update the ID to the new social ID if they differ
+          // (This handles cases where the user was created via password and now signs in via Google)
+          if (profile['id'] != user.id) {
+            await _supabase
+                .from(SupabaseConfig.profilesTable)
+                .update({'id': user.id})
+                .eq('email', user.email!);
+          }
+        }
+      }
+
+      // Create profile if it doesn't exist at all
       if (profile == null) {
         final username =
             user.userMetadata?['preferred_username'] ??
@@ -206,6 +231,7 @@ class AuthService with ChangeNotifier {
 
       // Provision/restore E2E keys in the background
       _provisionEncryptionKeys();
+      _notificationService.updateFcmToken(user.id);
 
       return _userFromSupabaseUser(user);
     } on AuthException catch (e) {
@@ -271,6 +297,7 @@ class AuthService with ChangeNotifier {
 
       // Provision/restore E2E keys in the background
       _provisionEncryptionKeys();
+      _notificationService.updateFcmToken(user.id);
 
       return _userFromSupabaseUser(user);
     } on AuthException catch (e) {
