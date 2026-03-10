@@ -30,6 +30,9 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Create placeholder .env
+        run: echo "SUPABASE_URL=https://dummy.supabase.co" > .env && echo "SUPABASE_ANON_KEY=dummy" >> .env
+
       - name: Build Debug APK
         run: flutter build apk --debug
 
