@@ -23,7 +23,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final FocusNode _nameFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
-  
+
   // Remove unused _confirmPasswordController
   @override
   void dispose() {
@@ -36,27 +36,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     if (!mounted) return;
     setState(() => _isLoading = true);
-    
+
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
-      
+
       // Create the user with email and password using Supabase
       try {
         await authService.registerWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text,
-          username: _nameController.text.trim().toLowerCase().replaceAll(' ', '_'),
+          username: _nameController.text.trim().toLowerCase().replaceAll(
+            ' ',
+            '_',
+          ),
           displayName: _nameController.text.trim(),
         );
-        
+
         if (!mounted) return;
-        
+
         // Get the current user
         final user = Supabase.instance.client.auth.currentUser;
         if (user != null) {
@@ -67,31 +69,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
               type: OtpType.signup,
               email: user.email!,
             );
-            
+
             // Show verification dialog
             if (mounted) {
               await showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => AlertDialog(
-                  title: const Text('Verify Your Email'),
-                  content: Text(
-                    'A verification email has been sent to ${user.email}. '
-                    'Please verify your email to continue using the app. '
-                    'You can verify later from your profile settings.',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        if (mounted) {
-                          context.go('/feed');
-                        }
-                      },
-                      child: const Text('Continue to App'),
+                builder:
+                    (context) => AlertDialog(
+                      title: const Text('Verify Your Email'),
+                      content: Text(
+                        'A verification email has been sent to ${user.email}. '
+                        'Please verify your email to continue using the app. '
+                        'You can verify later from your profile settings.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            if (mounted) {
+                              context.go('/feed');
+                            }
+                          },
+                          child: const Text('Continue to App'),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
               );
             }
           } catch (e) {
@@ -99,7 +102,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Account created! You can verify your email later from profile settings.'),
+                  content: Text(
+                    'Account created! You can verify your email later from profile settings.',
+                  ),
                 ),
               );
               context.go('/feed');
@@ -109,30 +114,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
           // This should theoretically never happen since we just created the user
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Registration successful! Please sign in.')),
+              const SnackBar(
+                content: Text('Registration successful! Please sign in.'),
+              ),
             );
             context.go('/login');
           }
         }
       } on AuthException catch (e) {
-        String message = 'An error occurred during registration. Please try again.';
-        
+        String message =
+            'An error occurred during registration. Please try again.';
+
         if (e.toString().contains('already registered')) {
-          message = 'A user with this email already exists. Please use a different email or sign in instead.';
+          message =
+              'A user with this email already exists. Please use a different email or sign in instead.';
         } else if (e.toString().contains('weak password')) {
-          message = 'The password is too weak. Please use at least 6 characters.';
+          message =
+              'The password is too weak. Please use at least 6 characters.';
         } else if (e.toString().contains('network')) {
-          message = 'Network error. Please check your internet connection and try again.';
+          message =
+              'Network error. Please check your internet connection and try again.';
         } else if (e.toString().contains('too many requests')) {
           message = 'Too many requests. Please try again later.';
         } else if (e.toString().isNotEmpty) {
-          message = 'Registration failed: ${e.toString().replaceAll('Exception: ', '')}';
+          message =
+              'Registration failed: ${e.toString().replaceAll('Exception: ', '')}';
         }
-        
+
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(message)));
         }
       }
     } catch (e) {
@@ -140,7 +152,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Registration failed: ${e.toString().replaceAll('Exception: ', '')}'),
+            content: Text(
+              'Registration failed: ${e.toString().replaceAll('Exception: ', '')}',
+            ),
             duration: const Duration(seconds: 4),
           ),
         );
@@ -184,7 +198,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Form(
                 key: _formKey,
                 child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   children: [
                     // Name Field
                     CustomTextField(
@@ -237,7 +254,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       obscureText: _obscurePassword,
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
                           color: colorScheme.onSurfaceVariant,
                         ),
                         onPressed: () {
@@ -262,9 +281,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
 
+            // Google Sign In Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: AppButton.secondary(
+                text: 'Sign in with Google',
+                isLoading: _isLoading,
+                onPressed:
+                    _isLoading
+                        ? null
+                        : () async {
+                          setState(() => _isLoading = true);
+                          try {
+                            final authService = Provider.of<AuthService>(
+                              context,
+                              listen: false,
+                            );
+                            await authService.signInWithGoogle();
+                            if (mounted) {
+                              context.go('/feed');
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(e.toString())),
+                              );
+                            }
+                          } finally {
+                            if (mounted) setState(() => _isLoading = false);
+                          }
+                        },
+                icon: Image.network(
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_\"G\"_logo.svg/24px-Google_\"G\"_logo.svg.png',
+                  height: 24,
+                ),
+              ),
+            ),
+
             // Sign Up Button
             Padding(
-              padding: const EdgeInsets.only(top: 24.0, bottom: 16.0),
+              padding: const EdgeInsets.only(top: 16.0, bottom: 16.0),
               child: AppButton.primary(
                 text: 'Sign up',
                 onPressed: _isLoading ? null : _register,
@@ -280,10 +336,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   const Text(
                     'Already have an account? ',
-                    style: TextStyle(
-                      color: Color(0xFF9DA6B9),
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Color(0xFF9DA6B9), fontSize: 14),
                   ),
                   TextButton(
                     onPressed: _isLoading ? null : () => context.go('/login'),

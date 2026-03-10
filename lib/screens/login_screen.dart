@@ -178,6 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24.0),
+                const SizedBox(height: 24.0),
                 ElevatedButton(
                   onPressed:
                       (_isLoggingIn || _isResettingPassword) ? null : _login,
@@ -200,6 +201,44 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           )
                           : const Text('Sign In'),
+                ),
+                const SizedBox(height: 16.0),
+                OutlinedButton.icon(
+                  onPressed:
+                      (_isLoggingIn || _isResettingPassword)
+                          ? null
+                          : () async {
+                            setState(() => _isLoggingIn = true);
+                            try {
+                              final authService = Provider.of<AuthService>(
+                                context,
+                                listen: false,
+                              );
+                              await authService.signInWithGoogle();
+                              if (mounted) {
+                                context.go('/feed');
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(e.toString())),
+                                );
+                              }
+                            } finally {
+                              if (mounted) setState(() => _isLoggingIn = false);
+                            }
+                          },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                  icon: Image.network(
+                    'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_\"G\"_logo.svg/24px-Google_\"G\"_logo.svg.png',
+                    height: 24,
+                  ),
+                  label: const Text('Sign in with Google'),
                 ),
                 const SizedBox(height: 16.0),
                 TextButton(
