@@ -49,6 +49,8 @@ class AppTheme {
   // Theme getters
   static ThemeData get light => lightTheme;
   static ThemeData get dark => darkTheme;
+  static ThemeData get highContrastLight => highContrastLightTheme;
+  static ThemeData get highContrastDark => highContrastDarkTheme;
 
   // Helper method to get theme based on brightness
   static ThemeData getTheme(Brightness brightness) {
@@ -518,5 +520,29 @@ class AppTheme {
     ),
   );
 
-  // Text Styles
+  static final ThemeData highContrastLightTheme = lightTheme.copyWith(
+    colorScheme: lightTheme.colorScheme.copyWith(
+      primary: Colors.black,
+      onPrimary: Colors.white,
+      surface: Colors.white,
+      onSurface: Colors.black,
+    ),
+    textTheme: lightTheme.textTheme.apply(
+      displayColor: Colors.black,
+      bodyColor: Colors.black,
+    ),
+  );
+
+  static final ThemeData highContrastDarkTheme = darkTheme.copyWith(
+    colorScheme: darkTheme.colorScheme.copyWith(
+      primary: Colors.white,
+      onPrimary: Colors.black,
+      surface: Colors.black,
+      onSurface: Colors.white,
+    ),
+    textTheme: darkTheme.textTheme.apply(
+      displayColor: Colors.white,
+      bodyColor: Colors.white,
+    ),
+  );
 }

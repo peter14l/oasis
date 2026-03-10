@@ -9,14 +9,14 @@ import 'package:morrow_v2/services/auth_service.dart';
 import 'package:morrow_v2/services/supabase_service.dart';
 import 'package:morrow_v2/services/encryption_service.dart';
 import 'package:morrow_v2/providers/feed_provider.dart';
-import 'package:morrow_v2/providers/profile_provider.dart';
-import 'package:morrow_v2/providers/community_provider.dart';
+import 'package:morrow_v2/providers/user_settings_provider.dart';
 import 'package:morrow_v2/providers/typing_indicator_provider.dart';
 import 'package:morrow_v2/providers/notification_provider.dart';
 import 'package:morrow_v2/providers/capsule_provider.dart';
 import 'package:morrow_v2/services/vault_service.dart';
 import 'package:morrow_v2/services/screen_time_service.dart';
 import 'package:morrow_v2/services/energy_meter_service.dart';
+import 'package:morrow_v2/services/subscription_service.dart';
 import 'package:morrow_v2/widgets/mesh_gradient_background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -24,14 +24,18 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 // Theme Provider to manage theme mode
 class ThemeProvider with ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.dark;
+  bool _highContrast = false;
   static const String _themeKey = 'theme_mode';
+  static const String _highContrastKey = 'high_contrast';
 
   ThemeMode get themeMode => _themeMode;
+  bool get highContrast => _highContrast;
 
   Future<void> loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
     final themeIndex = prefs.getInt(_themeKey) ?? ThemeMode.system.index;
     _themeMode = ThemeMode.values[themeIndex];
+    _highContrast = prefs.getBool(_highContrastKey) ?? false;
     notifyListeners();
   }
 
@@ -42,12 +46,20 @@ class ThemeProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setHighContrast(bool value) async {
+    _highContrast = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_highContrastKey, value);
+    notifyListeners();
+  }
+
   void toggleTheme() {
     _themeMode =
         _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
     setTheme(_themeMode);
   }
 }
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -81,11 +93,19 @@ void main() async {
     final themeProvider = ThemeProvider();
     await themeProvider.loadTheme();
 
+    // Initialize UserSettingsProvider
+    final userSettingsProvider = UserSettingsProvider();
+    await userSettingsProvider.loadSettings();
+
     // Initialize ScreenTimeService
     final screenTimeService = await ScreenTimeService.init();
 
     // Initialize EnergyMeterService
     final energyMeterService = await EnergyMeterService.init();
+
+    // Initialize SubscriptionService
+    final subscriptionService = SubscriptionService();
+    await subscriptionService.init();
 
     // Debug log current user
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -113,11 +133,17 @@ void main() async {
                     value: themeProvider,
                   ),
                   ChangeNotifierProvider<AuthService>.value(value: authService),
+                  ChangeNotifierProvider<UserSettingsProvider>.value(
+                    value: userSettingsProvider,
+                  ),
                   ChangeNotifierProvider<ScreenTimeService>.value(
                     value: screenTimeService,
                   ),
                   ChangeNotifierProvider<EnergyMeterService>.value(
                     value: energyMeterService,
+                  ),
+                  ChangeNotifierProvider<SubscriptionService>.value(
+                    value: subscriptionService,
                   ),
                   ChangeNotifierProvider(create: (_) => FeedProvider()),
                   ChangeNotifierProvider(create: (_) => ProfileProvider()),
@@ -267,14 +293,21 @@ class _MyAppState extends State<MyApp> {
         return MaterialApp.router(
           title: 'Morrow',
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.light,
-          darkTheme: AppTheme.dark,
+          theme:
+              themeProvider.highContrast
+                  ? AppTheme.highContrastLight
+                  : AppTheme.light,
+          darkTheme:
+              themeProvider.highContrast
+                  ? AppTheme.highContrastDark
+                  : AppTheme.dark,
           themeMode: themeProvider.themeMode,
           routerConfig: router,
           builder: (context, child) {
             // Apply text scaling factor
             final mediaQuery = MediaQuery.of(context);
-            final scale = mediaQuery.textScaler.scale(1).clamp(0.8, 1.2);
+            final settingsProvider = Provider.of<UserSettingsProvider>(context);
+            final scale = settingsProvider.fontSizeFactor;
 
             // Initialize notifications with current user
             if (snapshot.hasData && snapshot.data?.session != null) {

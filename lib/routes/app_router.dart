@@ -21,6 +21,13 @@ import 'package:morrow_v2/screens/messages/new_message_screen.dart';
 import 'package:morrow_v2/screens/notifications/notifications_screen.dart';
 import 'package:morrow_v2/screens/settings_screen.dart';
 import 'package:morrow_v2/screens/settings/subscription_screen.dart';
+import 'package:morrow_v2/screens/settings/account_privacy_screen.dart';
+import 'package:morrow_v2/screens/settings/two_factor_auth_screen.dart';
+import 'package:morrow_v2/screens/settings/download_data_screen.dart';
+import 'package:morrow_v2/screens/settings/storage_usage_screen.dart';
+import 'package:morrow_v2/screens/settings/font_size_screen.dart';
+import 'package:morrow_v2/screens/settings/help_support_screen.dart';
+import 'package:morrow_v2/screens/moderation/moderation_screens.dart';
 import 'package:morrow_v2/screens/story_view_screen.dart';
 import 'package:morrow_v2/models/story_model.dart';
 import 'package:morrow_v2/screens/login_screen.dart' as login_screen;
@@ -688,6 +695,69 @@ class AppRouter {
             (context, state) => MaterialPage(
               key: state.pageKey,
               child: const SubscriptionScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/settings/account-privacy',
+        name: 'account_privacy',
+        pageBuilder:
+            (context, state) => MaterialPage(
+              key: state.pageKey,
+              child: const AccountPrivacyScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/settings/blocked-users',
+        name: 'blocked_users',
+        pageBuilder:
+            (context, state) => MaterialPage(
+              key: state.pageKey,
+              child: const BlockedUsersScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/settings/two-factor-auth',
+        name: 'two_factor_auth',
+        pageBuilder:
+            (context, state) => MaterialPage(
+              key: state.pageKey,
+              child: const TwoFactorAuthScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/settings/download-data',
+        name: 'download_data',
+        pageBuilder:
+            (context, state) => MaterialPage(
+              key: state.pageKey,
+              child: const DownloadDataScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/settings/storage-usage',
+        name: 'storage_usage',
+        pageBuilder:
+            (context, state) => MaterialPage(
+              key: state.pageKey,
+              child: const StorageUsageScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/settings/font-size',
+        name: 'font_size',
+        pageBuilder:
+            (context, state) => MaterialPage(
+              key: state.pageKey,
+              child: const FontSizeScreen(),
+            ),
+      ),
+      GoRoute(
+        path: '/settings/help-support',
+        name: 'help_support',
+        pageBuilder:
+            (context, state) => MaterialPage(
+              key: state.pageKey,
+              child: const HelpSupportScreen(),
             ),
       ),
 

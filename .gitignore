@@ -3,6 +3,8 @@
 *.log
 *.pyc
 *.swp
+sentry-wizard.exe
+hs_err_pid*.log
 .DS_Store
 .atom/
 .build/
