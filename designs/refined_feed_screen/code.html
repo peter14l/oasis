@@ -1,0 +1,353 @@
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link
+      rel="stylesheet"
+      as="style"
+      onload="this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Spline+Sans%3Awght%40400%3B500%3B700"
+    />
+
+    <title>Stitch Design</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+  <body>
+    <div
+      class="relative flex h-auto min-h-screen w-full flex-col bg-[#111318] dark justify-between group/design-root overflow-x-hidden"
+      style='font-family: "Spline Sans", "Noto Sans", sans-serif;'
+    >
+      <div>
+        <div class="flex items-center bg-[#111318] p-4 pb-2 justify-between">
+          <h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pl-12">Feed</h2>
+          <div class="flex w-12 items-center justify-end">
+            <button
+              class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 bg-transparent text-white gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-0"
+            >
+              <div class="text-white" data-icon="Plus" data-size="24px" data-weight="regular">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                  <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
+                </svg>
+              </div>
+            </button>
+          </div>
+        </div>
+        <div class="flex px-4 py-3">
+          <div class="flex h-10 flex-1 items-center justify-center rounded-xl bg-[#282e39] p-1">
+            <label
+              class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-xl px-2 has-[:checked]:bg-[#111318] has-[:checked]:shadow-[0_0_4px_rgba(0,0,0,0.1)] has-[:checked]:text-white text-[#9da6b9] text-sm font-medium leading-normal"
+            >
+              <span class="truncate">For you</span>
+              <input type="radio" name="f9c24fbb-9e69-4ded-bdd1-2de8b5ffd6b5" class="invisible w-0" value="For you" />
+            </label>
+            <label
+              class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-xl px-2 has-[:checked]:bg-[#111318] has-[:checked]:shadow-[0_0_4px_rgba(0,0,0,0.1)] has-[:checked]:text-white text-[#9da6b9] text-sm font-medium leading-normal"
+            >
+              <span class="truncate">Following</span>
+              <input type="radio" name="f9c24fbb-9e69-4ded-bdd1-2de8b5ffd6b5" class="invisible w-0" value="Following" checked="" />
+            </label>
+          </div>
+        </div>
+        <div class="p-4 @container">
+          <div class="flex flex-col items-stretch justify-start rounded-xl @xl:flex-row @xl:items-start">
+            <div
+              class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl"
+              style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBSctlK1PnQI3gzm5IxsXrjtWMv2bLTJ6sMgY4rMFt0VUfqDd6I6bhv0lOqjkHb6pWze34WLyvlwLahiH4pwkhcjVjuC3aLRsxMzfIFiTc4sIBD_FjEO7vnpK9FMLz1nVc7Y4J-egvZ-zcEiG2iuMcC_b1gfN2Tqpo8DyKYQwz4StBV00YmXkFvfSW2t8mdozstHU-Us_pCRMRRMi8qRDi1UD0U-RqtztC4lmTbYiYZxm7H9DC6_vc3SxaTAygsLgz7u3jEz8G8Ctk");'
+            ></div>
+            <div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 @xl:px-4">
+              <p class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">Just finished a great hike! The views were breathtaking.</p>
+              <div class="flex items-end gap-3 justify-between">
+                <div class="flex flex-col gap-1">
+                  <p class="text-[#9da6b9] text-base font-normal leading-normal">Chloe Bennett</p>
+                  <p class="text-[#9da6b9] text-base font-normal leading-normal">#nature #hiking</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-4 px-4 py-2 py-2 justify-between">
+          <div class="flex items-center justify-center gap-2 px-3 py-2">
+            <div class="text-[#9da6b9]" data-icon="Heart" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M178,32c-20.65,0-38.73,8.88-50,23.89C116.73,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32ZM128,206.8C109.74,196.16,32,147.69,32,94A46.06,46.06,0,0,1,78,48c19.45,0,35.78,10.36,42.6,27a8,8,0,0,0,14.8,0c6.82-16.67,23.15-27,42.6-27a46.06,46.06,0,0,1,46,46C224,147.61,146.24,196.15,128,206.8Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-[13px] font-bold leading-normal tracking-[0.015em]">23</p>
+          </div>
+          <div class="flex items-center justify-center gap-2 px-3 py-2">
+            <div class="text-[#9da6b9]" data-icon="ChatCircleDots" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128ZM84,116a12,12,0,1,0,12,12A12,12,0,0,0,84,116Zm88,0a12,12,0,1,0,12,12A12,12,0,0,0,172,116Zm60,12A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-[13px] font-bold leading-normal tracking-[0.015em]">5</p>
+          </div>
+          <div class="flex items-center justify-center gap-2 px-3 py-2">
+            <div class="text-[#9da6b9]" data-icon="PaperPlaneTilt" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.42,29.84l85.62,40.55,40.55,85.62A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-.05.14L118.42,148.9l47.24-47.25a8,8,0,0,0-11.31-11.31L107.1,137.58,24,98.22l.14,0L216,40Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-[13px] font-bold leading-normal tracking-[0.015em]">1</p>
+          </div>
+        </div>
+        <div class="p-4 @container">
+          <div class="flex flex-col items-stretch justify-start rounded-xl @xl:flex-row @xl:items-start">
+            <div
+              class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl"
+              style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDaxipEoNhyCqqXLq_f_VFNhAvGr4F-HrW6IDEp-GiuxvxEmX4FxVa3BeTM9FUrIOSPUELChr3BY_vpYqLpztP9iRmMjyNxdUq7rHs0a5e1iL0Y7M3uHaeht0TDhr_4QUtrSZ4nJDn-EX1LgO_RpEOj2LBfMt7PXFxZ3hZu6FKan_BqZzCevRvI8jOg80C53o4B1L4dK5pdnmXVCVZV3NMaB7jptXNmEsL0mZKntkGmz4b8fAYy22QNipsji9r5DKlPCctkjV4ObSs");'
+            ></div>
+            <div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 @xl:px-4">
+              <p class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">Exploring the city's hidden gems today. Found this amazing coffee shop!</p>
+              <div class="flex items-end gap-3 justify-between">
+                <div class="flex flex-col gap-1">
+                  <p class="text-[#9da6b9] text-base font-normal leading-normal">Owen Carter</p>
+                  <p class="text-[#9da6b9] text-base font-normal leading-normal">#citylife #coffeeshop</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-4 px-4 py-2 py-2 justify-between">
+          <div class="flex items-center justify-center gap-2 px-3 py-2">
+            <div class="text-[#9da6b9]" data-icon="Heart" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M178,32c-20.65,0-38.73,8.88-50,23.89C116.73,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32ZM128,206.8C109.74,196.16,32,147.69,32,94A46.06,46.06,0,0,1,78,48c19.45,0,35.78,10.36,42.6,27a8,8,0,0,0,14.8,0c6.82-16.67,23.15-27,42.6-27a46.06,46.06,0,0,1,46,46C224,147.61,146.24,196.15,128,206.8Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-[13px] font-bold leading-normal tracking-[0.015em]">45</p>
+          </div>
+          <div class="flex items-center justify-center gap-2 px-3 py-2">
+            <div class="text-[#9da6b9]" data-icon="ChatCircleDots" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128ZM84,116a12,12,0,1,0,12,12A12,12,0,0,0,84,116Zm88,0a12,12,0,1,0,12,12A12,12,0,0,0,172,116Zm60,12A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-[13px] font-bold leading-normal tracking-[0.015em]">12</p>
+          </div>
+          <div class="flex items-center justify-center gap-2 px-3 py-2">
+            <div class="text-[#9da6b9]" data-icon="PaperPlaneTilt" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.42,29.84l85.62,40.55,40.55,85.62A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-.05.14L118.42,148.9l47.24-47.25a8,8,0,0,0-11.31-11.31L107.1,137.58,24,98.22l.14,0L216,40Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-[13px] font-bold leading-normal tracking-[0.015em]">3</p>
+          </div>
+        </div>
+        <div class="p-4 @container">
+          <div class="flex flex-col items-stretch justify-start rounded-xl @xl:flex-row @xl:items-start">
+            <div
+              class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl"
+              style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAtdUR2IsqS2DOo5lXIW5lS5QpOvFcfUX10lryYifLW7H8zIH2FmEud5yCw28CGbYZ_LX_Kb3w1_fQbIicMQEZv2QcqonWzRLs2781w9lO5eOmwMA1uajKHiiQQ0ihp2RNdpeu1-h7M-4di1X3-TKAZI_-pFFS01UyxOXSn5PNdSkRignxZEwAdryF6vNp6eLagolZY9Fk49fFDTXNyVqMaH8gBFy_c9s6URq3Ifb52iXKmjMP5vXomBx05iWzBxzldl9Zx3o3N6Zk");'
+            ></div>
+            <div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 @xl:px-4">
+              <p class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">Weekend getaway to the beach! Soaking up the sun and enjoying the waves.</p>
+              <div class="flex items-end gap-3 justify-between">
+                <div class="flex flex-col gap-1">
+                  <p class="text-[#9da6b9] text-base font-normal leading-normal">Isabella Harper</p>
+                  <p class="text-[#9da6b9] text-base font-normal leading-normal">#beachlife #vacation</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-4 px-4 py-2 py-2 justify-between">
+          <div class="flex items-center justify-center gap-2 px-3 py-2">
+            <div class="text-[#9da6b9]" data-icon="Heart" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M178,32c-20.65,0-38.73,8.88-50,23.89C116.73,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32ZM128,206.8C109.74,196.16,32,147.69,32,94A46.06,46.06,0,0,1,78,48c19.45,0,35.78,10.36,42.6,27a8,8,0,0,0,14.8,0c6.82-16.67,23.15-27,42.6-27a46.06,46.06,0,0,1,46,46C224,147.61,146.24,196.15,128,206.8Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-[13px] font-bold leading-normal tracking-[0.015em]">32</p>
+          </div>
+          <div class="flex items-center justify-center gap-2 px-3 py-2">
+            <div class="text-[#9da6b9]" data-icon="ChatCircleDots" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128ZM84,116a12,12,0,1,0,12,12A12,12,0,0,0,84,116Zm88,0a12,12,0,1,0,12,12A12,12,0,0,0,172,116Zm60,12A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-[13px] font-bold leading-normal tracking-[0.015em]">8</p>
+          </div>
+          <div class="flex items-center justify-center gap-2 px-3 py-2">
+            <div class="text-[#9da6b9]" data-icon="PaperPlaneTilt" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.42,29.84l85.62,40.55,40.55,85.62A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-.05.14L118.42,148.9l47.24-47.25a8,8,0,0,0-11.31-11.31L107.1,137.58,24,98.22l.14,0L216,40Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-[13px] font-bold leading-normal tracking-[0.015em]">2</p>
+          </div>
+        </div>
+        <div class="p-4 @container">
+          <div class="flex flex-col items-stretch justify-start rounded-xl @xl:flex-row @xl:items-start">
+            <div
+              class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl"
+              style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDFfSsoEzmgyauWf52lDsK7CVYjj-M4DtBGjuhrYFNDIokgGSzQSU0uG6G6Z4YRRSTFgHEtoT05pvf_naG9DaZkyVvtacc0eEZjt3xvrnXbrqfaRZ5KyV06mpN50yy338IOrfVaP0W07DsKM_SHs_t2GWG-ttwviS8QdbQSb18ms6yF8ENQJf_8rmZD64cPXTVdVU1TBzCfZ8xBJ_HE3KD5e-GXOZWbmlXcmKjqvkGFhWdIPEBXybSvB_Sng6YZJxdaUxuccMqOTZ0");'
+            ></div>
+            <div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 @xl:px-4">
+              <p class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">Trying out a new recipe tonight. Wish me luck!</p>
+              <div class="flex items-end gap-3 justify-between">
+                <div class="flex flex-col gap-1">
+                  <p class="text-[#9da6b9] text-base font-normal leading-normal">Noah Mitchell</p>
+                  <p class="text-[#9da6b9] text-base font-normal leading-normal">#cooking #foodie</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-4 px-4 py-2 py-2 justify-between">
+          <div class="flex items-center justify-center gap-2 px-3 py-2">
+            <div class="text-[#9da6b9]" data-icon="Heart" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M178,32c-20.65,0-38.73,8.88-50,23.89C116.73,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32ZM128,206.8C109.74,196.16,32,147.69,32,94A46.06,46.06,0,0,1,78,48c19.45,0,35.78,10.36,42.6,27a8,8,0,0,0,14.8,0c6.82-16.67,23.15-27,42.6-27a46.06,46.06,0,0,1,46,46C224,147.61,146.24,196.15,128,206.8Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-[13px] font-bold leading-normal tracking-[0.015em]">18</p>
+          </div>
+          <div class="flex items-center justify-center gap-2 px-3 py-2">
+            <div class="text-[#9da6b9]" data-icon="ChatCircleDots" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128ZM84,116a12,12,0,1,0,12,12A12,12,0,0,0,84,116Zm88,0a12,12,0,1,0,12,12A12,12,0,0,0,172,116Zm60,12A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-[13px] font-bold leading-normal tracking-[0.015em]">4</p>
+          </div>
+          <div class="flex items-center justify-center gap-2 px-3 py-2">
+            <div class="text-[#9da6b9]" data-icon="PaperPlaneTilt" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.42,29.84l85.62,40.55,40.55,85.62A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-.05.14L118.42,148.9l47.24-47.25a8,8,0,0,0-11.31-11.31L107.1,137.58,24,98.22l.14,0L216,40Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-[13px] font-bold leading-normal tracking-[0.015em]">1</p>
+          </div>
+        </div>
+        <div class="p-4 @container">
+          <div class="flex flex-col items-stretch justify-start rounded-xl @xl:flex-row @xl:items-start">
+            <div
+              class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl"
+              style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA5pwCsELJ52jK0q3HsWyP44WBsjK_ZVhtM2Q_LGM_G9qeyug5f9ZF5YIUqrWPvgAWvWNWOnodrPY7hWvWKkhqny4bsTxuvAQRzDQtEBvCQGlw_pJTSywaqWlBw3D8sAxDkcgXBpH8F7Joy-KKnL9bzmL9I-0dznvvkY9odaIGFoeH4FNyF6dBI8JumSiFP1FhNfyDqitXx32WsHB69dKFAFY59bT75wYlgRhEItfN6XGLXOn52QkSmjzweQmbKt--T6sUy54beFgU");'
+            ></div>
+            <div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 @xl:px-4">
+              <p class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">Attended a concert last night. The music was incredible!</p>
+              <div class="flex items-end gap-3 justify-between">
+                <div class="flex flex-col gap-1">
+                  <p class="text-[#9da6b9] text-base font-normal leading-normal">Ava Foster</p>
+                  <p class="text-[#9da6b9] text-base font-normal leading-normal">#music #concert</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-4 px-4 py-2 py-2 justify-between">
+          <div class="flex items-center justify-center gap-2 px-3 py-2">
+            <div class="text-[#9da6b9]" data-icon="Heart" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M178,32c-20.65,0-38.73,8.88-50,23.89C116.73,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32ZM128,206.8C109.74,196.16,32,147.69,32,94A46.06,46.06,0,0,1,78,48c19.45,0,35.78,10.36,42.6,27a8,8,0,0,0,14.8,0c6.82-16.67,23.15-27,42.6-27a46.06,46.06,0,0,1,46,46C224,147.61,146.24,196.15,128,206.8Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-[13px] font-bold leading-normal tracking-[0.015em]">29</p>
+          </div>
+          <div class="flex items-center justify-center gap-2 px-3 py-2">
+            <div class="text-[#9da6b9]" data-icon="ChatCircleDots" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128ZM84,116a12,12,0,1,0,12,12A12,12,0,0,0,84,116Zm88,0a12,12,0,1,0,12,12A12,12,0,0,0,172,116Zm60,12A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-[13px] font-bold leading-normal tracking-[0.015em]">7</p>
+          </div>
+          <div class="flex items-center justify-center gap-2 px-3 py-2">
+            <div class="text-[#9da6b9]" data-icon="PaperPlaneTilt" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-.15,0L19.57,82.84a16,16,0,0,0-2.42,29.84l85.62,40.55,40.55,85.62A15.86,15.86,0,0,0,157.74,248q.69,0,1.38-.06a15.88,15.88,0,0,0,14-11.51l58.2-191.94c0-.05,0-.1,0-.15A16,16,0,0,0,227.32,28.68ZM157.83,231.85l-.05.14L118.42,148.9l47.24-47.25a8,8,0,0,0-11.31-11.31L107.1,137.58,24,98.22l.14,0L216,40Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-[13px] font-bold leading-normal tracking-[0.015em]">2</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="flex gap-2 border-t border-[#282e39] bg-[#1c1f27] px-4 pb-3 pt-2">
+          <a class="just flex flex-1 flex-col items-center justify-end gap-1 rounded-full text-white" href="#">
+            <div class="text-white flex h-8 items-center justify-center" data-icon="House" data-size="24px" data-weight="fill">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M224,115.55V208a16,16,0,0,1-16,16H168a16,16,0,0,1-16-16V168a8,8,0,0,0-8-8H112a8,8,0,0,0-8,8v40a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V115.55a16,16,0,0,1,5.17-11.78l80-75.48.11-.11a16,16,0,0,1,21.53,0,1.14,1.14,0,0,0,.11.11l80,75.48A16,16,0,0,1,224,115.55Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-white text-xs font-medium leading-normal tracking-[0.015em]">Feed</p>
+          </a>
+          <a class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#9da6b9]" href="#">
+            <div class="text-[#9da6b9] flex h-8 items-center justify-center" data-icon="MagnifyingGlass" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-xs font-medium leading-normal tracking-[0.015em]">Explore</p>
+          </a>
+          <a class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#9da6b9]" href="#">
+            <div class="text-[#9da6b9] flex h-8 items-center justify-center" data-icon="PlusSquare" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32Zm0,176H48V48H208V208Zm-32-80a8,8,0,0,1-8,8H136v32a8,8,0,0,1-16,0V136H88a8,8,0,0,1,0-16h32V88a8,8,0,0,1,16,0v32h32A8,8,0,0,1,176,128Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-xs font-medium leading-normal tracking-[0.015em]">Post</p>
+          </a>
+          <a class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#9da6b9]" href="#">
+            <div class="text-[#9da6b9] flex h-8 items-center justify-center" data-icon="Tray" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32Zm0,16V152h-28.7A15.86,15.86,0,0,0,168,156.69L148.69,176H107.31L88,156.69A15.86,15.86,0,0,0,76.69,152H48V48Zm0,160H48V168H76.69L96,187.31A15.86,15.86,0,0,0,107.31,192h41.38A15.86,15.86,0,0,0,160,187.31L179.31,168H208v40Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-xs font-medium leading-normal tracking-[0.015em]">Messages</p>
+          </a>
+          <a class="just flex flex-1 flex-col items-center justify-end gap-1 text-[#9da6b9]" href="#">
+            <div class="text-[#9da6b9] flex h-8 items-center justify-center" data-icon="User" data-size="24px" data-weight="regular">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                <path
+                  d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"
+                ></path>
+              </svg>
+            </div>
+            <p class="text-[#9da6b9] text-xs font-medium leading-normal tracking-[0.015em]">Profile</p>
+          </a>
+        </div>
+        <div class="h-5 bg-[#1c1f27]"></div>
+      </div>
+    </div>
+  </body>
+</html>

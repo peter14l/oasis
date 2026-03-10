@@ -1,0 +1,401 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class ScreenTimeService extends ChangeNotifier {
+  static const String _storageKeyPrefix = 'screen_time_';
+
+  DateTime? _sessionStartTime;
+  Timer? _autoSaveTimer;
+
+  // --- Digital Well-being state ---
+  /// Seconds elapsed in the current continuous app session.
+  int _currentSessionElapsedSeconds = 0;
+  Timer? _wellbeingTicker;
+
+  final SharedPreferences _prefs;
+
+  ScreenTimeService(this._prefs) {
+    _loadSettings();
+    _startAutoSave();
+  }
+
+  static Future<ScreenTimeService> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    return ScreenTimeService(prefs);
+  }
+
+  // ---- Digital Well-being computed state ----
+
+  /// Minutes elapsed in the current continuous session (live, updates every second).
+  int get sessionElapsedMinutes => _currentSessionElapsedSeconds ~/ 60;
+
+  /// Saturation level for greyscale effect.
+  /// Returns 1.0 (full color) until minute 25, then ramps down to 0.0 at minute 30.
+  double get saturationLevel {
+    if (sessionElapsedMinutes < 25) return 1.0;
+    if (sessionElapsedMinutes >= 30) return 0.0;
+    return 1.0 - ((sessionElapsedMinutes - 25) / 5.0);
+  }
+
+  /// True when the session has reached 30 minutes – activates kill-switch.
+  bool get isKillSwitchActive => sessionElapsedMinutes >= 30;
+
+  /// Reset the session counter, giving the user a fresh 30-minute window.
+  void resetKillSwitch() {
+    _currentSessionElapsedSeconds = 0;
+    _sessionStartTime = DateTime.now();
+    notifyListeners();
+    debugPrint('ScreenTime: Kill-switch reset. New session started.');
+  }
+
+  /// Debug-only helper to jump forward by [minutes] minutes.
+  void debugAddMinutes(int minutes) {
+    assert(() {
+      _currentSessionElapsedSeconds += minutes * 60;
+      notifyListeners();
+      return true;
+    }());
+  }
+
+  // ---- Tracking lifecycle ----
+
+  void startTracking() {
+    _sessionStartTime = DateTime.now();
+    _startWellbeingTicker();
+    debugPrint('ScreenTime: Session started at $_sessionStartTime');
+  }
+
+  Future<void> stopTracking() async {
+    _stopWellbeingTicker();
+    if (_sessionStartTime == null) return;
+
+    final endTime = DateTime.now();
+    final duration = endTime.difference(_sessionStartTime!);
+    _sessionStartTime = null;
+
+    if (duration.inSeconds < 1) return;
+
+    await _recordUsage(endTime, duration);
+    debugPrint('ScreenTime: Session ended. Duration: ${duration.inMinutes}m');
+  }
+
+  void _startWellbeingTicker() {
+    _wellbeingTicker?.cancel();
+    _wellbeingTicker = Timer.periodic(const Duration(seconds: 1), (_) {
+      _currentSessionElapsedSeconds++;
+      notifyListeners();
+    });
+  }
+
+  void _stopWellbeingTicker() {
+    _wellbeingTicker?.cancel();
+    _wellbeingTicker = null;
+  }
+
+  void _startAutoSave() {
+    // Auto-save every minute to prevent data loss on crash/kill
+    _autoSaveTimer = Timer.periodic(const Duration(minutes: 1), (timer) async {
+      if (_sessionStartTime != null) {
+        final now = DateTime.now();
+        final duration = now.difference(_sessionStartTime!);
+        if (duration.inSeconds >= 60) {
+          await _recordUsage(now, duration);
+          // Reset start time to now to avoid double counting
+          _sessionStartTime = now;
+        }
+      }
+    });
+  }
+
+  Future<void> _recordUsage(DateTime timestamp, Duration duration) async {
+    final dateKey = _getDateKey(timestamp);
+    final hour = timestamp.hour;
+
+    // Get current daily data
+    List<int> hourlyUsage = _getHourlyUsage(dateKey);
+
+    // Add minutes to current hour
+    // Note: This is a simplification. If a session spans across hours,
+    // strictly speaking we should split it. For now, attributing to the end hour is acceptable
+    // for general usage tracking, or we can split it if precision is critical.
+    // Let's do a simple split if it's a long duration, but for 1-minute auto-saves,
+    // it will mostly fall in the correct hour.
+
+    hourlyUsage[hour] += duration.inMinutes;
+
+    await _prefs.setString(dateKey, jsonEncode(hourlyUsage));
+    notifyListeners();
+  }
+
+  List<int> _getHourlyUsage(String dateKey) {
+    final data = _prefs.getString(dateKey);
+    if (data == null) {
+      return List.filled(24, 0);
+    }
+    try {
+      final List<dynamic> decoded = jsonDecode(data);
+      return decoded.map((e) => e as int).toList();
+    } catch (e) {
+      return List.filled(24, 0);
+    }
+  }
+
+  String _getDateKey(DateTime date) {
+    return '${_storageKeyPrefix}${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  /// Get usage for a specific date
+  /// Returns a map with 'totalMinutes' and 'hourlyBreakdown'
+  Map<String, dynamic> getDailyUsage(DateTime date) {
+    final dateKey = _getDateKey(date);
+    final hourlyUsage = _getHourlyUsage(dateKey);
+    final totalMinutes = hourlyUsage.reduce((a, b) => a + b);
+
+    return {'totalMinutes': totalMinutes, 'hourlyBreakdown': hourlyUsage};
+  }
+
+  /// Get average daily usage over the last 7 days (excluding today)
+  int getWeeklyAverage() {
+    int totalMinutes = 0;
+    int daysWithData = 0;
+
+    for (int i = 1; i <= 7; i++) {
+      final date = DateTime.now().subtract(Duration(days: i));
+      final usage = getDailyUsage(date);
+      final minutes = usage['totalMinutes'] as int;
+
+      if (minutes > 0) {
+        totalMinutes += minutes;
+        daysWithData++;
+      }
+    }
+
+    if (daysWithData == 0) return 0;
+    return (totalMinutes / 7)
+        .round(); // Average over 7 days regardless of usage to show true average
+  }
+
+  /// Get daily totals for the last 7 days including today
+  List<Map<String, dynamic>> getWeeklyData() {
+    List<Map<String, dynamic>> data = [];
+    final now = DateTime.now();
+
+    for (int i = 6; i >= 0; i--) {
+      final date = now.subtract(Duration(days: i));
+      final usage = getDailyUsage(date);
+      data.add({
+        'day': _getDayName(date.weekday),
+        'minutes': usage['totalMinutes'],
+        'date': date,
+      });
+    }
+    return data;
+  }
+
+  String _getDayName(int weekday) {
+    switch (weekday) {
+      case 1:
+        return 'Mon';
+      case 2:
+        return 'Tue';
+      case 3:
+        return 'Wed';
+      case 4:
+        return 'Thu';
+      case 5:
+        return 'Fri';
+      case 6:
+        return 'Sat';
+      case 7:
+        return 'Sun';
+      default:
+        return '';
+    }
+  }
+
+  /// Get usage breakdown by category (Mock data based on total time)
+  /// In a real app, we would track time per screen/feature
+  List<Map<String, dynamic>> getCategoryUsage(int totalMinutes) {
+    if (totalMinutes == 0) return [];
+
+    // Distribute total minutes into categories roughly
+    final feed = (totalMinutes * 0.45).round();
+    final messages = (totalMinutes * 0.25).round();
+    final communities = (totalMinutes * 0.15).round();
+    final profile = (totalMinutes * 0.10).round();
+    final other = totalMinutes - feed - messages - communities - profile;
+
+    return [
+      {
+        'name': 'Feed',
+        'minutes': feed,
+        'icon': 0xe253,
+        'color': 0xFF2196F3,
+      }, // Icons.feed
+      {
+        'name': 'Messages',
+        'minutes': messages,
+        'icon': 0xe156,
+        'color': 0xFF4CAF50,
+      }, // Icons.chat
+      {
+        'name': 'Communities',
+        'minutes': communities,
+        'icon': 0xe2eb,
+        'color': 0xFFFF9800,
+      }, // Icons.people
+      {
+        'name': 'Profile',
+        'minutes': profile,
+        'icon': 0xe491,
+        'color': 0xFF9C27B0,
+      }, // Icons.person
+      {
+        'name': 'Other',
+        'minutes': other,
+        'icon': 0xe425,
+        'color': 0xFF9E9E9E,
+      }, // Icons.more_horiz
+    ];
+  }
+
+  // Quiet Mode
+  bool _quietModeEnabled = false;
+  TimeOfDay? _quietModeStart;
+  TimeOfDay? _quietModeEnd;
+  static const String _quietModeKey = 'quiet_mode_enabled';
+  static const String _quietModeStartKey = 'quiet_mode_start';
+  static const String _quietModeEndKey = 'quiet_mode_end';
+
+  // Break Reminder
+  static const int _breakReminderThresholdMinutes = 30; // Remind every 30 mins
+  DateTime? _lastBreakReminderTime;
+
+  bool get isQuietModeEnabled => _quietModeEnabled;
+  TimeOfDay? get quietModeStart => _quietModeStart;
+  TimeOfDay? get quietModeEnd => _quietModeEnd;
+
+  Future<void> _loadSettings() async {
+    _quietModeEnabled = _prefs.getBool(_quietModeKey) ?? false;
+
+    final startStr = _prefs.getString(_quietModeStartKey);
+    if (startStr != null) {
+      final parts = startStr.split(':');
+      _quietModeStart = TimeOfDay(
+        hour: int.parse(parts[0]),
+        minute: int.parse(parts[1]),
+      );
+    }
+
+    final endStr = _prefs.getString(_quietModeEndKey);
+    if (endStr != null) {
+      final parts = endStr.split(':');
+      _quietModeEnd = TimeOfDay(
+        hour: int.parse(parts[0]),
+        minute: int.parse(parts[1]),
+      );
+    }
+    notifyListeners();
+  }
+
+  Future<void> setQuietMode(bool enabled) async {
+    _quietModeEnabled = enabled;
+    await _prefs.setBool(_quietModeKey, enabled);
+    notifyListeners();
+  }
+
+  Future<void> setQuietModeHours(TimeOfDay start, TimeOfDay end) async {
+    _quietModeStart = start;
+    _quietModeEnd = end;
+
+    await _prefs.setString(_quietModeStartKey, '${start.hour}:${start.minute}');
+    await _prefs.setString(_quietModeEndKey, '${end.hour}:${end.minute}');
+    notifyListeners();
+  }
+
+  bool get isQuietModeActive {
+    if (!_quietModeEnabled ||
+        _quietModeStart == null ||
+        _quietModeEnd == null) {
+      return false;
+    }
+
+    final now = TimeOfDay.now();
+    final start = _quietModeStart!;
+    final end = _quietModeEnd!;
+
+    final nowMinutes = now.hour * 60 + now.minute;
+    final startMinutes = start.hour * 60 + start.minute;
+    final endMinutes = end.hour * 60 + end.minute;
+
+    if (startMinutes <= endMinutes) {
+      return nowMinutes >= startMinutes && nowMinutes <= endMinutes;
+    } else {
+      // Crosses midnight
+      return nowMinutes >= startMinutes || nowMinutes <= endMinutes;
+    }
+  }
+
+  /// Check for break reminder
+  /// Returns true if user should take a break
+  bool checkBreakReminder() {
+    if (_sessionStartTime == null) return false;
+
+    final now = DateTime.now();
+    final sessionDuration = now.difference(_sessionStartTime!);
+
+    if (sessionDuration.inMinutes >= _breakReminderThresholdMinutes) {
+      // Check if we already reminded recently (e.g., within last 5 mins) to avoid spam
+      if (_lastBreakReminderTime == null ||
+          now.difference(_lastBreakReminderTime!).inMinutes >=
+              _breakReminderThresholdMinutes) {
+        _lastBreakReminderTime = now;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Wellness Gamification
+  static const int _defaultDailyLimitMinutes = 120; // 2 hours
+
+  /// Calculate current streak (consecutive days under limit)
+  int getWellnessStreak() {
+    int streak = 0;
+    final now = DateTime.now();
+
+    // Check yesterday, day before, etc.
+    for (int i = 1; i <= 365; i++) {
+      final date = now.subtract(Duration(days: i));
+      final usage = getDailyUsage(date);
+      final minutes = usage['totalMinutes'] as int;
+
+      // If we have no data for a day, we assume 0 minutes (Success)
+      // UNLESS it's older than when the app was installed?
+      // For simplicity, let's assume 0 minutes is valid success.
+
+      if (minutes <= _defaultDailyLimitMinutes) {
+        streak++;
+      } else {
+        break; // Streak broken
+      }
+    }
+    return streak;
+  }
+
+  /// Get current status for today
+  bool isUnderLimit() {
+    final usage = getDailyUsage(DateTime.now());
+    return (usage['totalMinutes'] as int) <= _defaultDailyLimitMinutes;
+  }
+
+  @override
+  void dispose() {
+    _autoSaveTimer?.cancel();
+    _wellbeingTicker?.cancel();
+    super.dispose();
+  }
+}

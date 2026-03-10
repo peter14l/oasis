@@ -1,0 +1,122 @@
+import 'package:flutter/material.dart';
+
+class AppNotification {
+  final String id;
+  final String userId;
+  final String type; // 'like', 'comment', 'follow', 'mention'
+  final String? actorId;
+  final String? actorName;
+  final String? actorAvatar;
+  final String? postId;
+  final String? commentId;
+  final String? message;
+  final bool isRead;
+  final DateTime timestamp;
+
+  AppNotification({
+    required this.id,
+    required this.userId,
+    required this.type,
+    this.actorId,
+    this.actorName,
+    this.actorAvatar,
+    this.postId,
+    this.commentId,
+    this.message,
+    this.isRead = false,
+    required this.timestamp,
+  });
+
+  factory AppNotification.fromJson(Map<String, dynamic> json) {
+    return AppNotification(
+      id: json['id'] as String,
+      userId: json['user_id'] as String,
+      type: json['type'] as String,
+      actorId: json['actor_id'] as String?,
+      actorName: json['actor_name'] as String?,
+      actorAvatar: json['actor_avatar'] as String?,
+      postId: json['post_id'] as String?,
+      commentId: json['comment_id'] as String?,
+      message: json['message'] as String?,
+      isRead: json['is_read'] as bool? ?? false,
+      timestamp: json['created_at'] != null
+          ? DateTime.parse(json['created_at'] as String)
+          : DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'type': type,
+      'actor_id': actorId,
+      'actor_name': actorName,
+      'actor_avatar': actorAvatar,
+      'post_id': postId,
+      'comment_id': commentId,
+      'message': message,
+      'is_read': isRead,
+      'created_at': timestamp.toIso8601String(),
+    };
+  }
+
+  AppNotification copyWith({
+    String? id,
+    String? userId,
+    String? type,
+    String? actorId,
+    String? actorName,
+    String? actorAvatar,
+    String? postId,
+    String? commentId,
+    String? message,
+    bool? isRead,
+    DateTime? timestamp,
+  }) {
+    return AppNotification(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      type: type ?? this.type,
+      actorId: actorId ?? this.actorId,
+      actorName: actorName ?? this.actorName,
+      actorAvatar: actorAvatar ?? this.actorAvatar,
+      postId: postId ?? this.postId,
+      commentId: commentId ?? this.commentId,
+      message: message ?? this.message,
+      isRead: isRead ?? this.isRead,
+      timestamp: timestamp ?? this.timestamp,
+    );
+  }
+
+  String getNotificationText() {
+    switch (type) {
+      case 'like':
+        return '${actorName ?? 'Someone'} liked your post';
+      case 'comment':
+        return '${actorName ?? 'Someone'} commented on your post';
+      case 'follow':
+        return '${actorName ?? 'Someone'} started following you';
+      case 'mention':
+        return '${actorName ?? 'Someone'} mentioned you in a comment';
+      default:
+        return message ?? 'New notification';
+    }
+  }
+
+  IconData getNotificationIcon() {
+    switch (type) {
+      case 'like':
+        return Icons.favorite;
+      case 'comment':
+        return Icons.chat_bubble;
+      case 'follow':
+        return Icons.person_add;
+      case 'mention':
+        return Icons.alternate_email;
+      default:
+        return Icons.notifications;
+    }
+  }
+}
+

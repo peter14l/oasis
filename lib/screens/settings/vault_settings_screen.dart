@@ -1,0 +1,248 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:morrow_v2/services/vault_service.dart';
+import 'package:provider/provider.dart';
+
+class VaultSettingsScreen extends StatefulWidget {
+  const VaultSettingsScreen({super.key});
+
+  @override
+  State<VaultSettingsScreen> createState() => _VaultSettingsScreenState();
+}
+
+class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
+  bool _isLoading = true;
+  bool _isEnabled = false;
+  final _pinController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkVaultStatus();
+  }
+
+  Future<void> _checkVaultStatus() async {
+    try {
+      final service = Provider.of<VaultService>(context, listen: false);
+      final enabled = await service.isVaultEnabled();
+      if (mounted) {
+        setState(() {
+          _isEnabled = enabled;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error checking vault status: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading vault settings: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _pinController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _enableVault() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final service = Provider.of<VaultService>(context, listen: false);
+      await service.enableVault(pin: _pinController.text);
+      await _checkVaultStatus();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Vault enabled successfully')),
+        );
+        _pinController.clear();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error enabling vault: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _disableVault() async {
+    // Require PIN to disable
+    final confirmed = await _showPinDialog(context);
+    if (!confirmed) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final service = Provider.of<VaultService>(context, listen: false);
+      await service.disableVault();
+      await _checkVaultStatus();
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Vault disabled')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error disabling vault: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<bool> _showPinDialog(BuildContext context) async {
+    final controller = TextEditingController();
+    final result = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Enter PIN'),
+            content: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              obscureText: true,
+              maxLength: 4,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: const InputDecoration(
+                hintText: 'Current PIN',
+                counterText: '',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  final service = Provider.of<VaultService>(
+                    context,
+                    listen: false,
+                  );
+                  final isValid = await service.unlockWithPin(controller.text);
+                  if (context.mounted) {
+                    Navigator.pop(context, isValid);
+                  }
+                },
+                child: const Text('Confirm'),
+              ),
+            ],
+          ),
+    );
+    return result ?? false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Vault Settings')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  _isEnabled ? Icons.lock : Icons.lock_open,
+                  size: 64,
+                  color: _isEnabled ? theme.colorScheme.primary : Colors.grey,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  _isEnabled ? 'Vault is Enabled' : 'Vault is Disabled',
+                  style: theme.textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _isEnabled
+                      ? 'Your private content is secured locally'
+                      : 'Enable vault to hide sensitive content',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 32),
+          if (!_isEnabled) ...[
+            Text('Setup Vault', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 16),
+            Form(
+              key: _formKey,
+              child: TextFormField(
+                controller: _pinController,
+                keyboardType: TextInputType.number,
+                obscureText: true,
+                maxLength: 4,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: const InputDecoration(
+                  labelText: 'Set a 4-digit PIN',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.pin),
+                  counterText: '',
+                ),
+                validator: (value) {
+                  if (value == null || value.length != 4) {
+                    return 'Please enter a 4-digit PIN';
+                  }
+                  return null;
+                },
+              ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: _enableVault,
+              icon: const Icon(Icons.shield),
+              label: const Text('Enable Vault'),
+              style: FilledButton.styleFrom(padding: const EdgeInsets.all(16)),
+            ),
+          ] else ...[
+            ListTile(
+              leading: const Icon(Icons.password),
+              title: const Text('Change PIN'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                // TODO: Implement change PIN
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Feature coming soon')),
+                );
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.delete_outline),
+              title: const Text('Disable Vault'),
+              subtitle: const Text('This will unhide all secluded content'),
+              textColor: theme.colorScheme.error,
+              iconColor: theme.colorScheme.error,
+              onTap: _disableVault,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}

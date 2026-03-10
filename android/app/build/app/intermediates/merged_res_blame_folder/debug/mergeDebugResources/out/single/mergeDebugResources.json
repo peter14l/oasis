@@ -1,0 +1,26 @@
+[
+    {
+        "merged": "com.example.morrow_v2.app-debug-68:/mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "com.example.morrow_v2.app-main-70:/mipmap-xxxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.example.morrow_v2.app-debug-68:/mipmap-mdpi_ic_launcher.png.flat",
+        "source": "com.example.morrow_v2.app-main-70:/mipmap-mdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.example.morrow_v2.app-debug-68:/mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "com.example.morrow_v2.app-main-70:/mipmap-xhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.example.morrow_v2.app-debug-68:/mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "com.example.morrow_v2.app-main-70:/mipmap-xxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.example.morrow_v2.app-debug-68:/drawable-v21_launch_background.xml.flat",
+        "source": "com.example.morrow_v2.app-main-70:/drawable-v21/launch_background.xml"
+    },
+    {
+        "merged": "com.example.morrow_v2.app-debug-68:/mipmap-hdpi_ic_launcher.png.flat",
+        "source": "com.example.morrow_v2.app-main-70:/mipmap-hdpi/ic_launcher.png"
+    }
+]

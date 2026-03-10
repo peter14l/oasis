@@ -1,0 +1,570 @@
+// app_router.dart
+import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:morrow_v2/screens/community/communities_screen.dart';
+import 'package:morrow_v2/screens/community/community_name_theme_screen.dart';
+import 'package:morrow_v2/screens/community/community_guidelines_screen.dart';
+import 'package:morrow_v2/screens/community/community_description_rules_screen.dart';
+import 'package:morrow_v2/screens/community/community_privacy_moderation_screen.dart';
+import 'package:morrow_v2/screens/community/community_setup_confirmation_screen.dart';
+import 'package:morrow_v2/screens/messages/direct_messages_screen.dart' as messages;
+import 'package:morrow_v2/screens/notifications/notifications_screen.dart';
+import 'package:morrow_v2/screens/login_screen.dart' as login_screen;
+import '../screens/register_screen.dart';
+import '../screens/feed_screen.dart';
+import '../screens/create_post_screen.dart';
+import '../screens/profile_screen.dart';
+import '../screens/splash/splash_screen.dart';
+import 'package:morrow_v2/services/auth_service.dart';
+
+class AppRouter {
+  static final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>();
+
+  // Helper method to get current tab index
+  static int _getCurrentIndex(BuildContext context) {
+    final location = GoRouterState.of(context).uri.path;
+    if (location.startsWith('/feed')) return 0;
+    if (location.startsWith('/communities')) return 1;
+    if (location.startsWith('/messages')) return 2;
+    if (location.startsWith('/notifications')) return 3;
+    if (location.startsWith('/profile')) return 4;
+    return 0;
+  }
+
+  static bool _isAuthRoute(String path) {
+    return path == '/login' || path == '/register' || path == '/splash';
+  }
+
+  static final GoRouter router = GoRouter(
+    navigatorKey: _rootNavigatorKey,
+    initialLocation: '/splash',
+    debugLogDiagnostics: true,
+    redirect: (context, state) async {
+      // Skip redirect for splash screen to avoid loop
+      if (state.uri.path == '/splash') {
+        return null;
+      }
+      
+      final isLoggedIn = AuthService().currentUser != null;
+      final isAuthRoute = _isAuthRoute(state.uri.path);
+      
+      if (!isLoggedIn && !isAuthRoute) {
+        return '/login';
+      }
+      
+      if (isLoggedIn && isAuthRoute && state.uri.path != '/splash') {
+        return '/feed';
+      }
+      
+      return null;
+    },
+    routes: [
+      // Splash Screen
+      GoRoute(
+        path: '/splash',
+        name: 'splash',
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: const SplashScreen(),
+        ),
+      ),
+      
+      // Auth Routes
+      GoRoute(
+        path: '/login',
+        name: 'login',
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: const login_screen.LoginScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/register',
+        name: 'register',
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: const RegisterScreen(),
+        ),
+      ),
+      
+      // Main App Shell (Tab Navigation)
+      ShellRoute(
+        navigatorKey: _shellNavigatorKey,
+        builder: (context, state, child) => MainLayout(child: child),
+        routes: [
+          // Feed Screen
+          GoRoute(
+            path: '/feed',
+            name: 'feed',
+            pageBuilder: (context, state) => NoTransitionPage(
+              key: state.pageKey,
+              child: const FeedScreen(),
+            ),
+          ),
+          
+          // Communities Screen
+          GoRoute(
+            path: '/communities',
+            name: 'communities',
+            pageBuilder: (context, state) => NoTransitionPage(
+              key: state.pageKey,
+              child: const CommunitiesScreen(),
+            ),
+            routes: [
+              // Community Creation Flow
+              GoRoute(
+                path: 'create',
+                name: 'create_community',
+                builder: (context, state) => const CommunityNameThemeScreen(),
+              ),
+            ],
+          ),
+
+          // Direct Messages Screen
+          GoRoute(
+            path: '/messages',
+            name: 'messages',
+            pageBuilder: (context, state) => MaterialPage(
+              key: state.pageKey,
+              child: const messages.DirectMessagesScreen(),
+            ),
+            routes: [
+              GoRoute(
+                path: ':chatId',
+                name: 'chat',
+                builder: (context, state) {
+                  final chatId = state.pathParameters['chatId']!;
+                  // TODO: Implement ChatScreen with chatId
+                  return Center(
+                    child: Text('Chat ID: $chatId'),
+                  );
+                },
+              ),
+            ],
+          ),
+
+          // Notifications Screen
+          GoRoute(
+            path: '/notifications',
+            name: 'notifications',
+            pageBuilder: (context, state) => NoTransitionPage(
+              key: state.pageKey,
+              child: const NotificationsScreen(),
+            ),
+          ),
+          
+          // Profile Screen
+          GoRoute(
+            path: '/profile',
+            name: 'profile',
+            pageBuilder: (context, state) => NoTransitionPage(
+              key: state.pageKey,
+              child: const ProfileScreen(),
+            ),
+          ),
+        ],
+      ),
+      
+      // Create Post Modal
+      GoRoute(
+        path: '/create-post',
+        name: 'create_post',
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          fullscreenDialog: true,
+          child: const CreatePostScreen(),
+        ),
+      ),
+
+      // Community Creation Flow
+      GoRoute(
+        path: '/community/create',
+        name: 'create-community',
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: const CommunityNameThemeScreen(),
+        ),
+      ),
+      
+      // Community Creation Steps
+      GoRoute(
+        path: '/community/guidelines',
+        name: 'community-guidelines',
+        pageBuilder: (context, state) {
+          final extra = (state.extra ?? {}) as Map<String, dynamic>;
+          final name = extra['name']?.toString() ?? '';
+          final theme = extra['theme']?.toString() ?? '';
+          return MaterialPage(
+            key: state.pageKey,
+            child: CommunityGuidelinesScreen(
+              name: name,
+              theme: theme,
+            ),
+          );
+        },
+      ),
+      
+      GoRoute(
+        path: '/community/description',
+        name: 'community-description',
+        pageBuilder: (context, state) {
+          final extra = (state.extra ?? {}) as Map<String, dynamic>;
+          final name = extra['name']?.toString() ?? '';
+          final theme = extra['theme']?.toString() ?? '';
+          return MaterialPage(
+            key: state.pageKey,
+            child: CommunityDescriptionRulesScreen(
+              name: name,
+              theme: theme,
+            ),
+          );
+        },
+      ),
+      
+      GoRoute(
+        path: '/community/privacy',
+        name: 'community-privacy',
+        pageBuilder: (context, state) {
+          final extra = (state.extra ?? {}) as Map<String, dynamic>;
+          final name = extra['name']?.toString() ?? '';
+          final theme = extra['theme']?.toString() ?? '';
+          final description = extra['description']?.toString() ?? '';
+          final rules = extra['rules']?.toString() ?? '';
+          return MaterialPage(
+            key: state.pageKey,
+            child: CommunityPrivacyModerationScreen(
+              name: name,
+              theme: theme,
+              description: description,
+              rules: rules,
+            ),
+          );
+        },
+      ),
+      
+      GoRoute(
+        path: '/community/confirmation',
+        name: 'community-confirmation',
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: CommunitySetupConfirmationScreen(
+            communityData: state.extra as Map<String, dynamic>,
+          ),
+        ),
+      ),
+      
+      // Community View
+      GoRoute(
+        path: '/community/:communityId',
+        name: 'community',
+        pageBuilder: (context, state) => MaterialPage(
+          key: state.pageKey,
+          child: Center(
+            child: Text('Community ID: ${state.pathParameters['communityId']}'),
+          ),
+        ),
+      ),
+    ],
+  );
+  
+  class MainLayout extends StatefulWidget {
+    final Widget child;
+
+    const MainLayout({super.key, required this.child});
+
+    @override
+    State<MainLayout> createState() => _MainLayoutState();
+      extendBody: true, // This makes the body extend behind the navigation bar
+      body: AnimatedPadding(
+        duration: const Duration(milliseconds: 200),
+        padding: EdgeInsets.only(bottom: bottomInset + 30), // Add some space above the nav bar
+        child: widget.child,
+      ),
+      floatingActionButton: _buildFloatingActionButton(context, currentIndex),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: _buildBottomNavigationBar(context, currentIndex, theme),
+    );
+  }
+
+  Widget? _buildFloatingActionButton(BuildContext context, int currentIndex) {
+    final theme = Theme.of(context);
+    
+    if (currentIndex == 1) { // Communities tab
+      return FloatingActionButton(
+        onPressed: () => context.goNamed('create_community'),
+        backgroundColor: theme.colorScheme.primary,
+        elevation: 2,
+        shape: const CircleBorder(),
+        child: Icon(
+          Icons.add_rounded, 
+          color: theme.colorScheme.onPrimary, 
+          size: 28,
+        ),
+      );
+    } else if (currentIndex == 0) { // Feed tab
+      return FloatingActionButton(
+        onPressed: () => context.pushNamed('create_post'),
+        backgroundColor: theme.colorScheme.primary,
+        elevation: 2,
+        shape: const CircleBorder(),
+        child: Icon(
+          Icons.add_rounded, 
+          color: theme.colorScheme.onPrimary, 
+          size: 28,
+        ),
+      );
+    }
+    return null;
+  }
+
+  Widget _buildBottomNavigationBar(
+      BuildContext context, int currentIndex, ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+    
+    return Container(
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withOpacity(0.1),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRect(
+        // Using ClipRect for a clean rectangular container
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            padding: const EdgeInsets.only(bottom: 16), // Bottom padding for the navigation bar
+            height: 90, // Height of the navigation bar
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withOpacity(0.8),
+              borderRadius: BorderRadius.zero, // No border radius on the container
+              border: Border(
+                top: BorderSide(
+                  color: colorScheme.outlineVariant.withOpacity(0.3),
+                  width: 0.5,
+                ),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildExpressiveNavItem(
+                  context: context,
+                  icon: Icons.home_outlined,
+                  activeIcon: Icons.home_rounded,
+                  label: 'Feed',
+                  isActive: currentIndex == 0,
+                  theme: theme,
+                ),
+                _buildExpressiveNavItem(
+                  context: context,
+                  icon: Icons.people_outline_rounded,
+                  activeIcon: Icons.people_rounded,
+                  label: 'Communities',
+                  isActive: currentIndex == 1,
+                  theme: theme,
+                ),
+                _buildExpressiveNavItem(
+                  context: context,
+                  icon: Icons.chat_bubble_outline_rounded,
+                  activeIcon: Icons.chat_bubble_rounded,
+                  label: 'Messages',
+                  isActive: currentIndex == 2,
+                  theme: theme,
+                  badgeCount: 3,
+                ),
+                _buildExpressiveNavItem(
+                  context: context,
+                  icon: Icons.notifications_outlined,
+                  activeIcon: Icons.notifications_rounded,
+                  label: 'Alerts',
+                  isActive: currentIndex == 3,
+                  theme: theme,
+                  badgeCount: 3,
+                ),
+                _buildExpressiveNavItem(
+                  context: context,
+                  icon: Icons.person_outline_rounded,
+                  activeIcon: Icons.person_rounded,
+                  label: 'Profile',
+                  isActive: currentIndex == 4,
+                  theme: theme,
+                  isProfile: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // M3E: Custom nav item with expressive styling
+  Widget _buildExpressiveNavItem({
+    required BuildContext context,
+    required IconData icon,
+    required IconData activeIcon,
+    required String label,
+    required bool isActive,
+    required ThemeData theme,
+    int? badgeCount,
+    bool isProfile = false,
+  }) {
+    // Add margin to create space between items
+    const double itemMargin = 4.0;
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    
+    Widget iconWidget = isProfile
+        ? _buildProfileAvatar(theme, isActive)
+        : Icon(
+            isActive ? activeIcon : icon,
+            size: 24,
+            color: isActive
+                ? colorScheme.onPrimaryContainer
+                : colorScheme.onSurfaceVariant,
+          );
+
+    if (badgeCount != null && badgeCount > 0) {
+      iconWidget = Badge.count(
+        count: badgeCount,
+        textColor: colorScheme.onError,
+        backgroundColor: colorScheme.error,
+        largeSize: 20,
+        textStyle: textTheme.labelSmall?.copyWith(
+          color: colorScheme.onError,
+          fontSize: 10,
+          height: 1,
+          fontWeight: FontWeight.w600,
+        ),
+        child: iconWidget,
+      );
+    }
+
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isActive ? null : () => _onDestinationSelected(_getIndexForLabel(label)),
+          splashColor: colorScheme.primary.withOpacity(0.1),
+          highlightColor: colorScheme.primary.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(16), // Border radius for tap area
+          child: Container(
+            height: 56, // Standard height for icon-only navigation
+            margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8), // More vertical space for icon
+            decoration: isActive
+                ? BoxDecoration(
+                    color: colorScheme.primaryContainer.withBlue(200).withGreen(200), // Teal green tint
+                    borderRadius: BorderRadius.circular(8), // More rectangular shape
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  )
+                : null,
+            child: Center(
+              child: iconWidget,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Helper to get index from label
+  int _getIndexForLabel(String label) {
+    switch (label.toLowerCase()) {
+      case 'feed':
+        return 0;
+      case 'communities':
+        return 1;
+      case 'messages':
+        return 2;
+      case 'alerts':
+        return 3;
+      case 'profile':
+        return 4;
+      default:
+        return 0;
+    }
+  }
+
+  Widget _buildProfileAvatar(ThemeData theme, bool isSelected) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: isSelected
+            ? LinearGradient(
+                colors: [
+                  theme.colorScheme.primary,
+                  theme.colorScheme.secondary,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: theme.colorScheme.primary.withOpacity(0.3),
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
+      ),
+      child: CircleAvatar(
+        radius: 14,
+        backgroundColor: theme.colorScheme.surfaceVariant,
+        child: CircleAvatar(
+          radius: 12,
+          backgroundColor: theme.colorScheme.surface,
+          child: ClipOval(
+            child: Image.network(
+              'https://randomuser.me/api/portraits/men/1.jpg',
+              width: 22,
+              height: 22,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Icon(
+                Icons.person,
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _onDestinationSelected(int index) {
+    final router = GoRouter.of(context);
+    switch (index) {
+      case 0:
+        router.go('/feed');
+        break;
+      case 1:
+        router.go('/communities');
+        break;
+      case 2:
+        router.go('/messages');
+        break;
+      case 3:
+        router.go('/notifications');
+        break;
+      case 4:
+        router.go('/profile');
+        break;
+    }
+  }
+}
