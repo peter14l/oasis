@@ -12,7 +12,6 @@ class WellnessBadge extends StatelessWidget {
         final streak = service.getWellnessStreak();
         final isUnder = service.isUnderLimit();
         final theme = Theme.of(context);
-        final colorScheme = theme.colorScheme;
 
         if (streak == 0 && !isUnder) {
           return const SizedBox.shrink(); // Hide if no streak and failed today
@@ -21,7 +20,10 @@ class WellnessBadge extends StatelessWidget {
         // "Digital Zen Master" if streak > 7
         final isMaster = streak >= 7;
         final label = isMaster ? 'Zen Master' : '$streak Day Streak';
-        final color = isMaster ? const Color(0xFFFFD700) : const Color(0xFF4CAF50); // Gold vs Green
+        final color =
+            isMaster
+                ? const Color(0xFFFFD700)
+                : const Color(0xFF4CAF50); // Gold vs Green
 
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -33,11 +35,7 @@ class WellnessBadge extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.local_fire_department,
-                size: 16,
-                color: color,
-              ),
+              Icon(Icons.local_fire_department, size: 16, color: color),
               const SizedBox(width: 6),
               Text(
                 label,

@@ -63,9 +63,11 @@ class _ProfileScreenState extends State<ProfileScreen>
         _userPosts = posts;
         _isLoadingPosts = false;
       });
-      
+
       // Load saved posts as well
-      final savedPosts = await context.read<ProfileProvider>().loadSavedPosts(userId);
+      final savedPosts = await context.read<ProfileProvider>().loadSavedPosts(
+        userId,
+      );
       setState(() {
         _savedPosts.clear();
         _savedPosts.addAll(savedPosts);
@@ -73,60 +75,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     } catch (e) {
       setState(() => _isLoadingPosts = false);
     }
-  }
-
-  Future<void> _handleEditBanner() async {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder:
-          (context) => Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Edit Banner',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildOption(
-                      icon: Icons.image_outlined,
-                      label: 'Upload Image',
-                      onTap: () async {
-                        Navigator.pop(context);
-                        final ImagePicker picker = ImagePicker();
-                        final XFile? image = await picker.pickImage(
-                          source: ImageSource.gallery,
-                        );
-                        if (image != null) {
-                          _updateBanner(file: File(image.path));
-                        }
-                      },
-                    ),
-                    _buildOption(
-                      icon: Icons.color_lens_outlined,
-                      label: 'Pick Color',
-                      onTap: () {
-                        Navigator.pop(context);
-                        _showColorPicker();
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-    );
   }
 
   void _showColorPicker() {
@@ -303,13 +251,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                       ],
                     ),
                     CustomScrollView(
-                       physics: const ClampingScrollPhysics(),
-                       slivers: [
-                         SliverPadding(
-                           padding: const EdgeInsets.symmetric(horizontal: 2),
-                           sliver: _buildPostsGrid(_savedPosts, userId),
-                         ),
-                       ],
+                      physics: const ClampingScrollPhysics(),
+                      slivers: [
+                        SliverPadding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          sliver: _buildPostsGrid(_savedPosts, userId),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -435,11 +383,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                   if (profile.isVerified) ...[
                     const SizedBox(width: 6),
-                    Icon(
-                      Icons.verified,
-                      size: 24,
-                      color: colorScheme.primary,
-                    ),
+                    Icon(Icons.verified, size: 24, color: colorScheme.primary),
                   ],
                 ],
               ),
@@ -651,34 +595,5 @@ class _ProfileScreenState extends State<ProfileScreen>
         );
       }, childCount: posts.length),
     );
-  }
-}
-
-class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
-  final TabBar _tabBar;
-
-  _SliverAppBarDelegate(this._tabBar);
-
-  @override
-  double get minExtent => _tabBar.preferredSize.height;
-
-  @override
-  double get maxExtent => _tabBar.preferredSize.height;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      child: _tabBar,
-    );
-  }
-
-  @override
-  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
-    return false;
   }
 }
