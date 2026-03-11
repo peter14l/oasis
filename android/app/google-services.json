@@ -12,7 +12,20 @@
           "package_name": "com.example.morrow_v2"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "244356693090-jhi7u7nfeonvp8ipnrnjd5c3i7vurdtf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.morrow_v2",
+            "certificate_hash": "45c9969024cc469a0b80db13e613314f7ded2abc"
+          }
+        },
+        {
+          "client_id": "244356693090-mbjf7q6mtdsum5ur3rmqqckbsurv9aqc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCUH_8F75hahrIVl5Ri8SB5aSFMEqYsP_M"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "244356693090-mbjf7q6mtdsum5ur3rmqqckbsurv9aqc.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "244356693090-qf8sr3c1f0si1dop8jcaellnr75a74j2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.morrowV2"
+              }
+            }
+          ]
         }
       }
     }

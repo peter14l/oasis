@@ -12,6 +12,7 @@ import 'package:morrow_v2/config/supabase_config.dart';
 import 'package:morrow_v2/services/supabase_service.dart';
 import 'package:morrow_v2/services/encryption_service.dart';
 import 'package:morrow_v2/services/notification_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthService with ChangeNotifier {
   late final SupabaseClient _supabase;
@@ -33,7 +34,11 @@ class AuthService with ChangeNotifier {
       notifyListeners();
     });
   }
-  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: kIsWeb ? dotenv.get('GOOGLE_WEB_CLIENT_ID') : null,
+    serverClientId: dotenv.get('GOOGLE_WEB_CLIENT_ID'),
+    scopes: ['email', 'profile'],
+  );
 
   // Auth state changes
   Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
@@ -97,10 +102,10 @@ class AuthService with ChangeNotifier {
       _notificationService.updateFcmToken(response.user!.id);
 
       return _userFromSupabaseUser(response.user!);
-    } on AuthException catch (e) {
+    } on AuthException {
       rethrow;
-    } catch (e) {
-      throw AuthException('Failed to sign in: ${e.toString()}');
+    } catch (_) {
+      throw AuthException('Failed to sign in and provision keys.');
     }
   }
 
@@ -168,11 +173,11 @@ class AuthService with ChangeNotifier {
         throw AuthException('Google sign in was cancelled');
       }
 
-      // Get auth tokens
-      final googleAuth = await googleUser.authentication;
+      // Get auth tokens (unused but kept for context if needed later)
+      // final googleAuth = await googleUser.authentication;
 
       // Sign in to Supabase with the Google token
-      final response = await _supabase.auth.signInWithOAuth(
+      await _supabase.auth.signInWithOAuth(
         OAuthProvider.google,
         authScreenLaunchMode: LaunchMode.externalApplication,
         redirectTo: 'morrow://login-callback',
