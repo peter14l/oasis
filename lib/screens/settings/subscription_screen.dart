@@ -101,27 +101,38 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
               const SizedBox(height: 32),
 
-              // Features
-              _buildFeatureRow(
-                context,
-                Icons.block,
-                'Completely Ad-Free Experience',
+              // Comparison Matrix
+              const SizedBox(height: 16),
+              Text(
+                'Compare Plans',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                ),
               ),
-              _buildFeatureRow(
-                context,
-                Icons.analytics,
-                '90-Day Creator Analytics & Heatmaps',
-              ),
-              _buildFeatureRow(
-                context,
-                Icons.lock,
-                'Unlimited Protected Vault Storage',
-              ),
-              _buildFeatureRow(context, Icons.people, 'Host Live Audio Rooms'),
-              _buildFeatureRow(
-                context,
-                Icons.autorenew,
-                'Direct Cross-Posting & Social Automations',
+              const SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    _buildMatrixHeader(context),
+                    const Divider(height: 1),
+                    _buildMatrixRow(context, 'AI Suggestions', '2/day', '10/day'),
+                    _buildMatrixRow(context, 'AI Hashtags', '5/post', '30/post'),
+                    _buildMatrixRow(context, 'Vault Storage', '10 Items', 'Unlimited'),
+                    _buildMatrixRow(context, 'Vault Security', 'PIN', 'Biometrics'),
+                    _buildMatrixRow(context, 'Analytics', '7 Days', '90 Days + Heatmaps'),
+                    _buildMatrixRow(context, 'Time Capsules', '3 Active', 'Unlimited'),
+                    _buildMatrixRow(context, 'Cross-Posting', 'Share Sheet', 'Direct Posting'),
+                    _buildMatrixRow(context, 'Scroll Health', '30m Limit', 'Customizable', isLast: true),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 32),
@@ -245,31 +256,36 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     );
   }
 
-  Widget _buildFeatureRow(BuildContext context, IconData icon, String text) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildMatrixHeader(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer.withValues(alpha: 0.5),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 20, color: colorScheme.primary),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              text,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-            ),
-          ),
+          Expanded(flex: 3, child: Text('Feature', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold))),
+          Expanded(flex: 2, child: Text('Free', textAlign: TextAlign.center, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold))),
+          Expanded(flex: 2, child: Text('Pro', textAlign: TextAlign.center, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.primary))),
         ],
       ),
+    );
+  }
+
+  Widget _buildMatrixRow(BuildContext context, String feature, String freeVal, String proVal, {bool isLast = false}) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Expanded(flex: 3, child: Text(feature, style: theme.textTheme.bodyMedium)),
+              Expanded(flex: 2, child: Text(freeVal, textAlign: TextAlign.center, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant))),
+              Expanded(flex: 2, child: Text(proVal, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.primary))),
+            ],
+          ),
+        ),
+        if (!isLast) const Divider(height: 1, indent: 16, endIndent: 16),
+      ],
     );
   }
 

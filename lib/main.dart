@@ -336,7 +336,24 @@ class _MyAppState extends State<MyApp> {
                 textScaler: TextScaler.linear(scale),
                 boldText: false,
               ),
-              child: MeshGradientBackground(child: child!),
+                child: MeshGradientBackground(
+                  child: Consumer<ScreenTimeService>(
+                    builder: (context, screenTime, child) {
+                      final saturation = screenTime.saturationLevel;
+                      if (saturation == 1.0) return child!;
+                      return ColorFiltered(
+                        colorFilter: ColorFilter.matrix([
+                          0.2126 + 0.7874 * saturation, 0.7152 - 0.7152 * saturation, 0.0722 - 0.0722 * saturation, 0, 0,
+                          0.2126 - 0.2126 * saturation, 0.7152 + 0.2848 * saturation, 0.0722 - 0.0722 * saturation, 0, 0,
+                          0.2126 - 0.2126 * saturation, 0.7152 - 0.7152 * saturation, 0.0722 + 0.9278 * saturation, 0, 0,
+                          0, 0, 0, 1, 0,
+                        ]),
+                        child: child,
+                      );
+                    },
+                    child: child!,
+                  ),
+                ),
             );
           },
         );

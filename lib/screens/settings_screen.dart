@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:morrow_v2/main.dart'; // For ThemeProvider
 import 'package:morrow_v2/services/auth_service.dart';
 import 'package:morrow_v2/services/profile_service.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
 import 'package:morrow_v2/utils/responsive_layout.dart';
 import 'package:morrow_v2/screens/settings/screen_time_screen.dart';
 import 'package:morrow_v2/screens/settings/vault_settings_screen.dart';
@@ -17,6 +16,7 @@ import 'package:morrow_v2/screens/settings/font_size_screen.dart';
 import 'package:morrow_v2/screens/settings/help_support_screen.dart';
 import 'package:morrow_v2/screens/moderation/moderation_screens.dart'; // For BlockedUsersScreen
 import 'package:morrow_v2/providers/user_settings_provider.dart';
+import 'package:morrow_v2/services/screen_time_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -253,6 +253,17 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 );
               },
+            ),
+            _buildSettingsTile(
+              context,
+              icon: Icons.hourglass_top_outlined,
+              title: 'Scroll Limit',
+              subtitle: '${userSettingsProvider.scrollLimitMinutes} minutes',
+              iconColor: Colors.deepOrange,
+              trailing: authService.currentUser?.isPro == true
+                  ? null
+                  : const Icon(Icons.lock_outline, size: 20, color: Colors.orange),
+              onTap: () => _showScrollLimitPicker(context),
             ),
             // ... existing items ...
           ]),
@@ -758,13 +769,13 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _launchEmail(String label, BuildContext context) async {
-    final supabaseUser = SupabaseService().client.auth.currentUser;
-    final isPro = supabaseUser?.userMetadata?['is_pro'] == true;
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final isPro = authService.currentUser?.isPro == true;
     final prefix = isPro ? '[PRO] ' : '';
 
     final Uri emailLaunchUri = Uri(
       scheme: 'mailto',
-      path: 'support@morrowapp.com', // Example email; can be changed as needed
+      path: 'support@morrowapp.com',
       query:
           'subject=${Uri.encodeComponent('${prefix}Morrow App Feedback: $label')}',
     );
@@ -774,6 +785,60 @@ class SettingsScreen extends StatelessWidget {
     } catch (e) {
       debugPrint('Could not launch email client: $e');
     }
+  }
+
+  void _showScrollLimitPicker(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final isPro = authService.currentUser?.isPro == true;
+
+    if (!isPro) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Custom Scroll Limits are a Pro feature!'),
+          action: SnackBarAction(label: 'UPGRADE', onPressed: () {}),
+        ),
+      );
+      return;
+    }
+
+    final settings = Provider.of<UserSettingsProvider>(context, listen: false);
+    final screenTime = Provider.of<ScreenTimeService>(context, listen: false);
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Set Scroll Limit', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              const Text('The app will turn B/W when you reach this limit.'),
+              const SizedBox(height: 24),
+              Wrap(
+                spacing: 12,
+                children: [15, 30, 45, 60, 90, 120].map((mins) {
+                  final isSelected = settings.scrollLimitMinutes == mins;
+                  return ChoiceChip(
+                    label: Text('$mins min'),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      if (selected) {
+                        settings.setScrollLimitMinutes(mins);
+                        screenTime.setScrollLimit(mins);
+                        Navigator.pop(context);
+                      }
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   String _getThemeModeName(ThemeMode mode) {
