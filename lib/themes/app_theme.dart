@@ -3,7 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
 
 // Light Theme Colors
-const Color _lightPrimaryColor = Color(0xFF1152D4);
+const Color _lightPrimaryColor = Color(0xFF2563EB); // Royal Blue
+const Color _lightSecondaryColor = Color(0xFF10B981); // Emerald
+const Color _lightTertiaryColor = Color(0xFFF59E0B); // Amber
 const Color _lightBackgroundColor = Color(0xFFFFFFFF);
 const Color _lightSurfaceColor = Color(0xFFF5F5F5);
 const Color _lightOnSurfaceColor = Color(0xFF111111);
@@ -11,9 +13,9 @@ const Color _lightOnSurfaceVariantColor = Color(0xFF666666);
 const Color _lightErrorColor = Color(0xFFD32F2F);
 
 // Dark Theme Colors - Premium Dark Theme
-const Color _darkPrimaryColor = Color(
-  0xFF6B9EFF,
-); // Brighter blue for better contrast
+const Color _darkPrimaryColor = Color(0xFF3B82F6); // Brighter Blue for Dark Mode
+const Color _darkSecondaryColor = Color(0xFF34D399); // Brighter Emerald
+const Color _darkTertiaryColor = Color(0xFFFBBF24); // Brighter Amber
 const Color _darkBackgroundColor = Color(0xFF0C0F14); // Main background
 const Color _darkSurfaceColor = Color(0xFF1A1D24); // Elevated surfaces
 const Color _darkSurfaceVariant = Color(0xFF252930); // Cards and containers
@@ -244,7 +246,7 @@ class AppTheme {
   static CardThemeData get cardTheme => CardThemeData(
     elevation: 0,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(24),
       side: BorderSide(color: _lightSurfaceColor),
     ),
     color: _lightSurfaceColor,
@@ -482,12 +484,17 @@ class AppTheme {
         borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide(color: _darkPrimaryColor, width: 2),
       ),
+      // Adding neon glow effect via custom styling in widgets is preferred, 
+      // but we can set a helper style here if needed via specialized components.
+      // For now, we'll ensure the focused state is vibrant.
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: _darkPrimaryColor,
         foregroundColor: _darkBackgroundColor,
-        elevation: 0,
+        elevation: 8,
+        shadowColor: _darkPrimaryColor.withValues(alpha: 0.5),
+        surfaceTintColor: _darkPrimaryColor,
       ),
     ),
     textButtonTheme: TextButtonThemeData(

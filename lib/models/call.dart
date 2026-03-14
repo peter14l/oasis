@@ -11,6 +11,9 @@ class Call {
   final CallType type;
   final DateTime startedAt;
   final DateTime? endedAt;
+  final String? sdp;
+  final String? sdpType;
+  final List<Map<String, dynamic>>? iceCandidates;
   final String? agoraToken;
   final DateTime createdAt;
 
@@ -24,6 +27,9 @@ class Call {
     required this.startedAt,
     this.endedAt,
     this.agoraToken,
+    this.sdp,
+    this.sdpType,
+    this.iceCandidates,
     required this.createdAt,
   });
 
@@ -44,6 +50,11 @@ class Call {
       startedAt: DateTime.parse(json['started_at'] as String),
       endedAt: json['ended_at'] != null ? DateTime.parse(json['ended_at'] as String) : null,
       agoraToken: json['agora_token'] as String?,
+      sdp: json['sdp'] as String?,
+      sdpType: json['sdp_type'] as String?,
+      iceCandidates: json['ice_candidates'] != null
+          ? List<Map<String, dynamic>>.from(json['ice_candidates'] as List)
+          : null,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
@@ -59,6 +70,9 @@ class Call {
       'started_at': startedAt.toIso8601String(),
       'ended_at': endedAt?.toIso8601String(),
       'agora_token': agoraToken,
+      'sdp': sdp,
+      'sdp_type': sdpType,
+      'ice_candidates': iceCandidates,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -67,6 +81,9 @@ class Call {
     CallStatus? status,
     DateTime? endedAt,
     String? agoraToken,
+    String? sdp,
+    String? sdpType,
+    List<Map<String, dynamic>>? iceCandidates,
   }) {
     return Call(
       id: id,
@@ -78,6 +95,9 @@ class Call {
       startedAt: startedAt,
       endedAt: endedAt ?? this.endedAt,
       agoraToken: agoraToken ?? this.agoraToken,
+      sdp: sdp ?? this.sdp,
+      sdpType: sdpType ?? this.sdpType,
+      iceCandidates: iceCandidates ?? this.iceCandidates,
       createdAt: createdAt,
     );
   }

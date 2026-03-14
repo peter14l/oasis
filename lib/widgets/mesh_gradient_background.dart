@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class MeshGradientBackground extends StatefulWidget {
@@ -53,7 +54,7 @@ class _MeshGradientBackgroundState extends State<MeshGradientBackground>
     return Stack(
       children: [
         // Background base color
-        Container(color: const Color(0xFF0F0F1A)),
+        Container(color: const Color(0xFF0C0F14)), // Deep Space Black
 
         // Animated Mesh Orbs
         AnimatedBuilder(
@@ -67,9 +68,15 @@ class _MeshGradientBackgroundState extends State<MeshGradientBackground>
         ),
 
         // Blur overlay to blend the orbs
-        // Using a highly blurred BackdropFilter to create the "mesh" effect
-        // Note: BackdropFilter applies to everything underneath it within a Stack
-        // Use with caution on low-end devices for performance.
+        ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+            child: Container(
+              color: Colors.black.withValues(alpha: 0.1),
+            ),
+          ),
+        ),
+
         // Overlay gradient for depth
         Container(
           decoration: BoxDecoration(
@@ -77,9 +84,9 @@ class _MeshGradientBackgroundState extends State<MeshGradientBackground>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.black.withOpacity(0.2),
+                Colors.black.withValues(alpha: 0.2),
                 Colors.transparent,
-                Colors.black.withOpacity(0.4),
+                Colors.black.withValues(alpha: 0.4),
               ],
             ),
           ),
@@ -100,28 +107,37 @@ class MeshPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint =
-        Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 80);
+        Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 60);
 
-    // Deep Blue Orb 1
-    // Moves in a figure-8 or simpler Lissajous curve
-    final x1 = size.width * 0.2 + sin(animationValue * 2 * pi) * 100;
-    final y1 = size.height * 0.3 + cos(animationValue * 2 * pi) * 50;
-    paint.color = const Color(
-      0xFF2A52BE,
-    ).withOpacity(0.6); // Deep ocean blue
-    canvas.drawCircle(Offset(x1, y1), 200, paint);
+    // Royal Blue Orb 1
+    final x1 = size.width * 0.2 + sin(animationValue * 2 * pi) * 120;
+    final y1 = size.height * 0.3 + cos(animationValue * 2 * pi) * 70;
+    paint.color = const Color(0xFF2563EB).withValues(alpha: 0.5); // Royal Blue
+    canvas.drawCircle(Offset(x1, y1), 220, paint);
 
-    // Cyan Orb 2
-    final x2 = size.width * 0.8 - cos(animationValue * 2 * pi) * 120;
-    final y2 = size.height * 0.7 - sin(animationValue * 2 * pi) * 80;
-    paint.color = const Color(0xFF00E5FF).withOpacity(0.5); // Bright cyan
-    canvas.drawCircle(Offset(x2, y2), 250, paint);
+    // Emerald Orb 2
+    final x2 = size.width * 0.8 - cos(animationValue * 2 * pi) * 150;
+    final y2 = size.height * 0.7 - sin(animationValue * 2 * pi) * 90;
+    paint.color = const Color(0xFF10B981).withValues(alpha: 0.4); // Emerald
+    canvas.drawCircle(Offset(x2, y2), 280, paint);
 
-    // Cornflower Blue Orb 3
-    final x3 = size.width * 0.5 + sin(animationValue * 2 * pi + 1) * 80;
-    final y3 = size.height * 0.5 + cos(animationValue * 2 * pi + 1) * 100;
-    paint.color = const Color(0xFF6B9EFF).withOpacity(0.4); // Primary dark blue
-    canvas.drawCircle(Offset(x3, y3), 180, paint);
+    // Amber Orb 3
+    final x3 = size.width * 0.5 + sin(animationValue * 2 * pi + 1) * 100;
+    final y3 = size.height * 0.5 + cos(animationValue * 2 * pi + 1) * 120;
+    paint.color = const Color(0xFFF59E0B).withValues(alpha: 0.4); // Amber
+    canvas.drawCircle(Offset(x3, y3), 200, paint);
+
+    // Deep Blue Orb 4
+    final x4 = size.width * 0.1 + cos(animationValue * 2 * pi + 2) * 80;
+    final y4 = size.height * 0.8 + sin(animationValue * 2 * pi + 2) * 100;
+    paint.color = const Color(0xFF1D4ED8).withValues(alpha: 0.3); // Deeper Royal Blue
+    canvas.drawCircle(Offset(x4, y4), 150, paint);
+
+    // Teal/Emerald Orb 5
+    final x5 = size.width * 0.9 - sin(animationValue * 2 * pi + 0.5) * 100;
+    final y5 = size.height * 0.1 + cos(animationValue * 2 * pi + 0.5) * 80;
+    paint.color = const Color(0xFF0D9488).withValues(alpha: 0.4); // Teal
+    canvas.drawCircle(Offset(x5, y5), 240, paint);
   }
 
   @override

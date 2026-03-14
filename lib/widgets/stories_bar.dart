@@ -33,25 +33,7 @@ class _StoriesBarState extends State<StoriesBar> {
     final hasUnviewedOwnStories =
         widget.currentUserStories?.any((s) => !s.hasViewed) ?? false;
 
-    return GestureDetector(
-      onTap: () async {
-        if (hasOwnStories) {
-          // View own stories
-          context.push(
-            '/story/${widget.currentUserStories!.first.id}',
-            extra: widget.currentUserStories,
-          );
-        } else {
-          // Create new story
-          final result = await Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const CreateStoryScreen()),
-          );
-
-          if (result == true && widget.onRefresh != null) {
-            widget.onRefresh!();
-          }
-        }
-      },
+    return _AnimatedStoryScale(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -68,7 +50,10 @@ class _StoriesBarState extends State<StoriesBar> {
                             colors: [
                               theme.primaryColor,
                               theme.colorScheme.secondary,
+                              theme.colorScheme.tertiary,
                             ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           )
                           : null,
                   border:
@@ -166,6 +151,24 @@ class _StoriesBarState extends State<StoriesBar> {
           ),
         ],
       ),
+      onTap: () async {
+        if (hasOwnStories) {
+          // View own stories
+          context.push(
+            '/story/${widget.currentUserStories!.first.id}',
+            extra: widget.currentUserStories,
+          );
+        } else {
+          // Create new story
+          final result = await Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const CreateStoryScreen()),
+          );
+
+          if (result == true && widget.onRefresh != null) {
+            widget.onRefresh!();
+          }
+        }
+      },
     );
   }
 
@@ -174,16 +177,7 @@ class _StoriesBarState extends State<StoriesBar> {
     ThemeData theme,
     StoryGroup group,
   ) {
-    return GestureDetector(
-      onTap: () {
-        // Navigate to story viewer with all stories from this user
-        if (group.stories.isNotEmpty) {
-          context.push(
-            '/story/${group.stories.first.id}',
-            extra: group.stories,
-          );
-        }
-      },
+    return _AnimatedStoryScale(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -198,7 +192,10 @@ class _StoriesBarState extends State<StoriesBar> {
                         colors: [
                           theme.primaryColor,
                           theme.colorScheme.secondary,
+                          theme.colorScheme.tertiary,
                         ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       )
                       : null,
               border:
@@ -247,6 +244,15 @@ class _StoriesBarState extends State<StoriesBar> {
           ),
         ],
       ),
+      onTap: () {
+        // Navigate to story viewer with all stories from this user
+        if (group.stories.isNotEmpty) {
+          context.push(
+            '/story/${group.stories.first.id}',
+            extra: group.stories,
+          );
+        }
+      },
     );
   }
 
@@ -290,6 +296,51 @@ class _StoriesBarState extends State<StoriesBar> {
           },
         ),
       ),
+    );
+  }
+}
+
+class _AnimatedStoryScale extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+
+  const _AnimatedStoryScale({required this.child, required this.onTap});
+
+  @override
+  State<_AnimatedStoryScale> createState() => _AnimatedStoryScaleState();
+}
+
+class _AnimatedStoryScaleState extends State<_AnimatedStoryScale>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.92).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _controller.forward(),
+      onTapUp: (_) => _controller.reverse(),
+      onTapCancel: () => _controller.reverse(),
+      onTap: widget.onTap,
+      child: ScaleTransition(scale: _scaleAnimation, child: widget.child),
     );
   }
 }

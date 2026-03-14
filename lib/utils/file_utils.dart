@@ -154,11 +154,11 @@ class FileUtils {
     } else if (mimeType.contains('presentation') || mimeType.contains('powerpoint')) {
       return Colors.orange;
     } else if (mimeType.contains('zip') || mimeType.contains('rar')) {
-      return Colors.purple;
+      return const Color(0xFFF59E0B); // Amber
     } else if (mimeType.startsWith('image/')) {
-      return Colors.pink;
+      return const Color(0xFF2563EB); // Royal Blue
     } else if (mimeType.startsWith('video/')) {
-      return Colors.deepPurple;
+      return const Color(0xFF10B981); // Emerald
     } else if (mimeType.startsWith('audio/')) {
       return Colors.teal;
     } else {

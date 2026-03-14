@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 // Light Theme Colors
 class LightColors {
-  static const Color primary = Color(0xFF1152D4);
+  static const Color primary = Color(0xFF2563EB); // Royal Blue
+  static const Color secondary = Color(0xFF10B981); // Emerald
+  static const Color tertiary = Color(0xFFF59E0B); // Amber
   static const Color background = Color(0xFFFFFFFF);
   static const Color surface = Color(0xFFF8F9FA);
   static const Color onBackground = Color(0xFF212529);
@@ -14,7 +16,9 @@ class LightColors {
 
 // Dark Theme Colors
 class DarkColors {
-  static const Color primary = Color(0xFF3D8BFF);
+  static const Color primary = Color(0xFF3B82F6); // Brighter Blue
+  static const Color secondary = Color(0xFF34D399); // Brighter Emerald
+  static const Color tertiary = Color(0xFFFBBF24); // Brighter Amber
   static const Color background = Color(0xFF111318);
   static const Color surface = Color(0xFF1A1D24);
   static const Color onBackground = Color(0xFFE9ECEF);

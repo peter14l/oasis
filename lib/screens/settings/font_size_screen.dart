@@ -18,7 +18,7 @@ class FontSizeScreen extends StatelessWidget {
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            const Icon(Icons.text_fields, size: 80, color: Colors.deepPurple),
+            Icon(Icons.text_fields, size: 80, color: Theme.of(context).colorScheme.primary),
             const SizedBox(height: 32),
             Container(
               padding: const EdgeInsets.all(16),

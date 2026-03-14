@@ -1,5 +1,3 @@
-import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -94,6 +92,24 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
+  Future<void> _handleMessage(String currentUserId, String targetId) async {
+    try {
+      final conversationId = await context.read<ProfileProvider>().getOrCreateConversation(
+            user1Id: currentUserId,
+            user2Id: targetId,
+          );
+      if (mounted) {
+        context.push('/messages/$conversationId');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error starting conversation: $e')),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -138,6 +154,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: _buildGlassProfileCard(
                         profile,
+                        profileProvider,
                         theme,
                         colorScheme,
                         userId,
@@ -248,231 +265,238 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Widget _buildGlassProfileCard(
     UserProfile profile,
+    ProfileProvider profileProvider,
     ThemeData theme,
     ColorScheme colorScheme,
     String? currentUserId,
   ) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: colorScheme.surface.withValues(alpha: 0.6),
-            border: Border.all(
-              color: colorScheme.onSurface.withValues(alpha: 0.1),
-            ),
-          ),
-          child: Column(
+    return Column(
+      children: [
+        // Bento Row 1: Intro + Followers
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Avatar (Centered)
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: colorScheme.surface,
-                ),
-                child: CircleAvatar(
-                  radius: 40,
-                  backgroundImage:
-                      profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
-                          ? CachedNetworkImageProvider(profile.avatarUrl!)
-                          : null,
-                  child:
-                      profile.avatarUrl == null
-                          ? Text(
-                            profile.username[0].toUpperCase(),
-                            style: theme.textTheme.displaySmall,
-                          )
-                          : null,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Name & Handle
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    profile.fullName ?? profile.username,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (profile.isVerified) ...[
-                    const SizedBox(width: 6),
-                    Icon(Icons.verified, size: 24, color: colorScheme.primary),
-                  ],
-                ],
-              ),
-              if (profile.fullName != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  '@${profile.username}',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-
-              // Bio
-              if (profile.bio != null && profile.bio!.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Text(
-                  profile.bio!,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyLarge,
-                ),
-              ],
-
-              const SizedBox(height: 12),
-              const WellnessBadge(),
-
-              const SizedBox(height: 16),
-
-              // Stats Row (Evenly distributed)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildStatColumn('Posts', '${profile.postsCount}', theme),
-                  InkWell(
-                    onTap:
-                        () => context.push('/profile/${profile.id}/followers'),
-                    child: _buildStatColumn(
-                      'Followers',
-                      '${profile.followersCount}',
-                      theme,
-                    ),
-                  ),
-                  InkWell(
-                    onTap:
-                        () => context.push('/profile/${profile.id}/following'),
-                    child: _buildStatColumn(
-                      'Following',
-                      '${profile.followingCount}',
-                      theme,
-                    ),
-                  ),
-                ],
-              ),
-
-              if (profile.location != null || profile.website != null) ...[
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (profile.location != null &&
-                        profile.location!.isNotEmpty) ...[
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: 16,
-                        color: colorScheme.secondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        profile.location!,
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                      if (profile.website != null) const SizedBox(width: 16),
-                    ],
-                    if (profile.website != null &&
-                        profile.website!.isNotEmpty) ...[
-                      Icon(Icons.link, size: 16, color: colorScheme.primary),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          profile.website!,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.primary,
-                            decoration: TextDecoration.underline,
+              Expanded(
+                flex: 2,
+                child: _buildBentoCard(
+                  colorScheme: colorScheme,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 30,
+                            backgroundImage: profile.avatarUrl != null &&
+                                    profile.avatarUrl!.isNotEmpty
+                                ? CachedNetworkImageProvider(profile.avatarUrl!)
+                                : null,
+                            child: profile.avatarUrl == null
+                                ? Text(profile.username[0].toUpperCase())
+                                : null,
                           ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-
-              const SizedBox(height: 24),
-
-              // Activity Graph
-              ActivityGraph(posts: _userPosts),
-
-              const SizedBox(height: 16),
-
-              // Action Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: isOwnProfile
-                        ? FilledButton(
-                          onPressed: () => context.push('/edit-profile'),
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  profile.fullName ?? profile.username,
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  '@${profile.username}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          child: const Text('Edit Profile'),
-                        )
-                        : (context.watch<ProfileProvider>().isFollowing
-                            ? OutlinedButton(
-                              onPressed: () {
-                                if (currentUserId != null) {
-                                  context.read<ProfileProvider>().unfollowUser(
-                                    followerId: currentUserId,
-                                    followingId: profile.id,
-                                  );
-                                }
-                              },
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: const Text('Unfollow'),
-                            )
-                            : FilledButton(
-                              onPressed: () {
-                                if (currentUserId != null) {
-                                  context.read<ProfileProvider>().followUser(
-                                    followerId: currentUserId,
-                                    followingId: profile.id,
-                                  );
-                                }
-                              },
-                              style: FilledButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: const Text('Follow'),
-                            )),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Share.share('Check out my profile!'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        ],
                       ),
-                      child: const Text('Share Profile'),
-                    ),
+                      if (profile.bio != null && profile.bio!.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          profile.bio!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      ],
+                    ],
                   ),
-                ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildBentoCard(
+                  colorScheme: colorScheme,
+                  onTap: () => context.push('/profile/${profile.id}/followers'),
+                  child: _buildStatColumn('Followers', '${profile.followersCount}', theme),
+                ),
               ),
             ],
           ),
         ),
+        const SizedBox(height: 12),
+        // Bento Row 2: Following + Posts + Wellness
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _buildBentoCard(
+                  colorScheme: colorScheme,
+                  onTap: () => context.push('/profile/${profile.id}/following'),
+                  child: _buildStatColumn('Following', '${profile.followingCount}', theme),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildBentoCard(
+                  colorScheme: colorScheme,
+                  child: _buildStatColumn('Posts', '${profile.postsCount}', theme),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildBentoCard(
+                  colorScheme: colorScheme,
+                  color: colorScheme.tertiary.withValues(alpha: 0.1),
+                  child: const Center(child: WellnessBadge()),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Bento Row 3: Activity Graph
+        _buildBentoCard(
+          colorScheme: colorScheme,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Activity',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ActivityGraph(posts: _userPosts),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Actions
+        Row(
+          children: [
+            Expanded(
+              child: isOwnProfile
+                  ? FilledButton(
+                      onPressed: () => context.push('/edit-profile'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text('Edit Profile'),
+                    )
+                  : (profileProvider.isFollowing
+                      ? OutlinedButton(
+                          onPressed: () {
+                            if (currentUserId != null) {
+                              profileProvider.unfollowUser(
+                                followerId: currentUserId,
+                                followingId: profile.id,
+                              );
+                            }
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: const Text('Unfollow'),
+                        )
+                      : FilledButton(
+                          onPressed: () {
+                            if (currentUserId != null) {
+                              profileProvider.followUser(
+                                followerId: currentUserId,
+                                followingId: profile.id,
+                              );
+                            }
+                          },
+                          style: FilledButton.styleFrom(
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: const Text('Follow'),
+                        )),
+            ),
+            if (!isOwnProfile && currentUserId != null) ...[
+              const SizedBox(width: 8),
+              IconButton.filledTonal(
+                onPressed: () => _handleMessage(currentUserId, profile.id),
+                style: IconButton.styleFrom(
+                  padding: const EdgeInsets.all(16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                icon: const Icon(Icons.message_outlined),
+              ),
+            ],
+            const SizedBox(width: 8),
+            IconButton.filledTonal(
+              onPressed: () => Share.share('Check out my profile!'),
+              style: IconButton.styleFrom(
+                padding: const EdgeInsets.all(16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              icon: const Icon(Icons.share_outlined),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBentoCard({
+    required ColorScheme colorScheme,
+    required Widget child,
+    Color? color,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color ?? colorScheme.surface.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: colorScheme.onSurface.withValues(alpha: 0.05),
+          ),
+        ),
+        child: child,
       ),
     );
   }

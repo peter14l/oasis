@@ -4,10 +4,12 @@ import 'package:morrow_v2/models/user_profile.dart';
 import 'package:morrow_v2/models/post.dart';
 import 'package:morrow_v2/services/profile_service.dart';
 import 'package:morrow_v2/services/feed_service.dart';
+import 'package:morrow_v2/services/messaging_service.dart';
 
 class ProfileProvider with ChangeNotifier {
   final ProfileService _profileService = ProfileService();
   final FeedService _feedService = FeedService();
+  final MessagingService _messagingService = MessagingService();
 
   UserProfile? _currentProfile;
   UserProfile? _viewedProfile;
@@ -246,6 +248,23 @@ class ProfileProvider with ChangeNotifier {
     _viewedProfile = null;
     _isFollowing = false;
     notifyListeners();
+  }
+
+  /// Get or create a direct conversation
+  Future<String> getOrCreateConversation({
+    required String user1Id,
+    required String user2Id,
+  }) async {
+    try {
+      return await _messagingService.getOrCreateConversation(
+        user1Id: user1Id,
+        user2Id: user2Id,
+      );
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('Error getting/creating conversation: $e');
+      rethrow;
+    }
   }
 
   /// Clear all data

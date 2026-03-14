@@ -245,7 +245,7 @@ class SettingsScreen extends StatelessWidget {
               icon: Icons.timer_outlined,
               title: 'Screen Time & Wellness',
               subtitle: 'Track usage and manage wellbeing',
-              iconColor: Colors.purple,
+              iconColor: colorScheme.secondary,
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -278,7 +278,7 @@ class SettingsScreen extends StatelessWidget {
               icon: Icons.shield_outlined,
               title: 'Vault',
               subtitle: 'Manage hidden content and security',
-              iconColor: Colors.deepPurple,
+              iconColor: colorScheme.primary,
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -438,7 +438,7 @@ class SettingsScreen extends StatelessWidget {
               icon: Icons.text_fields_outlined,
               title: 'Font Size',
               subtitle: 'Adjust text size',
-              iconColor: Colors.deepPurple,
+              iconColor: colorScheme.primary,
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -452,7 +452,7 @@ class SettingsScreen extends StatelessWidget {
               icon: Icons.contrast_outlined,
               title: 'High Contrast',
               subtitle: 'Improve visibility',
-              iconColor: Colors.pink,
+              iconColor: colorScheme.tertiary,
               trailing: Switch(
                 value: themeProvider.highContrast,
                 onChanged: (value) {

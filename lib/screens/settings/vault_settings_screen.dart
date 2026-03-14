@@ -129,7 +129,7 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
                     context,
                     listen: false,
                   );
-                  final isValid = await service.unlockWithPin(controller.text);
+                  final isValid = await service.unlockVaultWithPin(controller.text);
                   if (context.mounted) {
                     Navigator.pop(context, isValid);
                   }

@@ -18,11 +18,9 @@ import 'package:morrow_v2/screens/messages/direct_messages_screen.dart'
     as messages;
 import 'package:morrow_v2/screens/messages/chat_screen.dart';
 import 'package:morrow_v2/screens/messages/new_message_screen.dart';
-import 'package:morrow_v2/providers/typing_indicator_provider.dart';
-import 'package:morrow_v2/widgets/messages/unread_badge_widget.dart';
-import 'package:morrow_v2/widgets/messages/typing_indicator_widget.dart';
-import 'package:morrow_v2/services/vault_service.dart';
 import 'package:morrow_v2/providers/conversation_provider.dart';
+import 'package:morrow_v2/screens/messages/active_call_screen.dart';
+import 'package:morrow_v2/models/call.dart';
 import 'package:morrow_v2/screens/notifications/notifications_screen.dart';
 import 'package:morrow_v2/screens/settings_screen.dart';
 import 'package:morrow_v2/screens/settings/subscription_screen.dart';
@@ -591,6 +589,26 @@ class AppRouter {
                 (context, state) => const NoTransitionPage(
                   child: messages.DirectMessagesScreen(),
                 ),
+            routes: [
+              GoRoute(
+                path: ':conversationId',
+                name: 'chat_nested',
+                parentNavigatorKey: _rootNavigatorKey,
+                pageBuilder: (context, state) {
+                  final conversationId = state.pathParameters['conversationId']!;
+                  final extra = state.extra as Map<String, dynamic>?;
+                  return MaterialPage(
+                    key: state.pageKey,
+                    child: ChatScreen(
+                      conversationId: conversationId,
+                      otherUserName: extra?['otherUserName'] ?? 'User',
+                      otherUserAvatar: extra?['otherUserAvatar'] ?? '',
+                      otherUserId: extra?['otherUserId'] ?? '',
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
 
           // Notifications Screen
@@ -611,6 +629,20 @@ class AppRouter {
                     const NoTransitionPage(child: ProfileScreen()),
           ),
         ],
+      ),
+
+      // Integrated Call Screen
+      GoRoute(
+        path: '/call/:callId',
+        name: 'active_call',
+        pageBuilder: (context, state) {
+          final call = state.extra as Call;
+          return MaterialPage(
+            key: state.pageKey,
+            fullscreenDialog: true,
+            child: ActiveCallScreen(call: call),
+          );
+        },
       ),
 
       // Create Post Modal
@@ -832,24 +864,6 @@ class AppRouter {
         },
       ),
 
-      // Chat Screen
-      GoRoute(
-        path: '/chat/:conversationId',
-        name: 'chat',
-        pageBuilder: (context, state) {
-          final conversationId = state.pathParameters['conversationId']!;
-          final extra = state.extra as Map<String, dynamic>?;
-          return MaterialPage(
-            key: state.pageKey,
-            child: ChatScreen(
-              conversationId: conversationId,
-              otherUserName: extra?['otherUserName'] ?? 'User',
-              otherUserAvatar: extra?['otherUserAvatar'] ?? '',
-              otherUserId: extra?['otherUserId'] ?? '',
-            ),
-          );
-        },
-      ),
 
       // New Message Screen
       GoRoute(
@@ -935,18 +949,6 @@ class AppRouter {
             ),
       ),
 
-      // Community View
-      GoRoute(
-        path: '/community/:communityId',
-        name: 'community',
-        pageBuilder: (context, state) {
-          final communityId = state.pathParameters['communityId']!;
-          return MaterialPage(
-            key: state.pageKey,
-            child: CommunityDetailScreen(communityId: communityId),
-          );
-        },
-      ),
 
       // Legal Screens
       GoRoute(

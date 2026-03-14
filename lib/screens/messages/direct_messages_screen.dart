@@ -20,31 +20,11 @@ class DirectMessagesScreen extends StatefulWidget {
 }
 
 class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
-  Set<String> _lockedConversationIds = {};
   Conversation? _selectedConversation;
 
   @override
   void initState() {
     super.initState();
-    _checkVaultStatus();
-  }
-
-  Future<void> _checkVaultStatus() async {
-    final provider = context.read<ConversationProvider>();
-    final vaultService = context.read<VaultService>();
-    final lockedIds = <String>{};
-
-    for (final conversation in provider.conversations) {
-      if (await vaultService.isInVault(conversation.id)) {
-        lockedIds.add(conversation.id);
-      }
-    }
-
-    if (mounted) {
-      setState(() {
-        _lockedConversationIds = lockedIds;
-      });
-    }
   }
 
   @override
@@ -157,7 +137,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
             Icon(
               Icons.chat_bubble_outline,
               size: 64,
-              color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text('No messages yet', style: theme.textTheme.titleMedium),
@@ -192,37 +172,31 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
     final isSelected =
         isDesktop && _selectedConversation?.id == conversation.id;
 
-    return Consumer<TypingIndicatorProvider>(
-      builder: (context, typingProvider, child) {
+    return Consumer2<TypingIndicatorProvider, VaultService>(
+      builder: (context, typingProvider, vaultService, child) {
         final isTyping = typingProvider.isUserTyping(conversation.id);
-        final isLocked = _lockedConversationIds.contains(conversation.id);
-        final vaultService =
-            context
-                .read<
-                  VaultService
-                >(); // This won't rebuild on unlock automatically, handled by local state or re-check
-        // We rely on local state updates or checking service.isUnlocked directly during build?
-        // Provider<VaultService> is not a notifier. We check the property directly.
-        final canShow = !isLocked || vaultService.isUnlocked;
+        final isLocked = vaultService.isInVaultSync(conversation.id);
+        final isUnlocked = vaultService.isItemUnlocked(conversation.id);
+        final canShow = !isLocked || isUnlocked;
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
             color:
                 isSelected
-                    ? colorScheme.primaryContainer.withOpacity(0.15)
-                    : colorScheme.surface.withOpacity(0.1),
+                    ? colorScheme.primaryContainer.withValues(alpha: 0.15)
+                    : colorScheme.surface.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color:
                   isSelected
-                      ? colorScheme.primary.withOpacity(0.3)
-                      : colorScheme.outlineVariant.withOpacity(0.2),
+                      ? colorScheme.primary.withValues(alpha: 0.3)
+                      : colorScheme.outlineVariant.withValues(alpha: 0.2),
               width: isSelected ? 1.5 : 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -251,7 +225,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                               )
                               : null,
                     ),
-                    if (isLocked && !vaultService.isUnlocked)
+                    if (isLocked && !isUnlocked)
                       Positioned(
                         right: 0,
                         bottom: 0,
@@ -288,9 +262,9 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                       )
                     else if (!canShow)
                       Text(
-                        'Protected by Vault',
+                        'Locked by Vault',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                           fontStyle: FontStyle.italic,
                         ),
                       )
@@ -325,7 +299,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                               child: Text(
                                 '• Seen',
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.primary.withOpacity(0.7),
+                                  color: colorScheme.primary.withValues(alpha: 0.7),
                                   fontSize: 10,
                                 ),
                               ),
@@ -363,21 +337,20 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                         )
                         : null,
                 onTap: () async {
-                  if (isLocked && !vaultService.isUnlocked) {
+                  if (isLocked && !isUnlocked) {
                     final authorized = await vaultService.authenticate(
+                      itemId: conversation.id,
                       context: context,
                     );
                     if (!authorized) {
                       return; // Only return if authentication failed
                     }
-                    // If authorized, continue to open the chat below
-                    if (mounted) {
-                      setState(() {}); // Rebuild to show unlocked content
-                    }
                   }
 
                   // Mark as read locally and on server using the provider
-                  context.read<ConversationProvider>().markAsRead(conversation.id);
+                  if (context.mounted) {
+                    context.read<ConversationProvider>().markAsRead(conversation.id);
+                  }
 
                   if (isDesktop) {
                     setState(() {
@@ -387,7 +360,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                     if (mounted) {
                       context
                           .push(
-                            '/chat/${conversation.id}',
+                            '/messages/${conversation.id}',
                             extra: {
                               'otherUserName': conversation.otherUserName,
                               'otherUserAvatar': conversation.otherUserAvatar,
@@ -406,6 +379,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
         );
       },
     );
+
   }
 
   Widget _getMessageTypeIcon(String type) {

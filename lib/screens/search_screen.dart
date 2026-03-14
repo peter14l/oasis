@@ -352,7 +352,7 @@ class _SearchScreenState extends State<SearchScreen>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: colorScheme.primaryContainer.withOpacity(0.3),
+              color: colorScheme.primaryContainer.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -426,7 +426,7 @@ class _SearchScreenState extends State<SearchScreen>
           decoration: BoxDecoration(
             color:
                 isSelected
-                    ? theme.colorScheme.primaryContainer.withOpacity(0.5)
+                    ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
                     : null,
             borderRadius: BorderRadius.circular(8),
           ),
@@ -506,63 +506,67 @@ class _SearchScreenState extends State<SearchScreen>
     return Center(
       child: MaxWidthContainer(
         maxWidth: 600,
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.search,
-                size: 80,
-                color: colorScheme.primary.withOpacity(0.5),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Search for people and posts',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.search,
+                  size: 80,
+                  color: colorScheme.primary.withValues(alpha: 0.5),
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Enter keywords to find users, posts, and more',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                const SizedBox(height: 24),
+                Text(
+                  'Search for people and posts',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              // Search Tips
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(16),
+                const SizedBox(height: 12),
+                Text(
+                  'Enter keywords to find users, posts, and more',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Search Tips',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                const SizedBox(height: 32),
+                // Search Tips
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.5,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Search Tips',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildSearchTip(
-                      Icons.person_outline,
-                      'Find users by name or username',
-                    ),
-                    _buildSearchTip(
-                      Icons.article_outlined,
-                      'Discover posts by keywords',
-                    ),
-                    _buildSearchTip(Icons.tag, 'Search using hashtags'),
-                  ],
+                      const SizedBox(height: 16),
+                      _buildSearchTip(
+                        Icons.person_outline,
+                        'Find users by name or username',
+                      ),
+                      _buildSearchTip(
+                        Icons.article_outlined,
+                        'Discover posts by keywords',
+                      ),
+                      _buildSearchTip(Icons.tag, 'Search using hashtags'),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -748,7 +752,7 @@ class _SearchScreenState extends State<SearchScreen>
           Icon(
             Icons.search_off,
             size: 64,
-            color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(

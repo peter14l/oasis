@@ -32,9 +32,11 @@ class MessagingService {
               name,
               image_url,
               last_message_at,
+              last_message_id,
+              is_whisper_mode,
               created_at,
               updated_at,
-              ${SupabaseConfig.messagesTable}:last_message_id (
+              last_message:last_message_id (
                 content,
                 sender_id,
                 image_url,
@@ -101,7 +103,7 @@ class MessagingService {
         }
 
         // Get last message
-        final lastMessage = conversationMap[SupabaseConfig.messagesTable];
+        final lastMessage = conversationMap['last_message'];
         if (lastMessage != null) {
           conversationMap['last_message'] = lastMessage['content'];
           conversationMap['last_message_time'] = lastMessage['created_at'];
@@ -711,4 +713,51 @@ class MessagingService {
       rethrow;
     }
   }
+
+  /// Get conversation details
+  Future<Conversation> getConversationDetails(String conversationId) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) throw Exception('Not authenticated');
+
+      final response = await _supabase
+          .from(SupabaseConfig.conversationsTable)
+          .select('''
+            *,
+            conversation_participants!inner(user_id)
+          ''')
+          .eq('id', conversationId)
+          .single();
+
+      final conversationMap = Map<String, dynamic>.from(response);
+      
+      // For direct conversations, get the other participant
+      if (conversationMap['type'] == 'direct') {
+        final participants = await _supabase
+            .from('conversation_participants')
+            .select('user_id')
+            .eq('conversation_id', conversationId)
+            .neq('user_id', userId);
+
+        if (participants.isNotEmpty) {
+          final otherUserId = participants.first['user_id'];
+          final profile = await _supabase
+              .from(SupabaseConfig.profilesTable)
+              .select('username, avatar_url')
+              .eq('id', otherUserId)
+              .single();
+
+          conversationMap['other_user_id'] = otherUserId;
+          conversationMap['other_user_name'] = profile['username'] ?? 'Unknown';
+          conversationMap['other_user_avatar'] = profile['avatar_url'] ?? '';
+        }
+      }
+
+      return Conversation.fromJson(conversationMap);
+    } catch (e) {
+      debugPrint('Error getting conversation details: $e');
+      rethrow;
+    }
+  }
 }
+

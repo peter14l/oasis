@@ -19,8 +19,6 @@ class ActivityGraph extends StatelessWidget {
 
     // Calculate monthly post frequencies
     final now = DateTime.now();
-    // Start of current month
-    final currentMonthStart = DateTime(now.year, now.month, 1);
     
     // Generate the last X months list for the X-axis
     List<DateTime> monthsList = [];

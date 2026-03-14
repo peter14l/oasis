@@ -24,6 +24,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:morrow_v2/services/notification_manager.dart';
+import 'package:morrow_v2/services/call_service.dart';
 
 // Theme Provider to manage theme mode
 class ThemeProvider with ChangeNotifier {
@@ -128,6 +129,8 @@ void main() async {
       );
     });
 
+    // Initialize Sentry with the correct binding to avoid FramesTrackingIntegration warning
+    SentryWidgetsFlutterBinding.ensureInitialized();
     await SentryFlutter.init(
       (options) {
         options.dsn = dotenv.get('SENTRY_DSN');
@@ -163,7 +166,10 @@ void main() async {
                    ChangeNotifierProvider(create: (_) => NotificationProvider()),
                   ChangeNotifierProvider(create: (_) => CapsuleProvider()),
                   ChangeNotifierProvider(create: (_) => ConversationProvider()),
-                  Provider<VaultService>(create: (_) => VaultService()),
+                  ChangeNotifierProvider(create: (_) => CallService()),
+                  ChangeNotifierProvider<VaultService>(
+                    create: (_) => VaultService(),
+                  ),
                 ],
                 child: const LifecycleManager(child: MyApp()),
               ),
@@ -230,6 +236,7 @@ class _LifecycleManagerState extends State<LifecycleManager>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       service.stopTracking();
+      context.read<VaultService>().lockItemsWithInterval('app_close');
     } else if (state == AppLifecycleState.resumed) {
       service.startTracking();
     }

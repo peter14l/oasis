@@ -46,6 +46,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     _checkLockStatus();
   }
 
+
   Future<void> _checkLockStatus() async {
     try {
       final vaultService = Provider.of<VaultService>(context, listen: false);
@@ -129,7 +130,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             content: Text(
               value ? 'Whisper Mode enabled.' : 'Whisper Mode disabled.',
             ),
-            backgroundColor: value ? Colors.purple : Colors.green,
+            backgroundColor: value ? Theme.of(context).colorScheme.secondary : Colors.green,
           ),
         );
       }
@@ -358,10 +359,42 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             activeColor: Colors.indigo,
             onChanged: _toggleChatLock,
           ),
+          if (_isLocked) ...[
+            const Divider(indent: 16, endIndent: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                'LOCK INTERVAL',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            _buildIntervalOption(
+              context,
+              'App close',
+              'Lock when app is minimized',
+              'app_close',
+            ),
+            _buildIntervalOption(
+              context,
+              'On Chat Close',
+              'Lock immediately when leaving',
+              'chat_close',
+            ),
+            _buildIntervalOption(
+              context,
+              'After 5mins',
+              'Lock after 5 minutes of inactivity',
+              '5mins',
+            ),
+            const SizedBox(height: 16),
+          ],
           SwitchListTile(
             secondary: Icon(
               Icons.auto_delete,
-              color: _isWhisperMode ? Colors.purple : null,
+              color: _isWhisperMode ? Theme.of(context).colorScheme.secondary : null,
             ),
             title: const Text('Whisper Mode'),
             subtitle: Text(
@@ -370,7 +403,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                   : 'Messages are saved permanently',
             ),
             value: _isWhisperMode,
-            activeColor: Colors.purple,
+            activeColor: Theme.of(context).colorScheme.secondary,
             onChanged: _toggleWhisperMode,
           ),
           if (_isWhisperMode)
@@ -442,6 +475,30 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildIntervalOption(
+    BuildContext context,
+    String title,
+    String subtitle,
+    String value,
+  ) {
+    final vault = context.watch<VaultService>();
+    final current = vault.getLockInterval(widget.conversationId);
+    final isSelected = current == value;
+
+    return RadioListTile<String>(
+      title: Text(title),
+      subtitle: Text(subtitle),
+      selected: isSelected,
+      value: value,
+      groupValue: current,
+      onChanged: (newValue) {
+        if (newValue != null) {
+          context.read<VaultService>().setLockInterval(widget.conversationId, newValue);
+        }
+      },
     );
   }
 }

@@ -58,7 +58,7 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
       if (afternoon > 0)
         _buildPieChartSection(1, afternoon, 'Afternoon', Colors.blueAccent),
       if (evening > 0)
-        _buildPieChartSection(2, evening, 'Evening', Colors.purpleAccent),
+        _buildPieChartSection(2, evening, 'Evening', colorScheme.secondary),
       if (night > 0)
         _buildPieChartSection(3, night, 'Night', Colors.indigoAccent),
     ];
@@ -340,7 +340,7 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
                   if (afternoon > 0)
                     _buildLegendItem('Afternoon', Colors.blueAccent),
                   if (evening > 0)
-                    _buildLegendItem('Evening', Colors.purpleAccent),
+                    _buildLegendItem('Evening', colorScheme.secondary),
                   if (night > 0) _buildLegendItem('Night', Colors.indigoAccent),
                 ],
               ),

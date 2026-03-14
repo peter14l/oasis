@@ -7,6 +7,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   dynamic_color
   file_selector_linux
   flutter_secure_storage_linux
+  flutter_webrtc
   gtk
   record_linux
   sentry_flutter

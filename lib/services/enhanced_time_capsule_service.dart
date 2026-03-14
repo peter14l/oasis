@@ -357,7 +357,7 @@ class EnhancedTimeCapsuleService {
           .from('capsule_contributions')
           .select('''
             *,
-            profiles:user_id (username, avatar_url)
+            profiles (username, avatar_url)
           ''')
           .eq('capsule_id', capsuleId)
           .order('created_at', ascending: true);

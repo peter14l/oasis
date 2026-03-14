@@ -1,21 +1,62 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:morrow_v2/services/supabase_service.dart';
 
 /// Vault mode service for biometric protection of sensitive content
-/// Note: Biometric authentication requires the local_auth package to be added
-class VaultService {
+class VaultService with ChangeNotifier {
   final _storage = const FlutterSecureStorage();
   final _supabase = SupabaseService().client;
 
   static const _vaultEnabledKey = 'vault_enabled';
   static const _vaultItemsKey = 'vault_items';
   static const _vaultPinKey = 'vault_pin';
+  static const _vaultIntervalsKey = 'vault_intervals';
 
-  bool _isUnlocked = false;
+  final Set<String> _unlockedItemIds = {};
+  final Set<String> _vaultItemIds = {};
+  final Map<String, String> _itemIntervals = {};
+  final Map<String, Timer?> _lockTimers = {};
+
+  VaultService() {
+    _init();
+  }
+
+  Future<void> _init() async {
+    await _loadIntervals();
+    await _refreshVaultItemCache();
+  }
+
+  Future<void> _refreshVaultItemCache() async {
+    final items = await _getVaultItems();
+    _vaultItemIds.clear();
+    _vaultItemIds.addAll(items.map((i) => i.id));
+    notifyListeners();
+  }
+
+  Future<void> _loadIntervals() async {
+    final intervalsJson = await _storage.read(key: _vaultIntervalsKey);
+    if (intervalsJson != null) {
+      try {
+        final Map<String, dynamic> decoded = jsonDecode(intervalsJson);
+        decoded.forEach((key, value) {
+          _itemIntervals[key] = value.toString();
+        });
+      } catch (e) {
+        debugPrint('Error loading intervals: $e');
+      }
+    }
+  }
+
+  Future<void> _saveIntervals() async {
+    await _storage.write(
+      key: _vaultIntervalsKey,
+      value: jsonEncode(_itemIntervals),
+    );
+  }
 
   /// Check if vault is enabled
   Future<bool> isVaultEnabled() async {
@@ -29,44 +70,117 @@ class VaultService {
     if (pin != null) {
       await _storage.write(key: _vaultPinKey, value: pin);
     }
+    notifyListeners();
   }
 
   /// Disable vault mode
   Future<void> disableVault() async {
     await _storage.write(key: _vaultEnabledKey, value: 'false');
     await _storage.delete(key: _vaultPinKey);
-    _isUnlocked = true;
+    _unlockedItemIds.clear();
+    _itemIntervals.clear();
+    await _storage.delete(key: _vaultIntervalsKey);
+    notifyListeners();
   }
 
-  /// Unlock vault with PIN (fallback when biometrics unavailable)
-  Future<bool> unlockWithPin(String pin) async {
+  /// Unlock specific item with PIN
+  Future<bool> unlockItemWithPin(String itemId, String pin) async {
     final storedPin = await _storage.read(key: _vaultPinKey);
     if (storedPin == pin) {
-      _isUnlocked = true;
+      _unlockItem(itemId);
       return true;
     }
     return false;
   }
 
-  /// Check vault lock status
-  bool get isUnlocked => _isUnlocked;
-
-  /// Lock the vault
-  void lock() {
-    _isUnlocked = false;
+  /// Unlock vault globally with PIN (e.g. for settings)
+  Future<bool> unlockVaultWithPin(String pin) async {
+    final storedPin = await _storage.read(key: _vaultPinKey);
+    return storedPin == pin;
   }
 
-  /// Attempt to authenticate (PIN-based for now)
-  /// In production, integrate local_auth package for biometrics
-  Future<bool> authenticate({String? pin, BuildContext? context}) async {
+  void _unlockItem(String itemId) {
+    _unlockedItemIds.add(itemId);
+    
+    // Handle 5 mins interval
+    final interval = _itemIntervals[itemId];
+    if (interval == '5mins') {
+      _lockTimers[itemId]?.cancel();
+      _lockTimers[itemId] = Timer(const Duration(minutes: 5), () {
+        lockItem(itemId);
+      });
+    }
+    
+    notifyListeners();
+  }
+
+  /// Check if a specific item is unlocked
+  bool isItemUnlocked(String itemId) => _unlockedItemIds.contains(itemId);
+
+  /// Check vault lock status (deprecated or for global UI)
+  bool get isUnlocked => _unlockedItemIds.isNotEmpty;
+
+  /// Lock specific item
+  void lockItem(String itemId) {
+    _unlockedItemIds.remove(itemId);
+    _lockTimers[itemId]?.cancel();
+    _lockTimers[itemId] = null;
+    notifyListeners();
+  }
+
+  /// Lock all items (e.g. on logout)
+  void lockAll() {
+    _unlockedItemIds.clear();
+    for (final timer in _lockTimers.values) {
+      timer?.cancel();
+    }
+    _lockTimers.clear();
+    notifyListeners();
+  }
+
+  /// Lock items with a specific interval (e.g. 'app_close')
+  void lockItemsWithInterval(String interval) {
+    final itemsToLock = _unlockedItemIds.where((id) => _itemIntervals[id] == interval).toList();
+    for (final id in itemsToLock) {
+      _unlockedItemIds.remove(id);
+      _lockTimers[id]?.cancel();
+      _lockTimers[id] = null;
+    }
+    notifyListeners();
+  }
+
+  /// Set lock interval for an item
+  Future<void> setLockInterval(String itemId, String interval) async {
+    _itemIntervals[itemId] = interval;
+    await _saveIntervals();
+    
+    // If interval changed to something other than 5mins, cancel existing timer
+    if (interval != '5mins') {
+      _lockTimers[itemId]?.cancel();
+      _lockTimers[itemId] = null;
+    } else if (_unlockedItemIds.contains(itemId)) {
+      // If it's already unlocked and changed to 5mins, start the timer now
+      _lockTimers[itemId]?.cancel();
+      _lockTimers[itemId] = Timer(const Duration(minutes: 5), () {
+        lockItem(itemId);
+      });
+    }
+    
+    notifyListeners();
+  }
+
+  String getLockInterval(String itemId) => _itemIntervals[itemId] ?? 'app_close';
+
+  /// Attempt to authenticate for a specific item
+  Future<bool> authenticate({required String itemId, String? pin, BuildContext? context}) async {
     if (pin != null) {
-      return unlockWithPin(pin);
+      return unlockItemWithPin(itemId, pin);
     }
 
     // Check if PIN is required
     final hasPin = await _storage.read(key: _vaultPinKey);
     if (hasPin == null) {
-      _isUnlocked = true;
+      _unlockItem(itemId);
       return true;
     }
 
@@ -80,12 +194,10 @@ class VaultService {
 
         if (canCheckBiometrics && isDeviceSupported) {
           final authenticated = await localAuth.authenticate(
-            localizedReason: 'Please authenticate to unlock Vault',
-            persistAcrossBackgrounding: true,
-            biometricOnly: false,
+            localizedReason: 'Please authenticate to unlock this chat',
           );
           if (authenticated) {
-            _isUnlocked = true;
+            _unlockItem(itemId);
             return true;
           }
         }
@@ -96,67 +208,67 @@ class VaultService {
 
     // Show PIN dialog if context is provided
     if (context != null && context.mounted) {
-      return await _showPinDialog(context);
+      return await _showPinDialog(context, itemId);
     }
 
     return false;
   }
 
   /// Show PIN dialog for authentication
-  Future<bool> _showPinDialog(BuildContext context) async {
-    final controller = TextEditingController();
-    final result = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Enter PIN'),
-            content: TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              obscureText: true,
-              maxLength: 4,
-              autofocus: true,
-              decoration: const InputDecoration(
-                hintText: 'Enter your 4-digit PIN',
-                counterText: '',
-                border: OutlineInputBorder(),
-              ),
-              onSubmitted: (_) async {
-                final isValid = await unlockWithPin(controller.text);
-                if (context.mounted) {
-                  Navigator.pop(context, isValid);
-                }
-              },
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed: () async {
-                  final isValid = await unlockWithPin(controller.text);
+  Future<bool> _showPinDialog(BuildContext context, String itemId) async {
+    return await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            final controller = TextEditingController();
+            return AlertDialog(
+              title: const Text('Enter PIN'),
+              content: TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                obscureText: true,
+                maxLength: 4,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: 'Enter your 4-digit PIN',
+                  counterText: '',
+                  border: OutlineInputBorder(),
+                ),
+                onSubmitted: (_) async {
+                  final isValid = await unlockItemWithPin(itemId, controller.text);
                   if (context.mounted) {
-                    if (!isValid) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Incorrect PIN'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    } else {
-                      Navigator.pop(context, true);
-                    }
+                    Navigator.pop(context, isValid);
                   }
                 },
-                child: const Text('Unlock'),
               ),
-            ],
-          ),
-    );
-    controller.dispose();
-    return result ?? false;
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    final isValid = await unlockItemWithPin(itemId, controller.text);
+                    if (context.mounted) {
+                      if (!isValid) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Incorrect PIN'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      } else {
+                        Navigator.pop(context, true);
+                      }
+                    }
+                  },
+                  child: const Text('Unlock'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
   }
 
   /// Add item to vault
@@ -175,8 +287,15 @@ class VaultService {
       );
     }
 
+    if (items.any((i) => i.id == itemId)) return;
+
     items.add(VaultItem(id: itemId, type: type, addedAt: DateTime.now()));
     await _saveVaultItems(items);
+    _vaultItemIds.add(itemId);
+    
+    // Default interval
+    _itemIntervals[itemId] = 'app_close';
+    await _saveIntervals();
 
     // Sync to server (Pro Only)
     try {
@@ -194,6 +313,8 @@ class VaultService {
     } catch (e) {
       debugPrint('Error syncing vault item: $e');
     }
+    
+    notifyListeners();
   }
 
   /// Remove item from vault
@@ -201,6 +322,13 @@ class VaultService {
     final items = await _getVaultItems();
     items.removeWhere((i) => i.id == itemId);
     await _saveVaultItems(items);
+    
+    _vaultItemIds.remove(itemId);
+    _unlockedItemIds.remove(itemId);
+    _itemIntervals.remove(itemId);
+    _lockTimers[itemId]?.cancel();
+    _lockTimers.remove(itemId);
+    await _saveIntervals();
 
     // Sync to server (Pro only)
     try {
@@ -219,23 +347,28 @@ class VaultService {
     } catch (e) {
       debugPrint('Error removing vault item: $e');
     }
+    
+    notifyListeners();
   }
 
-  /// Check if item is in vault
+  /// Check if item is in vault (async)
   Future<bool> isInVault(String itemId) async {
     final items = await _getVaultItems();
     return items.any((i) => i.id == itemId);
   }
 
+  /// Check if item is in vault (synchronous cache)
+  bool isInVaultSync(String itemId) {
+    return _vaultItemIds.contains(itemId);
+  }
+
   /// Get all vault items
   Future<List<VaultItem>> getVaultItems() async {
-    if (!_isUnlocked) return [];
     return _getVaultItems();
   }
 
   /// Get vault items by type
   Future<List<VaultItem>> getVaultItemsByType(VaultItemType type) async {
-    if (!_isUnlocked) return [];
     final items = await _getVaultItems();
     return items.where((i) => i.type == type).toList();
   }
@@ -248,6 +381,7 @@ class VaultService {
       final List<dynamic> decoded = jsonDecode(itemsJson);
       return decoded.map((i) => VaultItem.fromJson(i)).toList();
     } catch (e) {
+      debugPrint('Error decoding vault items: $e');
       return [];
     }
   }
@@ -282,9 +416,20 @@ class VaultService {
               .toList();
 
       await _saveVaultItems(items);
+      _vaultItemIds.clear();
+      _vaultItemIds.addAll(items.map((i) => i.id));
+      notifyListeners();
     } catch (e) {
       debugPrint('Error syncing vault from server: $e');
     }
+  }
+
+  @override
+  void dispose() {
+    for (final timer in _lockTimers.values) {
+      timer?.cancel();
+    }
+    super.dispose();
   }
 }
 

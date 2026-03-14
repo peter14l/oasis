@@ -291,58 +291,37 @@ class _FeedScreenState extends State<FeedScreen>
                   // Time Capsules
                   const SliverToBoxAdapter(child: CapsuleCarousel()),
 
-                  // Segmented Button
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: SegmentedButton<int>(
-                        segments: const [
-                          ButtonSegment(value: 0, label: Text('For You')),
-                          ButtonSegment(value: 1, label: Text('Following')),
-                        ],
-                        selected: {_selectedIndex},
-                        onSelectionChanged: (Set<int> selected) {
-                          final newIndex = selected.first;
-                          setState(() => _selectedIndex = newIndex);
-                          _tabController.animateTo(newIndex);
-
-                          // Switch feed type
-                          final userId = _authService.currentUser?.id;
-                          if (userId != null) {
-                            feedProvider.switchFeedType(
-                              newIndex == 0
-                                  ? FeedType.forYou
-                                  : FeedType.following,
-                              userId: userId,
-                            );
-                          }
-                        },
-                        style: ButtonStyle(
-                          backgroundColor:
-                              WidgetStateProperty.resolveWith<Color>((
-                                Set<WidgetState> states,
-                              ) {
-                                if (states.contains(WidgetState.selected)) {
-                                  return colorScheme.primaryContainer;
-                                }
-                                return colorScheme.surfaceContainerHighest;
-                              }),
-                          foregroundColor:
-                              WidgetStateProperty.resolveWith<Color>((
-                                Set<WidgetState> states,
-                              ) {
-                                if (states.contains(WidgetState.selected)) {
-                                  return colorScheme.onPrimaryContainer;
-                                }
-                                return colorScheme.onSurfaceVariant;
-                              }),
-                          shape: WidgetStateProperty.all(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface.withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(32),
+                            border: Border.all(
+                              color: colorScheme.onSurface.withValues(alpha: 0.05),
                             ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildFeedTab(
+                                label: 'For You',
+                                isSelected: _selectedIndex == 0,
+                                onTap: () => _updateFeedIndex(0, feedProvider),
+                                colorScheme: colorScheme,
+                                theme: theme,
+                              ),
+                              _buildFeedTab(
+                                label: 'Following',
+                                isSelected: _selectedIndex == 1,
+                                onTap: () => _updateFeedIndex(1, feedProvider),
+                                colorScheme: colorScheme,
+                                theme: theme,
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -456,6 +435,55 @@ class _FeedScreenState extends State<FeedScreen>
         //   onPressed: () => context.push('/create-post'),
         //   child: const Icon(Icons.add_rounded, size: 28),
         // ),
+      ),
+    );
+  }
+
+  void _updateFeedIndex(int index, FeedProvider feedProvider) {
+    setState(() => _selectedIndex = index);
+    _tabController.animateTo(index);
+
+    final userId = _authService.currentUser?.id;
+    if (userId != null) {
+      feedProvider.switchFeedType(
+        index == 0 ? FeedType.forYou : FeedType.following,
+        userId: userId,
+      );
+    }
+  }
+
+  Widget _buildFeedTab({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required ColorScheme colorScheme,
+    required ThemeData theme,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? colorScheme.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: colorScheme.primary.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [],
+        ),
+        child: Text(
+          label,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: isSelected ? Colors.white : colorScheme.onSurfaceVariant,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
       ),
     );
   }

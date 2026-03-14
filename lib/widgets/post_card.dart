@@ -46,12 +46,20 @@ class _PostCardState extends State<PostCard>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _likeAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
-      CurvedAnimation(
-        parent: _likeAnimationController,
-        curve: Curves.easeInOut,
+    _likeAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.0, end: 1.4).chain(
+          CurveTween(curve: Curves.easeOut),
+        ),
+        weight: 50,
       ),
-    );
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.4, end: 1.0).chain(
+          CurveTween(curve: Curves.bounceOut),
+        ),
+        weight: 50,
+      ),
+    ]).animate(_likeAnimationController);
     _currentImageIndex = 0;
   }
 
@@ -235,18 +243,32 @@ class _PostCardState extends State<PostCard>
     final colorScheme = theme.colorScheme;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(24),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
         child: Container(
           margin: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
           decoration: BoxDecoration(
-            color: colorScheme.surface.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: theme.dividerColor.withValues(alpha: 0.2),
-              width: 1,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colorScheme.surface.withValues(alpha: 0.7),
+                colorScheme.surface.withValues(alpha: 0.4),
+              ],
             ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: colorScheme.primary.withValues(alpha: 0.1),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

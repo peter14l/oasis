@@ -18,10 +18,11 @@ import 'package:morrow_v2/screens/messages/image_preview_screen.dart';
 import 'package:morrow_v2/screens/messages/chat_details_screen.dart';
 import 'package:morrow_v2/screens/messages/encryption_setup_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:morrow_v2/services/supabase_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:morrow_v2/widgets/skeleton_container.dart';
 import 'package:morrow_v2/widgets/messages/voice_message_player.dart';
-
+import 'package:morrow_v2/services/vault_service.dart';
 import 'package:morrow_v2/models/message_reaction.dart';
 import 'package:morrow_v2/models/chat_theme.dart';
 import 'package:morrow_v2/utils/haptic_utils.dart';
@@ -29,24 +30,28 @@ import 'package:morrow_v2/services/smart_reply_service.dart';
 import 'package:morrow_v2/widgets/messages/message_reactions.dart';
 import 'package:morrow_v2/widgets/messages/chat_theme_selector.dart';
 import 'package:morrow_v2/widgets/gestures/gesture_widgets.dart';
-// import 'package:morrow_v2/widgets/animations/micro_animations.dart';
 import 'package:any_link_preview/any_link_preview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'dart:async'; // For Timer
+import 'package:morrow_v2/services/call_service.dart';
+import 'package:morrow_v2/screens/messages/incoming_call_overlay.dart';
+import 'package:morrow_v2/models/call.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 
 class ChatScreen extends StatefulWidget {
   final String conversationId;
-  final String otherUserName;
-  final String otherUserAvatar;
-  final String otherUserId;
+  final String? otherUserName;
+  final String? otherUserAvatar;
+  final String? otherUserId;
 
   const ChatScreen({
     super.key,
     required this.conversationId,
-    required this.otherUserName,
-    required this.otherUserAvatar,
-    required this.otherUserId,
+    this.otherUserName,
+    this.otherUserAvatar,
+    this.otherUserId,
   });
 
   @override
@@ -58,10 +63,14 @@ class _ChatScreenState extends State<ChatScreen> {
   final AuthService _authService = AuthService();
   final MediaDownloadService _mediaDownloadService = MediaDownloadService();
   final EncryptionService _encryptionService = EncryptionService();
+  late final CallService _callService;
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _imagePicker = ImagePicker();
   final AudioRecorder _audioRecorder = AudioRecorder();
+  final FocusNode _focusNode = FocusNode();
+  late VaultService _vaultService;
+
 
   List<Message> _messages = [];
   bool _isLoading = false;
@@ -79,8 +88,6 @@ class _ChatScreenState extends State<ChatScreen> {
   // Duplicate variable removed
 
   RealtimeChannel? _messageChannel;
-  RealtimeChannel? _receiptChannel;
-  RealtimeChannel? _typingChannel;
   XFile? _selectedImage;
   File? _selectedVideo;
   PlatformFile? _selectedFile;
@@ -99,12 +106,88 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    _callService = context.read<CallService>();
     _loadPersistedSettings();
     _initializeEncryption();
     _loadMessages();
     _subscribeToMessages();
     _subscribeToReadReceipts();
     _markAsRead();
+    _subscribeToCalls();
+    if (widget.otherUserId == null) {
+      _fetchConversationDetails();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _vaultService = Provider.of<VaultService>(context, listen: false);
+  }
+
+  String? _otherUserName;
+  String? _otherUserId;
+
+
+  Future<void> _fetchConversationDetails() async {
+    try {
+      final details = await _messagingService.getConversationDetails(widget.conversationId);
+      if (mounted) {
+        setState(() {
+          _otherUserName = details.otherUserName;
+          _otherUserId = details.otherUserId;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching conversation details: $e');
+    }
+  }
+
+  void _subscribeToCalls() {
+    SupabaseService().client
+        .from('calls')
+        .stream(primaryKey: ['id'])
+        .eq('conversation_id', widget.conversationId)
+        .listen((data) {
+          if (data.isEmpty) return;
+          final call = Call.fromJson(data.first);
+          if (call.status == CallStatus.pinging && call.hostId != _authService.currentUser?.id) {
+            _showIncomingCallOverlay(call);
+          }
+        });
+  }
+
+  void _showIncomingCallOverlay(Call call) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: IncomingCallOverlay(call: call),
+      ),
+    );
+  }
+
+  Future<void> _initiateCall(CallType type) async {
+    try {
+      final call = await _callService.initiateCall(
+        conversationId: widget.conversationId,
+        type: type,
+        channelName: widget.otherUserName ?? _otherUserName ?? 'Unknown',
+      );
+      if (mounted) {
+        GoRouter.of(context).pushNamed(
+          'active_call',
+          pathParameters: {'callId': call.id},
+          extra: call,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to start call: $e')),
+        );
+      }
+    }
   }
 
   /// Load persisted chat settings (background, whisper mode) from SharedPreferences
@@ -251,7 +334,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _subscribeToReadReceipts() {
-    _receiptChannel = _messagingService.subscribeToReadReceipts(
+    _messagingService.subscribeToReadReceipts(
       conversationId: widget.conversationId,
       onUpdate: (messageId, userId, readAt) {
         if (mounted && userId == widget.otherUserId) {
@@ -489,8 +572,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
       if (EncryptionService.isEnabled) {
         // Validate otherUserId is not empty (group chats not yet supported for encryption)
-        if (widget.otherUserId.isEmpty) {
-          throw Exception('Group chat encryption is not yet supported');
+        final recipientId = widget.otherUserId ?? _otherUserId;
+        if (recipientId == null || recipientId.isEmpty) {
+          throw Exception('Recipient ID is required for encryption');
         }
 
         // Get recipient's public key
@@ -498,7 +582,7 @@ class _ChatScreenState extends State<ChatScreen> {
             await Supabase.instance.client
                 .from('profiles')
                 .select('public_key')
-                .eq('id', widget.otherUserId)
+                .eq('id', recipientId)
                 .single();
 
         final recipientPublicKey = recipientProfile['public_key'] as String?;
@@ -554,7 +638,7 @@ class _ChatScreenState extends State<ChatScreen> {
       await _messagingService.sendMessage(
         conversationId: widget.conversationId,
         senderId: userId,
-        content: finalContent ?? '',
+        content: finalContent,
         messageType: messageType,
         mediaUrl: mediaUrl,
         mediaFileName: fileName,
@@ -592,9 +676,9 @@ class _ChatScreenState extends State<ChatScreen> {
         builder:
             (context) => ChatDetailsScreen(
               conversationId: widget.conversationId,
-              otherUserName: widget.otherUserName,
-              otherUserAvatar: widget.otherUserAvatar,
-              otherUserId: widget.otherUserId,
+              otherUserName: widget.otherUserName ?? _otherUserName ?? 'Unknown',
+              otherUserAvatar: widget.otherUserAvatar ?? '',
+              otherUserId: widget.otherUserId ?? _otherUserId ?? '',
               isWhisperMode: _isWhisperMode,
               currentBackground: _backgroundUrl,
             ),
@@ -848,6 +932,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _toggleWhisperMode() {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     setState(() => _isWhisperMode = !_isWhisperMode);
     _messagingService.toggleWhisperMode(widget.conversationId, _isWhisperMode);
     // Persist the whisper mode setting
@@ -857,10 +942,10 @@ class _ChatScreenState extends State<ChatScreen> {
       SnackBar(
         content: Text(
           _isWhisperMode
-              ? '🔮 Whisper Mode enabled. Messages will vanish after being seen.'
+              ? '✨ Whisper Mode enabled. Messages will vanish after being seen.'
               : 'Whisper Mode disabled.',
         ),
-        backgroundColor: _isWhisperMode ? Colors.purple : Colors.green,
+        backgroundColor: _isWhisperMode ? colorScheme.secondary : Colors.green,
         duration: const Duration(seconds: 3),
       ),
     );
@@ -871,10 +956,17 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_messageChannel != null) {
       _messagingService.unsubscribeFromMessages(_messageChannel!);
     }
-    _messageController.dispose();
     _scrollController.dispose();
+    _messageController.dispose();
+    _focusNode.dispose();
     _recordTimer?.cancel();
     _audioRecorder.dispose();
+
+    // Lock chat if interval is set to On Chat Close
+    if (_vaultService.getLockInterval(widget.conversationId) == 'chat_close') {
+      _vaultService.lockItem(widget.conversationId);
+    }
+
     super.dispose();
   }
 
@@ -896,141 +988,134 @@ class _ChatScreenState extends State<ChatScreen> {
               CircleAvatar(
                 radius: 16,
                 backgroundImage:
-                    widget.otherUserAvatar.isNotEmpty
-                        ? CachedNetworkImageProvider(widget.otherUserAvatar)
+                    (widget.otherUserAvatar ?? '').isNotEmpty
+                        ? CachedNetworkImageProvider(widget.otherUserAvatar!)
                         : null,
                 child:
-                    widget.otherUserAvatar.isEmpty
+                    (widget.otherUserAvatar ?? '').isEmpty
                         ? Text(
-                          widget.otherUserName.isNotEmpty
-                              ? widget.otherUserName[0].toUpperCase()
+                          (widget.otherUserName ?? _otherUserName ?? 'U').isNotEmpty
+                              ? (widget.otherUserName ?? _otherUserName ?? 'U')[0].toUpperCase()
                               : '',
                         )
                         : null,
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(widget.otherUserName),
-                  if (_encryptionReady)
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.lock,
-                          size: 10,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Encrypted',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.otherUserName ?? _otherUserName ?? 'Unknown',
+                      overflow: TextOverflow.ellipsis,
                     ),
-                ],
+                    if (_encryptionReady)
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.lock,
+                            size: 10,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Encrypted',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
-        actions:
-            isDesktop
-                ? [
-                  IconButton(
-                    icon: const Icon(Icons.videocam_outlined),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Video call coming soon')),
-                      );
-                    },
-                    tooltip: 'Video Call',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.call_outlined),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Voice call coming soon')),
-                      );
-                    },
-                    tooltip: 'Voice Call',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Search coming soon')),
-                      );
-                    },
-                    tooltip: 'Search',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.info_outline),
-                    onPressed: _openChatDetails,
-                    tooltip: 'Chat Details',
-                  ),
-                  const SizedBox(width: 8),
-                ]
-                : [
-                  PopupMenuButton<String>(
-                    onSelected: (value) {
-                      if (value == 'details') {
-                        _openChatDetails();
-                      } else if (value == 'theme') {
-                        showModalBottomSheet(
-                          context: context,
-                          builder:
-                              (context) => ChatThemeSelector(
-                                selectedPreset: ChatThemePreset.values
-                                    .firstWhere(
-                                      (p) =>
-                                          p.name.toLowerCase() ==
-                                          _activeTheme?.themeName.toLowerCase(),
-                                      orElse:
-                                          () => ChatThemePreset.defaultTheme,
-                                    ),
-                                onPresetSelected: (preset) {
-                                  _handleThemeChange(
-                                    ChatTheme.fromPreset(
-                                      preset,
-                                      'theme_${DateTime.now().millisecondsSinceEpoch}',
-                                      widget.conversationId,
-                                      _authService.currentUser?.id ?? '',
-                                    ),
-                                  );
-                                  Navigator.pop(context);
-                                },
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.call_outlined),
+            onPressed: () => _initiateCall(CallType.voice),
+            tooltip: 'Voice Call',
+          ),
+          IconButton(
+            icon: const Icon(Icons.videocam_outlined),
+            onPressed: () => _initiateCall(CallType.video),
+            tooltip: 'Video Call',
+          ),
+          if (isDesktop) ...[
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Search coming soon')),
+                );
+              },
+              tooltip: 'Search',
+            ),
+            IconButton(
+              icon: const Icon(Icons.info_outline),
+              onPressed: _openChatDetails,
+              tooltip: 'Chat Details',
+            ),
+          ] else
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'details') {
+                  _openChatDetails();
+                } else if (value == 'theme') {
+                  showModalBottomSheet(
+                    context: context,
+                    builder:
+                        (context) => ChatThemeSelector(
+                          selectedPreset: ChatThemePreset.values.firstWhere(
+                            (p) =>
+                                p.name.toLowerCase() ==
+                                _activeTheme?.themeName.toLowerCase(),
+                            orElse: () => ChatThemePreset.defaultTheme,
+                          ),
+                          onPresetSelected: (preset) {
+                            _handleThemeChange(
+                              ChatTheme.fromPreset(
+                                preset,
+                                'theme_${DateTime.now().millisecondsSinceEpoch}',
+                                widget.conversationId,
+                                _authService.currentUser?.id ?? '',
                               ),
-                        );
-                      }
-                    },
-                    itemBuilder:
-                        (context) => [
-                          const PopupMenuItem(
-                            value: 'details',
-                            child: Row(
-                              children: [
-                                Icon(Icons.info_outline),
-                                SizedBox(width: 12),
-                                Text('Details'),
-                              ],
-                            ),
-                          ),
-                          const PopupMenuItem(
-                            value: 'theme',
-                            child: Row(
-                              children: [
-                                Icon(Icons.palette_outlined),
-                                SizedBox(width: 12),
-                                Text('Chat Theme'),
-                              ],
-                            ),
-                          ),
+                            );
+                            Navigator.pop(context);
+                          },
+                        ),
+                  );
+                }
+              },
+              itemBuilder:
+                  (context) => [
+                    const PopupMenuItem(
+                      value: 'details',
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline),
+                          SizedBox(width: 12),
+                          Text('Details'),
                         ],
-                  ),
-                ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'theme',
+                      child: Row(
+                        children: [
+                          Icon(Icons.palette_outlined),
+                          SizedBox(width: 12),
+                          Text('Chat Theme'),
+                        ],
+                      ),
+                    ),
+                  ],
+            ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Stack(
         children: [
@@ -1056,21 +1141,21 @@ class _ChatScreenState extends State<ChatScreen> {
                     vertical: 8,
                     horizontal: 16,
                   ),
-                  color: Colors.purple.withValues(alpha: 0.2),
+                  color: colorScheme.secondary.withValues(alpha: 0.2),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.auto_delete,
                         size: 16,
-                        color: Colors.purple,
+                        color: colorScheme.secondary,
                       ),
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(
                           'Whisper Mode • Messages vanish 24hrs after being seen',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.purple,
+                            color: colorScheme.secondary,
                             fontWeight: FontWeight.w500,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -1247,7 +1332,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                               height: 40,
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.circle,
-                                                color: Colors.purple.withValues(
+                                                color: colorScheme.secondary.withValues(
                                                   alpha: 0.08,
                                                 ),
                                               ),
@@ -1258,14 +1343,14 @@ class _ChatScreenState extends State<ChatScreen> {
                                               child: CircularProgressIndicator(
                                                 value: _whisperDragProgress,
                                                 strokeWidth: 3,
-                                                backgroundColor: Colors.purple
+                                                backgroundColor: colorScheme.secondary
                                                     .withValues(alpha: 0.15),
                                                 valueColor: AlwaysStoppedAnimation<
                                                   Color
                                                 >(
                                                   _whisperDragProgress >= 1.0
-                                                      ? Colors.purple
-                                                      : Colors.purple.withValues(
+                                                      ? colorScheme.secondary
+                                                      : colorScheme.secondary.withValues(
                                                         alpha:
                                                             0.4 +
                                                             _whisperDragProgress *
@@ -1279,7 +1364,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                   ? Icons.auto_delete
                                                   : Icons.arrow_upward_rounded,
                                               size: 18,
-                                              color: Colors.purple.withValues(
+                                              color: colorScheme.secondary.withValues(
                                                 alpha:
                                                     0.5 +
                                                     _whisperDragProgress * 0.5,
@@ -1435,7 +1520,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             style: theme.textTheme.bodySmall?.copyWith(
                               color:
                                   _isWhisperMode
-                                      ? Colors.purple.withValues(alpha: 0.8)
+                                      ? colorScheme.secondary.withValues(alpha: 0.8)
                                       : colorScheme.onSurfaceVariant.withValues(
                                         alpha: 0.5,
                                       ),

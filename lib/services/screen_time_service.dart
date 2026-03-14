@@ -108,7 +108,13 @@ class ScreenTimeService extends ChangeNotifier {
 
     if (duration.inSeconds < 1) return;
 
-    await _recordUsage(endTime, duration);
+    // Safety: don't call async record if we're technically disposed
+    // though shared_prefs is usually okay
+    try {
+      await _recordUsage(endTime, duration);
+    } catch (e) {
+      debugPrint('ScreenTime: Error recording usage during stop: $e');
+    }
     debugPrint('ScreenTime: Session ended. Duration: ${duration.inMinutes}m');
   }
 
@@ -424,8 +430,9 @@ class ScreenTimeService extends ChangeNotifier {
 
   @override
   void dispose() {
+    _stopWellbeingTicker();
     _autoSaveTimer?.cancel();
-    _wellbeingTicker?.cancel();
+    _autoSaveTimer = null;
     super.dispose();
   }
 }

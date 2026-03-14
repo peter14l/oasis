@@ -49,21 +49,25 @@ class TimeCapsuleService {
           .from(SupabaseConfig.timeCapsulesTable)
           .insert(capsuleData);
 
-      // Fetch the created capsule with user details
+      // Fetch the created capsule
       final response =
           await _supabase
               .from(SupabaseConfig.timeCapsulesTable)
-              .select('''
-            *,
-            ${SupabaseConfig.profilesTable}:user_id (
-              username,
-              avatar_url
-            )
-          ''')
+              .select()
               .eq('id', capsuleId)
               .single();
 
-      return _transformResponse(response);
+      // Fetch profile separately to avoid relationship error
+      final profileResponse = await _supabase
+          .from(SupabaseConfig.profilesTable)
+          .select('username, avatar_url')
+          .eq('id', userId)
+          .single();
+
+      final mergedData = Map<String, dynamic>.from(response);
+      mergedData[SupabaseConfig.profilesTable] = profileResponse;
+
+      return _transformResponse(mergedData);
     } catch (e) {
       debugPrint('Error creating time capsule: $e');
       rethrow;
@@ -79,19 +83,28 @@ class TimeCapsuleService {
     try {
       final response = await _supabase
           .from(SupabaseConfig.timeCapsulesTable)
-          .select('''
-            *,
-            ${SupabaseConfig.profilesTable}:user_id (
-              username,
-              avatar_url
-            )
-          ''')
+          .select()
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
 
       if (response.isEmpty) return [];
 
-      return (response as List).map((e) => _transformResponse(e)).toList();
+      // Fetch profiles for all capsules in the list
+      final userIds = (response as List).map((e) => e['user_id']).toSet().toList();
+      final profilesResponse = await _supabase
+          .from(SupabaseConfig.profilesTable)
+          .select('id, username, avatar_url')
+          .inFilter('id', userIds);
+
+      final profilesMap = {
+        for (var p in profilesResponse) p['id']: p
+      };
+
+      return response.map((e) {
+        final mergedData = Map<String, dynamic>.from(e);
+        mergedData[SupabaseConfig.profilesTable] = profilesMap[e['user_id']];
+        return _transformResponse(mergedData);
+      }).toList();
     } catch (e) {
       debugPrint('Error getting capsules: $e');
       rethrow;
@@ -104,20 +117,25 @@ class TimeCapsuleService {
       final now = DateTime.now().toIso8601String();
       final response = await _supabase
           .from(SupabaseConfig.timeCapsulesTable)
-          .select('''
-            *,
-            ${SupabaseConfig.profilesTable}:user_id (
-              username,
-              avatar_url
-            )
-          ''')
+          .select()
           .eq('user_id', userId)
           .lte('unlock_date', now)
           .order('unlock_date', ascending: false);
 
       if (response.isEmpty) return [];
 
-      return (response as List).map((e) => _transformResponse(e)).toList();
+      // Fetch profile for the current user
+      final profileResponse = await _supabase
+          .from(SupabaseConfig.profilesTable)
+          .select('username, avatar_url')
+          .eq('id', userId)
+          .single();
+
+      return (response as List).map((e) {
+        final mergedData = Map<String, dynamic>.from(e);
+        mergedData[SupabaseConfig.profilesTable] = profileResponse;
+        return _transformResponse(mergedData);
+      }).toList();
     } catch (e) {
       debugPrint('Error getting unlocked capsules: $e');
       rethrow;

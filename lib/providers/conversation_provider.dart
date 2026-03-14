@@ -22,10 +22,22 @@ class ConversationProvider with ChangeNotifier {
   int get totalUnreadCount => _conversations.fold(0, (sum, conv) => sum + conv.unreadCount);
 
   /// Initialize and load conversations
-  Future<void> initialize(String userId) async {
-    if (_currentUserId == userId) return;
+  Future<void> initialize(String? userId) async {
+    if (userId == null) {
+      _currentUserId = null;
+      _conversations = [];
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+    
+    if (_currentUserId == userId && _conversations.isNotEmpty) return;
     
     _currentUserId = userId;
+    _conversations = [];
+    _isLoading = true;
+    notifyListeners();
+    
     await loadConversations();
     _setupRealtimeSubscriptions();
   }

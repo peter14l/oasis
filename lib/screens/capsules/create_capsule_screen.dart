@@ -213,7 +213,6 @@ class _CreateCapsuleScreenState extends State<CreateCapsuleScreen> {
               itemBuilder: (context, index) {
                 final preset = _datePresets[index];
                 final duration = preset['duration'] as Duration;
-                final isSelected = false; // Simple logic, doesn't update on exact match for now
                 
                 return OutlinedButton.icon(
                   onPressed: () {
