@@ -7,7 +7,6 @@ import 'package:morrow_v2/routes/app_router.dart';
 import 'package:morrow_v2/themes/app_theme.dart';
 import 'package:morrow_v2/services/auth_service.dart';
 import 'package:morrow_v2/services/supabase_service.dart';
-import 'package:morrow_v2/services/encryption_service.dart';
 import 'package:morrow_v2/providers/feed_provider.dart';
 import 'package:morrow_v2/providers/profile_provider.dart';
 import 'package:morrow_v2/providers/community_provider.dart';
@@ -15,6 +14,7 @@ import 'package:morrow_v2/providers/user_settings_provider.dart';
 import 'package:morrow_v2/providers/typing_indicator_provider.dart';
 import 'package:morrow_v2/providers/notification_provider.dart';
 import 'package:morrow_v2/providers/capsule_provider.dart';
+import 'package:morrow_v2/providers/conversation_provider.dart';
 import 'package:morrow_v2/services/vault_service.dart';
 import 'package:morrow_v2/services/screen_time_service.dart';
 import 'package:morrow_v2/services/energy_meter_service.dart';
@@ -89,16 +89,16 @@ void main() async {
 
     // If user is already logged in, silently provision/restore encryption keys
     // so they are ready before any chat is opened (WhatsApp-style seamless restore)
-    if (authService.currentUser != null) {
-      EncryptionService()
-          .init()
-          .then((status) {
-            debugPrint('[Startup] Encryption init status: $status');
-          })
-          .catchError((e) {
-            debugPrint('[Startup] Encryption init error: $e');
-          });
-    }
+    // if (authService.currentUser != null) {
+    //   EncryptionService()
+    //       .init()
+    //       .then((status) {
+    //         debugPrint('[Startup] Encryption init status: $status');
+    //       })
+    //       .catchError((e) {
+    //         debugPrint('[Startup] Encryption init error: $e');
+    //       });
+    // }
 
     // Initialize theme provider
     final themeProvider = ThemeProvider();
@@ -160,8 +160,9 @@ void main() async {
                   ChangeNotifierProvider(
                     create: (_) => TypingIndicatorProvider(),
                   ),
-                  ChangeNotifierProvider(create: (_) => NotificationProvider()),
+                   ChangeNotifierProvider(create: (_) => NotificationProvider()),
                   ChangeNotifierProvider(create: (_) => CapsuleProvider()),
+                  ChangeNotifierProvider(create: (_) => ConversationProvider()),
                   Provider<VaultService>(create: (_) => VaultService()),
                 ],
                 child: const LifecycleManager(child: MyApp()),
@@ -324,6 +325,7 @@ class _MyAppState extends State<MyApp> {
               // Defer to next frame to avoid build-time state updates
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 context.read<NotificationProvider>().init(userId);
+                context.read<ConversationProvider>().initialize(userId);
               });
             } else {
               WidgetsBinding.instance.addPostFrameCallback((_) {

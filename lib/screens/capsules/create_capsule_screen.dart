@@ -146,7 +146,7 @@ class _CreateCapsuleScreenState extends State<CreateCapsuleScreen> {
               decoration: InputDecoration(
                 hintText: 'Dear Future Me...',
                 filled: true,
-                fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
+                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,

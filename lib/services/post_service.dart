@@ -19,6 +19,7 @@ class PostService {
     List<File>? mediaFiles,
     List<String>? mediaTypes, // 'image' or 'video'
     String? communityId,
+    String? mood,
   }) async {
     try {
       final postId = _uuid.v4();
@@ -83,6 +84,7 @@ class PostService {
         'image_url': firstImageUrl,
         'media_urls': mediaUrls,
         'media_types': mediaTypes ?? [],
+        'mood': mood,
       };
 
       await _supabase.from(SupabaseConfig.postsTable).insert(postData);

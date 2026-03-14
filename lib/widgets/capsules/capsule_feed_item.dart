@@ -17,14 +17,14 @@ class CapsuleFeedItem extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: colorScheme.surface.withOpacity(0.7),
+        color: colorScheme.surface.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: colorScheme.outlineVariant.withOpacity(0.2),
+          color: colorScheme.outlineVariant.withValues(alpha: 0.2),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -92,7 +92,7 @@ class CapsuleFeedItem extends StatelessWidget {
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: colorScheme.surfaceVariant.withOpacity(0.3),
+                          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(

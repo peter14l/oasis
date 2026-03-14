@@ -33,6 +33,7 @@ class Message {
   final DateTime? expiresAt;
   final Map<String, dynamic>? encryptedKeys;
   final String? iv;
+  final String? callId;
 
   Message({
     required this.id,
@@ -59,6 +60,7 @@ class Message {
     this.expiresAt,
     this.encryptedKeys,
     this.iv,
+    this.callId,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
@@ -122,6 +124,7 @@ class Message {
               : null,
       encryptedKeys: json['encrypted_keys'] as Map<String, dynamic>?,
       iv: json['iv'] as String?,
+      callId: json['call_id'] as String?,
     );
   }
 
@@ -150,6 +153,7 @@ class Message {
       'expires_at': expiresAt?.toIso8601String(),
       'encrypted_keys': encryptedKeys,
       'iv': iv,
+      'call_id': callId,
     };
   }
 
@@ -178,6 +182,7 @@ class Message {
     DateTime? expiresAt,
     Map<String, dynamic>? encryptedKeys,
     String? iv,
+    String? callId,
   }) {
     return Message(
       id: id ?? this.id,
@@ -204,6 +209,7 @@ class Message {
       expiresAt: expiresAt ?? this.expiresAt,
       encryptedKeys: encryptedKeys ?? this.encryptedKeys,
       iv: iv ?? this.iv,
+      callId: callId ?? this.callId,
     );
   }
 

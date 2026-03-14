@@ -1,6 +1,6 @@
 // app_router.dart
 
-import 'dart:ui' as imageUrl;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:navigation_bar_m3e/navigation_bar_m3e.dart';
@@ -18,6 +18,11 @@ import 'package:morrow_v2/screens/messages/direct_messages_screen.dart'
     as messages;
 import 'package:morrow_v2/screens/messages/chat_screen.dart';
 import 'package:morrow_v2/screens/messages/new_message_screen.dart';
+import 'package:morrow_v2/providers/typing_indicator_provider.dart';
+import 'package:morrow_v2/widgets/messages/unread_badge_widget.dart';
+import 'package:morrow_v2/widgets/messages/typing_indicator_widget.dart';
+import 'package:morrow_v2/services/vault_service.dart';
+import 'package:morrow_v2/providers/conversation_provider.dart';
 import 'package:morrow_v2/screens/notifications/notifications_screen.dart';
 import 'package:morrow_v2/screens/settings_screen.dart';
 import 'package:morrow_v2/screens/settings/subscription_screen.dart';
@@ -254,8 +259,9 @@ class _MainLayoutState extends State<MainLayout> {
     ThemeData theme, {
     required bool killSwitchActive,
   }) {
+    final conversationProvider = Provider.of<ConversationProvider>(context);
     // Indices 0 (Feed) and 1 (Search) are restricted when kill-switch is on.
-    Widget _restrictedIcon(Widget icon) =>
+    Widget restrictedIcon(Widget icon) =>
         killSwitchActive ? Opacity(opacity: 0.3, child: icon) : icon;
 
     return Container(
@@ -271,7 +277,7 @@ class _MainLayoutState extends State<MainLayout> {
       ),
       child: ClipRRect(
         child: BackdropFilter(
-          filter: imageUrl.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: NavigationBarM3E(
             backgroundColor: Colors.transparent,
             elevation: 0,
@@ -284,17 +290,17 @@ class _MainLayoutState extends State<MainLayout> {
             labelBehavior: NavBarM3ELabelBehavior.alwaysHide,
             destinations: [
               NavigationDestinationM3E(
-                icon: _restrictedIcon(const Icon(FluentIcons.home_24_regular)),
-                selectedIcon: _restrictedIcon(
+                icon: restrictedIcon(const Icon(FluentIcons.home_24_regular)),
+                selectedIcon: restrictedIcon(
                   const Icon(FluentIcons.home_24_filled),
                 ),
                 label: 'Feed',
               ),
               NavigationDestinationM3E(
-                icon: _restrictedIcon(
+                icon: restrictedIcon(
                   const Icon(FluentIcons.search_24_regular),
                 ),
-                selectedIcon: _restrictedIcon(
+                selectedIcon: restrictedIcon(
                   const Icon(FluentIcons.search_24_filled),
                 ),
                 label: 'Search',
@@ -307,25 +313,21 @@ class _MainLayoutState extends State<MainLayout> {
                 label: 'Communities',
               ),
               NavigationDestinationM3E(
-                icon: Badge.count(
-                  count: 3,
+                icon: Badge(
+                  isLabelVisible: conversationProvider.totalUnreadCount > 0,
+                  label: Text(conversationProvider.totalUnreadCount.toString()),
                   child: const Icon(FluentIcons.chat_24_regular),
                 ),
-                selectedIcon: Badge.count(
-                  count: 3,
+                selectedIcon: Badge(
+                  isLabelVisible: conversationProvider.totalUnreadCount > 0,
+                  label: Text(conversationProvider.totalUnreadCount.toString()),
                   child: const Icon(FluentIcons.chat_24_filled),
                 ),
                 label: 'Messages',
               ),
               NavigationDestinationM3E(
-                icon: Badge.count(
-                  count: 3,
-                  child: const Icon(FluentIcons.alert_24_regular),
-                ),
-                selectedIcon: Badge.count(
-                  count: 3,
-                  child: const Icon(FluentIcons.alert_24_filled),
-                ),
+                icon: const Icon(FluentIcons.alert_24_regular),
+                selectedIcon: const Icon(FluentIcons.alert_24_filled),
                 label: 'Alerts',
               ),
               NavigationDestinationM3E(
@@ -346,9 +348,10 @@ class _MainLayoutState extends State<MainLayout> {
     ThemeData theme, {
     required bool killSwitchActive,
   }) {
+    final conversationProvider = Provider.of<ConversationProvider>(context);
     final colorScheme = theme.colorScheme;
 
-    Widget _restrictedIcon(Widget icon) =>
+    Widget restrictedIcon(Widget icon) =>
         killSwitchActive ? Opacity(opacity: 0.3, child: icon) : icon;
 
     return NavigationRail(
@@ -376,16 +379,16 @@ class _MainLayoutState extends State<MainLayout> {
       ),
       destinations: [
         NavigationRailDestination(
-          icon: _restrictedIcon(const Icon(FluentIcons.home_24_regular)),
-          selectedIcon: _restrictedIcon(const Icon(FluentIcons.home_24_filled)),
+          icon: restrictedIcon(const Icon(FluentIcons.home_24_regular)),
+          selectedIcon: restrictedIcon(const Icon(FluentIcons.home_24_filled)),
           label:
               killSwitchActive
                   ? const Text('Feed', style: TextStyle(color: Colors.grey))
                   : const Text('Feed'),
         ),
         NavigationRailDestination(
-          icon: _restrictedIcon(const Icon(FluentIcons.search_24_regular)),
-          selectedIcon: _restrictedIcon(
+          icon: restrictedIcon(const Icon(FluentIcons.search_24_regular)),
+          selectedIcon: restrictedIcon(
             const Icon(FluentIcons.search_24_filled),
           ),
           label:
@@ -399,25 +402,21 @@ class _MainLayoutState extends State<MainLayout> {
           label: const Text('Communities'),
         ),
         NavigationRailDestination(
-          icon: Badge.count(
-            count: 3,
+          icon: Badge(
+            isLabelVisible: conversationProvider.totalUnreadCount > 0,
+            label: Text(conversationProvider.totalUnreadCount.toString()),
             child: const Icon(FluentIcons.chat_24_regular),
           ),
-          selectedIcon: Badge.count(
-            count: 3,
+          selectedIcon: Badge(
+            isLabelVisible: conversationProvider.totalUnreadCount > 0,
+            label: Text(conversationProvider.totalUnreadCount.toString()),
             child: const Icon(FluentIcons.chat_24_filled),
           ),
           label: const Text('Messages'),
         ),
         NavigationRailDestination(
-          icon: Badge.count(
-            count: 3,
-            child: const Icon(FluentIcons.alert_24_regular),
-          ),
-          selectedIcon: Badge.count(
-            count: 3,
-            child: const Icon(FluentIcons.alert_24_filled),
-          ),
+          icon: const Icon(FluentIcons.alert_24_regular),
+          selectedIcon: const Icon(FluentIcons.alert_24_filled),
           label: const Text('Notifications'),
         ),
         NavigationRailDestination(
@@ -779,6 +778,19 @@ class AppRouter {
             ) {
               return FadeTransition(opacity: animation, child: child);
             },
+          );
+        },
+      ),
+
+      // User Profile Screen (for viewing others)
+      GoRoute(
+        path: '/profile/:userId',
+        name: 'user_profile',
+        pageBuilder: (context, state) {
+          final userId = state.pathParameters['userId']!;
+          return MaterialPage(
+            key: state.pageKey,
+            child: ProfileScreen(userId: userId),
           );
         },
       ),

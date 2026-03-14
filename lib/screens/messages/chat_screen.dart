@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:record/record.dart';
@@ -30,7 +29,7 @@ import 'package:morrow_v2/services/smart_reply_service.dart';
 import 'package:morrow_v2/widgets/messages/message_reactions.dart';
 import 'package:morrow_v2/widgets/messages/chat_theme_selector.dart';
 import 'package:morrow_v2/widgets/gestures/gesture_widgets.dart';
-import 'package:morrow_v2/widgets/animations/micro_animations.dart';
+// import 'package:morrow_v2/widgets/animations/micro_animations.dart';
 import 'package:any_link_preview/any_link_preview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -80,6 +79,8 @@ class _ChatScreenState extends State<ChatScreen> {
   // Duplicate variable removed
 
   RealtimeChannel? _messageChannel;
+  RealtimeChannel? _receiptChannel;
+  RealtimeChannel? _typingChannel;
   XFile? _selectedImage;
   File? _selectedVideo;
   PlatformFile? _selectedFile;
@@ -102,6 +103,8 @@ class _ChatScreenState extends State<ChatScreen> {
     _initializeEncryption();
     _loadMessages();
     _subscribeToMessages();
+    _subscribeToReadReceipts();
+    _markAsRead();
   }
 
   /// Load persisted chat settings (background, whisper mode) from SharedPreferences
@@ -137,6 +140,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _initializeEncryption() async {
+    if (!EncryptionService.isEnabled) return;
     final status = await _encryptionService.init();
 
     if (status == EncryptionStatus.needsSetup) {
@@ -199,13 +203,12 @@ class _ChatScreenState extends State<ChatScreen> {
           decryptedMessages.add(message);
         }
       }
-
       setState(() {
         _messages = decryptedMessages;
         _isLoading = false;
       });
       _scrollToBottom();
-      _loadSmartReplies(); // Added this line as per instruction.
+      _loadSmartReplies();
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
@@ -245,6 +248,31 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       },
     );
+  }
+
+  void _subscribeToReadReceipts() {
+    _receiptChannel = _messagingService.subscribeToReadReceipts(
+      conversationId: widget.conversationId,
+      onUpdate: (messageId, userId, readAt) {
+        if (mounted && userId == widget.otherUserId) {
+          setState(() {
+            final index = _messages.indexWhere((m) => m.id == messageId);
+            if (index >= 0) {
+              _messages[index] = _messages[index].copyWith(
+                isRead: true,
+                readAt: readAt,
+              );
+            }
+          });
+        }
+      },
+    );
+  }
+
+  Future<void> _markAsRead() async {
+    final userId = _authService.currentUser?.id;
+    if (userId == null) return;
+    await _messagingService.markConversationAsRead(widget.conversationId, userId);
   }
 
   Future<void> _pickImage() async {
@@ -433,7 +461,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
 
-    if (!_encryptionReady) {
+    if (EncryptionService.isEnabled && !_encryptionReady) {
       _showError('Encryption not ready. Please set up encryption first.');
       return;
     }
@@ -455,29 +483,40 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     try {
-      // Validate otherUserId is not empty (group chats not yet supported for encryption)
-      if (widget.otherUserId.isEmpty) {
-        throw Exception('Group chat encryption is not yet supported');
+      String? finalContent;
+      Map<String, String>? encryptedKeys;
+      String? iv;
+
+      if (EncryptionService.isEnabled) {
+        // Validate otherUserId is not empty (group chats not yet supported for encryption)
+        if (widget.otherUserId.isEmpty) {
+          throw Exception('Group chat encryption is not yet supported');
+        }
+
+        // Get recipient's public key
+        final recipientProfile =
+            await Supabase.instance.client
+                .from('profiles')
+                .select('public_key')
+                .eq('id', widget.otherUserId)
+                .single();
+
+        final recipientPublicKey = recipientProfile['public_key'] as String?;
+        if (recipientPublicKey == null) {
+          throw Exception('Recipient has not set up encryption');
+        }
+
+        // Encrypt message content
+        final encrypted = await _encryptionService.encryptMessage(
+          content.isNotEmpty ? content : 'Sent attachment',
+          [recipientPublicKey],
+        );
+        finalContent = encrypted.encryptedContent;
+        encryptedKeys = encrypted.encryptedKeys;
+        iv = encrypted.iv;
+      } else {
+        finalContent = content;
       }
-
-      // Get recipient's public key
-      final recipientProfile =
-          await Supabase.instance.client
-              .from('profiles')
-              .select('public_key')
-              .eq('id', widget.otherUserId)
-              .single();
-
-      final recipientPublicKey = recipientProfile['public_key'] as String?;
-      if (recipientPublicKey == null) {
-        throw Exception('Recipient has not set up encryption');
-      }
-
-      // Encrypt message content
-      final encrypted = await _encryptionService.encryptMessage(
-        content.isNotEmpty ? content : 'Sent attachment',
-        [recipientPublicKey],
-      );
 
       String? mediaUrl;
       MessageType messageType = MessageType.text;
@@ -511,18 +550,18 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }
 
-      // Send encrypted message
+      // Send message
       await _messagingService.sendMessage(
         conversationId: widget.conversationId,
         senderId: userId,
-        content: encrypted.encryptedContent,
+        content: finalContent ?? '',
         messageType: messageType,
         mediaUrl: mediaUrl,
         mediaFileName: fileName,
         mediaFileSize: fileSize,
         mediaMimeType: mimeType,
-        encryptedKeys: encrypted.encryptedKeys,
-        iv: encrypted.iv,
+        encryptedKeys: encryptedKeys,
+        iv: iv,
         isWhisperMode: _isWhisperMode,
         ephemeralDuration: _ephemeralDuration,
       );
@@ -1484,6 +1523,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildMessageBubble(Message message, bool isMe) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final userId = _authService.currentUser?.id;
 
     // final bubbleColor = isMe
     //     ? (colorScheme.primary.withValues(alpha: ))
@@ -1789,12 +1829,33 @@ class _ChatScreenState extends State<ChatScreen> {
                                       ? colorScheme.onPrimary.withValues(
                                         alpha: 0.7,
                                       )
-                                      : colorScheme.onSurfaceVariant.withValues(
-                                        alpha: 0.7,
-                                      ),
+                                      : colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
+                      ),
+                      if (isMe &&
+                          message.isRead &&
+                          message.readAt != null &&
+                          _messages.indexOf(message) ==
+                              _messages.lastIndexWhere(
+                                (m) =>
+                                    m.senderId == userId &&
+                                    m.isRead &&
+                                    m.readAt != null,
+                              ))
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(
+                            'Seen ${timeago.format(message.readAt!)}',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              fontSize: 9,
+                              fontStyle: FontStyle.italic,
+                              color: colorScheme.onPrimary.withValues(
+                                alpha: 0.8,
+                              ),
+                            ),
+                          ),
                       ),
                     ],
                   ),

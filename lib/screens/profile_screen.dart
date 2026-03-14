@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:morrow_v2/providers/profile_provider.dart';
@@ -15,7 +14,8 @@ import 'package:morrow_v2/widgets/wellness_badge.dart';
 import 'package:morrow_v2/widgets/profile/activity_graph.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final String? userId;
+  const ProfileScreen({super.key, this.userId});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -31,154 +31,66 @@ class _ProfileScreenState extends State<ProfileScreen>
   bool _isLoadingPosts = false;
   final ScrollController _scrollController = ScrollController();
 
+  bool get isOwnProfile {
+    final currentUserId = _authService.currentUser?.id;
+    return widget.userId == null || widget.userId == currentUserId;
+  }
+
+  String get targetUserId => widget.userId ?? _authService.currentUser?.id ?? '';
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: isOwnProfile ? 2 : 1, vsync: this);
     _loadProfile();
     _loadUserPosts();
   }
 
   void _loadProfile() {
-    final userId = _authService.currentUser?.id;
-    if (userId != null) {
+    final currentUserId = _authService.currentUser?.id;
+    final targetId = targetUserId;
+    if (targetId.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<ProfileProvider>().loadCurrentProfile(userId);
+        if (isOwnProfile) {
+          context.read<ProfileProvider>().loadCurrentProfile(targetId);
+        } else if (currentUserId != null) {
+          context.read<ProfileProvider>().loadProfile(targetId, currentUserId);
+        }
       });
     }
   }
 
   Future<void> _loadUserPosts() async {
-    final userId = _authService.currentUser?.id;
-    if (userId == null) return;
+    final currentUserId = _authService.currentUser?.id;
+    final targetId = targetUserId;
+    if (targetId.isEmpty) return;
 
     setState(() => _isLoadingPosts = true);
 
     try {
       final posts = await _postService.getUserPosts(
-        userId: userId,
-        currentUserId: userId,
+        userId: targetId,
+        currentUserId: currentUserId ?? '',
       );
-      setState(() {
-        _userPosts = posts;
-        _isLoadingPosts = false;
-      });
-
-      // Load saved posts as well
-      final savedPosts = await context.read<ProfileProvider>().loadSavedPosts(
-        userId,
-      );
-      setState(() {
-        _savedPosts.clear();
-        _savedPosts.addAll(savedPosts);
-      });
-    } catch (e) {
-      setState(() => _isLoadingPosts = false);
-    }
-  }
-
-  void _showColorPicker() {
-    final colors = [
-      '#FF5733',
-      '#33FF57',
-      '#3357FF',
-      '#F333FF',
-      '#33FFF3',
-      '#FFE133',
-      '#000000',
-      '#FFFFFF',
-    ];
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder:
-          (context) => Container(
-            height: 200,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
-              ),
-            ),
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-              ),
-              itemCount: colors.length,
-              itemBuilder: (context, index) {
-                final colorHex = colors[index];
-                final color = Color(
-                  int.parse(colorHex.replaceAll('#', '0xFF')),
-                );
-                return InkWell(
-                  onTap: () {
-                    Navigator.pop(context);
-                    _updateBanner(color: colorHex);
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.grey),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-    );
-  }
-
-  Widget _buildOption({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.primaryContainer.withValues(alpha: 0.3),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              size: 32,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(label),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _updateBanner({File? file, String? color}) async {
-    final userId = _authService.currentUser?.id;
-    if (userId == null) return;
-
-    try {
-      await context.read<ProfileProvider>().updateProfile(
-        userId: userId,
-        bannerFile: file,
-        bannerColor: color,
-      );
-    } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to update banner: $e')));
+        setState(() {
+          _userPosts = posts;
+          _isLoadingPosts = false;
+        });
+
+        // Load saved posts only for own profile
+        if (isOwnProfile) {
+          final savedPosts = await context.read<ProfileProvider>().loadSavedPosts(
+                targetId,
+              );
+          setState(() {
+            _savedPosts.clear();
+            _savedPosts.addAll(savedPosts);
+          });
+        }
       }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingPosts = false);
     }
   }
 
@@ -197,7 +109,9 @@ class _ProfileScreenState extends State<ProfileScreen>
 
     return Consumer<ProfileProvider>(
       builder: (context, profileProvider, child) {
-        final profile = profileProvider.currentProfile;
+        final profile = isOwnProfile
+            ? profileProvider.currentProfile
+            : profileProvider.viewedProfile;
 
         if (profileProvider.isLoading && profile == null) {
           return const Scaffold(
@@ -206,7 +120,9 @@ class _ProfileScreenState extends State<ProfileScreen>
         }
 
         if (profile == null) {
-          return const Scaffold(body: Center(child: Text('Profile not found')));
+          return const Scaffold(
+            body: Center(child: Text('Profile not found')),
+          );
         }
 
         return Scaffold(
@@ -224,14 +140,16 @@ class _ProfileScreenState extends State<ProfileScreen>
                         profile,
                         theme,
                         colorScheme,
+                        userId,
                       ),
                     ),
                     const SizedBox(height: 16), // Gap between card and tabs
                     TabBar(
                       controller: _tabController,
-                      tabs: const [
-                        Tab(icon: Icon(Icons.grid_on_rounded)),
-                        Tab(icon: Icon(Icons.bookmark_border_rounded)),
+                      tabs: [
+                        const Tab(icon: Icon(Icons.grid_on_rounded)),
+                        if (isOwnProfile)
+                          const Tab(icon: Icon(Icons.bookmark_border_rounded)),
                       ],
                     ),
                   ],
@@ -250,15 +168,16 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
                       ],
                     ),
-                    CustomScrollView(
-                      physics: const ClampingScrollPhysics(),
-                      slivers: [
-                        SliverPadding(
-                          padding: const EdgeInsets.symmetric(horizontal: 2),
-                          sliver: _buildPostsGrid(_savedPosts, userId),
-                        ),
-                      ],
-                    ),
+                    if (isOwnProfile)
+                      CustomScrollView(
+                        physics: const ClampingScrollPhysics(),
+                        slivers: [
+                          SliverPadding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
+                            sliver: _buildPostsGrid(_savedPosts, userId),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -331,6 +250,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     UserProfile profile,
     ThemeData theme,
     ColorScheme colorScheme,
+    String? currentUserId,
   ) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
@@ -488,16 +408,52 @@ class _ProfileScreenState extends State<ProfileScreen>
               Row(
                 children: [
                   Expanded(
-                    child: FilledButton(
-                      onPressed: () => context.push('/edit-profile'),
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Edit Profile'),
-                    ),
+                    child: isOwnProfile
+                        ? FilledButton(
+                          onPressed: () => context.push('/edit-profile'),
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text('Edit Profile'),
+                        )
+                        : (context.watch<ProfileProvider>().isFollowing
+                            ? OutlinedButton(
+                              onPressed: () {
+                                if (currentUserId != null) {
+                                  context.read<ProfileProvider>().unfollowUser(
+                                    followerId: currentUserId,
+                                    followingId: profile.id,
+                                  );
+                                }
+                              },
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text('Unfollow'),
+                            )
+                            : FilledButton(
+                              onPressed: () {
+                                if (currentUserId != null) {
+                                  context.read<ProfileProvider>().followUser(
+                                    followerId: currentUserId,
+                                    followingId: profile.id,
+                                  );
+                                }
+                              },
+                              style: FilledButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text('Follow'),
+                            )),
                   ),
                   const SizedBox(width: 12),
                   Expanded(

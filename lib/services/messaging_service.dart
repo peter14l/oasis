@@ -36,6 +36,7 @@ class MessagingService {
               updated_at,
               ${SupabaseConfig.messagesTable}:last_message_id (
                 content,
+                sender_id,
                 image_url,
                 video_url,
                 file_url,
@@ -118,6 +119,23 @@ class MessagingService {
             messageType = 'document';
           }
           conversationMap['last_message_type'] = messageType;
+          conversationMap['last_message_sender_id'] = lastMessage['sender_id'];
+
+          // Fetch read receipt for last message from other user
+          if (lastMessage['sender_id'] == userId &&
+              conversationMap['other_user_id'] != null) {
+            final readReceiptResponse = await _supabase
+                .from(SupabaseConfig.messageReadReceiptsTable)
+                .select('read_at')
+                .eq('message_id', conversationMap['last_message_id'])
+                .eq('user_id', conversationMap['other_user_id'])
+                .maybeSingle();
+
+            if (readReceiptResponse != null) {
+              conversationMap['last_message_read_at'] =
+                  readReceiptResponse['read_at'];
+            }
+          }
         }
 
         conversations.add(Conversation.fromJson(conversationMap));
@@ -266,6 +284,7 @@ class MessagingService {
     String? iv,
     bool isWhisperMode = false,
     int? ephemeralDuration,
+    String? callId,
   }) async {
     try {
       final messageId = _uuid.v4();
@@ -280,6 +299,7 @@ class MessagingService {
         'file_size': mediaFileSize,
         'is_ephemeral': isWhisperMode,
         'ephemeral_duration': ephemeralDuration ?? 86400, // Default to 24h
+        'call_id': callId,
       };
 
       // Add encryption fields if provided
@@ -461,6 +481,61 @@ class MessagingService {
               onNewMessage(message);
             } catch (e) {
               debugPrint('Error processing new message: $e');
+            }
+          },
+        )
+        .subscribe();
+
+    return channel;
+  }
+
+  /// Subscribe to conversation updates (unread count, participants changes)
+  RealtimeChannel subscribeToConversations({
+    required String userId,
+    required Function() onUpdate,
+  }) {
+    final channel = _supabase.channel('user_conversations:$userId');
+
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: SupabaseConfig.conversationParticipantsTable,
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: userId,
+          ),
+          callback: (payload) {
+            onUpdate();
+          },
+        )
+        .subscribe();
+
+    return channel;
+  }
+
+  /// Subscribe to read receipts for a conversation
+  RealtimeChannel subscribeToReadReceipts({
+    required String conversationId,
+    required Function(String messageId, String userId, DateTime readAt) onUpdate,
+  }) {
+    final channel = _supabase.channel('read_receipts:$conversationId');
+
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: SupabaseConfig.messageReadReceiptsTable,
+          callback: (payload) {
+            try {
+              final data = payload.newRecord;
+              final messageId = data['message_id'] as String;
+              final userId = data['user_id'] as String;
+              final readAt = DateTime.parse(data['read_at'] as String);
+              onUpdate(messageId, userId, readAt);
+            } catch (e) {
+              debugPrint('Error processing read receipt: $e');
             }
           },
         )

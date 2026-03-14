@@ -19,6 +19,9 @@ class EncryptionService {
 
   static const String _privateKeyKey = 'rsa_private_key';
   static const String _publicKeyKey = 'rsa_public_key';
+  
+  /// Global toggle for E2EE messaging
+  static bool isEnabled = false;
 
   bool _isInitialized = false;
 

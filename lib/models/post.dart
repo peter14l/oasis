@@ -19,6 +19,7 @@ class Post {
   final bool isBookmarked;
   final bool isAd;
   final bool isVerified;
+  final String? mood;
 
   Post({
     required this.id,
@@ -41,6 +42,7 @@ class Post {
     this.isBookmarked = false,
     this.isAd = false,
     this.isVerified = false,
+    this.mood,
   });
 
   Post copyWith({
@@ -64,6 +66,7 @@ class Post {
     bool? isBookmarked,
     bool? isAd,
     bool? isVerified,
+    String? mood,
   }) {
     return Post(
       id: id ?? this.id,
@@ -86,6 +89,7 @@ class Post {
       isBookmarked: isBookmarked ?? this.isBookmarked,
       isAd: isAd ?? this.isAd,
       isVerified: isVerified ?? this.isVerified,
+      mood: mood ?? this.mood,
     );
   }
 
@@ -111,6 +115,7 @@ class Post {
       'isBookmarked': isBookmarked,
       'isAd': isAd,
       'isVerified': isVerified,
+      'mood': mood,
     };
   }
 
@@ -143,8 +148,8 @@ class Post {
           json['created_at'] != null
               ? DateTime.parse(json['created_at'] as String)
               : (json['timestamp'] != null
-                  ? DateTime.parse(json['timestamp'] as String)
-                  : DateTime.now()),
+                   ? DateTime.parse(json['timestamp'] as String)
+                   : DateTime.now()),
       likes: json['likes_count'] as int? ?? json['likes'] as int? ?? 0,
       comments: json['comments_count'] as int? ?? json['comments'] as int? ?? 0,
       shares: json['shares_count'] as int? ?? json['shares'] as int? ?? 0,
@@ -155,6 +160,7 @@ class Post {
           false,
       isAd: json['is_ad'] as bool? ?? json['isAd'] as bool? ?? false,
       isVerified: json['is_verified'] as bool? ?? json['isVerified'] as bool? ?? false,
+      mood: json['mood'] as String?,
     );
   }
 }

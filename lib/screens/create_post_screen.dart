@@ -304,14 +304,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 return Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
+                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
                     children: [
                       CircleAvatar(
                         radius: 24,
-                        backgroundColor: colorScheme.surfaceVariant,
+                        backgroundColor: colorScheme.surfaceContainerHighest,
                         backgroundImage:
                             avatarUrl != null ? NetworkImage(avatarUrl) : null,
                         child:
@@ -650,7 +650,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(

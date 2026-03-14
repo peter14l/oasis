@@ -106,7 +106,7 @@ class _FollowersScreenState extends State<FollowersScreen>
               size: 64,
               color: Theme.of(
                 context,
-              ).colorScheme.onSurfaceVariant.withOpacity(0.5),
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(

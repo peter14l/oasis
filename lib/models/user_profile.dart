@@ -15,6 +15,14 @@ class UserProfile {
   final String? bannerUrl;
   final String? bannerColor;
   final String? fcmToken;
+  final String? publicKey;
+  final String? encryptedPrivateKey;
+  final bool focusModeEnabled;
+  final Map<String, dynamic>? focusModeSchedule;
+  final bool windDownEnabled;
+  final String? windDownTime;
+  final int xp;
+  final int level;
   final DateTime createdAt;
 
   UserProfile({
@@ -34,6 +42,14 @@ class UserProfile {
     this.bannerUrl,
     this.bannerColor,
     this.fcmToken,
+    this.publicKey,
+    this.encryptedPrivateKey,
+    this.focusModeEnabled = false,
+    this.focusModeSchedule,
+    this.windDownEnabled = false,
+    this.windDownTime,
+    this.xp = 0,
+    this.level = 1,
     required this.createdAt,
   });
 
@@ -55,6 +71,14 @@ class UserProfile {
       bannerUrl: json['banner_url'] as String?,
       bannerColor: json['banner_color'] as String?,
       fcmToken: json['fcm_token'] as String?,
+      publicKey: json['public_key'] as String?,
+      encryptedPrivateKey: json['encrypted_private_key'] as String?,
+      focusModeEnabled: json['focus_mode_enabled'] as bool? ?? false,
+      focusModeSchedule: json['focus_mode_schedule'] as Map<String, dynamic>?,
+      windDownEnabled: json['wind_down_enabled'] as bool? ?? false,
+      windDownTime: json['wind_down_time'] as String?,
+      xp: json['xp'] as int? ?? 0,
+      level: json['level'] as int? ?? 1,
       createdAt:
           json['created_at'] != null
               ? DateTime.parse(json['created_at'] as String)
@@ -80,6 +104,14 @@ class UserProfile {
       'banner_url': bannerUrl,
       'banner_color': bannerColor,
       'fcm_token': fcmToken,
+      'public_key': publicKey,
+      'encrypted_private_key': encryptedPrivateKey,
+      'focus_mode_enabled': focusModeEnabled,
+      'focus_mode_schedule': focusModeSchedule,
+      'wind_down_enabled': windDownEnabled,
+      'wind_down_time': windDownTime,
+      'xp': xp,
+      'level': level,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -101,6 +133,14 @@ class UserProfile {
     String? bannerUrl,
     String? bannerColor,
     String? fcmToken,
+    String? publicKey,
+    String? encryptedPrivateKey,
+    bool? focusModeEnabled,
+    Map<String, dynamic>? focusModeSchedule,
+    bool? windDownEnabled,
+    String? windDownTime,
+    int? xp,
+    int? level,
     DateTime? createdAt,
   }) {
     return UserProfile(
@@ -120,6 +160,14 @@ class UserProfile {
       bannerUrl: bannerUrl ?? this.bannerUrl,
       bannerColor: bannerColor ?? this.bannerColor,
       fcmToken: fcmToken ?? this.fcmToken,
+      publicKey: publicKey ?? this.publicKey,
+      encryptedPrivateKey: encryptedPrivateKey ?? this.encryptedPrivateKey,
+      focusModeEnabled: focusModeEnabled ?? this.focusModeEnabled,
+      focusModeSchedule: focusModeSchedule ?? this.focusModeSchedule,
+      windDownEnabled: windDownEnabled ?? this.windDownEnabled,
+      windDownTime: windDownTime ?? this.windDownTime,
+      xp: xp ?? this.xp,
+      level: level ?? this.level,
       createdAt: createdAt ?? this.createdAt,
     );
   }

@@ -4,14 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:morrow_v2/models/conversation.dart';
-import 'package:morrow_v2/services/messaging_service.dart';
 import 'package:morrow_v2/services/auth_service.dart';
 import 'package:morrow_v2/providers/typing_indicator_provider.dart';
 import 'package:morrow_v2/widgets/messages/unread_badge_widget.dart';
 import 'package:morrow_v2/widgets/messages/typing_indicator_widget.dart';
-import 'package:timeago/timeago.dart' as timeago;
 import 'package:morrow_v2/screens/messages/chat_screen.dart';
 import 'package:morrow_v2/services/vault_service.dart';
+import 'package:morrow_v2/providers/conversation_provider.dart';
 
 class DirectMessagesScreen extends StatefulWidget {
   const DirectMessagesScreen({super.key});
@@ -21,77 +20,30 @@ class DirectMessagesScreen extends StatefulWidget {
 }
 
 class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
-  final MessagingService _messagingService = MessagingService();
-  final AuthService _authService = AuthService();
-
-  List<Conversation> _conversations = [];
   Set<String> _lockedConversationIds = {};
   Conversation? _selectedConversation;
-  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadConversations();
+    _checkVaultStatus();
   }
 
-  @override
-  void dispose() {
-    // Clean up typing subscriptions
-    final typingProvider = context.read<TypingIndicatorProvider>();
-    typingProvider.clearAll();
-    super.dispose();
-  }
+  Future<void> _checkVaultStatus() async {
+    final provider = context.read<ConversationProvider>();
+    final vaultService = context.read<VaultService>();
+    final lockedIds = <String>{};
 
-  void _subscribeToTypingIndicators() {
-    final userId = _authService.currentUser?.id;
-    if (userId == null) return;
-
-    final typingProvider = context.read<TypingIndicatorProvider>();
-
-    // Subscribe to typing status for all conversations
-    for (final conversation in _conversations) {
-      typingProvider.subscribeToTypingStatus(conversation.id, userId);
-    }
-  }
-
-  Future<void> _loadConversations() async {
-    final userId = _authService.currentUser?.id;
-    if (userId == null) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      final conversations = await _messagingService.getConversations(
-        userId: userId,
-      );
-      if (mounted) {
-        // Check for locked conversations
-        final vaultService = context.read<VaultService>();
-        final lockedIds = <String>{};
-
-        for (final conversation in conversations) {
-          if (await vaultService.isInVault(conversation.id)) {
-            lockedIds.add(conversation.id);
-          }
-        }
-
-        setState(() {
-          _conversations = conversations;
-          _lockedConversationIds = lockedIds;
-          _isLoading = false;
-        });
+    for (final conversation in provider.conversations) {
+      if (await vaultService.isInVault(conversation.id)) {
+        lockedIds.add(conversation.id);
       }
+    }
 
-      // Subscribe to typing indicators after loading
-      _subscribeToTypingIndicators();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+    if (mounted) {
+      setState(() {
+        _lockedConversationIds = lockedIds;
+      });
     }
   }
 
@@ -100,6 +52,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
     final isDesktop = MediaQuery.of(context).size.width >= 1200;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final conversationProvider = Provider.of<ConversationProvider>(context);
 
     if (isDesktop) {
       return Scaffold(
@@ -190,12 +143,13 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
   Widget _buildConversationList({required bool isDesktop}) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final provider = Provider.of<ConversationProvider>(context);
 
-    if (_isLoading) {
+    if (provider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_conversations.isEmpty) {
+    if (provider.conversations.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -220,12 +174,12 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
     }
 
     return RefreshIndicator(
-      onRefresh: _loadConversations,
+      onRefresh: provider.loadConversations,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _conversations.length,
+        itemCount: provider.conversations.length,
         itemBuilder: (context, index) {
-          final conversation = _conversations[index];
+          final conversation = provider.conversations[index];
           return _buildConversationItem(conversation, isDesktop);
         },
       ),
@@ -363,6 +317,19 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                               ),
                             ),
                           ),
+                          if (conversation.lastMessageReadAt != null &&
+                              conversation.lastMessageSenderId ==
+                                  context.read<AuthService>().currentUser?.id)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: Text(
+                                '• Seen',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.primary.withOpacity(0.7),
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                   ],
@@ -409,11 +376,8 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                     }
                   }
 
-                  // Mark as read when opening
-                  await _messagingService.markConversationAsRead(
-                    conversation.id,
-                    _authService.currentUser!.id,
-                  );
+                  // Mark as read locally and on server using the provider
+                  context.read<ConversationProvider>().markAsRead(conversation.id);
 
                   if (isDesktop) {
                     setState(() {
@@ -431,8 +395,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                             },
                           )
                           .then((_) {
-                            // Reload conversations when returning to check for updated lock status
-                            _loadConversations();
+                            // The provider will handle real-time sync when returning
                           });
                     }
                   }

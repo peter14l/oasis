@@ -5,6 +5,8 @@ class Conversation {
   final String otherUserAvatar;
   final String? lastMessage;
   final DateTime? lastMessageTime;
+  final DateTime? lastMessageReadAt;
+  final String? lastMessageSenderId;
   final int unreadCount;
   final String? lastMessageType; // 'text', 'image', 'document', etc.
   final bool isOtherUserTyping;
@@ -17,6 +19,8 @@ class Conversation {
     required this.otherUserAvatar,
     this.lastMessage,
     this.lastMessageTime,
+    this.lastMessageReadAt,
+    this.lastMessageSenderId,
     this.unreadCount = 0,
     this.lastMessageType,
     this.isOtherUserTyping = false,
@@ -34,6 +38,11 @@ class Conversation {
           json['last_message_time'] != null
               ? DateTime.parse(json['last_message_time'] as String)
               : null,
+      lastMessageReadAt:
+          json['last_message_read_at'] != null
+              ? DateTime.parse(json['last_message_read_at'] as String)
+              : null,
+      lastMessageSenderId: json['last_message_sender_id'] as String?,
       unreadCount: json['unread_count'] as int? ?? 0,
       lastMessageType: json['last_message_type'] as String?,
       isOtherUserTyping: json['is_other_user_typing'] as bool? ?? false,
@@ -49,6 +58,8 @@ class Conversation {
       'other_user_avatar': otherUserAvatar,
       'last_message': lastMessage,
       'last_message_time': lastMessageTime?.toIso8601String(),
+      'last_message_read_at': lastMessageReadAt?.toIso8601String(),
+      'last_message_sender_id': lastMessageSenderId,
       'unread_count': unreadCount,
       'last_message_type': lastMessageType,
       'is_other_user_typing': isOtherUserTyping,
@@ -63,6 +74,8 @@ class Conversation {
     String? otherUserAvatar,
     String? lastMessage,
     DateTime? lastMessageTime,
+    DateTime? lastMessageReadAt,
+    String? lastMessageSenderId,
     int? unreadCount,
     String? lastMessageType,
     bool? isOtherUserTyping,
@@ -75,6 +88,8 @@ class Conversation {
       otherUserAvatar: otherUserAvatar ?? this.otherUserAvatar,
       lastMessage: lastMessage ?? this.lastMessage,
       lastMessageTime: lastMessageTime ?? this.lastMessageTime,
+      lastMessageReadAt: lastMessageReadAt ?? this.lastMessageReadAt,
+      lastMessageSenderId: lastMessageSenderId ?? this.lastMessageSenderId,
       unreadCount: unreadCount ?? this.unreadCount,
       lastMessageType: lastMessageType ?? this.lastMessageType,
       isOtherUserTyping: isOtherUserTyping ?? this.isOtherUserTyping,

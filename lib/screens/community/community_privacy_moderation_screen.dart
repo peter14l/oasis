@@ -292,7 +292,7 @@ class _CommunityPrivacyModerationScreenState
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: const Color(0xFF1152D4),
+            thumbColor: WidgetStateProperty.all(const Color(0xFF1152D4)),
           ),
         ],
       ),
