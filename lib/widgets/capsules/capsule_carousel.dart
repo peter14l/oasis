@@ -47,7 +47,7 @@ class _CapsuleCarouselState extends State<CapsuleCarousel> {
               ),
             ),
             SizedBox(
-              height: 250, // Fixed height for carousel
+              height: 260, // Fixed height for carousel
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 8),

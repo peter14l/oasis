@@ -111,15 +111,17 @@ class EncryptionService {
         return false;
       }
 
-      // Generate RSA key pair using basic_utils
-      debugPrint('[Encryption] Generating RSA key pair...');
-      final keyPair = CryptoUtils.generateRSAKeyPair(keySize: 2048);
+      // Generate RSA key pair in the background using compute
+      // Using 1024 on Web to avoid long freezes, 2048 elsewhere
+      final keySize = kIsWeb ? 1024 : 2048;
+      debugPrint('[Encryption] Generating RSA key pair (background, size: $keySize)...');
+      final keyPair = await compute(_generateKeyPair, keySize);
 
       final privateKeyPem = CryptoUtils.encodeRSAPrivateKeyToPem(
-        keyPair.privateKey as RSAPrivateKey,
+        keyPair.privateKey as dynamic,
       );
       final publicKeyPem = CryptoUtils.encodeRSAPublicKeyToPem(
-        keyPair.publicKey as RSAPublicKey,
+        keyPair.publicKey as dynamic,
       );
 
       // Encrypt private key with derived user key (Seamless)
@@ -407,13 +409,19 @@ class EncryptionService {
   }
 
   String _hashPublicKey(String publicKeyPem) {
-    return base64.encode(utf8.encode(publicKeyPem)).substring(0, 16);
+    // Standardize to 16 chars for the key map
+    return sha256.convert(utf8.encode(publicKeyPem)).toString().substring(0, 16);
   }
 
   Future<void> clearKeys() async {
     await _secureStorage.deleteAll();
     _isInitialized = false;
   }
+}
+
+/// Standalone function for compute()
+AsymmetricKeyPair _generateKeyPair(int keySize) {
+  return CryptoUtils.generateRSAKeyPair(keySize: keySize);
 }
 
 enum EncryptionStatus { ready, needsSetup, needsRestore, error }

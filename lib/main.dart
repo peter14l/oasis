@@ -23,8 +23,10 @@ import 'package:morrow_v2/widgets/mesh_gradient_background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:morrow_v2/firebase_options.dart';
 import 'package:morrow_v2/services/notification_manager.dart';
 import 'package:morrow_v2/services/call_service.dart';
+import 'package:flutter/foundation.dart';
 
 // Theme Provider to manage theme mode
 class ThemeProvider with ChangeNotifier {
@@ -67,79 +69,65 @@ class ThemeProvider with ChangeNotifier {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize Firebase
+  
+  // Load environment variables first so they're available for Sentry
   try {
-    await Firebase.initializeApp();
-    debugPrint('Firebase initialized successfully');
+    await dotenv.load(fileName: ".env");
   } catch (e) {
-    debugPrint('Firebase initialization failed: $e');
+    debugPrint('Could not load .env file: $e');
   }
 
-  // Load environment variables
-  await dotenv.load(fileName: ".env");
+  // Initialize Sentry with DSN from .env or fallback
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = dotenv.env['SENTRY_DSN'] ?? 'https://356d298b7887a400a196e23847931238@o4509384326774784.ingest.us.sentry.io/4510527783501824';
+      options.tracesSampleRate = 1.0;
+    },
+    appRunner: () async {
 
-  try {
-    // Initialize Supabase
-    await SupabaseService.initialize();
-    debugPrint('Supabase initialized successfully');
+      // Initialize Firebase with options for Web support
+      try {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+        debugPrint('Firebase initialized successfully');
+      } catch (e) {
+        debugPrint('Firebase initialization failed: $e');
+      }
 
-    // Initialize AuthService and restore session
-    final authService = AuthService();
-    await authService.restoreSession();
+      try {
+        // Initialize Supabase
+        await SupabaseService.initialize();
+        debugPrint('Supabase initialized successfully');
 
-    // If user is already logged in, silently provision/restore encryption keys
-    // so they are ready before any chat is opened (WhatsApp-style seamless restore)
-    // if (authService.currentUser != null) {
-    //   EncryptionService()
-    //       .init()
-    //       .then((status) {
-    //         debugPrint('[Startup] Encryption init status: $status');
-    //       })
-    //       .catchError((e) {
-    //         debugPrint('[Startup] Encryption init error: $e');
-    //       });
-    // }
+        // Initialize AuthService and restore session
+        final authService = AuthService();
+        await authService.restoreSession();
 
-    // Initialize theme provider
-    final themeProvider = ThemeProvider();
-    await themeProvider.loadTheme();
+        // Initialize theme provider
+        final themeProvider = ThemeProvider();
+        await themeProvider.loadTheme();
 
-    // Initialize UserSettingsProvider
-    final userSettingsProvider = UserSettingsProvider();
-    await userSettingsProvider.loadSettings();
+        // Initialize UserSettingsProvider
+        final userSettingsProvider = UserSettingsProvider();
+        await userSettingsProvider.loadSettings();
 
-    // Initialize ScreenTimeService
-    final screenTimeService = await ScreenTimeService.init();
+        // Initialize ScreenTimeService
+        final screenTimeService = await ScreenTimeService.init();
 
-    // Initialize EnergyMeterService
-    final energyMeterService = await EnergyMeterService.init();
+        // Initialize EnergyMeterService
+        final energyMeterService = await EnergyMeterService.init();
 
-    // Initialize Notification Manager
-    await NotificationManager.instance.initialize();
+        // Initialize Notification Manager
+        await NotificationManager.instance.initialize();
 
-    // Initialize SubscriptionService
-    final subscriptionService = SubscriptionService();
-    await subscriptionService.init();
+        // Initialize SubscriptionService
+        final subscriptionService = SubscriptionService();
+        await subscriptionService.init();
 
-    // Debug log current user
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      debugPrint(
-        'Current user on startup: ${authService.currentUser?.id ?? 'null'}',
-      );
-    });
-
-    // Initialize Sentry with the correct binding to avoid FramesTrackingIntegration warning
-    SentryWidgetsFlutterBinding.ensureInitialized();
-    await SentryFlutter.init(
-      (options) {
-        options.dsn = dotenv.get('SENTRY_DSN');
-        options.tracesSampleRate = 1.0;
-      },
-      appRunner:
-          () => runApp(
-            SentryWidget(
-              child: MultiProvider(
+        runApp(
+          SentryWidget(
+            child: MultiProvider(
                 providers: [
                   ChangeNotifierProvider<ThemeProvider>.value(
                     value: themeProvider,
@@ -174,33 +162,19 @@ void main() async {
                 child: const LifecycleManager(child: MyApp()),
               ),
             ),
-          ),
-    );
-  } catch (e) {
-    debugPrint('Error initializing app: $e');
-    // Show error UI if needed
-    await SentryFlutter.init(
-      (options) {
-        options.dsn = dotenv.get('SENTRY_DSN');
-        // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.
-        // We recommend adjusting this value in production.
-        options.tracesSampleRate = 1.0;
-        // The sampling rate for profiling is relative to tracesSampleRate
-        // Setting to 1.0 will profile 100% of sampled transactions:
-        options.profilesSampleRate = 1.0;
-      },
-      appRunner:
-          () => runApp(
-            SentryWidget(
-              child: MaterialApp(
-                home: Scaffold(
-                  body: Center(child: Text('Failed to initialize app: $e')),
-                ),
-              ),
+          );
+      } catch (e) {
+        debugPrint('Error initializing app: $e');
+        runApp(
+          MaterialApp(
+            home: Scaffold(
+              body: Center(child: Text('Failed to initialize app: $e')),
             ),
           ),
-    );
-  }
+        );
+      }
+    },
+  );
 }
 
 class LifecycleManager extends StatefulWidget {

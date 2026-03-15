@@ -34,7 +34,7 @@ class VaultService with ChangeNotifier {
     final items = await _getVaultItems();
     _vaultItemIds.clear();
     _vaultItemIds.addAll(items.map((i) => i.id));
-    notifyListeners();
+    scheduleMicrotask(() => notifyListeners());
   }
 
   Future<void> _loadIntervals() async {
@@ -70,7 +70,7 @@ class VaultService with ChangeNotifier {
     if (pin != null) {
       await _storage.write(key: _vaultPinKey, value: pin);
     }
-    notifyListeners();
+    scheduleMicrotask(() => notifyListeners());
   }
 
   /// Disable vault mode
@@ -80,7 +80,7 @@ class VaultService with ChangeNotifier {
     _unlockedItemIds.clear();
     _itemIntervals.clear();
     await _storage.delete(key: _vaultIntervalsKey);
-    notifyListeners();
+    scheduleMicrotask(() => notifyListeners());
   }
 
   /// Unlock specific item with PIN
@@ -111,7 +111,7 @@ class VaultService with ChangeNotifier {
       });
     }
     
-    notifyListeners();
+    scheduleMicrotask(() => notifyListeners());
   }
 
   /// Check if a specific item is unlocked
@@ -125,7 +125,7 @@ class VaultService with ChangeNotifier {
     _unlockedItemIds.remove(itemId);
     _lockTimers[itemId]?.cancel();
     _lockTimers[itemId] = null;
-    notifyListeners();
+    scheduleMicrotask(() => notifyListeners());
   }
 
   /// Lock all items (e.g. on logout)
@@ -135,7 +135,7 @@ class VaultService with ChangeNotifier {
       timer?.cancel();
     }
     _lockTimers.clear();
-    notifyListeners();
+    scheduleMicrotask(() => notifyListeners());
   }
 
   /// Lock items with a specific interval (e.g. 'app_close')
@@ -146,7 +146,7 @@ class VaultService with ChangeNotifier {
       _lockTimers[id]?.cancel();
       _lockTimers[id] = null;
     }
-    notifyListeners();
+    scheduleMicrotask(() => notifyListeners());
   }
 
   /// Set lock interval for an item
@@ -166,7 +166,7 @@ class VaultService with ChangeNotifier {
       });
     }
     
-    notifyListeners();
+    scheduleMicrotask(() => notifyListeners());
   }
 
   String getLockInterval(String itemId) => _itemIntervals[itemId] ?? 'app_close';
@@ -314,7 +314,7 @@ class VaultService with ChangeNotifier {
       debugPrint('Error syncing vault item: $e');
     }
     
-    notifyListeners();
+    scheduleMicrotask(() => notifyListeners());
   }
 
   /// Remove item from vault
@@ -348,7 +348,7 @@ class VaultService with ChangeNotifier {
       debugPrint('Error removing vault item: $e');
     }
     
-    notifyListeners();
+    scheduleMicrotask(() => notifyListeners());
   }
 
   /// Check if item is in vault (async)
@@ -418,7 +418,7 @@ class VaultService with ChangeNotifier {
       await _saveVaultItems(items);
       _vaultItemIds.clear();
       _vaultItemIds.addAll(items.map((i) => i.id));
-      notifyListeners();
+      scheduleMicrotask(() => notifyListeners());
     } catch (e) {
       debugPrint('Error syncing vault from server: $e');
     }

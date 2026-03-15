@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:morrow_v2/services/auth_service.dart';
+import 'package:morrow_v2/widgets/auth_layout_wrapper.dart';
+import 'package:morrow_v2/widgets/app_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -97,18 +99,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 48.0),
-                Text(
-                  'Welcome Back',
+    return AuthLayoutWrapper(
+      wrapInScroll: true,
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 16.0),
+              Text(
+                'Welcome Back',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -178,67 +182,45 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24.0),
-                const SizedBox(height: 24.0),
-                ElevatedButton(
-                  onPressed:
-                      (_isLoggingIn || _isResettingPassword) ? null : _login,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                  child:
-                      _isLoggingIn
-                          ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          )
-                          : const Text('Sign In'),
+                AppButton.primary(
+                  text: 'Sign In',
+                  isLoading: _isLoggingIn,
+                  onPressed: (_isLoggingIn || _isResettingPassword) ? null : _login,
                 ),
                 const SizedBox(height: 16.0),
-                OutlinedButton.icon(
-                  onPressed:
-                      (_isLoggingIn || _isResettingPassword)
-                          ? null
-                          : () async {
-                            setState(() => _isLoggingIn = true);
-                            try {
-                              final authService = Provider.of<AuthService>(
-                                context,
-                                listen: false,
-                              );
-                              await authService.signInWithGoogle();
-                              if (mounted) {
-                                context.go('/feed');
-                              }
-                            } catch (e) {
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(e.toString())),
-                                );
-                              }
-                            } finally {
-                              if (mounted) setState(() => _isLoggingIn = false);
-                            }
-                          },
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                AppButton.secondary(
+                  text: 'Sign in with Google',
+                  disabled: _isLoggingIn || _isResettingPassword,
+                  icon: Image.network(
+                    'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
+                    height: 24,
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.g_mobiledata,
+                      size: 24,
+                      color: Colors.red,
                     ),
                   ),
-                  icon: Image.network(
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_\"G\"_logo.svg/24px-Google_\"G\"_logo.svg.png',
-                    height: 24,
-                  ),
-                  label: const Text('Sign in with Google'),
+                  onPressed: () async {
+                    setState(() => _isLoggingIn = true);
+                    try {
+                      final authService = Provider.of<AuthService>(
+                        context,
+                        listen: false,
+                      );
+                      await authService.signInWithGoogle();
+                      if (mounted) {
+                        context.go('/feed');
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(e.toString())),
+                        );
+                      }
+                    } finally {
+                      if (mounted) setState(() => _isLoggingIn = false);
+                    }
+                  },
                 ),
                 const SizedBox(height: 16.0),
                 TextButton(
@@ -252,7 +234,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 }

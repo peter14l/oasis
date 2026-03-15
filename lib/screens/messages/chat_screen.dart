@@ -94,6 +94,8 @@ class _ChatScreenState extends State<ChatScreen> {
   String? _backgroundUrl;
   Color? _bubbleColorSent;
   Color? _bubbleColorReceived;
+  Color? _textColorSent;
+  Color? _textColorReceived;
   bool _encryptionReady = false;
   int _ephemeralDuration = 86400; // Default 24h
 
@@ -426,7 +428,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.18),
+                  color: Colors.black.withOpacity(0.18),
                   blurRadius: 24,
                   offset: const Offset(0, -4),
                 ),
@@ -441,7 +443,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: colorScheme.onSurface.withValues(alpha: 0.2),
+                    color: colorScheme.onSurface.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -462,7 +464,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         onPressed: () => Navigator.pop(context),
                         icon: Icon(
                           Icons.close_rounded,
-                          color: colorScheme.onSurface.withValues(alpha: 0.5),
+                          color: colorScheme.onSurface.withOpacity(0.5),
                           size: 20,
                         ),
                         padding: EdgeInsets.zero,
@@ -483,7 +485,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         iconColor: const Color(0xFF3D8BFF),
                         bgColor: const Color(
                           0xFF3D8BFF,
-                        ).withValues(alpha: 0.12),
+                        ).withOpacity(0.12),
                         onTap: () {
                           Navigator.pop(context);
                           _pickImage();
@@ -495,7 +497,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         iconColor: const Color(0xFFFF6B6B),
                         bgColor: const Color(
                           0xFFFF6B6B,
-                        ).withValues(alpha: 0.12),
+                        ).withOpacity(0.12),
                         onTap: () {
                           Navigator.pop(context);
                           _pickVideo();
@@ -507,7 +509,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         iconColor: const Color(0xFF51CF66),
                         bgColor: const Color(
                           0xFF51CF66,
-                        ).withValues(alpha: 0.12),
+                        ).withOpacity(0.12),
                         onTap: () {
                           Navigator.pop(context);
                           _pickFile();
@@ -519,7 +521,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         iconColor: const Color(0xFFFFD43B),
                         bgColor: const Color(
                           0xFFFFD43B,
-                        ).withValues(alpha: 0.12),
+                        ).withOpacity(0.12),
                         onTap: () {
                           Navigator.pop(context);
                           _startRecording();
@@ -685,6 +687,9 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
 
+    // If result is null, user just backed out without explicit changes
+    if (result == null) return;
+
     // Result may be a background string OR a map of settings
     if (result is String?) {
       setState(() => _backgroundUrl = result);
@@ -692,9 +697,8 @@ class _ChatScreenState extends State<ChatScreen> {
       if (result['duration'] != null) {
         setState(() => _ephemeralDuration = result['duration']);
       }
-      if (result['background'] != null) {
-        // ChatDetails might send background in map now too if we changed it
-        setState(() => _backgroundUrl = result['background']);
+      if (result.containsKey('background')) {
+        setState(() => _backgroundUrl = result['background'] as String?);
       }
     }
 
@@ -706,6 +710,8 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         _bubbleColorSent = null;
         _bubbleColorReceived = null;
+        _textColorSent = null;
+        _textColorReceived = null;
       });
     }
   }
@@ -801,12 +807,15 @@ class _ChatScreenState extends State<ChatScreen> {
       );
 
       setState(() {
-        _bubbleColorSent =
-            paletteGenerator.dominantColor?.color.withValues(alpha: 0.9) ??
-            Colors.blue.withValues(alpha: 0.9);
-        _bubbleColorReceived =
-            paletteGenerator.lightVibrantColor?.color.withValues(alpha: 0.85) ??
-            Colors.grey.withValues(alpha: 0.85);
+        final sentColor = paletteGenerator.dominantColor?.color ?? Colors.blue;
+        final receivedColor = paletteGenerator.lightVibrantColor?.color ?? Colors.grey;
+        
+        _bubbleColorSent = sentColor.withOpacity(0.9);
+        _bubbleColorReceived = receivedColor.withOpacity(0.85);
+
+        // Calculate contrasting text colors
+        _textColorSent = sentColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+        _textColorReceived = receivedColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
       });
     } catch (e) {
       debugPrint('Error extracting colors: $e');
@@ -1125,7 +1134,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: CachedNetworkImage(
                 imageUrl: _backgroundUrl!,
                 fit: BoxFit.cover,
-                color: Colors.black.withValues(alpha: 0.3),
+                color: Colors.black.withOpacity(0.3),
                 colorBlendMode: BlendMode.darken,
               ),
             ),
@@ -1141,7 +1150,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     vertical: 8,
                     horizontal: 16,
                   ),
-                  color: colorScheme.secondary.withValues(alpha: 0.2),
+                  color: colorScheme.secondary.withOpacity(0.2),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -1205,8 +1214,8 @@ class _ChatScreenState extends State<ChatScreen> {
                               Icon(
                                 Icons.chat_bubble_outline,
                                 size: 64,
-                                color: colorScheme.onSurfaceVariant.withValues(
-                                  alpha: 0.6,
+                                color: colorScheme.onSurfaceVariant.withOpacity(
+                                  0.6,
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -1262,7 +1271,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 decoration: BoxDecoration(
                   color:
                       _backgroundUrl != null
-                          ? colorScheme.surface.withValues(alpha: 0.95)
+                          ? colorScheme.surface.withOpacity(0.95)
                           : colorScheme.surface,
                   border: Border(
                     top: BorderSide(
@@ -1332,8 +1341,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                               height: 40,
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.circle,
-                                                color: colorScheme.secondary.withValues(
-                                                  alpha: 0.08,
+                                                color: colorScheme.secondary.withOpacity(
+                                                  0.08,
                                                 ),
                                               ),
                                             ),
@@ -1344,15 +1353,14 @@ class _ChatScreenState extends State<ChatScreen> {
                                                 value: _whisperDragProgress,
                                                 strokeWidth: 3,
                                                 backgroundColor: colorScheme.secondary
-                                                    .withValues(alpha: 0.15),
+                                                    .withOpacity(0.15),
                                                 valueColor: AlwaysStoppedAnimation<
                                                   Color
                                                 >(
                                                   _whisperDragProgress >= 1.0
                                                       ? colorScheme.secondary
-                                                      : colorScheme.secondary.withValues(
-                                                        alpha:
-                                                            0.4 +
+                                                      : colorScheme.secondary.withOpacity(
+                                                        0.4 +
                                                             _whisperDragProgress *
                                                                 0.6,
                                                       ),
@@ -1364,10 +1372,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                                   ? Icons.auto_delete
                                                   : Icons.arrow_upward_rounded,
                                               size: 18,
-                                              color: colorScheme.secondary.withValues(
-                                                alpha:
-                                                    0.5 +
-                                                    _whisperDragProgress * 0.5,
+                                              color: colorScheme.secondary.withOpacity(
+                                                0.5 +
+                                                _whisperDragProgress * 0.5,
                                               ),
                                             ),
                                           ],
@@ -1466,7 +1473,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         color:
                                             _isSending
                                                 ? colorScheme.onSurface
-                                                    .withValues(alpha: 0.12)
+                                                    .withOpacity(0.12)
                                                 : colorScheme.primary,
                                         shape: BoxShape.circle,
                                       ),
@@ -1520,9 +1527,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             style: theme.textTheme.bodySmall?.copyWith(
                               color:
                                   _isWhisperMode
-                                      ? colorScheme.secondary.withValues(alpha: 0.8)
-                                      : colorScheme.onSurfaceVariant.withValues(
-                                        alpha: 0.5,
+                                      ? colorScheme.secondary.withOpacity(0.8)
+                                      : colorScheme.onSurfaceVariant.withOpacity(
+                                        0.5,
                                       ),
                               fontSize: 10,
                             ),
@@ -1611,7 +1618,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final userId = _authService.currentUser?.id;
 
     // final bubbleColor = isMe
-    //     ? (colorScheme.primary.withValues(alpha: ))
+    //     ? (colorScheme.primary.withOpacity( ))
     //     : (colorScheme.surfaceVariant);
 
     // final textColor = isMe
@@ -1619,7 +1626,7 @@ class _ChatScreenState extends State<ChatScreen> {
     //     : colorScheme.onSurfaceVariant;
 
     // final bubbleColor = isMe
-    //     ? (colorScheme.primary.withValues(alpha: ))
+    //     ? (colorScheme.primary.withOpacity( ))
     //     : (colorScheme.surfaceVariant);
 
     // final textColor = isMe
@@ -1678,8 +1685,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color:
                       isMe
-                          ? colorScheme.onPrimaryContainer
-                          : colorScheme.onSurface,
+                          ? (_textColorSent ?? colorScheme.onPrimaryContainer)
+                          : (_textColorReceived ?? colorScheme.onSurface),
                 ),
               ),
             ),
@@ -1689,17 +1696,20 @@ class _ChatScreenState extends State<ChatScreen> {
       content = Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.insert_drive_file),
+          Icon(Icons.insert_drive_file, color: isMe ? (_textColorSent ?? colorScheme.onPrimaryContainer) : (_textColorReceived ?? colorScheme.onSurface)),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
               message.mediaFileName ?? 'Document',
               overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: isMe ? (_textColorSent ?? colorScheme.onPrimaryContainer) : (_textColorReceived ?? colorScheme.onSurface),
+              ),
             ),
           ),
           const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(Icons.download, size: 20),
+            icon: Icon(Icons.download, size: 20, color: isMe ? (_textColorSent ?? colorScheme.onPrimaryContainer) : (_textColorReceived ?? colorScheme.onSurface)),
             onPressed: () async {
               if (message.mediaUrl != null) {
                 try {
@@ -1736,7 +1746,7 @@ class _ChatScreenState extends State<ChatScreen> {
         audioUrl: message.mediaUrl ?? '',
         duration: message.voiceDuration,
         isMe: isMe,
-        color: isMe ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
+        color: isMe ? (_textColorSent ?? colorScheme.onPrimaryContainer) : (_textColorReceived ?? colorScheme.onSurface),
       );
     } else {
       content = Column(
@@ -1746,7 +1756,7 @@ class _ChatScreenState extends State<ChatScreen> {
             message.content,
             style: theme.textTheme.bodyMedium?.copyWith(
               color:
-                  isMe ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
+                  isMe ? (_textColorSent ?? colorScheme.onPrimaryContainer) : (_textColorReceived ?? colorScheme.onSurface),
               fontStyle:
                   message.content == '🔒 Message encrypted'
                       ? FontStyle.italic
@@ -1766,24 +1776,24 @@ class _ChatScreenState extends State<ChatScreen> {
                 titleStyle: theme.textTheme.titleSmall?.copyWith(
                   color:
                       isMe
-                          ? colorScheme.onPrimaryContainer
-                          : colorScheme.onSurface,
+                          ? (_textColorSent ?? colorScheme.onPrimaryContainer)
+                          : (_textColorReceived ?? colorScheme.onSurface),
                   fontWeight: FontWeight.bold,
                 ),
                 bodyStyle: theme.textTheme.bodySmall?.copyWith(
                   color:
                       isMe
-                          ? colorScheme.onPrimaryContainer.withValues(
-                            alpha: 0.8,
+                          ? (_textColorSent ?? colorScheme.onPrimaryContainer).withOpacity(
+                            0.8,
                           )
-                          : colorScheme.onSurfaceVariant,
+                          : (_textColorReceived ?? colorScheme.onSurfaceVariant),
                   fontSize: 12,
                 ),
                 backgroundColor:
                     isMe
-                        ? colorScheme.primaryContainer.withValues(alpha: 0.5)
-                        : colorScheme.surfaceContainerHighest.withValues(
-                          alpha: 0.5,
+                        ? colorScheme.primaryContainer.withOpacity(0.5)
+                        : colorScheme.surfaceContainerHighest.withOpacity(
+                          0.5,
                         ),
                 borderRadius: 12,
                 removeElevation: true,
@@ -1833,8 +1843,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.outline.withValues(
-                            alpha: 0.3,
+                          color: theme.colorScheme.outline.withOpacity(
+                            0.3,
                           ),
                           borderRadius: BorderRadius.circular(2),
                         ),
@@ -1900,8 +1910,8 @@ class _ChatScreenState extends State<ChatScreen> {
                               child: Icon(
                                 Icons.done_all,
                                 size: 12,
-                                color: colorScheme.onPrimary.withValues(
-                                  alpha: 0.7,
+                                color: (_textColorSent ?? colorScheme.onPrimary).withOpacity(
+                                  0.7,
                                 ),
                               ),
                             ),
@@ -1911,10 +1921,10 @@ class _ChatScreenState extends State<ChatScreen> {
                               fontSize: 10,
                               color:
                                   isMe
-                                      ? colorScheme.onPrimary.withValues(
-                                        alpha: 0.7,
+                                      ? (_textColorSent ?? colorScheme.onPrimary).withOpacity(
+                                        0.7,
                                       )
-                                      : colorScheme.onSurfaceVariant,
+                                      : (_textColorReceived ?? colorScheme.onSurfaceVariant),
                             ),
                           ),
                         ],
@@ -1936,7 +1946,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             style: theme.textTheme.labelSmall?.copyWith(
                               fontSize: 9,
                               fontStyle: FontStyle.italic,
-                              color: colorScheme.onPrimary.withValues(
+                              color: (_textColorSent ?? colorScheme.onPrimary).withValues(
                                 alpha: 0.8,
                               ),
                             ),

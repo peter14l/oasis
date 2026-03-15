@@ -34,9 +34,9 @@ class AuthService with ChangeNotifier {
       notifyListeners();
     });
   }
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
+  static final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId: kIsWeb ? dotenv.get('GOOGLE_WEB_CLIENT_ID') : null,
-    serverClientId: dotenv.get('GOOGLE_WEB_CLIENT_ID'),
+    serverClientId: kIsWeb ? null : dotenv.get('GOOGLE_WEB_CLIENT_ID'),
     scopes: ['email', 'profile'],
   );
 

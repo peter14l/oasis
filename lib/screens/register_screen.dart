@@ -5,6 +5,7 @@ import 'package:morrow_v2/services/auth_service.dart';
 import 'package:morrow_v2/widgets/app_button.dart';
 import 'package:morrow_v2/widgets/custom_text_field.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:morrow_v2/widgets/auth_layout_wrapper.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -171,9 +172,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF111318),
-      appBar: AppBar(
+    return AuthLayoutWrapper(
+      wrapInScroll: true,
+      topBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -191,19 +192,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         centerTitle: true,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  children: [
-                    // Name Field
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Name Field
                     CustomTextField(
                       controller: _nameController,
                       focusNode: _nameFocus,
@@ -276,89 +274,90 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       },
                       onFieldSubmitted: (_) => _register(),
                     ),
-                  ],
-                ),
-              ),
-            ),
+                    const SizedBox(height: 32),
 
-            // Google Sign In Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: AppButton.secondary(
-                text: 'Sign in with Google',
-                isLoading: _isLoading,
-                onPressed:
-                    _isLoading
-                        ? null
-                        : () async {
-                          setState(() => _isLoading = true);
-                          try {
-                            final authService = Provider.of<AuthService>(
-                              context,
-                              listen: false,
-                            );
-                            await authService.signInWithGoogle();
-                            if (mounted) {
-                              context.go('/feed');
-                            }
-                          } catch (e) {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(e.toString())),
-                              );
-                            }
-                          } finally {
-                            if (mounted) setState(() => _isLoading = false);
-                          }
-                        },
-                icon: Image.network(
-                  'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_\"G\"_logo.svg/24px-Google_\"G\"_logo.svg.png',
-                  height: 24,
-                ),
-              ),
-            ),
+                    // Google Sign In Button
+                    AppButton.secondary(
+                      text: 'Sign in with Google',
+                      isLoading: _isLoading,
+                      onPressed:
+                          _isLoading
+                              ? null
+                              : () async {
+                                setState(() => _isLoading = true);
+                                try {
+                                  final authService = Provider.of<AuthService>(
+                                    context,
+                                    listen: false,
+                                  );
+                                  await authService.signInWithGoogle();
+                                  if (mounted) {
+                                    context.go('/feed');
+                                  }
+                                } catch (e) {
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(e.toString())),
+                                    );
+                                  }
+                                } finally {
+                                  if (mounted) setState(() => _isLoading = false);
+                                }
+                              },
+                      icon: Image.network(
+                        'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
+                        height: 24,
+                        errorBuilder: (context, error, stackTrace) => const Icon(
+                          Icons.g_mobiledata,
+                          size: 24,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
 
-            // Sign Up Button
-            Padding(
-              padding: const EdgeInsets.only(top: 16.0, bottom: 16.0),
-              child: AppButton.primary(
+              const SizedBox(height: 16.0),
+
+              // Sign Up Button
+              AppButton.primary(
                 text: 'Sign up',
                 onPressed: _isLoading ? null : _register,
                 isLoading: _isLoading,
               ),
-            ),
 
-            // Sign In Link
-            Padding(
-              padding: const EdgeInsets.only(bottom: 24.0, top: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Already have an account? ',
-                    style: TextStyle(color: Color(0xFF9DA6B9), fontSize: 14),
-                  ),
-                  TextButton(
-                    onPressed: _isLoading ? null : () => context.go('/login'),
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              const SizedBox(height: 16.0),
+
+              // Sign In Link
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24.0, top: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Already have an account? ',
+                      style: TextStyle(color: Color(0xFF9DA6B9), fontSize: 14),
                     ),
-                    child: const Text(
-                      'Sign in',
-                      style: TextStyle(
-                        color: Color(0xFF1152D4),
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        decoration: TextDecoration.underline,
+                    TextButton(
+                      onPressed: _isLoading ? null : () => context.go('/login'),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        'Sign in',
+                        style: TextStyle(
+                          color: Color(0xFF1152D4),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
