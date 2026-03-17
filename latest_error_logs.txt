@@ -505,3 +505,187 @@ I/GestureDetector(13594): obtain mCurrentDownEvent. id: 62605428 caller: android
 I/VRI[MainActivity]@cfc8acb(13594): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@cfc8acb
 I/GestureDetector(13594): obtain mCurrentMotionEventRaw. action: 2 id: 774144140
 I/VRI[MainActivity]@cfc8acb(13594): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@cfc8acb
+E/flutter (13594): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: RealtimeSubscribeException(status: RealtimeSubscribeStatus.channelError, details: null)
+E/flutter (13594): #0      SupabaseStreamBuilder._addException (package:supabase/src/supabase_stream_builder.dart:333:67)
+E/flutter (13594): #1      SupabaseStreamBuilder._getStreamData.<anonymous closure> (package:supabase/src/supabase_stream_builder.dart:231:11)
+E/flutter (13594): #2      RealtimeChannel.subscribe.<anonymous closure> (package:realtime_client/src/realtime_channel.dart:148:39)
+E/flutter (13594): #3      RealtimeChannel._onError.<anonymous closure> (package:realtime_client/src/realtime_channel.dart:290:36)
+E/flutter (13594): #4      RealtimeChannel.trigger (package:realtime_client/src/realtime_channel.dart:753:22)
+E/flutter (13594): #5      RealtimeClient._triggerChanError (package:realtime_client/src/realtime_client.dart:494:15)
+E/flutter (13594): #6      RealtimeClient._onConnClose (package:realtime_client/src/realtime_client.dart:475:7)
+E/flutter (13594): #7      RealtimeClient.connect.<anonymous closure> (package:realtime_client/src/realtime_client.dart:211:11)
+E/flutter (13594): #8      _RootZone.runGuarded (dart:async/zone.dart:879:10)
+E/flutter (13594): #9      _BufferingStreamSubscription._sendDone.sendDone (dart:async/stream_impl.dart:434:13)
+E/flutter (13594): #10     _BufferingStreamSubscription._sendDone (dart:async/stream_impl.dart:444:7)
+E/flutter (13594): #11     _BufferingStreamSubscription._close (dart:async/stream_impl.dart:333:7)
+E/flutter (13594): #12     _SyncStreamControllerDispatch._sendDone (dart:async/stream_controller.dart:806:19)
+E/flutter (13594): #13     _StreamController._closeUnchecked (dart:async/stream_controller.dart:652:7)
+E/flutter (13594): #14     _StreamController.close (dart:async/stream_controller.dart:645:5)
+E/flutter (13594): #15     GuaranteeChannel._onSinkDisconnected (package:stream_channel/src/guarantee_channel.dart:69:23)
+E/flutter (13594): #16     _GuaranteeSink.close (package:stream_channel/src/guarantee_channel.dart:187:16)
+E/flutter (13594): #17     DelegatingStreamSink.close (package:async/src/delegate/stream_sink.dart:47:27)
+E/flutter (13594): #18     _WebSocketSink.close (package:web_socket_channel/adapter_web_socket_channel.dart:147:18)
+E/flutter (13594): #19     RealtimeClient.sendHeartbeat (package:realtime_client/src/realtime_client.dart:534:18)
+E/flutter (13594): #20     RealtimeClient._onConnOpen.<anonymous closure> (package:realtime_client/src/realtime_client.dart:456:32)
+E/flutter (13594): #21     _Timer._runTimers (dart:isolate-patch/timer_impl.dart:423:19)
+E/flutter (13594): #22     _Timer._handleMessage (dart:isolate-patch/timer_impl.dart:454:5)
+E/flutter (13594): #23     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193:12)
+E/flutter (13594):
+E/flutter (13594): [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: RealtimeSubscribeException(status: RealtimeSubscribeStatus.channelError, details: null)
+E/flutter (13594): #0      SupabaseStreamBuilder._addException (package:supabase/src/supabase_stream_builder.dart:333:67)
+E/flutter (13594): #1      SupabaseStreamBuilder._getStreamData.<anonymous closure> (package:supabase/src/supabase_stream_builder.dart:231:11)
+E/flutter (13594): #2      RealtimeChannel.subscribe.<anonymous closure> (package:realtime_client/src/realtime_channel.dart:148:39)
+E/flutter (13594): #3      RealtimeChannel._onError.<anonymous closure> (package:realtime_client/src/realtime_channel.dart:290:36)
+E/flutter (13594): #4      RealtimeChannel.trigger (package:realtime_client/src/realtime_channel.dart:753:22)
+E/flutter (13594): #5      RealtimeClient._triggerChanError (package:realtime_client/src/realtime_client.dart:494:15)
+E/flutter (13594): #6      RealtimeClient._onConnClose (package:realtime_client/src/realtime_client.dart:475:7)
+E/flutter (13594): #7      RealtimeClient.connect.<anonymous closure> (package:realtime_client/src/realtime_client.dart:211:11)
+E/flutter (13594): #8      _RootZone.runGuarded (dart:async/zone.dart:879:10)
+E/flutter (13594): #9      _BufferingStreamSubscription._sendDone.sendDone (dart:async/stream_impl.dart:434:13)
+E/flutter (13594): #10     _BufferingStreamSubscription._sendDone (dart:async/stream_impl.dart:444:7)
+E/flutter (13594): #11     _BufferingStreamSubscription._close (dart:async/stream_impl.dart:333:7)
+E/flutter (13594): #12     _SyncStreamControllerDispatch._sendDone (dart:async/stream_controller.dart:806:19)
+E/flutter (13594): #13     _StreamController._closeUnchecked (dart:async/stream_controller.dart:652:7)
+E/flutter (13594): #14     _StreamController.close (dart:async/stream_controller.dart:645:5)
+E/flutter (13594): #15     GuaranteeChannel._onSinkDisconnected (package:stream_channel/src/guarantee_channel.dart:69:23)
+E/flutter (13594): #16     _GuaranteeSink.close (package:stream_channel/src/guarantee_channel.dart:187:16)
+E/flutter (13594): #17     DelegatingStreamSink.close (package:async/src/delegate/stream_sink.dart:47:27)
+E/flutter (13594): #18     _WebSocketSink.close (package:web_socket_channel/adapter_web_socket_channel.dart:147:18)
+E/flutter (13594): #19     RealtimeClient.sendHeartbeat (package:realtime_client/src/realtime_client.dart:534:18)
+E/flutter (13594): #20     RealtimeClient._onConnOpen.<anonymous closure> (package:realtime_client/src/realtime_client.dart:456:32)
+E/flutter (13594): #21     _Timer._runTimers (dart:isolate-patch/timer_impl.dart:423:19)
+E/flutter (13594): #22     _Timer._handleMessage (dart:isolate-patch/timer_impl.dart:454:5)
+E/flutter (13594): #23     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:193:12)
+E/flutter (13594):
+I/GestureDetector(13594): obtain mCurrentDownEvent. id: 126629785 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/VRI[MainActivity]@cfc8acb(13594): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@cfc8acb
+I/GestureDetector(13594): obtain mCurrentMotionEventRaw. action: 2 id: 605812769
+I/VRI[MainActivity]@cfc8acb(13594): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@cfc8acb
+I/GestureDetector(13594): obtain mCurrentDownEvent. id: 117325776 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/VRI[MainActivity]@cfc8acb(13594): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@cfc8acb
+I/GestureDetector(13594): obtain mCurrentMotionEventRaw. action: 2 id: 833327247
+I/GestureDetector(13594): obtain mCurrentDownEvent. id: 781540530 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(13594): obtain mCurrentMotionEventRaw. action: 2 id: 1065737383
+I/GestureDetector(13594): obtain mCurrentDownEvent. id: 311605119 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(13594): obtain mCurrentMotionEventRaw. action: 2 id: 989465329
+W/WindowOnBackDispatcher(13594): sendCancelIfRunning: isInProgress=false callback=androidx.activity.OnBackPressedDispatcher$Api34Impl$createOnBackAnimationCallback$1@4e849ec
+I/GestureDetector(13594): obtain mCurrentDownEvent. id: 410773370 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(13594): obtain mCurrentMotionEventRaw. action: 2 id: 392298048
+I/flutter (13594): GoRouter: INFO: pushing /messages/3e5d60e1-6357-49a0-be9e-f36f8ec06770
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/GestureDetector(13594): obtain mCurrentDownEvent. id: 333796116 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(13594): obtain mCurrentMotionEventRaw. action: 2 id: 120492224
+W/WindowOnBackDispatcher(13594): sendCancelIfRunning: isInProgress=false callback=androidx.activity.OnBackPressedDispatcher$Api34Impl$createOnBackAnimationCallback$1@4e849ec
+I/GestureDetector(13594): obtain mCurrentDownEvent. id: 537216877 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(13594): obtain mCurrentMotionEventRaw. action: 2 id: 208320940
+I/flutter (13594): GoRouter: INFO: pushing /messages/797f2ba8-6919-498b-b21b-3092cbcbec90
+I/VRI[MainActivity]@cfc8acb(13594): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@cfc8acb
+I/GestureDetector(13594): obtain mCurrentDownEvent. id: 635120563 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/VRI[MainActivity]@cfc8acb(13594): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@cfc8acb
+I/GestureDetector(13594): obtain mCurrentMotionEventRaw. action: 2 id: 336909761
+W/WindowOnBackDispatcher(13594): sendCancelIfRunning: isInProgress=false callback=androidx.activity.OnBackPressedDispatcher$Api34Impl$createOnBackAnimationCallback$1@4e849ec
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/VRI[MainActivity]@cfc8acb(13594): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@cfc8acb
+I/GestureDetector(13594): obtain mCurrentDownEvent. id: 991624528 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/VRI[MainActivity]@cfc8acb(13594): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@cfc8acb
+I/GestureDetector(13594): obtain mCurrentMotionEventRaw. action: 2 id: 801935859
+I/flutter (13594): GoRouter: INFO: pushing /messages/797f2ba8-6919-498b-b21b-3092cbcbec90
+I/VRI[MainActivity]@cfc8acb(13594): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@cfc8acb
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/flutter (13594): No encrypted key found for this user
+I/GestureDetector(13594): obtain mCurrentDownEvent. id: 622294265 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/VRI[MainActivity]@cfc8acb(13594): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@cfc8acb
+I/GestureDetector(13594): obtain mCurrentMotionEventRaw. action: 2 id: 511212980
+I/GestureDetector(13594): obtain mCurrentDownEvent. id: 758495684 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(13594): obtain mCurrentMotionEventRaw. action: 2 id: 172584629
+I/GestureDetector(13594): obtain mCurrentDownEvent. id: 123119603 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(13594): obtain mCurrentMotionEventRaw. action: 2 id: 829572752
+I/GestureDetector(13594): obtain mCurrentDownEvent. id: 53278431 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(13594): obtain mCurrentMotionEventRaw. action: 2 id: 92016238
+I/flutter (13594): Error updating reaction: PostgrestException(message: Could not find the 'reaction' column of 'message_reactions' in the schema cache, code: PGRST204, details: Bad Request, hint: null)
+I/VRI[MainActivity]@cfc8acb(13594): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@cfc8acb
+I/VRI[MainActivity]@cfc8acb(13594): handleResized, frames=ClientWindowFrames{frame=[0,0][1080,2340] display=[0,0][1080,2340] parentFrame=[0,0][0,0]} displayId=0 dragResizing=false compatScale=1.0 frameChanged=false attachedFrameChanged=false configChanged=false displayChanged=false compatScaleChanged=false dragResizingChanged=false
+I/InsetsSourceConsumer(13594): applyRequestedVisibilityToControl: visible=true, type=statusBars, host=com.example.morrow_v2/com.example.morrow_v2.MainActivity
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 1.1 pixels on the right.
+
+The relevant error-causing widget was:
+  Row Row:file:///F:/morrow_v2/lib/widgets/messages/message_reactions.dart:34:14
+
+To inspect this widget in Flutter DevTools, visit:
+http://127.0.0.1:53718/1rbhNPGrHyY=/devtools//#/inspector?uri=http%3A%2F%2F127.0.0.1%3A53718%2F1rbhNPGrHyY%3D%2F&inspect
+orRef=inspector-0
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#7c54c relayoutBoundary=up12 OVERFLOWING:
+  creator: Row ← Padding ← DecoratedBox ← Container ← MessageReactionPicker ← Column ← Padding ←
+    DecoratedBox ← Container ← NotificationListener<DraggableScrollableNotification> ←
+    DefaultTextStyle ← AnimatedDefaultTextStyle ← ⋯
+  parentData: offset=Offset(8.0, 6.0) (can use size)
+  constraints: BoxConstraints(0.0<=w<=336.0, 0.0<=h<=Infinity)
+  size: Size(336.0, 46.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: min
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════

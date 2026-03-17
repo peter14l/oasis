@@ -44,7 +44,7 @@ class MessageReactionModel {
       messageId: json['message_id'] as String,
       userId: json['user_id'] as String,
       username: json['username'] ?? 'Unknown',
-      reaction: json['reaction'] as String,
+      reaction: json['emoji'] ?? json['reaction'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
@@ -55,7 +55,7 @@ class MessageReactionModel {
       'message_id': messageId,
       'user_id': userId,
       'username': username,
-      'reaction': reaction,
+      'emoji': reaction,
       'created_at': createdAt.toIso8601String(),
     };
   }

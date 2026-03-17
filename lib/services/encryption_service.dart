@@ -24,11 +24,22 @@ class EncryptionService {
   static bool isEnabled = true;
 
   bool _isInitialized = false;
+  bool _isInitializing = false;
 
   bool get isInitialized => _isInitialized;
 
   /// Initialize encryption service
   Future<EncryptionStatus> init() async {
+    if (_isInitialized) return EncryptionStatus.ready;
+    if (_isInitializing) {
+      // Wait for the active initialization to complete
+      while (_isInitializing) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+      return _isInitialized ? EncryptionStatus.ready : EncryptionStatus.needsSetup;
+    }
+    
+    _isInitializing = true;
     try {
       // Check if keys exist in secure storage
       final privateKeyPem = await _secureStorage.read(key: _privateKeyKey);
@@ -36,6 +47,7 @@ class EncryptionService {
 
       if (privateKeyPem != null && publicKeyPem != null) {
         _isInitialized = true;
+        _isInitializing = false;
         return EncryptionStatus.ready;
       }
 
@@ -59,6 +71,7 @@ class EncryptionService {
             final restored = await restoreKeys();
             if (restored) {
               debugPrint('[Encryption] Auto-restore successful.');
+              _isInitializing = false;
               return EncryptionStatus.ready;
             }
 
@@ -74,6 +87,7 @@ class EncryptionService {
             final freshSuccess = await setupEncryption();
             if (freshSuccess) {
               debugPrint('[Encryption] Fresh keys generated successfully.');
+              _isInitializing = false;
               return EncryptionStatus.ready;
             }
 
@@ -81,6 +95,7 @@ class EncryptionService {
             debugPrint(
               '[Encryption] Fresh key generation also failed — network issue?',
             );
+            _isInitializing = false;
             return EncryptionStatus.needsRestore;
           }
         } catch (e) {
@@ -92,11 +107,16 @@ class EncryptionService {
           '[Encryption] No backup on server — running first-time setup...',
         );
         final setupSuccess = await setupEncryption();
-        if (setupSuccess) return EncryptionStatus.ready;
+        if (setupSuccess) {
+          _isInitializing = false;
+          return EncryptionStatus.ready;
+        }
       }
 
+      _isInitializing = false;
       return EncryptionStatus.needsSetup;
     } catch (e) {
+      _isInitializing = false;
       debugPrint('[Encryption] Error initializing encryption: $e');
       return EncryptionStatus.error;
     }
@@ -372,7 +392,7 @@ class EncryptionService {
       final encryptedKeyBase64 = encryptedKeys[keyId] as String?;
 
       if (encryptedKeyBase64 == null) {
-        debugPrint('No encrypted key found for this user');
+        debugPrint('[Encryption] No encrypted key found for this user (expected if keys regenerated or missing AES key)');
         return null;
       }
 

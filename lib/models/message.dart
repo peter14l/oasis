@@ -34,6 +34,8 @@ class Message {
   final Map<String, dynamic>? encryptedKeys;
   final String? iv;
   final int? signalMessageType; // 2 = Normal, 3 = PreKey
+  final String? signalSenderContent; // Encrypted copy for sender
+  final int? signalSenderMessageType;
   final String? callId;
 
   Message({
@@ -62,6 +64,8 @@ class Message {
     this.encryptedKeys,
     this.iv,
     this.signalMessageType,
+    this.signalSenderContent,
+    this.signalSenderMessageType,
     this.callId,
   });
 
@@ -127,6 +131,8 @@ class Message {
       encryptedKeys: json['encrypted_keys'] as Map<String, dynamic>?,
       iv: json['iv'] as String?,
       signalMessageType: json['signal_message_type'] as int?,
+      signalSenderContent: json['signal_sender_content'] as String?,
+      signalSenderMessageType: json['signal_sender_message_type'] as int?,
       callId: json['call_id'] as String?,
     );
   }
@@ -157,6 +163,8 @@ class Message {
       'encrypted_keys': encryptedKeys,
       'iv': iv,
       'signal_message_type': signalMessageType,
+      'signal_sender_content': signalSenderContent,
+      'signal_sender_message_type': signalSenderMessageType,
       'call_id': callId,
     };
   }
@@ -187,6 +195,8 @@ class Message {
     Map<String, dynamic>? encryptedKeys,
     String? iv,
     int? signalMessageType,
+    String? signalSenderContent,
+    int? signalSenderMessageType,
     String? callId,
   }) {
     return Message(
@@ -215,6 +225,8 @@ class Message {
       encryptedKeys: encryptedKeys ?? this.encryptedKeys,
       iv: iv ?? this.iv,
       signalMessageType: signalMessageType ?? this.signalMessageType,
+      signalSenderContent: signalSenderContent ?? this.signalSenderContent,
+      signalSenderMessageType: signalSenderMessageType ?? this.signalSenderMessageType,
       callId: callId ?? this.callId,
     );
   }

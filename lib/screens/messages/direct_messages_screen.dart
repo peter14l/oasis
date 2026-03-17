@@ -252,7 +252,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight:
                         conversation.unreadCount > 0
-                            ? FontWeight.bold
+                            ? FontWeight.w700
                             : FontWeight.w600,
                   ),
                 ),
@@ -283,7 +283,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                                 color: conversation.unreadCount > 0 
                                   ? colorScheme.onSurface 
                                   : colorScheme.onSurfaceVariant,
-                                fontWeight: conversation.unreadCount > 0 ? FontWeight.bold : FontWeight.w500,
+                                fontWeight: conversation.unreadCount > 0 ? FontWeight.w700 : FontWeight.w500,
                               ),
                             ),
                           ),
@@ -308,6 +308,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                         ? Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               _formatTimestamp(conversation.lastMessageTime!),
@@ -318,7 +319,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                                         : colorScheme.onSurfaceVariant,
                                 fontWeight:
                                     conversation.unreadCount > 0
-                                        ? FontWeight.bold
+                                        ? FontWeight.w700
                                         : FontWeight.normal,
                               ),
                             ),

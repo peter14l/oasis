@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:ui';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -24,7 +25,6 @@ import 'package:oasis_v2/screens/messages/chat_details_screen.dart';
 import 'package:oasis_v2/screens/messages/encryption_setup_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis_v2/services/supabase_service.dart';
-import 'package:timeago/timeago.dart' as timeago;
 import 'package:oasis_v2/widgets/skeleton_container.dart';
 import 'package:oasis_v2/widgets/messages/voice_message_player.dart';
 import 'package:oasis_v2/services/vault_service.dart';
@@ -39,11 +39,9 @@ import 'package:oasis_v2/widgets/gestures/gesture_widgets.dart';
 import 'package:any_link_preview/any_link_preview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'dart:async'; // For Timer
 import 'package:oasis_v2/services/call_service.dart';
 import 'package:oasis_v2/screens/messages/incoming_call_overlay.dart';
 import 'package:oasis_v2/models/call.dart';
-import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -77,7 +75,6 @@ class _ChatScreenState extends State<ChatScreen> {
   final FocusNode _focusNode = FocusNode();
   late VaultService _vaultService;
 
-
   List<Message> _messages = [];
   bool _isLoading = false;
   bool _isSending = false;
@@ -95,6 +92,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   RealtimeChannel? _messageChannel;
   RealtimeChannel? _backgroundChannel;
+  RealtimeChannel? _readReceiptChannel;
+  StreamSubscription<List<Map<String, dynamic>>>? _callsSubscription;
   XFile? _selectedImage;
   File? _selectedVideo;
   PlatformFile? _selectedFile;
@@ -161,10 +160,39 @@ class _ChatScreenState extends State<ChatScreen> {
   String? _otherUserName;
   String? _otherUserId;
 
+  @override
+  void dispose() {
+    _recordTimer?.cancel();
+    _messageController.dispose();
+    _scrollController.dispose();
+    _focusNode.dispose();
+    _audioRecorder.dispose();
+
+    // Clean up Realtime subscriptions
+    if (_messageChannel != null) {
+      _messagingService.unsubscribeFromMessages(_messageChannel!);
+    }
+    if (_backgroundChannel != null) {
+      SupabaseService().client.removeChannel(_backgroundChannel!);
+    }
+    if (_readReceiptChannel != null) {
+      SupabaseService().client.removeChannel(_readReceiptChannel!);
+    }
+    _callsSubscription?.cancel();
+
+    // Lock chat if interval is set to On Chat Close
+    if (_vaultService.getLockInterval(widget.conversationId) == 'chat_close') {
+      _vaultService.lockItem(widget.conversationId);
+    }
+
+    super.dispose();
+  }
 
   Future<void> _fetchConversationDetails() async {
     try {
-      final details = await _messagingService.getConversationDetails(widget.conversationId);
+      final details = await _messagingService.getConversationDetails(
+        widget.conversationId,
+      );
       if (mounted) {
         setState(() {
           _otherUserName = details.otherUserName;
@@ -177,14 +205,15 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _subscribeToCalls() {
-    SupabaseService().client
+    _callsSubscription = SupabaseService().client
         .from('calls')
         .stream(primaryKey: ['id'])
         .eq('conversation_id', widget.conversationId)
         .listen((data) {
           if (data.isEmpty) return;
           final call = Call.fromJson(data.first);
-          if (call.status == CallStatus.pinging && call.hostId != _authService.currentUser?.id) {
+          if (call.status == CallStatus.pinging &&
+              call.hostId != _authService.currentUser?.id) {
             _showIncomingCallOverlay(call);
           }
         });
@@ -194,33 +223,8 @@ class _ChatScreenState extends State<ChatScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Center(
-        child: IncomingCallOverlay(call: call),
-      ),
+      builder: (context) => Center(child: IncomingCallOverlay(call: call)),
     );
-  }
-
-  Future<void> _initiateCall(CallType type) async {
-    try {
-      final call = await _callService.initiateCall(
-        conversationId: widget.conversationId,
-        type: type,
-        channelName: widget.otherUserName ?? _otherUserName ?? 'Unknown',
-      );
-      if (mounted) {
-        GoRouter.of(context).pushNamed(
-          'active_call',
-          pathParameters: {'callId': call.id},
-          extra: call,
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to start call: $e')),
-        );
-      }
-    }
   }
 
   /// Load persisted chat settings (background, whisper mode) from SharedPreferences and Supabase
@@ -235,12 +239,13 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final userId = _authService.currentUser?.id;
       if (userId != null) {
-        final data = await Supabase.instance.client
-            .from('chat_themes')
-            .select('background_image_url')
-            .eq('conversation_id', widget.conversationId)
-            .eq('user_id', userId)
-            .maybeSingle();
+        final data =
+            await Supabase.instance.client
+                .from('chat_themes')
+                .select('background_image_url')
+                .eq('conversation_id', widget.conversationId)
+                .eq('user_id', userId)
+                .maybeSingle();
 
         if (data != null) {
           bgUrl = data['background_image_url'] as String?;
@@ -290,7 +295,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _initializeEncryption() async {
     if (!EncryptionService.isEnabled) return;
-    
+
     if (!SignalService().isInitialized) {
       final success = await SignalService().init();
       if (!success) {
@@ -344,14 +349,29 @@ class _ChatScreenState extends State<ChatScreen> {
         await Future.delayed(Duration.zero);
         if (message.signalMessageType != null) {
           try {
-            final decrypted = await SignalService().decryptMessage(
-              message.senderId,
-              message.content,
-              message.signalMessageType!,
-            );
-            decryptedMessages.add(message.copyWith(content: decrypted));
+            final isSender = message.senderId == _authService.currentUser?.id;
+              
+            if (isSender && message.signalSenderContent != null && message.encryptedKeys != null && message.iv != null) {
+              // Sender copy is encrypted via RSA using `signalSenderContent` and the `encryptedKeys` payload
+              final decrypted = await _encryptionService.decryptMessage(
+                message.signalSenderContent!,
+                message.encryptedKeys!,
+                message.iv!,
+              );
+              decryptedMessages.add(message.copyWith(content: decrypted ?? '🔒 Message encrypted'));
+            } else if (!isSender && message.signalMessageType != null) {
+              // Recipient copy is encrypted via Signal using `content`
+              final decrypted = await SignalService().decryptMessage(
+                message.senderId,
+                message.content,
+                message.signalMessageType!,
+              );
+              decryptedMessages.add(message.copyWith(content: decrypted));
+            } else {
+               decryptedMessages.add(message.copyWith(content: '🔒 Message encrypted'));
+            }
           } catch (e) {
-            debugPrint('Signal decryption failed: $e');
+            debugPrint('Decryption failed: $e');
             decryptedMessages.add(
               message.copyWith(content: '🔒 Message encrypted'),
             );
@@ -401,14 +421,29 @@ class _ChatScreenState extends State<ChatScreen> {
           Message finalMessage = message;
           if (message.signalMessageType != null) {
             try {
-              final decrypted = await SignalService().decryptMessage(
-                message.senderId,
-                message.content,
-                message.signalMessageType!,
-              );
-              finalMessage = message.copyWith(content: decrypted);
+              final isSender = message.senderId == _authService.currentUser?.id;
+              
+              if (isSender && message.signalSenderContent != null && message.encryptedKeys != null && message.iv != null) {
+                // Sender copy is encrypted via RSA using `signalSenderContent` and the `encryptedKeys` payload
+                final decrypted = await _encryptionService.decryptMessage(
+                  message.signalSenderContent!,
+                  message.encryptedKeys!,
+                  message.iv!,
+                );
+                finalMessage = message.copyWith(content: decrypted ?? '🔒 Message encrypted');
+              } else if (!isSender && message.signalMessageType != null) {
+                // Recipient copy is encrypted via Signal using `content`
+                final decrypted = await SignalService().decryptMessage(
+                  message.senderId,
+                  message.content,
+                  message.signalMessageType!,
+                );
+                finalMessage = message.copyWith(content: decrypted);
+              } else {
+                 finalMessage = message.copyWith(content: '🔒 Message encrypted');
+              }
             } catch (e) {
-              debugPrint('Signal decryption failed: $e');
+              debugPrint('Decryption failed: $e');
               finalMessage = message.copyWith(content: '🔒 Message encrypted');
             }
           } else if (message.encryptedKeys != null && message.iv != null) {
@@ -442,7 +477,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _subscribeToReadReceipts() {
-    _messagingService.subscribeToReadReceipts(
+    _readReceiptChannel = _messagingService.subscribeToReadReceipts(
       conversationId: widget.conversationId,
       onUpdate: (messageId, userId, readAt) {
         if (mounted && userId == widget.otherUserId) {
@@ -463,13 +498,19 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _markAsRead() async {
     final userId = _authService.currentUser?.id;
     if (userId == null) return;
-    await _messagingService.markConversationAsRead(widget.conversationId, userId);
-    
+    await _messagingService.markConversationAsRead(
+      widget.conversationId,
+      userId,
+    );
+
     // Also update local state for messages sent by the other user
     setState(() {
       for (int i = 0; i < _messages.length; i++) {
         if (_messages[i].senderId != userId && !_messages[i].isRead) {
-          _messages[i] = _messages[i].copyWith(isRead: true, readAt: DateTime.now());
+          _messages[i] = _messages[i].copyWith(
+            isRead: true,
+            readAt: DateTime.now(),
+          );
         }
       }
     });
@@ -687,6 +728,8 @@ class _ChatScreenState extends State<ChatScreen> {
       Map<String, String>? encryptedKeys;
       String? iv;
       int? signalMessageType;
+      String? signalSenderContent; // RSA encrypted copy for sender
+      bool usedSignal = false;
 
       if (EncryptionService.isEnabled) {
         // Validate otherUserId is not empty (group chats not yet supported for encryption)
@@ -695,7 +738,6 @@ class _ChatScreenState extends State<ChatScreen> {
           throw Exception('Recipient ID is required for encryption');
         }
 
-        bool usedSignal = false;
         if (SignalService().isInitialized) {
           try {
             final cipherMessage = await SignalService().encryptMessage(
@@ -721,7 +763,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
           final recipientPublicKey = recipientProfile['public_key'] as String?;
           if (recipientPublicKey == null) {
-            throw Exception('Recipient has not updated the app to support encrypted messaging yet');
+            throw Exception(
+              'Recipient has not updated the app to support encrypted messaging yet',
+            );
           }
 
           // Encrypt message content
@@ -769,6 +813,35 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }
 
+      // Always generate a fallback RSA encrypted copy for the sender
+      if (EncryptionService.isEnabled && content.isNotEmpty) {
+        try {
+          // Get sender's public key
+          final senderProfile = await Supabase.instance.client
+              .from('profiles')
+              .select('public_key')
+              .eq('id', userId)
+              .single();
+
+          final senderPublicKey = senderProfile['public_key'] as String?;
+          if (senderPublicKey != null) {
+            final encryptedForSender = await _encryptionService.encryptMessage(
+              content.isNotEmpty ? content : 'Sent attachment',
+              [senderPublicKey],
+            );
+            signalSenderContent = encryptedForSender.encryptedContent;
+            
+            // We reuse the encryptedKeys and iv fields if using Signal, to store sender's keys
+            if (usedSignal) {
+              encryptedKeys = encryptedForSender.encryptedKeys;
+              iv = encryptedForSender.iv;
+            }
+          }
+        } catch (e) {
+          debugPrint('Failed to encrypt copy for sender: $e');
+        }
+      }
+
       // Send message
       await _messagingService.sendMessage(
         conversationId: widget.conversationId,
@@ -782,13 +855,16 @@ class _ChatScreenState extends State<ChatScreen> {
         encryptedKeys: encryptedKeys,
         iv: iv,
         signalMessageType: signalMessageType,
+        signalSenderContent: signalSenderContent,
         isWhisperMode: _isWhisperMode,
         ephemeralDuration: _ephemeralDuration,
       );
 
       // Refresh DM list preview in provider
       if (mounted) {
-        context.read<ConversationProvider>().refreshConversation(widget.conversationId);
+        context.read<ConversationProvider>().refreshConversation(
+          widget.conversationId,
+        );
       }
     } catch (e) {
       _showError('Error: ${e.toString()}');
@@ -817,7 +893,8 @@ class _ChatScreenState extends State<ChatScreen> {
         builder:
             (context) => ChatDetailsScreen(
               conversationId: widget.conversationId,
-              otherUserName: widget.otherUserName ?? _otherUserName ?? 'Unknown',
+              otherUserName:
+                  widget.otherUserName ?? _otherUserName ?? 'Unknown',
               otherUserAvatar: widget.otherUserAvatar ?? '',
               otherUserId: widget.otherUserId ?? _otherUserId ?? '',
               isWhisperMode: _isWhisperMode,
@@ -935,14 +1012,19 @@ class _ChatScreenState extends State<ChatScreen> {
 
       setState(() {
         final sentColor = paletteGenerator.dominantColor?.color ?? Colors.blue;
-        final receivedColor = paletteGenerator.lightVibrantColor?.color ?? Colors.grey;
-        
+        final receivedColor =
+            paletteGenerator.lightVibrantColor?.color ?? Colors.grey;
+
         _bubbleColorSent = sentColor.withValues(alpha: 0.9);
         _bubbleColorReceived = receivedColor.withValues(alpha: 0.85);
 
         // Calculate contrasting text colors
-        _textColorSent = sentColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
-        _textColorReceived = receivedColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+        _textColorSent =
+            sentColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+        _textColorReceived =
+            receivedColor.computeLuminance() > 0.5
+                ? Colors.black
+                : Colors.white;
       });
     } catch (e) {
       debugPrint('Error extracting colors: $e');
@@ -1100,28 +1182,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   @override
-  void dispose() {
-    if (_messageChannel != null) {
-      _messagingService.unsubscribeFromMessages(_messageChannel!);
-    }
-    if (_backgroundChannel != null) {
-      _messagingService.unsubscribeFromMessages(_backgroundChannel!);
-    }
-    _scrollController.dispose();
-    _messageController.dispose();
-    _focusNode.dispose();
-    _recordTimer?.cancel();
-    _audioRecorder.dispose();
-
-    // Lock chat if interval is set to On Chat Close
-    if (_vaultService.getLockInterval(widget.conversationId) == 'chat_close') {
-      _vaultService.lockItem(widget.conversationId);
-    }
-
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -1136,9 +1196,11 @@ class _ChatScreenState extends State<ChatScreen> {
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
-              color: _backgroundUrl != null
-                  ? (_bubbleColorSent?.withValues(alpha: 0.15) ?? colorScheme.primary.withValues(alpha: 0.15))
-                  : colorScheme.surface.withValues(alpha: 0.5),
+              color:
+                  _backgroundUrl != null
+                      ? (_bubbleColorSent?.withValues(alpha: 0.15) ??
+                          colorScheme.primary.withValues(alpha: 0.15))
+                      : colorScheme.surface.withValues(alpha: 0.5),
             ),
           ),
         ),
@@ -1157,8 +1219,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 child:
                     (widget.otherUserAvatar ?? '').isEmpty
                         ? Text(
-                          (widget.otherUserName ?? _otherUserName ?? 'U').isNotEmpty
-                              ? (widget.otherUserName ?? _otherUserName ?? 'U')[0].toUpperCase()
+                          (widget.otherUserName ?? _otherUserName ?? 'U')
+                                  .isNotEmpty
+                              ? (widget.otherUserName ??
+                                      _otherUserName ??
+                                      'U')[0]
+                                  .toUpperCase()
                               : '',
                         )
                         : null,
@@ -1301,7 +1367,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 Container(
                   width: double.infinity,
                   padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).padding.top + kToolbarHeight + 8,
+                    top:
+                        MediaQuery.of(context).padding.top + kToolbarHeight + 8,
                     bottom: 8,
                     left: 16,
                     right: 16,
@@ -1337,7 +1404,12 @@ class _ChatScreenState extends State<ChatScreen> {
                         ? ListView.builder(
                           reverse: true,
                           padding: EdgeInsets.only(
-                            top: _isWhisperMode ? 16 : MediaQuery.of(context).padding.top + kToolbarHeight + 16,
+                            top:
+                                _isWhisperMode
+                                    ? 16
+                                    : MediaQuery.of(context).padding.top +
+                                        kToolbarHeight +
+                                        16,
                             bottom: 16,
                             left: 16,
                             right: 16,
@@ -1399,14 +1471,20 @@ class _ChatScreenState extends State<ChatScreen> {
                           reverse: true,
                           controller: _scrollController,
                           padding: EdgeInsets.only(
-                            top: _isWhisperMode ? 16 : MediaQuery.of(context).padding.top + kToolbarHeight + 16,
+                            top:
+                                _isWhisperMode
+                                    ? 16
+                                    : MediaQuery.of(context).padding.top +
+                                        kToolbarHeight +
+                                        16,
                             bottom: 16,
                             left: 16,
                             right: 16,
                           ),
                           itemCount: _messages.length,
                           itemBuilder: (context, index) {
-                            final message = _messages[_messages.length - 1 - index];
+                            final message =
+                                _messages[_messages.length - 1 - index];
                             final isMe = message.senderId == userId;
                             return _buildMessageBubble(message, isMe);
                           },
@@ -1435,10 +1513,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
               // Message Input
               Container(
-                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16, top: 8),
-                decoration: const BoxDecoration(
-                  color: Colors.transparent,
+                padding: const EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  bottom: 16,
+                  top: 8,
                 ),
+                decoration: const BoxDecoration(color: Colors.transparent),
                 child: SafeArea(
                   top: false,
                   child: Column(
@@ -1502,9 +1583,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                               height: 40,
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.circle,
-                                                color: colorScheme.secondary.withOpacity(
-                                                  0.08,
-                                                ),
+                                                color: colorScheme.secondary
+                                                    .withOpacity(0.08),
                                               ),
                                             ),
                                             SizedBox(
@@ -1513,18 +1593,20 @@ class _ChatScreenState extends State<ChatScreen> {
                                               child: CircularProgressIndicator(
                                                 value: _whisperDragProgress,
                                                 strokeWidth: 3,
-                                                backgroundColor: colorScheme.secondary
+                                                backgroundColor: colorScheme
+                                                    .secondary
                                                     .withValues(alpha: 0.15),
                                                 valueColor: AlwaysStoppedAnimation<
                                                   Color
                                                 >(
                                                   _whisperDragProgress >= 1.0
                                                       ? colorScheme.secondary
-                                                      : colorScheme.secondary.withOpacity(
-                                                        0.4 +
-                                                            _whisperDragProgress *
-                                                                0.6,
-                                                      ),
+                                                      : colorScheme.secondary
+                                                          .withOpacity(
+                                                            0.4 +
+                                                                _whisperDragProgress *
+                                                                    0.6,
+                                                          ),
                                                 ),
                                               ),
                                             ),
@@ -1533,10 +1615,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                                   ? Icons.auto_delete
                                                   : Icons.arrow_upward_rounded,
                                               size: 18,
-                                              color: colorScheme.secondary.withOpacity(
-                                                0.5 +
-                                                _whisperDragProgress * 0.5,
-                                              ),
+                                              color: colorScheme.secondary
+                                                  .withOpacity(
+                                                    0.5 +
+                                                        _whisperDragProgress *
+                                                            0.5,
+                                                  ),
                                             ),
                                           ],
                                         ),
@@ -1552,7 +1636,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                   children: [
                                     Positioned.fill(
                                       child: BackdropFilter(
-                                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                        filter: ImageFilter.blur(
+                                          sigmaX: 10,
+                                          sigmaY: 10,
+                                        ),
                                         child: const SizedBox.shrink(),
                                       ),
                                     ),
@@ -1562,159 +1649,189 @@ class _ChatScreenState extends State<ChatScreen> {
                                         vertical: 4,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: _backgroundUrl != null
-                                            ? (_bubbleColorSent?.withValues(alpha: 0.15) ?? colorScheme.primary.withValues(alpha: 0.15))
-                                            : colorScheme.surface.withValues(alpha: 0.5),
+                                        color:
+                                            _backgroundUrl != null
+                                                ? (_bubbleColorSent?.withValues(
+                                                      alpha: 0.15,
+                                                    ) ??
+                                                    colorScheme.primary
+                                                        .withValues(
+                                                          alpha: 0.15,
+                                                        ))
+                                                : colorScheme.surface
+                                                    .withValues(alpha: 0.5),
                                         borderRadius: BorderRadius.circular(32),
                                         border: Border.all(
-                                          color: Colors.black.withValues(alpha: 0.2),
+                                          color: Colors.black.withValues(
+                                            alpha: 0.2,
+                                          ),
                                           width: 0.5,
                                         ),
                                       ),
-                                child: Row(
-                                  children: [
-                                    IconButton(
-                                    onPressed: _showAttachmentOptions,
-                                    icon: Icon(
-                                      Icons.add_circle_outline,
-                                      color: colorScheme.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: CallbackShortcuts(
-                                      bindings: {
-                                        const SingleActivator(
-                                          LogicalKeyboardKey.enter,
-                                          includeRepeats: false,
-                                        ): () {
-                                          final keys =
-                                              ServicesBinding
-                                                  .instance
-                                                  .keyboard
-                                                  .logicalKeysPressed;
-                                          if (keys.contains(
-                                                LogicalKeyboardKey.shiftLeft,
-                                              ) ||
-                                              keys.contains(
-                                                LogicalKeyboardKey.shiftRight,
-                                              )) {
-                                            return;
-                                          }
-                                          if (_messageController.text
-                                              .trim()
-                                              .isNotEmpty) {
-                                            _sendMessage();
-                                          }
-                                        },
-                                      },
-                                      child: TextField(
-                                        controller: _messageController,
-                                        onChanged: (val) {
-                                          setState(() {});
-                                        },
-                                        style: TextStyle(
-                                          color: _backgroundUrl != null
-                                              ? (_textColorSent ?? Colors.white)
-                                              : colorScheme.onSurface,
-                                        ),
-                                        decoration: InputDecoration(
-                                          hintText: 'Type a message...',
-                                          hintStyle: TextStyle(
-                                            color: (_backgroundUrl != null
-                                                    ? (_textColorSent ?? Colors.white)
-                                                    : colorScheme.onSurface)
-                                                .withValues(alpha: 0.5),
+                                      child: Row(
+                                        children: [
+                                          IconButton(
+                                            onPressed: _showAttachmentOptions,
+                                            icon: Icon(
+                                              Icons.add_circle_outline,
+                                              color: colorScheme.primary,
+                                            ),
                                           ),
-                                          border: InputBorder.none,
-                                          enabledBorder: InputBorder.none,
-                                          focusedBorder: InputBorder.none,
-                                          errorBorder: InputBorder.none,
-                                          focusedErrorBorder: InputBorder.none,
-                                          filled: false,
-                                          contentPadding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 10,
-                                          ),
-                                        ),
-                                        minLines: 1,
-                                        maxLines: 4,
-                                        textCapitalization:
-                                            TextCapitalization.sentences,
-                                        onSubmitted: (_) {
-                                          if (_messageController.text
-                                              .trim()
-                                              .isNotEmpty) {
-                                            _sendMessage();
-                                          }
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  GestureDetector(
-                                    onLongPressStart: (details) {
-                                      if (_messageController.text
-                                              .trim()
-                                              .isEmpty &&
-                                          !_isSending) {
-                                        _startRecording();
-                                      }
-                                    },
-                                    onLongPressEnd: (details) {
-                                      if (_recordTimer != null) {
-                                        _stopRecording();
-                                      }
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color:
-                                            _isSending
-                                                ? colorScheme.onSurface
-                                                    .withValues(alpha: 0.12)
-                                                : colorScheme.primary,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: IconButton(
-                                        onPressed:
-                                            _isSending
-                                                ? null
-                                                : () {
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: CallbackShortcuts(
+                                              bindings: {
+                                                const SingleActivator(
+                                                  LogicalKeyboardKey.enter,
+                                                  includeRepeats: false,
+                                                ): () {
+                                                  final keys =
+                                                      ServicesBinding
+                                                          .instance
+                                                          .keyboard
+                                                          .logicalKeysPressed;
+                                                  if (keys.contains(
+                                                        LogicalKeyboardKey
+                                                            .shiftLeft,
+                                                      ) ||
+                                                      keys.contains(
+                                                        LogicalKeyboardKey
+                                                            .shiftRight,
+                                                      )) {
+                                                    return;
+                                                  }
                                                   if (_messageController.text
                                                       .trim()
                                                       .isNotEmpty) {
                                                     _sendMessage();
                                                   }
                                                 },
-                                        icon:
-                                            _isSending
-                                                ? const SizedBox(
-                                                  width: 20,
-                                                  height: 20,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                        color: Colors.white,
-                                                      ),
-                                                )
-                                                : Icon(
-                                                  _messageController.text
-                                                          .trim()
-                                                          .isEmpty
-                                                      ? Icons.mic
-                                                      : Icons.send_rounded,
-                                                  color: Colors.white,
+                                              },
+                                              child: TextField(
+                                                controller: _messageController,
+                                                onChanged: (val) {
+                                                  setState(() {});
+                                                },
+                                                style: TextStyle(
+                                                  color:
+                                                      _backgroundUrl != null
+                                                          ? (_textColorSent ??
+                                                              Colors.white)
+                                                          : colorScheme
+                                                              .onSurface,
                                                 ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ), // Row
-                                      ), // Container
-                                    ],
-                                  ), // Stack
-                                ), // ClipRRect
-                              ), // Transform.translate
+                                                decoration: InputDecoration(
+                                                  hintText: 'Type a message...',
+                                                  hintStyle: TextStyle(
+                                                    color: (_backgroundUrl !=
+                                                                null
+                                                            ? (_textColorSent ??
+                                                                Colors.white)
+                                                            : colorScheme
+                                                                .onSurface)
+                                                        .withValues(alpha: 0.5),
+                                                  ),
+                                                  border: InputBorder.none,
+                                                  enabledBorder:
+                                                      InputBorder.none,
+                                                  focusedBorder:
+                                                      InputBorder.none,
+                                                  errorBorder: InputBorder.none,
+                                                  focusedErrorBorder:
+                                                      InputBorder.none,
+                                                  filled: false,
+                                                  contentPadding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 10,
+                                                      ),
+                                                ),
+                                                minLines: 1,
+                                                maxLines: 4,
+                                                textCapitalization:
+                                                    TextCapitalization
+                                                        .sentences,
+                                                onSubmitted: (_) {
+                                                  if (_messageController.text
+                                                      .trim()
+                                                      .isNotEmpty) {
+                                                    _sendMessage();
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          GestureDetector(
+                                            onLongPressStart: (details) {
+                                              if (_messageController.text
+                                                      .trim()
+                                                      .isEmpty &&
+                                                  !_isSending) {
+                                                _startRecording();
+                                              }
+                                            },
+                                            onLongPressEnd: (details) {
+                                              if (_recordTimer != null) {
+                                                _stopRecording();
+                                              }
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    _isSending
+                                                        ? colorScheme.onSurface
+                                                            .withValues(
+                                                              alpha: 0.12,
+                                                            )
+                                                        : colorScheme.primary,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: IconButton(
+                                                onPressed:
+                                                    _isSending
+                                                        ? null
+                                                        : () {
+                                                          if (_messageController
+                                                              .text
+                                                              .trim()
+                                                              .isNotEmpty) {
+                                                            _sendMessage();
+                                                          }
+                                                        },
+                                                icon:
+                                                    _isSending
+                                                        ? const SizedBox(
+                                                          width: 20,
+                                                          height: 20,
+                                                          child:
+                                                              CircularProgressIndicator(
+                                                                strokeWidth: 2,
+                                                                color:
+                                                                    Colors
+                                                                        .white,
+                                                              ),
+                                                        )
+                                                        : Icon(
+                                                          _messageController
+                                                                  .text
+                                                                  .trim()
+                                                                  .isEmpty
+                                                              ? Icons.mic
+                                                              : Icons
+                                                                  .send_rounded,
+                                                          color: Colors.white,
+                                                        ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ), // Row
+                                    ), // Container
+                                  ],
+                                ), // Stack
+                              ), // ClipRRect
+                            ), // Transform.translate
                           ],
                         ), // Column (GestureDetector child)
                       ), // GestureDetector
@@ -1729,10 +1846,11 @@ class _ChatScreenState extends State<ChatScreen> {
                             style: theme.textTheme.bodySmall?.copyWith(
                               color:
                                   _isWhisperMode
-                                      ? colorScheme.secondary.withValues(alpha: 0.8)
-                                      : colorScheme.onSurfaceVariant.withOpacity(
-                                        0.5,
-                                      ),
+                                      ? colorScheme.secondary.withValues(
+                                        alpha: 0.8,
+                                      )
+                                      : colorScheme.onSurfaceVariant
+                                          .withOpacity(0.5),
                               fontSize: 10,
                             ),
                           ),
@@ -1899,20 +2017,36 @@ class _ChatScreenState extends State<ChatScreen> {
       content = Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.insert_drive_file, color: isMe ? (_textColorSent ?? colorScheme.onPrimaryContainer) : (_textColorReceived ?? colorScheme.onSurface)),
+          Icon(
+            Icons.insert_drive_file,
+            color:
+                isMe
+                    ? (_textColorSent ?? colorScheme.onPrimaryContainer)
+                    : (_textColorReceived ?? colorScheme.onSurface),
+          ),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
               message.mediaFileName ?? 'Document',
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: isMe ? (_textColorSent ?? colorScheme.onPrimaryContainer) : (_textColorReceived ?? colorScheme.onSurface),
+                color:
+                    isMe
+                        ? (_textColorSent ?? colorScheme.onPrimaryContainer)
+                        : (_textColorReceived ?? colorScheme.onSurface),
               ),
             ),
           ),
           const SizedBox(width: 8),
           IconButton(
-            icon: Icon(Icons.download, size: 20, color: isMe ? (_textColorSent ?? colorScheme.onPrimaryContainer) : (_textColorReceived ?? colorScheme.onSurface)),
+            icon: Icon(
+              Icons.download,
+              size: 20,
+              color:
+                  isMe
+                      ? (_textColorSent ?? colorScheme.onPrimaryContainer)
+                      : (_textColorReceived ?? colorScheme.onSurface),
+            ),
             onPressed: () async {
               if (message.mediaUrl != null) {
                 try {
@@ -1949,13 +2083,14 @@ class _ChatScreenState extends State<ChatScreen> {
         audioUrl: message.mediaUrl ?? '',
         duration: message.voiceDuration,
         isMe: isMe,
-        color: isMe ? (_textColorSent ?? colorScheme.onPrimaryContainer) : (_textColorReceived ?? colorScheme.onSurface),
+        color:
+            isMe
+                ? (_textColorSent ?? colorScheme.onPrimaryContainer)
+                : (_textColorReceived ?? colorScheme.onSurface),
       );
-    } else if (message.messageType == MessageType.text && message.content.startsWith('[INVITE:')) {
-      content = InviteBubble(
-        payload: message.content.trim(),
-        isSender: isMe,
-      );
+    } else if (message.messageType == MessageType.text &&
+        message.content.startsWith('[INVITE:')) {
+      content = InviteBubble(payload: message.content.trim(), isSender: isMe);
     } else {
       content = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1965,7 +2100,9 @@ class _ChatScreenState extends State<ChatScreen> {
             message.content.trim(),
             style: theme.textTheme.bodyMedium?.copyWith(
               color:
-                  isMe ? (_textColorSent ?? colorScheme.onPrimaryContainer) : (_textColorReceived ?? colorScheme.onSurface),
+                  isMe
+                      ? (_textColorSent ?? colorScheme.onPrimaryContainer)
+                      : (_textColorReceived ?? colorScheme.onSurface),
               fontStyle:
                   message.content == '🔒 Message encrypted'
                       ? FontStyle.italic
@@ -1992,18 +2129,16 @@ class _ChatScreenState extends State<ChatScreen> {
                 bodyStyle: theme.textTheme.bodySmall?.copyWith(
                   color:
                       isMe
-                          ? (_textColorSent ?? colorScheme.onPrimaryContainer).withOpacity(
-                            0.8,
-                          )
-                          : (_textColorReceived ?? colorScheme.onSurfaceVariant),
+                          ? (_textColorSent ?? colorScheme.onPrimaryContainer)
+                              .withOpacity(0.8)
+                          : (_textColorReceived ??
+                              colorScheme.onSurfaceVariant),
                   fontSize: 12,
                 ),
                 backgroundColor:
                     isMe
                         ? colorScheme.primaryContainer.withValues(alpha: 0.5)
-                        : colorScheme.surfaceContainerHighest.withOpacity(
-                          0.5,
-                        ),
+                        : colorScheme.surfaceContainerHighest.withOpacity(0.5),
                 borderRadius: 12,
                 removeElevation: true,
                 onTap: () async {
@@ -2052,9 +2187,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.outline.withOpacity(
-                            0.3,
-                          ),
+                          color: theme.colorScheme.outline.withOpacity(0.3),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -2119,7 +2252,8 @@ class _ChatScreenState extends State<ChatScreen> {
                             child: Icon(
                               Icons.done_all,
                               size: 14,
-                              color: message.isRead ? Colors.blue : Colors.black,
+                              color:
+                                  message.isRead ? Colors.blue : Colors.black,
                             ),
                           ),
                         ),
@@ -2142,13 +2276,12 @@ class _ChatScreenState extends State<ChatScreen> {
                               style: theme.textTheme.labelSmall?.copyWith(
                                 fontSize: 9,
                                 fontStyle: FontStyle.italic,
-                                color: (_textColorSent ?? colorScheme.onPrimary).withValues(
-                                  alpha: 0.8,
-                                ),
+                                color: (_textColorSent ?? colorScheme.onPrimary)
+                                    .withValues(alpha: 0.8),
                               ),
                             ),
                           ),
-                      ),
+                        ),
                     ],
                   ),
                 ),
@@ -2198,7 +2331,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String _formatSeenTime(DateTime time) {
     final now = DateTime.now();
     final difference = now.difference(time);
-    
+
     if (difference.inMinutes < 1) {
       return 'Seen just now';
     } else if (difference.inHours < 1) {

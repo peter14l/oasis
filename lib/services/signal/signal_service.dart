@@ -13,37 +13,53 @@ class SignalService {
   final SupabaseClient _supabase = Supabase.instance.client;
   late PersistentSignalStore _store;
   bool _isInitialized = false;
+  bool _isInitializing = false;
 
   bool get isInitialized => _isInitialized;
 
   /// Initialize the Signal Service.
   /// Generates keys and uploads to Supabase if not done yet.
   Future<bool> init() async {
+    if (_isInitialized) return true;
+    if (_isInitializing) {
+      // Wait for the active initialization to complete
+      while (_isInitializing) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+      return _isInitialized;
+    }
+    
+    _isInitializing = true;
     try {
       final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) return false;
+      if (userId == null) {
+        _isInitializing = false;
+        return false;
+      }
 
       // 1. Initialize persistent store
       // If local keys are missing, try to restore from Supabase backup
       final hasLocalKeys = await PersistentSignalStore.hasKeys();
-      
+
       if (!hasLocalKeys) {
         debugPrint('[Signal] Local keys missing, attempting restoration...');
         final backup = await EncryptionService().restoreSignalIdentity();
         if (backup != null) {
           debugPrint('[Signal] Restoration data found, saving locally...');
           final identityKeyPair = IdentityKeyPair.fromSerialized(
-            base64Decode(backup['identityKeyPair'] as String)
+            base64Decode(backup['identityKeyPair'] as String),
           );
           final registrationId = backup['registrationId'] as int;
-          
+
           _store = await PersistentSignalStore.saveAndInit(
-            identityKeyPair, 
-            registrationId
+            identityKeyPair,
+            registrationId,
           );
           debugPrint('[Signal] Restoration complete.');
         } else {
-          debugPrint('[Signal] No backup found on server, will generate new keys.');
+          debugPrint(
+            '[Signal] No backup found on server, will generate new keys.',
+          );
           _store = await PersistentSignalStore.init();
         }
       } else {
@@ -51,25 +67,28 @@ class SignalService {
       }
 
       // 2. Check if we need to upload the bundle or backup to Supabase
-      final response = await _supabase
-          .from('signal_keys')
-          .select('user_id')
-          .eq('user_id', userId)
-          .maybeSingle();
+      final response =
+          await _supabase
+              .from('signal_keys')
+              .select('user_id')
+              .eq('user_id', userId)
+              .maybeSingle();
 
       // Check if private backup exists in profile
       final profile = await _supabase
           .from('profiles')
           .select('encrypted_signal_identity')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
 
       if (response == null) {
         // No bundle on server — upload initial bundle (this also triggers backup)
         await _generateAndUploadBundle(userId);
-      } else if (profile['encrypted_signal_identity'] == null) {
+      } else if (profile == null || profile['encrypted_signal_identity'] == null) {
         // Public bundle exists but private backup is missing — perform backup
-        debugPrint('[Signal] Public bundle exists but private backup missing. Triggering backup...');
+        debugPrint(
+          '[Signal] Public bundle exists but private backup missing. Triggering backup...',
+        );
         final identityKeyPair = await _store.getIdentityKeyPair();
         final registrationId = await _store.getLocalRegistrationId();
         await EncryptionService().backupSignalIdentity(
@@ -79,9 +98,11 @@ class SignalService {
       }
 
       _isInitialized = true;
+      _isInitializing = false;
       debugPrint('[Signal] Initialization complete.');
       return true;
     } catch (e) {
+      _isInitializing = false;
       debugPrint('[Signal] Initialization error: $e');
       return false;
     }
@@ -101,13 +122,17 @@ class SignalService {
     final preKeysMap = <String, String>{};
     for (final pk in preKeys) {
       await _store.storePreKey(pk.id, pk);
-      preKeysMap[pk.id.toString()] = base64Encode(pk.serialize());
+      preKeysMap[pk.id.toString()] = base64Encode(
+        pk.getKeyPair().publicKey.serialize(),
+      );
     }
 
     final signedPreKeyMap = {
       'keyId': signedPreKey.id,
-      'publicKey': base64Encode(signedPreKey.serialize()),
-      'signature': base64Encode(signedPreKey.signature)
+      'publicKey': base64Encode(
+        signedPreKey.getKeyPair().publicKey.serialize(),
+      ),
+      'signature': base64Encode(signedPreKey.signature),
     };
 
     // 1. Upload the public bundle to Supabase
@@ -127,7 +152,7 @@ class SignalService {
     );
   }
 
-  /// Ensure we have an active session with [remoteUserId]. 
+  /// Ensure we have an active session with [remoteUserId].
   /// If not, fetch their bundle and build a session.
   Future<void> _ensureSession(String remoteUserId, {int deviceId = 1}) async {
     final address = SignalProtocolAddress(remoteUserId, deviceId);
@@ -137,11 +162,16 @@ class SignalService {
     }
 
     // Fetch bundle from Supabase
-    final response = await _supabase
-        .from('signal_keys')
-        .select()
-        .eq('user_id', remoteUserId)
-        .single();
+    final response =
+        await _supabase
+            .from('signal_keys')
+            .select()
+            .eq('user_id', remoteUserId)
+            .maybeSingle();
+
+    if (response == null) {
+      throw Exception('Remote user has not registered Signal keys yet.');
+    }
 
     final identityKeyString = response['identity_key'] as String;
     final registrationId = response['registration_id'] as int;
@@ -158,9 +188,14 @@ class SignalService {
     final preKeyString = onetimePrekeys[firstKeyIdString] as String;
 
     // Parse the keys
-    final identityKey = IdentityKey.fromBytes(base64Decode(identityKeyString), 0);
+    final identityKey = IdentityKey.fromBytes(
+      base64Decode(identityKeyString),
+      0,
+    );
     final signedPreKeyPubBytes = base64Decode(signedPreKeyJson['publicKey']!);
-    final signedPreKeySignatureBytes = base64Decode(signedPreKeyJson['signature']!);
+    final signedPreKeySignatureBytes = base64Decode(
+      signedPreKeyJson['signature']!,
+    );
     final preKeyPubBytes = base64Decode(preKeyString);
 
     final preKeyBundle = PreKeyBundle(
@@ -175,7 +210,13 @@ class SignalService {
     );
 
     // Build Session
-    final sessionBuilder = SessionBuilder(_store, _store, _store, _store, address);
+    final sessionBuilder = SessionBuilder(
+      _store,
+      _store,
+      _store,
+      _store,
+      address,
+    );
     await sessionBuilder.processPreKeyBundle(preKeyBundle);
 
     // Remove the used one-time prekey from Supabase so others don't use it
@@ -187,15 +228,27 @@ class SignalService {
   }
 
   /// Encrypt a string message for a specific user
-  Future<CiphertextMessage> encryptMessage(String recipientId, String plaintext, {int deviceId = 1}) async {
+  Future<CiphertextMessage> encryptMessage(
+    String recipientId,
+    String plaintext, {
+    int deviceId = 1,
+  }) async {
     if (!_isInitialized) throw Exception('SignalService not initialized');
 
     await _ensureSession(recipientId, deviceId: deviceId);
 
     final address = SignalProtocolAddress(recipientId, deviceId);
-    final sessionCipher = SessionCipher(_store, _store, _store, _store, address);
-    final ciphertextMessage = await sessionCipher.encrypt(Uint8List.fromList(utf8.encode(plaintext)));
-    
+    final sessionCipher = SessionCipher(
+      _store,
+      _store,
+      _store,
+      _store,
+      address,
+    );
+    final ciphertextMessage = await sessionCipher.encrypt(
+      Uint8List.fromList(utf8.encode(plaintext)),
+    );
+
     return ciphertextMessage;
   }
 
@@ -203,13 +256,19 @@ class SignalService {
   Future<String> decryptMessage(
     String senderId,
     String base64Ciphertext,
-    int type,
-    {int deviceId = 1}
-  ) async {
+    int type, {
+    int deviceId = 1,
+  }) async {
     if (!_isInitialized) throw Exception('SignalService not initialized');
 
     final address = SignalProtocolAddress(senderId, deviceId);
-    final sessionCipher = SessionCipher(_store, _store, _store, _store, address);
+    final sessionCipher = SessionCipher(
+      _store,
+      _store,
+      _store,
+      _store,
+      address,
+    );
     final ciphertextBytes = base64Decode(base64Ciphertext);
 
     Uint8List plaintextBytes;

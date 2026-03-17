@@ -31,8 +31,10 @@ class MessageReactionPicker extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 4,
+        runSpacing: 4,
         children:
             MessageReaction.values.map((reaction) {
               final isSelected = currentReaction == reaction.emoji;

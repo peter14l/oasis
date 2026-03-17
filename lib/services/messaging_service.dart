@@ -111,9 +111,27 @@ class MessagingService {
         final lastMessage = conversationMap['last_message'];
         if (lastMessage != null) {
           String content = lastMessage['content'] ?? '';
-          
+
           // Decrypt if necessary
-          if (lastMessage['signal_message_type'] != null) {
+          final isSender = lastMessage['sender_id'] == userId;
+
+          if (isSender && lastMessage['signal_sender_content'] != null && lastMessage['encrypted_keys'] != null && lastMessage['iv'] != null) {
+            try {
+              final decrypted = await EncryptionService().decryptMessage(
+                lastMessage['signal_sender_content'],
+                lastMessage['encrypted_keys'],
+                lastMessage['iv'],
+              );
+              if (decrypted != null) {
+                content = decrypted;
+              } else {
+                content = '🔒 Message encrypted';
+              }
+            } catch (e) {
+              debugPrint('Standard decryption failed for sender preview: $e');
+              content = '🔒 Message encrypted';
+            }
+          } else if (!isSender && lastMessage['signal_message_type'] != null) {
             try {
               content = await SignalService().decryptMessage(
                 lastMessage['sender_id'],
@@ -124,7 +142,8 @@ class MessagingService {
               debugPrint('Signal decryption failed for preview: $e');
               content = '🔒 Message encrypted';
             }
-          } else if (lastMessage['encrypted_keys'] != null && lastMessage['iv'] != null) {
+          } else if (lastMessage['encrypted_keys'] != null &&
+              lastMessage['iv'] != null) {
             try {
               final decrypted = await EncryptionService().decryptMessage(
                 content,
@@ -163,12 +182,13 @@ class MessagingService {
           // Fetch read receipt for last message from other user
           if (lastMessage['sender_id'] == userId &&
               conversationMap['other_user_id'] != null) {
-            final readReceiptResponse = await _supabase
-                .from(SupabaseConfig.messageReadReceiptsTable)
-                .select('read_at')
-                .eq('message_id', conversationMap['last_message_id'])
-                .eq('user_id', conversationMap['other_user_id'])
-                .maybeSingle();
+            final readReceiptResponse =
+                await _supabase
+                    .from(SupabaseConfig.messageReadReceiptsTable)
+                    .select('read_at')
+                    .eq('message_id', conversationMap['last_message_id'])
+                    .eq('user_id', conversationMap['other_user_id'])
+                    .maybeSingle();
 
             if (readReceiptResponse != null) {
               conversationMap['last_message_read_at'] =
@@ -264,8 +284,9 @@ class MessagingService {
           }
 
           if (!firstReadMap.containsKey(messageId) ||
-              DateTime.parse(readAt)
-                  .isBefore(DateTime.parse(firstReadMap[messageId]!))) {
+              DateTime.parse(
+                readAt,
+              ).isBefore(DateTime.parse(firstReadMap[messageId]!))) {
             firstReadMap[messageId] = readAt;
           }
         }
@@ -274,7 +295,9 @@ class MessagingService {
         for (var i = 0; i < messages.length; i++) {
           final isSender = messages[i].senderId == currentUserId;
           final readTimeStr =
-              isSender ? firstReadMap[messages[i].id] : myReadMap[messages[i].id];
+              isSender
+                  ? firstReadMap[messages[i].id]
+                  : myReadMap[messages[i].id];
 
           if (readTimeStr != null) {
             final readAt = DateTime.parse(readTimeStr);
@@ -340,6 +363,8 @@ class MessagingService {
     Map<String, String>? encryptedKeys,
     String? iv,
     int? signalMessageType,
+    String? signalSenderContent,
+    int? signalSenderMessageType,
     bool isWhisperMode = false,
     int? ephemeralDuration,
     String? callId,
@@ -369,6 +394,12 @@ class MessagingService {
       }
       if (signalMessageType != null) {
         insertData['signal_message_type'] = signalMessageType;
+      }
+      if (signalSenderContent != null) {
+        insertData['signal_sender_content'] = signalSenderContent;
+      }
+      if (signalSenderMessageType != null) {
+        insertData['signal_sender_message_type'] = signalSenderMessageType;
       }
 
       // Store media URL in the appropriate column based on message type
@@ -580,7 +611,8 @@ class MessagingService {
   /// Subscribe to read receipts for a conversation
   RealtimeChannel subscribeToReadReceipts({
     required String conversationId,
-    required Function(String messageId, String userId, DateTime readAt) onUpdate,
+    required Function(String messageId, String userId, DateTime readAt)
+    onUpdate,
   }) {
     final channel = _supabase.channel('read_receipts:$conversationId');
 
@@ -646,7 +678,7 @@ class MessagingService {
     bool isTyping,
   ) async {
     try {
-      await _supabase.from('typing_status').upsert({
+      await _supabase.from('typing_indicators').upsert({
         'conversation_id': conversationId,
         'user_id': userId,
         'is_typing': isTyping,
@@ -701,7 +733,7 @@ class MessagingService {
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
-          table: 'typing_status',
+          table: 'typing_indicators',
           filter: PostgresChangeFilter(
             type: PostgresChangeFilterType.eq,
             column: 'conversation_id',
@@ -769,6 +801,13 @@ class MessagingService {
           .eq('conversation_id', conversationId)
           .neq('sender_id', userId);
 
+      // We still want to reset unread count even if there are no messages,
+      // just to be safe and ensure UI consistency
+      await _supabase.rpc(
+        'reset_unread_count',
+        params: {'p_conversation_id': conversationId, 'p_user_id': userId},
+      );
+
       if (messages.isEmpty) return;
 
       // Create read receipts for all messages
@@ -812,17 +851,18 @@ class MessagingService {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('Not authenticated');
 
-      final response = await _supabase
-          .from(SupabaseConfig.conversationsTable)
-          .select('''
+      final response =
+          await _supabase
+              .from(SupabaseConfig.conversationsTable)
+              .select('''
             *,
             conversation_participants!inner(user_id)
           ''')
-          .eq('id', conversationId)
-          .single();
+              .eq('id', conversationId)
+              .single();
 
       final conversationMap = Map<String, dynamic>.from(response);
-      
+
       // For direct conversations, get the other participant
       if (conversationMap['type'] == 'direct') {
         final participants = await _supabase
@@ -833,11 +873,12 @@ class MessagingService {
 
         if (participants.isNotEmpty) {
           final otherUserId = participants.first['user_id'];
-          final profile = await _supabase
-              .from(SupabaseConfig.profilesTable)
-              .select('username, avatar_url')
-              .eq('id', otherUserId)
-              .single();
+          final profile =
+              await _supabase
+                  .from(SupabaseConfig.profilesTable)
+                  .select('username, avatar_url')
+                  .eq('id', otherUserId)
+                  .single();
 
           conversationMap['other_user_id'] = otherUserId;
           conversationMap['other_user_name'] = profile['username'] ?? 'Unknown';
@@ -852,4 +893,3 @@ class MessagingService {
     }
   }
 }
-
