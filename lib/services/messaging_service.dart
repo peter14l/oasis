@@ -138,6 +138,22 @@ class MessagingService {
                 content,
                 lastMessage['signal_message_type'],
               );
+              
+              // Fallback to RSA if Signal decryption returns a failure placeholder
+              if (content.contains('🔒 Message encrypted') && 
+                  lastMessage['encrypted_keys'] != null && 
+                  lastMessage['iv'] != null &&
+                  lastMessage['signal_sender_content'] != null) {
+                final rsaDecrypted = await EncryptionService().decryptMessage(
+                  lastMessage['signal_sender_content'],
+                  lastMessage['encrypted_keys'],
+                  lastMessage['iv'],
+                );
+                if (rsaDecrypted != null) {
+                   content = rsaDecrypted;
+                   debugPrint('[MessagingService] Recovered preview via RSA fallback.');
+                }
+              }
             } catch (e) {
               debugPrint('Signal decryption failed for preview: $e');
               content = '🔒 Message encrypted';

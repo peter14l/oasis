@@ -305,31 +305,34 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                 ),
                 trailing:
                     canShow && conversation.lastMessageTime != null
-                        ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _formatTimestamp(conversation.lastMessageTime!),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color:
-                                    conversation.unreadCount > 0
-                                        ? colorScheme.primary
-                                        : colorScheme.onSurfaceVariant,
-                                fontWeight:
-                                    conversation.unreadCount > 0
-                                        ? FontWeight.w700
-                                        : FontWeight.normal,
+                        ? SizedBox(
+                          width: 60,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _formatTimestamp(conversation.lastMessageTime!),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color:
+                                      conversation.unreadCount > 0
+                                          ? colorScheme.primary
+                                          : colorScheme.onSurfaceVariant,
+                                  fontWeight:
+                                      conversation.unreadCount > 0
+                                          ? FontWeight.w700
+                                          : FontWeight.normal,
+                                ),
                               ),
-                            ),
-                            if (conversation.unreadCount > 0) ...[
-                              const SizedBox(height: 4),
-                              UnreadBadgeWidget(
-                                count: conversation.unreadCount,
-                              ),
+                              if (conversation.unreadCount > 0) ...[
+                                const SizedBox(height: 4),
+                                UnreadBadgeWidget(
+                                  count: conversation.unreadCount,
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         )
                         : null,
                 onTap: () async {

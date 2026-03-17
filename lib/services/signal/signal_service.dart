@@ -252,7 +252,7 @@ class SignalService {
     return ciphertextMessage;
   }
 
-  /// Decrypt an incoming message. Requires knowing if it's a PreKeySignalMessage (type 3) or SignalMessage (type 2).
+  /// Decrypt an incoming message.
   Future<String> decryptMessage(
     String senderId,
     String base64Ciphertext,
@@ -271,17 +271,35 @@ class SignalService {
     );
     final ciphertextBytes = base64Decode(base64Ciphertext);
 
-    Uint8List plaintextBytes;
-    if (type == CiphertextMessage.prekeyType) {
-      final preKeyMessage = PreKeySignalMessage(ciphertextBytes);
-      plaintextBytes = await sessionCipher.decrypt(preKeyMessage);
-    } else if (type == CiphertextMessage.whisperType) {
-      final message = SignalMessage.fromSerialized(ciphertextBytes);
-      plaintextBytes = await sessionCipher.decryptFromSignal(message);
-    } else {
-      throw Exception('Unknown message type : $type');
+    try {
+      Uint8List plaintextBytes;
+      if (type == CiphertextMessage.prekeyType) {
+        final preKeyMessage = PreKeySignalMessage(ciphertextBytes);
+        plaintextBytes = await sessionCipher.decrypt(preKeyMessage);
+      } else if (type == CiphertextMessage.whisperType) {
+        final message = SignalMessage.fromSerialized(ciphertextBytes);
+        plaintextBytes = await sessionCipher.decryptFromSignal(message);
+      } else {
+        return '🔒 Message encrypted (Unknown type: $type)';
+      }
+      return utf8.decode(plaintextBytes);
+    } catch (e) {
+      final errorStr = e.toString();
+      debugPrint('Signal decryption failed for $senderId (Type $type): $e');
+      
+      if (errorStr.contains('Bad Mac') || errorStr.contains('No valid sessions') || errorStr.contains('InvalidMessageException')) {
+        debugPrint('[Signal] Session desync detected with $senderId. Clearing session.');
+        await _store.deleteSession(address);
+        return '🔒 Message encrypted (Session reset)';
+      } else if (errorStr.contains('DuplicateMessageException')) {
+        debugPrint('[Signal] Duplicate message from $senderId.');
+        return '🔒 Message encrypted (Duplicate)';
+      } else if (errorStr.contains('InvalidKeyIdException')) {
+        debugPrint('[Signal] Key mismatch with $senderId: $e');
+        return '🔒 Message encrypted (Key mismatch)';
+      }
+      
+      return '🔒 Message encrypted';
     }
-
-    return utf8.decode(plaintextBytes);
   }
 }

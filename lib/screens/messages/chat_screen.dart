@@ -361,11 +361,27 @@ class _ChatScreenState extends State<ChatScreen> {
               decryptedMessages.add(message.copyWith(content: decrypted ?? '🔒 Message encrypted'));
             } else if (!isSender && message.signalMessageType != null) {
               // Recipient copy is encrypted via Signal using `content`
-              final decrypted = await SignalService().decryptMessage(
+              String decrypted = await SignalService().decryptMessage(
                 message.senderId,
                 message.content,
                 message.signalMessageType!,
               );
+              
+              // NEW: If Signal returns a failure placeholder, try RSA fallback immediately
+              if (decrypted.contains('🔒 Message encrypted') && 
+                  message.signalSenderContent != null && 
+                  message.encryptedKeys != null && 
+                  message.iv != null) {
+                final rsaDecrypted = await _encryptionService.decryptMessage(
+                  message.signalSenderContent!,
+                  message.encryptedKeys!,
+                  message.iv!,
+                );
+                if (rsaDecrypted != null) {
+                   decrypted = rsaDecrypted;
+                   debugPrint('[ChatScreen] Recovered message via RSA fallback.');
+                }
+              }
               decryptedMessages.add(message.copyWith(content: decrypted));
             } else {
                decryptedMessages.add(message.copyWith(content: '🔒 Message encrypted'));
@@ -433,11 +449,27 @@ class _ChatScreenState extends State<ChatScreen> {
                 finalMessage = message.copyWith(content: decrypted ?? '🔒 Message encrypted');
               } else if (!isSender && message.signalMessageType != null) {
                 // Recipient copy is encrypted via Signal using `content`
-                final decrypted = await SignalService().decryptMessage(
+                String decrypted = await SignalService().decryptMessage(
                   message.senderId,
                   message.content,
                   message.signalMessageType!,
                 );
+
+                // NEW: If Signal returns a failure placeholder, try RSA fallback immediately
+                if (decrypted.contains('🔒 Message encrypted') && 
+                    message.signalSenderContent != null && 
+                    message.encryptedKeys != null && 
+                    message.iv != null) {
+                  final rsaDecrypted = await _encryptionService.decryptMessage(
+                    message.signalSenderContent!,
+                    message.encryptedKeys!,
+                    message.iv!,
+                  );
+                  if (rsaDecrypted != null) {
+                     decrypted = rsaDecrypted;
+                     debugPrint('[ChatScreen] Recovered real-time message via RSA fallback.');
+                  }
+                }
                 finalMessage = message.copyWith(content: decrypted);
               } else {
                  finalMessage = message.copyWith(content: '🔒 Message encrypted');
