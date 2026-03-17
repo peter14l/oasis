@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:morrow_v2/services/screen_time_service.dart';
+import 'package:oasis_v2/services/screen_time_service.dart';
 
 class WellnessBadge extends StatelessWidget {
   const WellnessBadge({super.key});

@@ -13,4 +13,4 @@ Not searching for unused variables given on the command line.
 -- Detecting CXX compile features - done
 -- Configuring done
 -- Generating done
--- Build files have been written to: D:/morrow_v2/android/app/.cxx/Debug/o2p3q293/x86
+-- Build files have been written to: D:/oasis_v2/android/app/.cxx/Debug/o2p3q293/x86

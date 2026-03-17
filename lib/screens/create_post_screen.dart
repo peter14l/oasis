@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:morrow_v2/services/auth_service.dart';
-import 'package:morrow_v2/services/post_service.dart';
-import 'package:morrow_v2/services/ai_content_service.dart';
-import 'package:morrow_v2/providers/feed_provider.dart';
-import 'package:morrow_v2/utils/responsive_layout.dart';
-import 'package:morrow_v2/utils/haptic_utils.dart';
-import 'package:morrow_v2/models/post_mood.dart';
-import 'package:morrow_v2/models/enhanced_poll.dart';
-import 'package:morrow_v2/widgets/mood_selector.dart';
-import 'package:morrow_v2/widgets/polls/poll_widgets.dart';
+import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/services/post_service.dart';
+import 'package:oasis_v2/services/ai_content_service.dart';
+import 'package:oasis_v2/providers/feed_provider.dart';
+import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/utils/haptic_utils.dart';
+import 'package:oasis_v2/models/post_mood.dart';
+import 'package:oasis_v2/models/enhanced_poll.dart';
+import 'package:oasis_v2/widgets/mood_selector.dart';
+import 'package:oasis_v2/widgets/polls/poll_widgets.dart';
 
 class CreatePostScreen extends StatefulWidget {
   final String? communityId;

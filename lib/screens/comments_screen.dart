@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:morrow_v2/models/comment.dart';
-import 'package:morrow_v2/services/comment_service.dart';
-import 'package:morrow_v2/services/auth_service.dart';
+import 'package:oasis_v2/models/comment.dart';
+import 'package:oasis_v2/services/comment_service.dart';
+import 'package:oasis_v2/services/auth_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:morrow_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/utils/responsive_layout.dart';
 
 class CommentsScreen extends StatefulWidget {
   final String postId;

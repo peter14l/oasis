@@ -1,6 +1,9 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:record/record.dart';
@@ -9,34 +12,37 @@ import 'package:palette_generator/palette_generator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:morrow_v2/models/message.dart';
-import 'package:morrow_v2/services/messaging_service.dart';
-import 'package:morrow_v2/services/auth_service.dart';
-import 'package:morrow_v2/services/media_download_service.dart';
-import 'package:morrow_v2/services/encryption_service.dart';
-import 'package:morrow_v2/screens/messages/image_preview_screen.dart';
-import 'package:morrow_v2/screens/messages/chat_details_screen.dart';
-import 'package:morrow_v2/screens/messages/encryption_setup_screen.dart';
+import 'dart:convert';
+import 'package:oasis_v2/models/message.dart';
+import 'package:oasis_v2/services/messaging_service.dart';
+import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/services/media_download_service.dart';
+import 'package:oasis_v2/services/encryption_service.dart';
+import 'package:oasis_v2/services/signal/signal_service.dart';
+import 'package:oasis_v2/screens/messages/image_preview_screen.dart';
+import 'package:oasis_v2/screens/messages/chat_details_screen.dart';
+import 'package:oasis_v2/screens/messages/encryption_setup_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import 'package:morrow_v2/widgets/skeleton_container.dart';
-import 'package:morrow_v2/widgets/messages/voice_message_player.dart';
-import 'package:morrow_v2/services/vault_service.dart';
-import 'package:morrow_v2/models/message_reaction.dart';
-import 'package:morrow_v2/models/chat_theme.dart';
-import 'package:morrow_v2/utils/haptic_utils.dart';
-import 'package:morrow_v2/services/smart_reply_service.dart';
-import 'package:morrow_v2/widgets/messages/message_reactions.dart';
-import 'package:morrow_v2/widgets/messages/chat_theme_selector.dart';
-import 'package:morrow_v2/widgets/gestures/gesture_widgets.dart';
+import 'package:oasis_v2/widgets/skeleton_container.dart';
+import 'package:oasis_v2/widgets/messages/voice_message_player.dart';
+import 'package:oasis_v2/services/vault_service.dart';
+import 'package:oasis_v2/models/message_reaction.dart';
+import 'package:oasis_v2/models/chat_theme.dart';
+import 'package:oasis_v2/utils/haptic_utils.dart';
+import 'package:oasis_v2/services/smart_reply_service.dart';
+import 'package:oasis_v2/widgets/messages/message_reactions.dart';
+import 'package:oasis_v2/widgets/messages/chat_theme_selector.dart';
+import 'package:oasis_v2/widgets/messages/invite_bubble.dart';
+import 'package:oasis_v2/widgets/gestures/gesture_widgets.dart';
 import 'package:any_link_preview/any_link_preview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'dart:async'; // For Timer
-import 'package:morrow_v2/services/call_service.dart';
-import 'package:morrow_v2/screens/messages/incoming_call_overlay.dart';
-import 'package:morrow_v2/models/call.dart';
+import 'package:oasis_v2/services/call_service.dart';
+import 'package:oasis_v2/screens/messages/incoming_call_overlay.dart';
+import 'package:oasis_v2/models/call.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -88,6 +94,7 @@ class _ChatScreenState extends State<ChatScreen> {
   // Duplicate variable removed
 
   RealtimeChannel? _messageChannel;
+  RealtimeChannel? _backgroundChannel;
   XFile? _selectedImage;
   File? _selectedVideo;
   PlatformFile? _selectedFile;
@@ -114,11 +121,35 @@ class _ChatScreenState extends State<ChatScreen> {
     _loadMessages();
     _subscribeToMessages();
     _subscribeToReadReceipts();
+    _subscribeToBackgroundChanges();
     _markAsRead();
     _subscribeToCalls();
     if (widget.otherUserId == null) {
       _fetchConversationDetails();
     }
+  }
+
+  void _subscribeToBackgroundChanges() {
+    _backgroundChannel = _messagingService.subscribeToBackgroundChanges(
+      conversationId: widget.conversationId,
+      onUpdate: (backgroundUrl) {
+        if (mounted && backgroundUrl != _backgroundUrl) {
+          setState(() {
+            _backgroundUrl = backgroundUrl;
+          });
+          if (backgroundUrl != null) {
+            _extractColorsFromBackground();
+          } else {
+            setState(() {
+              _bubbleColorSent = null;
+              _bubbleColorReceived = null;
+              _textColorSent = null;
+              _textColorReceived = null;
+            });
+          }
+        }
+      },
+    );
   }
 
   @override
@@ -192,21 +223,54 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  /// Load persisted chat settings (background, whisper mode) from SharedPreferences
+  /// Load persisted chat settings (background, whisper mode) from SharedPreferences and Supabase
   Future<void> _loadPersistedSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final bgKey = 'chat_bg_${widget.conversationId}';
     final whisperKey = 'chat_whisper_${widget.conversationId}';
     final durationKey = 'chat_duration_${widget.conversationId}';
 
+    String? bgUrl = prefs.getString(bgKey);
+
+    try {
+      final userId = _authService.currentUser?.id;
+      if (userId != null) {
+        final data = await Supabase.instance.client
+            .from('chat_themes')
+            .select('background_image_url')
+            .eq('conversation_id', widget.conversationId)
+            .eq('user_id', userId)
+            .maybeSingle();
+
+        if (data != null) {
+          bgUrl = data['background_image_url'] as String?;
+          // Update local cache
+          if (bgUrl != null) {
+            await prefs.setString(bgKey, bgUrl);
+          } else {
+            await prefs.remove(bgKey);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading chat theme from Supabase: $e');
+    }
+
     setState(() {
-      _backgroundUrl = prefs.getString(bgKey);
+      _backgroundUrl = bgUrl;
       _isWhisperMode = prefs.getBool(whisperKey) ?? false;
       _ephemeralDuration = prefs.getInt(durationKey) ?? 86400;
     });
 
     if (_backgroundUrl != null) {
       _extractColorsFromBackground();
+    } else {
+      setState(() {
+        _bubbleColorSent = null;
+        _bubbleColorReceived = null;
+        _textColorSent = null;
+        _textColorReceived = null;
+      });
     }
   }
 
@@ -226,6 +290,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _initializeEncryption() async {
     if (!EncryptionService.isEnabled) return;
+    
+    if (!SignalService().isInitialized) {
+      final success = await SignalService().init();
+      if (!success) {
+        debugPrint('Failed to initialize SignalService');
+      }
+    }
+
     final status = await _encryptionService.init();
 
     if (status == EncryptionStatus.needsSetup) {
@@ -268,7 +340,23 @@ class _ChatScreenState extends State<ChatScreen> {
       // Decrypt messages
       final decryptedMessages = <Message>[];
       for (final message in messages) {
-        if (message.encryptedKeys != null && message.iv != null) {
+        // Yield to the event loop to prevent UI freezing during decryption
+        await Future.delayed(Duration.zero);
+        if (message.signalMessageType != null) {
+          try {
+            final decrypted = await SignalService().decryptMessage(
+              message.senderId,
+              message.content,
+              message.signalMessageType!,
+            );
+            decryptedMessages.add(message.copyWith(content: decrypted));
+          } catch (e) {
+            debugPrint('Signal decryption failed: $e');
+            decryptedMessages.add(
+              message.copyWith(content: '🔒 Message encrypted'),
+            );
+          }
+        } else if (message.encryptedKeys != null && message.iv != null) {
           final decrypted = await _encryptionService.decryptMessage(
             message.content,
             message.encryptedKeys!,
@@ -311,7 +399,19 @@ class _ChatScreenState extends State<ChatScreen> {
         if (mounted) {
           // Decrypt if encrypted
           Message finalMessage = message;
-          if (message.encryptedKeys != null && message.iv != null) {
+          if (message.signalMessageType != null) {
+            try {
+              final decrypted = await SignalService().decryptMessage(
+                message.senderId,
+                message.content,
+                message.signalMessageType!,
+              );
+              finalMessage = message.copyWith(content: decrypted);
+            } catch (e) {
+              debugPrint('Signal decryption failed: $e');
+              finalMessage = message.copyWith(content: '🔒 Message encrypted');
+            }
+          } else if (message.encryptedKeys != null && message.iv != null) {
             final decrypted = await _encryptionService.decryptMessage(
               message.content,
               message.encryptedKeys!,
@@ -330,6 +430,12 @@ class _ChatScreenState extends State<ChatScreen> {
           });
           _scrollToBottom();
           _loadSmartReplies();
+
+          // Mark as read if message is from other user
+          final currentUserId = _authService.currentUser?.id;
+          if (finalMessage.senderId != currentUserId) {
+            _markAsRead();
+          }
         }
       },
     );
@@ -358,6 +464,15 @@ class _ChatScreenState extends State<ChatScreen> {
     final userId = _authService.currentUser?.id;
     if (userId == null) return;
     await _messagingService.markConversationAsRead(widget.conversationId, userId);
+    
+    // Also update local state for messages sent by the other user
+    setState(() {
+      for (int i = 0; i < _messages.length; i++) {
+        if (_messages[i].senderId != userId && !_messages[i].isRead) {
+          _messages[i] = _messages[i].copyWith(isRead: true, readAt: DateTime.now());
+        }
+      }
+    });
   }
 
   Future<void> _pickImage() async {
@@ -428,7 +543,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.18),
+                  color: Colors.black.withValues(alpha: 0.18),
                   blurRadius: 24,
                   offset: const Offset(0, -4),
                 ),
@@ -443,7 +558,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: colorScheme.onSurface.withOpacity(0.2),
+                    color: colorScheme.onSurface.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -464,7 +579,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         onPressed: () => Navigator.pop(context),
                         icon: Icon(
                           Icons.close_rounded,
-                          color: colorScheme.onSurface.withOpacity(0.5),
+                          color: colorScheme.onSurface.withValues(alpha: 0.5),
                           size: 20,
                         ),
                         padding: EdgeInsets.zero,
@@ -485,7 +600,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         iconColor: const Color(0xFF3D8BFF),
                         bgColor: const Color(
                           0xFF3D8BFF,
-                        ).withOpacity(0.12),
+                        ).withValues(alpha: 0.12),
                         onTap: () {
                           Navigator.pop(context);
                           _pickImage();
@@ -497,7 +612,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         iconColor: const Color(0xFFFF6B6B),
                         bgColor: const Color(
                           0xFFFF6B6B,
-                        ).withOpacity(0.12),
+                        ).withValues(alpha: 0.12),
                         onTap: () {
                           Navigator.pop(context);
                           _pickVideo();
@@ -509,7 +624,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         iconColor: const Color(0xFF51CF66),
                         bgColor: const Color(
                           0xFF51CF66,
-                        ).withOpacity(0.12),
+                        ).withValues(alpha: 0.12),
                         onTap: () {
                           Navigator.pop(context);
                           _pickFile();
@@ -521,7 +636,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         iconColor: const Color(0xFFFFD43B),
                         bgColor: const Color(
                           0xFFFFD43B,
-                        ).withOpacity(0.12),
+                        ).withValues(alpha: 0.12),
                         onTap: () {
                           Navigator.pop(context);
                           _startRecording();
@@ -571,6 +686,7 @@ class _ChatScreenState extends State<ChatScreen> {
       String? finalContent;
       Map<String, String>? encryptedKeys;
       String? iv;
+      int? signalMessageType;
 
       if (EncryptionService.isEnabled) {
         // Validate otherUserId is not empty (group chats not yet supported for encryption)
@@ -579,27 +695,44 @@ class _ChatScreenState extends State<ChatScreen> {
           throw Exception('Recipient ID is required for encryption');
         }
 
-        // Get recipient's public key
-        final recipientProfile =
-            await Supabase.instance.client
-                .from('profiles')
-                .select('public_key')
-                .eq('id', recipientId)
-                .single();
-
-        final recipientPublicKey = recipientProfile['public_key'] as String?;
-        if (recipientPublicKey == null) {
-          throw Exception('Recipient has not set up encryption');
+        bool usedSignal = false;
+        if (SignalService().isInitialized) {
+          try {
+            final cipherMessage = await SignalService().encryptMessage(
+              recipientId,
+              content.isNotEmpty ? content : 'Sent attachment',
+            );
+            finalContent = base64Encode(cipherMessage.serialize());
+            signalMessageType = cipherMessage.getType();
+            usedSignal = true;
+          } catch (e) {
+            debugPrint('Signal encryption failed: $e, falling back to RSA');
+          }
         }
 
-        // Encrypt message content
-        final encrypted = await _encryptionService.encryptMessage(
-          content.isNotEmpty ? content : 'Sent attachment',
-          [recipientPublicKey],
-        );
-        finalContent = encrypted.encryptedContent;
-        encryptedKeys = encrypted.encryptedKeys;
-        iv = encrypted.iv;
+        if (!usedSignal) {
+          // Get recipient's public key
+          final recipientProfile =
+              await Supabase.instance.client
+                  .from('profiles')
+                  .select('public_key')
+                  .eq('id', recipientId)
+                  .single();
+
+          final recipientPublicKey = recipientProfile['public_key'] as String?;
+          if (recipientPublicKey == null) {
+            throw Exception('Recipient has not updated the app to support encrypted messaging yet');
+          }
+
+          // Encrypt message content
+          final encrypted = await _encryptionService.encryptMessage(
+            content.isNotEmpty ? content : 'Sent attachment',
+            [recipientPublicKey],
+          );
+          finalContent = encrypted.encryptedContent;
+          encryptedKeys = encrypted.encryptedKeys;
+          iv = encrypted.iv;
+        }
       } else {
         finalContent = content;
       }
@@ -640,7 +773,7 @@ class _ChatScreenState extends State<ChatScreen> {
       await _messagingService.sendMessage(
         conversationId: widget.conversationId,
         senderId: userId,
-        content: finalContent,
+        content: finalContent ?? 'Sent attachment',
         messageType: messageType,
         mediaUrl: mediaUrl,
         mediaFileName: fileName,
@@ -648,9 +781,15 @@ class _ChatScreenState extends State<ChatScreen> {
         mediaMimeType: mimeType,
         encryptedKeys: encryptedKeys,
         iv: iv,
+        signalMessageType: signalMessageType,
         isWhisperMode: _isWhisperMode,
         ephemeralDuration: _ephemeralDuration,
       );
+
+      // Refresh DM list preview in provider
+      if (mounted) {
+        context.read<ConversationProvider>().refreshConversation(widget.conversationId);
+      }
     } catch (e) {
       _showError('Error: ${e.toString()}');
     } finally {
@@ -664,7 +803,7 @@ class _ChatScreenState extends State<ChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
+          0.0,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
@@ -673,7 +812,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _openChatDetails() async {
-    final result = await Navigator.of(context).push(
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder:
             (context) => ChatDetailsScreen(
@@ -687,32 +826,16 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
 
-    // If result is null, user just backed out without explicit changes
-    if (result == null) return;
-
-    // Result may be a background string OR a map of settings
-    if (result is String?) {
-      setState(() => _backgroundUrl = result);
-    } else if (result is Map) {
-      if (result['duration'] != null) {
-        setState(() => _ephemeralDuration = result['duration']);
-      }
-      if (result.containsKey('background')) {
-        setState(() => _backgroundUrl = result['background'] as String?);
-      }
-    }
-
-    _savePersistedSettings();
-
-    if (_backgroundUrl != null) {
-      _extractColorsFromBackground();
-    } else {
+    // After returning from chat details screen, reload settings from Supabase/Prefs
+    if (mounted) {
+      await _loadPersistedSettings();
       setState(() {
-        _bubbleColorSent = null;
-        _bubbleColorReceived = null;
-        _textColorSent = null;
-        _textColorReceived = null;
+        _encryptionReady = _encryptionService.isInitialized;
       });
+      // Refresh messages if encryption became ready (to decrypt past ones)
+      if (_encryptionReady) {
+        _loadMessages();
+      }
     }
   }
 
@@ -800,6 +923,10 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_backgroundUrl == null) return;
 
     try {
+      // Yield to avoid blocking screen transition
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (!mounted) return;
+
       final imageProvider = CachedNetworkImageProvider(_backgroundUrl!);
       final paletteGenerator = await PaletteGenerator.fromImageProvider(
         imageProvider,
@@ -810,8 +937,8 @@ class _ChatScreenState extends State<ChatScreen> {
         final sentColor = paletteGenerator.dominantColor?.color ?? Colors.blue;
         final receivedColor = paletteGenerator.lightVibrantColor?.color ?? Colors.grey;
         
-        _bubbleColorSent = sentColor.withOpacity(0.9);
-        _bubbleColorReceived = receivedColor.withOpacity(0.85);
+        _bubbleColorSent = sentColor.withValues(alpha: 0.9);
+        _bubbleColorReceived = receivedColor.withValues(alpha: 0.85);
 
         // Calculate contrasting text colors
         _textColorSent = sentColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
@@ -885,11 +1012,21 @@ class _ChatScreenState extends State<ChatScreen> {
       (r) => r.userId == userId && r.reaction == reaction,
     );
 
+    // Also check if user has ANY reaction to replace it (if it's a different emoji)
+    final anyReactionIndex = currentReactions.indexWhere(
+      (r) => r.userId == userId,
+    );
+
     if (existingIndex >= 0) {
-      // Remove reaction
+      // Remove same reaction (toggle off)
       currentReactions.removeAt(existingIndex);
     } else {
-      // Add reaction
+      // If user has a different reaction, remove it first (standard behavior)
+      if (anyReactionIndex >= 0) {
+        currentReactions.removeAt(anyReactionIndex);
+      }
+
+      // Add new reaction
       currentReactions.add(
         MessageReactionModel(
           id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
@@ -913,7 +1050,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       if (existingIndex >= 0) {
-        // Find reaction ID to delete (real implementation would need DB ID)
+        // Toggle off: remove reaction from DB
         await Supabase.instance.client
             .from('message_reactions')
             .delete()
@@ -921,14 +1058,16 @@ class _ChatScreenState extends State<ChatScreen> {
             .eq('user_id', userId)
             .eq('reaction', reaction);
       } else {
-        await Supabase.instance.client.from('message_reactions').insert({
+        // Upsert new reaction (replaces existing one if it exists due to UNIQUE constraint)
+        await Supabase.instance.client.from('message_reactions').upsert({
           'message_id': message.id,
           'user_id': userId,
           'reaction': reaction,
           'username': username,
-        });
+        }, onConflict: 'message_id,user_id');
       }
     } catch (e) {
+      debugPrint('Error updating reaction: $e');
       _showError('Failed to update reaction');
       // Revert optimistic update here if needed
     }
@@ -965,6 +1104,9 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_messageChannel != null) {
       _messagingService.unsubscribeFromMessages(_messageChannel!);
     }
+    if (_backgroundChannel != null) {
+      _messagingService.unsubscribeFromMessages(_backgroundChannel!);
+    }
     _scrollController.dispose();
     _messageController.dispose();
     _focusNode.dispose();
@@ -987,7 +1129,19 @@ class _ChatScreenState extends State<ChatScreen> {
     final isDesktop = MediaQuery.of(context).size.width >= 1200;
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        flexibleSpace: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              color: _backgroundUrl != null
+                  ? (_bubbleColorSent?.withValues(alpha: 0.15) ?? colorScheme.primary.withValues(alpha: 0.15))
+                  : colorScheme.surface.withValues(alpha: 0.5),
+            ),
+          ),
+        ),
         automaticallyImplyLeading: !isDesktop,
         title: InkWell(
           onTap: _openChatDetails,
@@ -1018,7 +1172,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       widget.otherUserName ?? _otherUserName ?? 'Unknown',
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (_encryptionReady)
+                    if (_encryptionReady || _encryptionService.isInitialized)
                       Row(
                         children: [
                           Icon(
@@ -1043,16 +1197,16 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.call_outlined),
-            onPressed: () => _initiateCall(CallType.voice),
-            tooltip: 'Voice Call',
-          ),
-          IconButton(
-            icon: const Icon(Icons.videocam_outlined),
-            onPressed: () => _initiateCall(CallType.video),
-            tooltip: 'Video Call',
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.call_outlined),
+          //   onPressed: () => _initiateCall(CallType.voice),
+          //   tooltip: 'Voice Call',
+          // ),
+          // IconButton(
+          //   icon: const Icon(Icons.videocam_outlined),
+          //   onPressed: () => _initiateCall(CallType.video),
+          //   tooltip: 'Video Call',
+          // ),
           if (isDesktop) ...[
             IconButton(
               icon: const Icon(Icons.search),
@@ -1134,7 +1288,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: CachedNetworkImage(
                 imageUrl: _backgroundUrl!,
                 fit: BoxFit.cover,
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 colorBlendMode: BlendMode.darken,
               ),
             ),
@@ -1146,11 +1300,13 @@ class _ChatScreenState extends State<ChatScreen> {
               if (_isWhisperMode)
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 8,
-                    horizontal: 16,
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).padding.top + kToolbarHeight + 8,
+                    bottom: 8,
+                    left: 16,
+                    right: 16,
                   ),
-                  color: colorScheme.secondary.withOpacity(0.2),
+                  color: colorScheme.secondary.withValues(alpha: 0.2),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -1179,7 +1335,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 child:
                     _isLoading
                         ? ListView.builder(
-                          padding: const EdgeInsets.all(16),
+                          reverse: true,
+                          padding: EdgeInsets.only(
+                            top: _isWhisperMode ? 16 : MediaQuery.of(context).padding.top + kToolbarHeight + 16,
+                            bottom: 16,
+                            left: 16,
+                            right: 16,
+                          ),
                           itemCount: 8,
                           itemBuilder: (context, index) {
                             final isMe = index % 2 == 0;
@@ -1234,11 +1396,17 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         )
                         : ListView.builder(
+                          reverse: true,
                           controller: _scrollController,
-                          padding: const EdgeInsets.all(16),
+                          padding: EdgeInsets.only(
+                            top: _isWhisperMode ? 16 : MediaQuery.of(context).padding.top + kToolbarHeight + 16,
+                            bottom: 16,
+                            left: 16,
+                            right: 16,
+                          ),
                           itemCount: _messages.length,
                           itemBuilder: (context, index) {
-                            final message = _messages[index];
+                            final message = _messages[_messages.length - 1 - index];
                             final isMe = message.senderId == userId;
                             return _buildMessageBubble(message, isMe);
                           },
@@ -1267,21 +1435,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
               // Message Input
               Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color:
-                      _backgroundUrl != null
-                          ? colorScheme.surface.withOpacity(0.95)
-                          : colorScheme.surface,
-                  border: Border(
-                    top: BorderSide(
-                      color: colorScheme.outlineVariant,
-                      width: 1,
-                    ),
-                  ),
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16, top: 8),
+                decoration: const BoxDecoration(
+                  color: Colors.transparent,
                 ),
                 child: SafeArea(
+                  top: false,
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       // ── Whisper Mode pull-up trigger ──
                       GestureDetector(
@@ -1353,7 +1514,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                 value: _whisperDragProgress,
                                                 strokeWidth: 3,
                                                 backgroundColor: colorScheme.secondary
-                                                    .withOpacity(0.15),
+                                                    .withValues(alpha: 0.15),
                                                 valueColor: AlwaysStoppedAnimation<
                                                   Color
                                                 >(
@@ -1385,9 +1546,34 @@ class _ChatScreenState extends State<ChatScreen> {
                             // ── Message input row (lifts slightly while dragging) ──
                             Transform.translate(
                               offset: Offset(0, -_whisperDragOffset * 0.3),
-                              child: Row(
-                                children: [
-                                  IconButton(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(32),
+                                child: Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      child: BackdropFilter(
+                                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                        child: const SizedBox.shrink(),
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _backgroundUrl != null
+                                            ? (_bubbleColorSent?.withValues(alpha: 0.15) ?? colorScheme.primary.withValues(alpha: 0.15))
+                                            : colorScheme.surface.withValues(alpha: 0.5),
+                                        borderRadius: BorderRadius.circular(32),
+                                        border: Border.all(
+                                          color: Colors.black.withValues(alpha: 0.2),
+                                          width: 0.5,
+                                        ),
+                                      ),
+                                child: Row(
+                                  children: [
+                                    IconButton(
                                     onPressed: _showAttachmentOptions,
                                     icon: Icon(
                                       Icons.add_circle_outline,
@@ -1427,20 +1613,32 @@ class _ChatScreenState extends State<ChatScreen> {
                                         onChanged: (val) {
                                           setState(() {});
                                         },
+                                        style: TextStyle(
+                                          color: _backgroundUrl != null
+                                              ? (_textColorSent ?? Colors.white)
+                                              : colorScheme.onSurface,
+                                        ),
                                         decoration: InputDecoration(
                                           hintText: 'Type a message...',
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              24,
-                                            ),
+                                          hintStyle: TextStyle(
+                                            color: (_backgroundUrl != null
+                                                    ? (_textColorSent ?? Colors.white)
+                                                    : colorScheme.onSurface)
+                                                .withValues(alpha: 0.5),
                                           ),
-                                          contentPadding:
-                                              const EdgeInsets.symmetric(
-                                                horizontal: 16,
-                                                vertical: 12,
-                                              ),
+                                          border: InputBorder.none,
+                                          enabledBorder: InputBorder.none,
+                                          focusedBorder: InputBorder.none,
+                                          errorBorder: InputBorder.none,
+                                          focusedErrorBorder: InputBorder.none,
+                                          filled: false,
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 10,
+                                          ),
                                         ),
-                                        maxLines: null,
+                                        minLines: 1,
+                                        maxLines: 4,
                                         textCapitalization:
                                             TextCapitalization.sentences,
                                         onSubmitted: (_) {
@@ -1473,7 +1671,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         color:
                                             _isSending
                                                 ? colorScheme.onSurface
-                                                    .withOpacity(0.12)
+                                                    .withValues(alpha: 0.12)
                                                 : colorScheme.primary,
                                         shape: BoxShape.circle,
                                       ),
@@ -1512,7 +1710,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                   ),
                                 ],
                               ), // Row
-                            ), // Transform.translate
+                                      ), // Container
+                                    ],
+                                  ), // Stack
+                                ), // ClipRRect
+                              ), // Transform.translate
                           ],
                         ), // Column (GestureDetector child)
                       ), // GestureDetector
@@ -1527,7 +1729,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             style: theme.textTheme.bodySmall?.copyWith(
                               color:
                                   _isWhisperMode
-                                      ? colorScheme.secondary.withOpacity(0.8)
+                                      ? colorScheme.secondary.withValues(alpha: 0.8)
                                       : colorScheme.onSurfaceVariant.withOpacity(
                                         0.5,
                                       ),
@@ -1618,7 +1820,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final userId = _authService.currentUser?.id;
 
     // final bubbleColor = isMe
-    //     ? (colorScheme.primary.withOpacity( ))
+    //     ? (colorScheme.primary.withValues(alpha:  ))
     //     : (colorScheme.surfaceVariant);
 
     // final textColor = isMe
@@ -1626,7 +1828,7 @@ class _ChatScreenState extends State<ChatScreen> {
     //     : colorScheme.onSurfaceVariant;
 
     // final bubbleColor = isMe
-    //     ? (colorScheme.primary.withOpacity( ))
+    //     ? (colorScheme.primary.withValues(alpha:  ))
     //     : (colorScheme.surfaceVariant);
 
     // final textColor = isMe
@@ -1638,6 +1840,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (message.messageType == MessageType.image && message.mediaUrl != null) {
       content = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           GestureDetector(
             onTap: () {
@@ -1681,7 +1884,7 @@ class _ChatScreenState extends State<ChatScreen> {
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(
-                message.content,
+                message.content.trim(),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color:
                       isMe
@@ -1748,12 +1951,18 @@ class _ChatScreenState extends State<ChatScreen> {
         isMe: isMe,
         color: isMe ? (_textColorSent ?? colorScheme.onPrimaryContainer) : (_textColorReceived ?? colorScheme.onSurface),
       );
+    } else if (message.messageType == MessageType.text && message.content.startsWith('[INVITE:')) {
+      content = InviteBubble(
+        payload: message.content.trim(),
+        isSender: isMe,
+      );
     } else {
       content = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            message.content,
+            message.content.trim(),
             style: theme.textTheme.bodyMedium?.copyWith(
               color:
                   isMe ? (_textColorSent ?? colorScheme.onPrimaryContainer) : (_textColorReceived ?? colorScheme.onSurface),
@@ -1791,7 +2000,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 backgroundColor:
                     isMe
-                        ? colorScheme.primaryContainer.withOpacity(0.5)
+                        ? colorScheme.primaryContainer.withValues(alpha: 0.5)
                         : colorScheme.surfaceContainerHighest.withOpacity(
                           0.5,
                         ),
@@ -1882,6 +2091,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Column(
               crossAxisAlignment:
                   isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -1898,37 +2108,21 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       content,
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (isMe && message.isRead)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 4),
-                              child: Icon(
-                                Icons.done_all,
-                                size: 12,
-                                color: (_textColorSent ?? colorScheme.onPrimary).withOpacity(
-                                  0.7,
-                                ),
-                              ),
-                            ),
-                          Text(
-                            timeago.format(message.timestamp),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontSize: 10,
-                              color:
-                                  isMe
-                                      ? (_textColorSent ?? colorScheme.onPrimary).withOpacity(
-                                        0.7,
-                                      )
-                                      : (_textColorReceived ?? colorScheme.onSurfaceVariant),
+                      if (isMe)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Align(
+                            alignment: Alignment.bottomRight,
+                            child: Icon(
+                              Icons.done_all,
+                              size: 14,
+                              color: message.isRead ? Colors.blue : Colors.black,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
                       if (isMe &&
                           message.isRead &&
                           message.readAt != null &&
@@ -1941,13 +2135,16 @@ class _ChatScreenState extends State<ChatScreen> {
                               ))
                         Padding(
                           padding: const EdgeInsets.only(top: 2),
-                          child: Text(
-                            'Seen ${timeago.format(message.readAt!)}',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontSize: 9,
-                              fontStyle: FontStyle.italic,
-                              color: (_textColorSent ?? colorScheme.onPrimary).withValues(
-                                alpha: 0.8,
+                          child: Align(
+                            alignment: Alignment.bottomRight,
+                            child: Text(
+                              _formatSeenTime(message.readAt!),
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                fontSize: 9,
+                                fontStyle: FontStyle.italic,
+                                color: (_textColorSent ?? colorScheme.onPrimary).withValues(
+                                  alpha: 0.8,
+                                ),
                               ),
                             ),
                           ),
@@ -1996,6 +2193,23 @@ class _ChatScreenState extends State<ChatScreen> {
       caseSensitive: false,
     );
     return urlRegExp.firstMatch(text)?.group(0) ?? '';
+  }
+
+  String _formatSeenTime(DateTime time) {
+    final now = DateTime.now();
+    final difference = now.difference(time);
+    
+    if (difference.inMinutes < 1) {
+      return 'Seen just now';
+    } else if (difference.inHours < 1) {
+      return 'Seen ${difference.inMinutes} mins ago';
+    } else if (difference.inDays < 1) {
+      return 'Seen ${difference.inHours} hours ago';
+    } else if (difference.inDays < 7) {
+      return 'Seen ${difference.inDays} days ago';
+    } else {
+      return 'Seen on ${time.month}/${time.day}/${time.year}';
+    }
   }
 }
 

@@ -3,17 +3,20 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sensors_plus/sensors_plus.dart';
-import 'package:morrow_v2/models/post.dart';
-import 'package:morrow_v2/models/pulse_node_position.dart';
-import 'package:morrow_v2/models/feed_layout_strategy.dart';
-import 'package:morrow_v2/providers/feed_provider.dart';
-import 'package:morrow_v2/services/energy_meter_service.dart';
-import 'package:morrow_v2/utils/map_positioner.dart';
-import 'package:morrow_v2/widgets/pulse_node_widget.dart';
-import 'package:morrow_v2/widgets/energy_meter_widget.dart';
-import 'package:morrow_v2/widgets/feed_layout_switcher.dart';
-import 'package:morrow_v2/painters/pulse_background_painter.dart';
-import 'package:morrow_v2/widgets/post_card.dart';
+import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/models/pulse_node_position.dart';
+import 'package:oasis_v2/models/feed_layout_strategy.dart';
+import 'package:oasis_v2/providers/feed_provider.dart';
+import 'package:oasis_v2/services/energy_meter_service.dart';
+import 'package:oasis_v2/utils/map_positioner.dart';
+import 'package:oasis_v2/widgets/pulse_node_widget.dart';
+import 'package:oasis_v2/widgets/energy_meter_widget.dart';
+import 'package:oasis_v2/widgets/feed_layout_switcher.dart';
+import 'package:oasis_v2/painters/pulse_background_painter.dart';
+import 'package:oasis_v2/widgets/post_card.dart';
+import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/widgets/comments_modal.dart';
+import 'package:share_plus/share_plus.dart';
 
 /// Pulse Map feed screen - spatial exploration of posts
 class PulseFeedScreen extends StatefulWidget {
@@ -310,62 +313,92 @@ class _PulseFeedScreenState extends State<PulseFeedScreen>
   }
 
   Widget _buildExpandedPostOverlay() {
-    return Positioned.fill(
-      child: GestureDetector(
-        onTap: _closeExpandedPost,
-        child: Container(
-          color: Colors.black.withOpacity(0.8),
-          child: Center(
-            child: Hero(
-              tag: 'post_${_expandedPost!.id}',
-              child: Material(
-                color: Colors.transparent,
-                child: Container(
-                  constraints: BoxConstraints(
-                    maxWidth: 600,
-                    maxHeight: MediaQuery.of(context).size.height * 0.9,
-                  ),
-                  margin: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Close button
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white),
-                          onPressed: _closeExpandedPost,
-                        ),
-                      ),
+    return Consumer<FeedProvider>(
+      builder: (context, feedProvider, child) {
+        // Find the latest version of this post in the provider's state
+        final post = feedProvider.posts.firstWhere(
+          (p) => p.id == _expandedPost!.id,
+          orElse: () => _expandedPost!,
+        );
 
-                      // Post card
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: PostCard(
-                            post: _expandedPost!,
-                            onLike: () {
-                              // Handle like
-                            },
-                            onBookmark: () {
-                              // Handle bookmark
-                            },
-                            onComment: () {
-                              // Handle comment
-                            },
-                            onShare: () {
-                              // Handle share
-                            },
-                          ),
-                        ),
+        return Positioned.fill(
+          child: GestureDetector(
+            onTap: _closeExpandedPost,
+            child: Container(
+              color: Colors.black.withOpacity(0.8),
+              child: Center(
+                child: Hero(
+                  tag: 'post_${post.id}',
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Container(
+                      constraints: BoxConstraints(
+                        maxWidth: 600,
+                        maxHeight: MediaQuery.of(context).size.height * 0.9,
                       ),
-                    ],
+                      margin: const EdgeInsets.all(16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Close button
+                          Align(
+                            alignment: Alignment.topRight,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white),
+                              onPressed: _closeExpandedPost,
+                            ),
+                          ),
+
+                          // Post card
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: PostCard(
+                                post: post,
+                                onLike: () {
+                                  final userId = context.read<AuthService>().currentUser?.id;
+                                  if (userId == null) return;
+
+                                  if (post.isLiked) {
+                                    feedProvider.unlikePost(userId: userId, postId: post.id);
+                                  } else {
+                                    feedProvider.likePost(userId: userId, postId: post.id);
+                                  }
+                                },
+                                onBookmark: () {
+                                  final userId = context.read<AuthService>().currentUser?.id;
+                                  if (userId == null) return;
+
+                                  if (post.isBookmarked) {
+                                    feedProvider.unbookmarkPost(userId: userId, postId: post.id);
+                                  } else {
+                                    feedProvider.bookmarkPost(userId: userId, postId: post.id);
+                                  }
+                                },
+                                onComment: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (context) => CommentsModal(postId: post.id),
+                                  );
+                                },
+                                onShare: () {
+                                  final deepLink = 'https://morrow.app/post/${post.id}';
+                                  Share.share('Check out this post on Morrow! $deepLink');
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

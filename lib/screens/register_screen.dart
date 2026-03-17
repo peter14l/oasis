@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:morrow_v2/services/auth_service.dart';
-import 'package:morrow_v2/widgets/app_button.dart';
-import 'package:morrow_v2/widgets/custom_text_field.dart';
+import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/widgets/app_button.dart';
+import 'package:oasis_v2/widgets/custom_text_field.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:morrow_v2/widgets/auth_layout_wrapper.dart';
+import 'package:oasis_v2/widgets/auth_layout_wrapper.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});

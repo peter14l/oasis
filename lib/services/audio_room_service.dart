@@ -1,6 +1,6 @@
-import 'package:morrow_v2/models/audio_room.dart';
-import 'package:morrow_v2/models/audio_room.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:oasis_v2/models/audio_room.dart';
+import 'package:oasis_v2/models/audio_room.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
 
 class AudioRoomService {
   final _supabase = SupabaseService().client;

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morrow_v2/models/post.dart';
-import 'package:morrow_v2/models/user_model.dart';
-import 'package:morrow_v2/models/community_model.dart';
+import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/models/user_model.dart';
+import 'package:oasis_v2/models/community_model.dart';
 
 void main() {
   group('Post Model', () {

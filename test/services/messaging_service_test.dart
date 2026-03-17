@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morrow_v2/models/message.dart';
-import 'package:morrow_v2/services/messaging_service.dart';
+import 'package:oasis_v2/models/message.dart';
+import 'package:oasis_v2/services/messaging_service.dart';
 
 void main() {
   group('Whisper Mode Logic', () {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:morrow_v2/models/story_model.dart';
-import 'package:morrow_v2/services/stories_service.dart';
+import 'package:oasis_v2/models/story_model.dart';
+import 'package:oasis_v2/services/stories_service.dart';
 import 'package:go_router/go_router.dart';
 
 class StoryRing extends StatelessWidget {

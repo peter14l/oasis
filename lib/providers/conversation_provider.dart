@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/models/conversation.dart';
-import 'package:morrow_v2/services/messaging_service.dart';
+import 'package:oasis_v2/models/conversation.dart';
+import 'package:oasis_v2/services/messaging_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ConversationProvider with ChangeNotifier {
@@ -111,6 +111,32 @@ class ConversationProvider with ChangeNotifier {
     // Optimization: Instead of reloading everyone, just reload this conversation's seen status
     // or reload the whole list to maintain sort order if last message changed.
     loadConversations();
+  }
+
+  /// Reload a single conversation's state
+  Future<void> refreshConversation(String conversationId) async {
+    if (_currentUserId == null) return;
+    
+    try {
+      final updatedConversation = await _messagingService.getConversationDetails(conversationId);
+      
+      final index = _conversations.indexWhere((c) => c.id == conversationId);
+      if (index != -1) {
+        _conversations[index] = updatedConversation;
+        // Move to top of list if it's the newest message
+        _conversations.sort((a, b) {
+          final timeA = a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+          final timeB = b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+          return timeB.compareTo(timeA);
+        });
+        notifyListeners();
+      } else {
+        // If it's a new conversation, just reload everything
+        loadConversations();
+      }
+    } catch (e) {
+      debugPrint('Error refreshing conversation: $e');
+    }
   }
 
   /// Handle typing status updates

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/config/supabase_config.dart';
-import 'package:morrow_v2/models/time_capsule.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:oasis_v2/config/supabase_config.dart';
+import 'package:oasis_v2/models/time_capsule.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
 import 'package:uuid/uuid.dart';
 
 class TimeCapsuleService {
@@ -74,9 +74,9 @@ class TimeCapsuleService {
     }
   }
 
-  /// Get all capsules (feed)
-  /// In a real app, this might be filtered by friends or public
+  /// Get user's own capsules (visible only to the owner)
   Future<List<TimeCapsule>> getCapsules({
+    required String userId,
     int limit = 20,
     int offset = 0,
   }) async {
@@ -84,25 +84,22 @@ class TimeCapsuleService {
       final response = await _supabase
           .from(SupabaseConfig.timeCapsulesTable)
           .select()
+          .eq('user_id', userId)
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
 
       if (response.isEmpty) return [];
 
-      // Fetch profiles for all capsules in the list
-      final userIds = (response as List).map((e) => e['user_id']).toSet().toList();
-      final profilesResponse = await _supabase
+      // Fetch profile for the current user
+      final profileResponse = await _supabase
           .from(SupabaseConfig.profilesTable)
           .select('id, username, avatar_url')
-          .inFilter('id', userIds);
+          .eq('id', userId)
+          .single();
 
-      final profilesMap = {
-        for (var p in profilesResponse) p['id']: p
-      };
-
-      return response.map((e) {
+      return (response as List).map((e) {
         final mergedData = Map<String, dynamic>.from(e);
-        mergedData[SupabaseConfig.profilesTable] = profilesMap[e['user_id']];
+        mergedData[SupabaseConfig.profilesTable] = profileResponse;
         return _transformResponse(mergedData);
       }).toList();
     } catch (e) {

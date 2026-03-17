@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:morrow_v2/utils/haptic_utils.dart';
+import 'package:oasis_v2/utils/haptic_utils.dart';
 
 /// Interest categories for onboarding discovery quiz
 class InterestCategory {

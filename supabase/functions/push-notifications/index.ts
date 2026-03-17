@@ -33,7 +33,7 @@ serve(async (req) => {
 
     const actorName = actor?.username || "Someone";
     let title = "New Notification";
-    let body = record.message || "";
+    let body = record.content || "";
 
     // 3. Customize based on type
     switch (record.type) {

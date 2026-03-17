@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:morrow_v2/providers/capsule_provider.dart';
-import 'package:morrow_v2/widgets/capsules/capsule_feed_item.dart';
+import 'package:oasis_v2/providers/capsule_provider.dart';
+import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/widgets/capsules/capsule_feed_item.dart';
 
 class CapsuleCarousel extends StatefulWidget {
   const CapsuleCarousel({super.key});
@@ -15,7 +16,10 @@ class _CapsuleCarouselState extends State<CapsuleCarousel> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CapsuleProvider>().loadCapsules();
+      final userId = context.read<ProfileProvider>().currentProfile?.id;
+      if (userId != null) {
+        context.read<CapsuleProvider>().loadCapsules(userId);
+      }
     });
   }
 

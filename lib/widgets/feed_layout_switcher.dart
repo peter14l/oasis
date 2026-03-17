@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:morrow_v2/models/feed_layout_strategy.dart';
+import 'package:oasis_v2/models/feed_layout_strategy.dart';
 
 /// Widget for switching between different feed layouts
 /// Displays as a popup menu in the AppBar

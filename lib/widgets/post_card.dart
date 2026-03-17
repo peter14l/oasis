@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
-import 'package:morrow_v2/models/post.dart';
+import 'package:oasis_v2/models/post.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:morrow_v2/providers/profile_provider.dart';
-import 'package:morrow_v2/services/auth_service.dart';
+import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/services/auth_service.dart';
 
 class PostCard extends StatefulWidget {
   final Post post;

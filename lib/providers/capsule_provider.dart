@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/models/time_capsule.dart';
-import 'package:morrow_v2/services/time_capsule_service.dart';
+import 'package:oasis_v2/models/time_capsule.dart';
+import 'package:oasis_v2/services/time_capsule_service.dart';
 
 class CapsuleProvider with ChangeNotifier {
   final TimeCapsuleService _service = TimeCapsuleService();
@@ -13,13 +13,13 @@ class CapsuleProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  Future<void> loadCapsules() async {
+  Future<void> loadCapsules(String userId) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _capsules = await _service.getCapsules();
+      _capsules = await _service.getCapsules(userId: userId);
     } catch (e) {
       _error = e.toString();
       debugPrint('Error loading capsules: $e');

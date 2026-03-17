@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
 
 class SubscriptionService extends ChangeNotifier {
   static final SubscriptionService _instance = SubscriptionService._internal();

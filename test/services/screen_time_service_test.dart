@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:morrow_v2/services/screen_time_service.dart';
+import 'package:oasis_v2/services/screen_time_service.dart';
 
 void main() {
   group('ScreenTimeService', () {

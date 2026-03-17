@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:morrow_v2/services/auth_service.dart';
-import 'package:morrow_v2/screens/onboarding/onboarding_screen.dart';
+import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/screens/onboarding/onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -128,7 +128,7 @@ class _SplashScreenState extends State<SplashScreen>
 
               // App Name
               Text(
-                'Morrow',
+                'Oasis',
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,

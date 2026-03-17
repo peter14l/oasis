@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:morrow_v2/models/post.dart';
-import 'package:morrow_v2/widgets/post_card.dart';
-import 'package:morrow_v2/services/auth_service.dart';
-import 'package:morrow_v2/services/post_service.dart';
+import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/widgets/post_card.dart';
+import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/services/post_service.dart';
 import 'package:share_plus/share_plus.dart';
 
 class PostDetailsScreen extends StatefulWidget {
@@ -145,10 +145,63 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
             post: _post!,
             isOwnPost: _post!.userId == currentUserId,
             onLike: () async {
-              // PostCard handles visual state, but we might want global refresh?
-              // For now, let PostCard handle it.
+              final userId = _authService.currentUser?.id;
+              if (userId == null || _post == null) return;
+
+              final wasLiked = _post!.isLiked;
+              final newLikes = wasLiked
+                  ? (_post!.likes > 0 ? _post!.likes - 1 : 0)
+                  : _post!.likes + 1;
+
+              setState(() {
+                _post = _post!.copyWith(
+                  isLiked: !wasLiked,
+                  likes: newLikes,
+                );
+              });
+
+              try {
+                if (wasLiked) {
+                  await _postService.unlikePost(_post!.id, userId);
+                } else {
+                  await _postService.likePost(userId: userId, postId: _post!.id);
+                }
+              } catch (e) {
+                // Revert on error
+                if (mounted) {
+                  setState(() {
+                    _post = _post!.copyWith(
+                      isLiked: wasLiked,
+                      likes: wasLiked ? _post!.likes + 1 : (_post!.likes > 0 ? _post!.likes - 1 : 0),
+                    );
+                  });
+                }
+              }
             },
-            onBookmark: () {},
+            onBookmark: () async {
+              final userId = _authService.currentUser?.id;
+              if (userId == null || _post == null) return;
+
+              final wasBookmarked = _post!.isBookmarked;
+              setState(() {
+                _post = _post!.copyWith(isBookmarked: !wasBookmarked);
+              });
+
+              try {
+                if (wasBookmarked) {
+                  await _postService.unbookmarkPost(userId: userId, postId: _post!.id);
+                } else {
+                  await _postService.bookmarkPost(userId: userId, postId: _post!.id);
+                }
+              } catch (e) {
+                // Revert on error
+                if (mounted) {
+                  setState(() {
+                    _post = _post!.copyWith(isBookmarked: wasBookmarked);
+                  });
+                }
+              }
+            },
             onComment: () {
               // Already in details, maybe focus comment box?
               // But PostDetails IS the view.

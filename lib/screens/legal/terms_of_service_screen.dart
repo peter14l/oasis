@@ -34,7 +34,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Morrow Terms of Service',
+                    'Oasis Terms of Service',
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -51,15 +51,15 @@ class TermsOfServiceScreen extends StatelessWidget {
                   _buildSection(
                     context,
                     '1. Acceptance of Terms',
-                    '''By accessing or using Morrow, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the app.
+                    '''By accessing or using Oasis you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the app.
 
-These terms constitute a legally binding agreement between you and Morrow. Please read them carefully before using our services.''',
+These terms constitute a legally binding agreement between you and Oasis Please read them carefully before using our services.''',
                   ),
 
                   _buildSection(
                     context,
                     '2. Eligibility',
-                    '''To use Morrow, you must:
+                    '''To use Oasisyou must:
 
 • Be at least 13 years of age
 • Have the legal capacity to enter into a binding agreement
@@ -83,7 +83,7 @@ We reserve the right to suspend or terminate accounts that violate these terms.'
                   _buildSection(
                     context,
                     '4. User Content',
-                    '''When you post content on Morrow:
+                    '''When you post content on Oasis
 
 • You retain ownership of your content
 • You grant us a license to display, store, and distribute your content within the app
@@ -133,7 +133,7 @@ We strive to enforce our policies fairly and consistently.''',
                   _buildSection(
                     context,
                     '8. Intellectual Property',
-                    '''Morrow and its content are protected by:
+                    '''Oasisand its content are protected by:
 
 • Copyright and trademark laws
 • Other intellectual property rights
@@ -144,7 +144,7 @@ You may not copy, modify, or distribute our app or branding without permission.'
                   _buildSection(
                     context,
                     '9. Disclaimers',
-                    '''Morrow is provided "as is" without warranties:
+                    '''Oasisis provided "as is" without warranties:
 
 • We do not guarantee uninterrupted or error-free service
 • We are not responsible for user-generated content
@@ -165,7 +165,7 @@ You may not copy, modify, or distribute our app or branding without permission.'
                   _buildSection(
                     context,
                     '11. Indemnification',
-                    '''You agree to indemnify and hold harmless Morrow from:
+                    '''You agree to indemnify and hold harmless Oasisrom:
 
 • Claims arising from your use of the service
 • Claims arising from your violation of these terms
@@ -197,7 +197,7 @@ You may not copy, modify, or distribute our app or branding without permission.'
                     '14. Contact Information',
                     '''For questions about these terms:
 
-• Email: legal@morrow.app
+• Email: legal@Oasispp
 • In-app: Settings → Help & Support
 
 We welcome your feedback and questions.''',

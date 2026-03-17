@@ -3,14 +3,14 @@ import 'dart:ui';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:morrow_v2/models/conversation.dart';
-import 'package:morrow_v2/services/auth_service.dart';
-import 'package:morrow_v2/providers/typing_indicator_provider.dart';
-import 'package:morrow_v2/widgets/messages/unread_badge_widget.dart';
-import 'package:morrow_v2/widgets/messages/typing_indicator_widget.dart';
-import 'package:morrow_v2/screens/messages/chat_screen.dart';
-import 'package:morrow_v2/services/vault_service.dart';
-import 'package:morrow_v2/providers/conversation_provider.dart';
+import 'package:oasis_v2/models/conversation.dart';
+import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/providers/typing_indicator_provider.dart';
+import 'package:oasis_v2/widgets/messages/unread_badge_widget.dart';
+import 'package:oasis_v2/widgets/messages/typing_indicator_widget.dart';
+import 'package:oasis_v2/screens/messages/chat_screen.dart';
+import 'package:oasis_v2/services/vault_service.dart';
+import 'package:oasis_v2/providers/conversation_provider.dart';
 
 class DirectMessagesScreen extends StatefulWidget {
   const DirectMessagesScreen({super.key});
@@ -172,6 +172,9 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
     final isSelected =
         isDesktop && _selectedConversation?.id == conversation.id;
 
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final userId = authService.currentUser?.id;
+
     return Consumer2<TypingIndicatorProvider, VaultService>(
       builder: (context, typingProvider, vaultService, child) {
         final isTyping = typingProvider.isUserTyping(conversation.id);
@@ -271,29 +274,21 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                     else if (conversation.lastMessage != null)
                       Row(
                         children: [
-                          // Show icon for media messages
-                          if (conversation.lastMessageType != null &&
-                              conversation.lastMessageType != 'text') ...[
-                            _getMessageTypeIcon(conversation.lastMessageType!),
-                            const SizedBox(width: 4),
-                          ],
                           Expanded(
                             child: Text(
-                              conversation.getLastMessageDisplay(),
+                              conversation.getLastMessageDisplay(userId),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                                fontWeight:
-                                    conversation.unreadCount > 0
-                                        ? FontWeight.w500
-                                        : FontWeight.normal,
+                                color: conversation.unreadCount > 0 
+                                  ? colorScheme.onSurface 
+                                  : colorScheme.onSurfaceVariant,
+                                fontWeight: conversation.unreadCount > 0 ? FontWeight.bold : FontWeight.w500,
                               ),
                             ),
                           ),
                           if (conversation.lastMessageReadAt != null &&
-                              conversation.lastMessageSenderId ==
-                                  context.read<AuthService>().currentUser?.id)
+                              conversation.lastMessageSenderId == userId)
                             Padding(
                               padding: const EdgeInsets.only(left: 4),
                               child: Text(

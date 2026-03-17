@@ -1,11 +1,14 @@
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/models/community.dart';
-import 'package:morrow_v2/models/post.dart';
-import 'package:morrow_v2/services/community_service.dart';
-import 'package:morrow_v2/services/post_service.dart';
+import 'package:oasis_v2/models/community.dart';
+import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/services/community_service.dart';
+import 'package:oasis_v2/services/post_service.dart';
+import 'package:oasis_v2/services/feed_service.dart';
 
 class CommunityProvider with ChangeNotifier {
   final CommunityService _communityService = CommunityService();
+  final FeedService _feedService = FeedService();
+  final PostService _postService = PostService();
 
   List<Community> _allCommunities = [];
   List<Community> _userCommunities = [];
@@ -281,6 +284,113 @@ class CommunityProvider with ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  /// Like a post
+  Future<void> likePost({
+    required String userId,
+    required String postId,
+  }) async {
+    try {
+      _updatePostLikeStatus(postId, true);
+      notifyListeners();
+      await _feedService.likePost(userId: userId, postId: postId);
+    } catch (e) {
+      _updatePostLikeStatus(postId, false);
+      notifyListeners();
+      debugPrint('Error liking post: $e');
+    }
+  }
+
+  /// Unlike a post
+  Future<void> unlikePost({
+    required String userId,
+    required String postId,
+  }) async {
+    try {
+      _updatePostLikeStatus(postId, false);
+      notifyListeners();
+      await _feedService.unlikePost(userId: userId, postId: postId);
+    } catch (e) {
+      _updatePostLikeStatus(postId, true);
+      notifyListeners();
+      debugPrint('Error unliking post: $e');
+    }
+  }
+
+  /// Bookmark a post
+  Future<void> bookmarkPost({
+    required String userId,
+    required String postId,
+  }) async {
+    try {
+      _updatePostBookmarkStatus(postId, true);
+      notifyListeners();
+      await _feedService.bookmarkPost(userId: userId, postId: postId);
+    } catch (e) {
+      _updatePostBookmarkStatus(postId, false);
+      notifyListeners();
+      debugPrint('Error bookmarking post: $e');
+    }
+  }
+
+  /// Remove bookmark
+  Future<void> unbookmarkPost({
+    required String userId,
+    required String postId,
+  }) async {
+    try {
+      _updatePostBookmarkStatus(postId, false);
+      notifyListeners();
+      await _feedService.unbookmarkPost(userId: userId, postId: postId);
+    } catch (e) {
+      _updatePostBookmarkStatus(postId, true);
+      notifyListeners();
+      debugPrint('Error removing bookmark: $e');
+    }
+  }
+
+  /// Delete a post
+  Future<void> deletePost(String postId) async {
+    try {
+      // In a real app, you'd verify ownership or have backend RLS handle it
+      // For now, assume current user is owner if they can trigger this
+      await _postService.deletePost(postId, ''); // userId dummy
+      _communityPosts.removeWhere((p) => p.id == postId);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error deleting post: $e');
+      rethrow;
+    }
+  }
+
+  void _updatePostLikeStatus(String postId, bool isLiked) {
+    for (int i = 0; i < _communityPosts.length; i++) {
+      if (_communityPosts[i].id == postId) {
+        final post = _communityPosts[i];
+        if (post.isLiked == isLiked) return;
+
+        int newLikes = isLiked ? post.likes + 1 : post.likes - 1;
+        if (newLikes < 0) newLikes = 0;
+
+        _communityPosts[i] = post.copyWith(
+          isLiked: isLiked,
+          likes: newLikes,
+        );
+        break;
+      }
+    }
+  }
+
+  void _updatePostBookmarkStatus(String postId, bool isBookmarked) {
+    for (int i = 0; i < _communityPosts.length; i++) {
+      if (_communityPosts[i].id == postId) {
+        _communityPosts[i] = _communityPosts[i].copyWith(
+          isBookmarked: isBookmarked,
+        );
+        break;
+      }
     }
   }
 }

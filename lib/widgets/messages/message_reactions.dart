@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:morrow_v2/models/message_reaction.dart';
-import 'package:morrow_v2/utils/haptic_utils.dart';
+import 'package:oasis_v2/models/message_reaction.dart';
+import 'package:oasis_v2/utils/haptic_utils.dart';
 
 /// Widget to display reaction picker for messages
 class MessageReactionPicker extends StatelessWidget {

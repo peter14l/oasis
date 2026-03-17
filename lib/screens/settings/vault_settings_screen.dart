@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:morrow_v2/services/vault_service.dart';
+import 'package:oasis_v2/services/vault_service.dart';
 import 'package:provider/provider.dart';
 
 class VaultSettingsScreen extends StatefulWidget {

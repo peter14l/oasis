@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:morrow_v2/services/subscription_service.dart';
+import 'package:oasis_v2/services/subscription_service.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -21,7 +21,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
     if (subService.isPro) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Morrow Pro'), centerTitle: true),
+        appBar: AppBar(title: const Text('Oasis Pro'), centerTitle: true),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -36,7 +36,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Thank you for supporting Morrow.',
+                'Thank you for supporting Oasis.',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -205,7 +205,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Welcome to Morrow Pro!'),
+                                  content: Text('Welcome to Oasis Pro!'),
                                 ),
                               );
                             }

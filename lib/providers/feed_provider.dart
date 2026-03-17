@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/models/post.dart';
-import 'package:morrow_v2/services/feed_service.dart';
-import 'package:morrow_v2/services/cache_service.dart'; // Added import
+import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/services/feed_service.dart';
+import 'package:oasis_v2/services/cache_service.dart'; // Added import
 
 enum FeedType { forYou, following }
 
@@ -11,6 +11,8 @@ class FeedProvider with ChangeNotifier {
       CacheService(); // Added CacheService instance
 
   FeedProvider() {
+    // Clear cache once to ensure new schema (avatar_url) is loaded
+    _cacheService.saveFeed([]); 
     _loadFromCache();
   }
 
@@ -88,13 +90,16 @@ class FeedProvider with ChangeNotifier {
       final List<Post> newPosts;
 
       if (_currentFeedType == FeedType.forYou) {
+        // Fetch if refresh is requested OR if we have no posts (e.g. cache was cleared)
+        final effectiveRefresh = refresh || _forYouPosts.isEmpty;
+        
         newPosts = await _feedService.getFeedPosts(
           userId: userId,
           limit: _pageSize,
-          offset: refresh ? 0 : _forYouOffset,
+          offset: effectiveRefresh ? 0 : _forYouOffset,
         );
 
-        if (refresh) {
+        if (effectiveRefresh) {
           _forYouPosts = newPosts;
           // Save to cache
           _cacheService.saveFeed(_forYouPosts.map((e) => e.toJson()).toList());
@@ -280,29 +285,28 @@ class FeedProvider with ChangeNotifier {
 
   /// Helper: Update post like status
   void _updatePostLikeStatus(String postId, bool isLiked) {
-    for (var post in _forYouPosts) {
-      if (post.id == postId) {
-        final updatedPost = post.copyWith(
-          isLiked: isLiked,
-          likes: isLiked ? post.likes + 1 : post.likes - 1,
-        );
-        final index = _forYouPosts.indexOf(post);
-        _forYouPosts[index] = updatedPost;
-        break;
+    // Helper to update a list of posts
+    void updateList(List<Post> posts) {
+      for (int i = 0; i < posts.length; i++) {
+        if (posts[i].id == postId) {
+          final post = posts[i];
+          // If the status is already correct, do nothing to avoid double-counting
+          if (post.isLiked == isLiked) return;
+
+          int newLikes = isLiked ? post.likes + 1 : post.likes - 1;
+          if (newLikes < 0) newLikes = 0;
+
+          posts[i] = post.copyWith(
+            isLiked: isLiked,
+            likes: newLikes,
+          );
+          break;
+        }
       }
     }
 
-    for (var post in _followingPosts) {
-      if (post.id == postId) {
-        final updatedPost = post.copyWith(
-          isLiked: isLiked,
-          likes: isLiked ? post.likes + 1 : post.likes - 1,
-        );
-        final index = _followingPosts.indexOf(post);
-        _followingPosts[index] = updatedPost;
-        break;
-      }
-    }
+    updateList(_forYouPosts);
+    updateList(_followingPosts);
   }
 
   /// Helper: Update post bookmark status

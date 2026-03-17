@@ -1,12 +1,13 @@
 import 'dart:ui';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:morrow_v2/models/post.dart';
-import 'package:morrow_v2/services/search_service.dart';
-import 'package:morrow_v2/widgets/post_card.dart';
+import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/services/search_service.dart';
+import 'package:oasis_v2/widgets/post_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:morrow_v2/utils/responsive_layout.dart';
-import 'package:morrow_v2/widgets/greyscale_wrapper.dart';
+import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/widgets/greyscale_wrapper.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -20,6 +21,7 @@ class _SearchScreenState extends State<SearchScreen>
   final SearchService _searchService = SearchService();
   final TextEditingController _searchController = TextEditingController();
   late TabController _tabController;
+  Timer? _debounce;
 
   List<Map<String, dynamic>> _userResults = [];
   List<Post> _postResults = [];
@@ -38,7 +40,14 @@ class _SearchScreenState extends State<SearchScreen>
   }
 
   Future<void> _performSearch() async {
-    if (_query.isEmpty) return;
+    if (_query.isEmpty) {
+      setState(() {
+        _userResults = [];
+        _postResults = [];
+        _isLoading = false;
+      });
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -65,9 +74,15 @@ class _SearchScreenState extends State<SearchScreen>
 
   void _onSearchChanged(String value) {
     setState(() => _query = value);
+    
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _performSearch();
+    });
   }
 
   void _onSearchSubmitted(String value) {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
     _performSearch();
   }
 
@@ -75,6 +90,7 @@ class _SearchScreenState extends State<SearchScreen>
   void dispose() {
     _searchController.dispose();
     _tabController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -109,11 +125,11 @@ class _SearchScreenState extends State<SearchScreen>
                       children: [
                         Expanded(
                           child: Container(
-                            height: 56,
+                            height: 64, // Thicker search bar
                             decoration: BoxDecoration(
                               color: colorScheme.surfaceContainerHighest
                                   .withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(28),
+                              borderRadius: BorderRadius.circular(32),
                               border: Border.all(
                                 color: theme.dividerColor.withValues(
                                   alpha: 0.3,
@@ -131,27 +147,25 @@ class _SearchScreenState extends State<SearchScreen>
                                 hintStyle: TextStyle(
                                   color: colorScheme.onSurfaceVariant,
                                 ),
-                                prefixIcon: const Icon(Icons.search, size: 24),
+                                prefixIcon: const Icon(Icons.search, size: 28),
                                 suffixIcon:
                                     _query.isNotEmpty
                                         ? IconButton(
                                           icon: const Icon(Icons.clear),
                                           onPressed: () {
                                             _searchController.clear();
-                                            setState(() {
-                                              _query = '';
-                                              _userResults = [];
-                                              _postResults = [];
-                                            });
+                                            _onSearchChanged('');
                                           },
                                         )
                                         : null,
                                 contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 20,
-                                  vertical: 16,
+                                  vertical: 20,
                                 ),
                               ),
-                              style: TextStyle(color: colorScheme.onSurface),
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: colorScheme.onSurface,
+                              ),
                               textInputAction: TextInputAction.search,
                             ),
                           ),
@@ -178,6 +192,10 @@ class _SearchScreenState extends State<SearchScreen>
                                 _showFilters
                                     ? colorScheme.primary
                                     : colorScheme.onSurfaceVariant,
+                            minimumSize: const Size(64, 64),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(32),
+                            ),
                           ),
                         ),
                       ],
@@ -206,11 +224,12 @@ class _SearchScreenState extends State<SearchScreen>
             ),
           ),
           elevation: 0,
+          toolbarHeight: 80, // Taller AppBar for thicker search bar
           title: Container(
-            height: 40,
+            height: 52, // Thicker search bar
             decoration: BoxDecoration(
               color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(26),
               border: Border.all(
                 color: theme.dividerColor.withValues(alpha: 0.2),
               ),
@@ -228,13 +247,16 @@ class _SearchScreenState extends State<SearchScreen>
                 prefixIcon: Icon(
                   Icons.search,
                   color: colorScheme.onSurfaceVariant,
+                  size: 24,
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 8,
+                  vertical: 14,
                 ),
               ),
-              style: TextStyle(color: colorScheme.onSurface),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurface,
+              ),
               textInputAction: TextInputAction.search,
             ),
           ),
@@ -244,24 +266,57 @@ class _SearchScreenState extends State<SearchScreen>
                 icon: const Icon(Icons.clear),
                 onPressed: () {
                   _searchController.clear();
-                  setState(() {
-                    _query = '';
-                    _userResults = [];
-                    _postResults = [];
-                  });
+                  _onSearchChanged('');
                 },
               ),
           ],
-          bottom: TabBar(
-            controller: _tabController,
-            indicatorColor: colorScheme.primary,
-            labelColor: colorScheme.primary,
-            unselectedLabelColor: colorScheme.onSurfaceVariant,
-            tabs: const [Tab(text: 'People'), Tab(text: 'Posts')],
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(60),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: TabBar(
+                controller: _tabController,
+                indicator: const BoxDecoration(), // Hide default indicator
+                dividerColor: Colors.transparent,
+                labelPadding: const EdgeInsets.symmetric(horizontal: 8),
+                tabs: [
+                  _buildTab('People', 0),
+                  _buildTab('Posts', 1),
+                ],
+              ),
+            ),
           ),
         ),
         body: _buildMobileLayout(),
       ),
+    );
+  }
+
+  Widget _buildTab(String label, int index) {
+    return ListenableBuilder(
+      listenable: _tabController,
+      builder: (context, child) {
+        final isSelected = _tabController.index == index;
+        final theme = Theme.of(context);
+        return Container(
+          width: double.infinity,
+          height: 44,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isSelected 
+                ? theme.colorScheme.primary 
+                : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            label,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: isSelected ? Colors.white : theme.colorScheme.onSurfaceVariant,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        );
+      },
     );
   }
 

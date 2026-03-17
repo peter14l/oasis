@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:morrow_v2/providers/user_settings_provider.dart';
+import 'package:oasis_v2/providers/user_settings_provider.dart';
 
 class FontSizeScreen extends StatelessWidget {
   const FontSizeScreen({super.key});

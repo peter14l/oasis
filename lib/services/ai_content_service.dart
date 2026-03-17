@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
 
 /// AI Content Companion service for caption and hashtag suggestions
 class AIContentService {
@@ -172,7 +172,7 @@ class AIContentService {
     final hashtags = <String>{};
 
     // Always include some trending general hashtags
-    hashtags.addAll(['#instagood', '#photooftheday', '#morrow']);
+    hashtags.addAll(['#instagood', '#photooftheday', '#Oasis']);
 
     // Mood hashtags
     if (mood != null) {
@@ -360,7 +360,7 @@ class AIContentService {
     final isPro = user?.userMetadata?['is_pro'] == true;
     if (!isPro) {
       throw Exception(
-        'Upgrade to Morrow Pro to access live caption quality scoring.',
+        'Upgrade to Oasis Pro to access live caption quality scoring.',
       );
     }
     final issues = <String>[];

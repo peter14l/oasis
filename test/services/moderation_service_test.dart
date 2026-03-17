@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morrow_v2/services/moderation_service.dart';
-import 'package:morrow_v2/models/moderation.dart';
+import 'package:oasis_v2/services/moderation_service.dart';
+import 'package:oasis_v2/models/moderation.dart';
 
 void main() {
   group('ModerationService', () {

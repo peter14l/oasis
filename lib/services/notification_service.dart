@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/config/supabase_config.dart';
-import 'package:morrow_v2/models/notification.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:oasis_v2/config/supabase_config.dart';
+import 'package:oasis_v2/models/notification.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
@@ -171,7 +171,7 @@ class NotificationService {
         'actor_id': actorId,
         'post_id': postId,
         'comment_id': commentId,
-        'message': message,
+        'content': message,
       });
     } catch (e) {
       debugPrint('Error creating notification: $e');

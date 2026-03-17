@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:morrow_v2/services/messaging_service.dart';
-import 'package:morrow_v2/services/vault_service.dart';
+import 'package:oasis_v2/services/messaging_service.dart';
+import 'package:oasis_v2/services/vault_service.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String conversationId;
@@ -147,10 +148,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     setState(() => _ephemeralDuration = duration);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('chat_duration_${widget.conversationId}', duration);
-
-    if (mounted) {
-      Navigator.of(context).pop({'duration': duration});
-    }
   }
 
   Future<void> _pickBackground() async {
@@ -169,16 +166,26 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
 
         setState(() => _selectedBackground = backgroundUrl);
 
-        // Persist the background setting
+        // Persist the background setting locally
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(
           'chat_bg_${widget.conversationId}',
           backgroundUrl,
         );
 
-        // Return the new background to the chat screen
-        if (mounted) {
-          Navigator.of(context).pop(backgroundUrl);
+        // Sync with Supabase so it applies to both participants
+        try {
+          final userId = Supabase.instance.client.auth.currentUser?.id;
+          if (userId != null) {
+            await Supabase.instance.client.from('chat_themes').upsert({
+              'conversation_id': widget.conversationId,
+              'user_id': userId,
+              'background_image_url': backgroundUrl,
+              'updated_at': DateTime.now().toIso8601String(),
+            }, onConflict: 'conversation_id, user_id');
+          }
+        } catch (e) {
+          debugPrint('Failed to sync chat theme to Supabase: $e');
         }
       }
     } catch (e) {
@@ -192,10 +199,24 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
 
   Future<void> _removeBackground() async {
     setState(() => _selectedBackground = null);
-    // Remove persisted background setting
+    // Remove persisted background setting locally
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('chat_bg_${widget.conversationId}');
-    Navigator.of(context).pop(null);
+    
+    // Sync removal with Supabase
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId != null) {
+        await Supabase.instance.client.from('chat_themes').upsert({
+          'conversation_id': widget.conversationId,
+          'user_id': userId,
+          'background_image_url': null,
+          'updated_at': DateTime.now().toIso8601String(),
+        }, onConflict: 'conversation_id, user_id');
+      }
+    } catch (e) {
+      debugPrint('Failed to sync chat theme removal to Supabase: $e');
+    }
   }
 
   @override

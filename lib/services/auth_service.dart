@@ -6,12 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:morrow_v2/models/user_model.dart' as app_models;
-import 'package:morrow_v2/config/supabase_config.dart';
+import 'package:oasis_v2/models/user_model.dart' as app_models;
+import 'package:oasis_v2/config/supabase_config.dart';
 // Provider is used in other files that import this one
-import 'package:morrow_v2/services/supabase_service.dart';
-import 'package:morrow_v2/services/encryption_service.dart';
-import 'package:morrow_v2/services/notification_service.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/services/encryption_service.dart';
+import 'package:oasis_v2/services/notification_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthService with ChangeNotifier {
@@ -173,14 +173,20 @@ class AuthService with ChangeNotifier {
         throw AuthException('Google sign in was cancelled');
       }
 
-      // Get auth tokens (unused but kept for context if needed later)
-      // final googleAuth = await googleUser.authentication;
+      // Get auth tokens
+      final googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+      final accessToken = googleAuth.accessToken;
+
+      if (idToken == null) {
+        throw AuthException('No ID Token found.');
+      }
 
       // Sign in to Supabase with the Google token
-      await _supabase.auth.signInWithOAuth(
-        OAuthProvider.google,
-        authScreenLaunchMode: LaunchMode.externalApplication,
-        redirectTo: 'morrow://login-callback',
+      await _supabase.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: accessToken,
       );
 
       // Get the user after successful sign in

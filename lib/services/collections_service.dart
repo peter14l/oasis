@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/models/collection.dart';
-import 'package:morrow_v2/models/post.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:oasis_v2/models/collection.dart';
+import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
 
 class CollectionsService {
   final _supabase = SupabaseService().client;
@@ -44,7 +44,7 @@ class CollectionsService {
         final collections = await getUserCollections();
         if (collections.length >= 3) {
           throw Exception(
-            'Free tier is limited to 3 collections. Upgrade to Morrow Pro for unlimited collections.',
+            'Free tier is limited to 3 collections. Upgrade to Oasis Pro for unlimited collections.',
           );
         }
       }
@@ -118,7 +118,7 @@ class CollectionsService {
         final items = await getCollectionItems(collectionId);
         if (items.length >= 50) {
           throw Exception(
-            'Free tier collections are limited to 50 items. Upgrade to Morrow Pro for unlimited items.',
+            'Free tier collections are limited to 50 items. Upgrade to Oasis Pro for unlimited items.',
           );
         }
       }

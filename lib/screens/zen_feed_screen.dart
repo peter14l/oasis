@@ -2,15 +2,17 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:morrow_v2/models/post.dart';
-import 'package:morrow_v2/models/feed_layout_strategy.dart';
-import 'package:morrow_v2/providers/feed_provider.dart';
-import 'package:morrow_v2/services/auth_service.dart';
-import 'package:morrow_v2/utils/friction_scroll_physics.dart';
-import 'package:morrow_v2/widgets/zen_breath_widget.dart';
-import 'package:morrow_v2/widgets/energy_meter_widget.dart';
-import 'package:morrow_v2/widgets/feed_layout_switcher.dart';
+import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/models/feed_layout_strategy.dart';
+import 'package:oasis_v2/providers/feed_provider.dart';
+import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/utils/friction_scroll_physics.dart';
+import 'package:oasis_v2/widgets/zen_breath_widget.dart';
+import 'package:oasis_v2/widgets/energy_meter_widget.dart';
+import 'package:oasis_v2/widgets/feed_layout_switcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:oasis_v2/widgets/comments_modal.dart';
+import 'package:share_plus/share_plus.dart';
 
 /// Zen Carousel feed screen - one post at a time with breath interstitials
 class ZenFeedScreen extends StatefulWidget {
@@ -305,6 +307,8 @@ class _ZenPostPage extends StatelessWidget {
 
   Widget _buildActions(BuildContext context) {
     final theme = Theme.of(context);
+    final feedProvider = context.read<FeedProvider>();
+    final authService = context.read<AuthService>();
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -323,7 +327,14 @@ class _ZenPostPage extends StatelessWidget {
             label: '${post.likes}',
             color: post.isLiked ? Colors.red : null,
             onTap: () {
-              // Handle like
+              final userId = authService.currentUser?.id;
+              if (userId == null) return;
+
+              if (post.isLiked) {
+                feedProvider.unlikePost(userId: userId, postId: post.id);
+              } else {
+                feedProvider.likePost(userId: userId, postId: post.id);
+              }
             },
           ),
           _buildActionButton(
@@ -331,7 +342,12 @@ class _ZenPostPage extends StatelessWidget {
             icon: Icons.chat_bubble_outline,
             label: '${post.comments}',
             onTap: () {
-              // Handle comment
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => CommentsModal(postId: post.id),
+              );
             },
           ),
           _buildActionButton(
@@ -339,7 +355,8 @@ class _ZenPostPage extends StatelessWidget {
             icon: Icons.share_outlined,
             label: '${post.shares}',
             onTap: () {
-              // Handle share
+              final deepLink = 'https://morrow.app/post/${post.id}';
+              Share.share('Check out this post on Morrow! $deepLink');
             },
           ),
           _buildActionButton(
@@ -348,7 +365,14 @@ class _ZenPostPage extends StatelessWidget {
             label: '',
             color: post.isBookmarked ? theme.colorScheme.primary : null,
             onTap: () {
-              // Handle bookmark
+              final userId = authService.currentUser?.id;
+              if (userId == null) return;
+
+              if (post.isBookmarked) {
+                feedProvider.unbookmarkPost(userId: userId, postId: post.id);
+              } else {
+                feedProvider.bookmarkPost(userId: userId, postId: post.id);
+              }
             },
           ),
         ],

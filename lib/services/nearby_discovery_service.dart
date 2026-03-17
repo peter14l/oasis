@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
 import 'dart:math' as math;
 
 /// Nearby discovery service for finding users and events

@@ -21,7 +21,7 @@ class EncryptionService {
   static const String _publicKeyKey = 'rsa_public_key';
   
   /// Global toggle for E2EE messaging
-  static bool isEnabled = false;
+  static bool isEnabled = true;
 
   bool _isInitialized = false;
 
@@ -392,18 +392,39 @@ class EncryptionService {
 
   // Helper methods
   String _encryptWithKey(String data, encrypt.Key key) {
-    final iv = encrypt.IV.fromLength(16);
-    final encrypter = encrypt.Encrypter(encrypt.AES(key));
-    return encrypter.encrypt(data, iv: iv).base64;
+    final iv = encrypt.IV.fromSecureRandom(16);
+    final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
+    final encrypted = encrypter.encrypt(data, iv: iv);
+    
+    // Prepend IV to the data (IV is 16 bytes)
+    final combined = Uint8List(16 + encrypted.bytes.length);
+    combined.setRange(0, 16, iv.bytes);
+    combined.setRange(16, combined.length, encrypted.bytes);
+    
+    return base64.encode(combined);
   }
 
-  String? _decryptWithKey(String encryptedData, encrypt.Key key) {
+  String? _decryptWithKey(String encryptedDataBase64, encrypt.Key key) {
     try {
-      final iv = encrypt.IV.fromLength(16);
-      final encrypter = encrypt.Encrypter(encrypt.AES(key));
-      return encrypter.decrypt64(encryptedData, iv: iv);
+      final combined = base64.decode(encryptedDataBase64);
+      if (combined.length < 16) return null;
+
+      final iv = encrypt.IV(combined.sublist(0, 16));
+      final encryptedBytes = combined.sublist(16);
+      final encrypted = encrypt.Encrypted(encryptedBytes);
+
+      final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
+      return encrypter.decrypt(encrypted, iv: iv);
     } catch (e) {
       debugPrint('[Encryption] _decryptWithKey failed: $e');
+      // If direct decryption failed, try the legacy zero-IV method for ONE LAST transition
+      try {
+        final iv = encrypt.IV.fromLength(16);
+        final encrypter = encrypt.Encrypter(encrypt.AES(key)); // Default mode
+        return encrypter.decrypt64(encryptedDataBase64, iv: iv);
+      } catch (legacyError) {
+        debugPrint('[Encryption] Legacy fallback also failed: $legacyError');
+      }
       return null;
     }
   }
@@ -416,6 +437,58 @@ class EncryptionService {
   Future<void> clearKeys() async {
     await _secureStorage.deleteAll();
     _isInitialized = false;
+  }
+
+  /// Backup Signal Identity to server
+  Future<bool> backupSignalIdentity(String identityKeyPairBase64, int registrationId) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return false;
+
+      final backupKey = _deriveBackupKey(userId);
+      final data = jsonEncode({
+        'identityKeyPair': identityKeyPairBase64,
+        'registrationId': registrationId,
+      });
+      
+      final encryptedData = _encryptWithKey(data, backupKey);
+
+      await _supabase.from('profiles').update({
+        'encrypted_signal_identity': encryptedData,
+      }).eq('id', userId);
+
+      return true;
+    } catch (e) {
+      debugPrint('[Encryption] backupSignalIdentity failed: $e');
+      return false;
+    }
+  }
+
+  /// Restore Signal Identity from server
+  Future<Map<String, dynamic>?> restoreSignalIdentity() async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return null;
+
+      final response = await _supabase
+          .from('profiles')
+          .select('encrypted_signal_identity')
+          .eq('id', userId)
+          .single();
+
+      final encryptedData = response['encrypted_signal_identity'] as String?;
+      if (encryptedData == null) return null;
+
+      final backupKey = _deriveBackupKey(userId);
+      final decryptedData = _decryptWithKey(encryptedData, backupKey);
+      
+      if (decryptedData == null) return null;
+
+      return jsonDecode(decryptedData) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('[Encryption] restoreSignalIdentity failed: $e');
+      return null;
+    }
   }
 }
 

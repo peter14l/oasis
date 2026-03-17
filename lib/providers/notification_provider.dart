@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/models/notification.dart';
-import 'package:morrow_v2/services/notification_service.dart';
-import 'package:morrow_v2/services/notification_manager.dart';
+import 'package:oasis_v2/models/notification.dart';
+import 'package:oasis_v2/services/notification_service.dart';
+import 'package:oasis_v2/services/notification_manager.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NotificationProvider with ChangeNotifier {

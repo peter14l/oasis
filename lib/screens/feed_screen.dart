@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:morrow_v2/providers/feed_provider.dart';
-import 'package:morrow_v2/providers/profile_provider.dart';
-import 'package:morrow_v2/services/auth_service.dart';
-import 'package:morrow_v2/services/stories_service.dart';
-import 'package:morrow_v2/widgets/post_card.dart';
+import 'package:oasis_v2/providers/feed_provider.dart';
+import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/services/stories_service.dart';
+import 'package:oasis_v2/widgets/post_card.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:morrow_v2/models/story_model.dart';
-import 'package:morrow_v2/widgets/stories_bar.dart';
-import 'package:morrow_v2/widgets/capsules/capsule_carousel.dart';
-import 'package:morrow_v2/models/feed_layout_strategy.dart';
-import 'package:morrow_v2/widgets/feed_layout_switcher.dart';
-import 'package:morrow_v2/screens/zen_feed_screen.dart';
-import 'package:morrow_v2/screens/pulse_feed_screen.dart';
-import 'package:morrow_v2/widgets/greyscale_wrapper.dart';
-import 'package:morrow_v2/widgets/comments_modal.dart';
-import 'package:morrow_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/models/story_model.dart';
+import 'package:oasis_v2/widgets/stories_bar.dart';
+import 'package:oasis_v2/widgets/capsules/capsule_carousel.dart';
+import 'package:oasis_v2/models/feed_layout_strategy.dart';
+import 'package:oasis_v2/widgets/feed_layout_switcher.dart';
+import 'package:oasis_v2/screens/zen_feed_screen.dart';
+import 'package:oasis_v2/screens/pulse_feed_screen.dart';
+import 'package:oasis_v2/widgets/greyscale_wrapper.dart';
+import 'package:oasis_v2/widgets/comments_modal.dart';
+import 'package:oasis_v2/utils/responsive_layout.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});

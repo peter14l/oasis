@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/models/study_session.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:oasis_v2/models/study_session.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
 import 'package:uuid/uuid.dart';
 
 class StudySessionService extends ChangeNotifier {

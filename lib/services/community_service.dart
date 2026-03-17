@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/config/supabase_config.dart';
-import 'package:morrow_v2/models/community.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:oasis_v2/config/supabase_config.dart';
+import 'package:oasis_v2/models/community.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
 import 'package:uuid/uuid.dart';
 
 class CommunityService {
@@ -100,7 +100,7 @@ class CommunityService {
             .eq('creator_id', creatorId);
         if (createdCommunities.length >= 1) {
           throw Exception(
-            'Free tier is limited to creating 1 community. Upgrade to Morrow Pro to create more.',
+            'Free tier is limited to creating 1 community. Upgrade to Oasis Pro to create more.',
           );
         }
       }
@@ -153,7 +153,7 @@ class CommunityService {
         final userCommunities = await getUserCommunities(userId: userId);
         if (userCommunities.length >= 5) {
           throw Exception(
-            'Free tier is limited to joining 5 communities. Upgrade to Morrow Pro to join more.',
+            'Free tier is limited to joining 5 communities. Upgrade to Oasis Pro to join more.',
           );
         }
       }

@@ -31,8 +31,8 @@ class Conversation {
     return Conversation(
       id: json['id'] as String,
       otherUserId: json['other_user_id'] as String? ?? '',
-      otherUserName: json['other_user_name'] as String? ?? '',
-      otherUserAvatar: json['other_user_avatar'] as String? ?? '',
+      otherUserName: json['other_user_name'] as String? ?? json['other_user_username'] as String? ?? '',
+      otherUserAvatar: json['other_user_avatar'] as String? ?? json['other_user_avatar_url'] as String? ?? '',
       lastMessage: json['last_message'] as String?,
       lastMessageTime:
           json['last_message_time'] != null
@@ -98,24 +98,29 @@ class Conversation {
   }
 
   // Helper method to get display text for last message
-  String getLastMessageDisplay() {
+  String getLastMessageDisplay([String? currentUserId]) {
     if (lastMessage == null || lastMessage!.isEmpty) {
       return '';
     }
 
+    String prefix = '';
+    if (currentUserId != null && lastMessageSenderId == currentUserId) {
+      prefix = 'You: ';
+    }
+
     switch (lastMessageType) {
       case 'image':
-        return '📷 Photo';
+        return '$prefix📷 Photo';
       case 'document':
-        return '📄 Document';
+        return '$prefix📄 Document';
       case 'voice':
-        return '🎤 Voice message';
+        return '$prefix🎤 Voice message';
       case 'poll':
-        return '📊 Poll';
+        return '$prefix📊 Poll';
       case 'location':
-        return '📍 Location';
+        return '$prefix📍 Location';
       default:
-        return lastMessage!;
+        return '$prefix$lastMessage';
     }
   }
 }

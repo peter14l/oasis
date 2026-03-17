@@ -1,4 +1,4 @@
-import 'package:morrow_v2/models/message_reaction.dart';
+import 'package:oasis_v2/models/message_reaction.dart';
 
 enum MessageType { text, image, document, voice, poll, location }
 
@@ -33,6 +33,7 @@ class Message {
   final DateTime? expiresAt;
   final Map<String, dynamic>? encryptedKeys;
   final String? iv;
+  final int? signalMessageType; // 2 = Normal, 3 = PreKey
   final String? callId;
 
   Message({
@@ -60,6 +61,7 @@ class Message {
     this.expiresAt,
     this.encryptedKeys,
     this.iv,
+    this.signalMessageType,
     this.callId,
   });
 
@@ -124,6 +126,7 @@ class Message {
               : null,
       encryptedKeys: json['encrypted_keys'] as Map<String, dynamic>?,
       iv: json['iv'] as String?,
+      signalMessageType: json['signal_message_type'] as int?,
       callId: json['call_id'] as String?,
     );
   }
@@ -153,6 +156,7 @@ class Message {
       'expires_at': expiresAt?.toIso8601String(),
       'encrypted_keys': encryptedKeys,
       'iv': iv,
+      'signal_message_type': signalMessageType,
       'call_id': callId,
     };
   }
@@ -182,6 +186,7 @@ class Message {
     DateTime? expiresAt,
     Map<String, dynamic>? encryptedKeys,
     String? iv,
+    int? signalMessageType,
     String? callId,
   }) {
     return Message(
@@ -209,6 +214,7 @@ class Message {
       expiresAt: expiresAt ?? this.expiresAt,
       encryptedKeys: encryptedKeys ?? this.encryptedKeys,
       iv: iv ?? this.iv,
+      signalMessageType: signalMessageType ?? this.signalMessageType,
       callId: callId ?? this.callId,
     );
   }

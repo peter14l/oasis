@@ -3,29 +3,33 @@ import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:morrow_v2/routes/app_router.dart';
-import 'package:morrow_v2/themes/app_theme.dart';
-import 'package:morrow_v2/services/auth_service.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
-import 'package:morrow_v2/providers/feed_provider.dart';
-import 'package:morrow_v2/providers/profile_provider.dart';
-import 'package:morrow_v2/providers/community_provider.dart';
-import 'package:morrow_v2/providers/user_settings_provider.dart';
-import 'package:morrow_v2/providers/typing_indicator_provider.dart';
-import 'package:morrow_v2/providers/notification_provider.dart';
-import 'package:morrow_v2/providers/capsule_provider.dart';
-import 'package:morrow_v2/providers/conversation_provider.dart';
-import 'package:morrow_v2/services/vault_service.dart';
-import 'package:morrow_v2/services/screen_time_service.dart';
-import 'package:morrow_v2/services/energy_meter_service.dart';
-import 'package:morrow_v2/services/subscription_service.dart';
-import 'package:morrow_v2/widgets/mesh_gradient_background.dart';
+import 'package:oasis_v2/routes/app_router.dart';
+import 'package:oasis_v2/themes/app_theme.dart';
+import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/providers/feed_provider.dart';
+import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/providers/community_provider.dart';
+import 'package:oasis_v2/providers/user_settings_provider.dart';
+import 'package:oasis_v2/providers/typing_indicator_provider.dart';
+import 'package:oasis_v2/providers/notification_provider.dart';
+import 'package:oasis_v2/providers/capsule_provider.dart';
+import 'package:oasis_v2/providers/conversation_provider.dart';
+import 'package:oasis_v2/providers/canvas_provider.dart';
+import 'package:oasis_v2/providers/circle_provider.dart';
+import 'package:oasis_v2/services/vault_service.dart';
+import 'package:oasis_v2/services/screen_time_service.dart';
+import 'package:oasis_v2/services/energy_meter_service.dart';
+import 'package:oasis_v2/services/subscription_service.dart';
+import 'package:oasis_v2/services/encryption_service.dart';
+import 'package:oasis_v2/services/signal/signal_service.dart';
+import 'package:oasis_v2/widgets/mesh_gradient_background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:morrow_v2/firebase_options.dart';
-import 'package:morrow_v2/services/notification_manager.dart';
-import 'package:morrow_v2/services/call_service.dart';
+import 'package:oasis_v2/firebase_options.dart';
+import 'package:oasis_v2/services/notification_manager.dart';
+import 'package:oasis_v2/services/call_service.dart';
 import 'package:flutter/foundation.dart';
 
 // Theme Provider to manage theme mode
@@ -155,6 +159,8 @@ void main() async {
                   ChangeNotifierProvider(create: (_) => CapsuleProvider()),
                   ChangeNotifierProvider(create: (_) => ConversationProvider()),
                   ChangeNotifierProvider(create: (_) => CallService()),
+                  ChangeNotifierProvider(create: (_) => CanvasProvider()),
+                  ChangeNotifierProvider(create: (_) => CircleProvider()),
                   ChangeNotifierProvider<VaultService>(
                     create: (_) => VaultService(),
                   ),
@@ -300,15 +306,28 @@ class _MyAppState extends State<MyApp> {
             final settingsProvider = Provider.of<UserSettingsProvider>(context);
             final scale = settingsProvider.fontSizeFactor;
 
-            // Initialize notifications with current user
-            if (snapshot.hasData && snapshot.data?.session != null) {
-              final userId = snapshot.data!.session!.user.id;
-              // Defer to next frame to avoid build-time state updates
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                context.read<NotificationProvider>().init(userId);
-                context.read<ConversationProvider>().initialize(userId);
-              });
-            } else {
+              // Initialize notifications and load profile with current user
+              if (snapshot.hasData && snapshot.data?.session != null) {
+                final userId = snapshot.data!.session!.user.id;
+                // Defer to next frame to avoid build-time state updates
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  context.read<NotificationProvider>().init(userId);
+                  context.read<ConversationProvider>().initialize(userId);
+                  context.read<ProfileProvider>().loadCurrentProfile(userId);
+                  context.read<CircleProvider>().loadCircles(userId);
+                  context.read<CanvasProvider>().loadCanvases(userId);
+
+                  // Initialize encryption keys in the background for all users
+                  EncryptionService().init().catchError((e) {
+                    debugPrint('Encryption init failed: $e');
+                    return EncryptionStatus.needsSetup;
+                  });
+                  SignalService().init().catchError((e) {
+                    debugPrint('Signal init failed: $e');
+                    return false;
+                  });
+                });
+              } else {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 context.read<NotificationProvider>().init(null);
               });

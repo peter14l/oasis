@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:morrow_v2/models/energy_meter_state.dart';
-import 'package:morrow_v2/models/feed_layout_strategy.dart';
+import 'package:oasis_v2/models/energy_meter_state.dart';
+import 'package:oasis_v2/models/feed_layout_strategy.dart';
 
 /// Service for managing user interaction energy
 /// Handles energy deduction, passive recovery, and persistence

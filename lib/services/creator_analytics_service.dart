@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
 
 /// Creator Tools Suite - Analytics service for creators
 class CreatorAnalyticsService {
@@ -140,7 +140,7 @@ class CreatorAnalyticsService {
     final isPro = user?.userMetadata?['is_pro'] == true;
     if (!isPro) {
       throw Exception(
-        'Upgrade to Morrow Pro to access personalized best posting times heatmap.',
+        'Upgrade to Oasis Pro to access personalized best posting times heatmap.',
       );
     }
     try {
@@ -182,7 +182,7 @@ class CreatorAnalyticsService {
     final user = _supabase.auth.currentUser;
     final isPro = user?.userMetadata?['is_pro'] == true;
     if (!isPro) {
-      throw Exception('Upgrade to Morrow Pro to access audience demographics.');
+      throw Exception('Upgrade to Oasis Pro to access audience demographics.');
     }
     try {
       // Get followers with their profile data
@@ -230,7 +230,7 @@ class CreatorAnalyticsService {
     final isPro = user?.userMetadata?['is_pro'] == true;
     if (!isPro) {
       throw Exception(
-        'Upgrade to Morrow Pro to access content-type performance breakdown.',
+        'Upgrade to Oasis Pro to access content-type performance breakdown.',
       );
     }
     try {

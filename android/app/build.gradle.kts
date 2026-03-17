@@ -34,8 +34,9 @@ android {
     }
 
     buildTypes {
-        release {
+        getByName("release") {
             signingConfig = signingConfigs.getByName("debug") // Replace with release config for production
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 }

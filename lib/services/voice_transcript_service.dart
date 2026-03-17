@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
 
 /// Voice message transcript service for speech-to-text
 /// Note: Full speech recognition requires speech_to_text package

@@ -70,8 +70,15 @@ class ScreenTimeService extends ChangeNotifier {
     return 1.0;
   }
 
-  /// True when the session has reached the scroll limit.
-  bool get isKillSwitchActive => sessionElapsedMinutes >= _scrollLimitMinutes;
+  /// True when the session has reached the scroll limit and the break period is active.
+  /// Aligns with [saturationLevel] logic: active during the ramp-down and B/W period.
+  bool get isKillSwitchActive {
+    final t = sessionElapsedMinutes;
+    final limit = _scrollLimitMinutes;
+    // The kill switch is active from the moment we hit the limit
+    // until the end of the B/W period (limit + 10 mins).
+    return t >= limit && t < (limit + 10);
+  }
 
   /// Reset the session counter, giving the user a fresh window.
   void resetKillSwitch() {
@@ -268,33 +275,33 @@ class ScreenTimeService extends ChangeNotifier {
       {
         'name': 'Feed',
         'minutes': feed,
-        'icon': 0xe253,
+        'icon': Icons.feed,
         'color': 0xFF2196F3,
-      }, // Icons.feed
+      },
       {
         'name': 'Messages',
         'minutes': messages,
-        'icon': 0xe156,
+        'icon': Icons.chat,
         'color': 0xFF4CAF50,
-      }, // Icons.chat
+      },
       {
         'name': 'Communities',
         'minutes': communities,
-        'icon': 0xe2eb,
+        'icon': Icons.people,
         'color': 0xFFFF9800,
-      }, // Icons.people
+      },
       {
         'name': 'Profile',
         'minutes': profile,
-        'icon': 0xe491,
+        'icon': Icons.person,
         'color': 0xFF9C27B0,
-      }, // Icons.person
+      },
       {
         'name': 'Other',
         'minutes': other,
-        'icon': 0xe425,
+        'icon': Icons.more_horiz,
         'color': 0xFF9E9E9E,
-      }, // Icons.more_horiz
+      },
     ];
   }
 

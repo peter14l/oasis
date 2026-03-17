@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:morrow_v2/models/post.dart';
+import 'package:oasis_v2/models/post.dart';
 import 'package:intl/intl.dart';
 
 class ActivityGraph extends StatelessWidget {

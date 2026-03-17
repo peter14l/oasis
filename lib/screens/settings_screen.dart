@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:morrow_v2/main.dart'; // For ThemeProvider
-import 'package:morrow_v2/services/auth_service.dart';
-import 'package:morrow_v2/services/profile_service.dart';
-import 'package:morrow_v2/utils/responsive_layout.dart';
-import 'package:morrow_v2/screens/settings/screen_time_screen.dart';
-import 'package:morrow_v2/screens/settings/vault_settings_screen.dart';
-import 'package:morrow_v2/screens/settings/subscription_screen.dart';
-import 'package:morrow_v2/screens/settings/account_privacy_screen.dart';
-import 'package:morrow_v2/screens/settings/two_factor_auth_screen.dart';
-import 'package:morrow_v2/screens/settings/download_data_screen.dart';
-import 'package:morrow_v2/screens/settings/storage_usage_screen.dart';
-import 'package:morrow_v2/screens/settings/font_size_screen.dart';
-import 'package:morrow_v2/screens/settings/help_support_screen.dart';
-import 'package:morrow_v2/screens/moderation/moderation_screens.dart'; // For BlockedUsersScreen
-import 'package:morrow_v2/providers/user_settings_provider.dart';
-import 'package:morrow_v2/services/screen_time_service.dart';
+import 'package:oasis_v2/main.dart'; // For ThemeProvider
+import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/services/profile_service.dart';
+import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/screens/settings/screen_time_screen.dart';
+import 'package:oasis_v2/screens/settings/vault_settings_screen.dart';
+import 'package:oasis_v2/screens/settings/subscription_screen.dart';
+import 'package:oasis_v2/screens/settings/account_privacy_screen.dart';
+import 'package:oasis_v2/screens/settings/two_factor_auth_screen.dart';
+import 'package:oasis_v2/screens/settings/download_data_screen.dart';
+import 'package:oasis_v2/screens/settings/storage_usage_screen.dart';
+import 'package:oasis_v2/screens/settings/font_size_screen.dart';
+import 'package:oasis_v2/screens/settings/help_support_screen.dart';
+import 'package:oasis_v2/screens/messages/encryption_setup_screen.dart';
+import 'package:oasis_v2/screens/moderation/moderation_screens.dart'; // For BlockedUsersScreen
+import 'package:oasis_v2/providers/user_settings_provider.dart';
+import 'package:oasis_v2/services/screen_time_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -210,7 +211,7 @@ class SettingsScreen extends StatelessWidget {
                   size: 32,
                 ),
                 title: const Text(
-                  'Morrow Pro',
+                  'Oasis Pro',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -283,6 +284,20 @@ class SettingsScreen extends StatelessWidget {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => const VaultSettingsScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildSettingsTile(
+              context,
+              icon: Icons.lock_outline,
+              title: 'Encryption',
+              subtitle: 'Manage End-to-End Encryption keys',
+              iconColor: Colors.purple,
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const EncryptionSetupScreen(),
                   ),
                 );
               },
@@ -479,7 +494,7 @@ class SettingsScreen extends StatelessWidget {
               context,
               icon: Icons.help_outline,
               title: 'Help & Support',
-              subtitle: 'Get help with Morrow',
+              subtitle: 'Get help with Oasis',
               iconColor: Colors.green,
               onTap: () {
                 Navigator.of(context).push(
@@ -510,14 +525,14 @@ class SettingsScreen extends StatelessWidget {
             _buildSettingsTile(
               context,
               icon: Icons.info_outline,
-              title: 'About Morrow',
-              subtitle: 'Version 1.0.0',
+              title: 'About Oasis',
+              subtitle: 'Version 3.1.0',
               iconColor: Colors.grey,
               onTap: () {
                 showAboutDialog(
                   context: context,
-                  applicationName: 'Morrow',
-                  applicationVersion: '1.0.0',
+                  applicationName: 'Oasis',
+                  applicationVersion: '3.1.0',
                   applicationIcon: const Icon(Icons.flutter_dash, size: 48),
                   children: [
                     const Text(
@@ -775,9 +790,9 @@ class SettingsScreen extends StatelessWidget {
 
     final Uri emailLaunchUri = Uri(
       scheme: 'mailto',
-      path: 'support@morrowapp.com',
+      path: 'support@Oasisapp.com',
       query:
-          'subject=${Uri.encodeComponent('${prefix}Morrow App Feedback: $label')}',
+          'subject=${Uri.encodeComponent('${prefix}Oasis App Feedback: $label')}',
     );
 
     try {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:morrow_v2/providers/profile_provider.dart';
-import 'package:morrow_v2/services/auth_service.dart';
+import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/services/auth_service.dart';
 
 class AccountPrivacyScreen extends StatelessWidget {
   const AccountPrivacyScreen({super.key});

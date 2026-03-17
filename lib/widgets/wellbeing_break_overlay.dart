@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 /// A persistent top-of-screen banner displayed when the 30-minute
@@ -5,10 +6,17 @@ import 'package:flutter/material.dart';
 ///
 /// Shows a friendly nudge and a "Reset my session" button that calls
 /// [onReset] — which should call [ScreenTimeService.resetKillSwitch()].
+///
+/// Automatically dismisses (swipes up) after 10 seconds to avoid blocking content.
 class WellbeingBreakOverlay extends StatefulWidget {
+  final int limitMinutes;
   final VoidCallback onReset;
 
-  const WellbeingBreakOverlay({super.key, required this.onReset});
+  const WellbeingBreakOverlay({
+    super.key,
+    required this.limitMinutes,
+    required this.onReset,
+  });
 
   @override
   State<WellbeingBreakOverlay> createState() => _WellbeingBreakOverlayState();
@@ -19,6 +27,8 @@ class _WellbeingBreakOverlayState extends State<WellbeingBreakOverlay>
   late final AnimationController _controller;
   late final Animation<double> _fadeAnimation;
   late final Animation<Offset> _slideAnimation;
+  Timer? _dismissTimer;
+  bool _isDismissed = false;
 
   @override
   void initState() {
@@ -37,16 +47,34 @@ class _WellbeingBreakOverlayState extends State<WellbeingBreakOverlay>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _controller.forward();
+
+    // Automatically dismiss after 10 seconds
+    _dismissTimer = Timer(const Duration(seconds: 10), () {
+      if (mounted) {
+        _dismiss();
+      }
+    });
+  }
+
+  void _dismiss() {
+    if (_isDismissed) return;
+    setState(() => _isDismissed = true);
+    _controller.reverse();
   }
 
   @override
   void dispose() {
+    _dismissTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isDismissed && _controller.isDismissed) {
+      return const SizedBox.shrink();
+    }
+
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -79,7 +107,7 @@ class _WellbeingBreakOverlayState extends State<WellbeingBreakOverlay>
                     color: colorScheme.tertiary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text('🌿', style: theme.textTheme.titleMedium),
+                  child: const Text('🌿', style: TextStyle(fontSize: 20)),
                 ),
                 const SizedBox(width: 12),
 
@@ -90,7 +118,7 @@ class _WellbeingBreakOverlayState extends State<WellbeingBreakOverlay>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        '30 minutes — time for a break!',
+                        '${widget.limitMinutes} minutes — time for a break!',
                         style: theme.textTheme.labelLarge?.copyWith(
                           color: colorScheme.onTertiaryContainer,
                           fontWeight: FontWeight.bold,
@@ -111,7 +139,10 @@ class _WellbeingBreakOverlayState extends State<WellbeingBreakOverlay>
 
                 // Reset button
                 TextButton(
-                  onPressed: widget.onReset,
+                  onPressed: () {
+                    _dismiss();
+                    widget.onReset();
+                  },
                   style: TextButton.styleFrom(
                     foregroundColor: colorScheme.tertiary,
                     backgroundColor: colorScheme.tertiary.withValues(

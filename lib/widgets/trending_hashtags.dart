@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:morrow_v2/models/hashtag.dart';
-import 'package:morrow_v2/services/hashtag_service.dart';
+import 'package:oasis_v2/models/hashtag.dart';
+import 'package:oasis_v2/services/hashtag_service.dart';
 import 'package:go_router/go_router.dart';
 
 class TrendingHashtagsWidget extends StatefulWidget {

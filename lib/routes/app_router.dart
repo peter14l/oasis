@@ -6,41 +6,44 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:navigation_bar_m3e/navigation_bar_m3e.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:morrow_v2/services/auth_service.dart';
-import 'package:morrow_v2/screens/community/communities_screen.dart';
-import 'package:morrow_v2/screens/community/community_detail_screen.dart';
-import 'package:morrow_v2/screens/community/community_name_theme_screen.dart';
-import 'package:morrow_v2/screens/community/community_guidelines_screen.dart';
-import 'package:morrow_v2/screens/community/community_description_rules_screen.dart';
-import 'package:morrow_v2/screens/community/community_privacy_moderation_screen.dart';
-import 'package:morrow_v2/screens/community/community_setup_confirmation_screen.dart';
-import 'package:morrow_v2/screens/messages/direct_messages_screen.dart'
+import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/screens/spaces/spaces_screen.dart';
+
+import 'package:oasis_v2/screens/circles/circle_detail_screen.dart';
+import 'package:oasis_v2/screens/circles/create_circle_screen.dart';
+import 'package:oasis_v2/screens/circles/create_commitment_screen.dart';
+
+import 'package:oasis_v2/screens/canvas/canvas_detail_screen.dart';
+import 'package:oasis_v2/screens/canvas/timeline_canvas_screen.dart';
+import 'package:oasis_v2/screens/canvas/create_canvas_screen.dart';
+
+import 'package:oasis_v2/screens/messages/direct_messages_screen.dart'
     as messages;
-import 'package:morrow_v2/screens/messages/chat_screen.dart';
-import 'package:morrow_v2/screens/messages/new_message_screen.dart';
-import 'package:morrow_v2/providers/conversation_provider.dart';
-import 'package:morrow_v2/screens/messages/active_call_screen.dart';
-import 'package:morrow_v2/models/call.dart';
-import 'package:morrow_v2/screens/notifications/notifications_screen.dart';
-import 'package:morrow_v2/screens/settings_screen.dart';
-import 'package:morrow_v2/screens/settings/subscription_screen.dart';
-import 'package:morrow_v2/screens/settings/account_privacy_screen.dart';
-import 'package:morrow_v2/screens/settings/two_factor_auth_screen.dart';
-import 'package:morrow_v2/screens/settings/download_data_screen.dart';
-import 'package:morrow_v2/screens/settings/storage_usage_screen.dart';
-import 'package:morrow_v2/screens/settings/font_size_screen.dart';
-import 'package:morrow_v2/screens/settings/help_support_screen.dart';
-import 'package:morrow_v2/screens/moderation/moderation_screens.dart';
-import 'package:morrow_v2/screens/story_view_screen.dart';
-import 'package:morrow_v2/models/story_model.dart';
-import 'package:morrow_v2/screens/login_screen.dart' as login_screen;
+import 'package:oasis_v2/screens/messages/chat_screen.dart';
+import 'package:oasis_v2/screens/messages/new_message_screen.dart';
+import 'package:oasis_v2/providers/conversation_provider.dart';
+import 'package:oasis_v2/screens/messages/active_call_screen.dart';
+import 'package:oasis_v2/models/call.dart';
+import 'package:oasis_v2/screens/notifications/notifications_screen.dart';
+import 'package:oasis_v2/screens/settings_screen.dart';
+import 'package:oasis_v2/screens/settings/subscription_screen.dart';
+import 'package:oasis_v2/screens/settings/account_privacy_screen.dart';
+import 'package:oasis_v2/screens/settings/two_factor_auth_screen.dart';
+import 'package:oasis_v2/screens/settings/download_data_screen.dart';
+import 'package:oasis_v2/screens/settings/storage_usage_screen.dart';
+import 'package:oasis_v2/screens/settings/font_size_screen.dart';
+import 'package:oasis_v2/screens/settings/help_support_screen.dart';
+import 'package:oasis_v2/screens/moderation/moderation_screens.dart';
+import 'package:oasis_v2/screens/story_view_screen.dart';
+import 'package:oasis_v2/models/story_model.dart';
+import 'package:oasis_v2/screens/login_screen.dart' as login_screen;
 import '../screens/register_screen.dart';
 import '../screens/reset_password_screen.dart';
 import '../screens/feed_screen.dart';
 import '../screens/search_screen.dart';
 import '../screens/create_post_screen.dart';
 import '../screens/comments_screen.dart';
-import 'package:morrow_v2/screens/post_details_screen.dart';
+import 'package:oasis_v2/screens/post_details_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/edit_profile_screen.dart';
 import '../screens/followers_screen.dart';
@@ -49,8 +52,8 @@ import '../screens/legal/privacy_policy_screen.dart';
 import '../screens/legal/terms_of_service_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/capsules/create_capsule_screen.dart';
-import 'package:morrow_v2/services/screen_time_service.dart';
-import 'package:morrow_v2/widgets/wellbeing_break_overlay.dart';
+import 'package:oasis_v2/services/screen_time_service.dart';
+import 'package:oasis_v2/widgets/wellbeing_break_overlay.dart';
 
 class MainLayout extends StatefulWidget {
   final Widget child;
@@ -69,7 +72,7 @@ class _MainLayoutState extends State<MainLayout> {
     final location = GoRouterState.of(context).uri.path;
     if (location.startsWith('/feed')) return 0;
     if (location.startsWith('/search')) return 1;
-    if (location.startsWith('/communities')) return 2;
+    if (location.startsWith('/spaces')) return 2;
     if (location.startsWith('/messages')) return 3;
     if (location.startsWith('/notifications')) return 4;
     if (location.startsWith('/profile')) return 5;
@@ -120,6 +123,7 @@ class _MainLayoutState extends State<MainLayout> {
                     left: 0,
                     right: 0,
                     child: WellbeingBreakOverlay(
+                      limitMinutes: svc.scrollLimitMinutes,
                       onReset: () => svc.resetKillSwitch(),
                     ),
                   ),
@@ -150,6 +154,7 @@ class _MainLayoutState extends State<MainLayout> {
                   left: 0,
                   right: 0,
                   child: WellbeingBreakOverlay(
+                    limitMinutes: svc.scrollLimitMinutes,
                     onReset: () => svc.resetKillSwitch(),
                   ),
                 ),
@@ -181,18 +186,8 @@ class _MainLayoutState extends State<MainLayout> {
     required bool killSwitchActive,
   }) {
     if (currentIndex == 2) {
-      // Communities tab
-      return FloatingActionButton(
-        onPressed: () => context.goNamed('create_community'),
-        backgroundColor: theme.colorScheme.primary,
-        elevation: 2,
-        shape: const CircleBorder(),
-        child: Icon(
-          Icons.add_rounded,
-          color: theme.colorScheme.onPrimary,
-          size: 28,
-        ),
-      );
+      // Spaces tab — no FAB needed, circles/canvas have their own buttons
+      return null;
     } else if (currentIndex == 0 && !killSwitchActive) {
       // Feed tab FAB — hidden when kill-switch is active
       return FloatingActionButton(
@@ -304,11 +299,9 @@ class _MainLayoutState extends State<MainLayout> {
                 label: 'Search',
               ),
               NavigationDestinationM3E(
-                icon: const Icon(FluentIcons.people_community_24_regular),
-                selectedIcon: const Icon(
-                  FluentIcons.people_community_24_filled,
-                ),
-                label: 'Communities',
+                icon: const Icon(FluentIcons.channel_24_regular),
+                selectedIcon: const Icon(FluentIcons.channel_24_filled),
+                label: 'Spaces',
               ),
               NavigationDestinationM3E(
                 icon: Badge(
@@ -395,9 +388,9 @@ class _MainLayoutState extends State<MainLayout> {
                   : const Text('Search'),
         ),
         NavigationRailDestination(
-          icon: const Icon(FluentIcons.people_community_24_regular),
-          selectedIcon: const Icon(FluentIcons.people_community_24_filled),
-          label: const Text('Communities'),
+          icon: const Icon(FluentIcons.channel_24_regular),
+          selectedIcon: const Icon(FluentIcons.channel_24_filled),
+          label: const Text('Spaces'),
         ),
         NavigationRailDestination(
           icon: Badge(
@@ -438,7 +431,7 @@ class _MainLayoutState extends State<MainLayout> {
         context.go('/search');
         break;
       case 2:
-        context.go('/communities');
+        context.go('/spaces');
         break;
       case 3:
         context.go('/messages');
@@ -566,17 +559,58 @@ class AppRouter {
 
           // Communities Screen
           GoRoute(
-            path: '/communities',
-            name: 'communities',
+            path: '/spaces',
+            name: 'spaces',
             pageBuilder:
                 (context, state) =>
-                    const NoTransitionPage(child: CommunitiesScreen()),
+                    const NoTransitionPage(child: SpacesScreen()),
             routes: [
-              // Community Creation Flow
               GoRoute(
-                path: 'create',
-                name: 'create_community',
-                builder: (context, state) => const CommunityNameThemeScreen(),
+                path: 'circles/create',
+                name: 'create_circle',
+                parentNavigatorKey: _rootNavigatorKey,
+                pageBuilder: (context, state) => const MaterialPage(
+                  fullscreenDialog: true,
+                  child: CreateCircleScreen(),
+                ),
+              ),
+              GoRoute(
+                path: 'canvas/create',
+                name: 'create_canvas',
+                parentNavigatorKey: _rootNavigatorKey,
+                pageBuilder: (context, state) => const MaterialPage(
+                  fullscreenDialog: true,
+                  child: CreateCanvasScreen(),
+                ),
+              ),
+              GoRoute(
+                path: 'circles/:circleId',
+                name: 'circle_detail',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) {
+                  final id = state.pathParameters['circleId']!;
+                  return CircleDetailScreen(circleId: id);
+                },
+                routes: [
+                  GoRoute(
+                    path: 'add-commitment',
+                    name: 'create_commitment',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) {
+                      final id = state.pathParameters['circleId']!;
+                      return CreateCommitmentScreen(circleId: id);
+                    },
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: 'canvas/:canvasId',
+                name: 'canvas_detail',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) {
+                  final id = state.pathParameters['canvasId']!;
+                  return TimelineCanvasScreen(canvasId: id);
+                },
               ),
             ],
           ),
@@ -630,6 +664,7 @@ class AppRouter {
           ),
         ],
       ),
+
 
       // Integrated Call Screen
       GoRoute(
@@ -849,23 +884,7 @@ class AppRouter {
             child: FollowersScreen(userId: userId, initialTab: 1),
           );
         },
-      ),
-
-      // Community Detail Screen
-      GoRoute(
-        path: '/community/:communityId',
-        name: 'community_detail',
-        pageBuilder: (context, state) {
-          final communityId = state.pathParameters['communityId']!;
-          return MaterialPage(
-            key: state.pageKey,
-            child: CommunityDetailScreen(communityId: communityId),
-          );
-        },
-      ),
-
-
-      // New Message Screen
+      ),      // New Message Screen
       GoRoute(
         path: '/new-message',
         name: 'new_message',
@@ -873,79 +892,6 @@ class AppRouter {
             (context, state) => MaterialPage(
               key: state.pageKey,
               child: const NewMessageScreen(),
-            ),
-      ),
-
-      // Community Creation Flow
-      GoRoute(
-        path: '/community/create',
-        name: 'create-community',
-        pageBuilder:
-            (context, state) => MaterialPage(
-              key: state.pageKey,
-              child: const CommunityNameThemeScreen(),
-            ),
-      ),
-
-      // Community Creation Steps
-      GoRoute(
-        path: '/community/create/guidelines',
-        name: 'community-guidelines',
-        pageBuilder: (context, state) {
-          final extra = (state.extra ?? {}) as Map<String, dynamic>;
-          final name = extra['name']?.toString() ?? '';
-          final theme = extra['theme']?.toString() ?? '';
-          return MaterialPage(
-            key: state.pageKey,
-            child: CommunityGuidelinesScreen(name: name, theme: theme),
-          );
-        },
-      ),
-
-      GoRoute(
-        path: '/community/create/description',
-        name: 'community-description',
-        pageBuilder: (context, state) {
-          final extra = (state.extra ?? {}) as Map<String, dynamic>;
-          final name = extra['name']?.toString() ?? '';
-          final theme = extra['theme']?.toString() ?? '';
-          return MaterialPage(
-            key: state.pageKey,
-            child: CommunityDescriptionRulesScreen(name: name, theme: theme),
-          );
-        },
-      ),
-
-      GoRoute(
-        path: '/community/create/privacy',
-        name: 'community-privacy',
-        pageBuilder: (context, state) {
-          final extra = (state.extra ?? {}) as Map<String, dynamic>;
-          final name = extra['name']?.toString() ?? '';
-          final theme = extra['theme']?.toString() ?? '';
-          final description = extra['description']?.toString() ?? '';
-          final rules = extra['rules']?.toString() ?? '';
-          return MaterialPage(
-            key: state.pageKey,
-            child: CommunityPrivacyModerationScreen(
-              name: name,
-              theme: theme,
-              description: description,
-              rules: rules,
-            ),
-          );
-        },
-      ),
-
-      GoRoute(
-        path: '/community/create/confirmation',
-        name: 'community-confirmation',
-        pageBuilder:
-            (context, state) => MaterialPage(
-              key: state.pageKey,
-              child: CommunitySetupConfirmationScreen(
-                communityData: state.extra as Map<String, dynamic>,
-              ),
             ),
       ),
 

@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:morrow_v2/models/pulse_node_position.dart';
+import 'package:oasis_v2/models/pulse_node_position.dart';
 
 /// Utility class for positioning nodes in the Pulse Map
 /// Handles polar to Cartesian conversion and spatial calculations

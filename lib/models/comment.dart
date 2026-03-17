@@ -32,7 +32,7 @@ class Comment {
       userId: json['user_id'] as String,
       parentCommentId: json['parent_comment_id'] as String?,
       username: json['username'] as String? ?? '',
-      userAvatar: json['user_avatar'] as String? ?? '',
+      userAvatar: json['user_avatar'] as String? ?? json['avatar_url'] as String? ?? '',
       content: json['content'] as String,
       likes: json['likes_count'] as int? ?? 0,
       repliesCount: json['replies_count'] as int? ?? 0,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:morrow_v2/services/screen_time_service.dart';
+import 'package:oasis_v2/services/screen_time_service.dart';
 
 /// Wraps [child] in a [ColorFiltered] widget that gradually desaturates
 /// to greyscale as the user approaches 30 minutes of continuous app usage.

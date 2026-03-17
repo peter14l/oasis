@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:morrow_v2/models/notification.dart';
-import 'package:morrow_v2/providers/notification_provider.dart';
-import 'package:morrow_v2/services/auth_service.dart';
+import 'package:oasis_v2/models/notification.dart';
+import 'package:oasis_v2/providers/notification_provider.dart';
+import 'package:oasis_v2/services/auth_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import 'package:morrow_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/utils/responsive_layout.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -107,10 +107,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     };
 
     for (final notification in _filteredNotifications) {
+      final localTimestamp = notification.timestamp.toLocal();
       final notifDate = DateTime(
-        notification.timestamp.year,
-        notification.timestamp.month,
-        notification.timestamp.day,
+        localTimestamp.year,
+        localTimestamp.month,
+        localTimestamp.day,
       );
 
       if (notifDate.isAtSameMomentAs(today)) {

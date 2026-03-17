@@ -5,9 +5,9 @@
 library;
 
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/models/user_model.dart';
-import 'package:morrow_v2/models/post.dart';
-import 'package:morrow_v2/models/community_model.dart';
+import 'package:oasis_v2/models/user_model.dart';
+import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/models/community_model.dart';
 
 /// Mock user for testing
 class MockUser {

@@ -34,7 +34,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Morrow Privacy Policy',
+                    'Oasis Privacy Policy',
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -51,7 +51,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   _buildSection(
                     context,
                     '1. Information We Collect',
-                    '''When you use Morrow, we collect the following types of information:
+                    '''When you use Oasis, we collect the following types of information:
 
 • Account Information: Your email address, username, display name, and profile picture.
 
@@ -67,7 +67,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                     '2. How We Use Your Information',
                     '''We use your information to:
 
-• Provide and maintain the Morrow service
+• Provide and maintain the Oasis service
 • Personalize your experience and content recommendations
 • Enable communication between users
 • Send important notifications about your account
@@ -79,7 +79,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   _buildSection(
                     context,
                     '3. Message Encryption',
-                    '''Morrow uses end-to-end encryption for direct messages:
+                    '''Oasis uses end-to-end encryption for direct messages:
 
 • Your messages are encrypted on your device before being sent
 • Only you and the recipient can read your messages
@@ -125,7 +125,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   _buildSection(
                     context,
                     '7. Screen Time Tracking',
-                    '''Morrow includes screen time features:
+                    '''Oasis includes screen time features:
 
 • Usage data is stored locally on your device
 • We do not share your screen time data with third parties
@@ -135,7 +135,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   _buildSection(
                     context,
                     '8. Children\'s Privacy',
-                    '''Morrow is not intended for children under 13:
+                    '''Oasis is not intended for children under 13:
 
 • We do not knowingly collect information from children under 13
 • If you believe a child has provided us with personal information, please contact us''',

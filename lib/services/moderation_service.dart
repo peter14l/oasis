@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/models/moderation.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:oasis_v2/models/moderation.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
 
 class ModerationService {
   final _supabase = SupabaseService().client;

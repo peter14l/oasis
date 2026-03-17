@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:morrow_v2/models/hashtag.dart';
-import 'package:morrow_v2/models/post.dart';
-import 'package:morrow_v2/services/hashtag_service.dart';
-import 'package:morrow_v2/widgets/post_card.dart';
+import 'package:oasis_v2/models/hashtag.dart';
+import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/services/hashtag_service.dart';
+import 'package:oasis_v2/widgets/post_card.dart';
 
 class HashtagScreen extends StatefulWidget {
   final String tag;

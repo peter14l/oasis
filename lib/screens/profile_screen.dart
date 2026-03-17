@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:morrow_v2/providers/profile_provider.dart';
-import 'package:morrow_v2/services/auth_service.dart';
-import 'package:morrow_v2/services/post_service.dart';
-import 'package:morrow_v2/models/post.dart';
-import 'package:morrow_v2/models/user_profile.dart';
+import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/services/post_service.dart';
+import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/models/user_profile.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:morrow_v2/widgets/wellness_badge.dart';
-import 'package:morrow_v2/widgets/profile/activity_graph.dart';
+import 'package:oasis_v2/widgets/wellness_badge.dart';
+import 'package:oasis_v2/widgets/profile/activity_graph.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userId;

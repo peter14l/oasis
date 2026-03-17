@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:morrow_v2/models/post.dart';
+import 'package:oasis_v2/models/post.dart';
 
 /// Widget representing a post node in the Pulse Map
 /// Displays as a circular orb with parallax effect

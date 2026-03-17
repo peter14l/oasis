@@ -120,12 +120,18 @@ class Post {
   }
 
   factory Post.fromJson(Map<String, dynamic> json) {
+    final rawLikes = json['likes_count'] as int? ?? json['likes'] as int? ?? 0;
+    final isLiked = json['is_liked'] as bool? ?? json['isLiked'] as bool? ?? false;
+
     return Post(
       id: json['id'] as String,
       userId: json['user_id'] as String? ?? json['userId'] as String,
-      username: json['username'] as String? ?? '',
+      username: json['username'] as String? ?? json['full_name'] as String? ?? '',
       userAvatar:
-          json['user_avatar'] as String? ?? json['userAvatar'] as String? ?? '',
+          json['user_avatar'] as String? ??
+          json['userAvatar'] as String? ??
+          json['avatar_url'] as String? ??
+          '',
       content: json['content'] as String?,
       imageUrl: json['image_url'] as String? ?? json['imageUrl'] as String?,
       thumbnailUrl:
@@ -150,10 +156,10 @@ class Post {
               : (json['timestamp'] != null
                    ? DateTime.parse(json['timestamp'] as String)
                    : DateTime.now()),
-      likes: json['likes_count'] as int? ?? json['likes'] as int? ?? 0,
+      likes: isLiked ? (rawLikes > 0 ? rawLikes : 1) : rawLikes,
       comments: json['comments_count'] as int? ?? json['comments'] as int? ?? 0,
       shares: json['shares_count'] as int? ?? json['shares'] as int? ?? 0,
-      isLiked: json['is_liked'] as bool? ?? json['isLiked'] as bool? ?? false,
+      isLiked: isLiked,
       isBookmarked:
           json['is_bookmarked'] as bool? ??
           json['isBookmarked'] as bool? ??

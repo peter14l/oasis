@@ -11,10 +11,10 @@
   "-DCMAKE_ANDROID_NDK=C:\\Android\\ndk\\27.0.12077973" ^
   "-DCMAKE_TOOLCHAIN_FILE=C:\\Android\\ndk\\27.0.12077973\\build\\cmake\\android.toolchain.cmake" ^
   "-DCMAKE_MAKE_PROGRAM=C:\\Android\\cmake\\3.22.1\\bin\\ninja.exe" ^
-  "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=D:\\morrow_v2\\android\\app\\build\\app\\intermediates\\cxx\\Debug\\o2p3q293\\obj\\arm64-v8a" ^
-  "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=D:\\morrow_v2\\android\\app\\build\\app\\intermediates\\cxx\\Debug\\o2p3q293\\obj\\arm64-v8a" ^
+  "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=D:\\oasis_v2\\android\\app\\build\\app\\intermediates\\cxx\\Debug\\o2p3q293\\obj\\arm64-v8a" ^
+  "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=D:\\oasis_v2\\android\\app\\build\\app\\intermediates\\cxx\\Debug\\o2p3q293\\obj\\arm64-v8a" ^
   "-DCMAKE_BUILD_TYPE=Debug" ^
-  "-BD:\\morrow_v2\\android\\app\\.cxx\\Debug\\o2p3q293\\arm64-v8a" ^
+  "-BD:\\oasis_v2\\android\\app\\.cxx\\Debug\\o2p3q293\\arm64-v8a" ^
   -GNinja ^
   -Wno-dev ^
   --no-warn-unused-cli

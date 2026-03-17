@@ -1,10 +1,10 @@
-import 'package:morrow_v2/widgets/skeleton_container.dart';
+import 'package:oasis_v2/widgets/skeleton_container.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:morrow_v2/models/story_model.dart';
-import 'package:morrow_v2/screens/stories/create_story_screen.dart';
-import 'package:morrow_v2/services/auth_service.dart';
+import 'package:oasis_v2/models/story_model.dart';
+import 'package:oasis_v2/screens/stories/create_story_screen.dart';
+import 'package:oasis_v2/services/auth_service.dart';
 
 class StoriesBar extends StatefulWidget {
   final List<StoryGroup> storyGroups;

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:morrow_v2/models/user_profile.dart';
-import 'package:morrow_v2/services/profile_service.dart';
-import 'package:morrow_v2/services/messaging_service.dart';
-import 'package:morrow_v2/services/auth_service.dart';
+import 'package:oasis_v2/models/user_profile.dart';
+import 'package:oasis_v2/services/profile_service.dart';
+import 'package:oasis_v2/services/messaging_service.dart';
+import 'package:oasis_v2/services/auth_service.dart';
 
 class NewMessageScreen extends StatefulWidget {
   const NewMessageScreen({super.key});

@@ -1,16 +1,12 @@
 import 'dart:io';
+import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:oasis_v2/routes/app_router.dart';
 
 /// Cross-platform notification manager
-///
-/// Uses platform-specific implementations:
-/// - Windows/macOS/Linux: Uses system tray notifications (simulated)
-/// - Android/iOS: Would use flutter_local_notifications (when uncommented)
-///
-/// The Windows ATL/MFC issue with flutter_local_notifications is avoided
-/// by using a platform-aware approach with graceful fallbacks.
 class NotificationManager {
   static NotificationManager? _instance;
   bool _isInitialized = false;
@@ -32,8 +28,6 @@ class NotificationManager {
 
     try {
       if (_isDesktop) {
-        // Desktop platforms: Use native notifications via dart:ffi or package
-        // For now, we log and provide a stub implementation
         debugPrint(
           'NotificationManager: Initialized for desktop (${Platform.operatingSystem})',
         );
@@ -91,20 +85,12 @@ class NotificationManager {
   }
 
   /// Show a desktop notification
-  ///
-  /// For Windows, this uses a toast notification approach.
-  /// In a production app, consider using the `local_notifier` package
-  /// or Windows toast notifications via dart:ffi.
   Future<void> _showDesktopNotification({
     required String title,
     required String body,
   }) async {
-    // Desktop notification implementation
-    // Using PowerShell for Windows notifications as a fallback
     if (Platform.isWindows) {
       try {
-        // Windows Toast Notification via PowerShell
-        // This is a workaround that works without ATL/MFC dependencies
         final script = '''
 [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
 [Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] | Out-Null
@@ -129,27 +115,21 @@ class NotificationManager {
           '-Command',
           script,
         ], runInShell: true);
-        debugPrint('NotificationManager: Windows notification sent');
       } catch (e) {
-        // Fallback: Just log the notification
         debugPrint('NotificationManager: [$title] $body');
       }
     } else if (Platform.isMacOS) {
       try {
-        // macOS notification via osascript
         await Process.run('osascript', [
           '-e',
           'display notification "$body" with title "$title"',
         ]);
-        debugPrint('NotificationManager: macOS notification sent');
       } catch (e) {
         debugPrint('NotificationManager: [$title] $body');
       }
     } else if (Platform.isLinux) {
       try {
-        // Linux notification via notify-send
         await Process.run('notify-send', [title, body]);
-        debugPrint('NotificationManager: Linux notification sent');
       } catch (e) {
         debugPrint('NotificationManager: [$title] $body');
       }
@@ -157,9 +137,6 @@ class NotificationManager {
   }
 
   /// Show a mobile notification
-  ///
-  /// This is a stub implementation. Enable flutter_local_notifications
-  /// in pubspec.yaml when building for mobile only.
   Future<void> _showMobileNotification({
     required String title,
     required String body,
@@ -186,8 +163,6 @@ class NotificationManager {
       ),
       payload: payload,
     );
-
-    debugPrint('NotificationManager: [Mobile] [$title] $body');
   }
 
   /// Initialize local notifications for mobile
@@ -204,7 +179,7 @@ class NotificationManager {
     await _localNotificationsPlugin.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (response) {
-        debugPrint('Notification tapped: ${response.payload}');
+        _handleNotificationTap(response.payload);
       },
     );
   }
@@ -213,27 +188,58 @@ class NotificationManager {
   Future<void> _initFCM() async {
     final messaging = FirebaseMessaging.instance;
 
-    // Request permissions (specifically for iOS/Android 13+)
     await messaging.requestPermission(alert: true, badge: true, sound: true);
 
-    // Handle foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint(
-        'FCM Foreground message received: ${message.notification?.title}',
-      );
       if (message.notification != null) {
         showNotification(
           title: message.notification!.title ?? 'New Notification',
           body: message.notification!.body ?? '',
-          payload: message.data.toString(),
+          payload: jsonEncode(message.data),
         );
       }
     });
 
-    // Handle background/terminated message clicks
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      debugPrint('FCM Message opened app: ${message.data}');
+      _handleNotificationTap(jsonEncode(message.data));
     });
+    
+    // Check if app was opened from terminated state
+    RemoteMessage? initialMessage = await messaging.getInitialMessage();
+    if (initialMessage != null) {
+      _handleNotificationTap(jsonEncode(initialMessage.data));
+    }
+  }
+
+  void _handleNotificationTap(String? payload) {
+    if (payload == null) return;
+    
+    try {
+      final data = jsonDecode(payload) as Map<String, dynamic>;
+      final type = data['type'] as String?;
+      
+      if (type == 'dm' || type == 'message') {
+        final conversationId = data['conversation_id'] as String?;
+        if (conversationId != null) {
+          AppRouter.router.pushNamed(
+            'chat_nested',
+            pathParameters: {'conversationId': conversationId},
+            extra: {
+              'otherUserName': data['sender_name'] ?? 'User',
+              'otherUserAvatar': data['sender_avatar'] ?? '',
+              'otherUserId': data['sender_id'] ?? '',
+            },
+          );
+        }
+      } else if (data.containsKey('post_id')) {
+         AppRouter.router.pushNamed(
+            'post_details',
+            pathParameters: {'postId': data['post_id']},
+          );
+      }
+    } catch (e) {
+      debugPrint('Error handling notification tap: $e');
+    }
   }
 
   /// Schedule a notification
@@ -244,36 +250,27 @@ class NotificationManager {
     String? payload,
   }) async {
     final delay = scheduledTime.difference(DateTime.now());
-    if (delay.isNegative) {
-      debugPrint('NotificationManager: Scheduled time is in the past');
-      return;
-    }
+    if (delay.isNegative) return;
 
-    // Simple implementation using a delayed future
     Future.delayed(delay, () {
       showNotification(title: title, body: body, payload: payload);
     });
-
-    debugPrint(
-      'NotificationManager: Scheduled notification for ${scheduledTime.toIso8601String()}',
-    );
   }
 
-  /// Cancel all pending notifications
   Future<void> cancelAll() async {
-    debugPrint('NotificationManager: All notifications cancelled');
-    // Implementation would cancel scheduled notifications
+    await _localNotificationsPlugin.cancelAll();
   }
 
-  /// Request notification permissions
   Future<bool> requestPermission() async {
-    if (_isDesktop) {
-      // Desktop platforms generally don't require permission
-      return true;
-    } else if (_isMobile) {
-      // Would use permission_handler package here
-      // return await Permission.notification.request().isGranted;
-      return true;
+    if (_isDesktop) return true;
+    if (_isMobile) {
+      final messaging = FirebaseMessaging.instance;
+      final settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      return settings.authorizationStatus == AuthorizationStatus.authorized;
     }
     return false;
   }

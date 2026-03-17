@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:morrow_v2/services/encryption_service.dart';
+import 'package:oasis_v2/services/encryption_service.dart';
 
 class EncryptionSetupScreen extends StatefulWidget {
   final bool isRestore;
@@ -15,16 +15,38 @@ class _EncryptionSetupScreenState extends State<EncryptionSetupScreen> {
 
   bool _isLoading = false;
   bool _restoreFailed = false;
+  bool _isAlreadyActive = false;
   String? _errorMessage;
   String _progressMessage = '';
 
   @override
   void initState() {
     super.initState();
-    // Auto-start the process immediately so the user doesn't have to tap anything.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _runSetup();
+      _checkInitialState();
     });
+  }
+
+  Future<void> _checkInitialState() async {
+    if (_encryptionService.isInitialized) {
+      if (mounted) setState(() => _isAlreadyActive = true);
+      return;
+    }
+
+    if (mounted) setState(() => _isLoading = true);
+    final status = await _encryptionService.init();
+    if (status == EncryptionStatus.ready) {
+      if (mounted) {
+        setState(() {
+          _isAlreadyActive = true;
+          _isLoading = false;
+        });
+      }
+      return;
+    }
+
+    // Otherwise, start the actual setup
+    if (mounted) _runSetup();
   }
 
   Future<void> _runSetup({bool forceNewKeys = false}) async {
@@ -39,7 +61,10 @@ class _EncryptionSetupScreenState extends State<EncryptionSetupScreen> {
 
       if (forceNewKeys) {
         // User chose to generate brand-new keys (loses old message decryption)
-        setState(() => _progressMessage = 'Generating new encryption keys…');
+        setState(() {
+          _isAlreadyActive = false;
+          _progressMessage = 'Generating new encryption keys…';
+        });
         success = await _encryptionService.generateNewKeys();
         if (!success) {
           setState(() {
@@ -125,7 +150,9 @@ class _EncryptionSetupScreenState extends State<EncryptionSetupScreen> {
                           ),
                         )
                         : Icon(
-                          _restoreFailed ? Icons.lock_reset : Icons.security,
+                          _restoreFailed
+                              ? Icons.lock_reset
+                              : (_isAlreadyActive ? Icons.gpp_good : Icons.security),
                           size: 80,
                           color:
                               _restoreFailed
@@ -137,11 +164,13 @@ class _EncryptionSetupScreenState extends State<EncryptionSetupScreen> {
               const SizedBox(height: 24),
 
               Text(
-                widget.isRestore
-                    ? (_restoreFailed
-                        ? 'Restore Failed'
-                        : 'Restoring Your Keys')
-                    : 'Setting Up Security',
+                _isAlreadyActive
+                    ? 'End-to-End Encrypted'
+                    : widget.isRestore
+                        ? (_restoreFailed
+                            ? 'Restore Failed'
+                            : 'Restoring Your Keys')
+                        : 'Setting Up Security',
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -163,9 +192,11 @@ class _EncryptionSetupScreenState extends State<EncryptionSetupScreen> {
               // Description when idle and not failed
               if (!_isLoading && !_restoreFailed)
                 Text(
-                  widget.isRestore
-                      ? 'We are restoring your secure encryption keys from your backup. This happens seamlessly using your unique identity.'
-                      : 'We are generating secure encryption keys for your account. These will be backed up automatically to your secure profile.',
+                  _isAlreadyActive
+                      ? 'Secure encryption keys have already been generated. Your text messages are now end-to-end encrypted.'
+                      : widget.isRestore
+                          ? 'We are restoring your secure encryption keys from your backup. This happens seamlessly using your unique identity.'
+                          : 'We are generating secure encryption keys for your account. These will be backed up automatically to your secure profile.',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -200,37 +231,52 @@ class _EncryptionSetupScreenState extends State<EncryptionSetupScreen> {
 
               const Spacer(),
 
-              // Primary button: Retry restore (or initial setup)
-              FilledButton(
-                onPressed: _isLoading ? null : _runSetup,
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              // Primary button or Done button
+              if (_isAlreadyActive)
+                FilledButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                ),
-                child:
-                    _isLoading
-                        ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                  child: const Text(
+                    'Done',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                )
+              else
+                FilledButton(
+                  onPressed: _isLoading ? null : _runSetup,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child:
+                      _isLoading
+                          ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                          : Text(
+                            _restoreFailed
+                                ? 'Try Again'
+                                : widget.isRestore
+                                ? 'Restore Access'
+                                : 'Enable Encryption',
+                            style: const TextStyle(fontSize: 16),
                           ),
-                        )
-                        : Text(
-                          _restoreFailed
-                              ? 'Try Again'
-                              : widget.isRestore
-                              ? 'Restore Access'
-                              : 'Enable Encryption',
-                          style: const TextStyle(fontSize: 16),
-                        ),
-              ),
+                ),
 
-              // Fallback button: Generate new keys (only shown after restore failure)
-              if (_restoreFailed && !_isLoading) ...[
+              // Fallback button: Generate new keys
+              if ((_restoreFailed || _isAlreadyActive) && !_isLoading) ...[
                 const SizedBox(height: 12),
                 OutlinedButton(
                   onPressed: () => _showGenerateNewKeysConfirmation(context),

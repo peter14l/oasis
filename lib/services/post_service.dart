@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/config/supabase_config.dart';
-import 'package:morrow_v2/models/post.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
-import 'package:morrow_v2/services/notification_service.dart';
+import 'package:oasis_v2/config/supabase_config.dart';
+import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/services/notification_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -336,6 +336,92 @@ class PostService {
       await _supabase.from(SupabaseConfig.postsTable).delete().eq('id', postId);
     } catch (e) {
       debugPrint('Error deleting post: $e');
+      rethrow;
+    }
+  }
+
+  /// Like a post
+  Future<void> likePost({
+    required String userId,
+    required String postId,
+  }) async {
+    try {
+      await _supabase.from(SupabaseConfig.likesTable).insert({
+        'user_id': userId,
+        'post_id': postId,
+      });
+
+      // Trigger notification for post owner
+      try {
+        final postResponse =
+            await _supabase
+                .from(SupabaseConfig.postsTable)
+                .select('user_id')
+                .eq('id', postId)
+                .single();
+
+        final postOwnerId = postResponse['user_id'] as String;
+
+        if (postOwnerId != userId) {
+          await _notificationService.createNotification(
+            userId: postOwnerId,
+            type: 'like',
+            actorId: userId,
+            postId: postId,
+          );
+        }
+      } catch (e) {
+        debugPrint('Error triggering like notification: $e');
+      }
+    } catch (e) {
+      debugPrint('Error liking post: $e');
+      rethrow;
+    }
+  }
+
+  /// Unlike a post
+  Future<void> unlikePost(String postId, String userId) async {
+    try {
+      await _supabase
+          .from(SupabaseConfig.likesTable)
+          .delete()
+          .eq('user_id', userId)
+          .eq('post_id', postId);
+    } catch (e) {
+      debugPrint('Error unliking post: $e');
+      rethrow;
+    }
+  }
+
+  /// Bookmark a post
+  Future<void> bookmarkPost({
+    required String userId,
+    required String postId,
+  }) async {
+    try {
+      await _supabase.from(SupabaseConfig.bookmarksTable).insert({
+        'user_id': userId,
+        'post_id': postId,
+      });
+    } catch (e) {
+      debugPrint('Error bookmarking post: $e');
+      rethrow;
+    }
+  }
+
+  /// Remove bookmark from a post
+  Future<void> unbookmarkPost({
+    required String userId,
+    required String postId,
+  }) async {
+    try {
+      await _supabase
+          .from(SupabaseConfig.bookmarksTable)
+          .delete()
+          .eq('user_id', userId)
+          .eq('post_id', postId);
+    } catch (e) {
+      debugPrint('Error removing bookmark: $e');
       rethrow;
     }
   }

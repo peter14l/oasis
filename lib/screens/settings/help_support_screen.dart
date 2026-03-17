@@ -25,8 +25,8 @@ class HelpSupportScreen extends StatelessWidget {
               ),
               _buildHelpTile(
                 context,
-                'Is Morrow Pro free?',
-                'Morrow Pro is a premium subscription service.',
+                'Is Oasis Pro free?',
+                'Oasis Pro is a premium subscription service.',
               ),
               _buildHelpTile(
                 context,
@@ -43,11 +43,11 @@ class HelpSupportScreen extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.email_outlined),
                 title: const Text('Email Support'),
-                subtitle: const Text('support@morrowapp.com'),
+                subtitle: const Text('support@Oasisapp.com'),
                 onTap: () async {
                   final Uri emailUri = Uri(
                     scheme: 'mailto',
-                    path: 'support@morrowapp.com',
+                    path: 'support@Oasisapp.com',
                   );
                   if (await canLaunchUrl(emailUri)) {
                     await launchUrl(emailUri);
@@ -59,7 +59,7 @@ class HelpSupportScreen extends StatelessWidget {
                 title: const Text('Help Center'),
                 subtitle: const Text('Visit our help website'),
                 onTap: () async {
-                  final Uri url = Uri.parse('https://help.morrowapp.com');
+                  final Uri url = Uri.parse('https://help.Oasisapp.com');
                   if (await canLaunchUrl(url)) {
                     await launchUrl(url);
                   }

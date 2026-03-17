@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:morrow_v2/utils/text_parser.dart';
+import 'package:oasis_v2/utils/text_parser.dart';
 import 'package:go_router/go_router.dart';
 
 class ClickableText extends StatelessWidget {

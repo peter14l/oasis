@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:morrow_v2/services/screen_time_service.dart';
-import 'package:morrow_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/services/screen_time_service.dart';
+import 'package:oasis_v2/utils/responsive_layout.dart';
 import 'package:provider/provider.dart';
 
 class ScreenTimeScreen extends StatefulWidget {
@@ -285,7 +285,7 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
                 context,
                 category['name'],
                 category['minutes'],
-                IconData(category['icon'], fontFamily: 'MaterialIcons'),
+                category['icon'] as IconData,
                 Color(category['color']),
                 totalMinutes,
               ),

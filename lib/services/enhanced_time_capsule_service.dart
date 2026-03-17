@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
 import 'package:uuid/uuid.dart';
 
 /// Enhanced time capsule model with collaborative and location features
@@ -165,17 +165,17 @@ class EnhancedTimeCapsuleService {
       if (!isPro) {
         if (contributorIds.isNotEmpty) {
           throw Exception(
-            'Upgrade to Morrow Pro to invite contributors to time capsules.',
+            'Upgrade to Oasis Pro to invite contributors to time capsules.',
           );
         }
         if (locationTrigger != null) {
           throw Exception(
-            'Upgrade to Morrow Pro to create location-triggered time capsules.',
+            'Upgrade to Oasis Pro to create location-triggered time capsules.',
           );
         }
         if (musicUrl != null) {
           throw Exception(
-            'Upgrade to Morrow Pro to add music to time capsules.',
+            'Upgrade to Oasis Pro to add music to time capsules.',
           );
         }
 
@@ -187,7 +187,7 @@ class EnhancedTimeCapsuleService {
 
         if (activeCapsulesResponse.length >= 3) {
           throw Exception(
-            'Free tier is limited to 3 active time capsules. Upgrade to Morrow Pro for unlimited capsules.',
+            'Free tier is limited to 3 active time capsules. Upgrade to Oasis Pro for unlimited capsules.',
           );
         }
       }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:morrow_v2/services/media_download_service.dart';
+import 'package:oasis_v2/services/media_download_service.dart';
 
 class ImagePreviewScreen extends StatelessWidget {
   final String imageUrl;

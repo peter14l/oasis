@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
 
 /// Cross-posting service for sharing content to other platforms
 class CrossPostingService {

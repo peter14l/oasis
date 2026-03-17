@@ -1,10 +1,12 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:morrow_v2/config/supabase_config.dart';
-import 'package:morrow_v2/models/message.dart';
-import 'package:morrow_v2/models/conversation.dart';
-import 'package:morrow_v2/services/supabase_service.dart';
-import 'package:morrow_v2/services/notification_service.dart';
+import 'package:oasis_v2/config/supabase_config.dart';
+import 'package:oasis_v2/models/message.dart';
+import 'package:oasis_v2/models/conversation.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/services/notification_service.dart';
+import 'package:oasis_v2/services/signal/signal_service.dart';
+import 'package:oasis_v2/services/encryption_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -42,7 +44,10 @@ class MessagingService {
                 image_url,
                 video_url,
                 file_url,
-                created_at
+                created_at,
+                iv,
+                encrypted_keys,
+                signal_message_type
               )
             )
           ''')
@@ -105,7 +110,39 @@ class MessagingService {
         // Get last message
         final lastMessage = conversationMap['last_message'];
         if (lastMessage != null) {
-          conversationMap['last_message'] = lastMessage['content'];
+          String content = lastMessage['content'] ?? '';
+          
+          // Decrypt if necessary
+          if (lastMessage['signal_message_type'] != null) {
+            try {
+              content = await SignalService().decryptMessage(
+                lastMessage['sender_id'],
+                content,
+                lastMessage['signal_message_type'],
+              );
+            } catch (e) {
+              debugPrint('Signal decryption failed for preview: $e');
+              content = '🔒 Message encrypted';
+            }
+          } else if (lastMessage['encrypted_keys'] != null && lastMessage['iv'] != null) {
+            try {
+              final decrypted = await EncryptionService().decryptMessage(
+                content,
+                lastMessage['encrypted_keys'],
+                lastMessage['iv'],
+              );
+              if (decrypted != null) {
+                content = decrypted;
+              } else {
+                content = '🔒 Message encrypted';
+              }
+            } catch (e) {
+              debugPrint('Standard decryption failed for preview: $e');
+              content = '🔒 Message encrypted';
+            }
+          }
+
+          conversationMap['last_message'] = content;
           conversationMap['last_message_time'] = lastMessage['created_at'];
 
           // Derive message type from URL fields
@@ -183,7 +220,8 @@ class MessagingService {
             ${SupabaseConfig.profilesTable}:sender_id (
               username,
               avatar_url
-            )
+            ),
+            reactions:message_reactions(*)
           ''')
           .eq('conversation_id', conversationId)
           .order('created_at', ascending: false)
@@ -206,26 +244,43 @@ class MessagingService {
         messageIds.add(messageMap['id']);
       }
 
-      // Fetch read receipts for these messages for the current user
+      // Fetch read receipts for these messages
       if (currentUserId != null && messageIds.isNotEmpty) {
         final readReceipts = await _supabase
             .from(SupabaseConfig.messageReadReceiptsTable)
-            .select('message_id, read_at')
-            .inFilter('message_id', messageIds)
-            .eq('user_id', currentUserId);
+            .select('message_id, user_id, read_at')
+            .inFilter('message_id', messageIds);
 
-        final readMap = {
-          for (var r in readReceipts) r['message_id']: r['read_at'],
-        };
+        final myReadMap = <String, String>{};
+        final firstReadMap = <String, String>{};
+
+        for (final r in readReceipts) {
+          final messageId = r['message_id'] as String;
+          final userId = r['user_id'] as String;
+          final readAt = r['read_at'] as String;
+
+          if (userId == currentUserId) {
+            myReadMap[messageId] = readAt;
+          }
+
+          if (!firstReadMap.containsKey(messageId) ||
+              DateTime.parse(readAt)
+                  .isBefore(DateTime.parse(firstReadMap[messageId]!))) {
+            firstReadMap[messageId] = readAt;
+          }
+        }
 
         // Update messages with readAt info
         for (var i = 0; i < messages.length; i++) {
-          final readTimeStr = readMap[messages[i].id];
+          final isSender = messages[i].senderId == currentUserId;
+          final readTimeStr =
+              isSender ? firstReadMap[messages[i].id] : myReadMap[messages[i].id];
+
           if (readTimeStr != null) {
             final readAt = DateTime.parse(readTimeStr);
             messages[i] = messages[i].copyWith(
               readAt: readAt,
-              isRead: true, // Explicitly set as read for current user
+              isRead: true, // Explicitly set as read
             );
           }
         }
@@ -284,6 +339,7 @@ class MessagingService {
     int? voiceDuration,
     Map<String, String>? encryptedKeys,
     String? iv,
+    int? signalMessageType,
     bool isWhisperMode = false,
     int? ephemeralDuration,
     String? callId,
@@ -310,6 +366,9 @@ class MessagingService {
       }
       if (iv != null) {
         insertData['iv'] = iv;
+      }
+      if (signalMessageType != null) {
+        insertData['signal_message_type'] = signalMessageType;
       }
 
       // Store media URL in the appropriate column based on message type
@@ -348,7 +407,8 @@ class MessagingService {
             ${SupabaseConfig.profilesTable}:sender_id (
               username,
               avatar_url
-            )
+            ),
+            reactions:message_reactions(*)
           ''')
               .eq('id', messageId)
               .single();
@@ -596,6 +656,38 @@ class MessagingService {
       debugPrint('Error updating typing status: $e');
       rethrow;
     }
+  }
+
+  /// Subscribe to chat background changes
+  RealtimeChannel subscribeToBackgroundChanges({
+    required String conversationId,
+    required Function(String? backgroundUrl) onUpdate,
+  }) {
+    final channel = _supabase.channel('chat_backgrounds:$conversationId');
+
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'chat_themes',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'conversation_id',
+            value: conversationId,
+          ),
+          callback: (payload) {
+            try {
+              final data = payload.newRecord;
+              final backgroundUrl = data['background_image_url'] as String?;
+              onUpdate(backgroundUrl);
+            } catch (e) {
+              debugPrint('Error processing background update: $e');
+            }
+          },
+        )
+        .subscribe();
+
+    return channel;
   }
 
   /// Subscribe to typing status updates

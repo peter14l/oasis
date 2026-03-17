@@ -14,7 +14,7 @@
   },
   {
     "level_": 0,
-    "message_": "rebuilding JSON D:\\morrow_v2\\android\\app\\.cxx\\Debug\\o2p3q293\\x86\\android_gradle_build.json due to:",
+    "message_": "rebuilding JSON D:\\oasis_v2\\android\\app\\.cxx\\Debug\\o2p3q293\\x86\\android_gradle_build.json due to:",
     "file_": "D:\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\groovy\\CMakeLists.txt",
     "tag_": "profile|x86",
     "diagnosticCode_": 0,
@@ -40,7 +40,7 @@
   },
   {
     "level_": 0,
-    "message_": "removing stale contents from \u0027D:\\morrow_v2\\android\\app\\.cxx\\Debug\\o2p3q293\\x86\u0027",
+    "message_": "removing stale contents from \u0027D:\\oasis_v2\\android\\app\\.cxx\\Debug\\o2p3q293\\x86\u0027",
     "file_": "D:\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\groovy\\CMakeLists.txt",
     "tag_": "profile|x86",
     "diagnosticCode_": 0,
@@ -53,7 +53,7 @@
   },
   {
     "level_": 0,
-    "message_": "created folder \u0027D:\\morrow_v2\\android\\app\\.cxx\\Debug\\o2p3q293\\x86\u0027",
+    "message_": "created folder \u0027D:\\oasis_v2\\android\\app\\.cxx\\Debug\\o2p3q293\\x86\u0027",
     "file_": "D:\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\groovy\\CMakeLists.txt",
     "tag_": "profile|x86",
     "diagnosticCode_": 0,
@@ -66,7 +66,7 @@
   },
   {
     "level_": 0,
-    "message_": "executing cmake @echo off\n\"C:\\\\Android\\\\cmake\\\\3.22.1\\\\bin\\\\cmake.exe\" ^\n  \"-HD:\\\\flutter\\\\packages\\\\flutter_tools\\\\gradle\\\\src\\\\main\\\\groovy\" ^\n  \"-DCMAKE_SYSTEM_NAME\u003dAndroid\" ^\n  \"-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON\" ^\n  \"-DCMAKE_SYSTEM_VERSION\u003d21\" ^\n  \"-DANDROID_PLATFORM\u003dandroid-21\" ^\n  \"-DANDROID_ABI\u003dx86\" ^\n  \"-DCMAKE_ANDROID_ARCH_ABI\u003dx86\" ^\n  \"-DANDROID_NDK\u003dC:\\\\Android\\\\ndk\\\\27.0.12077973\" ^\n  \"-DCMAKE_ANDROID_NDK\u003dC:\\\\Android\\\\ndk\\\\27.0.12077973\" ^\n  \"-DCMAKE_TOOLCHAIN_FILE\u003dC:\\\\Android\\\\ndk\\\\27.0.12077973\\\\build\\\\cmake\\\\android.toolchain.cmake\" ^\n  \"-DCMAKE_MAKE_PROGRAM\u003dC:\\\\Android\\\\cmake\\\\3.22.1\\\\bin\\\\ninja.exe\" ^\n  \"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003dD:\\\\morrow_v2\\\\android\\\\app\\\\build\\\\app\\\\intermediates\\\\cxx\\\\Debug\\\\o2p3q293\\\\obj\\\\x86\" ^\n  \"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY\u003dD:\\\\morrow_v2\\\\android\\\\app\\\\build\\\\app\\\\intermediates\\\\cxx\\\\Debug\\\\o2p3q293\\\\obj\\\\x86\" ^\n  \"-DCMAKE_BUILD_TYPE\u003dDebug\" ^\n  \"-BD:\\\\morrow_v2\\\\android\\\\app\\\\.cxx\\\\Debug\\\\o2p3q293\\\\x86\" ^\n  -GNinja ^\n  -Wno-dev ^\n  --no-warn-unused-cli\n",
+    "message_": "executing cmake @echo off\n\"C:\\\\Android\\\\cmake\\\\3.22.1\\\\bin\\\\cmake.exe\" ^\n  \"-HD:\\\\flutter\\\\packages\\\\flutter_tools\\\\gradle\\\\src\\\\main\\\\groovy\" ^\n  \"-DCMAKE_SYSTEM_NAME\u003dAndroid\" ^\n  \"-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON\" ^\n  \"-DCMAKE_SYSTEM_VERSION\u003d21\" ^\n  \"-DANDROID_PLATFORM\u003dandroid-21\" ^\n  \"-DANDROID_ABI\u003dx86\" ^\n  \"-DCMAKE_ANDROID_ARCH_ABI\u003dx86\" ^\n  \"-DANDROID_NDK\u003dC:\\\\Android\\\\ndk\\\\27.0.12077973\" ^\n  \"-DCMAKE_ANDROID_NDK\u003dC:\\\\Android\\\\ndk\\\\27.0.12077973\" ^\n  \"-DCMAKE_TOOLCHAIN_FILE\u003dC:\\\\Android\\\\ndk\\\\27.0.12077973\\\\build\\\\cmake\\\\android.toolchain.cmake\" ^\n  \"-DCMAKE_MAKE_PROGRAM\u003dC:\\\\Android\\\\cmake\\\\3.22.1\\\\bin\\\\ninja.exe\" ^\n  \"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003dD:\\\\oasis_v2\\\\android\\\\app\\\\build\\\\app\\\\intermediates\\\\cxx\\\\Debug\\\\o2p3q293\\\\obj\\\\x86\" ^\n  \"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY\u003dD:\\\\oasis_v2\\\\android\\\\app\\\\build\\\\app\\\\intermediates\\\\cxx\\\\Debug\\\\o2p3q293\\\\obj\\\\x86\" ^\n  \"-DCMAKE_BUILD_TYPE\u003dDebug\" ^\n  \"-BD:\\\\oasis_v2\\\\android\\\\app\\\\.cxx\\\\Debug\\\\o2p3q293\\\\x86\" ^\n  -GNinja ^\n  -Wno-dev ^\n  --no-warn-unused-cli\n",
     "file_": "D:\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\groovy\\CMakeLists.txt",
     "tag_": "profile|x86",
     "diagnosticCode_": 0,
@@ -79,7 +79,7 @@
   },
   {
     "level_": 0,
-    "message_": "@echo off\n\"C:\\\\Android\\\\cmake\\\\3.22.1\\\\bin\\\\cmake.exe\" ^\n  \"-HD:\\\\flutter\\\\packages\\\\flutter_tools\\\\gradle\\\\src\\\\main\\\\groovy\" ^\n  \"-DCMAKE_SYSTEM_NAME\u003dAndroid\" ^\n  \"-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON\" ^\n  \"-DCMAKE_SYSTEM_VERSION\u003d21\" ^\n  \"-DANDROID_PLATFORM\u003dandroid-21\" ^\n  \"-DANDROID_ABI\u003dx86\" ^\n  \"-DCMAKE_ANDROID_ARCH_ABI\u003dx86\" ^\n  \"-DANDROID_NDK\u003dC:\\\\Android\\\\ndk\\\\27.0.12077973\" ^\n  \"-DCMAKE_ANDROID_NDK\u003dC:\\\\Android\\\\ndk\\\\27.0.12077973\" ^\n  \"-DCMAKE_TOOLCHAIN_FILE\u003dC:\\\\Android\\\\ndk\\\\27.0.12077973\\\\build\\\\cmake\\\\android.toolchain.cmake\" ^\n  \"-DCMAKE_MAKE_PROGRAM\u003dC:\\\\Android\\\\cmake\\\\3.22.1\\\\bin\\\\ninja.exe\" ^\n  \"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003dD:\\\\morrow_v2\\\\android\\\\app\\\\build\\\\app\\\\intermediates\\\\cxx\\\\Debug\\\\o2p3q293\\\\obj\\\\x86\" ^\n  \"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY\u003dD:\\\\morrow_v2\\\\android\\\\app\\\\build\\\\app\\\\intermediates\\\\cxx\\\\Debug\\\\o2p3q293\\\\obj\\\\x86\" ^\n  \"-DCMAKE_BUILD_TYPE\u003dDebug\" ^\n  \"-BD:\\\\morrow_v2\\\\android\\\\app\\\\.cxx\\\\Debug\\\\o2p3q293\\\\x86\" ^\n  -GNinja ^\n  -Wno-dev ^\n  --no-warn-unused-cli\n",
+    "message_": "@echo off\n\"C:\\\\Android\\\\cmake\\\\3.22.1\\\\bin\\\\cmake.exe\" ^\n  \"-HD:\\\\flutter\\\\packages\\\\flutter_tools\\\\gradle\\\\src\\\\main\\\\groovy\" ^\n  \"-DCMAKE_SYSTEM_NAME\u003dAndroid\" ^\n  \"-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON\" ^\n  \"-DCMAKE_SYSTEM_VERSION\u003d21\" ^\n  \"-DANDROID_PLATFORM\u003dandroid-21\" ^\n  \"-DANDROID_ABI\u003dx86\" ^\n  \"-DCMAKE_ANDROID_ARCH_ABI\u003dx86\" ^\n  \"-DANDROID_NDK\u003dC:\\\\Android\\\\ndk\\\\27.0.12077973\" ^\n  \"-DCMAKE_ANDROID_NDK\u003dC:\\\\Android\\\\ndk\\\\27.0.12077973\" ^\n  \"-DCMAKE_TOOLCHAIN_FILE\u003dC:\\\\Android\\\\ndk\\\\27.0.12077973\\\\build\\\\cmake\\\\android.toolchain.cmake\" ^\n  \"-DCMAKE_MAKE_PROGRAM\u003dC:\\\\Android\\\\cmake\\\\3.22.1\\\\bin\\\\ninja.exe\" ^\n  \"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003dD:\\\\oasis_v2\\\\android\\\\app\\\\build\\\\app\\\\intermediates\\\\cxx\\\\Debug\\\\o2p3q293\\\\obj\\\\x86\" ^\n  \"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY\u003dD:\\\\oasis_v2\\\\android\\\\app\\\\build\\\\app\\\\intermediates\\\\cxx\\\\Debug\\\\o2p3q293\\\\obj\\\\x86\" ^\n  \"-DCMAKE_BUILD_TYPE\u003dDebug\" ^\n  \"-BD:\\\\oasis_v2\\\\android\\\\app\\\\.cxx\\\\Debug\\\\o2p3q293\\\\x86\" ^\n  -GNinja ^\n  -Wno-dev ^\n  --no-warn-unused-cli\n",
     "file_": "D:\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\groovy\\CMakeLists.txt",
     "tag_": "profile|x86",
     "diagnosticCode_": 0,
@@ -105,7 +105,7 @@
   },
   {
     "level_": 0,
-    "message_": "D:\\morrow_v2\\android\\app\\.cxx\\Debug\\o2p3q293\\x86\\compile_commands.json.bin existed but not D:\\morrow_v2\\android\\app\\.cxx\\Debug\\o2p3q293\\x86\\compile_commands.json",
+    "message_": "D:\\oasis_v2\\android\\app\\.cxx\\Debug\\o2p3q293\\x86\\compile_commands.json.bin existed but not D:\\oasis_v2\\android\\app\\.cxx\\Debug\\o2p3q293\\x86\\compile_commands.json",
     "file_": "D:\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\groovy\\CMakeLists.txt",
     "tag_": "profile|x86",
     "diagnosticCode_": 0,

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:morrow_v2/providers/community_provider.dart';
-import 'package:morrow_v2/services/auth_service.dart';
-import 'package:morrow_v2/widgets/post_card.dart';
+import 'package:oasis_v2/providers/community_provider.dart';
+import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/widgets/post_card.dart';
+import 'package:oasis_v2/widgets/comments_modal.dart';
+import 'package:share_plus/share_plus.dart';
 
 class CommunityDetailScreen extends StatefulWidget {
   final String communityId;
@@ -292,7 +294,45 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                     final post = provider.communityPosts[index];
                     return PostCard(
                       post: post,
-                      // Add callbacks if needed (e.g. onLike) - leaving default for now as per PostCard definition
+                      isOwnPost: post.userId == _authService.currentUser?.id,
+                      onLike: () {
+                        final userId = _authService.currentUser?.id;
+                        if (userId == null) return;
+                        provider.likePost(userId: userId, postId: post.id);
+                      },
+                      onBookmark: () {
+                        final userId = _authService.currentUser?.id;
+                        if (userId == null) return;
+                        provider.bookmarkPost(userId: userId, postId: post.id);
+                      },
+                      onComment: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => CommentsModal(postId: post.id),
+                        );
+                      },
+                      onShare: () {
+                        final deepLink = 'https://morrow.app/post/${post.id}';
+                        Share.share('Check out this post on Morrow! $deepLink');
+                      },
+                      onDelete: () async {
+                        try {
+                          await provider.deletePost(post.id);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Post deleted')),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $e')),
+                            );
+                          }
+                        }
+                      },
                     );
                   }, childCount: provider.communityPosts.length),
                 ),

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:morrow_v2/services/stories_service.dart';
+import 'package:oasis_v2/services/stories_service.dart';
 import 'package:go_router/go_router.dart';
 
 class CreateStoryScreen extends StatefulWidget {

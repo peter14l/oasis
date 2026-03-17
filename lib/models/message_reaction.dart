@@ -54,6 +54,7 @@ class MessageReactionModel {
       'id': id,
       'message_id': messageId,
       'user_id': userId,
+      'username': username,
       'reaction': reaction,
       'created_at': createdAt.toIso8601String(),
     };
