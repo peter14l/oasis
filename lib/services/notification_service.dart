@@ -139,22 +139,23 @@ class NotificationService {
           ),
           callback: (payload) async {
             try {
-              final notificationData = payload.newRecord;
+              final notificationData = Map<String, dynamic>.from(payload.newRecord);
 
-              // Skip if it's a DM (as per requirement)
-              if (notificationData['type'] == 'dm') return;
-
-              // Fetch actor details
+              // Fetch actor details for the display name/avatar
               if (notificationData['actor_id'] != null) {
-                final profile =
-                    await _supabase
-                        .from(SupabaseConfig.profilesTable)
-                        .select('username, avatar_url')
-                        .eq('id', notificationData['actor_id'])
-                        .single();
+                try {
+                  final profile =
+                      await _supabase
+                          .from(SupabaseConfig.profilesTable)
+                          .select('username, avatar_url')
+                          .eq('id', notificationData['actor_id'])
+                          .single();
 
-                notificationData['actor_name'] = profile['username'];
-                notificationData['actor_avatar'] = profile['avatar_url'];
+                  notificationData['actor_name'] = profile['username'];
+                  notificationData['actor_avatar'] = profile['avatar_url'];
+                } catch (e) {
+                  debugPrint('Could not fetch actor profile for notification: $e');
+                }
               }
 
               final notification = AppNotification.fromJson(notificationData);

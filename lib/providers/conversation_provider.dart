@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:oasis_v2/models/conversation.dart';
 import 'package:oasis_v2/services/messaging_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ConversationProvider with ChangeNotifier {
   final MessagingService _messagingService = MessagingService();
@@ -34,12 +36,45 @@ class ConversationProvider with ChangeNotifier {
     if (_currentUserId == userId && _conversations.isNotEmpty) return;
     
     _currentUserId = userId;
-    _conversations = [];
-    _isLoading = true;
-    notifyListeners();
+    
+    // Load cache first
+    await _loadCachedConversations();
+    
+    if (_conversations.isEmpty) {
+      _isLoading = true;
+      notifyListeners();
+    }
     
     await loadConversations();
     _setupRealtimeSubscriptions();
+  }
+
+  /// Load conversations from cache
+  Future<void> _loadCachedConversations() async {
+    if (_currentUserId == null) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? cachedData = prefs.getString('cached_conversations_${_currentUserId}');
+      if (cachedData != null) {
+        final List<dynamic> decodedData = jsonDecode(cachedData);
+        _conversations = decodedData.map((item) => Conversation.fromJson(item)).toList();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error loading cached conversations: $e');
+    }
+  }
+
+  /// Save conversations to cache
+  Future<void> _saveConversationsToCache() async {
+    if (_currentUserId == null || _conversations.isEmpty) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String encodedData = jsonEncode(_conversations.map((c) => c.toJson()).toList());
+      await prefs.setString('cached_conversations_${_currentUserId}', encodedData);
+    } catch (e) {
+      debugPrint('Error saving conversations to cache: $e');
+    }
   }
 
   /// Load conversations from service
@@ -51,6 +86,7 @@ class ConversationProvider with ChangeNotifier {
     
     try {
       _conversations = await _messagingService.getConversations(userId: _currentUserId!);
+      await _saveConversationsToCache();
       
       // Setup individual subscriptions for each conversation (read receipts, typing)
       for (final conversation in _conversations) {

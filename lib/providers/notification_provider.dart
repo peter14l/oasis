@@ -64,10 +64,13 @@ class NotificationProvider with ChangeNotifier {
     _subscriptionChannel = _notificationService.subscribeToNotifications(
       userId: _userId!,
       onNewNotification: (notification) {
-        _notifications.insert(0, notification);
-        notifyListeners();
+        // Only add to the UI list if it's not a DM
+        if (notification.type != 'dm') {
+          _notifications.insert(0, notification);
+          notifyListeners();
+        }
 
-        // Show local notification
+        // ALWAYS show local notification (OS alert)
         _notificationManager.showNotification(
           title: notification.displayTitle,
           body: notification.getNotificationText(),

@@ -119,6 +119,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _callService = context.read<CallService>();
     _loadPersistedSettings();
+    _loadCachedMessages(); // Load cache immediately
     _initializeEncryption();
     _loadMessages();
     _subscribeToMessages();
@@ -132,6 +133,54 @@ class _ChatScreenState extends State<ChatScreen> {
     _subscribeToCalls();
     if (widget.otherUserId == null) {
       _fetchConversationDetails();
+    }
+  }
+
+  /// Load messages from SharedPreferences cache
+  Future<void> _loadCachedMessages() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String cacheKey = 'chat_messages_${widget.conversationId}';
+      final String? cachedData = prefs.getString(cacheKey);
+      
+      if (cachedData != null && _messages.isEmpty) {
+        final List<dynamic> decoded = jsonDecode(cachedData);
+        final List<Message> cachedMessages = decoded.map((json) => Message.fromJson(json)).toList();
+        
+        // Filter out expired ephemeral messages from cache
+        final filtered = MessagingService.filterExpiredMessages(
+          cachedMessages,
+          sessionStart: _sessionStartTime,
+        );
+        
+        if (mounted && filtered.isNotEmpty) {
+          setState(() {
+            _messages = filtered;
+          });
+          _scrollToBottom();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading cached messages: $e');
+    }
+  }
+
+  /// Save current messages to SharedPreferences cache
+  Future<void> _saveMessagesToCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String cacheKey = 'chat_messages_${widget.conversationId}';
+      
+      // Don't cache ephemeral messages that have already been read 
+      // or are about to vanish to avoid logic issues on reload
+      final toCache = _messages.where((m) => !m.isEphemeral || m.readAt == null).take(50).toList();
+      
+      if (toCache.isNotEmpty) {
+        final String encoded = jsonEncode(toCache.map((m) => m.toJson()).toList());
+        await prefs.setString(cacheKey, encoded);
+      }
+    } catch (e) {
+      debugPrint('Error saving messages to cache: $e');
     }
   }
 
@@ -427,6 +476,7 @@ class _ChatScreenState extends State<ChatScreen> {
       });
       _scrollToBottom();
       _loadSmartReplies();
+      _saveMessagesToCache();
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
@@ -506,6 +556,7 @@ class _ChatScreenState extends State<ChatScreen> {
           });
           _scrollToBottom();
           _loadSmartReplies();
+          _saveMessagesToCache();
 
           // Mark as read if message is from other user
           final currentUserId = _authService.currentUser?.id;
@@ -618,116 +669,114 @@ class _ChatScreenState extends State<ChatScreen> {
       builder: (context) {
         return SafeArea(
           child: Container(
+            margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(24),
+              color: colorScheme.surface.withValues(alpha: 0.85),
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(
+                color: colorScheme.onSurface.withValues(alpha: 0.1),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.18),
-                  blurRadius: 24,
-                  offset: const Offset(0, -4),
+                  color: Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 32,
+                  offset: const Offset(0, -8),
                 ),
               ],
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Drag handle
-                Container(
-                  margin: const EdgeInsets.only(top: 12, bottom: 4),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: colorScheme.onSurface.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(32),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Drag handle
+                    Container(
+                      margin: const EdgeInsets.only(top: 12),
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: colorScheme.onSurface.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    // Title row
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Share content',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(Icons.close_rounded, size: 20),
+                            style: IconButton.styleFrom(
+                              backgroundColor: colorScheme.onSurface.withValues(alpha: 0.05),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Grid of options
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                      child: Wrap(
+                        spacing: 16,
+                        runSpacing: 16,
+                        children: [
+                          _AttachmentOption(
+                            icon: Icons.image_rounded,
+                            label: 'Photo',
+                            iconColor: const Color(0xFF3D8BFF),
+                            bgColor: const Color(0xFF3D8BFF).withValues(alpha: 0.1),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _pickImage();
+                            },
+                          ),
+                          _AttachmentOption(
+                            icon: Icons.videocam_rounded,
+                            label: 'Video',
+                            iconColor: const Color(0xFFFF6B6B),
+                            bgColor: const Color(0xFFFF6B6B).withValues(alpha: 0.1),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _pickVideo();
+                            },
+                          ),
+                          _AttachmentOption(
+                            icon: Icons.insert_drive_file_rounded,
+                            label: 'File',
+                            iconColor: const Color(0xFF51CF66),
+                            bgColor: const Color(0xFF51CF66).withValues(alpha: 0.1),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _pickFile();
+                            },
+                          ),
+                          _AttachmentOption(
+                            icon: Icons.mic_rounded,
+                            label: 'Audio',
+                            iconColor: const Color(0xFFFFD43B),
+                            bgColor: const Color(0xFFFFD43B).withValues(alpha: 0.1),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _startRecording();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                // Title row
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Share',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: Icon(
-                          Icons.close_rounded,
-                          color: colorScheme.onSurface.withValues(alpha: 0.5),
-                          size: 20,
-                        ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-                ),
-                // Grid of options
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _AttachmentOption(
-                        icon: Icons.image_rounded,
-                        label: 'Photo',
-                        iconColor: const Color(0xFF3D8BFF),
-                        bgColor: const Color(
-                          0xFF3D8BFF,
-                        ).withValues(alpha: 0.12),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _pickImage();
-                        },
-                      ),
-                      _AttachmentOption(
-                        icon: Icons.videocam_rounded,
-                        label: 'Video',
-                        iconColor: const Color(0xFFFF6B6B),
-                        bgColor: const Color(
-                          0xFFFF6B6B,
-                        ).withValues(alpha: 0.12),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _pickVideo();
-                        },
-                      ),
-                      _AttachmentOption(
-                        icon: Icons.insert_drive_file_rounded,
-                        label: 'Document',
-                        iconColor: const Color(0xFF51CF66),
-                        bgColor: const Color(
-                          0xFF51CF66,
-                        ).withValues(alpha: 0.12),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _pickFile();
-                        },
-                      ),
-                      _AttachmentOption(
-                        icon: Icons.mic_rounded,
-                        label: 'Audio',
-                        iconColor: const Color(0xFFFFD43B),
-                        bgColor: const Color(
-                          0xFFFFD43B,
-                        ).withValues(alpha: 0.12),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _startRecording();
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         );
@@ -914,6 +963,7 @@ class _ChatScreenState extends State<ChatScreen> {
           widget.conversationId,
         );
       }
+      _saveMessagesToCache();
     } catch (e) {
       _showError('Error: ${e.toString()}');
     } finally {

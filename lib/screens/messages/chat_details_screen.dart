@@ -6,6 +6,7 @@ import 'package:oasis_v2/services/messaging_service.dart';
 import 'package:oasis_v2/services/vault_service.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:go_router/go_router.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String conversationId;
@@ -47,7 +48,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     _checkLockStatus();
   }
 
-
   Future<void> _checkLockStatus() async {
     try {
       final vaultService = Provider.of<VaultService>(context, listen: false);
@@ -80,6 +80,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Please enable Vault in Settings first'),
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -93,7 +94,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
           type: VaultItemType.conversation,
         );
       } else {
-        // Require auth to unlock? For now assume open since we are in details
         await vaultService.removeFromVault(widget.conversationId);
       }
 
@@ -104,6 +104,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
           SnackBar(
             content: Text(value ? 'Chat locked to Vault' : 'Chat unlocked'),
             backgroundColor: value ? Colors.indigo : Colors.grey,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -129,9 +130,11 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              value ? 'Whisper Mode enabled.' : 'Whisper Mode disabled.',
+              value ? '✨ Whisper Mode enabled' : 'Whisper Mode disabled',
             ),
-            backgroundColor: value ? Theme.of(context).colorScheme.secondary : Colors.green,
+            backgroundColor:
+                value ? Theme.of(context).colorScheme.secondary : Colors.green,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -158,7 +161,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       );
 
       if (image != null) {
-        // Upload background and save to conversation settings
         final backgroundUrl = await _messagingService.uploadChatMedia(
           image.path,
           folder: 'backgrounds',
@@ -166,14 +168,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
 
         setState(() => _selectedBackground = backgroundUrl);
 
-        // Persist the background setting locally
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(
-          'chat_bg_${widget.conversationId}',
-          backgroundUrl,
-        );
+        await prefs.setString('chat_bg_${widget.conversationId}', backgroundUrl);
 
-        // Sync with Supabase so it applies to both participants
         try {
           await _messagingService.updateChatBackground(
             widget.conversationId,
@@ -194,11 +191,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
 
   Future<void> _removeBackground() async {
     setState(() => _selectedBackground = null);
-    // Remove persisted background setting locally
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('chat_bg_${widget.conversationId}');
-    
-    // Sync removal with Supabase
+
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId != null) {
@@ -217,33 +212,39 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   Future<void> _clearChat() async {
     final result = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear Chat?'),
-        content: const Text(
-          'Do you want to clear this chat for yourself only, or for both participants?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop('me'),
-            child: const Text('Clear for me'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Clear Chat?'),
+            content: const Text(
+              'This will remove all messages from this conversation.',
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop('me'),
+                child: const Text('Clear for me'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop('everyone'),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Clear for everyone'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop('everyone'),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Clear for everyone'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
     );
 
     if (result != null) {
       try {
         if (result == 'everyone') {
-          await _messagingService.clearConversationMessages(widget.conversationId);
+          await _messagingService.clearConversationMessages(
+            widget.conversationId,
+          );
         } else {
           await _messagingService.clearChatForMe(widget.conversationId);
         }
@@ -256,16 +257,16 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                     ? 'Chat cleared for everyone'
                     : 'Chat cleared for you',
               ),
+              behavior: SnackBarBehavior.floating,
             ),
           );
-          // Go back to home screen since the conversation is now empty for the user
           Navigator.of(context).popUntil((route) => route.isFirst);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error clearing chat: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error clearing chat: $e')));
         }
       }
     }
@@ -275,313 +276,383 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDesktop = MediaQuery.of(context).size.width >= 1200;
 
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         title: const Text('Chat Details'),
-        centerTitle: isDesktop,
-        automaticallyImplyLeading: !isDesktop,
-        actions:
-            isDesktop
-                ? [
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  const SizedBox(width: 8),
-                ]
-                : null,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
       ),
       body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
-          // User Info Section
-          Container(
-            padding: const EdgeInsets.all(24),
+          // Profile Header Card
+          _buildProfileHeader(theme, colorScheme),
+
+          const SizedBox(height: 24),
+
+          // Customization Section
+          _buildSectionTitle(theme, 'Personalization'),
+          _buildDetailCard(
+            colorScheme,
             child: Column(
               children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundImage:
-                      widget.otherUserAvatar.isNotEmpty
-                          ? CachedNetworkImageProvider(widget.otherUserAvatar)
-                          : null,
-                  child:
-                      widget.otherUserAvatar.isEmpty
-                          ? Text(
-                            widget.otherUserName[0].toUpperCase(),
-                            style: const TextStyle(fontSize: 32),
+                _buildActionTile(
+                  icon: Icons.palette_outlined,
+                  title: 'Chat Background',
+                  subtitle: 'Custom image for this chat',
+                  trailing:
+                      _selectedBackground != null
+                          ? const Icon(
+                            Icons.check_circle,
+                            color: Colors.green,
+                            size: 20,
                           )
                           : null,
+                  onTap: _pickBackground,
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  widget.otherUserName,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.lock,
-                        size: 16,
-                        color: colorScheme.onPrimaryContainer,
+                if (_selectedBackground != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Stack(
+                        children: [
+                          CachedNetworkImage(
+                            imageUrl: _selectedBackground!,
+                            height: 100,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.close,
+                                size: 18,
+                                color: Colors.white,
+                              ),
+                              onPressed: _removeBackground,
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.black45,
+                                padding: EdgeInsets.zero,
+                                minimumSize: const Size(28, 28),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'End-to-End Encrypted',
-                        style: TextStyle(
-                          color: colorScheme.onPrimaryContainer,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
+                _buildActionTile(
+                  icon: Icons.photo_library_outlined,
+                  title: 'Media, Files & Links',
+                  subtitle: 'Shared content',
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Coming soon'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
           ),
 
-          const Divider(),
+          const SizedBox(height: 24),
 
-          // Theme Section
-          ListTile(
-            leading: const Icon(Icons.palette),
-            title: const Text('Theme'),
-            subtitle: const Text('Customize chat background'),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          // Privacy Section
+          _buildSectionTitle(theme, 'Privacy & Safety'),
+          _buildDetailCard(
+            colorScheme,
             child: Column(
               children: [
-                if (_selectedBackground != null) ...[
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Stack(
+                _buildSwitchTile(
+                  icon: _isLocked ? Icons.lock : Icons.lock_open_outlined,
+                  title: 'Vault Lock',
+                  subtitle: 'Hide and protect this chat',
+                  value: _isLocked,
+                  activeColor: Colors.indigo,
+                  onChanged: _toggleChatLock,
+                ),
+                if (_isLocked)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(56, 0, 16, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CachedNetworkImage(
-                          imageUrl: _selectedBackground!,
-                          height: 150,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: IconButton.filled(
-                            onPressed: _removeBackground,
-                            icon: const Icon(Icons.close),
-                            style: IconButton.styleFrom(
-                              backgroundColor: Colors.black54,
-                            ),
+                        Text(
+                          'Lock Interval',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.primary,
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        _buildCompactRadio(
+                          'App close',
+                          'app_close',
+                          colorScheme,
+                        ),
+                        _buildCompactRadio(
+                          'Chat close',
+                          'chat_close',
+                          colorScheme,
+                        ),
+                        _buildCompactRadio('5 mins', '5mins', colorScheme),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                ],
-                OutlinedButton.icon(
-                  onPressed: _pickBackground,
-                  icon: const Icon(Icons.image),
-                  label: Text(
-                    _selectedBackground != null
-                        ? 'Change Background'
-                        : 'Set Background',
+                const Divider(indent: 56),
+                _buildSwitchTile(
+                  icon: Icons.auto_delete_outlined,
+                  title: 'Whisper Mode',
+                  subtitle: 'Self-vanishing messages',
+                  value: _isWhisperMode,
+                  activeColor: colorScheme.secondary,
+                  onChanged: _toggleWhisperMode,
+                ),
+                if (_isWhisperMode)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(56, 0, 16, 16),
+                    child: SegmentedButton<int>(
+                      segments: const [
+                        ButtonSegment<int>(
+                          value: 86400,
+                          label: Text('24h'),
+                          icon: Icon(Icons.timer_outlined, size: 16),
+                        ),
+                        ButtonSegment<int>(
+                          value: 0,
+                          label: Text('Instant'),
+                          icon: Icon(Icons.flash_on_outlined, size: 16),
+                        ),
+                      ],
+                      selected: {_ephemeralDuration},
+                      onSelectionChanged: (Set<int> newSelection) {
+                        _setEphemeralDuration(newSelection.first);
+                      },
+                      style: SegmentedButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        textStyle: const TextStyle(fontSize: 12),
+                      ),
+                    ),
                   ),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 48),
-                  ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Actions Section
+          _buildSectionTitle(theme, 'Manage'),
+          _buildDetailCard(
+            colorScheme,
+            child: Column(
+              children: [
+                _buildActionTile(
+                  icon: Icons.notifications_none_rounded,
+                  title: 'Mute Notifications',
+                  onTap: () {},
+                ),
+                _buildActionTile(
+                  icon: Icons.delete_sweep_outlined,
+                  title: 'Clear Chat',
+                  titleColor: colorScheme.error,
+                  iconColor: colorScheme.error,
+                  onTap: _clearChat,
+                ),
+                _buildActionTile(
+                  icon: Icons.block_flipped,
+                  title: 'Block ${widget.otherUserName}',
+                  titleColor: colorScheme.error,
+                  iconColor: colorScheme.error,
+                  onTap: () {},
                 ),
               ],
             ),
           ),
 
-          const Divider(),
-
-          // Privacy & Safety Section
-          ListTile(
-            leading: const Icon(Icons.security),
-            title: const Text('Privacy & Safety'),
-          ),
-          SwitchListTile(
-            secondary: Icon(
-              _isLocked ? Icons.lock : Icons.lock_open,
-              color: _isLocked ? Colors.indigo : null,
-            ),
-            title: const Text('Lock Chat'),
-            subtitle: Text(
-              _isLocked
-                  ? 'Chat is protected by Vault'
-                  : 'Hide this chat in Vault',
-            ),
-            value: _isLocked,
-            activeColor: Colors.indigo,
-            onChanged: _toggleChatLock,
-          ),
-          if (_isLocked) ...[
-            const Divider(indent: 16, endIndent: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                'LOCK INTERVAL',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            _buildIntervalOption(
-              context,
-              'App close',
-              'Lock when app is minimized',
-              'app_close',
-            ),
-            _buildIntervalOption(
-              context,
-              'On Chat Close',
-              'Lock immediately when leaving',
-              'chat_close',
-            ),
-            _buildIntervalOption(
-              context,
-              'After 5mins',
-              'Lock after 5 minutes of inactivity',
-              '5mins',
-            ),
-            const SizedBox(height: 16),
-          ],
-          SwitchListTile(
-            secondary: Icon(
-              Icons.auto_delete,
-              color: _isWhisperMode ? Theme.of(context).colorScheme.secondary : null,
-            ),
-            title: const Text('Whisper Mode'),
-            subtitle: Text(
-              _isWhisperMode
-                  ? 'Messages vanish 24hrs after being seen'
-                  : 'Messages are saved permanently',
-            ),
-            value: _isWhisperMode,
-            activeColor: Theme.of(context).colorScheme.secondary,
-            onChanged: _toggleWhisperMode,
-          ),
-          if (_isWhisperMode)
-            Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
-              child: SegmentedButton<int>(
-                segments: const [
-                  ButtonSegment<int>(
-                    value: 86400,
-                    label: Text('24 Hours'),
-                    icon: Icon(Icons.timer),
-                  ),
-                  ButtonSegment<int>(
-                    value: 0,
-                    label: Text('Immediate'),
-                    icon: Icon(Icons.flash_on),
-                  ),
-                ],
-                selected: {_ephemeralDuration},
-                onSelectionChanged: (Set<int> newSelection) {
-                  _setEphemeralDuration(newSelection.first);
-                },
-                style: ButtonStyle(visualDensity: VisualDensity.compact),
-              ),
-            ),
-
-          const Divider(),
-
-          // Media, Files & Links Section
-          ListTile(
-            leading: const Icon(Icons.photo_library),
-            title: const Text('Media, Files & Links'),
-            subtitle: const Text('View shared content'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Navigate to media gallery
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Coming soon')));
-            },
-          ),
-
-          const Divider(),
-
-          // Additional Options
-          ListTile(
-            leading: const Icon(Icons.notifications_off_outlined),
-            title: const Text('Mute Notifications'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Implement mute
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Coming soon')));
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.block, color: colorScheme.error),
-            title: Text(
-              'Block User',
-              style: TextStyle(color: colorScheme.error),
-            ),
-            onTap: () {
-              // TODO: Implement block
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Coming soon')));
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.delete_sweep_outlined, color: colorScheme.error),
-            title: Text(
-              'Clear Chat',
-              style: TextStyle(color: colorScheme.error),
-            ),
-            subtitle: const Text('Delete all messages'),
-            onTap: _clearChat,
-          ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 48),
         ],
       ),
     );
   }
 
-  Widget _buildIntervalOption(
-    BuildContext context,
-    String title,
-    String subtitle,
-    String value,
-  ) {
+  Widget _buildProfileHeader(ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 48,
+            backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+            backgroundImage:
+                widget.otherUserAvatar.isNotEmpty
+                    ? CachedNetworkImageProvider(widget.otherUserAvatar)
+                    : null,
+            child:
+                widget.otherUserAvatar.isEmpty
+                    ? Text(
+                      widget.otherUserName[0].toUpperCase(),
+                      style: theme.textTheme.headlineLarge?.copyWith(
+                        color: colorScheme.primary,
+                      ),
+                    )
+                    : null,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            widget.otherUserName,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.verified_user, size: 14, color: colorScheme.primary),
+                const SizedBox(width: 6),
+                Text(
+                  'End-to-End Encrypted',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(ThemeData theme, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, bottom: 8),
+      child: Text(
+        title.toUpperCase(),
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailCard(ColorScheme colorScheme, {required Widget child}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildActionTile({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    Color? titleColor,
+    Color? iconColor,
+    Widget? trailing,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: iconColor ?? titleColor),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: titleColor,
+          fontWeight: FontWeight.w500,
+          fontSize: 15,
+        ),
+      ),
+      subtitle: subtitle != null ? Text(subtitle) : null,
+      trailing: trailing ?? const Icon(Icons.chevron_right, size: 20),
+      onTap: onTap,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    );
+  }
+
+  Widget _buildSwitchTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool value,
+    required Color activeColor,
+    required Function(bool) onChanged,
+  }) {
+    return SwitchListTile(
+      secondary: Icon(icon, color: value ? activeColor : null),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
+      ),
+      subtitle: Text(subtitle),
+      value: value,
+      activeColor: activeColor,
+      onChanged: onChanged,
+    );
+  }
+
+  Widget _buildCompactRadio(String label, String value, ColorScheme colorScheme) {
     final vault = context.watch<VaultService>();
     final current = vault.getLockInterval(widget.conversationId);
     final isSelected = current == value;
 
-    return RadioListTile<String>(
-      title: Text(title),
-      subtitle: Text(subtitle),
-      selected: isSelected,
-      value: value,
-      groupValue: current,
-      onChanged: (newValue) {
-        if (newValue != null) {
-          context.read<VaultService>().setLockInterval(widget.conversationId, newValue);
-        }
-      },
+    return GestureDetector(
+      onTap: () => context.read<VaultService>().setLockInterval(widget.conversationId, value),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            SizedBox(
+              height: 24,
+              width: 24,
+              child: Radio<String>(
+                value: value,
+                groupValue: current,
+                activeColor: Colors.indigo,
+                onChanged: (val) {
+                  if (val != null) {
+                    context.read<VaultService>().setLockInterval(widget.conversationId, val);
+                  }
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                color: isSelected ? Colors.indigo : colorScheme.onSurface,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

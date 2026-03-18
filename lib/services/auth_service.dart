@@ -228,15 +228,34 @@ class AuthService with ChangeNotifier {
 
       // Create profile if it doesn't exist at all
       if (profile == null) {
-        final username =
+        String rawUsername =
             user.userMetadata?['preferred_username'] ??
-            user.userMetadata?['name']?.replaceAll(' ', '_').toLowerCase() ??
+            user.userMetadata?['name'] ??
+            user.email?.split('@')[0] ??
             'user_${user.id.substring(0, 8)}';
+
+        // Sanitize: Lowercase and replace non-alphanumeric with underscores
+        String sanitizedUsername = rawUsername.toLowerCase().replaceAll(RegExp(r'[^a-z0-9_]'), '_');
+        
+        // Ensure length constraints
+        if (sanitizedUsername.length < 3) sanitizedUsername += '_user';
+        if (sanitizedUsername.length > 30) sanitizedUsername = sanitizedUsername.substring(0, 30);
+
+        // Check for uniqueness (fallback logic)
+        final existing = await _supabase
+            .from(SupabaseConfig.profilesTable)
+            .select('id')
+            .eq('username', sanitizedUsername)
+            .maybeSingle();
+            
+        if (existing != null) {
+          sanitizedUsername += DateTime.now().millisecondsSinceEpoch.toString().substring(10);
+        }
 
         await _createUserProfile(
           userId: user.id,
           email: user.email!,
-          username: username,
+          username: sanitizedUsername,
           displayName: user.userMetadata?['full_name'],
           avatarUrl: user.userMetadata?['avatar_url'],
         );

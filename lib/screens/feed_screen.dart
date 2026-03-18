@@ -37,6 +37,8 @@ class _FeedScreenState extends State<FeedScreen>
   int _selectedIndex = 0;
   FeedLayoutType _currentLayout = FeedLayoutType.standard;
 
+  bool _isScrolled = false;
+
   @override
   void initState() {
     super.initState();
@@ -120,6 +122,13 @@ class _FeedScreenState extends State<FeedScreen>
   }
 
   void _onScroll() {
+    if (_scrollController.hasClients) {
+      final isScrolled = _scrollController.offset > 10;
+      if (isScrolled != _isScrolled) {
+        setState(() => _isScrolled = isScrolled);
+      }
+    }
+
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       final userId = _authService.currentUser?.id;
@@ -248,30 +257,7 @@ class _FeedScreenState extends State<FeedScreen>
 
     return GreyscaleWrapper(
       child: Scaffold(
-        backgroundColor: colorScheme.surfaceContainerHighest.withValues(
-          alpha: 0.3,
-        ),
-        appBar: AppBar(
-          title: Text(
-            'Feed',
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          centerTitle: false,
-          elevation: 0,
-          scrolledUnderElevation: 2,
-          actions: [
-            FeedLayoutSwitcher(
-              currentLayout: _currentLayout,
-              onLayoutChanged: (layout) {
-                setState(() {
-                  _currentLayout = layout;
-                });
-              },
-            ),
-          ],
-        ),
+        backgroundColor: Colors.transparent,
         body: Consumer<FeedProvider>(
           builder: (context, feedProvider, child) {
             final feedContent = RefreshIndicator(
@@ -280,6 +266,213 @@ class _FeedScreenState extends State<FeedScreen>
                 controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
+                  // Pinned AppBar with Selector
+                  SliverAppBar(
+                    pinned: true,
+                    floating: true,
+                    snap: true,
+                    elevation: 0,
+                    scrolledUnderElevation: 0,
+                    backgroundColor: _isScrolled 
+                        ? Colors.black.withValues(alpha: 0.50) 
+                        : Colors.transparent,
+                    toolbarHeight: 70,
+                    automaticallyImplyLeading: false,
+                    centerTitle: true,
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Dropdown Feed Selector
+                        PopupMenuButton<int>(
+                          onSelected: (index) {
+                            if (index == 2) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Ripples - Coming Soon! 🌊'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                              return;
+                            }
+                            _updateFeedIndex(index, feedProvider);
+                          },
+                          offset: const Offset(0, 45),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            side: BorderSide(
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.1,
+                              ),
+                            ),
+                          ),
+                          elevation: 8,
+                          color: colorScheme.surface,
+                          itemBuilder:
+                              (context) => [
+                                PopupMenuItem(
+                                  value: 0,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.auto_awesome_outlined,
+                                        size: 18,
+                                        color:
+                                            _selectedIndex == 0
+                                                ? colorScheme.primary
+                                                : colorScheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'For You',
+                                        style: TextStyle(
+                                          fontWeight:
+                                              _selectedIndex == 0
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                          color:
+                                              _selectedIndex == 0
+                                                  ? colorScheme.primary
+                                                  : colorScheme.onSurface,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 1,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.people_outline_rounded,
+                                        size: 18,
+                                        color:
+                                            _selectedIndex == 1
+                                                ? colorScheme.primary
+                                                : colorScheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'Following',
+                                        style: TextStyle(
+                                          fontWeight:
+                                              _selectedIndex == 1
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                          color:
+                                              _selectedIndex == 1
+                                                  ? colorScheme.primary
+                                                  : colorScheme.onSurface,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surface.withValues(alpha: 0.8),
+                              borderRadius: BorderRadius.circular(32),
+                              border: Border.all(
+                                color: colorScheme.onSurface.withValues(
+                                  alpha: 0.1,
+                                ),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _selectedIndex == 0
+                                      ? 'For You'
+                                      : 'Following',
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  size: 18,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Ripples Option
+                        GestureDetector(
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Ripples - Coming Soon! 🌊'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colorScheme.secondary.withValues(
+                                alpha: 0.1,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: colorScheme.secondary.withValues(
+                                  alpha: 0.2,
+                                ),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.waves_rounded,
+                                  size: 16,
+                                  color: colorScheme.secondary,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Ripples',
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    color: colorScheme.secondary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      FeedLayoutSwitcher(
+                        currentLayout: _currentLayout,
+                        onLayoutChanged: (layout) {
+                          setState(() {
+                            _currentLayout = layout;
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                  ),
+
                   // Stories Bar
                   StoriesBar(
                     storyGroups: _storyGroups,
@@ -290,43 +483,6 @@ class _FeedScreenState extends State<FeedScreen>
 
                   // Time Capsules
                   const SliverToBoxAdapter(child: CapsuleCarousel()),
-
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Center(
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface.withValues(alpha: 0.6),
-                            borderRadius: BorderRadius.circular(32),
-                            border: Border.all(
-                              color: colorScheme.onSurface.withValues(alpha: 0.05),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildFeedTab(
-                                label: 'For You',
-                                isSelected: _selectedIndex == 0,
-                                onTap: () => _updateFeedIndex(0, feedProvider),
-                                colorScheme: colorScheme,
-                                theme: theme,
-                              ),
-                              _buildFeedTab(
-                                label: 'Following',
-                                isSelected: _selectedIndex == 1,
-                                onTap: () => _updateFeedIndex(1, feedProvider),
-                                colorScheme: colorScheme,
-                                theme: theme,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
 
                   // Loading State
                   if (feedProvider.isLoading && feedProvider.posts.isEmpty)
@@ -488,3 +644,239 @@ class _FeedScreenState extends State<FeedScreen>
     );
   }
 }
+
+class _FeedHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final int selectedIndex;
+  final Function(int) onChanged;
+  final ColorScheme colorScheme;
+  final ThemeData theme;
+
+  _FeedHeaderDelegate({
+    required this.selectedIndex,
+    required this.onChanged,
+    required this.colorScheme,
+    required this.theme,
+  });
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final isPinned = shrinkOffset > 0;
+    final currentLabel = selectedIndex == 0 ? 'For You' : 'Following';
+
+    return Container(
+      color:
+          isPinned
+              ? theme.scaffoldBackgroundColor.withValues(alpha: 0.95)
+              : Colors.transparent,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Dropdown Feed Selector
+            PopupMenuButton<int>(
+              onSelected: onChanged,
+              offset: const Offset(0, 45),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(
+                  color: colorScheme.onSurface.withValues(alpha: 0.1),
+                ),
+              ),
+              elevation: 8,
+              color: colorScheme.surface,
+              itemBuilder:
+                  (context) => [
+                    PopupMenuItem(
+                      value: 0,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.auto_awesome_outlined,
+                            size: 18,
+                            color:
+                                selectedIndex == 0
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'For You',
+                            style: TextStyle(
+                              fontWeight:
+                                  selectedIndex == 0
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                              color:
+                                  selectedIndex == 0
+                                      ? colorScheme.primary
+                                      : colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 1,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.people_outline_rounded,
+                            size: 18,
+                            color:
+                                selectedIndex == 1
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Following',
+                            style: TextStyle(
+                              fontWeight:
+                                  selectedIndex == 1
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                              color:
+                                  selectedIndex == 1
+                                      ? colorScheme.primary
+                                      : colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(
+                    color: colorScheme.onSurface.withValues(alpha: 0.1),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      currentLabel,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 18,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Ripples Option
+            GestureDetector(
+              onTap: () => onChanged(2),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: colorScheme.secondary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: colorScheme.secondary.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.waves_rounded,
+                      size: 16,
+                      color: colorScheme.secondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Ripples',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: colorScheme.secondary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => 60.0;
+
+  @override
+  double get minExtent => 60.0;
+
+  @override
+  bool shouldRebuild(covariant _FeedHeaderDelegate oldDelegate) {
+    return oldDelegate.selectedIndex != selectedIndex;
+  }
+}
+
+class _HeaderTab extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final ColorScheme colorScheme;
+
+  const _HeaderTab({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+    required this.colorScheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? colorScheme.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : colorScheme.onSurfaceVariant,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+}
+

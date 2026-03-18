@@ -13,7 +13,6 @@ import 'package:oasis_v2/screens/circles/circle_detail_screen.dart';
 import 'package:oasis_v2/screens/circles/create_circle_screen.dart';
 import 'package:oasis_v2/screens/circles/create_commitment_screen.dart';
 
-import 'package:oasis_v2/screens/canvas/canvas_detail_screen.dart';
 import 'package:oasis_v2/screens/canvas/timeline_canvas_screen.dart';
 import 'package:oasis_v2/screens/canvas/create_canvas_screen.dart';
 

@@ -83,58 +83,117 @@ class _PostCardState extends State<PostCard>
   }
 
   void _showMoreOptions() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder:
-          (context) => SafeArea(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.7),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (widget.isOwnPost) ...[
-                        ListTile(
-                          leading: const Icon(FluentIcons.delete_24_regular),
-                          title: const Text('Delete Post'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            _confirmDelete();
-                          },
-                        ),
-                      ] else ...[
-                        ListTile(
-                          leading: const Icon(FluentIcons.flag_24_regular),
-                          title: const Text('Report Post'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            _showReportDialog();
-                          },
-                        ),
-                      ],
-                      ListTile(
-                        leading: const Icon(FluentIcons.link_24_regular),
-                        title: const Text('Copy Link'),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _copyPostLink();
-                        },
-                      ),
-                      ListTile(
-                        leading: const Icon(FluentIcons.dismiss_24_regular),
-                        title: const Text('Cancel'),
-                        onTap: () => Navigator.pop(context),
-                      ),
-                    ],
+      builder: (context) => SafeArea(
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          decoration: BoxDecoration(
+            color: colorScheme.surface.withValues(alpha: 0.85),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: colorScheme.onSurface.withValues(alpha: 0.1),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 32,
+                offset: const Offset(0, -8),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(32),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 12, bottom: 8),
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: colorScheme.onSurface.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                ),
+                  if (widget.isOwnPost) ...[
+                    _buildMoreTile(
+                      context,
+                      icon: FluentIcons.delete_24_regular,
+                      title: 'Delete Post',
+                      titleColor: colorScheme.error,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _confirmDelete();
+                      },
+                    ),
+                  ] else ...[
+                    _buildMoreTile(
+                      context,
+                      icon: FluentIcons.flag_24_regular,
+                      title: 'Report Post',
+                      titleColor: colorScheme.error,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showReportDialog();
+                      },
+                    ),
+                  ],
+                  _buildMoreTile(
+                    context,
+                    icon: FluentIcons.link_24_regular,
+                    title: 'Copy Link',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _copyPostLink();
+                    },
+                  ),
+                  _buildMoreTile(
+                    context,
+                    icon: FluentIcons.share_24_regular,
+                    title: 'Share via...',
+                    onTap: () {
+                      Navigator.pop(context);
+                      widget.onShare?.call();
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                ],
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMoreTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    Color? titleColor,
+    required VoidCallback onTap,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ListTile(
+      leading: Icon(icon, color: titleColor ?? colorScheme.onSurface, size: 22),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: titleColor ?? colorScheme.onSurface,
+          fontWeight: FontWeight.w500,
+          fontSize: 15,
+        ),
+      ),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     );
   }
 
