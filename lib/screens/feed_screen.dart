@@ -186,9 +186,11 @@ class _FeedScreenState extends State<FeedScreen>
   }
 
   void _handleComment(String postId) {
-    Scaffold.of(context).showBottomSheet(
-      (context) => CommentsModal(postId: postId),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      builder: (context) => CommentsModal(postId: postId),
     );
   }
 
