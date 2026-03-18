@@ -244,7 +244,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 .from('chat_themes')
                 .select('background_image_url')
                 .eq('conversation_id', widget.conversationId)
-                .eq('user_id', userId)
+                .order('updated_at', ascending: false)
+                .limit(1)
                 .maybeSingle();
 
         if (data != null) {
@@ -845,32 +846,39 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }
 
-      // Always generate a fallback RSA encrypted copy for the sender
+      // Always generate a fallback RSA encrypted copy for BOTH sender and recipient
       if (EncryptionService.isEnabled && content.isNotEmpty) {
         try {
-          // Get sender's public key
-          final senderProfile = await Supabase.instance.client
+          final recipientId = widget.otherUserId ?? _otherUserId;
+          
+          // Get both public keys
+          final profilesResponse = await Supabase.instance.client
               .from('profiles')
-              .select('public_key')
-              .eq('id', userId)
-              .single();
+              .select('id, public_key')
+              .inFilter('id', [userId, recipientId]);
 
-          final senderPublicKey = senderProfile['public_key'] as String?;
-          if (senderPublicKey != null) {
-            final encryptedForSender = await _encryptionService.encryptMessage(
+          final List<String> publicKeys = [];
+          for (var profile in profilesResponse) {
+            final pk = profile['public_key'] as String?;
+            if (pk != null) publicKeys.add(pk);
+          }
+
+          if (publicKeys.isNotEmpty) {
+            final fallbackEncryption = await _encryptionService.encryptMessage(
               content.isNotEmpty ? content : 'Sent attachment',
-              [senderPublicKey],
+              publicKeys,
             );
-            signalSenderContent = encryptedForSender.encryptedContent;
+            signalSenderContent = fallbackEncryption.encryptedContent;
             
-            // We reuse the encryptedKeys and iv fields if using Signal, to store sender's keys
+            // If using Signal, we store the RSA-encrypted keys in the existing fields
+            // so both users can use them as a fallback.
             if (usedSignal) {
-              encryptedKeys = encryptedForSender.encryptedKeys;
-              iv = encryptedForSender.iv;
+              encryptedKeys = fallbackEncryption.encryptedKeys;
+              iv = fallbackEncryption.iv;
             }
           }
         } catch (e) {
-          debugPrint('Failed to encrypt copy for sender: $e');
+          debugPrint('Failed to generate dual-layer fallback: $e');
         }
       }
 

@@ -54,6 +54,44 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  Future<void> _clearAll() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear all notifications?'),
+        content: const Text('This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Clear All'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await context.read<NotificationProvider>().clearAll();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Notifications cleared')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+        }
+      }
+    }
+  }
+
   void _handleNotificationTap(AppNotification notification) {
     _markAsRead(notification);
 
@@ -183,12 +221,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ),
                   ],
                   const Spacer(),
-                  if (unreadCount > 0)
+                  if (_filteredNotifications.isNotEmpty) ...[
                     TextButton.icon(
                       onPressed: _markAllAsRead,
                       icon: const Icon(Icons.done_all, size: 18),
                       label: const Text('Mark all read'),
                     ),
+                    const SizedBox(width: 8),
+                    TextButton.icon(
+                      onPressed: _clearAll,
+                      icon: const Icon(Icons.delete_sweep_outlined, size: 18),
+                      label: const Text('Clear all'),
+                      style: TextButton.styleFrom(foregroundColor: colorScheme.error),
+                    ),
+                  ],
                   const SizedBox(width: 12),
                   IconButton(
                     icon: Icon(
@@ -228,10 +274,40 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ),
         centerTitle: true,
         actions: [
-          if (unreadCount > 0)
-            TextButton(
-              onPressed: _markAllAsRead,
-              child: const Text('Mark all read'),
+          if (_filteredNotifications.isNotEmpty)
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'mark_read') {
+                  _markAllAsRead();
+                } else if (value == 'clear_all') {
+                  _clearAll();
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'mark_read',
+                  child: Row(
+                    children: [
+                      Icon(Icons.done_all, size: 20),
+                      SizedBox(width: 12),
+                      Text('Mark all as read'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'clear_all',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_sweep_outlined, 
+                           size: 20, 
+                           color: colorScheme.error),
+                      const SizedBox(width: 12),
+                      Text('Clear all', 
+                           style: TextStyle(color: colorScheme.error)),
+                    ],
+                  ),
+                ),
+              ],
             ),
         ],
       ),

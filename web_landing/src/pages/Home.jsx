@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, Shield, Globe, Clock } from 'lucide-react';
+import { ArrowRight, Shield, Globe, Clock, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
@@ -24,13 +24,21 @@ const Home = () => {
                     </h1>
                     <p className="hero-subtitle">
                         The social platform designed for real moments, not endless feeds.
-                        End-to-end encrypted, screen-time aware, and community-driven.
+                        End-to-end encrypted, screen-time aware, and privacy-first.
                     </p>
 
                     <div className="hero-actions">
-                        <Link to="/features" className="cta-button primary">
+                        <Link to="/features" className="cta-button secondary">
                             Explore Features <ArrowRight size={20} className="icon-slide" />
                         </Link>
+                        <a href="/apk/oasis-arm64-v8a-release.apk" download className="cta-button primary">
+                            <Download size={20} /> Download for Android (ARM64)
+                        </a>
+                    </div>
+                    <div className="hero-sub-actions" style={{ marginTop: '1rem' }}>
+                        <a href="/apk/oasis-armeabi-v7a-release.apk" download className="text-muted" style={{ fontSize: '0.875rem', textDecoration: 'underline' }}>
+                            Older device? Download ARMv7 version
+                        </a>
                     </div>
                 </motion.div>
             </section>
@@ -46,18 +54,18 @@ const Home = () => {
                     >
                         <FeatureCard
                             icon={<Shield className="accent-sharp" size={32} />}
-                            title="Encrypted"
-                            desc="Your conversations are yours alone. End-to-end encryption by default."
+                            title="Dual-Layer Encryption"
+                            desc="Signal Protocol for live chats, backed by RSA for seamless recovery. Your conversations are yours alone."
                         />
                         <FeatureCard
                             icon={<Clock className="accent-glow" size={32} />}
                             title="Time-Aware"
-                            desc="Built-in screen time tracking helps you stay mindful of your digital life."
+                            desc="Built-in screen time tracking fades the app to black-and-white to keep you mindful of your digital life."
                         />
                         <FeatureCard
                             icon={<Globe className="text-primary" size={32} />}
-                            title="Communities"
-                            desc="Join vibrant communities that share your varied interests."
+                            title="Circles & Vault"
+                            desc="Stay connected with private circles, and hide your private moments in a secure, encrypted vault."
                         />
                     </motion.div>
                 </div>
@@ -66,7 +74,7 @@ const Home = () => {
             {/* Footer */}
             <footer className="site-footer">
                 <div className="container">
-                    <p>&copy; 2024 Morrow Inc. <Link to="/privacy" className="footer-link">Privacy Policy</Link></p>
+                    <p>&copy; 2026 Morrow Inc. <Link to="/privacy" className="footer-link">Privacy Policy</Link></p>
                 </div>
             </footer>
         </div>

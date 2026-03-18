@@ -6,25 +6,32 @@ import '../config/supabase_config.dart';
 
 class SupabaseService {
   static final SupabaseService _instance = SupabaseService._internal();
-  static bool _isInitialized = false;
+  static bool isInitialized = false;
   
-  late final SupabaseClient _client;
+  SupabaseClient? _mockClient;
+  late SupabaseClient _client;
   
   factory SupabaseService() {
-    if (!_isInitialized) {
+    if (!isInitialized) {
       throw Exception('SupabaseService not initialized. Call initialize() first.');
     }
     return _instance;
   }
   
   // Getter for the Supabase client
-  SupabaseClient get client => _client;
+  SupabaseClient get client => _mockClient ?? _client;
+  
+  @visibleForTesting
+  static void setMockClient(SupabaseClient mockClient) {
+    _instance._mockClient = mockClient;
+    isInitialized = true;
+  }
   
   SupabaseService._internal();
   
   // Initialize Supabase
   static Future<void> initialize() async {
-    if (_isInitialized) return;
+    if (isInitialized) return;
     
     try {
       // Make sure environment variables are loaded
@@ -40,7 +47,7 @@ class SupabaseService {
       );
       
       _instance._client = Supabase.instance.client;
-      _isInitialized = true;
+      isInitialized = true;
     } catch (e) {
       throw Exception('Failed to initialize Supabase: $e');
     }
@@ -49,31 +56,31 @@ class SupabaseService {
   // Auth methods
   GoTrueClient get auth {
     _checkInitialized();
-    return _client.auth;
+    return client.auth;
   }
   
   // Storage methods
   SupabaseStorageClient get storage {
     _checkInitialized();
-    return _client.storage;
+    return client.storage;
   }
   
   // Database tables
   SupabaseClient get db {
     _checkInitialized();
-    return _client;
+    return client;
   }
   
   // Check if user is authenticated
   bool get isAuthenticated {
     _checkInitialized();
-    return _client.auth.currentUser != null;
+    return client.auth.currentUser != null;
   }
   
   // Get current user
   User? get currentUser {
     _checkInitialized();
-    return _client.auth.currentUser;
+    return client.auth.currentUser;
   }
   
   // Get current user ID
@@ -85,14 +92,14 @@ class SupabaseService {
   // Auth state changes
   Stream<AuthState> get onAuthStateChange {
     _checkInitialized();
-    return _client.auth.onAuthStateChange;
+    return client.auth.onAuthStateChange;
   }
   
   // Sign out
   Future<void> signOut() async {
     _checkInitialized();
     try {
-      await _client.auth.signOut();
+      await client.auth.signOut();
     } catch (e) {
       throw Exception('Failed to sign out: $e');
     }
@@ -113,7 +120,7 @@ class SupabaseService {
   }) async {
     _checkInitialized();
     try {
-      await _client.storage
+      await client.storage
           .from(bucket)
           .upload(path, file, fileOptions: fileOptions ?? const FileOptions());
       
@@ -127,7 +134,7 @@ class SupabaseService {
   Future<void> deleteFile(String bucket, String path) async {
     _checkInitialized();
     try {
-      await _client.storage
+      await client.storage
           .from(bucket)
           .remove([path]);
     } catch (e) {
@@ -138,12 +145,12 @@ class SupabaseService {
   // Clear session data (useful for testing)
   @visibleForTesting
   static void reset() {
-    _isInitialized = false;
+    isInitialized = false;
   }
   
   // Check if the service is initialized
   void _checkInitialized() {
-    if (!_isInitialized) {
+    if (!isInitialized) {
       throw Exception('SupabaseService not initialized. Call SupabaseService.initialize() first.');
     }
   }

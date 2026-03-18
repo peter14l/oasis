@@ -10,6 +10,8 @@ import 'package:oasis_v2/widgets/circles/streak_banner.dart';
 import 'package:oasis_v2/widgets/circles/commitment_card.dart';
 import 'package:oasis_v2/widgets/share_sheet.dart';
 
+import 'package:oasis_v2/services/circle_service.dart';
+
 class CircleDetailScreen extends StatefulWidget {
   final String circleId;
   const CircleDetailScreen({super.key, required this.circleId});
@@ -21,6 +23,7 @@ class CircleDetailScreen extends StatefulWidget {
 class _CircleDetailScreenState extends State<CircleDetailScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  final CircleService _circleService = CircleService();
 
   @override
   void initState() {
@@ -31,6 +34,47 @@ class _CircleDetailScreenState extends State<CircleDetailScreen>
 
   Future<void> _load() async {
     await context.read<CircleProvider>().openCircle(widget.circleId);
+  }
+
+  Future<void> _confirmDeleteCircle() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Circle?'),
+        content: const Text(
+          'This action cannot be undone. All commitments and history for this circle will be permanently lost.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete Permanently'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await _circleService.deleteCircle(widget.circleId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Circle deleted successfully')),
+          );
+          context.pop();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error deleting circle: $e')),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -49,6 +93,7 @@ class _CircleDetailScreenState extends State<CircleDetailScreen>
     final provider = context.watch<CircleProvider>();
     final circle = provider.activeCircle;
     final commitments = provider.todaysCommitments;
+    final isCreator = circle?.createdBy == _currentUserId;
 
     if (circle == null && provider.isLoading) {
       return const Scaffold(
@@ -88,6 +133,29 @@ class _CircleDetailScreenState extends State<CircleDetailScreen>
                 },
                 tooltip: 'Invite Member',
               ),
+              if (isCreator)
+                PopupMenuButton<String>(
+                  icon: const Icon(FluentIcons.more_vertical_24_regular),
+                  onSelected: (value) {
+                    if (value == 'delete') {
+                      _confirmDeleteCircle();
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(FluentIcons.delete_24_regular,
+                              color: theme.colorScheme.error, size: 20),
+                          const SizedBox(width: 12),
+                          Text('Delete Circle',
+                              style: TextStyle(color: theme.colorScheme.error)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
             ],
             flexibleSpace: FlexibleSpaceBar(
               titlePadding:

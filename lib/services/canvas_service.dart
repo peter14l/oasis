@@ -9,8 +9,11 @@ import 'package:uuid/uuid.dart';
 
 
 class CanvasService {
-  final _supabase = SupabaseService().client;
+  final SupabaseClient _supabase;
   final _uuid = const Uuid();
+
+  CanvasService({SupabaseClient? client}) 
+      : _supabase = client ?? SupabaseService().client;
 
   // ─── Canvases ────────────────────────────────────────────────────────────────
 
@@ -35,11 +38,12 @@ class CanvasService {
     }
   }
 
-  /// Create a new canvas (solo initially).
+  /// Create a new canvas with optional initial members.
   Future<OasisCanvas> createCanvas({
     required String createdBy,
     required String title,
     required String coverColor,
+    List<String> memberIds = const [],
   }) async {
     try {
       // 1. Create the canvas
@@ -56,13 +60,28 @@ class CanvasService {
       final canvas = OasisCanvas.fromJson(canvasData);
 
       // 2. Add creator as owner
-      await _supabase.from('canvas_members').insert({
-        'canvas_id': canvas.id,
-        'user_id': createdBy,
-        'role': 'owner',
-      });
+      final List<Map<String, dynamic>> membersToInsert = [
+        {
+          'canvas_id': canvas.id,
+          'user_id': createdBy,
+          'role': 'owner',
+        }
+      ];
 
-      return canvas;
+      // 3. Add other members
+      for (final id in memberIds) {
+        if (id != createdBy) {
+          membersToInsert.add({
+            'canvas_id': canvas.id,
+            'user_id': id,
+            'role': 'member',
+          });
+        }
+      }
+
+      await _supabase.from('canvas_members').insert(membersToInsert);
+
+      return canvas.copyWith(memberIds: membersToInsert.map((m) => m['user_id'] as String).toList());
     } catch (e) {
       debugPrint('CanvasService.createCanvas error: $e');
       rethrow;
@@ -220,6 +239,20 @@ class CanvasService {
       return _supabase.storage.from('post-images').getPublicUrl(fileName);
     } catch (e) {
       debugPrint('CanvasService.uploadCanvasImage error: $e');
+      rethrow;
+    }
+  }
+
+  /// Join an existing canvas.
+  Future<void> joinCanvas(String canvasId, String userId) async {
+    try {
+      await _supabase.from('canvas_members').upsert({
+        'canvas_id': canvasId,
+        'user_id': userId,
+        'role': 'member',
+      });
+    } catch (e) {
+      debugPrint('CanvasService.joinCanvas error: $e');
       rethrow;
     }
   }

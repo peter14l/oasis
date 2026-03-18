@@ -8,7 +8,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 class NotificationService {
   final _supabase = SupabaseService().client;
 
-  /// Get user's notifications
+  /// Get user's notifications (excluding chat messages)
   Future<List<AppNotification>> getNotifications({
     required String userId,
     int limit = 50,
@@ -25,6 +25,7 @@ class NotificationService {
             )
           ''')
           .eq('user_id', userId)
+          .neq('type', 'dm') // Exclude DM notifications from the screen
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
 
@@ -75,6 +76,20 @@ class NotificationService {
     }
   }
 
+  /// Clear all notifications for a user
+  Future<void> clearAllNotifications(String userId) async {
+    try {
+      await _supabase
+          .from(SupabaseConfig.notificationsTable)
+          .delete()
+          .eq('user_id', userId)
+          .neq('type', 'dm'); // Don't delete DM notifications as they are handled differently
+    } catch (e) {
+      debugPrint('Error clearing all notifications: $e');
+      rethrow;
+    }
+  }
+
   /// Get unread count
   Future<int> getUnreadCount(String userId) async {
     try {
@@ -82,7 +97,8 @@ class NotificationService {
           .from(SupabaseConfig.notificationsTable)
           .select('id')
           .eq('user_id', userId)
-          .eq('is_read', false);
+          .eq('is_read', false)
+          .neq('type', 'dm'); // Only count non-DM notifications
 
       return response.length;
     } catch (e) {
@@ -125,6 +141,9 @@ class NotificationService {
             try {
               final notificationData = payload.newRecord;
 
+              // Skip if it's a DM (as per requirement)
+              if (notificationData['type'] == 'dm') return;
+
               // Fetch actor details
               if (notificationData['actor_id'] != null) {
                 final profile =
@@ -160,11 +179,14 @@ class NotificationService {
     required String userId,
     required String type,
     required String actorId,
+    String? title,
     String? postId,
     String? commentId,
     String? message,
   }) async {
     try {
+      // Note: 'title' column does not exist in DB, so we don't include it in insert.
+      // We will derive the title in the UI/Model from the actor_id/actor_name.
       await _supabase.from(SupabaseConfig.notificationsTable).insert({
         'user_id': userId,
         'type': type,

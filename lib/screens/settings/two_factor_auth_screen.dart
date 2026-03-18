@@ -10,36 +10,25 @@ class TwoFactorAuthScreen extends StatelessWidget {
         title: const Text('Two-Factor Authentication'),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.security, size: 80, color: Colors.indigo),
-            const SizedBox(height: 24),
-            const Text(
-              'Two-Factor Authentication',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
+            const Icon(Icons.security, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
             const Text(
-              'Add an extra layer of security to your account by requiring a code in addition to your password.',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-              textAlign: TextAlign.center,
+              'Two-Factor Authentication',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 8),
+            const Text(
+              'This feature is currently unavailable.',
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () {
-                // TODO: Implement 2FA setup flow
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('2FA Setup coming soon!')),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              child: const Text('Get Started'),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Go Back'),
             ),
           ],
         ),

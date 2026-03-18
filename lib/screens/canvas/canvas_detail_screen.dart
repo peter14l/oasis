@@ -30,7 +30,12 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
+      if (currentUserId != null) {
+        // Automatically join if not a member (handles invites)
+        await context.read<CanvasProvider>().joinCanvas(widget.canvasId, currentUserId);
+      }
       _canvasProvider.openCanvas(widget.canvasId);
     });
   }

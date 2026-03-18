@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 class AppNotification {
   final String id;
   final String userId;
-  final String type; // 'like', 'comment', 'follow', 'mention'
+  final String type; // 'like', 'comment', 'follow', 'mention', 'dm'
+  final String? title;
   final String? actorId;
   final String? actorName;
   final String? actorAvatar;
@@ -17,6 +18,7 @@ class AppNotification {
     required this.id,
     required this.userId,
     required this.type,
+    this.title,
     this.actorId,
     this.actorName,
     this.actorAvatar,
@@ -32,12 +34,13 @@ class AppNotification {
       id: json['id'] as String,
       userId: json['user_id'] as String,
       type: json['type'] as String,
+      title: json['title'] as String?,
       actorId: json['actor_id'] as String?,
       actorName: json['actor_name'] as String?,
       actorAvatar: json['actor_avatar'] as String?,
       postId: json['post_id'] as String?,
       commentId: json['comment_id'] as String?,
-      message: json['message'] as String?,
+      message: (json['content'] ?? json['message']) as String?,
       isRead: json['is_read'] as bool? ?? false,
       timestamp: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
@@ -50,12 +53,13 @@ class AppNotification {
       'id': id,
       'user_id': userId,
       'type': type,
+      'title': title,
       'actor_id': actorId,
       'actor_name': actorName,
       'actor_avatar': actorAvatar,
       'post_id': postId,
       'comment_id': commentId,
-      'message': message,
+      'content': message,
       'is_read': isRead,
       'created_at': timestamp.toIso8601String(),
     };
@@ -65,6 +69,7 @@ class AppNotification {
     String? id,
     String? userId,
     String? type,
+    String? title,
     String? actorId,
     String? actorName,
     String? actorAvatar,
@@ -78,6 +83,7 @@ class AppNotification {
       id: id ?? this.id,
       userId: userId ?? this.userId,
       type: type ?? this.type,
+      title: title ?? this.title,
       actorId: actorId ?? this.actorId,
       actorName: actorName ?? this.actorName,
       actorAvatar: actorAvatar ?? this.actorAvatar,
@@ -87,6 +93,25 @@ class AppNotification {
       isRead: isRead ?? this.isRead,
       timestamp: timestamp ?? this.timestamp,
     );
+  }
+
+  String get displayTitle {
+    if (title != null && title!.isNotEmpty) return title!;
+    
+    switch (type) {
+      case 'dm':
+        return actorName ?? 'New Message';
+      case 'like':
+        return 'New Like';
+      case 'comment':
+        return 'New Comment';
+      case 'follow':
+        return 'New Follower';
+      case 'mention':
+        return 'Mentioned You';
+      default:
+        return 'New Notification';
+    }
   }
 
   String getNotificationText() {
@@ -99,6 +124,8 @@ class AppNotification {
         return '${actorName ?? 'Someone'} started following you';
       case 'mention':
         return '${actorName ?? 'Someone'} mentioned you in a comment';
+      case 'dm':
+        return message ?? 'New message';
       default:
         return message ?? 'New notification';
     }
@@ -114,6 +141,8 @@ class AppNotification {
         return Icons.person_add;
       case 'mention':
         return Icons.alternate_email;
+      case 'dm':
+        return Icons.chat_outlined;
       default:
         return Icons.notifications;
     }

@@ -65,9 +65,10 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
 
       if (mounted) {
         // Navigate to chat screen
-        context.go('/chat/$conversationId', extra: {
+        context.go('/messages/$conversationId', extra: {
           'otherUserName': user.username,
           'otherUserAvatar': user.avatarUrl ?? '',
+          'otherUserId': user.id,
         });
       }
     } catch (e) {

@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:oasis_v2/services/stories_service.dart';
 import 'package:go_router/go_router.dart';
+import 'package:animate_do/animate_do.dart';
 
 class CreateStoryScreen extends StatefulWidget {
   const CreateStoryScreen({super.key});
@@ -20,6 +22,13 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   String _mediaType = 'image';
   bool _isUploading = false;
   bool _isCaptionVisible = false;
+  
+  // High-end Text Overlay State
+  int _textBackgroundMode = 0; // 0: None, 1: Solid, 2: Translucent
+  TextAlign _textAlign = TextAlign.center;
+  Color _textColor = Colors.white;
+  final List<String> _fontStyles = ['Classic', 'Neon', 'Typewriter', 'Strong'];
+  int _selectedFontIndex = 0;
 
   @override
   void dispose() {
@@ -76,7 +85,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       if (story != null && mounted) {
         context.pop(true);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Story shared successfully!')),
+          const SnackBar(
+            content: Text('Story shared successfully!'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.green,
+          ),
         );
       } else if (mounted) {
         throw Exception('Failed to create story');
@@ -94,77 +107,85 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     }
   }
 
+  void _toggleTextBackground() {
+    setState(() {
+      _textBackgroundMode = (_textBackgroundMode + 1) % 3;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
-          // Main Content Area
+          // ── Immersive Media Preview ──
           if (_selectedFile != null)
             Positioned.fill(
-              child: _mediaType == 'video'
-                  ? const Center(child: Icon(Icons.videocam, color: Colors.white24, size: 100)) // Video placeholder
-                  : Image.file(_selectedFile!, fit: BoxFit.cover),
+              child: FadeIn(
+                duration: const Duration(milliseconds: 400),
+                child: Hero(
+                  tag: 'story_preview',
+                  child: _mediaType == 'video'
+                      ? Container(
+                          color: Colors.grey[900],
+                          child: const Center(
+                            child: Icon(Icons.play_circle_fill,
+                                color: Colors.white54, size: 80),
+                          ),
+                        )
+                      : Image.file(_selectedFile!, fit: BoxFit.cover),
+                ),
+              ),
             )
           else
             _buildEmptyState(),
 
-          // Overlay Controls (Gradient)
+          // ── Cinematic Gradients ──
           if (_selectedFile != null)
-             Positioned.fill(
-               child: Container(
-                 decoration: const BoxDecoration(
-                   gradient: LinearGradient(
-                     begin: Alignment.topCenter,
-                     end: Alignment.bottomCenter,
-                     colors: [
-                       Colors.black54,
-                       Colors.transparent,
-                       Colors.transparent,
-                       Colors.black87,
-                     ],
-                     stops: [0.0, 0.2, 0.7, 1.0],
-                   ),
-                 ),
-               ),
-             ),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.6),
+                        Colors.transparent,
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.6),
+                      ],
+                      stops: const [0.0, 0.15, 0.85, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+            ),
 
-          // Top App Bar Controls
+          // ── Top Toolbar ──
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white, size: 28),
-                    onPressed: () => context.pop(),
+                  _buildBlurButton(
+                    icon: Icons.close_rounded,
+                    onTap: () => context.pop(),
                   ),
                   if (_selectedFile != null)
                     Row(
                       children: [
-                        IconButton(
-                           icon: Icon(
-                             _isCaptionVisible ? Icons.text_fields : Icons.text_fields_outlined,
-                             color: Colors.white,
-                             size: 28,
-                           ),
-                           onPressed: () {
-                             setState(() {
-                               _isCaptionVisible = !_isCaptionVisible;
-                             });
-                           },
+                        _buildBlurButton(
+                          icon: Icons.music_note_rounded,
+                          onTap: () {}, // Add music
                         ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Icons.crop_rotate, color: Colors.white, size: 28),
-                          onPressed: () {
-                            // TODO: Implement simple rotate or crop
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Editing tools coming soon!')),
-                            );
-                          },
+                        const SizedBox(width: 12),
+                        _buildBlurButton(
+                          icon: Icons.face_retouching_natural_rounded,
+                          onTap: () {}, // Effects
                         ),
                       ],
                     ),
@@ -173,163 +194,364 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             ),
           ),
 
-          // Caption Input Overlay
-          if (_isCaptionVisible && _selectedFile != null)
+          // ── Side Editing Tools ──
+          if (_selectedFile != null && !_isCaptionVisible)
             Positioned(
-              left: 20,
-              right: 20,
-              top: MediaQuery.of(context).size.height / 3,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black45,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: TextField(
-                  controller: _captionController,
-                  autofocus: true,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Type something...',
-                    hintStyle: TextStyle(color: Colors.white54),
-                  ),
-                  maxLines: 5,
-                  minLines: 1,
+              right: 16,
+              top: MediaQuery.of(context).size.height * 0.25,
+              child: FadeInRight(
+                duration: const Duration(milliseconds: 300),
+                child: Column(
+                  children: [
+                    _buildSideTool(
+                      icon: Icons.text_fields_rounded,
+                      label: 'Aa',
+                      onTap: () => setState(() => _isCaptionVisible = true),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildSideTool(
+                      icon: Icons.sticky_note_2_rounded,
+                      label: 'Stickers',
+                      onTap: () {},
+                    ),
+                    const SizedBox(height: 20),
+                    _buildSideTool(
+                      icon: Icons.gesture_rounded,
+                      label: 'Draw',
+                      onTap: () {},
+                    ),
+                    const SizedBox(height: 20),
+                    _buildSideTool(
+                      icon: Icons.auto_awesome_rounded,
+                      label: 'Filters',
+                      onTap: () {},
+                    ),
+                  ],
                 ),
               ),
             ),
 
-          // Bottom Controls (Post Button)
-          if (_selectedFile != null)
-            Positioned(
-              bottom: 30,
-              right: 20,
-              left: 20,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Change Media Button
-                  TextButton.icon(
-                    onPressed: () => setState(() {
-                      _selectedFile = null;
-                      _isCaptionVisible = false;
-                      _captionController.clear();
-                    }),
-                    icon: const Icon(Icons.refresh, color: Colors.white),
-                    label: const Text('Retake', style: TextStyle(color: Colors.white)),
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.white10,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    ),
-                  ),
+          // ── Dynamic Text Overlay ──
+          if (_isCaptionVisible && _selectedFile != null)
+            _buildTextEditor(),
 
-                  // Post Button
-                  FilledButton.icon(
-                    onPressed: _isUploading ? null : _createStory,
-                    icon: _isUploading 
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-                      : const Icon(Icons.send_rounded, size: 20),
-                    label: Text(_isUploading ? 'Sharing...' : 'Share Story'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          // ── Modern Bottom Action Bar ──
+          if (_selectedFile != null && !_isCaptionVisible)
+            Positioned(
+              bottom: MediaQuery.of(context).padding.bottom + 20,
+              left: 20,
+              right: 20,
+              child: FadeInUp(
+                duration: const Duration(milliseconds: 400),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: _isUploading ? null : _createStory,
+                        child: Container(
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(28),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: _isUploading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: Colors.black,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Your Story',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 16,
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    _buildCircleActionButton(
+                      icon: Icons.chevron_right_rounded,
+                      onTap: () {
+                        // Show "Send to" list
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTextEditor() {
+    return Positioned.fill(
+      child: Container(
+        color: Colors.black54,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Column(
+            children: [
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      _buildBlurButton(
+                        icon: Icons.align_horizontal_center_rounded,
+                        onTap: () {}, // Cycle alignment
+                      ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: _toggleTextBackground,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _textBackgroundMode > 0 ? Colors.white : Colors.white24,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.format_color_text_rounded,
+                            color: _textBackgroundMode > 0 ? Colors.black : Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      TextButton(
+                        onPressed: () => setState(() => _isCaptionVisible = false),
+                        child: const Text(
+                          'Done',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: TextField(
+                      controller: _captionController,
+                      autofocus: true,
+                      maxLines: null,
+                      textAlign: _textAlign,
+                      cursorColor: Colors.white,
+                      style: TextStyle(
+                        color: _textColor,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -1,
+                        backgroundColor: _textBackgroundMode == 1 
+                            ? Colors.white 
+                            : _textBackgroundMode == 2 
+                                ? Colors.black54 
+                                : null,
+                      ),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'Type something...',
+                        hintStyle: TextStyle(color: Colors.white38),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Font Picker
+              Container(
+                height: 80,
+                padding: const EdgeInsets.only(bottom: 20),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: _fontStyles.length,
+                  itemBuilder: (context, index) {
+                    final isSelected = _selectedFontIndex == index;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedFontIndex = index),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        margin: const EdgeInsets.only(right: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: isSelected ? Colors.white : Colors.white10,
+                          borderRadius: BorderRadius.circular(25),
+                          border: Border.all(color: isSelected ? Colors.white : Colors.white24),
+                        ),
+                        child: Center(
+                          child: Text(
+                            _fontStyles[index],
+                            style: TextStyle(
+                              color: isSelected ? Colors.black : Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildEmptyState() {
-    return Center(
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF1A1A1A), Color(0xFF000000)],
+        ),
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.add_a_photo_outlined, size: 60, color: Colors.white38),
-          const SizedBox(height: 20),
-          const Text(
-            'Add to Story',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
+          ZoomIn(
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.05),
+              ),
+              child: const Icon(Icons.auto_awesome_mosaic_rounded, size: 60, color: Colors.white70),
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 32),
+          const Text(
+            'Create a Story',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -1,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Share a moment with your friends',
+            style: TextStyle(color: Colors.white38, fontSize: 16),
+          ),
+          const SizedBox(height: 60),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-               _buildPickerButton(
-                 icon: Icons.camera_alt_rounded,
-                 label: 'Camera',
-                 onTap: () => _pickMedia(ImageSource.camera),
-               ),
-               const SizedBox(width: 20),
-               _buildPickerButton(
-                 icon: Icons.photo_library_rounded,
-                 label: 'Gallery',
-                 onTap: () => _pickMedia(ImageSource.gallery),
-               ),
+              _buildModernPickerItem(
+                icon: Icons.camera_alt_rounded,
+                label: 'Camera',
+                color: const Color(0xFF3D8BFF),
+                onTap: () => _pickMedia(ImageSource.camera),
+              ),
+              const SizedBox(width: 24),
+              _buildModernPickerItem(
+                icon: Icons.photo_library_rounded,
+                label: 'Gallery',
+                color: const Color(0xFFFF4B8B),
+                onTap: () => _pickMedia(ImageSource.gallery),
+              ),
             ],
           ),
-          const SizedBox(height: 20),
-           _buildPickerButton(
-             icon: Icons.videocam_rounded,
-             label: 'Video',
-             onTap: () => _pickMedia(ImageSource.gallery, isVideo: true),
-             isSmall: true,
-           ),
         ],
       ),
     );
   }
 
-  Widget _buildPickerButton({
+  Widget _buildModernPickerItem({
     required IconData icon,
     required String label,
+    required Color color,
     required VoidCallback onTap,
-    bool isSmall = false,
   }) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        width: isSmall ? 140 : 120,
-        height: isSmall ? 50 : 120,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white12),
-        ),
-        child: isSmall 
-          ? Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, color: Colors.white, size: 24),
-                const SizedBox(width: 8),
-                Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ],
-            )
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, color: Colors.white, size: 40),
-                const SizedBox(height: 12),
-                Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ],
+      child: Column(
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              shape: BoxShape.circle,
+              border: Border.all(color: color.withOpacity(0.3), width: 2),
             ),
+            child: Icon(icon, color: color, size: 32),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBlurButton({required IconData icon, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            color: Colors.white.withOpacity(0.1),
+            child: Icon(icon, color: Colors.white, size: 24),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSideTool({required IconData icon, required String label, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          _buildBlurButton(icon: icon, onTap: onTap),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCircleActionButton({required IconData icon, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: Colors.black, size: 24),
       ),
     );
   }

@@ -7,8 +7,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 class CircleService {
-  final _supabase = SupabaseService().client;
+  final SupabaseClient _supabase;
   final _uuid = const Uuid();
+
+  CircleService({SupabaseClient? client}) 
+      : _supabase = client ?? SupabaseService().client;
 
   // ─── Circles ─────────────────────────────────────────────────────────────────
 
@@ -111,6 +114,25 @@ class CircleService {
       return Circle.fromJson(circleMap);
     } catch (e) {
       debugPrint('CircleService.getCircle error: $e');
+      rethrow;
+    }
+  }
+
+  /// Delete a circle.
+  Future<void> deleteCircle(String circleId) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) throw Exception('Not authenticated');
+
+      // Verify ownership (only creator can delete)
+      final circle = await getCircle(circleId);
+      if (circle.createdBy != userId) {
+        throw Exception('Only the creator can delete this circle.');
+      }
+
+      await _supabase.from('circles').delete().eq('id', circleId);
+    } catch (e) {
+      debugPrint('CircleService.deleteCircle error: $e');
       rethrow;
     }
   }

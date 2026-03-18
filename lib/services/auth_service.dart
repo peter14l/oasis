@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase/supabase.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:oasis_v2/models/user_model.dart' as app_models;
@@ -34,6 +35,7 @@ class AuthService with ChangeNotifier {
       notifyListeners();
     });
   }
+
   static final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId: kIsWeb ? dotenv.get('GOOGLE_WEB_CLIENT_ID') : null,
     serverClientId: kIsWeb ? null : dotenv.get('GOOGLE_WEB_CLIENT_ID'),
@@ -104,7 +106,7 @@ class AuthService with ChangeNotifier {
       return _userFromSupabaseUser(response.user!);
     } on AuthException {
       rethrow;
-    } catch (_) {
+    } catch (e) {
       throw AuthException('Failed to sign in and provision keys.');
     }
   }
@@ -239,19 +241,17 @@ class AuthService with ChangeNotifier {
           avatarUrl: user.userMetadata?['avatar_url'],
         );
       }
+// Provision/restore E2E keys in the background
+_provisionEncryptionKeys();
+_notificationService.updateFcmToken(user.id);
 
-      // Provision/restore E2E keys in the background
-      _provisionEncryptionKeys();
-      _notificationService.updateFcmToken(user.id);
-
-      return _userFromSupabaseUser(user);
-    } on AuthException catch (e) {
-      rethrow;
-    } catch (e) {
-      throw AuthException('Failed to sign in with Google: ${e.toString()}');
-    }
-  }
-
+return _userFromSupabaseUser(user);
+} on AuthException catch (e) {
+rethrow;
+} catch (e) {
+throw AuthException('Failed to sign in with Google: ${e.toString()}');
+}
+}
   // Sign in with Apple
   Future<app_models.AppUser> signInWithApple() async {
     try {
@@ -270,12 +270,12 @@ class AuthService with ChangeNotifier {
       );
 
       // Sign in to Supabase with the Apple token
-      final response = await _supabase.auth.signInWithIdToken(
+      await _supabase.auth.signInWithIdToken(
         provider: OAuthProvider.apple,
         idToken: credential.identityToken!,
       );
 
-      final user = response.user;
+      final user = _supabase.auth.currentUser;
       if (user == null) {
         throw AuthException('Failed to sign in with Apple');
       }

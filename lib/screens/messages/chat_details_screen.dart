@@ -175,15 +175,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
 
         // Sync with Supabase so it applies to both participants
         try {
-          final userId = Supabase.instance.client.auth.currentUser?.id;
-          if (userId != null) {
-            await Supabase.instance.client.from('chat_themes').upsert({
-              'conversation_id': widget.conversationId,
-              'user_id': userId,
-              'background_image_url': backgroundUrl,
-              'updated_at': DateTime.now().toIso8601String(),
-            }, onConflict: 'conversation_id, user_id');
-          }
+          await _messagingService.updateChatBackground(
+            widget.conversationId,
+            backgroundUrl,
+          );
         } catch (e) {
           debugPrint('Failed to sync chat theme to Supabase: $e');
         }
@@ -216,6 +211,48 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       }
     } catch (e) {
       debugPrint('Failed to sync chat theme removal to Supabase: $e');
+    }
+  }
+
+  Future<void> _clearChat() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear Chat?'),
+        content: const Text(
+          'This will delete all messages in this conversation for both participants. This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Clear All'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await _messagingService.clearConversationMessages(widget.conversationId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Chat cleared successfully')),
+          );
+          // Go back to home screen since the conversation is now empty
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error clearing chat: $e')),
+          );
+        }
+      }
     }
   }
 
@@ -494,6 +531,16 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
               ).showSnackBar(const SnackBar(content: Text('Coming soon')));
             },
           ),
+          ListTile(
+            leading: Icon(Icons.delete_sweep_outlined, color: colorScheme.error),
+            title: Text(
+              'Clear Chat',
+              style: TextStyle(color: colorScheme.error),
+            ),
+            subtitle: const Text('Delete all messages'),
+            onTap: _clearChat,
+          ),
+          const SizedBox(height: 32),
         ],
       ),
     );

@@ -47,7 +47,6 @@ import 'package:oasis_v2/screens/post_details_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/edit_profile_screen.dart';
 import '../screens/followers_screen.dart';
-import '../screens/splash/splash_screen.dart';
 import '../screens/legal/privacy_policy_screen.dart';
 import '../screens/legal/terms_of_service_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
@@ -280,7 +279,7 @@ class _MainLayoutState extends State<MainLayout> {
                   i,
                   killSwitchActive: killSwitchActive,
                 ),
-            labelBehavior: NavBarM3ELabelBehavior.alwaysHide,
+            labelBehavior: NavBarM3ELabelBehavior.alwaysShow,
             destinations: [
               NavigationDestinationM3E(
                 icon: restrictedIcon(const Icon(FluentIcons.home_24_regular)),
@@ -471,23 +470,29 @@ class AppRouter {
 
   static final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: '/splash',
+    initialLocation: '/feed',
     debugLogDiagnostics: true,
     redirect: (context, state) async {
-      // Splash handles its own navigation
-      if (state.uri.path == '/splash') return null;
-
       // Password-reset screen is always reachable once Supabase sets the
       // recovery session — never redirect away from it automatically.
       if (state.uri.path == '/reset-password') return null;
 
+      // Check onboarding status
+      final hasSeenOnboarding = await OnboardingScreen.hasSeenOnboarding();
+      if (!hasSeenOnboarding && state.uri.path != '/onboarding') {
+        return '/onboarding';
+      }
+
       final authService = Provider.of<AuthService>(context, listen: false);
-      await Future.delayed(Duration.zero);
+      // Wait for session restoration if it hasn't happened yet
+      if (authService.currentUser == null) {
+        await authService.restoreSession();
+      }
 
       final isLoggedIn = authService.currentUser != null;
 
       // Unauthenticated users trying to reach a protected route → login
-      if (!isLoggedIn && !_isPublicRoute(state.uri.path)) {
+      if (!isLoggedIn && !_isPublicRoute(state.uri.path) && state.uri.path != '/onboarding') {
         return '/login';
       }
 
@@ -499,15 +504,6 @@ class AppRouter {
       return null;
     },
     routes: [
-      // Splash Screen
-      GoRoute(
-        path: '/splash',
-        name: 'splash',
-        pageBuilder:
-            (context, state) =>
-                MaterialPage(key: state.pageKey, child: const SplashScreen()),
-      ),
-
       // Auth Routes
       GoRoute(
         path: '/login',

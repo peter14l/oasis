@@ -1,36 +1,36 @@
 import { motion } from 'framer-motion';
-import { Lock, Smartphone, Users, Eye, Zap, Moon } from 'lucide-react';
+import { Lock, EyeOff, Users, Clock, Shield, Hourglass } from 'lucide-react';
 
 const features = [
     {
         icon: <Lock size={40} className="accent-sharp" />,
-        title: "End-to-End Encryption",
-        description: "Your messages are encrypted on your device. Only you and the recipient can read them. No prying eyes, not even us."
+        title: "Dual-Layer Encryption",
+        description: "Live chats are secured by the gold-standard Signal Protocol for perfect forward secrecy. Message history is seamlessly backed up with RSA encryption, so you never lose your chats after a reinstall."
     },
     {
-        icon: <Smartphone size={40} className="accent-glow" />,
-        title: "Stories & Moments",
-        description: "Share your daily highlights with ephemeral stories that disappear after 24 hours. Keep it real, keep it fresh."
+        icon: <EyeOff size={40} className="accent-glow" />,
+        title: "Whisper Mode",
+        description: "Some things aren't meant to last forever. Toggle Whisper Mode with a quick swipe up to send ephemeral messages that vanish 24 hours after they are seen."
     },
     {
-        icon: <Users size={40} className="accent-pink" />,
-        title: "Vibrant Communities",
-        description: "Find your tribe. Join communities based on your interests and engage in meaningful discussions."
+        icon: <Shield size={40} className="accent-pink" />,
+        title: "The Secure Vault",
+        description: "Hide your most private conversations and moments in a locked vault. Accessible only through biometric authentication, keeping your secrets safe from prying eyes."
     },
     {
-        icon: <Eye size={40} className="accent-blue" />,
-        title: "Screen Time Awareness",
-        description: "We care about your digital wellbeing. Built-in tools help you monitor usage and disconnect when needed."
+        icon: <Clock size={40} className="accent-blue" />,
+        title: "Digital Wellbeing",
+        description: "We actually want you to put your phone down. Our built-in screen time tracker dynamically fades the app to black-and-white to discourage mindless doomscrolling."
     },
     {
-        icon: <Zap size={40} className="accent-yellow" />,
-        title: "Lightning Fast",
-        description: "Built for performance. Morrow loads instantly and feels incredibly smooth to navigate."
+        icon: <Hourglass size={40} className="accent-yellow" />,
+        title: "Time Capsules",
+        description: "Send messages, photos, and videos into the future. Lock a memory today and set it to open on a specific date months or years from now."
     },
     {
-        icon: <Moon size={40} className="accent-purple" />,
-        title: "Dark Mode Native",
-        description: "Designed for the night owls. Our deep dark theme saves battery and looks stunning on OLED screens."
+        icon: <Users size={40} className="accent-purple" />,
+        title: "Private Circles",
+        description: "Connect deeply with your inner circle. Create exclusive spaces for shared goals, collaborative canvases, and real-time audio rooms."
     }
 ];
 
@@ -44,9 +44,9 @@ const Features = () => {
                     transition={{ duration: 0.6 }}
                     className="page-header"
                 >
-                    <h1 className="page-title">Everything You Need</h1>
+                    <h1 className="page-title">More Than Just a Chat App</h1>
                     <p className="page-subtitle">
-                        Morrow isn't just another social app. It's a toolbox for connection, designed with privacy and wellbeing at its core.
+                        Morrow is an enterprise-grade social engine built for privacy, digital wellbeing, and meaningful connections.
                     </p>
                 </motion.div>
 

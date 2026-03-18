@@ -43,12 +43,14 @@ class CanvasProvider extends ChangeNotifier {
     required String createdBy,
     required String title,
     required String coverColor,
+    List<String> memberIds = const [],
   }) async {
     try {
       final canvas = await _service.createCanvas(
         createdBy: createdBy,
         title: title,
         coverColor: coverColor,
+        memberIds: memberIds,
       );
       _canvases = [canvas, ..._canvases];
       notifyListeners();
@@ -77,7 +79,18 @@ class CanvasProvider extends ChangeNotifier {
     }
   }
 
-  // ─── Active canvas ────────────────────────────────────────────────────────────
+  Future<void> joinCanvas(String canvasId, String userId) async {
+    try {
+      await _service.joinCanvas(canvasId, userId);
+      await loadCanvases(userId); // Refresh list
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  // ─── Active canvas ────────────────────────────────────────────
+  // ──────────────────────────────────────────────────────────────
 
   Future<void> openCanvas(String canvasId) async {
     _isLoading = true;

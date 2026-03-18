@@ -27,7 +27,14 @@ class FeedService {
       final List<dynamic> data = response as List<dynamic>;
       final posts =
           data
-              .map((json) => Post.fromJson(json as Map<String, dynamic>))
+              .map((json) {
+                final map = Map<String, dynamic>.from(json as Map);
+                // Ensure field names match what Post.fromJson expects if RPC returns different names
+                if (map['comments_count'] == null && map['comments'] != null) {
+                  map['comments_count'] = map['comments'];
+                }
+                return Post.fromJson(map);
+              })
               .toList();
 
       final user = _supabase.auth.currentUser;
@@ -80,7 +87,14 @@ class FeedService {
       final List<dynamic> data = response as List<dynamic>;
       final posts =
           data
-              .map((json) => Post.fromJson(json as Map<String, dynamic>))
+              .map((json) {
+                final map = Map<String, dynamic>.from(json as Map);
+                // Ensure field names match what Post.fromJson expects if RPC returns different names
+                if (map['comments_count'] == null && map['comments'] != null) {
+                  map['comments_count'] = map['comments'];
+                }
+                return Post.fromJson(map);
+              })
               .toList();
 
       final user = _supabase.auth.currentUser;

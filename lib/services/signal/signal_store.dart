@@ -31,6 +31,18 @@ class PersistentSignalStore implements SignalProtocolStore {
     return identityKeyString != null && registrationIdString != null;
   }
 
+  /// Check if we have any pre-keys stored locally
+  Future<bool> hasPreKeys() async {
+    final keys = _prefs.getKeys();
+    return keys.any((k) => k.startsWith(_preKeysKeyPrefix));
+  }
+
+  /// Check if we have any signed pre-keys stored locally
+  Future<bool> hasSignedPreKeys() async {
+    final keys = _prefs.getKeys();
+    return keys.any((k) => k.startsWith(_signedPreKeyKeyPrefix));
+  }
+
   /// Manually save keys and initialize (used for restoration)
   static Future<PersistentSignalStore> saveAndInit(IdentityKeyPair identityKeyPair, int registrationId) async {
     final prefs = await SharedPreferences.getInstance();

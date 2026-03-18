@@ -69,8 +69,7 @@ class NotificationProvider with ChangeNotifier {
 
         // Show local notification
         _notificationManager.showNotification(
-          title:
-              'New Notification', // You might want to customize this based on type
+          title: notification.displayTitle,
           body: notification.getNotificationText(),
           payload: notification.postId, // Or route path
         );
@@ -92,6 +91,13 @@ class NotificationProvider with ChangeNotifier {
     await _notificationService.markAllAsRead(_userId!);
     _notifications =
         _notifications.map((n) => n.copyWith(isRead: true)).toList();
+    notifyListeners();
+  }
+
+  Future<void> clearAll() async {
+    if (_userId == null) return;
+    await _notificationService.clearAllNotifications(_userId!);
+    _notifications = [];
     notifyListeners();
   }
 

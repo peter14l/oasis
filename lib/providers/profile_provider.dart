@@ -25,6 +25,7 @@ class ProfileProvider with ChangeNotifier {
   List<UserProfile> get followers => _followers;
   List<UserProfile> get following => _following;
   bool get isLoading => _isLoading;
+  bool get isLoadingFollowing => _isLoading; // Map to _isLoading or separate flag if available
   bool get isFollowing => _isFollowing;
   String? get error => _error;
 

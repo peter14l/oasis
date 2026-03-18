@@ -11,9 +11,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 class MessagingService {
-  final _supabase = SupabaseService().client;
+  final SupabaseClient _supabase;
   final _uuid = const Uuid();
-  final NotificationService _notificationService = NotificationService();
+  late final NotificationService _notificationService;
+
+  MessagingService({SupabaseClient? client, NotificationService? notificationService}) 
+      : _supabase = client ?? SupabaseService().client,
+        _notificationService = notificationService ?? NotificationService();
 
   /// Get user's conversations
   Future<List<Conversation>> getConversations({
@@ -133,6 +137,9 @@ class MessagingService {
             }
           } else if (!isSender && lastMessage['signal_message_type'] != null) {
             try {
+              // Ensure SignalService is initialized
+              await SignalService().init();
+              
               content = await SignalService().decryptMessage(
                 lastMessage['sender_id'],
                 content,
@@ -477,13 +484,24 @@ class MessagingService {
             .eq('conversation_id', conversationId)
             .neq('user_id', senderId);
 
+        // Fetch sender's profile for the notification title
+        final senderProfile = await _supabase
+            .from(SupabaseConfig.profilesTable)
+            .select('username')
+            .eq('id', senderId)
+            .single();
+            
+        final senderName = senderProfile['username'] ?? 'Someone';
+
         for (final participant in participantsResponse) {
           final recipientId = participant['user_id'] as String;
+          
           await _notificationService.createNotification(
             userId: recipientId,
             type: 'dm',
             actorId: senderId,
-            message: content,
+            title: senderName,
+            message: content, // content is already decrypted or original text here
           );
         }
       } catch (e) {
@@ -687,6 +705,29 @@ class MessagingService {
     }
   }
 
+  /// Clear all messages in a conversation
+  Future<void> clearConversationMessages(String conversationId) async {
+    try {
+      // Delete all messages in the conversation
+      await _supabase
+          .from(SupabaseConfig.messagesTable)
+          .delete()
+          .eq('conversation_id', conversationId);
+
+      // Update conversation's last message and timestamp to null
+      await _supabase
+          .from(SupabaseConfig.conversationsTable)
+          .update({
+            'last_message_id': null,
+            'last_message_at': null,
+          })
+          .eq('id', conversationId);
+    } catch (e) {
+      debugPrint('Error clearing conversation messages: $e');
+      rethrow;
+    }
+  }
+
   /// Update typing status
   Future<void> updateTypingStatus(
     String conversationId,
@@ -702,6 +743,31 @@ class MessagingService {
       });
     } catch (e) {
       debugPrint('Error updating typing status: $e');
+      rethrow;
+    }
+  }
+
+  /// Update chat background for all participants
+  Future<void> updateChatBackground(String conversationId, String? backgroundUrl) async {
+    try {
+      // Fetch all participants
+      final participants = await _supabase
+          .from('conversation_participants')
+          .select('user_id')
+          .eq('conversation_id', conversationId);
+
+      // Upsert theme for each participant
+      for (final participant in participants) {
+        final userId = participant['user_id'] as String;
+        await _supabase.from('chat_themes').upsert({
+          'conversation_id': conversationId,
+          'user_id': userId,
+          'background_image_url': backgroundUrl,
+          'updated_at': DateTime.now().toIso8601String(),
+        }, onConflict: 'conversation_id, user_id');
+      }
+    } catch (e) {
+      debugPrint('Error updating chat background: $e');
       rethrow;
     }
   }

@@ -70,6 +70,7 @@ class _CreateCanvasScreenState extends State<CreateCanvasScreen> {
         createdBy: userId,
         title: title,
         coverColor: _selectedColor,
+        memberIds: _isCollaborative ? _selectedMemberIds : [],
       );
       if (!mounted) return;
       if (canvas != null) {
@@ -186,6 +187,107 @@ class _CreateCanvasScreenState extends State<CreateCanvasScreen> {
                 );
               }).toList(),
             ),
+
+            // ── Mode selection ───────────────────────────────────────
+            Text(
+              'Canvas type',
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _ModeCard(
+                    title: 'Solo',
+                    icon: FluentIcons.person_24_regular,
+                    isSelected: !_isCollaborative,
+                    onTap: () => setState(() => _isCollaborative = false),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _ModeCard(
+                    title: 'Collaborative',
+                    icon: FluentIcons.people_24_regular,
+                    isSelected: _isCollaborative,
+                    onTap: () => setState(() => _isCollaborative = true),
+                  ),
+                ),
+              ],
+            ),
+
+            if (_isCollaborative) ...[
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Invite friends',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  Text(
+                    '${_selectedMemberIds.length} selected',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (profileProvider.isLoadingFollowing)
+                const Center(child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: CircularProgressIndicator(),
+                ))
+              else if (profileProvider.following.isEmpty)
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Center(
+                    child: Text('No friends found to invite'),
+                  ),
+                )
+              else
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: profileProvider.following.length,
+                  itemBuilder: (context, index) {
+                    final friend = profileProvider.following[index];
+                    final isSelected = _selectedMemberIds.contains(friend.id);
+                    return CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(friend.fullName ?? friend.username),
+                      subtitle: Text('@${friend.username}'),
+                      secondary: CircleAvatar(
+                        backgroundImage: friend.avatarUrl != null && friend.avatarUrl!.isNotEmpty
+                            ? NetworkImage(friend.avatarUrl!)
+                            : null,
+                        child: friend.avatarUrl == null || friend.avatarUrl!.isEmpty
+                            ? Text(friend.username[0].toUpperCase())
+                            : null,
+                      ),
+                      value: isSelected,
+                      onChanged: (val) {
+                        setState(() {
+                          if (val == true) {
+                            _selectedMemberIds.add(friend.id);
+                          } else {
+                            _selectedMemberIds.remove(friend.id);
+                          }
+                        });
+                      },
+                    );
+                  },
+                ),
+            ],
 
             const SizedBox(height: 40),
 

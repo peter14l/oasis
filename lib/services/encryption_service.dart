@@ -75,25 +75,11 @@ class EncryptionService {
               return EncryptionStatus.ready;
             }
 
-            // Restore failed. The backup is likely from an incompatible/older
-            // encryption scheme (pad block error). It cannot be recovered.
-            // Silently generate a fresh key pair so the user can keep using
-            // the app — old messages will remain locked, but everything going
-            // forward works instantly (same approach WhatsApp uses).
+            // Restore failed. 
+            // CRITICAL: Do NOT silently generate fresh keys if a backup exists but failed to restore.
+            // This prevents overwriting a potentially valid backup due to temporary issues.
             debugPrint(
-              '[Encryption] Backup is unrecoverable (wrong key/scheme). '
-              'Auto-generating fresh keys...',
-            );
-            final freshSuccess = await setupEncryption();
-            if (freshSuccess) {
-              debugPrint('[Encryption] Fresh keys generated successfully.');
-              _isInitializing = false;
-              return EncryptionStatus.ready;
-            }
-
-            // Both restore AND fresh generation failed → genuine outage
-            debugPrint(
-              '[Encryption] Fresh key generation also failed — network issue?',
+              '[Encryption] Backup found but restoration failed. Staying in needsRestore state.',
             );
             _isInitializing = false;
             return EncryptionStatus.needsRestore;
@@ -355,6 +341,10 @@ class EncryptionService {
     Map<String, dynamic> encryptedKeys,
     String ivBase64,
   ) async {
+    if (!_isInitialized) {
+      await init();
+    }
+    
     final key = await _decryptAESKey(encryptedKeys);
     if (key == null) return null;
 
@@ -388,11 +378,18 @@ class EncryptionService {
 
       if (privateKeyPem == null || publicKeyPem == null) return null;
 
+      // Try normalized hash first (new standard)
       final keyId = _hashPublicKey(publicKeyPem);
-      final encryptedKeyBase64 = encryptedKeys[keyId] as String?;
+      String? encryptedKeyBase64 = encryptedKeys[keyId] as String?;
+
+      // Fallback: Try raw hash if normalized doesn't match (for older messages)
+      if (encryptedKeyBase64 == null) {
+        final rawKeyId = sha256.convert(utf8.encode(publicKeyPem)).toString().substring(0, 16);
+        encryptedKeyBase64 = encryptedKeys[rawKeyId] as String?;
+      }
 
       if (encryptedKeyBase64 == null) {
-        debugPrint('[Encryption] No encrypted key found for this user (expected if keys regenerated or missing AES key)');
+        debugPrint('[Encryption] No encrypted key found for this user (keys might have changed)');
         return null;
       }
 
@@ -450,8 +447,14 @@ class EncryptionService {
   }
 
   String _hashPublicKey(String publicKeyPem) {
+    // Normalize PEM: Remove headers, footers, and ALL whitespace/newlines
+    // to ensure the hash is consistent regardless of formatting variations.
+    final normalized = publicKeyPem
+        .replaceAll(RegExp(r'-----(BEGIN|END)[\w\s]+-----'), '')
+        .replaceAll(RegExp(r'\s+'), '');
+        
     // Standardize to 16 chars for the key map
-    return sha256.convert(utf8.encode(publicKeyPem)).toString().substring(0, 16);
+    return sha256.convert(utf8.encode(normalized)).toString().substring(0, 16);
   }
 
   Future<void> clearKeys() async {

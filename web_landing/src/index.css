@@ -31,11 +31,18 @@
 
 body {
   background-color: var(--bg-deep);
+  background-image: radial-gradient(
+    circle at 50% -20%,
+    rgba(109, 40, 217, 0.15),
+    transparent 80%
+  );
+  background-attachment: fixed;
   color: var(--text-primary);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   line-height: 1.6;
+  width: 100%;
 }
 
 h1,
@@ -60,6 +67,7 @@ a {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 2rem;
+  width: 100%;
 }
 
 .text-primary {
@@ -98,6 +106,7 @@ a {
   border-radius: 16px;
   padding: 2rem;
   transition: transform 0.3s var(--easing), background-color 0.3s ease;
+  height: 100%;
 }
 
 .glass-card:hover {
@@ -111,17 +120,20 @@ a {
 
 .landing-page {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .hero-section {
-  height: 100vh;
+  min-height: 100vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   position: relative;
   overflow: hidden;
-  padding: 0 1.5rem;
+  padding: 2rem 1.5rem;
 }
 
 .hero-background {
@@ -153,13 +165,17 @@ a {
 
 .hero-content {
   text-align: center;
+  width: 100%;
+  max-width: 900px;
+  z-index: 1;
 }
 
 .hero-title {
-  font-size: clamp(2.5rem, 6vw, 5.5rem);
+  font-size: clamp(2.25rem, 8vw, 5.5rem);
   line-height: 1.1;
   margin-bottom: 1.5rem;
   letter-spacing: -0.02em;
+  word-wrap: break-word;
 }
 
 .accent-text {
@@ -176,22 +192,33 @@ a {
 .hero-actions {
   display: flex;
   justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 1rem;
+  width: 100%;
 }
 
 .cta-button {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  gap: 0.75rem;
   padding: 1rem 2rem;
   border-radius: 9999px;
   font-weight: 700;
-  transition: transform 0.2s var(--easing);
+  transition: transform 0.2s var(--easing), background-color 0.2s ease;
+  white-space: nowrap;
 }
 
 .cta-button.primary {
   background: var(--text-primary);
   color: var(--bg-deep);
+}
+
+.cta-button.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .cta-button:hover {
@@ -206,9 +233,20 @@ a {
   transform: translateX(4px);
 }
 
+.text-muted {
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+}
+
+.text-muted:hover {
+  color: var(--text-primary);
+}
+
+
 /* Features Preview Section */
 .features-preview-section {
   padding: 8rem 0;
+  width: 100%;
 }
 
 .features-grid-preview,
@@ -216,6 +254,7 @@ a {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
+  width: 100%;
 }
 
 .card-icon {
@@ -256,8 +295,9 @@ a {
    ========================================= */
 .page-container {
   min-height: 100vh;
-  padding-top: 8rem;
+  padding-top: clamp(6rem, 10vh, 10rem);
   padding-bottom: 5rem;
+  width: 100%;
 }
 
 .page-header {
@@ -266,7 +306,7 @@ a {
 }
 
 .page-title {
-  font-size: 3rem;
+  font-size: clamp(2rem, 5vw, 3.5rem);
   margin-bottom: 1.5rem;
 }
 
@@ -339,13 +379,80 @@ a {
   text-decoration: underline;
 }
 
-/* Responsive */
+/* Responsive Overrides */
+@media (max-width: 1024px) {
+  .features-grid-preview,
+  .features-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .container {
+    padding: 0 1.25rem;
+  }
+
+  .hero-section {
+    min-height: 100vh;
+    padding: 6rem 1rem;
+  }
+
+  .hero-title {
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+    padding: 0 0.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .cta-button {
+    width: 100%;
+    padding: 1.125rem 1.5rem;
+  }
+
+  .features-preview-section {
+    padding: 5rem 0;
+  }
+
+  .page-header {
+    margin-bottom: 4rem;
+  }
+
+  .legal-section {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
   .hero-title {
     font-size: 2.5rem;
   }
 
-  .page-container {
-    padding-top: 6rem;
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .features-grid-preview,
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .glass-card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .glow-orb {
+    width: 200px;
+    height: 200px;
   }
 }

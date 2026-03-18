@@ -74,6 +74,12 @@ class SignalService {
               .eq('user_id', userId)
               .maybeSingle();
 
+      // Check if we have local pre-keys. If not (e.g. fresh install after restoration), 
+      // we MUST generate and upload a new bundle because the one on Supabase is 
+      // now useless for us (we don't have the private keys for those pre-keys).
+      final hasLocalPreKeys = await _store.hasPreKeys();
+      final hasLocalSignedPreKey = await _store.hasSignedPreKeys();
+
       // Check if private backup exists in profile
       final profile = await _supabase
           .from('profiles')
@@ -81,8 +87,11 @@ class SignalService {
           .eq('id', userId)
           .maybeSingle();
 
-      if (response == null) {
-        // No bundle on server — upload initial bundle (this also triggers backup)
+      if (response == null || !hasLocalPreKeys || !hasLocalSignedPreKey) {
+        // No bundle on server OR missing local keys — upload/refresh bundle
+        debugPrint(
+          '[Signal] Bundle missing on server or local pre-keys missing. Generating new bundle...',
+        );
         await _generateAndUploadBundle(userId);
       } else if (profile == null || profile['encrypted_signal_identity'] == null) {
         // Public bundle exists but private backup is missing — perform backup
@@ -274,29 +283,38 @@ class SignalService {
     try {
       Uint8List plaintextBytes;
       if (type == CiphertextMessage.prekeyType) {
+        debugPrint('[Signal] Decrypting PreKeySignalMessage from $senderId');
         final preKeyMessage = PreKeySignalMessage(ciphertextBytes);
         plaintextBytes = await sessionCipher.decrypt(preKeyMessage);
+        debugPrint('[Signal] Successfully decrypted PreKeySignalMessage and established session with $senderId');
       } else if (type == CiphertextMessage.whisperType) {
         final message = SignalMessage.fromSerialized(ciphertextBytes);
         plaintextBytes = await sessionCipher.decryptFromSignal(message);
       } else {
+        debugPrint('[Signal] Unknown message type from $senderId: $type');
         return '🔒 Message encrypted (Unknown type: $type)';
       }
       return utf8.decode(plaintextBytes);
     } catch (e) {
       final errorStr = e.toString();
-      debugPrint('Signal decryption failed for $senderId (Type $type): $e');
+      debugPrint('[Signal] Decryption failed for $senderId (Type $type): $e');
       
-      if (errorStr.contains('Bad Mac') || errorStr.contains('No valid sessions') || errorStr.contains('InvalidMessageException')) {
-        debugPrint('[Signal] Session desync detected with $senderId. Clearing session.');
+      if (errorStr.contains('Bad Mac')) {
+        debugPrint('[Signal] Message authentication failed (Bad MAC) with $senderId. Session might be corrupted.');
+        return '🔒 Message encrypted (Auth error)';
+      } else if (errorStr.contains('No valid sessions') || errorStr.contains('InvalidMessageException')) {
+        debugPrint('[Signal] No valid session or invalid message from $senderId. Clearing session.');
         await _store.deleteSession(address);
         return '🔒 Message encrypted (Session reset)';
       } else if (errorStr.contains('DuplicateMessageException')) {
-        debugPrint('[Signal] Duplicate message from $senderId.');
+        debugPrint('[Signal] Duplicate message received from $senderId.');
         return '🔒 Message encrypted (Duplicate)';
       } else if (errorStr.contains('InvalidKeyIdException')) {
-        debugPrint('[Signal] Key mismatch with $senderId: $e');
+        debugPrint('[Signal] Pre-key mismatch with $senderId: $e. Likely local pre-keys were lost.');
         return '🔒 Message encrypted (Key mismatch)';
+      } else if (errorStr.contains('UntrustedIdentityException')) {
+        debugPrint('[Signal] Untrusted identity for $senderId. Key changed?');
+        return '🔒 Message encrypted (Untrusted identity)';
       }
       
       return '🔒 Message encrypted';

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis_v2/models/canvas_item.dart';
 
 /// Draggable and long-press-deletable item on the canvas.
@@ -164,19 +165,50 @@ class _CanvasItemWidgetState extends State<CanvasItemWidget>
         );
 
       case CanvasItemType.photo:
+        return Container(
+          constraints: const BoxConstraints(maxWidth: 250, maxHeight: 250),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: CachedNetworkImage(
+              imageUrl: widget.item.content,
+              fit: BoxFit.contain,
+              placeholder: (context, url) => Container(
+                width: 150,
+                height: 150,
+                color: theme.colorScheme.surfaceContainerHighest,
+                child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              ),
+              errorWidget: (context, url, error) => Container(
+                width: 150,
+                height: 150,
+                color: theme.colorScheme.surfaceContainerHighest,
+                child: const Icon(Icons.broken_image_outlined),
+              ),
+            ),
+          ),
+        );
+
       case CanvasItemType.voice:
-        // Placeholders for future implementation
+        // Placeholder for voice
         return Container(
           width: 120,
-          height: 90,
+          height: 60,
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
-            widget.item.type == CanvasItemType.photo
-                ? Icons.image_outlined
-                : Icons.mic_none_rounded,
+            Icons.mic_none_rounded,
             color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
           ),
         );

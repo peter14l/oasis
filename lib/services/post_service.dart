@@ -239,6 +239,10 @@ class PostService {
           postMap['user_avatar'] = profile['avatar_url'];
           postMap['is_verified'] = profile['is_verified'] ?? false;
         }
+        
+        // We might want to enrich with is_liked status here too if needed, 
+        // but for profile view it might be secondary.
+        
         posts.add(Post.fromJson(postMap));
       }
 
@@ -282,16 +286,6 @@ class PostService {
           postMap['user_avatar'] = profile['avatar_url'];
           postMap['is_verified'] = profile['is_verified'] ?? false;
         }
-
-        // Check if current user liked/bookmarked (we need current user ID for this, passing it might be robust)
-        // For now, let's keep it simple or rely on a separate 'enrich' pass if needed,
-        // but typically the UI might need 'isLiked'.
-        // Ideally getCommunityPosts should take currentUserId too.
-        // Let's assume for now we just return the posts and likes/bookmarks are handled locally or separate call if needed?
-        // Actually, existing getUserPosts doesn't take currentUserId for checking likes either in the original code?
-        // Wait, looking at getUserPosts (lines 170-210), it does NOT check for likes.
-        // But getPost (lines 118-168) DOES check.
-        // I will follow getUserPosts pattern for now.
 
         posts.add(Post.fromJson(postMap));
       }
