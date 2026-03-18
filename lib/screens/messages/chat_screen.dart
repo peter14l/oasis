@@ -75,6 +75,9 @@ class _ChatScreenState extends State<ChatScreen> {
   final FocusNode _focusNode = FocusNode();
   late VaultService _vaultService;
 
+  // Track when the user opened this chat screen to manage "vanish on reopen" logic
+  final DateTime _sessionStartTime = DateTime.now();
+
   List<Message> _messages = [];
   bool _isLoading = false;
   bool _isSending = false;
@@ -121,7 +124,11 @@ class _ChatScreenState extends State<ChatScreen> {
     _subscribeToMessages();
     _subscribeToReadReceipts();
     _subscribeToBackgroundChanges();
-    _markAsRead();
+    // Delay marking as read slightly so user can actually SEE the messages 
+    // before they vanish (if they are ephemeral)
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) _markAsRead();
+    });
     _subscribeToCalls();
     if (widget.otherUserId == null) {
       _fetchConversationDetails();
@@ -341,6 +348,7 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final messages = await _messagingService.getMessages(
         conversationId: widget.conversationId,
+        sessionStart: _sessionStartTime,
       );
 
       // Decrypt messages
@@ -1178,15 +1186,14 @@ class _ChatScreenState extends State<ChatScreen> {
             .delete()
             .eq('message_id', message.id)
             .eq('user_id', userId)
-            .eq('reaction', reaction);
+            .eq('emoji', reaction);
       } else {
-        // Upsert new reaction (replaces existing one if it exists due to UNIQUE constraint)
+        // Upsert new reaction
         await Supabase.instance.client.from('message_reactions').upsert({
           'message_id': message.id,
           'user_id': userId,
-          'reaction': reaction,
-          'username': username,
-        }, onConflict: 'message_id,user_id');
+          'emoji': reaction,
+        });
       }
     } catch (e) {
       debugPrint('Error updating reaction: $e');
@@ -1277,6 +1284,10 @@ class _ChatScreenState extends State<ChatScreen> {
                     Text(
                       widget.otherUserName ?? _otherUserName ?? 'Unknown',
                       overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     if (_encryptionReady || _encryptionService.isInitialized)
                       Row(
@@ -1424,16 +1435,15 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       const SizedBox(width: 8),
                       Flexible(
-                        child: Text(
-                          'Whisper Mode • Messages vanish 24hrs after being seen',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.secondary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                       child: Text(
+                         'Whisper Mode • Messages vanish ${_ephemeralDuration == 0 ? "instantly" : "24hrs"} after being seen',
+                         style: theme.textTheme.bodySmall?.copyWith(
+                           color: colorScheme.secondary,
+                           fontWeight: FontWeight.w500,
+                         ),
+                         overflow: TextOverflow.ellipsis,
+                       ),
+                      ),                    ],
                   ),
                 ),
 

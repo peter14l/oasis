@@ -254,9 +254,25 @@ class MessagingService {
     required String conversationId,
     int limit = 50,
     int offset = 0,
+    DateTime? sessionStart,
   }) async {
     try {
-      final response = await _supabase
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) throw Exception('Not authenticated');
+
+      // Fetch cleared_at timestamp for this user in this conversation
+      final participantResponse = await _supabase
+          .from('conversation_participants')
+          .select('cleared_at')
+          .eq('conversation_id', conversationId)
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      final clearedAt = participantResponse != null && participantResponse['cleared_at'] != null
+          ? DateTime.parse(participantResponse['cleared_at'])
+          : null;
+
+      var query = _supabase
           .from(SupabaseConfig.messagesTable)
           .select('''
             *,
@@ -266,7 +282,14 @@ class MessagingService {
             ),
             reactions:message_reactions(*)
           ''')
-          .eq('conversation_id', conversationId)
+          .eq('conversation_id', conversationId);
+
+      // Filter out messages deleted before 'cleared_at'
+      if (clearedAt != null) {
+        query = query.gt('created_at', clearedAt.toIso8601String());
+      }
+
+      final response = await query
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
 
@@ -317,16 +340,24 @@ class MessagingService {
         // Update messages with readAt info
         for (var i = 0; i < messages.length; i++) {
           final isSender = messages[i].senderId == currentUserId;
-          final readTimeStr =
-              isSender
-                  ? firstReadMap[messages[i].id]
-                  : myReadMap[messages[i].id];
+          final myReadTimeStr = myReadMap[messages[i].id];
+          final anyReadTimeStr = firstReadMap[messages[i].id];
 
-          if (readTimeStr != null) {
-            final readAt = DateTime.parse(readTimeStr);
+          DateTime? myReadAt;
+          DateTime? anyReadAt;
+
+          if (myReadTimeStr != null) {
+            myReadAt = DateTime.parse(myReadTimeStr);
+          }
+          if (anyReadTimeStr != null) {
+            anyReadAt = DateTime.parse(anyReadTimeStr);
+          }
+
+          if (myReadAt != null || anyReadAt != null) {
             messages[i] = messages[i].copyWith(
-              readAt: readAt,
-              isRead: true, // Explicitly set as read
+              readAt: myReadAt,
+              anyReadAt: anyReadAt,
+              isRead: myReadAt != null, // Message is read if the current user has read it
             );
           }
         }
@@ -345,9 +376,13 @@ class MessagingService {
   /// Filter out expired ephemeral messages
   /// Visible if:
   /// 1. Not ephemeral
-  /// 2. Is ephemeral but not read yet
-  /// 3. Is ephemeral, read, but seen < 24 hours ago
-  static List<Message> filterExpiredMessages(List<Message> messages) {
+  /// 2. Is ephemeral but not read yet by ANYONE
+  /// 3. Is ephemeral (Duration > 0), read by someone, but seen < duration ago
+  /// 4. Is ephemeral (Duration 0 - Vanish Mode), but read during CURRENT session
+  static List<Message> filterExpiredMessages(
+    List<Message> messages, {
+    DateTime? sessionStart,
+  }) {
     if (messages.isEmpty) return [];
 
     final now = DateTime.now();
@@ -355,19 +390,24 @@ class MessagingService {
     return messages.where((message) {
       if (!message.isEphemeral) return true;
 
-      // If not read (by current user), it shouldn't vanish yet
-      if (message.readAt == null) return true;
+      // Use anyReadAt to determine if the message should vanish for everyone
+      // If nobody has read it yet, it's visible to everyone
+      if (message.anyReadAt == null) return true;
 
       // Calculate expiration based on message's duration
       final duration = Duration(seconds: message.ephemeralDuration);
 
-      // If duration is 0 (Immediate), it vanishes immediately after reading
-      // We allow a small grace period (e.g. 1 second) to ensure UI updates smoothly
+      // Duration 0 (Vanish instantly on reopen - Instagram style)
       if (message.ephemeralDuration == 0) {
-        return false; // Vanish immediately if readAt is present
+        if (sessionStart != null) {
+          // Keep it visible if it was read DURING this session
+          return message.anyReadAt!.isAfter(sessionStart);
+        }
+        // If no session start provided (e.g. background check), we assume it's "old"
+        return false;
       }
 
-      final expirationTime = message.readAt!.add(duration);
+      final expirationTime = message.anyReadAt!.add(duration);
       return now.isBefore(expirationTime);
     }).toList();
   }
@@ -701,6 +741,23 @@ class MessagingService {
           .eq('id', messageId);
     } catch (e) {
       debugPrint('Error deleting message: $e');
+      rethrow;
+    }
+  }
+
+  /// Clear chat for current user only (hides messages before now)
+  Future<void> clearChatForMe(String conversationId) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) throw Exception('Not authenticated');
+
+      await _supabase
+          .from('conversation_participants')
+          .update({'cleared_at': DateTime.now().toIso8601String()})
+          .eq('conversation_id', conversationId)
+          .eq('user_id', userId);
+    } catch (e) {
+      debugPrint('Error clearing chat for me: $e');
       rethrow;
     }
   }

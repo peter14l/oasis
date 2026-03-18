@@ -11,6 +11,7 @@ class Message {
   final String content;
   final bool isRead;
   final DateTime? readAt;
+  final DateTime? anyReadAt; // Earliest read time by ANY participant
   final DateTime timestamp;
 
   // New fields for media messages
@@ -47,6 +48,7 @@ class Message {
     required this.content,
     this.isRead = false,
     this.readAt,
+    this.anyReadAt,
     required this.timestamp,
     this.messageType = MessageType.text,
     this.mediaUrl,
@@ -102,6 +104,7 @@ class Message {
       content: json['content'] as String? ?? '',
       isRead: json['is_read'] as bool? ?? false,
       readAt: json['read_at'] != null ? DateTime.parse(json['read_at']) : null,
+      anyReadAt: json['any_read_at'] != null ? DateTime.parse(json['any_read_at']) : null,
       timestamp:
           json['created_at'] != null
               ? DateTime.parse(json['created_at'] as String)
@@ -146,17 +149,15 @@ class Message {
       'sender_avatar': senderAvatar,
       'content': content,
       'is_read': isRead,
+      'read_at': readAt?.toIso8601String(),
+      'any_read_at': anyReadAt?.toIso8601String(),
       'created_at': timestamp.toIso8601String(),
       'message_type': messageType.name,
-      'media_url': mediaUrl,
-      'media_thumbnail_url': mediaThumbnailUrl,
-      'media_file_name': mediaFileName,
-      'media_file_size': mediaFileSize,
+      'image_url': messageType == MessageType.image ? mediaUrl : null,
+      'file_url': messageType == MessageType.document ? mediaUrl : null,
+      'file_name': mediaFileName,
+      'file_size': mediaFileSize,
       'media_mime_type': mediaMimeType,
-      'poll_data': pollData,
-      'location_data': locationData,
-      'voice_duration': voiceDuration,
-      'reactions': reactions.map((e) => e.toJson()).toList(),
       'is_ephemeral': isEphemeral,
       'ephemeral_duration': ephemeralDuration,
       'expires_at': expiresAt?.toIso8601String(),
@@ -170,84 +171,50 @@ class Message {
   }
 
   Message copyWith({
-    String? id,
-    String? conversationId,
-    String? senderId,
-    String? senderName,
-    String? senderAvatar,
     String? content,
     bool? isRead,
     DateTime? readAt,
-    DateTime? timestamp,
-    MessageType? messageType,
-    String? mediaUrl,
-    String? mediaThumbnailUrl,
-    String? mediaFileName,
-    int? mediaFileSize,
-    String? mediaMimeType,
-    Map<String, dynamic>? pollData,
-    Map<String, dynamic>? locationData,
-    int? voiceDuration,
+    DateTime? anyReadAt,
     List<MessageReactionModel>? reactions,
     bool? isEphemeral,
     int? ephemeralDuration,
     DateTime? expiresAt,
-    Map<String, dynamic>? encryptedKeys,
-    String? iv,
-    int? signalMessageType,
-    String? signalSenderContent,
-    int? signalSenderMessageType,
-    String? callId,
   }) {
     return Message(
-      id: id ?? this.id,
-      conversationId: conversationId ?? this.conversationId,
-      senderId: senderId ?? this.senderId,
-      senderName: senderName ?? this.senderName,
-      senderAvatar: senderAvatar ?? this.senderAvatar,
+      id: id,
+      conversationId: conversationId,
+      senderId: senderId,
+      senderName: senderName,
+      senderAvatar: senderAvatar,
       content: content ?? this.content,
       isRead: isRead ?? this.isRead,
       readAt: readAt ?? this.readAt,
-      timestamp: timestamp ?? this.timestamp,
-      messageType: messageType ?? this.messageType,
-      mediaUrl: mediaUrl ?? this.mediaUrl,
-      mediaThumbnailUrl: mediaThumbnailUrl ?? this.mediaThumbnailUrl,
-      mediaFileName: mediaFileName ?? this.mediaFileName,
-      mediaFileSize: mediaFileSize ?? this.mediaFileSize,
-      mediaMimeType: mediaMimeType ?? this.mediaMimeType,
-      pollData: pollData ?? this.pollData,
-      locationData: locationData ?? this.locationData,
-      voiceDuration: voiceDuration ?? this.voiceDuration,
+      anyReadAt: anyReadAt ?? this.anyReadAt,
+      timestamp: timestamp,
+      messageType: messageType,
+      mediaUrl: mediaUrl,
+      mediaThumbnailUrl: mediaThumbnailUrl,
+      mediaFileName: mediaFileName,
+      mediaFileSize: mediaFileSize,
+      mediaMimeType: mediaMimeType,
+      pollData: pollData,
+      locationData: locationData,
+      voiceDuration: voiceDuration,
       reactions: reactions ?? this.reactions,
       isEphemeral: isEphemeral ?? this.isEphemeral,
       ephemeralDuration: ephemeralDuration ?? this.ephemeralDuration,
       expiresAt: expiresAt ?? this.expiresAt,
-      encryptedKeys: encryptedKeys ?? this.encryptedKeys,
-      iv: iv ?? this.iv,
-      signalMessageType: signalMessageType ?? this.signalMessageType,
-      signalSenderContent: signalSenderContent ?? this.signalSenderContent,
-      signalSenderMessageType: signalSenderMessageType ?? this.signalSenderMessageType,
-      callId: callId ?? this.callId,
+      encryptedKeys: encryptedKeys,
+      iv: iv,
+      signalMessageType: signalMessageType,
+      signalSenderContent: signalSenderContent,
+      signalSenderMessageType: signalSenderMessageType,
+      callId: callId,
     );
   }
 
-  // Helper methods
-  bool get isMediaMessage => messageType != MessageType.text;
-
-  bool get isImageMessage => messageType == MessageType.image;
-
-  bool get isDocumentMessage => messageType == MessageType.document;
-
-  bool get isVoiceMessage => messageType == MessageType.voice;
-
-  bool get isPollMessage => messageType == MessageType.poll;
-
-  bool get isLocationMessage => messageType == MessageType.location;
-
-  String getFileSizeString() {
-    if (mediaFileSize == null) return '';
-
-    final bytes = mediaFileSize!;
+  static String formatBytes(int? bytes) {
+    if (bytes == null) return '0 B';
     if (bytes < 1024) {
       return '$bytes B';
     } else if (bytes < 1024 * 1024) {

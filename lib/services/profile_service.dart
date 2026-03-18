@@ -47,6 +47,7 @@ class ProfileService {
   /// Update user profile
   Future<UserProfile> updateProfile({
     required String userId,
+    String? username,
     String? fullName,
     String? bio,
     String? location,
@@ -125,6 +126,7 @@ class ProfileService {
 
       // Update profile
       final updateData = <String, dynamic>{};
+      if (username != null) updateData['username'] = username;
       if (fullName != null) updateData['full_name'] = fullName;
       if (bio != null) updateData['bio'] = bio;
       if (location != null) updateData['location'] = location;
@@ -142,6 +144,9 @@ class ProfileService {
       return getProfile(userId);
     } catch (e) {
       debugPrint('Error updating profile: $e');
+      if (e is PostgrestException && e.code == '23505') {
+        throw Exception('Username is already taken');
+      }
       rethrow;
     }
   }

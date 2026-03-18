@@ -346,11 +346,6 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                     }
                   }
 
-                  // Mark as read locally and on server using the provider
-                  if (context.mounted) {
-                    context.read<ConversationProvider>().markAsRead(conversation.id);
-                  }
-
                   if (isDesktop) {
                     setState(() {
                       _selectedConversation = conversation;

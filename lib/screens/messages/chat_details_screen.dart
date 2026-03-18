@@ -215,35 +215,50 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   }
 
   Future<void> _clearChat() async {
-    final confirmed = await showDialog<bool>(
+    final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear Chat?'),
         content: const Text(
-          'This will delete all messages in this conversation for both participants. This action cannot be undone.',
+          'Do you want to clear this chat for yourself only, or for both participants?',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(context).pop('me'),
+            child: const Text('Clear for me'),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => Navigator.of(context).pop('everyone'),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Clear All'),
+            child: const Text('Clear for everyone'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
           ),
         ],
       ),
     );
 
-    if (confirmed == true) {
+    if (result != null) {
       try {
-        await _messagingService.clearConversationMessages(widget.conversationId);
+        if (result == 'everyone') {
+          await _messagingService.clearConversationMessages(widget.conversationId);
+        } else {
+          await _messagingService.clearChatForMe(widget.conversationId);
+        }
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Chat cleared successfully')),
+            SnackBar(
+              content: Text(
+                result == 'everyone'
+                    ? 'Chat cleared for everyone'
+                    : 'Chat cleared for you',
+              ),
+            ),
           );
-          // Go back to home screen since the conversation is now empty
+          // Go back to home screen since the conversation is now empty for the user
           Navigator.of(context).popUntil((route) => route.isFirst);
         }
       } catch (e) {

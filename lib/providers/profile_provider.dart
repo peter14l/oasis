@@ -74,6 +74,7 @@ class ProfileProvider with ChangeNotifier {
   /// Update current user's profile
   Future<void> updateProfile({
     required String userId,
+    String? username,
     String? fullName,
     String? bio,
     String? location,
@@ -89,6 +90,7 @@ class ProfileProvider with ChangeNotifier {
     try {
       _currentProfile = await _profileService.updateProfile(
         userId: userId,
+        username: username,
         fullName: fullName,
         bio: bio,
         location: location,

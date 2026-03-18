@@ -20,6 +20,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final ImagePicker _picker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
 
+  late TextEditingController _usernameController;
   late TextEditingController _fullNameController;
   late TextEditingController _bioController;
   late TextEditingController _locationController;
@@ -32,6 +33,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
     final profile = context.read<ProfileProvider>().currentProfile;
+    _usernameController = TextEditingController(text: profile?.username ?? '');
     _fullNameController = TextEditingController(text: profile?.fullName ?? '');
     _bioController = TextEditingController(text: profile?.bio ?? '');
     _locationController = TextEditingController(text: profile?.location ?? '');
@@ -40,6 +42,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   void dispose() {
+    _usernameController.dispose();
     _fullNameController.dispose();
     _bioController.dispose();
     _locationController.dispose();
@@ -71,6 +74,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       await context.read<ProfileProvider>().updateProfile(
         userId: userId,
+        username: _usernameController.text.trim().toLowerCase(),
         fullName: _fullNameController.text.trim(),
         bio: _bioController.text.trim(),
         location: _locationController.text.trim(),
@@ -191,6 +195,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
               const SizedBox(height: 32),
+
+              // Username
+              TextFormField(
+                controller: _usernameController,
+                decoration: const InputDecoration(
+                  labelText: 'Username',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.alternate_email),
+                  helperText: 'Only letters, numbers, and underscores.',
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a username';
+                  }
+                  if (value.length < 3) {
+                    return 'Username must be at least 3 characters';
+                  }
+                  if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
+                    return 'Invalid characters in username';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
 
               // Full Name
               TextFormField(
