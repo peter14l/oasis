@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:libsignal_protocol_dart/libsignal_protocol_dart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// A persistent implementation of SignalProtocolStore using flutter_secure_storage
 /// for identity keys, and SharedPreferences for session/prekey state.
@@ -14,52 +15,64 @@ class PersistentSignalStore implements SignalProtocolStore {
   bool _initialized = false;
   
   // Keys for SharedPreferences / Secure Storage
-  static const String _identityKeyPairKey = 'signal_identity_key_pair';
-  static const String _localRegistrationIdKey = 'signal_registration_id';
-  static const String _sessionsKeyPrefix = 'signal_session_';
-  static const String _preKeysKeyPrefix = 'signal_prekey_';
-  static const String _signedPreKeyKeyPrefix = 'signal_signed_prekey_';
+  static String _identityKeyPairKey(String uid) => 'signal_identity_key_pair_$uid';
+  static String _localRegistrationIdKey(String uid) => 'signal_registration_id_$uid';
+  static String _sessionsKeyPrefix(String uid) => 'signal_session_${uid}_';
+  static String _preKeysKeyPrefix(String uid) => 'signal_prekey_${uid}_';
+  static String _signedPreKeyKeyPrefix(String uid) => 'signal_signed_prekey_${uid}_';
 
   PersistentSignalStore(IdentityKeyPair identityKeyPair, int registrationId)
       : _inMemoryStore = InMemorySignalProtocolStore(identityKeyPair, registrationId);
 
-  /// Check if local keys exist
+  /// Check if local keys exist and belong to the current user
   static Future<bool> hasKeys() async {
     const secureStorage = FlutterSecureStorage();
-    final identityKeyString = await secureStorage.read(key: _identityKeyPairKey);
-    final registrationIdString = await secureStorage.read(key: _localRegistrationIdKey);
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return false;
+
+    final identityKeyString = await secureStorage.read(key: _identityKeyPairKey(userId));
+    final registrationIdString = await secureStorage.read(key: _localRegistrationIdKey(userId));
+
     return identityKeyString != null && registrationIdString != null;
   }
 
   /// Check if we have any pre-keys stored locally
   Future<bool> hasPreKeys() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return false;
     final keys = _prefs.getKeys();
-    return keys.any((k) => k.startsWith(_preKeysKeyPrefix));
+    final prefix = _preKeysKeyPrefix(userId);
+    return keys.any((k) => k.startsWith(prefix));
   }
 
   /// Check if we have any signed pre-keys stored locally
   Future<bool> hasSignedPreKeys() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return false;
     final keys = _prefs.getKeys();
-    return keys.any((k) => k.startsWith(_signedPreKeyKeyPrefix));
+    final prefix = _signedPreKeyKeyPrefix(userId);
+    return keys.any((k) => k.startsWith(prefix));
   }
 
   /// Manually save keys and initialize (used for restoration)
   static Future<PersistentSignalStore> saveAndInit(IdentityKeyPair identityKeyPair, int registrationId) async {
     final prefs = await SharedPreferences.getInstance();
     const secureStorage = FlutterSecureStorage();
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) throw Exception('Cannot save keys: No user');
 
     await secureStorage.write(
-        key: _identityKeyPairKey, 
+        key: _identityKeyPairKey(userId), 
         value: base64Encode(identityKeyPair.serialize())
     );
     await secureStorage.write(
-        key: _localRegistrationIdKey, 
+        key: _localRegistrationIdKey(userId), 
         value: registrationId.toString()
     );
 
     final store = PersistentSignalStore(identityKeyPair, registrationId);
     store._prefs = prefs;
-    await store._loadState();
+    await store._loadState(userId);
     store._initialized = true;
     return store;
   }
@@ -67,28 +80,31 @@ class PersistentSignalStore implements SignalProtocolStore {
   static Future<PersistentSignalStore> init() async {
     final prefs = await SharedPreferences.getInstance();
     const secureStorage = FlutterSecureStorage();
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) throw Exception('Cannot init SignalStore: No user');
 
-    // Load or generate Identity Key Pair
-    final identityKeyString = await secureStorage.read(key: _identityKeyPairKey);
-    final registrationIdString = await secureStorage.read(key: _localRegistrationIdKey);
+    // Load Identity Key Pair and check ownership
+    final identityKeyString = await secureStorage.read(key: _identityKeyPairKey(userId));
+    final registrationIdString = await secureStorage.read(key: _localRegistrationIdKey(userId));
 
     IdentityKeyPair identityKeyPair;
     int registrationId;
 
     if (identityKeyString != null && registrationIdString != null) {
+      debugPrint('[SignalStore] Loading existing keys for user $userId');
       identityKeyPair = IdentityKeyPair.fromSerialized(base64Decode(identityKeyString));
       registrationId = int.parse(registrationIdString);
     } else {
-      // Generate new keys
+      debugPrint('[SignalStore] Generating new Signal identity for $userId');
       identityKeyPair = generateIdentityKeyPair();
       registrationId = generateRegistrationId(false);
       
       await secureStorage.write(
-          key: _identityKeyPairKey, 
+          key: _identityKeyPairKey(userId), 
           value: base64Encode(identityKeyPair.serialize())
       );
       await secureStorage.write(
-          key: _localRegistrationIdKey, 
+          key: _localRegistrationIdKey(userId), 
           value: registrationId.toString()
       );
     }
@@ -96,19 +112,22 @@ class PersistentSignalStore implements SignalProtocolStore {
     final store = PersistentSignalStore(identityKeyPair, registrationId);
     store._prefs = prefs;
 
-    // Load existing sessions, prekeys, and signed prekeys into _inMemoryStore
-    await store._loadState();
+    // Load remaining state (sessions, etc) into memory
+    await store._loadState(userId);
     store._initialized = true;
 
     return store;
   }
 
-  Future<void> _loadState() async {
+  Future<void> _loadState(String userId) async {
     final existingKeys = _prefs.getKeys();
+    final sessionPrefix = _sessionsKeyPrefix(userId);
+    final preKeyPrefix = _preKeysKeyPrefix(userId);
+    final signedPreKeyPrefix = _signedPreKeyKeyPrefix(userId);
 
     for (final key in existingKeys) {
-      if (key.startsWith(_sessionsKeyPrefix)) {
-        final addressName = key.replaceFirst(_sessionsKeyPrefix, '');
+      if (key.startsWith(sessionPrefix)) {
+        final addressName = key.replaceFirst(sessionPrefix, '');
         // format is name_deviceId
         final parts = addressName.split('_');
         if (parts.length == 2) {
@@ -119,8 +138,8 @@ class PersistentSignalStore implements SignalProtocolStore {
             _inMemoryStore.storeSession(address, record);
           }
         }
-      } else if (key.startsWith(_preKeysKeyPrefix)) {
-        final preKeyId = int.tryParse(key.replaceFirst(_preKeysKeyPrefix, ''));
+      } else if (key.startsWith(preKeyPrefix)) {
+        final preKeyId = int.tryParse(key.replaceFirst(preKeyPrefix, ''));
         if (preKeyId != null) {
           final preKeyData = _prefs.getString(key);
           if (preKeyData != null) {
@@ -128,8 +147,8 @@ class PersistentSignalStore implements SignalProtocolStore {
             _inMemoryStore.storePreKey(preKeyId, record);
           }
         }
-      } else if (key.startsWith(_signedPreKeyKeyPrefix)) {
-        final signedPreKeyId = int.tryParse(key.replaceFirst(_signedPreKeyKeyPrefix, ''));
+      } else if (key.startsWith(signedPreKeyPrefix)) {
+        final signedPreKeyId = int.tryParse(key.replaceFirst(signedPreKeyPrefix, ''));
         if (signedPreKeyId != null) {
           final stringData = _prefs.getString(key);
           if (stringData != null) {
@@ -156,8 +175,6 @@ class PersistentSignalStore implements SignalProtocolStore {
   @override
   Future<bool> saveIdentity(SignalProtocolAddress address, IdentityKey? identityKey) async {
     final result = await _inMemoryStore.saveIdentity(address, identityKey);
-    // Identity saving happens on session builds. We might want to persist it.
-    // InMemorySignalProtocolStore manages trusted identities internally.
     return result;
   }
 
@@ -186,9 +203,12 @@ class PersistentSignalStore implements SignalProtocolStore {
 
   @override
   Future<void> storeSession(SignalProtocolAddress address, SessionRecord record) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
     await _inMemoryStore.storeSession(address, record);
     // Persist to SharedPreferences
-    final key = '$_sessionsKeyPrefix${address.getName()}_${address.getDeviceId()}';
+    final key = '${_sessionsKeyPrefix(userId)}${address.getName()}_${address.getDeviceId()}';
     await _prefs.setString(key, base64Encode(record.serialize()));
   }
 
@@ -199,17 +219,24 @@ class PersistentSignalStore implements SignalProtocolStore {
 
   @override
   Future<void> deleteSession(SignalProtocolAddress address) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
     await _inMemoryStore.deleteSession(address);
-    final key = '$_sessionsKeyPrefix${address.getName()}_${address.getDeviceId()}';
+    final key = '${_sessionsKeyPrefix(userId)}${address.getName()}_${address.getDeviceId()}';
     await _prefs.remove(key);
   }
 
   @override
   Future<void> deleteAllSessions(String name) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
     await _inMemoryStore.deleteAllSessions(name);
     final existingKeys = _prefs.getKeys();
+    final prefix = '${_sessionsKeyPrefix(userId)}${name}_';
     for (final key in existingKeys) {
-      if (key.startsWith('$_sessionsKeyPrefix${name}_')) {
+      if (key.startsWith(prefix)) {
         await _prefs.remove(key);
       }
     }
@@ -224,8 +251,11 @@ class PersistentSignalStore implements SignalProtocolStore {
 
   @override
   Future<void> storePreKey(int preKeyId, PreKeyRecord record) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
     await _inMemoryStore.storePreKey(preKeyId, record);
-    await _prefs.setString('$_preKeysKeyPrefix$preKeyId', base64Encode(record.serialize()));
+    await _prefs.setString('${_preKeysKeyPrefix(userId)}$preKeyId', base64Encode(record.serialize()));
   }
 
   @override
@@ -235,8 +265,11 @@ class PersistentSignalStore implements SignalProtocolStore {
 
   @override
   Future<void> removePreKey(int preKeyId) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
     await _inMemoryStore.removePreKey(preKeyId);
-    await _prefs.remove('$_preKeysKeyPrefix$preKeyId');
+    await _prefs.remove('${_preKeysKeyPrefix(userId)}$preKeyId');
   }
 
   // --- SignedPreKeyStore ---
@@ -253,8 +286,11 @@ class PersistentSignalStore implements SignalProtocolStore {
 
   @override
   Future<void> storeSignedPreKey(int signedPreKeyId, SignedPreKeyRecord record) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
     await _inMemoryStore.storeSignedPreKey(signedPreKeyId, record);
-    await _prefs.setString('$_signedPreKeyKeyPrefix$signedPreKeyId', base64Encode(record.serialize()));
+    await _prefs.setString('${_signedPreKeyKeyPrefix(userId)}$signedPreKeyId', base64Encode(record.serialize()));
   }
 
   @override
@@ -264,20 +300,28 @@ class PersistentSignalStore implements SignalProtocolStore {
 
   @override
   Future<void> removeSignedPreKey(int signedPreKeyId) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
     await _inMemoryStore.removeSignedPreKey(signedPreKeyId);
-    await _prefs.remove('$_signedPreKeyKeyPrefix$signedPreKeyId');
+    await _prefs.remove('${_signedPreKeyKeyPrefix(userId)}$signedPreKeyId');
   }
 
-  /// Wipe everything from the store
+  /// Wipe everything for the CURRENT user
   Future<void> clearAll() async {
-    await _secureStorage.delete(key: _identityKeyPairKey);
-    await _secureStorage.delete(key: _localRegistrationIdKey);
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    await _secureStorage.delete(key: _identityKeyPairKey(userId));
+    await _secureStorage.delete(key: _localRegistrationIdKey(userId));
     
     final keys = _prefs.getKeys();
+    final sessionP = _sessionsKeyPrefix(userId);
+    final preP = _preKeysKeyPrefix(userId);
+    final signedP = _signedPreKeyKeyPrefix(userId);
+
     for (final key in keys) {
-      if (key.startsWith(_sessionsKeyPrefix) ||
-          key.startsWith(_preKeysKeyPrefix) ||
-          key.startsWith(_signedPreKeyKeyPrefix)) {
+      if (key.startsWith(sessionP) || key.startsWith(preP) || key.startsWith(signedP)) {
         await _prefs.remove(key);
       }
     }

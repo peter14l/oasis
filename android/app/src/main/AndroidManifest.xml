@@ -4,6 +4,9 @@
         android:label="Oasis"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        tools:replace="android:allowBackup"
         tools:targetApi="33">
         <activity
             android:name=".MainActivity"

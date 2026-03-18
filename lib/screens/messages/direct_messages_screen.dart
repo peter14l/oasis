@@ -63,7 +63,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
             VerticalDivider(
               width: 1,
               thickness: 1,
-              color: colorScheme.outlineVariant.withOpacity(0.5),
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
             ),
             // Right Pane: Chat Detail
             Expanded(
@@ -76,7 +76,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                             Icon(
                               Icons.chat_bubble_outline,
                               size: 64,
-                              color: colorScheme.onSurfaceVariant.withOpacity(
+                              color: colorScheme.onSurfaceVariant.withValues(alpha: 
                                 0.5,
                               ),
                             ),

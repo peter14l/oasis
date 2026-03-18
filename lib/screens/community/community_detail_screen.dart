@@ -270,7 +270,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                         Icon(
                           Icons.article_outlined,
                           size: 64,
-                          color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                         ),
                         const SizedBox(height: 16),
                         Text(

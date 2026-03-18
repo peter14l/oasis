@@ -98,7 +98,7 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: widget.isMe 
-          ? widget.color.withOpacity(0.2)
+          ? widget.color.withValues(alpha: 0.2)
           : Colors.grey[300],
         borderRadius: BorderRadius.circular(16),
       ),
@@ -125,7 +125,7 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
             _formatDuration(_duration),
             style: TextStyle(
               fontSize: 12,
-              color: widget.color.withOpacity(0.7),
+              color: widget.color.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(width: 8),
@@ -136,7 +136,7 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
               value: _duration.inSeconds > 0
                   ? (_position.inSeconds / _duration.inSeconds).clamp(0.0, 1.0)
                   : 0,
-              backgroundColor: widget.color.withOpacity(0.3),
+              backgroundColor: widget.color.withValues(alpha: 0.3),
               valueColor: AlwaysStoppedAnimation<Color>(widget.color),
             ),
           ),

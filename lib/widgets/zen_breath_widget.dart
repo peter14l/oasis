@@ -26,16 +26,16 @@ class BreathingCirclePainter extends CustomPainter {
     // Draw outer glow
     final glowPaint =
         Paint()
-          ..color = color.withOpacity(0.2)
+          ..color = color.withValues(alpha: 0.2)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30);
     canvas.drawCircle(center, currentRadius + 20, glowPaint);
 
     // Draw main circle with gradient
     final gradient = RadialGradient(
       colors: [
-        color.withOpacity(0.8),
-        color.withOpacity(0.4),
-        color.withOpacity(0.1),
+        color.withValues(alpha: 0.8),
+        color.withValues(alpha: 0.4),
+        color.withValues(alpha: 0.1),
       ],
       stops: const [0.0, 0.7, 1.0],
     );
@@ -50,7 +50,7 @@ class BreathingCirclePainter extends CustomPainter {
     // Draw border
     final borderPaint =
         Paint()
-          ..color = color.withOpacity(0.6)
+          ..color = color.withValues(alpha: 0.6)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2;
     canvas.drawCircle(center, currentRadius, borderPaint);
@@ -67,7 +67,7 @@ class BreathingCirclePainter extends CustomPainter {
   ) {
     final particlePaint =
         Paint()
-          ..color = color.withOpacity(0.5)
+          ..color = color.withValues(alpha: 0.5)
           ..style = PaintingStyle.fill;
 
     const particleCount = 8;
@@ -196,7 +196,7 @@ class _ZenBreathWidgetState extends State<ZenBreathWidget>
                 _isInhale ? 'Breathe In' : 'Breathe Out',
                 key: ValueKey(_isInhale),
                 style: theme.textTheme.headlineSmall?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.7),
+                  color: colorScheme.onSurface.withValues(alpha: 0.7),
                   fontWeight: FontWeight.w300,
                 ),
               ),

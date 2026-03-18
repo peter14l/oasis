@@ -17,8 +17,8 @@ class EncryptionService {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  static const String _privateKeyKey = 'rsa_private_key';
-  static const String _publicKeyKey = 'rsa_public_key';
+  static String _privateKeyKey(String uid) => 'rsa_private_key_$uid';
+  static String _publicKeyKey(String uid) => 'rsa_public_key_$uid';
   
   /// Global toggle for E2EE messaging
   static bool isEnabled = true;
@@ -30,9 +30,12 @@ class EncryptionService {
 
   /// Initialize encryption service
   Future<EncryptionStatus> init() async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return EncryptionStatus.error;
+
     if (_isInitialized) return EncryptionStatus.ready;
+
     if (_isInitializing) {
-      // Wait for the active initialization to complete
       while (_isInitializing) {
         await Future.delayed(const Duration(milliseconds: 100));
       }
@@ -41,69 +44,92 @@ class EncryptionService {
     
     _isInitializing = true;
     try {
-      // Check if keys exist in secure storage
-      final privateKeyPem = await _secureStorage.read(key: _privateKeyKey);
-      final publicKeyPem = await _secureStorage.read(key: _publicKeyKey);
+      // 1. MIGRATION PRIORITY: Check for legacy "ghost" keys first.
+      // These are likely the "Good Keys" restored by Google Backup.
+      final legacyPrivate = await _secureStorage.read(key: 'rsa_private_key');
+      final legacyPublic = await _secureStorage.read(key: 'rsa_public_key');
+      
+      if (legacyPrivate != null && legacyPublic != null) {
+        debugPrint('[Encryption] Found legacy keys. Healing server backup for $userId...');
+        
+        // Migrate locally
+        await _secureStorage.write(key: _privateKeyKey(userId), value: legacyPrivate);
+        await _secureStorage.write(key: _publicKeyKey(userId), value: legacyPublic);
+        
+        // HEAL SERVER: Overwrite the server backup with these known-good keys
+        final backupKey = _deriveBackupKey(userId);
+        final encryptedPrivateKey = _encryptWithKey(legacyPrivate, backupKey);
+        await _supabase.from('profiles').update({
+          'public_key': legacyPublic,
+          'encrypted_private_key': encryptedPrivateKey,
+        }).eq('id', userId);
 
-      if (privateKeyPem != null && publicKeyPem != null) {
+        // Cleanup ghost keys now that they are safe in the vault
+        await _secureStorage.delete(key: 'rsa_private_key');
+        await _secureStorage.delete(key: 'rsa_public_key');
+
         _isInitialized = true;
         _isInitializing = false;
         return EncryptionStatus.ready;
       }
 
-      // No local keys — check Supabase
-      final userId = _supabase.auth.currentUser?.id;
-      if (userId != null) {
-        try {
-          final response =
-              await _supabase
-                  .from('profiles')
-                  .select('encrypted_private_key, public_key')
-                  .eq('id', userId)
-                  .single();
+      // 2. Check for existing prefixed keys
+      final privateKeyPem = await _secureStorage.read(key: _privateKeyKey(userId));
+      final publicKeyPem = await _secureStorage.read(key: _publicKeyKey(userId));
 
-          if (response['encrypted_private_key'] != null &&
-              response['public_key'] != null) {
-            // Server backup exists — try to restore it
-            debugPrint(
-              '[Encryption] Backup found on server — attempting auto-restore...',
-            );
-            final restored = await restoreKeys();
-            if (restored) {
-              debugPrint('[Encryption] Auto-restore successful.');
-              _isInitializing = false;
-              return EncryptionStatus.ready;
-            }
+      if (privateKeyPem != null && publicKeyPem != null) {
+        debugPrint('[Encryption] Local keys verified for user $userId.');
+        _isInitialized = true;
+        _isInitializing = false;
+        return EncryptionStatus.ready;
+      }
 
-            // Restore failed. 
-            // CRITICAL: Do NOT silently generate fresh keys if a backup exists but failed to restore.
-            // This prevents overwriting a potentially valid backup due to temporary issues.
-            debugPrint(
-              '[Encryption] Backup found but restoration failed. Staying in needsRestore state.',
-            );
-            _isInitializing = false;
-            return EncryptionStatus.needsRestore;
-          }
-        } catch (e) {
-          debugPrint('[Encryption] No backup found or network error: $e');
-        }
+      // 3. Try to fetch from server
+      debugPrint('[Encryption] No local keys. Checking server for $userId...');
+      bool serverHasData = false;
+      
+      try {
+        final response = await _supabase
+            .from('profiles')
+            .select('encrypted_private_key, public_key')
+            .eq('id', userId)
+            .maybeSingle();
+            
+        serverHasData = response != null && 
+                        response['encrypted_private_key'] != null && 
+                        response['public_key'] != null;
+      } catch (e) {
+        debugPrint('[Encryption] Server check failed: $e');
+        _isInitializing = false;
+        return EncryptionStatus.error;
+      }
 
-        // No backup on server at all → first-time setup
-        debugPrint(
-          '[Encryption] No backup on server — running first-time setup...',
-        );
-        final setupSuccess = await setupEncryption();
-        if (setupSuccess) {
+      if (serverHasData) {
+        debugPrint('[Encryption] Backup found on server — attempting auto-restore...');
+        final restored = await restoreKeys();
+        if (restored) {
           _isInitializing = false;
+          _isInitialized = true;
           return EncryptionStatus.ready;
         }
+        _isInitializing = false;
+        return EncryptionStatus.needsRestore;
+      }
+
+      // 4. Only if server is confirmed EMPTY, run setup
+      debugPrint('[Encryption] No backup on server. Running fresh setup for $userId...');
+      final setupSuccess = await setupEncryption();
+      if (setupSuccess) {
+        _isInitializing = false;
+        _isInitialized = true;
+        return EncryptionStatus.ready;
       }
 
       _isInitializing = false;
       return EncryptionStatus.needsSetup;
     } catch (e) {
       _isInitializing = false;
-      debugPrint('[Encryption] Error initializing encryption: $e');
+      debugPrint('[Encryption] Unexpected error in init(): $e');
       return EncryptionStatus.error;
     }
   }
@@ -118,7 +144,6 @@ class EncryptionService {
       }
 
       // Generate RSA key pair in the background using compute
-      // Using 1024 on Web to avoid long freezes, 2048 elsewhere
       final keySize = kIsWeb ? 1024 : 2048;
       debugPrint('[Encryption] Generating RSA key pair (background, size: $keySize)...');
       final keyPair = await compute(_generateKeyPair, keySize);
@@ -134,8 +159,7 @@ class EncryptionService {
       final backupKey = _deriveBackupKey(userId);
       final encryptedPrivateKey = _encryptWithKey(privateKeyPem, backupKey);
 
-      // Upload to server FIRST so the backup always exists before we rely on local keys.
-      // Using update (not upsert) — every authenticated user already has a profile row.
+      // Upload to server
       await _supabase
           .from('profiles')
           .update({
@@ -144,9 +168,9 @@ class EncryptionService {
           })
           .eq('id', userId);
 
-      // Store keys locally only after the server backup is confirmed
-      await _secureStorage.write(key: _privateKeyKey, value: privateKeyPem);
-      await _secureStorage.write(key: _publicKeyKey, value: publicKeyPem);
+      // Store keys locally
+      await _secureStorage.write(key: _privateKeyKey(userId), value: privateKeyPem);
+      await _secureStorage.write(key: _publicKeyKey(userId), value: publicKeyPem);
 
       _isInitialized = true;
       debugPrint('[Encryption] Setup complete.');
@@ -171,14 +195,10 @@ class EncryptionService {
   Future<bool> restoreKeys() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) {
-        debugPrint('[Encryption] restoreKeys: no authenticated user.');
-        return false;
-      }
+      if (userId == null) return false;
 
       debugPrint('[Encryption] Fetching encrypted backup from server...');
-      final response =
-          await _supabase
+      final response = await _supabase
               .from('profiles')
               .select('encrypted_private_key, public_key')
               .eq('id', userId)
@@ -187,42 +207,24 @@ class EncryptionService {
       final encryptedPrivateKey = response['encrypted_private_key'] as String?;
       final publicKeyPem = response['public_key'] as String?;
 
-      if (encryptedPrivateKey == null) {
-        debugPrint(
-          '[Encryption] restoreKeys: no encrypted_private_key on server.',
-        );
-        return false;
-      }
-      if (publicKeyPem == null) {
-        debugPrint('[Encryption] restoreKeys: no public_key on server.');
-        return false;
-      }
+      if (encryptedPrivateKey == null || publicKeyPem == null) return false;
 
       // Decrypt private key with derived user key (Seamless)
-      debugPrint('[Encryption] Decrypting private key from backup...');
       final backupKey = _deriveBackupKey(userId);
       final privateKeyPem = _decryptWithKey(encryptedPrivateKey, backupKey);
 
-      if (privateKeyPem == null) {
-        debugPrint(
-          '[Encryption] restoreKeys: decryption of private key failed. Key may be corrupted or was encrypted with a different method.',
-        );
-        return false;
-      }
+      if (privateKeyPem == null) return false;
 
-      // Validate that the decrypted PEM is a valid RSA key before storing
+      // Validate RSA key
       try {
         CryptoUtils.rsaPrivateKeyFromPem(privateKeyPem);
       } catch (e) {
-        debugPrint(
-          '[Encryption] restoreKeys: decrypted data is not a valid RSA private key: $e',
-        );
         return false;
       }
 
       debugPrint('[Encryption] Saving restored keys to secure storage...');
-      await _secureStorage.write(key: _privateKeyKey, value: privateKeyPem);
-      await _secureStorage.write(key: _publicKeyKey, value: publicKeyPem);
+      await _secureStorage.write(key: _privateKeyKey(userId), value: privateKeyPem);
+      await _secureStorage.write(key: _publicKeyKey(userId), value: publicKeyPem);
 
       _isInitialized = true;
       debugPrint('[Encryption] Keys restored successfully.');
@@ -292,6 +294,9 @@ class EncryptionService {
     List<String> recipientPublicKeysPem, {
     encrypt.Key? reuseKey,
   }) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('No authenticated user');
+
     if (!_isInitialized) {
       throw Exception('Encryption not initialized');
     }
@@ -306,7 +311,7 @@ class EncryptionService {
 
     // Encrypt AES key for each recipient with their RSA Public Key
     final encryptedKeys = <String, String>{};
-    final publicKeyPem = await _secureStorage.read(key: _publicKeyKey);
+    final publicKeyPem = await _secureStorage.read(key: _publicKeyKey(userId));
 
     // Add self to recipients so we can read our own messages
     final allPublicKeys = {...recipientPublicKeysPem}; // Set to dedupe
@@ -370,41 +375,71 @@ class EncryptionService {
   Future<encrypt.Key?> _decryptAESKey(
     Map<String, dynamic> encryptedKeys,
   ) async {
-    if (!_isInitialized) return null;
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return null;
+
+    if (!_isInitialized) await init();
 
     try {
-      final privateKeyPem = await _secureStorage.read(key: _privateKeyKey);
-      final publicKeyPem = await _secureStorage.read(key: _publicKeyKey);
-
-      if (privateKeyPem == null || publicKeyPem == null) return null;
-
-      // Try normalized hash first (new standard)
-      final keyId = _hashPublicKey(publicKeyPem);
-      String? encryptedKeyBase64 = encryptedKeys[keyId] as String?;
-
-      // Fallback: Try raw hash if normalized doesn't match (for older messages)
-      if (encryptedKeyBase64 == null) {
-        final rawKeyId = sha256.convert(utf8.encode(publicKeyPem)).toString().substring(0, 16);
-        encryptedKeyBase64 = encryptedKeys[rawKeyId] as String?;
+      // 1. Try with the current user's primary key
+      final primaryPrivateKeyPem = await _secureStorage.read(key: _privateKeyKey(userId));
+      if (primaryPrivateKeyPem != null) {
+        final key = await _tryDecryptWithPrivateKey(primaryPrivateKeyPem, encryptedKeys);
+        if (key != null) return key;
       }
 
-      if (encryptedKeyBase64 == null) {
-        debugPrint('[Encryption] No encrypted key found for this user (keys might have changed)');
-        return null;
+      // 2. Fallback: Try legacy non-prefixed key (for users who haven't migrated yet)
+      final legacyPrivateKeyPem = await _secureStorage.read(key: 'rsa_private_key');
+      if (legacyPrivateKeyPem != null) {
+        debugPrint('[Encryption] Attempting decryption with legacy private key...');
+        final key = await _tryDecryptWithPrivateKey(legacyPrivateKeyPem, encryptedKeys);
+        if (key != null) return key;
       }
 
-      // Decrypt the AES key using our RSA Private Key
-      final privateKey = CryptoUtils.rsaPrivateKeyFromPem(privateKeyPem);
-      final rsaEncrypter = encrypt.Encrypter(
-        encrypt.RSA(privateKey: privateKey),
-      );
-      final encryptedKey = encrypt.Encrypted.fromBase64(encryptedKeyBase64);
-      final aesKeyBase64 = rsaEncrypter.decrypt(encryptedKey);
-      return encrypt.Key(base64.decode(aesKeyBase64));
+      // 3. Last Resort: Try ALL stored private keys on this device
+      // This handles the "Account A helps Account B" scenario automatically.
+      final allKeys = await _secureStorage.readAll();
+      for (final entry in allKeys.entries) {
+        if (entry.key.startsWith('rsa_private_key_') && entry.key != _privateKeyKey(userId)) {
+          debugPrint('[Encryption] Attempting decryption with alternate key: ${entry.key}');
+          final key = await _tryDecryptWithPrivateKey(entry.value, encryptedKeys);
+          if (key != null) return key;
+        }
+      }
+
+      debugPrint('[Encryption] Decryption failed: No valid local key matches this message.');
+      return null;
     } catch (e) {
-      debugPrint('Error decrypting AES key: $e');
+      debugPrint('[Encryption] Error in _decryptAESKey: $e');
       return null;
     }
+  }
+
+  /// Brute-force attempt to decrypt the AES key using a specific RSA Private Key
+  Future<encrypt.Key?> _tryDecryptWithPrivateKey(
+    String privateKeyPem,
+    Map<String, dynamic> encryptedKeys,
+  ) async {
+    try {
+      final privateKey = CryptoUtils.rsaPrivateKeyFromPem(privateKeyPem);
+      final rsaEncrypter = encrypt.Encrypter(encrypt.RSA(privateKey: privateKey));
+
+      // We don't just look for the Hash ID because it might have changed.
+      // We try to decrypt EVERY entry in the map. If it doesn't throw, we found it.
+      for (final entry in encryptedKeys.entries) {
+        try {
+          final encryptedAESKey = encrypt.Encrypted.fromBase64(entry.value as String);
+          final decryptedAESKeyBase64 = rsaEncrypter.decrypt(encryptedAESKey);
+          return encrypt.Key(base64.decode(decryptedAESKeyBase64));
+        } catch (_) {
+          // Wrong identity entry, continue to next
+          continue;
+        }
+      }
+    } catch (e) {
+      // Corrupted PEM or other issue
+    }
+    return null;
   }
 
   // Helper methods
@@ -434,14 +469,6 @@ class EncryptionService {
       return encrypter.decrypt(encrypted, iv: iv);
     } catch (e) {
       debugPrint('[Encryption] _decryptWithKey failed: $e');
-      // If direct decryption failed, try the legacy zero-IV method for ONE LAST transition
-      try {
-        final iv = encrypt.IV.fromLength(16);
-        final encrypter = encrypt.Encrypter(encrypt.AES(key)); // Default mode
-        return encrypter.decrypt64(encryptedDataBase64, iv: iv);
-      } catch (legacyError) {
-        debugPrint('[Encryption] Legacy fallback also failed: $legacyError');
-      }
       return null;
     }
   }
@@ -458,7 +485,13 @@ class EncryptionService {
   }
 
   Future<void> clearKeys() async {
-    await _secureStorage.deleteAll();
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId != null) {
+      await _secureStorage.delete(key: _privateKeyKey(userId));
+      await _secureStorage.delete(key: _publicKeyKey(userId));
+    }
+    // We explicitly do NOT call deleteAll() here to preserve legacy keys 
+    // and keys belonging to other logged-out accounts on this device.
     _isInitialized = false;
   }
 

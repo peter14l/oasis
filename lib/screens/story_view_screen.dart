@@ -148,7 +148,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.black.withOpacity(0.7), Colors.transparent],
+                    colors: [Colors.black.withValues(alpha: 0.7), Colors.transparent],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -203,7 +203,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
                         Text(
                           _getTimeAgo(story.createdAt),
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                             fontSize: 12,
                           ),
                         ),

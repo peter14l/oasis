@@ -138,7 +138,7 @@ class _ShareSheetState extends State<ShareSheet> {
                 width: 32,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -178,7 +178,7 @@ class _ShareSheetState extends State<ShareSheet> {
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                  fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                   contentPadding: const EdgeInsets.symmetric(vertical: 0),
                 ),
               ),

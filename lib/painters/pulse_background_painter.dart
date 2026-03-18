@@ -69,7 +69,7 @@ class PulseBackgroundPainter extends CustomPainter {
     // Faint grid lines
     final gridPaint =
         Paint()
-          ..color = gridColor.withOpacity(0.08) // More subtle
+          ..color = gridColor.withValues(alpha: 0.08) // More subtle
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1;
 
@@ -78,7 +78,7 @@ class PulseBackgroundPainter extends CustomPainter {
       final radius = i * 120.0;
       final opacity =
           (0.1 - (i * 0.01)) * (0.8 + 0.2 * sin(animationValue * 4 * pi));
-      gridPaint.color = gridColor.withOpacity(opacity.clamp(0.0, 1.0));
+      gridPaint.color = gridColor.withValues(alpha: opacity.clamp(0.0, 1.0));
       canvas.drawCircle(center, radius, gridPaint);
     }
 
@@ -98,7 +98,7 @@ class PulseBackgroundPainter extends CustomPainter {
   void _drawConnections(Canvas canvas, List<Offset> nodes, Offset center) {
     final connectionPaint =
         Paint()
-          ..color = gridColor.withOpacity(0.15)
+          ..color = gridColor.withValues(alpha: 0.15)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.0;
 
@@ -113,7 +113,7 @@ class PulseBackgroundPainter extends CustomPainter {
         if (dist < 300) {
           // Fade line based on distance
           final opacity = (1.0 - (dist / 300)) * 0.2;
-          connectionPaint.color = gridColor.withOpacity(opacity);
+          connectionPaint.color = gridColor.withValues(alpha: opacity);
           canvas.drawLine(adjustedNodes[i], adjustedNodes[j], connectionPaint);
         }
       }
@@ -152,7 +152,7 @@ class PulseBackgroundPainter extends CustomPainter {
           1.0,
         );
 
-        particlePaint.color = starColor.withOpacity(alpha * 0.6);
+        particlePaint.color = starColor.withValues(alpha: alpha * 0.6);
         canvas.drawCircle(adjustedPos, sizeFactor * 2, particlePaint);
       }
     }
@@ -173,7 +173,7 @@ class PulseBackgroundPainter extends CustomPainter {
       final radius = 50 + (progress * 150);
       final opacity = (1.0 - progress) * 0.3; // Fade out as it expands
 
-      ripplePaint.color = gridColor.withOpacity(opacity);
+      ripplePaint.color = gridColor.withValues(alpha: opacity);
       canvas.drawCircle(adjustedCenter, radius, ripplePaint);
     }
   }
@@ -181,7 +181,7 @@ class PulseBackgroundPainter extends CustomPainter {
   void _drawCenterMarker(Canvas canvas, Offset center) {
     final markerPaint =
         Paint()
-          ..color = Colors.white.withOpacity(0.9)
+          ..color = Colors.white.withValues(alpha: 0.9)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2;
 

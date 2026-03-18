@@ -235,9 +235,9 @@ class _ProfileScreenState extends State<ProfileScreen>
       //       //       begin: Alignment.topCenter,
       //       //       end: Alignment.bottomCenter,
       //       //       colors: [
-      //       //         Colors.black.withOpacity(0.3),
+      //       //         Colors.black.withValues(alpha: 0.3),
       //       //         Colors.transparent,
-      //       //         Colors.black.withOpacity(0.1),
+      //       //         Colors.black.withValues(alpha: 0.1),
       //       //       ],
       //       //     ),
       //       //   ),
@@ -248,7 +248,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       //         right: 48, // inset from settings button
       //         child: Container(
       //           decoration: BoxDecoration(
-      //             color: Colors.black.withOpacity(0.4),
+      //             color: Colors.black.withValues(alpha: 0.4),
       //             shape: BoxShape.circle,
       //           ),
       //           child: IconButton(

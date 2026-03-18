@@ -99,14 +99,14 @@ class _PulseNodeWidgetState extends State<PulseNodeWidget>
                   boxShadow: [
                     // Base shadow
                     BoxShadow(
-                      color: theme.colorScheme.primary.withOpacity(0.3),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
                       blurRadius: 15,
                       spreadRadius: 2,
                     ),
                     // High engagement aura
                     if (hasHighEngagement)
                       BoxShadow(
-                        color: Colors.amber.withOpacity(0.4),
+                        color: Colors.amber.withValues(alpha: 0.4),
                         blurRadius: 30,
                         spreadRadius: 5,
                       ),
@@ -128,8 +128,8 @@ class _PulseNodeWidgetState extends State<PulseNodeWidget>
                         border: Border.all(
                           color:
                               hasHighEngagement
-                                  ? Colors.amber.withOpacity(0.6)
-                                  : theme.colorScheme.primary.withOpacity(0.5),
+                                  ? Colors.amber.withValues(alpha: 0.6)
+                                  : theme.colorScheme.primary.withValues(alpha: 0.5),
                           width: hasHighEngagement ? 3 : 2,
                         ),
                       ),

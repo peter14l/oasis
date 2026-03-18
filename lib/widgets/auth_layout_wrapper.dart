@@ -62,7 +62,7 @@ class AuthLayoutWrapper extends StatelessWidget {
                               Text(
                                 'Connecting your world',
                                 style: theme.textTheme.titleLarge?.copyWith(
-                                  color: Colors.white.withOpacity(0.8),
+                                  color: Colors.white.withValues(alpha: 0.8),
                                 ),
                               ),
                             ],

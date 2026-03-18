@@ -41,8 +41,8 @@ class InviteBubble extends StatelessWidget {
         ),
         border: Border.all(
           color: isSender 
-              ? colorScheme.primary.withOpacity(0.3) 
-              : colorScheme.outlineVariant.withOpacity(0.3),
+              ? colorScheme.primary.withValues(alpha: 0.3) 
+              : colorScheme.outlineVariant.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -91,8 +91,8 @@ class InviteBubble extends StatelessWidget {
             width: double.infinity,
             decoration: BoxDecoration(
               color: isSender 
-                  ? colorScheme.primary.withOpacity(0.1) 
-                  : colorScheme.primary.withOpacity(0.05),
+                  ? colorScheme.primary.withValues(alpha: 0.1) 
+                  : colorScheme.primary.withValues(alpha: 0.05),
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(16),
                 bottomRight: Radius.circular(16),

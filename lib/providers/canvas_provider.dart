@@ -13,6 +13,8 @@ class CanvasProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   StreamSubscription<List<CanvasItem>>? _realtimeSubscription;
+  Map<String, dynamic> _presenceState = {};
+  StreamSubscription<Map<String, dynamic>>? _presenceSubscription;
 
   // ─── Getters ──────────────────────────────────────────────────────────────────
   List<OasisCanvas> get canvases => _canvases;
@@ -20,6 +22,7 @@ class CanvasProvider extends ChangeNotifier {
   List<CanvasItem> get activeItems => _activeItems;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  Map<String, dynamic> get presenceState => _presenceState;
 
   // ─── Canvas list ─────────────────────────────────────────────────────────────
 
@@ -126,12 +129,32 @@ class CanvasProvider extends ChangeNotifier {
       _activeItems = items;
       notifyListeners();
     });
+
+    // Start presence subscription
+    _presenceSubscription?.cancel();
+    _presenceSubscription = _service.subscribeToPresence(canvasId).listen((state) {
+      _presenceState = state;
+      notifyListeners();
+    });
+  }
+
+  void updatePresence(String userId, double x, double y, {String? activeItemId}) {
+    if (_activeCanvas == null) return;
+    _service.updatePresence(
+      canvasId: _activeCanvas!.id,
+      userId: userId,
+      x: x,
+      y: y,
+      activeItemId: activeItemId,
+    );
   }
 
   void closeCanvas() {
     _realtimeSubscription?.cancel();
+    _presenceSubscription?.cancel();
     _activeCanvas = null;
     _activeItems = [];
+    _presenceState = {};
     notifyListeners();
   }
 
@@ -145,6 +168,7 @@ class CanvasProvider extends ChangeNotifier {
     required double yPos,
     double rotation = 0.0,
     String color = '#252930',
+    DateTime? unlockAt,
   }) async {
     if (_activeCanvas == null) return;
     try {
@@ -157,6 +181,7 @@ class CanvasProvider extends ChangeNotifier {
         yPos: yPos,
         rotation: rotation,
         color: color,
+        unlockAt: unlockAt,
       );
       // Optimistic update — realtime will confirm
       _activeItems = [..._activeItems, item];
@@ -172,6 +197,7 @@ class CanvasProvider extends ChangeNotifier {
     required double xPos,
     required double yPos,
     double? rotation,
+    double? scale,
   }) async {
     if (_activeCanvas == null) return;
     // Optimistic local update
@@ -181,6 +207,7 @@ class CanvasProvider extends ChangeNotifier {
           xPos: xPos,
           yPos: yPos,
           rotation: rotation ?? item.rotation,
+          scale: scale ?? item.scale,
         );
       }
       return item;
@@ -188,12 +215,12 @@ class CanvasProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _service.moveItem(
+      await _service.updateItemTransform(
         itemId: itemId,
-        canvasId: _activeCanvas!.id,
         xPos: xPos,
         yPos: yPos,
         rotation: rotation,
+        scale: scale,
       );
     } catch (e) {
       _error = e.toString();

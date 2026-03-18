@@ -302,7 +302,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen>
           decoration: BoxDecoration(
             color:
                 isSelected
-                    ? theme.colorScheme.primaryContainer.withOpacity(0.5)
+                    ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
                     : null,
             borderRadius: BorderRadius.circular(8),
           ),
@@ -341,7 +341,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen>
             size: 64,
             color: Theme.of(
               context,
-            ).colorScheme.onSurfaceVariant.withOpacity(0.5),
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -363,10 +363,10 @@ class _CommunitiesScreenState extends State<CommunitiesScreen>
     return Card(
       clipBehavior: Clip.antiAlias,
       elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.1),
+      shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.1), width: 1),
       ),
       child: InkWell(
         onTap: () => context.push('/community/${community.id}'),

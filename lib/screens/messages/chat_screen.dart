@@ -395,6 +395,7 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() => _isLoading = true);
 
     try {
+      final currentUserId = _authService.currentUser?.id;
       final messages = await _messagingService.getMessages(
         conversationId: widget.conversationId,
         sessionStart: _sessionStartTime,
@@ -407,7 +408,9 @@ class _ChatScreenState extends State<ChatScreen> {
         await Future.delayed(Duration.zero);
         if (message.signalMessageType != null) {
           try {
-            final isSender = message.senderId == _authService.currentUser?.id;
+            // Robust sender check (lowercase comparison to avoid UUID mismatch)
+            final isSender = currentUserId != null && 
+                           message.senderId.toLowerCase() == currentUserId.toLowerCase();
               
             if (isSender && message.signalSenderContent != null && message.encryptedKeys != null && message.iv != null) {
               // Sender copy is encrypted via RSA using `signalSenderContent` and the `encryptedKeys` payload
@@ -425,8 +428,11 @@ class _ChatScreenState extends State<ChatScreen> {
                 message.signalMessageType!,
               );
               
-              // NEW: If Signal returns a failure placeholder, try RSA fallback immediately
-              if (decrypted.contains('🔒 Message encrypted') && 
+              // NEW: If Signal returns a failure placeholder OR optimization placeholder, try RSA fallback immediately
+              bool isSignalFailure = decrypted.contains('🔒 Message encrypted') || 
+                                   decrypted.contains('Optimizing secure connection');
+
+              if (isSignalFailure && 
                   message.signalSenderContent != null && 
                   message.encryptedKeys != null && 
                   message.iv != null) {
@@ -1548,7 +1554,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               Icon(
                                 Icons.chat_bubble_outline,
                                 size: 64,
-                                color: colorScheme.onSurfaceVariant.withOpacity(
+                                color: colorScheme.onSurfaceVariant.withValues(alpha: 
                                   0.6,
                                 ),
                               ),
@@ -1684,7 +1690,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.circle,
                                                 color: colorScheme.secondary
-                                                    .withOpacity(0.08),
+                                                    .withValues(alpha: 0.08),
                                               ),
                                             ),
                                             SizedBox(
@@ -1702,7 +1708,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                   _whisperDragProgress >= 1.0
                                                       ? colorScheme.secondary
                                                       : colorScheme.secondary
-                                                          .withOpacity(
+                                                          .withValues(alpha: 
                                                             0.4 +
                                                                 _whisperDragProgress *
                                                                     0.6,
@@ -1716,7 +1722,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                   : Icons.arrow_upward_rounded,
                                               size: 18,
                                               color: colorScheme.secondary
-                                                  .withOpacity(
+                                                  .withValues(alpha: 
                                                     0.5 +
                                                         _whisperDragProgress *
                                                             0.5,
@@ -1950,7 +1956,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         alpha: 0.8,
                                       )
                                       : colorScheme.onSurfaceVariant
-                                          .withOpacity(0.5),
+                                          .withValues(alpha: 0.5),
                               fontSize: 10,
                             ),
                           ),
@@ -2230,7 +2236,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   color:
                       isMe
                           ? (_textColorSent ?? colorScheme.onPrimaryContainer)
-                              .withOpacity(0.8)
+                              .withValues(alpha: 0.8)
                           : (_textColorReceived ??
                               colorScheme.onSurfaceVariant),
                   fontSize: 12,
@@ -2238,7 +2244,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 backgroundColor:
                     isMe
                         ? colorScheme.primaryContainer.withValues(alpha: 0.5)
-                        : colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 borderRadius: 12,
                 removeElevation: true,
                 onTap: () async {
@@ -2287,7 +2293,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.outline.withOpacity(0.3),
+                          color: theme.colorScheme.outline.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),

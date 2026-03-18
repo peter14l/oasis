@@ -1,4 +1,4 @@
-enum CanvasItemType { text, photo, voice, sticker }
+enum CanvasItemType { text, photo, voice, sticker, milestone }
 
 class CanvasItem {
   final String id;
@@ -12,8 +12,9 @@ class CanvasItem {
   final double scale;
   final String color; // hex background tint for the sticky-note feel
   final DateTime createdAt;
-  final String? groupId; // New: For grouping multiple items into a single stack
-  final Map<String, dynamic> metadata; // New: For extensible features (glow, shimmer, etc.)
+  final DateTime? unlockAt; // New: For Time Capsule
+  final String? groupId; 
+  final Map<String, dynamic> metadata; 
 
   CanvasItem({
     required this.id,
@@ -27,6 +28,7 @@ class CanvasItem {
     this.scale = 1.0,
     this.color = '#252930',
     required this.createdAt,
+    this.unlockAt,
     this.groupId,
     this.metadata = const {},
   });
@@ -47,6 +49,7 @@ class CanvasItem {
       scale: (json['scale'] as num?)?.toDouble() ?? 1.0,
       color: json['color'] as String? ?? '#252930',
       createdAt: DateTime.parse(json['created_at'] as String),
+      unlockAt: json['unlock_at'] != null ? DateTime.parse(json['unlock_at'] as String) : null,
       groupId: json['group_id'] as String?,
       metadata: (json['metadata'] as Map<String, dynamic>?) ?? {},
     );
@@ -65,6 +68,7 @@ class CanvasItem {
       'scale': scale,
       'color': color,
       'created_at': createdAt.toIso8601String(),
+      'unlock_at': unlockAt?.toIso8601String(),
       'group_id': groupId,
       'metadata': metadata,
     };
@@ -82,6 +86,7 @@ class CanvasItem {
     double? scale,
     String? color,
     DateTime? createdAt,
+    DateTime? unlockAt,
     String? groupId,
     Map<String, dynamic>? metadata,
   }) {
@@ -97,6 +102,7 @@ class CanvasItem {
       scale: scale ?? this.scale,
       color: color ?? this.color,
       createdAt: createdAt ?? this.createdAt,
+      unlockAt: unlockAt ?? this.unlockAt,
       groupId: groupId ?? this.groupId,
       metadata: metadata ?? this.metadata,
     );

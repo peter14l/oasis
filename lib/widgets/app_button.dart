@@ -111,7 +111,7 @@ class AppButton extends StatelessWidget {
             foregroundColor: foregroundColor,
             backgroundColor: Colors.transparent,
             side: BorderSide(
-              color: disabled ? colorScheme.onSurface.withOpacity(0.12) : colorScheme.primary,
+              color: disabled ? colorScheme.onSurface.withValues(alpha: 0.12) : colorScheme.primary,
               width: 1.5,
             ),
             padding: padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -121,7 +121,7 @@ class AppButton extends StatelessWidget {
           )
         : ElevatedButton.styleFrom(
             foregroundColor: foregroundColor,
-            backgroundColor: disabled ? colorScheme.onSurface.withOpacity(0.12) : backgroundColor,
+            backgroundColor: disabled ? colorScheme.onSurface.withValues(alpha: 0.12) : backgroundColor,
             padding: padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(borderRadius),
@@ -133,10 +133,10 @@ class AppButton extends StatelessWidget {
       overlayColor: MaterialStateProperty.resolveWith<Color>(
         (states) {
           if (states.contains(MaterialState.pressed)) {
-            return foregroundColor.withOpacity(0.1);
+            return foregroundColor.withValues(alpha: 0.1);
           }
           if (states.contains(MaterialState.hovered)) {
-            return foregroundColor.withOpacity(0.05);
+            return foregroundColor.withValues(alpha: 0.05);
           }
           return Colors.transparent;
         },

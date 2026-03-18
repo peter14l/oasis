@@ -200,7 +200,7 @@ class CommunityGuidelinesScreen extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [color, color.withOpacity(0.7)],
+          colors: [color, color.withValues(alpha: 0.7)],
         ),
       ),
       child: Container(
@@ -210,7 +210,7 @@ class CommunityGuidelinesScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.transparent, Colors.black.withOpacity(0.6)],
+            colors: [Colors.transparent, Colors.black.withValues(alpha: 0.6)],
           ),
         ),
         child: Column(

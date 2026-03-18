@@ -152,10 +152,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withOpacity(0.6),
+                        Colors.black.withValues(alpha: 0.6),
                         Colors.transparent,
                         Colors.transparent,
-                        Colors.black.withOpacity(0.6),
+                        Colors.black.withValues(alpha: 0.6),
                       ],
                       stops: const [0.0, 0.15, 0.85, 1.0],
                     ),
@@ -255,7 +255,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                             borderRadius: BorderRadius.circular(28),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
+                                color: Colors.black.withValues(alpha: 0.2),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -435,7 +435,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
               ),
               child: const Icon(Icons.auto_awesome_mosaic_rounded, size: 60, color: Colors.white70),
             ),
@@ -493,9 +493,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: color.withValues(alpha: 0.15),
               shape: BoxShape.circle,
-              border: Border.all(color: color.withOpacity(0.3), width: 2),
+              border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
             ),
             child: Icon(icon, color: color, size: 32),
           ),
@@ -518,7 +518,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             padding: const EdgeInsets.all(10),
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             child: Icon(icon, color: Colors.white, size: 24),
           ),
         ),

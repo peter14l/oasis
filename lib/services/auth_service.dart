@@ -12,6 +12,7 @@ import 'package:oasis_v2/config/supabase_config.dart';
 // Provider is used in other files that import this one
 import 'package:oasis_v2/services/supabase_service.dart';
 import 'package:oasis_v2/services/encryption_service.dart';
+import 'package:oasis_v2/services/signal/signal_service.dart';
 import 'package:oasis_v2/services/notification_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -341,6 +342,12 @@ throw AuthException('Failed to sign in with Google: ${e.toString()}');
   Future<void> signOut() async {
     try {
       await _googleSignIn.signOut();
+      
+      // Clear encryption keys and Signal state before Supabase signout
+      // to ensure they are wiped while we still have the session (if needed)
+      await EncryptionService().clearKeys();
+      await SignalService().clearData();
+      
       await _supabase.auth.signOut();
       notifyListeners();
     } catch (e) {

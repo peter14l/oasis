@@ -6,11 +6,15 @@ import 'package:oasis_v2/models/canvas_item.dart';
 import 'package:oasis_v2/services/supabase_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
+import 'package:oasis_v2/config/supabase_config.dart';
 
 
 class CanvasService {
   final SupabaseClient _supabase;
   final _uuid = const Uuid();
+  
+  // Cache for presence channels to ensure we track on subscribed channels
+  final Map<String, RealtimeChannel> _presenceChannels = {};
 
   CanvasService({SupabaseClient? client}) 
       : _supabase = client ?? SupabaseService().client;
@@ -151,7 +155,7 @@ class CanvasService {
     }
   }
 
-  /// Add an item to the canvas.
+  /// Add a new item to a canvas.
   Future<CanvasItem> addItem({
     required String canvasId,
     required String authorId,
@@ -160,25 +164,30 @@ class CanvasService {
     required double xPos,
     required double yPos,
     double rotation = 0.0,
+    double scale = 1.0,
     String color = '#252930',
+    DateTime? unlockAt,
   }) async {
     try {
-      final data = await _supabase
-          .from('canvas_items')
-          .insert({
-            'canvas_id': canvasId,
-            'author_id': authorId,
-            'type': type.name,
-            'content': content,
-            'x_pos': xPos,
-            'y_pos': yPos,
-            'rotation': rotation,
-            'color': color,
-          })
-          .select()
-          .single();
+      final Map<String, dynamic> insertData = {
+        'canvas_id': canvasId,
+        'author_id': authorId,
+        'type': type.name,
+        'content': content,
+        'x_pos': xPos,
+        'y_pos': yPos,
+        'rotation': rotation,
+        'scale': scale,
+        'color': color,
+      };
 
-      return CanvasItem.fromJson(data);
+      if (unlockAt != null) {
+        insertData['unlock_at'] = unlockAt.toIso8601String();
+      }
+
+      final response = await _supabase.from('canvas_items').insert(insertData).select().single();
+
+      return CanvasItem.fromJson(response);
     } catch (e) {
       debugPrint('CanvasService.addItem error: $e');
       rethrow;
@@ -195,12 +204,13 @@ class CanvasService {
     }
   }
 
-  /// Update item position/rotation.
+  /// Update item position/rotation/scale.
   Future<void> updateItemTransform({
     required String itemId,
     required double xPos,
     required double yPos,
     double? rotation,
+    double? scale,
   }) async {
     try {
       final Map<String, dynamic> updates = {
@@ -209,6 +219,7 @@ class CanvasService {
         'updated_at': DateTime.now().toIso8601String(),
       };
       if (rotation != null) updates['rotation'] = rotation;
+      if (scale != null) updates['scale'] = scale;
 
       await _supabase.from('canvas_items').update(updates).eq('id', itemId);
     } catch (e) {
@@ -243,6 +254,22 @@ class CanvasService {
     }
   }
 
+  /// Upload a voice memo to Supabase Storage for use on the canvas.
+  Future<String> uploadCanvasAudio(String canvasId, String filePath) async {
+    try {
+      final file = File(filePath);
+      final ext = filePath.split('.').last;
+      final fileName = 'canvas_audio_${canvasId}_${_uuid.v4()}.$ext';
+
+      // Use existing message-attachments bucket instead of non-existent chat-audio
+      await _supabase.storage.from(SupabaseConfig.messageAttachmentsBucket).upload(fileName, file);
+      return _supabase.storage.from(SupabaseConfig.messageAttachmentsBucket).getPublicUrl(fileName);
+    } catch (e) {
+      debugPrint('CanvasService.uploadCanvasAudio error: $e');
+      rethrow;
+    }
+  }
+
   /// Join an existing canvas.
   Future<void> joinCanvas(String canvasId, String userId) async {
     try {
@@ -268,6 +295,58 @@ class CanvasService {
     } catch (e) {
       debugPrint('CanvasService.sendPulse error: $e');
     }
+  }
+
+  Stream<Map<String, dynamic>> subscribeToPresence(String canvasId) {
+    final controller = StreamController<Map<String, dynamic>>.broadcast();
+    
+    // Reuse or create channel
+    final channel = _presenceChannels[canvasId] ?? _supabase.channel('presence:$canvasId');
+    _presenceChannels[canvasId] = channel;
+
+    channel
+        .onPresenceSync((payload) {
+          final state = channel.presenceState();
+          final Map<String, dynamic> mappedState = {};
+          
+          for (final singleState in state) {
+            if (singleState.presences.isNotEmpty) {
+              mappedState[singleState.key] = singleState.presences.map((p) => p.payload).toList();
+            }
+          }
+          
+          controller.add(mappedState);
+        })
+        .subscribe();
+
+    controller.onCancel = () {
+      _supabase.removeChannel(channel);
+      _presenceChannels.remove(canvasId);
+    };
+    return controller.stream;
+  }
+
+  void updatePresence({
+    required String canvasId,
+    required String userId,
+    required double x,
+    required double y,
+    String? activeItemId,
+  }) {
+    final channel = _presenceChannels[canvasId];
+    
+    if (channel == null) {
+      debugPrint('CanvasService.updatePresence: No active subscription for canvas $canvasId');
+      return;
+    }
+
+    channel.track({
+      'user_id': userId,
+      'x': x,
+      'y': y,
+      'active_item_id': activeItemId,
+      'last_seen': DateTime.now().toIso8601String(),
+    });
   }
 
   // ─── Realtime ────────────────────────────────────────────────────────────────

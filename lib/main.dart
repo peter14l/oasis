@@ -317,13 +317,12 @@ class _MyAppState extends State<MyApp> {
                   context.read<CanvasProvider>().loadCanvases(userId);
 
                   // Initialize encryption keys in the background for all users
-                  EncryptionService().init().catchError((e) {
-                    debugPrint('Encryption init failed: $e');
-                    return EncryptionStatus.needsSetup;
-                  });
-                  SignalService().init().catchError((e) {
-                    debugPrint('Signal init failed: $e');
-                    return false;
+                  Future.wait([
+                    EncryptionService().init(),
+                    SignalService().init(),
+                  ]).catchError((e) {
+                    debugPrint('Encryption/Signal init failed: $e');
+                    return [EncryptionStatus.error, false];
                   });
                 });
               } else {

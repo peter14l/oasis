@@ -290,17 +290,21 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
       final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
       
       if (pickedFile != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        final provider = context.read<CanvasProvider>();
+        final profileProvider = context.read<ProfileProvider>();
+        
+        messenger.showSnackBar(
           const SnackBar(content: Text('Uploading photo...')),
         );
         
-        final userId = context.read<ProfileProvider>().currentProfile?.id ?? '';
+        final userId = profileProvider.currentProfile?.id ?? '';
         final canvasService = CanvasService();
         
         final imageUrl = await canvasService.uploadCanvasImage(widget.canvasId, pickedFile.path);
         
         if (mounted) {
-          context.read<CanvasProvider>().addItem(
+          provider.addItem(
                 authorId: userId,
                 type: CanvasItemType.photo,
                 content: imageUrl,
@@ -308,7 +312,7 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
                 yPos: 150,
               );
               
-          ScaffoldMessenger.of(context).showSnackBar(
+          messenger.showSnackBar(
             const SnackBar(content: Text('Photo added!')),
           );
         }
@@ -317,7 +321,7 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
       debugPrint('Error adding photo: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to add photo')),
+          const SnackBar(content: Text('Failed to add photo')),
         );
       }
     }

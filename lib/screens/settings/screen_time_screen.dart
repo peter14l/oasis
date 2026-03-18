@@ -106,7 +106,7 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: colorScheme.primary.withOpacity(0.3),
+                    color: colorScheme.primary.withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
@@ -117,7 +117,7 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
                   Text(
                     'Total Screen Time',
                     style: theme.textTheme.titleMedium?.copyWith(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -135,7 +135,7 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -177,7 +177,7 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
               height: 220,
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: BarChart(
@@ -250,7 +250,7 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
                           color:
                               index == 6
                                   ? colorScheme.primary
-                                  : colorScheme.primary.withOpacity(0.3),
+                                  : colorScheme.primary.withValues(alpha: 0.3),
                           width: 16,
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(6),
@@ -354,14 +354,14 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
               decoration: BoxDecoration(
                 color:
                     isHealthy
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.orange.withOpacity(0.1),
+                        ? Colors.green.withValues(alpha: 0.1)
+                        : Colors.orange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color:
                       isHealthy
-                          ? Colors.green.withOpacity(0.5)
-                          : Colors.orange.withOpacity(0.5),
+                          ? Colors.green.withValues(alpha: 0.5)
+                          : Colors.orange.withValues(alpha: 0.5),
                   width: 1,
                 ),
               ),
@@ -431,7 +431,7 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 24),

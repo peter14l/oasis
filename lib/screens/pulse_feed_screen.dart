@@ -300,7 +300,7 @@ class _PulseFeedScreenState extends State<PulseFeedScreen>
         border: Border.all(color: Colors.white, width: 3),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.primary.withOpacity(0.5),
+            color: theme.colorScheme.primary.withValues(alpha: 0.5),
             blurRadius: 20,
             spreadRadius: 5,
           ),
@@ -325,7 +325,7 @@ class _PulseFeedScreenState extends State<PulseFeedScreen>
           child: GestureDetector(
             onTap: _closeExpandedPost,
             child: Container(
-              color: Colors.black.withOpacity(0.8),
+              color: Colors.black.withValues(alpha: 0.8),
               child: Center(
                 child: Hero(
                   tag: 'post_${post.id}',

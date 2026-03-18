@@ -19,15 +19,11 @@ class CanvasItemWidget extends StatefulWidget {
   State<CanvasItemWidget> createState() => _CanvasItemWidgetState();
 }
 
-class _CanvasItemWidgetState extends State<CanvasItemWidget>
-    with SingleTickerProviderStateMixin {
+class _CanvasItemWidgetState extends State<CanvasItemWidget> {
   late double _x;
   late double _y;
   late double _rotation;
   bool _selected = false;
-
-  late final AnimationController _scaleController;
-  late final Animation<double> _scaleAnim;
 
   @override
   void initState() {
@@ -35,20 +31,10 @@ class _CanvasItemWidgetState extends State<CanvasItemWidget>
     _x = widget.item.xPos;
     _y = widget.item.yPos;
     _rotation = widget.item.rotation;
-
-    _scaleController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 180),
-    );
-    _scaleAnim = CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.elasticOut,
-    );
   }
 
   @override
   void dispose() {
-    _scaleController.dispose();
     super.dispose();
   }
 
@@ -64,7 +50,6 @@ class _CanvasItemWidgetState extends State<CanvasItemWidget>
   }
 
   void _onLongPress() {
-    _scaleController.forward(from: 0);
     setState(() => _selected = true);
     _showDeleteOption();
   }
@@ -210,6 +195,19 @@ class _CanvasItemWidgetState extends State<CanvasItemWidget>
           child: Icon(
             Icons.mic_none_rounded,
             color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+          ),
+        );
+
+      case CanvasItemType.milestone:
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.amber,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            widget.item.content,
+            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
           ),
         );
     }

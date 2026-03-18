@@ -51,7 +51,9 @@ class MessagingService {
                 created_at,
                 iv,
                 encrypted_keys,
-                signal_message_type
+                signal_message_type,
+                signal_sender_content,
+                signal_sender_message_type
               )
             )
           ''')
@@ -276,7 +278,7 @@ class MessagingService {
           .from(SupabaseConfig.messagesTable)
           .select('''
             *,
-            ${SupabaseConfig.profilesTable}:sender_id (
+            sender_profile:sender_id (
               username,
               avatar_url
             ),
@@ -301,7 +303,7 @@ class MessagingService {
 
       for (final item in response) {
         final messageMap = Map<String, dynamic>.from(item);
-        final profile = messageMap[SupabaseConfig.profilesTable];
+        final profile = messageMap['sender_profile'];
         if (profile != null) {
           messageMap['sender_name'] = profile['username'];
           messageMap['sender_avatar'] = profile['avatar_url'];
@@ -498,7 +500,7 @@ class MessagingService {
               .from(SupabaseConfig.messagesTable)
               .select('''
             *,
-            ${SupabaseConfig.profilesTable}:sender_id (
+            sender_profile:sender_id (
               username,
               avatar_url
             ),

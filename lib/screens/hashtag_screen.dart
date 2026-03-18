@@ -119,7 +119,7 @@ class _HashtagScreenState extends State<HashtagScreen> {
                         decoration: BoxDecoration(
                           color: Theme.of(
                             context,
-                          ).primaryColor.withOpacity(0.1),
+                          ).primaryColor.withValues(alpha: 0.1),
                           border: Border(
                             bottom: BorderSide(color: Colors.grey.shade200),
                           ),
