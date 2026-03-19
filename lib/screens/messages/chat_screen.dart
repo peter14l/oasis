@@ -958,38 +958,41 @@ class _ChatScreenState extends State<ChatScreen> {
       int? fileSize;
       String? mimeType;
 
-      if (imageFile != null) {
+    if (imageFile != null) {
+      fileName = imageFile.name;
+      mediaUrl = await _messagingService.uploadChatMedia(
+        imageFile.path,
+        folder: 'images',
+      );
+      messageType = MessageType.image;
+    } else if (videoFile != null) {
+      fileName = videoFile.path.split(Platform.pathSeparator).last;
+      mediaUrl = await _messagingService.uploadChatMedia(
+        videoFile.path,
+        folder: 'videos',
+      );
+      messageType = MessageType.document;
+    } else if (docFile != null) {
+      if (docFile.path != null) {
+        fileName = docFile.name;
         mediaUrl = await _messagingService.uploadChatMedia(
-          imageFile.path,
-          folder: 'images',
-        );
-        messageType = MessageType.image;
-      } else if (videoFile != null) {
-        mediaUrl = await _messagingService.uploadChatMedia(
-          videoFile.path,
-          folder: 'videos',
+          docFile.path!,
+          folder: 'files',
         );
         messageType = MessageType.document;
-        fileName = 'Video';
-      } else if (docFile != null) {
-        if (docFile.path != null) {
-          mediaUrl = await _messagingService.uploadChatMedia(
-            docFile.path!,
-            folder: 'files',
-          );
-          messageType = MessageType.document;
-          fileName = docFile.name;
-          fileSize = docFile.size;
-          mimeType = docFile.extension;
-        }
-      } else if (audioFile != null) {
-        mediaUrl = await _messagingService.uploadChatMedia(
-          audioFile.path,
-          folder: 'audio',
-        );
-        messageType = MessageType.voice;
-        fileName = 'Audio Attachment';
+        fileSize = docFile.size;
+        mimeType = docFile.extension;
       }
+    } else if (audioFile != null) {
+      fileName = audioFile.path.split(Platform.pathSeparator).last;
+      // Remove 'compressed_' or 'audio_' prefix if we want the 'original' look, 
+      // but splitting the path is the most reliable way to get the actual name.
+      mediaUrl = await _messagingService.uploadChatMedia(
+        audioFile.path,
+        folder: 'audio',
+      );
+      messageType = MessageType.voice;
+    }
 
       // Always generate a fallback RSA encrypted copy for BOTH sender and recipient
       if (EncryptionService.isEnabled && content.isNotEmpty) {
