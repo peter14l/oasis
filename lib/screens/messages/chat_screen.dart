@@ -2308,7 +2308,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       (context) => ImagePreviewScreen(
                         imageUrl: message.mediaUrl!,
                         caption:
-                            message.content != 'Sent attachment'
+                            _isDisplayableCaption(message.content)
                                 ? message.content
                                 : null,
                       ),
@@ -2336,9 +2336,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
           ),
-          if (message.content.isNotEmpty &&
-              message.content != 'Sent attachment' &&
-              !message.content.contains('🔒'))
+          if (_isDisplayableCaption(message.content))
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(
@@ -2785,6 +2783,17 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+
+  bool _isDisplayableCaption(String text) {
+    if (text.isEmpty) return false;
+    if (text == 'Sent attachment') return false;
+    if (text.contains('🔒')) return false;
+    // Heuristic: if it looks like ciphertext (no spaces, long, and starts with ey or ends with =)
+    if (text.length > 30 && !text.contains(' ')) {
+      if (text.startsWith('ey') || text.endsWith('=')) return false;
+    }
+    return true;
   }
 
   bool _containsUrl(String text) {
