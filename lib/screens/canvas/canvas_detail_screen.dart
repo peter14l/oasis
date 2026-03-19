@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:oasis_v2/widgets/canvas/canvas_item_widget.dart';
 import 'package:oasis_v2/services/canvas_service.dart';
 import 'package:oasis_v2/widgets/share_sheet.dart';
+import 'package:oasis_v2/services/canvas_audio_service.dart';
 
 class CanvasDetailScreen extends StatefulWidget {
   final String canvasId;
@@ -30,6 +31,7 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
   @override
   void initState() {
     super.initState();
+    CanvasAudioService().start();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
       if (currentUserId != null) {
@@ -42,6 +44,7 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
 
   @override
   void dispose() {
+    CanvasAudioService().stop();
     _canvasProvider.closeCanvas();
     super.dispose();
   }
