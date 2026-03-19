@@ -3,11 +3,15 @@ import 'package:flutter/foundation.dart';
 import 'package:oasis_v2/models/notification.dart';
 import 'package:oasis_v2/services/notification_service.dart';
 import 'package:oasis_v2/services/notification_manager.dart';
+import 'package:oasis_v2/services/encryption_service.dart';
+import 'package:oasis_v2/services/signal/signal_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NotificationProvider with ChangeNotifier {
   final NotificationService _notificationService = NotificationService();
   final NotificationManager _notificationManager = NotificationManager.instance;
+  final EncryptionService _encryptionService = EncryptionService();
+  final SignalService _signalService = SignalService();
 
   List<AppNotification> _notifications = [];
   bool _isLoading = false;
@@ -63,18 +67,77 @@ class NotificationProvider with ChangeNotifier {
 
     _subscriptionChannel = _notificationService.subscribeToNotifications(
       userId: _userId!,
-      onNewNotification: (notification) {
+      onNewNotification: (notification) async {
         // Only add to the UI list if it's not a DM
         if (notification.type != 'dm') {
           _notifications.insert(0, notification);
           notifyListeners();
         }
 
+        String body = notification.getNotificationText();
+
+        // If it's a DM, try to decrypt it using the message metadata
+        if (notification.type == 'dm' && notification.messageId != null) {
+          try {
+            // Fetch the actual message record to get encryption metadata
+            final supabase = Supabase.instance.client;
+            final messageResponse = await supabase
+                .from('messages')
+                .select('content, sender_id, encrypted_keys, iv, signal_message_type, signal_sender_content')
+                .eq('id', notification.messageId!)
+                .maybeSingle();
+
+            if (messageResponse != null) {
+              final content = messageResponse['content'] as String?;
+              final senderId = messageResponse['sender_id'] as String;
+              final encryptedKeys = messageResponse['encrypted_keys'] as Map<String, dynamic>?;
+              final iv = messageResponse['iv'] as String?;
+              final signalType = messageResponse['signal_message_type'] as int?;
+              final rsaContent = messageResponse['signal_sender_content'] as String?;
+
+              if (content != null) {
+                String? decrypted;
+                
+                // Try Signal decryption first
+                if (signalType != null) {
+                   await _signalService.init();
+                   decrypted = await _signalService.decryptMessage(senderId, content, signalType);
+                   
+                   // Fallback to RSA if Signal fails or returns placeholder
+                   if ((decrypted.contains('🔒 Message encrypted') || decrypted.contains('Optimizing secure connection')) && 
+                       encryptedKeys != null && iv != null && rsaContent != null) {
+                     decrypted = await _encryptionService.decryptMessage(
+                       rsaContent,
+                       Map<String, String>.from(encryptedKeys),
+                       iv,
+                     );
+                   }
+                } 
+                // Try standard RSA decryption
+                else if (encryptedKeys != null && iv != null) {
+                  decrypted = await _encryptionService.decryptMessage(
+                    content,
+                    Map<String, String>.from(encryptedKeys),
+                    iv,
+                  );
+                }
+
+                if (decrypted != null && !decrypted.contains('🔒 Message encrypted')) {
+                  body = decrypted;
+                }
+              }
+            }
+          } catch (e) {
+            debugPrint('Error decrypting notification message: $e');
+            // Fallback to the encrypted placeholder already in 'body'
+          }
+        }
+
         // ALWAYS show local notification (OS alert)
         _notificationManager.showNotification(
           title: notification.displayTitle,
-          body: notification.getNotificationText(),
-          payload: notification.postId, // Or route path
+          body: body,
+          payload: notification.postId ?? notification.messageId, // Or route path
         );
       },
     );

@@ -538,12 +538,18 @@ class MessagingService {
         for (final participant in participantsResponse) {
           final recipientId = participant['user_id'] as String;
           
+          // Use a placeholder for encrypted messages in notifications
+          final notificationMessage = (encryptedKeys != null || signalMessageType != null)
+              ? '🔒 Encrypted Message'
+              : content;
+          
           await _notificationService.createNotification(
             userId: recipientId,
             type: 'dm',
             actorId: senderId,
             title: senderName,
-            message: content, // content is already decrypted or original text here
+            message: notificationMessage,
+            messageId: messageId,
           );
         }
       } catch (e) {

@@ -10,6 +10,7 @@ class AppNotification {
   final String? actorAvatar;
   final String? postId;
   final String? commentId;
+  final String? messageId;
   final String? message;
   final bool isRead;
   final DateTime timestamp;
@@ -24,6 +25,7 @@ class AppNotification {
     this.actorAvatar,
     this.postId,
     this.commentId,
+    this.messageId,
     this.message,
     this.isRead = false,
     required this.timestamp,
@@ -40,6 +42,7 @@ class AppNotification {
       actorAvatar: json['actor_avatar'] as String?,
       postId: json['post_id'] as String?,
       commentId: json['comment_id'] as String?,
+      messageId: json['message_id'] as String?,
       message: (json['content'] ?? json['message']) as String?,
       isRead: json['is_read'] as bool? ?? false,
       timestamp: json['created_at'] != null
@@ -59,6 +62,7 @@ class AppNotification {
       'actor_avatar': actorAvatar,
       'post_id': postId,
       'comment_id': commentId,
+      'message_id': messageId,
       'content': message,
       'is_read': isRead,
       'created_at': timestamp.toIso8601String(),
@@ -75,6 +79,7 @@ class AppNotification {
     String? actorAvatar,
     String? postId,
     String? commentId,
+    String? messageId,
     String? message,
     bool? isRead,
     DateTime? timestamp,
@@ -89,6 +94,7 @@ class AppNotification {
       actorAvatar: actorAvatar ?? this.actorAvatar,
       postId: postId ?? this.postId,
       commentId: commentId ?? this.commentId,
+      messageId: messageId ?? this.messageId,
       message: message ?? this.message,
       isRead: isRead ?? this.isRead,
       timestamp: timestamp ?? this.timestamp,

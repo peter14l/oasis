@@ -183,6 +183,7 @@ class NotificationService {
     String? title,
     String? postId,
     String? commentId,
+    String? messageId,
     String? message,
   }) async {
     try {
@@ -194,6 +195,7 @@ class NotificationService {
         'actor_id': actorId,
         'post_id': postId,
         'comment_id': commentId,
+        'message_id': messageId,
         'content': message,
       });
     } catch (e) {
