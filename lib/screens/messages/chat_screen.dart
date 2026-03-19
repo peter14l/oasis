@@ -515,10 +515,14 @@ class _ChatScreenState extends State<ChatScreen> {
             decryptedMessage = decryptedMessage.copyWith(
               replyToContent: decryptedReply,
             );
+          } else {
+            debugPrint('Reply decryption resulted in placeholder or null for msg ${message.id}');
           }
         } catch (e) {
-          debugPrint('Failed to decrypt reply context: $e');
+          debugPrint('Failed to decrypt reply context for msg ${message.id}: $e');
         }
+      } else {
+        debugPrint('Missing sender_id or content in replyToData for msg ${message.id}');
       }
     }
 

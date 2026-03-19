@@ -290,12 +290,15 @@ class MessagingService {
             reply_to:reply_to_id (
               id,
               content,
+              sender_id,
               image_url,
               video_url,
               file_url,
               voice_url,
+              iv,
               encrypted_keys,
               signal_message_type,
+              signal_sender_content,
               profiles:sender_id (
                 username
               )
@@ -531,12 +534,15 @@ class MessagingService {
             reply_to:reply_to_id (
               id,
               content,
+              sender_id,
               image_url,
               video_url,
               file_url,
               voice_url,
+              iv,
               encrypted_keys,
               signal_message_type,
+              signal_sender_content,
               profiles:sender_id (
                 username
               )
@@ -697,12 +703,15 @@ class MessagingService {
                     .select('''
                       id,
                       content,
+                      sender_id,
                       image_url,
                       video_url,
                       file_url,
                       voice_url,
+                      iv,
                       encrypted_keys,
                       signal_message_type,
+                      signal_sender_content,
                       profiles:sender_id (
                         username
                       )
