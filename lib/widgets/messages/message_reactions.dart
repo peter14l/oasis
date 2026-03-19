@@ -19,22 +19,13 @@ class MessageReactionPicker extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: colorScheme.onSurface.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(32),
       ),
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        spacing: 4,
-        runSpacing: 4,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children:
             MessageReaction.values.map((reaction) {
               final isSelected = currentReaction == reaction.emoji;
@@ -45,19 +36,19 @@ class MessageReactionPicker extends StatelessWidget {
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     color:
                         isSelected
                             ? colorScheme.primaryContainer.withValues(
-                              alpha: 0.5,
+                              alpha: 0.8,
                             )
                             : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
+                    shape: BoxShape.circle,
                   ),
                   child: Text(
                     reaction.emoji,
-                    style: TextStyle(fontSize: isSelected ? 28 : 24),
+                    style: TextStyle(fontSize: isSelected ? 22 : 20),
                   ),
                 ),
               );
