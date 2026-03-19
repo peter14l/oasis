@@ -18,10 +18,8 @@ import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:oasis_v2/services/canvas_service.dart';
 import 'package:oasis_v2/widgets/share_sheet.dart';
+import 'package:oasis_v2/services/canvas_audio_service.dart';
 import 'package:record/record.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:visibility_detector/visibility_detector.dart';
-import 'package:audioplayers/audioplayers.dart';
 
 class _PulseData {
   final String id;
@@ -43,27 +41,17 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
   final List<_PulseData> _pulses = [];
   RealtimeChannel? _pulseChannel;
   final AudioRecorder _audioRecorder = AudioRecorder();
-  final AudioPlayer _ambientPlayer = AudioPlayer();
-  String? _currentAmbientUrl;
   bool _isMapMode = false;
-
-  final Map<int, String> _monthSounds = {
-    12: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-    1: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-    6: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
-    7: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
-    9: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
-  };
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    CanvasAudioService().start();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CanvasProvider>().openCanvas(widget.canvasId);
       _setupPulseChannel();
     });
-    _ambientPlayer.setReleaseMode(ReleaseMode.loop);
   }
 
   void _setupPulseChannel() {
@@ -109,27 +97,12 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     });
   }
 
-  Future<void> _updateAmbientSound(int month) async {
-    final url = _monthSounds[month] ?? _monthSounds[6];
-    if (url == _currentAmbientUrl) return;
-
-    _currentAmbientUrl = url;
-    try {
-      await _ambientPlayer.stop();
-      if (url != null) {
-        await _ambientPlayer.play(UrlSource(url), volume: 0.3);
-      }
-    } catch (e) {
-      debugPrint('Error playing ambient sound: $e');
-    }
-  }
-
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _audioRecorder.dispose();
-    _ambientPlayer.dispose();
+    CanvasAudioService().stop();
     if (_pulseChannel != null) {
       SupabaseService().client.removeChannel(_pulseChannel!);
     }
