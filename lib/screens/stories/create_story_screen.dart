@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:oasis_v2/services/stories_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class CreateStoryScreen extends StatefulWidget {
   const CreateStoryScreen({super.key});
@@ -23,7 +24,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   bool _isUploading = false;
   bool _isCaptionVisible = false;
   
-  // High-end Text Overlay State
+  // Text Overlay State
   int _textBackgroundMode = 0; // 0: None, 1: Solid, 2: Translucent
   TextAlign _textAlign = TextAlign.center;
   Color _textColor = Colors.white;
@@ -115,187 +116,227 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Force a black background for the entire screen area
     return Scaffold(
       backgroundColor: Colors.black,
       resizeToAvoidBottomInset: false,
-      body: Stack(
-        children: [
-          // ── Immersive Media Preview ──
-          if (_selectedFile != null)
-            Positioned.fill(
-              child: FadeIn(
-                duration: const Duration(milliseconds: 400),
-                child: Hero(
-                  tag: 'story_preview',
-                  child: _mediaType == 'video'
-                      ? Container(
-                          color: Colors.grey[900],
-                          child: const Center(
-                            child: Icon(Icons.play_circle_fill,
-                                color: Colors.white54, size: 80),
-                          ),
-                        )
-                      : Image.file(_selectedFile!, fit: BoxFit.cover),
-                ),
-              ),
-            )
-          else
-            _buildEmptyState(),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: Colors.black,
+        child: Stack(
+          children: [
+            // ── Main Content Area ──
+            if (_selectedFile != null)
+              _buildImmersivePreview()
+            else
+              _buildEmptyState(),
 
-          // ── Cinematic Gradients ──
-          if (_selectedFile != null)
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withValues(alpha: 0.6),
-                        Colors.transparent,
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.6),
-                      ],
-                      stops: const [0.0, 0.15, 0.85, 1.0],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-          // ── Top Toolbar ──
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildBlurButton(
+            // ── Dynamic Editing UI (Only when media selected) ──
+            if (_selectedFile != null) ...[
+              // Cinematic Gradients for controls visibility
+              _buildCinematicGradients(),
+              
+              // Side Toolbar
+              if (!_isCaptionVisible) _buildSideToolbar(),
+              
+              // Top Action Buttons
+              _buildTopToolbar(),
+              
+              // Text Editor Overlay
+              if (_isCaptionVisible) _buildTextEditor(),
+              
+              // Bottom Sharing bar
+              if (!_isCaptionVisible) _buildBottomActionBar(),
+            ],
+            
+            // ── Back Button (Always visible when empty) ──
+            if (_selectedFile == null)
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: _buildBlurButton(
                     icon: Icons.close_rounded,
                     onTap: () => context.pop(),
                   ),
-                  if (_selectedFile != null)
-                    Row(
-                      children: [
-                        _buildBlurButton(
-                          icon: Icons.music_note_rounded,
-                          onTap: () {}, // Add music
-                        ),
-                        const SizedBox(width: 12),
-                        _buildBlurButton(
-                          icon: Icons.face_retouching_natural_rounded,
-                          onTap: () {}, // Effects
-                        ),
-                      ],
-                    ),
-                ],
+                ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImmersivePreview() {
+    return Positioned.fill(
+      child: FadeIn(
+        duration: const Duration(milliseconds: 400),
+        child: Hero(
+          tag: 'story_preview',
+          child: _mediaType == 'video'
+              ? Container(
+                  color: Colors.black,
+                  child: const Center(
+                    child: Icon(Icons.play_circle_fill, color: Colors.white54, size: 80),
+                  ),
+                )
+              : Image.file(_selectedFile!, fit: BoxFit.cover),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCinematicGradients() {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withValues(alpha: 0.7),
+                Colors.transparent,
+                Colors.transparent,
+                Colors.black.withValues(alpha: 0.7),
+              ],
+              stops: const [0.0, 0.2, 0.8, 1.0],
             ),
           ),
+        ),
+      ),
+    );
+  }
 
-          // ── Side Editing Tools ──
-          if (_selectedFile != null && !_isCaptionVisible)
-            Positioned(
-              right: 16,
-              top: MediaQuery.of(context).size.height * 0.25,
-              child: FadeInRight(
-                duration: const Duration(milliseconds: 300),
-                child: Column(
-                  children: [
-                    _buildSideTool(
-                      icon: Icons.text_fields_rounded,
-                      label: 'Aa',
-                      onTap: () => setState(() => _isCaptionVisible = true),
-                    ),
-                    const SizedBox(height: 20),
-                    _buildSideTool(
-                      icon: Icons.sticky_note_2_rounded,
-                      label: 'Stickers',
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 20),
-                    _buildSideTool(
-                      icon: Icons.gesture_rounded,
-                      label: 'Draw',
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 20),
-                    _buildSideTool(
-                      icon: Icons.auto_awesome_rounded,
-                      label: 'Filters',
-                      onTap: () {},
-                    ),
-                  ],
-                ),
-              ),
+  Widget _buildTopToolbar() {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildBlurButton(
+              icon: Icons.close_rounded,
+              onTap: () => setState(() => _selectedFile = null),
             ),
+            Row(
+              children: [
+                _buildBlurButton(
+                  icon: Icons.music_note_rounded,
+                  onTap: () {}, // Add music
+                ),
+                const SizedBox(width: 12),
+                _buildBlurButton(
+                  icon: Icons.face_retouching_natural_rounded,
+                  onTap: () {}, // Effects
+                ),
+                const SizedBox(width: 12),
+                _buildBlurButton(
+                  icon: Icons.download_rounded,
+                  onTap: () {}, // Save locally
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-          // ── Dynamic Text Overlay ──
-          if (_isCaptionVisible && _selectedFile != null)
-            _buildTextEditor(),
+  Widget _buildSideToolbar() {
+    return Positioned(
+      right: 16,
+      top: MediaQuery.of(context).size.height * 0.25,
+      child: FadeInRight(
+        duration: const Duration(milliseconds: 300),
+        child: Column(
+          children: [
+            _buildSideTool(
+              icon: Icons.text_fields_rounded,
+              label: 'Aa',
+              onTap: () => setState(() => _isCaptionVisible = true),
+            ),
+            const SizedBox(height: 20),
+            _buildSideTool(
+              icon: Icons.sticky_note_2_rounded,
+              label: 'Stickers',
+              onTap: () {},
+            ),
+            const SizedBox(height: 20),
+            _buildSideTool(
+              icon: Icons.gesture_rounded,
+              label: 'Draw',
+              onTap: () {},
+            ),
+            const SizedBox(height: 20),
+            _buildSideTool(
+              icon: Icons.auto_awesome_rounded,
+              label: 'Filters',
+              onTap: () {},
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-          // ── Modern Bottom Action Bar ──
-          if (_selectedFile != null && !_isCaptionVisible)
-            Positioned(
-              bottom: MediaQuery.of(context).padding.bottom + 20,
-              left: 20,
-              right: 20,
-              child: FadeInUp(
-                duration: const Duration(milliseconds: 400),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: _isUploading ? null : _createStory,
-                        child: Container(
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(28),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.2),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: _isUploading
-                                ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                      color: Colors.black,
-                                    ),
-                                  )
-                                : const Text(
-                                    'Your Story',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 16,
-                                      letterSpacing: -0.5,
-                                    ),
-                                  ),
-                          ),
-                        ),
+  Widget _buildBottomActionBar() {
+    return Positioned(
+      bottom: MediaQuery.of(context).padding.bottom + 20,
+      left: 20,
+      right: 20,
+      child: FadeInUp(
+        duration: const Duration(milliseconds: 400),
+        child: Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: _isUploading ? null : _createStory,
+                child: Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    _buildCircleActionButton(
-                      icon: Icons.chevron_right_rounded,
-                      onTap: () {
-                        // Show "Send to" list
-                      },
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: Center(
+                    child: _isUploading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.black,
+                            ),
+                          )
+                        : const Text(
+                            'Your Story',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                  ),
                 ),
               ),
             ),
-        ],
+            const SizedBox(width: 12),
+            _buildCircleActionButton(
+              icon: Icons.chevron_right_rounded,
+              onTap: () {
+                // Future: Show specific person list
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -305,7 +346,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       child: Container(
         color: Colors.black54,
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Column(
             children: [
               SafeArea(
@@ -420,61 +461,65 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   Widget _buildEmptyState() {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF1A1A1A), Color(0xFF000000)],
+      height: double.infinity,
+      color: Colors.black,
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF1A1A1A), Color(0xFF000000)],
+          ),
         ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ZoomIn(
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.05),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ZoomIn(
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.05),
+                ),
+                child: const Icon(Icons.auto_awesome_mosaic_rounded, size: 60, color: Colors.white70),
               ),
-              child: const Icon(Icons.auto_awesome_mosaic_rounded, size: 60, color: Colors.white70),
             ),
-          ),
-          const SizedBox(height: 32),
-          const Text(
-            'Create a Story',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -1,
+            const SizedBox(height: 32),
+            const Text(
+              'Create a Story',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -1,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Share a moment with your friends',
-            style: TextStyle(color: Colors.white38, fontSize: 16),
-          ),
-          const SizedBox(height: 60),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildModernPickerItem(
-                icon: Icons.camera_alt_rounded,
-                label: 'Camera',
-                color: const Color(0xFF3D8BFF),
-                onTap: () => _pickMedia(ImageSource.camera),
-              ),
-              const SizedBox(width: 24),
-              _buildModernPickerItem(
-                icon: Icons.photo_library_rounded,
-                label: 'Gallery',
-                color: const Color(0xFFFF4B8B),
-                onTap: () => _pickMedia(ImageSource.gallery),
-              ),
-            ],
-          ),
-        ],
+            const SizedBox(height: 8),
+            const Text(
+              'Share a moment with your friends',
+              style: TextStyle(color: Colors.white38, fontSize: 16),
+            ),
+            const SizedBox(height: 60),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildModernPickerItem(
+                  icon: Icons.camera_alt_rounded,
+                  label: 'Camera',
+                  color: const Color(0xFF3D8BFF),
+                  onTap: () => _pickMedia(ImageSource.camera),
+                ),
+                const SizedBox(width: 24),
+                _buildModernPickerItem(
+                  icon: Icons.photo_library_rounded,
+                  label: 'Gallery',
+                  color: const Color(0xFFFF4B8B),
+                  onTap: () => _pickMedia(ImageSource.gallery),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

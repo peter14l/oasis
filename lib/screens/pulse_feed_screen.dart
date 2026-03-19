@@ -378,11 +378,11 @@ class _PulseFeedScreenState extends State<PulseFeedScreen>
                                   showModalBottomSheet(
                                     context: context,
                                     isScrollControlled: true,
+                                    useRootNavigator: true,
                                     backgroundColor: Colors.transparent,
                                     builder: (context) => CommentsModal(postId: post.id),
                                   );
-                                },
-                                onShare: () {
+                                },                                onShare: () {
                                   final deepLink = 'https://morrow.app/post/${post.id}';
                                   Share.share('Check out this post on Morrow! $deepLink');
                                 },

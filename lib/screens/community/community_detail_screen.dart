@@ -309,6 +309,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
+                          useRootNavigator: true,
                           backgroundColor: Colors.transparent,
                           builder: (context) => CommentsModal(postId: post.id),
                         );

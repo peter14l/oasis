@@ -389,95 +389,97 @@ class _CommentsModalState extends State<CommentsModal> {
                   ),
 
                   // Reply indicator and Input Field
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (_replyingTo != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                            color: colorScheme.primary.withValues(alpha: 0.05),
-                            child: Row(
-                              children: [
-                                Icon(FluentIcons.arrow_reply_16_regular, size: 14, color: colorScheme.primary),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Replying to ${_replyingTo!.username}',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.primary,
-                                      fontWeight: FontWeight.w600,
+                  SafeArea(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_replyingTo != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                              color: colorScheme.primary.withValues(alpha: 0.05),
+                              child: Row(
+                                children: [
+                                  Icon(FluentIcons.arrow_reply_16_regular, size: 14, color: colorScheme.primary),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Replying to ${_replyingTo!.username}',
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: colorScheme.primary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
+                                  GestureDetector(
+                                    onTap: () => setState(() => _replyingTo = null),
+                                    child: Icon(FluentIcons.dismiss_16_regular, size: 16, color: colorScheme.onSurfaceVariant),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surface,
+                              border: Border(
+                                top: BorderSide(
+                                  color: colorScheme.onSurface.withValues(alpha: 0.05),
                                 ),
-                                GestureDetector(
-                                  onTap: () => setState(() => _replyingTo = null),
-                                  child: Icon(FluentIcons.dismiss_16_regular, size: 16, color: colorScheme.onSurfaceVariant),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _commentController,
+                                    decoration: InputDecoration(
+                                      hintText: 'Add a comment...',
+                                      hintStyle: TextStyle(
+                                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                                        fontSize: 15,
+                                      ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(24),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      filled: true,
+                                      fillColor: colorScheme.onSurface.withValues(alpha: 0.05),
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                    ),
+                                    maxLines: 4,
+                                    minLines: 1,
+                                    textCapitalization: TextCapitalization.sentences,
+                                    style: const TextStyle(fontSize: 15),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                IconButton.filled(
+                                  onPressed: _isSubmitting ? null : _submitComment,
+                                  icon: _isSubmitting
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Icon(FluentIcons.send_24_filled, size: 20),
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: colorScheme.primary,
+                                    foregroundColor: colorScheme.onPrimary,
+                                    minimumSize: const Size(44, 44),
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                        Container(
-                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface,
-                            border: Border(
-                              top: BorderSide(
-                                color: colorScheme.onSurface.withValues(alpha: 0.05),
-                              ),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: TextField(
-                                  controller: _commentController,
-                                  decoration: InputDecoration(
-                                    hintText: 'Add a comment...',
-                                    hintStyle: TextStyle(
-                                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                                      fontSize: 15,
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(24),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                    filled: true,
-                                    fillColor: colorScheme.onSurface.withValues(alpha: 0.05),
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                  ),
-                                  maxLines: 4,
-                                  minLines: 1,
-                                  textCapitalization: TextCapitalization.sentences,
-                                  style: const TextStyle(fontSize: 15),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              IconButton.filled(
-                                onPressed: _isSubmitting ? null : _submitComment,
-                                icon: _isSubmitting
-                                    ? const SizedBox(
-                                        width: 18,
-                                        height: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : const Icon(FluentIcons.send_24_filled, size: 20),
-                                style: IconButton.styleFrom(
-                                  backgroundColor: colorScheme.primary,
-                                  foregroundColor: colorScheme.onPrimary,
-                                  minimumSize: const Size(44, 44),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ],

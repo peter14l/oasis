@@ -108,11 +108,7 @@ class _StoriesBarState extends State<StoriesBar> {
                   bottom: 0,
                   child: GestureDetector(
                     onTap: () async {
-                      final result = await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const CreateStoryScreen(),
-                        ),
-                      );
+                      final result = await context.pushNamed('create_story');
                       if (result == true && widget.onRefresh != null) {
                         widget.onRefresh!();
                       }
@@ -160,9 +156,7 @@ class _StoriesBarState extends State<StoriesBar> {
           );
         } else {
           // Create new story
-          final result = await Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const CreateStoryScreen()),
-          );
+          final result = await context.pushNamed('create_story');
 
           if (result == true && widget.onRefresh != null) {
             widget.onRefresh!();

@@ -189,6 +189,7 @@ class _FeedScreenState extends State<FeedScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       builder: (context) => CommentsModal(postId: postId),
     );

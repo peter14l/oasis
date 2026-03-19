@@ -50,8 +50,12 @@ import '../screens/legal/privacy_policy_screen.dart';
 import '../screens/legal/terms_of_service_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/capsules/create_capsule_screen.dart';
+import '../screens/stories/create_story_screen.dart';
 import 'package:oasis_v2/services/screen_time_service.dart';
+import 'package:oasis_v2/services/wellness_service.dart';
 import 'package:oasis_v2/widgets/wellbeing_break_overlay.dart';
+
+import 'package:oasis_v2/screens/settings/wellness_stats_screen.dart';
 
 class MainLayout extends StatefulWidget {
   final Widget child;
@@ -63,17 +67,37 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
-  /// Routes that are locked when the collaboration kill-switch is active.
+  /// Routes that are locked when the collaboration kill-switch or focus mode is active.
   static const _restrictedRoutes = {'/feed', '/search'};
 
   int _getCurrentIndex() {
     final location = GoRouterState.of(context).uri.path;
-    if (location.startsWith('/feed')) return 0;
-    if (location.startsWith('/search')) return 1;
-    if (location.startsWith('/spaces')) return 2;
-    if (location.startsWith('/messages')) return 3;
-    if (location.startsWith('/notifications')) return 4;
-    if (location.startsWith('/profile')) return 5;
+    final screenTimeService = context.read<ScreenTimeService>();
+    
+    if (location.startsWith('/feed')) {
+      screenTimeService.setCurrentCategory('Feed');
+      return 0;
+    }
+    if (location.startsWith('/search')) {
+      screenTimeService.setCurrentCategory('Feed'); // Search is discovery
+      return 1;
+    }
+    if (location.startsWith('/spaces') || location.startsWith('/circles') || location.startsWith('/communities')) {
+      screenTimeService.setCurrentCategory('Communities');
+      return 2;
+    }
+    if (location.startsWith('/messages')) {
+      screenTimeService.setCurrentCategory('Messages');
+      return 3;
+    }
+    if (location.startsWith('/notifications')) {
+      screenTimeService.setCurrentCategory(null);
+      return 4;
+    }
+    if (location.startsWith('/profile')) {
+      screenTimeService.setCurrentCategory('Profile');
+      return 5;
+    }
     return 0;
   }
 
@@ -83,11 +107,11 @@ class _MainLayoutState extends State<MainLayout> {
     final currentIndex = _getCurrentIndex();
     final isDesktop = MediaQuery.of(context).size.width >= 1200;
 
-    return Consumer<ScreenTimeService>(
-      builder: (context, svc, _) {
-        final killSwitchActive = svc.isKillSwitchActive;
+    return Consumer2<ScreenTimeService, WellnessService>(
+      builder: (context, svc, wellness, _) {
+        final killSwitchActive = svc.isKillSwitchActive || wellness.focusModeEnabled;
 
-        // Auto-redirect away from restricted routes when kill-switch fires.
+        // Auto-redirect away from restricted routes when kill-switch or focus mode fires.
         if (killSwitchActive) {
           final location = GoRouterState.of(context).uri.path;
           final isRestricted = _restrictedRoutes.any(
@@ -702,6 +726,20 @@ class AppRouter {
         },
       ),
 
+      // Create Story Screen
+      GoRoute(
+        path: '/stories/create',
+        name: 'create_story',
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) {
+          return MaterialPage(
+            key: state.pageKey,
+            fullscreenDialog: true,
+            child: const CreateStoryScreen(),
+          );
+        },
+      ),
+
       // Post Details Screen (Feed View)
       GoRoute(
         path: '/post/:postId',
@@ -844,6 +882,13 @@ class AppRouter {
         },
       ),
 
+      GoRoute(
+        path: '/wellness-stats',
+        name: 'wellness_stats',
+        pageBuilder: (context, state) => const MaterialPage(
+          child: WellnessStatsScreen(),
+        ),
+      ),
       // User Profile Screen (for viewing others)
       GoRoute(
         path: '/profile/:userId',
