@@ -194,6 +194,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       ),
                     ),
                   ),
+                  colorScheme.surface,
                 ),
               ),
               SliverFillRemaining(
