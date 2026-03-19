@@ -142,13 +142,14 @@ class _ProfileScreenState extends State<ProfileScreen>
         }
 
         return Scaffold(
+          extendBodyBehindAppBar: true,
           body: CustomScrollView(
             controller: _scrollController,
             slivers: [
               _buildModernAppBar(profile, theme, colorScheme),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                  padding: const EdgeInsets.fromLTRB(20, 120, 20, 24),
                   child: Column(
                     children: [
                       _buildProfileHeader(profile, theme, colorScheme),
@@ -165,23 +166,31 @@ class _ProfileScreenState extends State<ProfileScreen>
               SliverPersistentHeader(
                 pinned: true,
                 delegate: _SliverAppBarDelegate(
-                  TabBar(
-                    controller: _tabController,
-                    indicatorSize: TabBarIndicatorSize.label,
-                    dividerColor: Colors.transparent,
-                    labelColor: colorScheme.primary,
-                    unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.4),
-                    indicator: UnderlineTabIndicator(
-                      borderSide: BorderSide(width: 3, color: colorScheme.primary),
-                      borderRadius: BorderRadius.circular(3),
+                  ClipRRect(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        color: colorScheme.surface.withValues(alpha: 0.7),
+                        child: TabBar(
+                          controller: _tabController,
+                          indicatorSize: TabBarIndicatorSize.label,
+                          dividerColor: Colors.transparent,
+                          labelColor: colorScheme.primary,
+                          unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.4),
+                          indicator: UnderlineTabIndicator(
+                            borderSide: BorderSide(width: 3, color: colorScheme.primary),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          tabs: [
+                            const Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
+                            if (isOwnProfile)
+                              const Tab(icon: Icon(Icons.bookmark_rounded, size: 22)),
+                          ],
+                        ),
+                      ),
                     ),
-                    tabs: [
-                      const Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
-                      if (isOwnProfile)
-                        const Tab(icon: Icon(Icons.bookmark_rounded, size: 22)),
-                    ],
                   ),
-                  theme.colorScheme.surface,
+                  48.0,
                 ),
               ),
               SliverFillRemaining(
@@ -282,7 +291,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
-        color: colorScheme.onSurface.withValues(alpha: 0.05),
+        color: colorScheme.onSurface.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05)),
       ),
@@ -340,8 +349,9 @@ class _ProfileScreenState extends State<ProfileScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: colorScheme.onSurface.withValues(alpha: 0.03),
+        color: colorScheme.onSurface.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -476,17 +486,31 @@ class _ProfileScreenState extends State<ProfileScreen>
   ) {
     return SliverAppBar(
       pinned: true,
-      backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.8),
+      floating: true,
+      backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: true,
-      title: Text(
-        profile.username,
-        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+      title: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: theme.colorScheme.surface.withValues(alpha: 0.4),
+            child: Text(
+              profile.username,
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+            ),
+          ),
+        ),
       ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.more_vert_rounded),
-          onPressed: () => context.push('/settings'),
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: IconButton(
+            icon: const Icon(Icons.more_vert_rounded),
+            onPressed: () => context.push('/settings'),
+          ),
         ),
       ],
     );
