@@ -618,15 +618,15 @@ class _ProfileScreenState extends State<ProfileScreen>
 }
 
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
-  _SliverAppBarDelegate(this._tabBar, this.backgroundColor);
+  _SliverAppBarDelegate(this._widget, this.backgroundColor);
 
-  final TabBar _tabBar;
+  final PreferredSizeWidget _widget;
   final Color backgroundColor;
 
   @override
-  double get minExtent => _tabBar.preferredSize.height;
+  double get minExtent => _widget.preferredSize.height;
   @override
-  double get maxExtent => _tabBar.preferredSize.height;
+  double get maxExtent => _widget.preferredSize.height;
 
   @override
   Widget build(
@@ -636,7 +636,7 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   ) {
     return Container(
       color: backgroundColor,
-      child: _tabBar,
+      child: _widget,
     );
   }
 
