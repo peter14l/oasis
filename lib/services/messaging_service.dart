@@ -807,7 +807,7 @@ class MessagingService {
   /// Subscribe to conversation updates (unread count, participants changes)
   RealtimeChannel subscribeToConversations({
     required String userId,
-    required Function() onUpdate,
+    required Function(String conversationId) onUpdate,
   }) {
     final channel = _supabase.channel('user_conversations:$userId');
 
@@ -822,7 +822,10 @@ class MessagingService {
             value: userId,
           ),
           callback: (payload) {
-            onUpdate();
+            if (payload.newRecord.isNotEmpty) {
+              final conversationId = payload.newRecord['conversation_id'] as String;
+              onUpdate(conversationId);
+            }
           },
         )
         .subscribe();
@@ -1115,12 +1118,33 @@ class MessagingService {
               .from(SupabaseConfig.conversationsTable)
               .select('''
             *,
-            conversation_participants!inner(user_id)
+            conversation_participants!inner(unread_count),
+            last_message:last_message_id (
+              content,
+              sender_id,
+              image_url,
+              video_url,
+              file_url,
+              voice_url,
+              voice_duration,
+              created_at,
+              iv,
+              encrypted_keys,
+              signal_message_type,
+              signal_sender_content,
+              signal_sender_message_type
+            )
           ''')
               .eq('id', conversationId)
               .single();
 
       final conversationMap = Map<String, dynamic>.from(response);
+      
+      // Get unread count from the inner join result
+      if (response['conversation_participants'] != null && 
+          (response['conversation_participants'] as List).isNotEmpty) {
+        conversationMap['unread_count'] = response['conversation_participants'][0]['unread_count'];
+      }
 
       // For direct conversations, get the other participant
       if (conversationMap['type'] == 'direct') {
@@ -1143,6 +1167,72 @@ class MessagingService {
           conversationMap['other_user_name'] = profile['username'] ?? 'Unknown';
           conversationMap['other_user_avatar'] = profile['avatar_url'] ?? '';
         }
+      }
+
+      // Handle decryption for last message preview
+      final lastMessage = conversationMap['last_message'];
+      if (lastMessage != null) {
+        String content = lastMessage['content'] ?? '';
+        final isSender = lastMessage['sender_id'] == userId;
+
+        if (isSender && lastMessage['signal_sender_content'] != null && lastMessage['encrypted_keys'] != null && lastMessage['iv'] != null) {
+          try {
+            final decrypted = await EncryptionService().decryptMessage(
+              lastMessage['signal_sender_content'],
+              lastMessage['encrypted_keys'],
+              lastMessage['iv'],
+            );
+            content = decrypted ?? '🔒 Message encrypted';
+          } catch (e) {
+            content = '🔒 Message encrypted';
+          }
+        } else if (!isSender && lastMessage['signal_message_type'] != null) {
+          try {
+            await SignalService().init();
+            content = await SignalService().decryptMessage(
+              lastMessage['sender_id'],
+              content,
+              lastMessage['signal_message_type'],
+            );
+            
+            if (content.contains('🔒') && 
+                lastMessage['encrypted_keys'] != null && 
+                lastMessage['iv'] != null &&
+                lastMessage['signal_sender_content'] != null) {
+              final rsaDecrypted = await EncryptionService().decryptMessage(
+                lastMessage['signal_sender_content'],
+                lastMessage['encrypted_keys'],
+                lastMessage['iv'],
+              );
+              if (rsaDecrypted != null) content = rsaDecrypted;
+            }
+          } catch (e) {
+            content = '🔒 Message encrypted';
+          }
+        } else if (lastMessage['encrypted_keys'] != null && lastMessage['iv'] != null) {
+          try {
+            final decrypted = await EncryptionService().decryptMessage(
+              content,
+              lastMessage['encrypted_keys'],
+              lastMessage['iv'],
+            );
+            content = decrypted ?? '🔒 Message encrypted';
+          } catch (e) {
+            content = '🔒 Message encrypted';
+          }
+        }
+
+        conversationMap['last_message'] = content;
+        conversationMap['last_message_time'] = lastMessage['created_at'];
+        conversationMap['last_message_sender_id'] = lastMessage['sender_id'];
+        
+        // Type detection
+        String messageType = 'text';
+        if (lastMessage['voice_url'] != null) messageType = 'voice';
+        else if (lastMessage['image_url'] != null) messageType = 'image';
+        else if (lastMessage['video_url'] != null) messageType = 'video';
+        else if (lastMessage['file_url'] != null) messageType = 'document';
+        conversationMap['last_message_type'] = messageType;
       }
 
       return Conversation.fromJson(conversationMap);

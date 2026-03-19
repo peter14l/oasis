@@ -110,9 +110,10 @@ class ConversationProvider with ChangeNotifier {
     // Subscribe to unread count changes and participant changes
     _conversationsSubscription = _messagingService.subscribeToConversations(
       userId: _currentUserId!,
-      onUpdate: () {
-        // Refresh the whole list for now to ensure consistency
-        loadConversations();
+      onUpdate: (conversationId) {
+        // SURGICAL UPDATE: Instead of reloading the whole list, just refresh this one.
+        // This prevents the whole screen from flickering/rebuilding.
+        refreshConversation(conversationId);
       },
     );
   }
