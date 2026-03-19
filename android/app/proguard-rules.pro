@@ -6,6 +6,20 @@
 -keep class io.flutter.**  { *; }
 -keep class io.flutter.plugins.**  { *; }
 
+# Supabase / PostgREST / GoTrue / Serialization
+-keep class io.supabase.** { *; }
+-keep class com.example.morrow_v2.models.** { *; }
+-keepclassmembers class com.example.morrow_v2.models.** { *; }
+-keepattributes Signature,Annotation,EnclosingMethod,InnerClasses
+-dontwarn moxy.**
+-dontwarn com.google.errorprone.annotations.**
+
+# Firebase
+-keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.firebase.**
+-dontwarn com.google.android.gms.**
+
 # Sentry / Compose
 -dontwarn androidx.compose.**
 -dontwarn androidx.window.**
@@ -57,3 +71,6 @@
 -dontwarn com.google.android.play.core.splitcompat.**
 -dontwarn com.google.android.play.core.splitinstall.**
 -dontwarn com.google.android.play.core.tasks.**
+
+# JNI / Native
+-keep class com.tekartik.sqflite.** { *; }

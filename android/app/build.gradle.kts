@@ -35,6 +35,10 @@ android {
 
     buildTypes {
         getByName("release") {
+            // ❌ Disabling for debugging the launch crash
+            isMinifyEnabled = false
+            isShrinkResources = false
+            
             signingConfig = signingConfigs.getByName("debug") // Replace with release config for production
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
