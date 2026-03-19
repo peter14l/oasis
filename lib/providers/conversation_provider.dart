@@ -160,17 +160,19 @@ class ConversationProvider with ChangeNotifier {
       final index = _conversations.indexWhere((c) => c.id == conversationId);
       if (index != -1) {
         _conversations[index] = updatedConversation;
-        // Move to top of list if it's the newest message
-        _conversations.sort((a, b) {
-          final timeA = a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
-          final timeB = b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
-          return timeB.compareTo(timeA);
-        });
-        notifyListeners();
       } else {
-        // If it's a new conversation, just reload everything
-        loadConversations();
+        _conversations.insert(0, updatedConversation);
       }
+
+      // Always re-sort to move the most recent conversation to the top
+      _conversations.sort((a, b) {
+        final timeA = a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final timeB = b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return timeB.compareTo(timeA);
+      });
+      
+      notifyListeners();
+      await _saveConversationsToCache();
     } catch (e) {
       debugPrint('Error refreshing conversation: $e');
     }

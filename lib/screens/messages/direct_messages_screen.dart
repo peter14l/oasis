@@ -21,10 +21,21 @@ class DirectMessagesScreen extends StatefulWidget {
 
 class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
   Conversation? _selectedConversation;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
+    // Refresh timestamps every minute
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
   }
 
   @override

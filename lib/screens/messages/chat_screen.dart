@@ -1059,9 +1059,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
       // Refresh DM list preview in provider
       if (mounted) {
-        context.read<ConversationProvider>().refreshConversation(
-          widget.conversationId,
-        );
+        final conversationProvider = context.read<ConversationProvider>();
+        await conversationProvider.refreshConversation(widget.conversationId);
       }
       _saveMessagesToCache();
     } catch (e) {
