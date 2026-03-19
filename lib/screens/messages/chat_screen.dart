@@ -44,6 +44,7 @@ import 'package:oasis_v2/services/call_service.dart';
 import 'package:oasis_v2/screens/messages/incoming_call_overlay.dart';
 import 'package:oasis_v2/models/call.dart';
 import 'package:oasis_v2/services/audio_compression_service.dart';
+import 'package:oasis_v2/widgets/messages/forward_message_modal.dart';
 import 'package:go_router/go_router.dart';
 
 class ChatScreen extends StatefulWidget {
