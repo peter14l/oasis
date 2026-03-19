@@ -19,9 +19,50 @@ class ScreenTimeService extends ChangeNotifier {
 
   int _scrollLimitMinutes = 30;
 
+  // Real category tracking
+  String? _currentCategory;
+  Map<String, int> _categoryMinutes = {};
+  static const String _categoryStorageKeyPrefix = 'screen_time_categories_';
+
   ScreenTimeService(this._prefs) {
     _loadSettings();
+    _loadCategoryData();
     _startAutoSave();
+  }
+
+  /// Update the current active screen category
+  void setCurrentCategory(String? category) {
+    if (_currentCategory == category) return;
+    _currentCategory = category;
+    // No notifyListeners here as this is often called during build
+  }
+
+  void _loadCategoryData() {
+    final dateKey = _getDateKey(DateTime.now());
+    final catKey = '${_categoryStorageKeyPrefix}$dateKey';
+    final data = _prefs.getString(catKey);
+    if (data != null) {
+      try {
+        final Map<String, dynamic> decoded = jsonDecode(data);
+        _categoryMinutes = decoded.map((k, v) => MapEntry(k, v as int));
+      } catch (e) {
+        _categoryMinutes = {};
+      }
+    }
+  }
+
+  /// Record time spent on a specific screen category
+  void recordScreenTime(String category, int minutes) {
+    if (minutes <= 0) return;
+    _categoryMinutes[category] = (_categoryMinutes[category] ?? 0) + minutes;
+    _saveCategoryData();
+    notifyListeners();
+  }
+
+  Future<void> _saveCategoryData() async {
+    final dateKey = _getDateKey(DateTime.now());
+    final catKey = '${_categoryStorageKeyPrefix}$dateKey';
+    await _prefs.setString(catKey, jsonEncode(_categoryMinutes));
   }
 
   static Future<ScreenTimeService> init() async {
@@ -170,6 +211,13 @@ class ScreenTimeService extends ChangeNotifier {
     hourlyUsage[hour] += duration.inMinutes;
 
     await _prefs.setString(dateKey, jsonEncode(hourlyUsage));
+
+    // Also record for current category
+    if (_currentCategory != null && duration.inMinutes > 0) {
+      _categoryMinutes[_currentCategory!] = (_categoryMinutes[_currentCategory!] ?? 0) + duration.inMinutes;
+      await _saveCategoryData();
+    }
+
     notifyListeners();
   }
 
@@ -259,50 +307,42 @@ class ScreenTimeService extends ChangeNotifier {
     }
   }
 
-  /// Get usage breakdown by category (Mock data based on total time)
-  /// In a real app, we would track time per screen/feature
+  /// Get usage breakdown by category (Real tracked data)
   List<Map<String, dynamic>> getCategoryUsage(int totalMinutes) {
-    if (totalMinutes == 0) return [];
+    if (_categoryMinutes.isEmpty) {
+      // If no data yet, show 0 for all standard categories instead of mock percentages
+      return [
+        {'name': 'Feed', 'minutes': 0, 'icon': Icons.feed, 'color': 0xFF2196F3},
+        {'name': 'Messages', 'minutes': 0, 'icon': Icons.chat, 'color': 0xFF4CAF50},
+        {'name': 'Communities', 'minutes': 0, 'icon': Icons.people, 'color': 0xFFFF9800},
+        {'name': 'Profile', 'minutes': 0, 'icon': Icons.person, 'color': 0xFF9C27B0},
+      ];
+    }
 
-    // Distribute total minutes into categories roughly
-    final feed = (totalMinutes * 0.45).round();
-    final messages = (totalMinutes * 0.25).round();
-    final communities = (totalMinutes * 0.15).round();
-    final profile = (totalMinutes * 0.10).round();
-    final other = totalMinutes - feed - messages - communities - profile;
+    final List<Map<String, dynamic>> categories = [];
+    
+    // Define standard categories and their styling
+    final categoryStyles = {
+      'Feed': {'icon': Icons.feed, 'color': 0xFF2196F3},
+      'Messages': {'icon': Icons.chat, 'color': 0xFF4CAF50},
+      'Communities': {'icon': Icons.people, 'color': 0xFFFF9800},
+      'Profile': {'icon': Icons.person, 'color': 0xFF9C27B0},
+    };
 
-    return [
-      {
-        'name': 'Feed',
-        'minutes': feed,
-        'icon': Icons.feed,
-        'color': 0xFF2196F3,
-      },
-      {
-        'name': 'Messages',
-        'minutes': messages,
-        'icon': Icons.chat,
-        'color': 0xFF4CAF50,
-      },
-      {
-        'name': 'Communities',
-        'minutes': communities,
-        'icon': Icons.people,
-        'color': 0xFFFF9800,
-      },
-      {
-        'name': 'Profile',
-        'minutes': profile,
-        'icon': Icons.person,
-        'color': 0xFF9C27B0,
-      },
-      {
-        'name': 'Other',
-        'minutes': other,
-        'icon': Icons.more_horiz,
-        'color': 0xFF9E9E9E,
-      },
-    ];
+    _categoryMinutes.forEach((name, minutes) {
+      final style = categoryStyles[name] ?? {'icon': Icons.more_horiz, 'color': 0xFF9E9E9E};
+      categories.add({
+        'name': name,
+        'minutes': minutes,
+        'icon': style['icon'],
+        'color': style['color'],
+      });
+    });
+
+    // Sort by most used
+    categories.sort((a, b) => (b['minutes'] as int).compareTo(a['minutes'] as int));
+    
+    return categories;
   }
 
   // Quiet Mode

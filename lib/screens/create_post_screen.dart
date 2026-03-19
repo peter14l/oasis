@@ -195,6 +195,44 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     }
   }
 
+  Future<void> _pickLocation() async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        String tempLocation = '';
+        return AlertDialog(
+          title: const Text('Add Location'),
+          content: TextField(
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: 'Where are you?',
+              prefixIcon: Icon(Icons.location_on),
+            ),
+            onChanged: (value) => tempLocation = value,
+            onSubmitted: (value) => Navigator.pop(context, value),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, tempLocation),
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        _locationController.text = result;
+      });
+      HapticUtils.success();
+    }
+  }
+
   void _togglePollCreator() {
     HapticUtils.selectionClick();
     setState(() {
@@ -493,12 +531,46 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   const SizedBox(width: 8),
                   _buildActionButton(
                     icon: Icons.location_on_outlined,
-                    label: 'Location',
-                    onPressed: () {},
+                    label: _locationController.text.isNotEmpty ? 'Change Location' : 'Location',
+                    onPressed: _pickLocation,
                   ),
                 ],
               ),
             ),
+
+            // Location display
+            if (_locationController.text.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: colorScheme.secondary.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.location_on, size: 18, color: colorScheme.secondary),
+                    const SizedBox(width: 8),
+                    Text(
+                      _locationController.text,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.secondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    InkWell(
+                      onTap: () => setState(() => _locationController.clear()),
+                      child: Icon(Icons.close, size: 16, color: colorScheme.secondary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
             // Poll creator
             if (_showPollCreator) ...[
@@ -646,33 +718,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
             const SizedBox(height: 24),
 
-            // Privacy selector
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.public,
-                    size: 18,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Public',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const Icon(Icons.arrow_drop_down),
-                ],
-              ),
-            ),
+            // Privacy selector removed (depends on account privacy)
           ],
         ),
       ),

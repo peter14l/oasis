@@ -19,6 +19,7 @@ import 'package:oasis_v2/providers/canvas_provider.dart';
 import 'package:oasis_v2/providers/circle_provider.dart';
 import 'package:oasis_v2/services/vault_service.dart';
 import 'package:oasis_v2/services/screen_time_service.dart';
+import 'package:oasis_v2/services/wellness_service.dart';
 import 'package:oasis_v2/services/energy_meter_service.dart';
 import 'package:oasis_v2/services/subscription_service.dart';
 import 'package:oasis_v2/services/encryption_service.dart';
@@ -119,6 +120,9 @@ void main() async {
         // Initialize ScreenTimeService
         final screenTimeService = await ScreenTimeService.init();
 
+        // Initialize WellnessService
+        final wellnessService = await WellnessService.init();
+
         // Initialize EnergyMeterService
         final energyMeterService = await EnergyMeterService.init();
 
@@ -142,6 +146,9 @@ void main() async {
                   ),
                   ChangeNotifierProvider<ScreenTimeService>.value(
                     value: screenTimeService,
+                  ),
+                  ChangeNotifierProvider<WellnessService>.value(
+                    value: wellnessService,
                   ),
                   ChangeNotifierProvider<EnergyMeterService>.value(
                     value: energyMeterService,

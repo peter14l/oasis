@@ -1,8 +1,11 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:oasis_v2/services/screen_time_service.dart';
+import 'package:oasis_v2/services/wellness_service.dart';
 import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/utils/haptic_utils.dart';
 import 'package:provider/provider.dart';
+import 'dart:ui';
 
 class ScreenTimeScreen extends StatefulWidget {
   const ScreenTimeScreen({super.key});
@@ -14,13 +17,13 @@ class ScreenTimeScreen extends StatefulWidget {
 class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
   DateTime _selectedDate = DateTime.now();
   int _touchedIndex = -1;
-  int _touchedBarIndex = -1;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final screenTimeService = Provider.of<ScreenTimeService>(context);
+    final wellnessService = Provider.of<WellnessService>(context);
 
     // Data for selected day
     final usageData = screenTimeService.getDailyUsage(_selectedDate);
@@ -33,48 +36,28 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
 
     // Category data
     final categoryUsage = screenTimeService.getCategoryUsage(totalMinutes);
+    
+    // Wellness data
+    final dailyGoal = wellnessService.dailyGoalMinutes;
+    final isUnderGoal = totalMinutes <= dailyGoal;
+    final progressToGoal = (totalMinutes / dailyGoal).clamp(0.0, 1.0);
 
-    // Calculate day parts for pie chart
-    int morning = 0; // 6am - 12pm
-    int afternoon = 0; // 12pm - 6pm
-    int evening = 0; // 6pm - 12am
-    int night = 0; // 12am - 6am
-
-    for (int i = 0; i < 24; i++) {
-      final minutes = hourlyBreakdown[i];
-      if (i >= 6 && i < 12)
-        morning += minutes;
-      else if (i >= 12 && i < 18)
-        afternoon += minutes;
-      else if (i >= 18 && i < 24)
-        evening += minutes;
-      else
-        night += minutes;
-    }
-
-    final pieSections = [
-      if (morning > 0)
-        _buildPieChartSection(0, morning, 'Morning', Colors.orangeAccent),
-      if (afternoon > 0)
-        _buildPieChartSection(1, afternoon, 'Afternoon', Colors.blueAccent),
-      if (evening > 0)
-        _buildPieChartSection(2, evening, 'Evening', colorScheme.secondary),
-      if (night > 0)
-        _buildPieChartSection(3, night, 'Night', Colors.indigoAccent),
-    ];
-
-    final isHealthy = weeklyAverage < 120; // Example threshold: 2 hours
-
-    final content = Scaffold(
-      backgroundColor: colorScheme.surface,
+    return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Screen Time'),
+        title: const Text('Digital Wellness'),
         centerTitle: true,
-        backgroundColor: colorScheme.surface,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        flexibleSpace: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(color: Colors.transparent),
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.calendar_today),
+            icon: const Icon(Icons.calendar_month_outlined),
             onPressed: () async {
               final date = await showDatePicker(
                 context: context,
@@ -89,387 +72,339 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Stats Card
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [colorScheme.primary, colorScheme.tertiary],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: colorScheme.primary.withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Column(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colorScheme.primary.withValues(alpha: 0.05),
+              colorScheme.surface,
+              colorScheme.tertiary.withValues(alpha: 0.05),
+            ],
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + 80,
+            left: 16,
+            right: 16,
+            bottom: 32,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Hero Usage Card
+              _buildUsageHero(theme, totalMinutes, dailyGoal, progressToGoal),
+              
+              const SizedBox(height: 24),
+              
+              // Quick Stats Row
+              Row(
                 children: [
-                  Text(
-                    'Total Screen Time',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.9),
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      'Daily Average',
+                      _formatDuration(weeklyAverage),
+                      Icons.history_toggle_off,
+                      colorScheme.secondary,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _formatDuration(totalMinutes),
-                    style: theme.textTheme.displayMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          totalMinutes > weeklyAverage
-                              ? Icons.trending_up
-                              : Icons.trending_down,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Daily Average: ${_formatDuration(weeklyAverage)}',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      'Goal Status',
+                      isUnderGoal ? 'On Track' : 'Over Limit',
+                      isUnderGoal ? Icons.check_circle_outline : Icons.warning_amber_rounded,
+                      isUnderGoal ? Colors.green : Colors.orange,
                     ),
                   ),
                 ],
               ),
-            ),
 
-            const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-            // Weekly Activity Chart
-            Text(
-              'Weekly Activity',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              height: 220,
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: BarChart(
-                BarChartData(
-                  barTouchData: BarTouchData(
-                    touchTooltipData: BarTouchTooltipData(
-                      tooltipBgColor: colorScheme.inverseSurface,
-                      tooltipRoundedRadius: 8,
-                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                        return BarTooltipItem(
-                          _formatDuration(rod.toY.toInt()),
-                          TextStyle(color: colorScheme.onInverseSurface),
-                        );
-                      },
-                    ),
-                    touchCallback: (event, response) {
-                      setState(() {
-                        if (response?.spot != null && event is FlTapUpEvent) {
-                          _touchedBarIndex =
-                              response!.spot!.touchedBarGroupIndex;
-                        } else {
-                          _touchedBarIndex = -1;
-                        }
-                      });
-                    },
-                  ),
-                  titlesData: FlTitlesData(
-                    show: true,
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          if (value.toInt() >= 0 &&
-                              value.toInt() < weeklyData.length) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Text(
-                                weeklyData[value.toInt()]['day'],
-                                style: TextStyle(
-                                  color: colorScheme.onSurfaceVariant,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            );
-                          }
-                          return const SizedBox();
-                        },
-                      ),
-                    ),
-                    leftTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                  ),
-                  borderData: FlBorderData(show: false),
-                  gridData: const FlGridData(show: false),
-                  barGroups: List.generate(weeklyData.length, (index) {
-                    final minutes = weeklyData[index]['minutes'] as int;
-                    return BarChartGroupData(
-                      x: index,
-                      barRods: [
-                        BarChartRodData(
-                          toY: minutes.toDouble(),
-                          color:
-                              index == 6
-                                  ? colorScheme.primary
-                                  : colorScheme.primary.withValues(alpha: 0.3),
-                          width: 16,
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(6),
-                          ),
-                          backDrawRodData: BackgroundBarChartRodData(
-                            show: true,
-                            toY:
-                                (weeklyAverage * 1.5)
-                                    .toDouble(), // Max height relative to average
-                            color: colorScheme.surfaceContainerHighest,
-                          ),
-                        ),
-                      ],
-                    );
-                  }),
-                ),
-              ),
-            ),
+              // Weekly Activity Chart
+              _buildChartSection(context, 'Weekly Activity', _buildWeeklyBarChart(context, weeklyData, dailyGoal)),
 
-            const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-            // Category Breakdown
-            Text(
-              'Most Used',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
+              // Category Breakdown
+              Text(
+                'Activity Breakdown',
+                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 16),
-            ...categoryUsage.map(
-              (category) => _buildCategoryItem(
+              const SizedBox(height: 16),
+              ...categoryUsage.map((category) => _buildCategoryItem(
                 context,
                 category['name'],
                 category['minutes'],
                 category['icon'] as IconData,
                 Color(category['color']),
                 totalMinutes,
-              ),
-            ),
+              )),
 
-            const SizedBox(height: 32),
-
-            // Time of Day (Pie Chart)
-            if (totalMinutes > 0) ...[
+              const SizedBox(height: 32),
+              
+              // Wellness Features
               Text(
-                'Time of Day',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
+                'Mindful Tools',
+                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
                 ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                height: 250,
-                child: PieChart(
-                  PieChartData(
-                    pieTouchData: PieTouchData(
-                      touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                        setState(() {
-                          if (!event.isInterestedForInteractions ||
-                              pieTouchResponse == null ||
-                              pieTouchResponse.touchedSection == null) {
-                            _touchedIndex = -1;
-                            return;
-                          }
-                          _touchedIndex =
-                              pieTouchResponse
-                                  .touchedSection!
-                                  .touchedSectionIndex;
-                        });
-                      },
-                    ),
-                    borderData: FlBorderData(show: false),
-                    sectionsSpace: 2,
-                    centerSpaceRadius: 40,
-                    sections: pieSections,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Wrap(
-                spacing: 16,
-                runSpacing: 8,
-                alignment: WrapAlignment.center,
-                children: [
-                  if (morning > 0)
-                    _buildLegendItem('Morning', Colors.orangeAccent),
-                  if (afternoon > 0)
-                    _buildLegendItem('Afternoon', Colors.blueAccent),
-                  if (evening > 0)
-                    _buildLegendItem('Evening', colorScheme.secondary),
-                  if (night > 0) _buildLegendItem('Night', Colors.indigoAccent),
-                ],
-              ),
-            ],
-
-            const SizedBox(height: 32),
-
-            // Insight Card
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color:
-                    isHealthy
-                        ? Colors.green.withValues(alpha: 0.1)
-                        : Colors.orange.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color:
-                      isHealthy
-                          ? Colors.green.withValues(alpha: 0.5)
-                          : Colors.orange.withValues(alpha: 0.5),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    isHealthy
-                        ? Icons.check_circle_outline
-                        : Icons.warning_amber_rounded,
-                    color: isHealthy ? Colors.green : Colors.orange,
-                    size: 32,
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isHealthy ? 'Healthy Usage' : 'High Usage',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isHealthy ? Colors.green : Colors.orange,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          isHealthy
-                              ? 'You are within your daily average goal.'
-                              : 'You are above your daily average goal. Consider taking a break.',
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
-    );
-
-    return ResponsiveLayout.isDesktop(context)
-        ? MaxWidthContainer(
-          maxWidth: ResponsiveLayout.maxFormWidth,
-          child: content,
-        )
-        : content;
-  }
-
-  Widget _buildCategoryItem(
-    BuildContext context,
-    String name,
-    int minutes,
-    IconData icon,
-    Color color,
-    int totalMinutes,
-  ) {
-    final theme = Theme.of(context);
-    final percentage = totalMinutes > 0 ? minutes / totalMinutes : 0.0;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
                   children: [
-                    Text(
-                      name,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
+                    SwitchListTile(
+                      value: wellnessService.focusModeEnabled,
+                      onChanged: (val) {
+                        HapticUtils.selectionClick();
+                        wellnessService.setFocusModeEnabled(val);
+                      },
+                      secondary: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          wellnessService.focusModeEnabled ? Icons.filter_center_focus : Icons.filter_center_focus_outlined,
+                          color: theme.colorScheme.primary,
+                        ),
                       ),
+                      title: const Text('Focus Mode', style: TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: const Text('Block Home/Search and earn 50 XP'),
                     ),
-                    Text(
-                      _formatDuration(minutes),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.bold,
+                    if (wellnessService.focusModeEnabled) ...[
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            LinearProgressIndicator(
+                              value: wellnessService.focusProgress,
+                              borderRadius: BorderRadius.circular(4),
+                              minHeight: 8,
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Time Remaining: ${_formatSeconds(wellnessService.focusRemainingSeconds)}',
+                                  style: theme.textTheme.bodySmall,
+                                ),
+                                Text(
+                                  'Early stop: -35 XP',
+                                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildFeatureTile(
+                context,
+                'Wind Down',
+                'Reduce blue light and dim screen',
+                Icons.bedtime_outlined,
+                wellnessService.windDownEnabled,
+                (val) => wellnessService.setWindDownEnabled(val),
+              ),
+              
+              const SizedBox(height: 32),
+              
+              // Focus Session CTA
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.7)],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.primary.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: percentage,
-                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
-                    minHeight: 6,
+                child: Column(
+                  children: [
+                    const Icon(Icons.timer_outlined, color: Colors.white, size: 48),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Start a Focus Session',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Stay away from your phone and earn XP',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () {
+                        HapticUtils.success();
+                        // Start session logic
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: colorScheme.primary,
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text('Start Now', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUsageHero(ThemeData theme, int totalMinutes, int dailyGoal, double progress) {
+    final colorScheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Today\'s Usage',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _formatDuration(totalMinutes),
+                    style: theme.textTheme.displayMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.bolt, color: colorScheme.primary, size: 28),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 12,
+                  backgroundColor: colorScheme.surfaceContainerHighest,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    progress > 0.9 ? Colors.orange : colorScheme.primary,
                   ),
                 ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${(progress * 100).toInt()}% of daily goal',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                'Goal: ${_formatDuration(dailyGoal)}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(BuildContext context, String title, String value, IconData icon, Color color) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],
@@ -477,54 +412,207 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
     );
   }
 
-  PieChartSectionData _buildPieChartSection(
-    int index,
-    int value,
-    String title,
-    Color color,
-  ) {
-    final isTouched = index == _touchedIndex;
-    final fontSize = isTouched ? 16.0 : 12.0;
-    final radius = isTouched ? 60.0 : 50.0;
-
-    return PieChartSectionData(
-      color: color,
-      value: value.toDouble(),
-      title:
-          isTouched
-              ? '${_formatDuration(value)}'
-              : '${(value / (value + 1) * 100).toInt()}%',
-      radius: radius,
-      titleStyle: TextStyle(
-        fontSize: fontSize,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-      ),
-      showTitle: isTouched,
-    );
-  }
-
-  Widget _buildLegendItem(String title, Color color) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+  Widget _buildChartSection(BuildContext context, String title, Widget chart) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        Text(
+          title,
+          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
-        const SizedBox(width: 6),
-        Text(title),
+        const SizedBox(height: 16),
+        Container(
+          height: 240,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+          ),
+          child: chart,
+        ),
       ],
     );
   }
 
+  Widget _buildWeeklyBarChart(BuildContext context, List<Map<String, dynamic>> data, int goal) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return BarChart(
+      BarChartData(
+        barTouchData: BarTouchData(
+          touchTooltipData: BarTouchTooltipData(
+            tooltipBgColor: colorScheme.inverseSurface,
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              return BarTooltipItem(
+                '${data[group.x.toInt()]['day']}\n${_formatDuration(rod.toY.toInt())}',
+                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              );
+            },
+          ),
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                final index = value.toInt();
+                if (index < 0 || index >= data.length) return const SizedBox();
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    data[index]['day'][0],
+                    style: TextStyle(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        ),
+        gridData: const FlGridData(show: false),
+        borderData: FlBorderData(show: false),
+        barGroups: List.generate(data.length, (i) {
+          final minutes = data[i]['minutes'] as int;
+          final isToday = i == data.length - 1;
+          return BarChartGroupData(
+            x: i,
+            barRods: [
+              BarChartRodData(
+                toY: minutes.toDouble(),
+                color: minutes > goal ? Colors.orange : (isToday ? colorScheme.primary : colorScheme.primary.withValues(alpha: 0.4)),
+                width: 18,
+                borderRadius: BorderRadius.circular(6),
+                backDrawRodData: BackgroundBarChartRodData(
+                  show: true,
+                  toY: goal.toDouble() * 1.5,
+                  color: colorScheme.surfaceContainerHighest,
+                ),
+              ),
+            ],
+          );
+        }),
+        extraLinesData: ExtraLinesData(
+          horizontalLines: [
+            HorizontalLine(
+              y: goal.toDouble(),
+              color: colorScheme.outline.withValues(alpha: 0.3),
+              strokeWidth: 1,
+              dashArray: [5, 5],
+              label: HorizontalLineLabel(
+                show: true,
+                alignment: Alignment.topRight,
+                padding: const EdgeInsets.only(right: 5, bottom: 5),
+                style: TextStyle(color: colorScheme.outline, fontSize: 10),
+                labelResolver: (line) => 'Goal',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryItem(BuildContext context, String name, int minutes, IconData icon, Color color, int total) {
+    final theme = Theme.of(context);
+    final percentage = total > 0 ? (minutes / total).clamp(0.0, 1.0) : 0.0;
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                      Text(_formatDuration(minutes), style: theme.textTheme.bodySmall),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: percentage,
+                      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                      valueColor: AlwaysStoppedAnimation<Color>(color),
+                      minHeight: 4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureTile(BuildContext context, String title, String subtitle, IconData icon, bool value, Function(bool) onChanged) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      child: SwitchListTile(
+        value: value,
+        onChanged: (val) {
+          HapticUtils.selectionClick();
+          onChanged(val);
+        },
+        secondary: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: theme.colorScheme.primary),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(subtitle, style: theme.textTheme.bodySmall),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
+    );
+  }
+
+  String _formatSeconds(int totalSeconds) {
+    final m = totalSeconds ~/ 60;
+    final s = totalSeconds % 60;
+    return '${m}:${s.toString().padLeft(2, '0')}';
+  }
+
   String _formatDuration(int totalMinutes) {
-    if (totalMinutes < 60) {
-      return '${totalMinutes}m';
-    }
-    final hours = totalMinutes ~/ 60;
-    final minutes = totalMinutes % 60;
-    return '${hours}h ${minutes}m';
+    if (totalMinutes < 60) return '${totalMinutes}m';
+    final h = totalMinutes ~/ 60;
+    final m = totalMinutes % 60;
+    return '${h}h ${m}m';
   }
 }

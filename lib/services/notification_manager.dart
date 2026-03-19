@@ -10,6 +10,7 @@ import 'package:oasis_v2/routes/app_router.dart';
 class NotificationManager {
   static NotificationManager? _instance;
   bool _isInitialized = false;
+  bool _isPaused = false;
   final FlutterLocalNotificationsPlugin _localNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   int _notificationId = 0;
@@ -21,6 +22,14 @@ class NotificationManager {
   }
 
   NotificationManager._();
+
+  /// Set whether notifications should be suppressed (e.g. during Focus Mode)
+  void setPaused(bool paused) {
+    _isPaused = paused;
+    debugPrint('NotificationManager: Notifications ${paused ? 'paused' : 'resumed'}');
+  }
+
+  bool get isPaused => _isPaused;
 
   /// Initialize the notification manager
   Future<bool> initialize() async {
@@ -66,6 +75,11 @@ class NotificationManager {
   }) async {
     if (!_isInitialized) {
       debugPrint('NotificationManager: Not initialized');
+      return;
+    }
+
+    if (_isPaused) {
+      debugPrint('NotificationManager: Notification suppressed due to Focus Mode: [$title]');
       return;
     }
 

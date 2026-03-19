@@ -16,6 +16,7 @@ class AppUser {
   final String? bannerUrl;
   final String? bannerColor;
   final bool isPro;
+  final Map<String, dynamic>? userMetadata;
 
   AppUser({
     required this.id,
@@ -35,6 +36,7 @@ class AppUser {
     this.bannerUrl,
     this.bannerColor,
     this.isPro = false,
+    this.userMetadata,
   });
 
   String get displayNameOrUsername => displayName ?? username;
@@ -57,6 +59,7 @@ class AppUser {
     String? bannerUrl,
     String? bannerColor,
     bool? isPro,
+    Map<String, dynamic>? userMetadata,
   }) {
     return AppUser(
       id: id ?? this.id,
@@ -76,6 +79,7 @@ class AppUser {
       bannerUrl: bannerUrl ?? this.bannerUrl,
       bannerColor: bannerColor ?? this.bannerColor,
       isPro: isPro ?? this.isPro,
+      userMetadata: userMetadata ?? this.userMetadata,
     );
   }
 
@@ -98,6 +102,7 @@ class AppUser {
       'banner_url': bannerUrl,
       'banner_color': bannerColor,
       'isPro': isPro,
+      'user_metadata': userMetadata,
     };
   }
 
@@ -123,6 +128,7 @@ class AppUser {
       bannerUrl: json['banner_url'] as String?,
       bannerColor: json['banner_color'] as String?,
       isPro: (json['isPro'] as bool?) ?? false,
+      userMetadata: json['user_metadata'] as Map<String, dynamic>?,
     );
   }
 

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/services/notification_manager.dart';
 
 /// Wellness achievement types
 enum AchievementType {
@@ -67,6 +68,13 @@ class WellnessService extends ChangeNotifier {
 
   // Focus Mode
   bool _focusModeEnabled = false;
+  DateTime? _focusStartTime;
+  Timer? _focusTimer;
+  int _focusRemainingSeconds = 0;
+  static const int _focusSessionDurationMinutes = 30;
+  static const int _focusRewardXP = 50;
+  static const int _focusPenaltyXP = 35;
+
   Map<String, bool> _focusSchedule = {};
   Set<String> _blockedFeatures = {};
 
@@ -84,22 +92,6 @@ class WellnessService extends ChangeNotifier {
     _loadSettings();
     _startWindDownMonitor();
   }
-
-  bool _isUserPro() {
-    final user = SupabaseService().client.auth.currentUser;
-    return user?.userMetadata?['is_pro'] == true;
-  }
-
-  // Getters
-  bool get focusModeEnabled => _focusModeEnabled;
-  Map<String, bool> get focusSchedule => _focusSchedule;
-  Set<String> get blockedFeatures => _blockedFeatures;
-  bool get windDownEnabled => _windDownEnabled;
-  TimeOfDay? get windDownTime => _windDownTime;
-  bool get isWindDownActive => _isWindDownActive;
-  double get windDownDimLevel => _windDownDimLevel;
-  int get dailyGoalMinutes => _dailyGoalMinutes;
-  List<WellnessAchievement> get achievements => _achievements;
 
   static Future<WellnessService> init() async {
     final prefs = await SharedPreferences.getInstance();
@@ -142,11 +134,112 @@ class WellnessService extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool _isUserPro() {
+    final user = SupabaseService().client.auth.currentUser;
+    return user?.userMetadata?['is_pro'] == true;
+  }
+
+  // Getters
+  bool get focusModeEnabled => _focusModeEnabled;
+  int get focusRemainingSeconds => _focusRemainingSeconds;
+  double get focusProgress => _focusStartTime == null ? 0 : (1 - (_focusRemainingSeconds / (_focusSessionDurationMinutes * 60))).clamp(0.0, 1.0);
+  Map<String, bool> get focusSchedule => _focusSchedule;
+  Set<String> get blockedFeatures => _blockedFeatures;
+  bool get windDownEnabled => _windDownEnabled;
+  TimeOfDay? get windDownTime => _windDownTime;
+  bool get isWindDownActive => _isWindDownActive;
+  double get windDownDimLevel => _windDownDimLevel;
+  int get dailyGoalMinutes => _dailyGoalMinutes;
+  List<WellnessAchievement> get achievements => _achievements;
+
   // Focus Mode methods
   Future<void> setFocusModeEnabled(bool enabled) async {
+    if (_focusModeEnabled == enabled) return;
+    
     _focusModeEnabled = enabled;
     await _prefs.setBool(_focusModeKey, enabled);
+    
+    if (enabled) {
+      _startFocusSession();
+    } else {
+      _stopFocusSession(manual: true);
+    }
+    
     notifyListeners();
+  }
+
+  void _startFocusSession() {
+    _focusStartTime = DateTime.now();
+    _focusRemainingSeconds = _focusSessionDurationMinutes * 60;
+    
+    // Pause notifications
+    _setNotificationsPaused(true);
+
+    _focusTimer?.cancel();
+    _focusTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_focusRemainingSeconds > 0) {
+        _focusRemainingSeconds--;
+        if (_focusRemainingSeconds % 60 == 0) notifyListeners();
+      } else {
+        _stopFocusSession(manual: false);
+      }
+    });
+  }
+
+  Future<void> _stopFocusSession({required bool manual}) async {
+    _focusTimer?.cancel();
+    _focusTimer = null;
+    
+    // Resume notifications
+    _setNotificationsPaused(false);
+
+    if (manual && _focusRemainingSeconds > 0) {
+      // Penalty for early stop
+      await _updateUserXP(-_focusPenaltyXP);
+    } else if (!manual && _focusRemainingSeconds == 0) {
+      // Reward for completion
+      await _updateUserXP(_focusRewardXP);
+      _awardFocusAchievement();
+    }
+
+    _focusStartTime = null;
+    _focusRemainingSeconds = 0;
+    _focusModeEnabled = false;
+    await _prefs.setBool(_focusModeKey, false);
+    notifyListeners();
+  }
+
+  void _setNotificationsPaused(bool paused) {
+    NotificationManager.instance.setPaused(paused);
+  }
+
+  Future<void> _updateUserXP(int amount) async {
+    final user = SupabaseService().client.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      await SupabaseService().client.rpc('increment_xp', params: {
+        'user_id': user.id,
+        'xp_amount': amount,
+      });
+      debugPrint('XP Updated: $amount');
+    } catch (e) {
+      debugPrint('Error updating XP: $e');
+    }
+  }
+
+  void _awardFocusAchievement() {
+    final today = DateTime.now();
+    final achievement = WellnessAchievement(
+      id: 'focus_${today.millisecondsSinceEpoch}',
+      type: AchievementType.challenge,
+      name: 'Focus Master',
+      description: 'Completed a 30-minute focus session!',
+      icon: '🧘',
+      earnedAt: today,
+    );
+    _achievements.add(achievement);
+    _saveAchievements();
   }
 
   Future<void> setBlockedFeatures(Set<String> features) async {

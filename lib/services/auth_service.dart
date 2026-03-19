@@ -75,10 +75,11 @@ class AuthService with ChangeNotifier {
           userMetadata['username'] ??
           user.email?.split('@')[0] ??
           'user_${user.id.substring(0, 8)}',
-      displayName: user.userMetadata?['full_name'] as String?,
-      photoUrl: user.userMetadata?['avatar_url'] as String?,
+      displayName: userMetadata['full_name'] as String?,
+      photoUrl: userMetadata['avatar_url'] as String?,
       isVerified: user.emailConfirmedAt != null,
-      isPro: user.userMetadata?['is_pro'] as bool? ?? false,
+      isPro: userMetadata['is_pro'] as bool? ?? false,
+      userMetadata: userMetadata,
     );
   }
 
@@ -546,6 +547,7 @@ throw AuthException('Failed to sign in with Google: ${e.toString()}');
       photoUrl: userMetadata['avatar_url'] as String?,
       isVerified: user.emailConfirmedAt != null,
       isPro: userMetadata['is_pro'] as bool? ?? false,
+      userMetadata: userMetadata,
     );
   }
 }
