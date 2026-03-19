@@ -26,6 +26,11 @@ class Message {
   final Map<String, dynamic>? locationData;
   final int? voiceDuration; // in seconds
 
+  // Reply context
+  final String? replyToId;
+  final String? replyToContent;
+  final String? replyToSenderName;
+
   // Reactions
   final List<MessageReactionModel> reactions;
 
@@ -60,6 +65,9 @@ class Message {
     this.pollData,
     this.locationData,
     this.voiceDuration,
+    this.replyToId,
+    this.replyToContent,
+    this.replyToSenderName,
     this.reactions = const [],
     this.isEphemeral = false,
     this.ephemeralDuration = 86400, // Default to 24 hours
@@ -102,6 +110,38 @@ class Message {
       mediaUrl = json['file_url'] as String?;
     }
 
+    // Handle replied message metadata if available
+    String? replyContent;
+    String? replySenderName;
+    if (json['reply_to'] != null) {
+      final replyData = json['reply_to'] as Map<String, dynamic>;
+      
+      // Use raw content if it's already decrypted, otherwise use placeholder
+      final rawContent = replyData['content'] as String?;
+      if (rawContent != null && !rawContent.contains('🔒')) {
+        replyContent = rawContent;
+      } else if (replyData['encrypted_keys'] != null || replyData['signal_message_type'] != null) {
+        // We check if it's a media message to show better placeholder
+        if (replyData['voice_url'] != null) {
+          replyContent = '🎤 Voice Message';
+        } else if (replyData['image_url'] != null) {
+          replyContent = '📷 Photo';
+        } else if (replyData['video_url'] != null) {
+          replyContent = '🎥 Video';
+        } else if (replyData['file_url'] != null) {
+          replyContent = '📁 File';
+        } else {
+          replyContent = '🔒 Encrypted message';
+        }
+      } else {
+        replyContent = rawContent;
+      }
+
+      if (replyData['profiles'] != null) {
+        replySenderName = replyData['profiles']['username'] as String?;
+      }
+    }
+
     return Message(
       id: json['id'] as String,
       conversationId: json['conversation_id'] as String,
@@ -125,6 +165,9 @@ class Message {
       pollData: json['poll_data'] as Map<String, dynamic>?,
       locationData: json['location_data'] as Map<String, dynamic>?,
       voiceDuration: json['voice_duration'] as int?,
+      replyToId: json['reply_to_id'] as String?,
+      replyToContent: replyContent,
+      replyToSenderName: replySenderName,
       reactions:
           (json['reactions'] as List<dynamic>?)
               ?.map(
@@ -164,6 +207,7 @@ class Message {
       'file_url': messageType == MessageType.document ? mediaUrl : null,
       'voice_url': messageType == MessageType.voice ? mediaUrl : null,
       'voice_duration': voiceDuration,
+      'reply_to_id': replyToId,
       'file_name': mediaFileName,
       'file_size': mediaFileSize,
       'media_mime_type': mediaMimeType,
@@ -188,6 +232,9 @@ class Message {
     bool? isEphemeral,
     int? ephemeralDuration,
     DateTime? expiresAt,
+    String? replyToId,
+    String? replyToContent,
+    String? replyToSenderName,
   }) {
     return Message(
       id: id,
@@ -209,6 +256,9 @@ class Message {
       pollData: pollData,
       locationData: locationData,
       voiceDuration: voiceDuration,
+      replyToId: replyToId ?? this.replyToId,
+      replyToContent: replyToContent ?? this.replyToContent,
+      replyToSenderName: replyToSenderName ?? this.replyToSenderName,
       reactions: reactions ?? this.reactions,
       isEphemeral: isEphemeral ?? this.isEphemeral,
       ephemeralDuration: ephemeralDuration ?? this.ephemeralDuration,

@@ -287,6 +287,19 @@ class MessagingService {
               username,
               avatar_url
             ),
+            reply_to:reply_to_id (
+              id,
+              content,
+              image_url,
+              video_url,
+              file_url,
+              voice_url,
+              encrypted_keys,
+              signal_message_type,
+              profiles:sender_id (
+                username
+              )
+            ),
             reactions:message_reactions(*)
           ''')
           .eq('conversation_id', conversationId);
@@ -438,6 +451,7 @@ class MessagingService {
     bool isWhisperMode = false,
     int? ephemeralDuration,
     String? callId,
+    String? replyToId,
   }) async {
     try {
       final messageId = _uuid.v4();
@@ -453,6 +467,7 @@ class MessagingService {
         'is_ephemeral': isWhisperMode,
         'ephemeral_duration': ephemeralDuration ?? 86400, // Default to 24h
         'call_id': callId,
+        'reply_to_id': replyToId,
       };
 
       // Add encryption fields if provided
@@ -512,6 +527,19 @@ class MessagingService {
             sender_profile:sender_id (
               username,
               avatar_url
+            ),
+            reply_to:reply_to_id (
+              id,
+              content,
+              image_url,
+              video_url,
+              file_url,
+              voice_url,
+              encrypted_keys,
+              signal_message_type,
+              profiles:sender_id (
+                username
+              )
             ),
             reactions:message_reactions(*)
           ''')
@@ -661,6 +689,31 @@ class MessagingService {
 
               messageData['sender_name'] = profile['username'];
               messageData['sender_avatar'] = profile['avatar_url'];
+
+              // If it's a reply, fetch the replied message details
+              if (messageData['reply_to_id'] != null) {
+                final replyResponse = await _supabase
+                    .from(SupabaseConfig.messagesTable)
+                    .select('''
+                      id,
+                      content,
+                      image_url,
+                      video_url,
+                      file_url,
+                      voice_url,
+                      encrypted_keys,
+                      signal_message_type,
+                      profiles:sender_id (
+                        username
+                      )
+                    ''')
+                    .eq('id', messageData['reply_to_id'])
+                    .maybeSingle();
+                
+                if (replyResponse != null) {
+                  messageData['reply_to'] = replyResponse;
+                }
+              }
 
               final message = Message.fromJson(messageData);
               onNewMessage(message);

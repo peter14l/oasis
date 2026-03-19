@@ -85,6 +85,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isLoading = false;
   bool _isSending = false;
   bool _isCompressing = false;
+  Message? _replyMessage;
   // SmartReplyService is static now
   List<String> _smartReplies = [];
   bool _showingSmartReplies = false;
@@ -985,12 +986,13 @@ class _ChatScreenState extends State<ChatScreen> {
       if (EncryptionService.isEnabled && content.isNotEmpty) {
         try {
           final recipientId = widget.otherUserId ?? _otherUserId;
-          
+
           // Get both public keys
-          final profilesResponse = await Supabase.instance.client
-              .from('profiles')
-              .select('id, public_key')
-              .inFilter('id', [userId, recipientId]);
+          final profilesResponse =
+              await Supabase.instance.client
+                  .from('profiles')
+                  .select('id, public_key')
+                  .inFilter('id', [userId, recipientId]);
 
           final List<String> publicKeys = [];
           for (var profile in profilesResponse) {
@@ -1004,7 +1006,7 @@ class _ChatScreenState extends State<ChatScreen> {
               publicKeys,
             );
             signalSenderContent = fallbackEncryption.encryptedContent;
-            
+
             // If using Signal, we store the RSA-encrypted keys in the existing fields
             // so both users can use them as a fallback.
             if (usedSignal) {
@@ -1033,7 +1035,13 @@ class _ChatScreenState extends State<ChatScreen> {
         signalSenderContent: signalSenderContent,
         isWhisperMode: _isWhisperMode,
         ephemeralDuration: _ephemeralDuration,
+        replyToId: _replyMessage?.id,
       );
+
+      // Clear reply state
+      setState(() {
+        _replyMessage = null;
+      });
 
       // Refresh DM list preview in provider
       if (mounted) {
@@ -1693,6 +1701,9 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
               ),
 
+              // Reply Preview
+              if (_replyMessage != null) _buildReplyPreview(),
+
               // Previews (Image/File)
               if (_selectedImage != null) _buildImagePreview(),
               if (_selectedFile != null) _buildFilePreview(),
@@ -2069,6 +2080,74 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  Widget _buildReplyPreview() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: 0.2),
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Row(
+            children: [
+              Container(
+                width: 4,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _replyMessage!.senderName,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      _replyMessage!.content == 'Sent attachment'
+                          ? (_replyMessage!.messageType == MessageType.voice
+                              ? '🎤 Voice Message'
+                              : '📷 Image')
+                          : _replyMessage!.content,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close_rounded, size: 18),
+                onPressed: () => setState(() => _replyMessage = null),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildImagePreview() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -2406,11 +2485,12 @@ class _ChatScreenState extends State<ChatScreen> {
     return SwipeableMessage(
       onSwipeReply: () {
         HapticUtils.selectionClick();
-        _messageController.text = '@${message.senderName} ';
-        // FocusScope.of(context).requestFocus(_focusNode);
+        setState(() {
+          _replyMessage = message;
+        });
+        _focusNode.requestFocus();
       },
-      isOwnMessage:
-          isMe, // Add this parameter if SwipeableMessage supports it (it defaults to false)
+      isOwnMessage: isMe,
       child: GestureDetector(
         onLongPress: () {
           HapticUtils.selectionClick();
@@ -2470,7 +2550,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             label: 'Reply',
                             onTap: () {
                               Navigator.pop(context);
-                              _messageController.text = '@${message.senderName} ';
+                              setState(() {
+                                _replyMessage = message;
+                              });
                               _focusNode.requestFocus();
                             },
                           ),
@@ -2540,6 +2622,56 @@ class _ChatScreenState extends State<ChatScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      if (message.replyToId != null)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: IntrinsicHeight(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 3,
+                                  decoration: BoxDecoration(
+                                    color: isMe ? Colors.white70 : colorScheme.primary,
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        message.replyToSenderName ?? 'Unknown',
+                                        style: theme.textTheme.labelSmall?.copyWith(
+                                          color: isMe ? Colors.white : colorScheme.primary,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                      Text(
+                                        message.replyToContent ?? 'Original message',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: isMe 
+                                              ? Colors.white.withValues(alpha: 0.7) 
+                                              : colorScheme.onSurface.withValues(alpha: 0.6),
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       content,
                       if (isMe)
                         Padding(
