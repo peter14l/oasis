@@ -36,6 +36,14 @@ class SubscriptionService extends ChangeNotifier {
     if (user != null) {
       // Update the user metadata in Supabase
       await _supabase.auth.updateUser(UserAttributes(data: {'is_pro': isPro}));
+      
+      // Also update the public profiles table directly to ensure it's in sync
+      // The trigger should handle this, but direct update is safer for debug
+      await _supabase
+          .from('profiles')
+          .update({'is_pro': isPro})
+          .eq('id', user.id);
+          
       _isPro = isPro;
       notifyListeners();
     }

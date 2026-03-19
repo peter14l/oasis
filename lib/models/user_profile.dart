@@ -23,6 +23,7 @@ class UserProfile {
   final String? windDownTime;
   final int xp;
   final int level;
+  final bool isPro;
   final DateTime createdAt;
 
   UserProfile({
@@ -36,6 +37,7 @@ class UserProfile {
     this.website,
     this.isVerified = false,
     this.isPrivate = false,
+    this.isPro = false,
     this.followersCount = 0,
     this.followingCount = 0,
     this.postsCount = 0,
@@ -65,6 +67,7 @@ class UserProfile {
       website: json['website'] as String?,
       isVerified: json['is_verified'] as bool? ?? false,
       isPrivate: json['is_private'] as bool? ?? false,
+      isPro: json['is_pro'] as bool? ?? false,
       followersCount: json['followers_count'] as int? ?? 0,
       followingCount: json['following_count'] as int? ?? 0,
       postsCount: json['posts_count'] as int? ?? 0,
@@ -98,8 +101,9 @@ class UserProfile {
       'website': website,
       'is_verified': isVerified,
       'is_private': isPrivate,
+      'is_pro': isPro,
       'followers_count': followersCount,
-      'following_count': followingCount,
+      'following_count': following_count,
       'posts_count': postsCount,
       'banner_url': bannerUrl,
       'banner_color': bannerColor,
@@ -127,6 +131,7 @@ class UserProfile {
     String? website,
     bool? isVerified,
     bool? isPrivate,
+    bool? isPro,
     int? followersCount,
     int? followingCount,
     int? postsCount,
@@ -154,6 +159,7 @@ class UserProfile {
       website: website ?? this.website,
       isVerified: isVerified ?? this.isVerified,
       isPrivate: isPrivate ?? this.isPrivate,
+      isPro: isPro ?? this.isPro,
       followersCount: followersCount ?? this.followersCount,
       followingCount: followingCount ?? this.followingCount,
       postsCount: postsCount ?? this.postsCount,
