@@ -645,6 +645,7 @@ class _ChatScreenState extends State<ChatScreen> {
       );
       if (image != null) {
         setState(() => _selectedImage = image);
+        _sendMessage();
       }
     } catch (e) {
       if (mounted) {
@@ -660,6 +661,7 @@ class _ChatScreenState extends State<ChatScreen> {
       final result = await FilePicker.platform.pickFiles();
       if (result != null) {
         setState(() => _selectedFile = result.files.first);
+        _sendMessage();
       }
     } catch (e) {
       _showError('Error picking file: $e');
@@ -673,6 +675,7 @@ class _ChatScreenState extends State<ChatScreen> {
       );
       if (video != null) {
         setState(() => _selectedVideo = File(video.path));
+        _sendMessage();
       }
     } catch (e) {
       _showError('Error picking video: $e');
