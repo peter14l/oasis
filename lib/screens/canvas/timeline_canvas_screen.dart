@@ -20,6 +20,8 @@ import 'package:oasis_v2/services/canvas_service.dart';
 import 'package:oasis_v2/widgets/share_sheet.dart';
 import 'package:oasis_v2/services/canvas_audio_service.dart';
 import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 class _PulseData {
   final String id;
