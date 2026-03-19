@@ -2839,6 +2839,13 @@ class _ChatScreenState extends State<ChatScreen> {
       return 'Seen on ${time.month}/${time.day}/${time.year}';
     }
   }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return '$minutes:$seconds';
+  }
 }
 
 /// A single tappable icon + label card used in the attachment bottom sheet.
