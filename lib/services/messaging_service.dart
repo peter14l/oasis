@@ -26,205 +26,95 @@ class MessagingService {
     int offset = 0,
   }) async {
     try {
-      // Query conversations where user is a participant
-      final response = await _supabase
-          .from('conversation_participants')
-          .select('''
-            conversation_id,
-            unread_count,
-            ${SupabaseConfig.conversationsTable}:conversation_id (
-              id,
-              type,
-              name,
-              image_url,
-              last_message_at,
-              last_message_id,
-              is_whisper_mode,
-              created_at,
-              updated_at,
-              last_message:last_message_id (
-                content,
-                sender_id,
-                image_url,
-                video_url,
-                file_url,
-                voice_url,
-                voice_duration,
-                created_at,
-                iv,
-                encrypted_keys,
-                signal_message_type,
-                signal_sender_content,
-                signal_sender_message_type
-              )
-            )
-          ''')
-          .eq('user_id', userId)
-          .order(
-            '${SupabaseConfig.conversationsTable}(last_message_at)',
-            ascending: false,
-          )
-          .range(offset, offset + limit - 1);
+      // Use the bulletproof RPC that queries messages directly for each conversation
+      // to ensure the TRUE latest message is always fetched for sorting and preview.
+      final List<dynamic> response = await _supabase.rpc(
+        'get_user_conversations_v2',
+        params: {'p_user_id': userId},
+      );
 
       if (response.isEmpty) return [];
 
       final List<Conversation> conversations = [];
       for (final item in response) {
-        final participantData = Map<String, dynamic>.from(item);
-        final conversationData =
-            participantData[SupabaseConfig.conversationsTable];
+        final conversationMap = Map<String, dynamic>.from(item);
+        
+        // 1. Extract "other user" info from the all_participants list
+        if (conversationMap['type'] == 'direct' && conversationMap['all_participants'] != null) {
+          final participants = conversationMap['all_participants'] as List;
+          final otherParticipant = participants.firstWhere(
+            (p) => p['user_id'] != userId,
+            orElse: () => participants.isNotEmpty ? participants[0] : null,
+          );
 
-        if (conversationData == null) continue;
-
-        final conversationMap = Map<String, dynamic>.from(conversationData);
-        conversationMap['unread_count'] = participantData['unread_count'] ?? 0;
-
-        // For direct conversations, get the other participant
-        if (conversationMap['type'] == 'direct') {
-          final otherParticipants = await _supabase
-              .from('conversation_participants')
-              .select('user_id')
-              .eq('conversation_id', conversationMap['id'])
-              .neq('user_id', userId);
-
-          if (otherParticipants.isNotEmpty) {
-            final otherUserId = otherParticipants.first['user_id'];
-
-            // Fetch other user's profile
-            final profileResponse =
-                await _supabase
-                    .from(SupabaseConfig.profilesTable)
-                    .select('username, full_name, avatar_url')
-                    .eq('id', otherUserId)
-                    .single();
-
-            conversationMap['other_user_id'] = otherUserId;
-            conversationMap['other_user_name'] =
-                profileResponse['username'] ??
-                profileResponse['full_name'] ??
-                'Unknown';
-            conversationMap['other_user_avatar'] =
-                profileResponse['avatar_url'] ?? '';
+          if (otherParticipant != null && otherParticipant['profile'] != null) {
+            final profile = otherParticipant['profile'];
+            conversationMap['other_user_id'] = otherParticipant['user_id'];
+            conversationMap['other_user_name'] = profile['username'] ?? profile['full_name'] ?? 'Unknown';
+            conversationMap['other_user_avatar'] = profile['avatar_url'] ?? '';
           }
         } else {
-          // For group conversations, use conversation name and image
           conversationMap['other_user_id'] = '';
-          conversationMap['other_user_name'] =
-              conversationMap['name'] ?? 'Group Chat';
-          conversationMap['other_user_avatar'] =
-              conversationMap['image_url'] ?? '';
+          conversationMap['other_user_name'] = conversationMap['name'] ?? 'Group Chat';
+          conversationMap['other_user_avatar'] = conversationMap['image_url'] ?? '';
         }
 
-        // Get last message
-        final lastMessage = conversationMap['last_message'];
-        if (lastMessage != null) {
-          String content = lastMessage['content'] ?? '';
+        // Initialize last_message_time from sort_time (which is the true latest activity)
+        conversationMap['last_message_time'] = conversationMap['sort_time'];
 
-          // Decrypt if necessary
-          final isSender = lastMessage['sender_id'] == userId;
+        // 2. Process the TRUE last message data
+        final lastMsgData = conversationMap['last_message_data'];
+        if (lastMsgData != null) {
+          String content = lastMsgData['content'] ?? '';
+          final isSender = lastMsgData['sender_id'] == userId;
 
-          if (isSender && lastMessage['signal_sender_content'] != null && lastMessage['encrypted_keys'] != null && lastMessage['iv'] != null) {
-            try {
+          // Decryption Logic
+          try {
+            if (isSender && lastMsgData['msg_signal_sender_content'] != null && lastMsgData['msg_encrypted_keys'] != null && lastMsgData['msg_iv'] != null) {
               final decrypted = await EncryptionService().decryptMessage(
-                lastMessage['signal_sender_content'],
-                lastMessage['encrypted_keys'],
-                lastMessage['iv'],
+                lastMsgData['msg_signal_sender_content'],
+                Map<String, String>.from(lastMsgData['msg_encrypted_keys']),
+                lastMsgData['msg_iv'],
               );
-              if (decrypted != null) {
-                content = decrypted;
-              } else {
-                content = '🔒 Message encrypted';
-              }
-            } catch (e) {
-              debugPrint('Standard decryption failed for sender preview: $e');
-              content = '🔒 Message encrypted';
-            }
-          } else if (!isSender && lastMessage['signal_message_type'] != null) {
-            try {
-              // Ensure SignalService is initialized
+              content = decrypted ?? '🔒 Message encrypted';
+            } else if (!isSender && lastMsgData['msg_signal_type'] != null) {
               await SignalService().init();
-              
               content = await SignalService().decryptMessage(
-                lastMessage['sender_id'],
+                lastMsgData['sender_id'],
                 content,
-                lastMessage['signal_message_type'],
+                lastMsgData['msg_signal_type'],
               );
               
-              // Fallback to RSA if Signal decryption returns a failure placeholder
-              if (content.contains('🔒 Message encrypted') && 
-                  lastMessage['encrypted_keys'] != null && 
-                  lastMessage['iv'] != null &&
-                  lastMessage['signal_sender_content'] != null) {
+              if (content.contains('🔒') && lastMsgData['msg_encrypted_keys'] != null && lastMsgData['msg_iv'] != null && lastMsgData['msg_signal_sender_content'] != null) {
                 final rsaDecrypted = await EncryptionService().decryptMessage(
-                  lastMessage['signal_sender_content'],
-                  lastMessage['encrypted_keys'],
-                  lastMessage['iv'],
+                  lastMsgData['msg_signal_sender_content'],
+                  Map<String, String>.from(lastMsgData['msg_encrypted_keys']),
+                  lastMsgData['msg_iv'],
                 );
-                if (rsaDecrypted != null) {
-                   content = rsaDecrypted;
-                   debugPrint('[MessagingService] Recovered preview via RSA fallback.');
-                }
+                if (rsaDecrypted != null) content = rsaDecrypted;
               }
-            } catch (e) {
-              debugPrint('Signal decryption failed for preview: $e');
-              content = '🔒 Message encrypted';
-            }
-          } else if (lastMessage['encrypted_keys'] != null &&
-              lastMessage['iv'] != null) {
-            try {
+            } else if (lastMsgData['msg_encrypted_keys'] != null && lastMsgData['msg_iv'] != null) {
               final decrypted = await EncryptionService().decryptMessage(
                 content,
-                lastMessage['encrypted_keys'],
-                lastMessage['iv'],
+                Map<String, String>.from(lastMsgData['msg_encrypted_keys']),
+                lastMsgData['msg_iv'],
               );
-              if (decrypted != null) {
-                content = decrypted;
-              } else {
-                content = '🔒 Message encrypted';
-              }
-            } catch (e) {
-              debugPrint('Standard decryption failed for preview: $e');
-              content = '🔒 Message encrypted';
+              content = decrypted ?? '🔒 Message encrypted';
             }
+          } catch (e) {
+            content = '🔒 Message encrypted';
           }
 
           conversationMap['last_message'] = content;
-          conversationMap['last_message_time'] = lastMessage['created_at'];
-
-          // Derive message type from URL fields
-          String? messageType = 'text';
-          if (lastMessage['voice_url'] != null &&
-              lastMessage['voice_url'].toString().isNotEmpty) {
-            messageType = 'voice';
-          } else if (lastMessage['image_url'] != null &&
-              lastMessage['image_url'].toString().isNotEmpty) {
-            messageType = 'image';
-          } else if (lastMessage['video_url'] != null &&
-              lastMessage['video_url'].toString().isNotEmpty) {
-            messageType = 'video';
-          } else if (lastMessage['file_url'] != null &&
-              lastMessage['file_url'].toString().isNotEmpty) {
-            messageType = 'document';
-          }
+          conversationMap['last_message_sender_id'] = lastMsgData['sender_id'];
+          
+          // Type detection
+          String messageType = 'text';
+          if (lastMsgData['msg_voice_url'] != null && lastMsgData['msg_voice_url'].toString().isNotEmpty) messageType = 'voice';
+          else if (lastMsgData['msg_image_url'] != null && lastMsgData['msg_image_url'].toString().isNotEmpty) messageType = 'image';
+          else if (lastMsgData['msg_video_url'] != null && lastMsgData['msg_video_url'].toString().isNotEmpty) messageType = 'video';
+          else if (lastMsgData['msg_file_url'] != null && lastMsgData['msg_file_url'].toString().isNotEmpty) messageType = 'document';
           conversationMap['last_message_type'] = messageType;
-          conversationMap['last_message_sender_id'] = lastMessage['sender_id'];
-
-          // Fetch read receipt for last message from other user
-          if (lastMessage['sender_id'] == userId &&
-              conversationMap['other_user_id'] != null) {
-            final readReceiptResponse =
-                await _supabase
-                    .from(SupabaseConfig.messageReadReceiptsTable)
-                    .select('read_at')
-                    .eq('message_id', conversationMap['last_message_id'])
-                    .eq('user_id', conversationMap['other_user_id'])
-                    .maybeSingle();
-
-            if (readReceiptResponse != null) {
-              conversationMap['last_message_read_at'] =
-                  readReceiptResponse['read_at'];
-            }
-          }
         }
 
         conversations.add(Conversation.fromJson(conversationMap));
@@ -309,7 +199,7 @@ class MessagingService {
 
       // Filter out messages deleted before 'cleared_at'
       if (clearedAt != null) {
-        query = query.gt('created_at', clearedAt.toIso8601String());
+        query = query.gte('created_at', clearedAt.toIso8601String());
       }
 
       final response = await query
@@ -387,7 +277,10 @@ class MessagingService {
       }
 
       // Filter out expired ephemeral messages
-      final visibleMessages = MessagingService.filterExpiredMessages(messages);
+      final visibleMessages = MessagingService.filterExpiredMessages(
+        messages,
+        sessionStart: sessionStart,
+      );
 
       return visibleMessages.reversed.toList(); // Reverse to show oldest first
     } catch (e) {
@@ -511,16 +404,6 @@ class MessagingService {
 
       await _supabase.from(SupabaseConfig.messagesTable).insert(insertData);
 
-      // Update conversation's last message and timestamp
-      await _supabase
-          .from(SupabaseConfig.conversationsTable)
-          .update({
-            'last_message_id': messageId,
-            'last_message_at': DateTime.now().toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', conversationId);
-
       // Fetch the created message with sender details
       final response =
           await _supabase
@@ -560,6 +443,17 @@ class MessagingService {
       }
 
       final message = Message.fromJson(messageMap);
+
+      // Update conversation's last message and timestamp manually using the message's actual creation time
+      // This ensures consistency even if the trigger is delayed or missing.
+      await _supabase
+          .from(SupabaseConfig.conversationsTable)
+          .update({
+            'last_message_id': message.id,
+            'last_message_at': message.timestamp.toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', conversationId);
 
       // Trigger notifications for other participants
       try {
@@ -874,9 +768,10 @@ class MessagingService {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('Not authenticated');
 
+      // Use database-side NOW() with a small buffer to avoid clock sync issues
       await _supabase
           .from('conversation_participants')
-          .update({'cleared_at': DateTime.now().toIso8601String()})
+          .update({'cleared_at': 'now()'})
           .eq('conversation_id', conversationId)
           .eq('user_id', userId);
     } catch (e) {
@@ -1113,126 +1008,141 @@ class MessagingService {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('Not authenticated');
 
+      // 1. Fetch conversation and participant info
       final response =
           await _supabase
               .from(SupabaseConfig.conversationsTable)
               .select('''
             *,
-            conversation_participants!inner(unread_count),
-            last_message:last_message_id (
-              content,
-              sender_id,
-              image_url,
-              video_url,
-              file_url,
-              voice_url,
-              voice_duration,
-              created_at,
-              iv,
-              encrypted_keys,
-              signal_message_type,
-              signal_sender_content,
-              signal_sender_message_type
+            my_participant_info:conversation_participants!inner(
+              unread_count,
+              user_id,
+              cleared_at
+            ),
+            all_participants:conversation_participants(
+              user_id,
+              profile:${SupabaseConfig.profilesTable}(
+                username,
+                full_name,
+                avatar_url
+              )
             )
           ''')
               .eq('id', conversationId)
+              .eq('my_participant_info.user_id', userId)
               .single();
 
       final conversationMap = Map<String, dynamic>.from(response);
       
-      // Get unread count from the inner join result
-      if (response['conversation_participants'] != null && 
-          (response['conversation_participants'] as List).isNotEmpty) {
-        conversationMap['unread_count'] = response['conversation_participants'][0]['unread_count'];
-      }
+      // Extract unread count and cleared_at
+      final myInfo = conversationMap['my_participant_info'] as List;
+      conversationMap['unread_count'] = myInfo.isNotEmpty ? (myInfo[0]['unread_count'] ?? 0) : 0;
+      final clearedAtStr = myInfo.isNotEmpty ? myInfo[0]['cleared_at'] as String? : null;
+      final clearedAt = clearedAtStr != null ? DateTime.parse(clearedAtStr) : null;
 
-      // For direct conversations, get the other participant
-      if (conversationMap['type'] == 'direct') {
-        final participants = await _supabase
-            .from('conversation_participants')
-            .select('user_id')
-            .eq('conversation_id', conversationId)
-            .neq('user_id', userId);
+      // Extract "other user" info
+      if (conversationMap['type'] == 'direct' && conversationMap['all_participants'] != null) {
+        final participants = conversationMap['all_participants'] as List;
+        final otherParticipant = participants.firstWhere(
+          (p) => p['user_id'] != userId,
+          orElse: () => participants.isNotEmpty ? participants[0] : null,
+        );
 
-        if (participants.isNotEmpty) {
-          final otherUserId = participants.first['user_id'];
-          final profile =
-              await _supabase
-                  .from(SupabaseConfig.profilesTable)
-                  .select('username, avatar_url')
-                  .eq('id', otherUserId)
-                  .single();
-
-          conversationMap['other_user_id'] = otherUserId;
-          conversationMap['other_user_name'] = profile['username'] ?? 'Unknown';
+        if (otherParticipant != null && otherParticipant['profile'] != null) {
+          final profile = otherParticipant['profile'];
+          conversationMap['other_user_id'] = otherParticipant['user_id'];
+          conversationMap['other_user_name'] = profile['username'] ?? profile['full_name'] ?? 'Unknown';
           conversationMap['other_user_avatar'] = profile['avatar_url'] ?? '';
         }
+      } else {
+        conversationMap['other_user_id'] = '';
+        conversationMap['other_user_name'] = conversationMap['name'] ?? 'Group Chat';
+        conversationMap['other_user_avatar'] = conversationMap['image_url'] ?? '';
       }
 
-      // Handle decryption for last message preview
-      final lastMessage = conversationMap['last_message'];
-      if (lastMessage != null) {
-        String content = lastMessage['content'] ?? '';
-        final isSender = lastMessage['sender_id'] == userId;
+      // 2. Fetch the TRUE latest message directly from messages table (bulletproof)
+      final lastMsgResponse = await _supabase
+          .from(SupabaseConfig.messagesTable)
+          .select('''
+            id,
+            content,
+            sender_id,
+            created_at,
+            image_url,
+            video_url,
+            file_url,
+            voice_url,
+            iv,
+            encrypted_keys,
+            signal_message_type,
+            signal_sender_content
+          ''')
+          .eq('conversation_id', conversationId)
+          .filter('created_at', 'gt', clearedAt?.toIso8601String() ?? '1970-01-01')
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
 
-        if (isSender && lastMessage['signal_sender_content'] != null && lastMessage['encrypted_keys'] != null && lastMessage['iv'] != null) {
-          try {
+      if (lastMsgResponse != null) {
+        final lastMsgData = Map<String, dynamic>.from(lastMsgResponse);
+        final msgCreatedAtStr = lastMsgData['created_at'] as String?;
+        final msgCreatedAt = msgCreatedAtStr != null ? DateTime.parse(msgCreatedAtStr) : null;
+
+        String content = lastMsgData['content'] ?? '';
+        final isSender = lastMsgData['sender_id'] == userId;
+
+        // Decryption Logic
+        try {
+          if (isSender && lastMsgData['signal_sender_content'] != null && lastMsgData['encrypted_keys'] != null && lastMsgData['iv'] != null) {
             final decrypted = await EncryptionService().decryptMessage(
-              lastMessage['signal_sender_content'],
-              lastMessage['encrypted_keys'],
-              lastMessage['iv'],
+              lastMsgData['signal_sender_content'],
+              Map<String, String>.from(lastMsgData['encrypted_keys']),
+              lastMsgData['iv'],
             );
             content = decrypted ?? '🔒 Message encrypted';
-          } catch (e) {
-            content = '🔒 Message encrypted';
-          }
-        } else if (!isSender && lastMessage['signal_message_type'] != null) {
-          try {
+          } else if (!isSender && lastMsgData['signal_message_type'] != null) {
             await SignalService().init();
             content = await SignalService().decryptMessage(
-              lastMessage['sender_id'],
+              lastMsgData['sender_id'],
               content,
-              lastMessage['signal_message_type'],
+              lastMsgData['signal_message_type'],
             );
             
-            if (content.contains('🔒') && 
-                lastMessage['encrypted_keys'] != null && 
-                lastMessage['iv'] != null &&
-                lastMessage['signal_sender_content'] != null) {
+            if (content.contains('🔒') && lastMsgData['encrypted_keys'] != null && lastMsgData['iv'] != null && lastMsgData['signal_sender_content'] != null) {
               final rsaDecrypted = await EncryptionService().decryptMessage(
-                lastMessage['signal_sender_content'],
-                lastMessage['encrypted_keys'],
-                lastMessage['iv'],
+                lastMsgData['signal_sender_content'],
+                Map<String, String>.from(lastMsgData['encrypted_keys']),
+                lastMsgData['iv'],
               );
               if (rsaDecrypted != null) content = rsaDecrypted;
             }
-          } catch (e) {
-            content = '🔒 Message encrypted';
-          }
-        } else if (lastMessage['encrypted_keys'] != null && lastMessage['iv'] != null) {
-          try {
+          } else if (lastMsgData['encrypted_keys'] != null && lastMsgData['iv'] != null) {
             final decrypted = await EncryptionService().decryptMessage(
               content,
-              lastMessage['encrypted_keys'],
-              lastMessage['iv'],
+              Map<String, String>.from(lastMsgData['encrypted_keys']),
+              lastMsgData['iv'],
             );
             content = decrypted ?? '🔒 Message encrypted';
-          } catch (e) {
-            content = '🔒 Message encrypted';
           }
+        } catch (e) {
+          content = '🔒 Message encrypted';
         }
 
         conversationMap['last_message'] = content;
-        conversationMap['last_message_time'] = lastMessage['created_at'];
-        conversationMap['last_message_sender_id'] = lastMessage['sender_id'];
+        conversationMap['last_message_time'] = lastMsgData['created_at'];
+        conversationMap['last_message_sender_id'] = lastMsgData['sender_id'];
         
         // Type detection
         String messageType = 'text';
-        if (lastMessage['voice_url'] != null) messageType = 'voice';
-        else if (lastMessage['image_url'] != null) messageType = 'image';
-        else if (lastMessage['video_url'] != null) messageType = 'video';
-        else if (lastMessage['file_url'] != null) messageType = 'document';
+        if (lastMsgData['voice_url'] != null) messageType = 'voice';
+        else if (lastMsgData['image_url'] != null) messageType = 'image';
+        else if (lastMsgData['video_url'] != null) messageType = 'video';
+        else if (lastMsgData['file_url'] != null) messageType = 'document';
         conversationMap['last_message_type'] = messageType;
+      } else {
+        // No messages after cleared_at
+        conversationMap['last_message'] = null;
+        conversationMap['last_message_time'] = conversationMap['last_message_at'] ?? conversationMap['created_at'];
       }
 
       return Conversation.fromJson(conversationMap);

@@ -58,6 +58,14 @@ class ConversationProvider with ChangeNotifier {
       if (cachedData != null) {
         final List<dynamic> decodedData = jsonDecode(cachedData);
         _conversations = decodedData.map((item) => Conversation.fromJson(item)).toList();
+        
+        // Sort cached conversations
+        _conversations.sort((a, b) {
+          final timeA = a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+          final timeB = b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+          return timeB.compareTo(timeA);
+        });
+
         notifyListeners();
       }
     } catch (e) {
@@ -86,6 +94,14 @@ class ConversationProvider with ChangeNotifier {
     
     try {
       _conversations = await _messagingService.getConversations(userId: _currentUserId!);
+      
+      // Ensure they are sorted by last message time (rearranged based on latest text)
+      _conversations.sort((a, b) {
+        final timeA = a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final timeB = b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return timeB.compareTo(timeA);
+      });
+
       await _saveConversationsToCache();
       
       // Setup individual subscriptions for each conversation (read receipts, typing)
@@ -110,9 +126,9 @@ class ConversationProvider with ChangeNotifier {
     // Subscribe to unread count changes and participant changes
     _conversationsSubscription = _messagingService.subscribeToConversations(
       userId: _currentUserId!,
-      onUpdate: (conversationId) {
-        // SURGICAL UPDATE: Instead of reloading the whole list, just refresh this one.
-        // This prevents the whole screen from flickering/rebuilding.
+      onUpdate: (conversationId) async {
+        // Add a small delay to ensure DB triggers have finished updating the 'conversations' table
+        await Future.delayed(const Duration(milliseconds: 300));
         refreshConversation(conversationId);
       },
     );
@@ -186,6 +202,35 @@ class ConversationProvider with ChangeNotifier {
         isOtherUserTyping: isTyping,
       );
       notifyListeners();
+    }
+  }
+
+  /// Manually update a conversation's last message time (useful for sender rearrangement)
+  void onMessageSent(String conversationId, String content, String? type) {
+    final index = _conversations.indexWhere((c) => c.id == conversationId);
+    if (index != -1) {
+      final now = DateTime.now();
+      final conversation = _conversations[index];
+
+      _conversations[index] = conversation.copyWith(
+        lastMessage: content,
+        lastMessageTime: now,
+        lastMessageType: type ?? 'text',
+        lastMessageSenderId: _currentUserId,
+      );
+
+      // Resort immediately to move this conversation to the top
+      _conversations.sort((a, b) {
+        final timeA = a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final timeB = b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return timeB.compareTo(timeA);
+      });
+
+      notifyListeners();
+      _saveConversationsToCache();
+    } else {
+      // If conversation not in list (e.g. new message), refresh the whole list
+      refreshConversation(conversationId);
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'dart:ui';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -420,8 +421,8 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
     final now = DateTime.now();
     final difference = now.difference(timestamp);
 
-    if (difference.inMinutes < 1) {
-      return 'Now';
+    if (difference.isNegative || difference.inMinutes < 1) {
+      return 'Just now';
     } else if (difference.inHours < 1) {
       return '${difference.inMinutes}m';
     } else if (difference.inDays < 1) {

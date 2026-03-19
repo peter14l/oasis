@@ -1060,7 +1060,16 @@ class _ChatScreenState extends State<ChatScreen> {
       // Refresh DM list preview in provider
       if (mounted) {
         final conversationProvider = context.read<ConversationProvider>();
-        await conversationProvider.refreshConversation(widget.conversationId);
+        // 1. Update locally for immediate rearrangement and preview update
+        conversationProvider.onMessageSent(
+          widget.conversationId, 
+          content,
+          messageType.name,
+        );
+        // 2. Fetch full details from server after a short delay to ensure DB triggers finished
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) conversationProvider.refreshConversation(widget.conversationId);
+        });
       }
       _saveMessagesToCache();
     } catch (e) {

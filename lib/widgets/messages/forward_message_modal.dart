@@ -175,6 +175,17 @@ class _ForwardMessageModalState extends State<ForwardMessageModal> {
         voiceDuration: widget.message.voiceDuration,
       );
 
+      // Add optimistic update
+      if (mounted) {
+        context.read<ConversationProvider>().onMessageSent(
+          conversation.id,
+          widget.message.content == '🔒 Message encrypted' 
+              ? 'Forwarded message' 
+              : widget.message.content,
+          widget.message.messageType.name,
+        );
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
