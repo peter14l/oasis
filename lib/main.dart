@@ -30,6 +30,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:oasis_v2/firebase_options.dart';
 import 'package:oasis_v2/services/notification_manager.dart';
 import 'package:oasis_v2/services/call_service.dart';
+import 'package:oasis_v2/services/sharing_service.dart';
 
 // Theme Provider to manage theme mode
 class ThemeProvider with ChangeNotifier {
@@ -315,6 +316,7 @@ class _MyAppState extends State<MyApp> {
                   context.read<ProfileProvider>().loadCurrentProfile(userId);
                   context.read<CircleProvider>().loadCircles(userId);
                   context.read<CanvasProvider>().loadCanvases(userId);
+                  SharingService().init(context);
 
                   // Initialize encryption keys in the background for all users
                   Future.wait([

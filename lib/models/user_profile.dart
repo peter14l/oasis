@@ -103,7 +103,7 @@ class UserProfile {
       'is_private': isPrivate,
       'is_pro': isPro,
       'followers_count': followersCount,
-      'following_count': following_count,
+      'following_count': followingCount,
       'posts_count': postsCount,
       'banner_url': bannerUrl,
       'banner_color': bannerColor,

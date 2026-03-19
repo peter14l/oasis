@@ -118,6 +118,7 @@ dependencies:
   local_auth: ^3.0.1
   flutter_webrtc: ^0.12.1
   permission_handler: ^11.3.1
+  receive_sharing_intent: ^1.8.1
 
 dev_dependencies:
   sentry_dart_plugin: ^3.2.0

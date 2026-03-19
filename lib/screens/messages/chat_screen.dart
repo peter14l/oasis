@@ -99,6 +99,7 @@ class _ChatScreenState extends State<ChatScreen> {
   StreamSubscription<List<Map<String, dynamic>>>? _callsSubscription;
   XFile? _selectedImage;
   File? _selectedVideo;
+  File? _selectedAudio;
   PlatformFile? _selectedFile;
   String? _backgroundUrl;
   Color? _bubbleColorSent;
@@ -656,6 +657,19 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _pickAudio() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.audio,
+      );
+      if (result != null && result.files.single.path != null) {
+        setState(() => _selectedAudio = File(result.files.single.path!));
+      }
+    } catch (e) {
+      _showError('Error picking audio: $e');
+    }
+  }
+
   void _showError(String message) {
     if (mounted) {
       ScaffoldMessenger.of(
@@ -768,10 +782,20 @@ class _ChatScreenState extends State<ChatScreen> {
                             },
                           ),
                           _AttachmentOption(
-                            icon: Icons.mic_rounded,
+                            icon: Icons.audio_file_rounded,
                             label: 'Audio',
                             iconColor: const Color(0xFFFFD43B),
                             bgColor: const Color(0xFFFFD43B).withValues(alpha: 0.1),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _pickAudio();
+                            },
+                          ),
+                          _AttachmentOption(
+                            icon: Icons.mic_rounded,
+                            label: 'Record',
+                            iconColor: const Color(0xFFFF922B),
+                            bgColor: const Color(0xFFFF922B).withValues(alpha: 0.1),
                             onTap: () {
                               Navigator.pop(context);
                               _startRecording();
@@ -809,6 +833,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final content = _messageController.text.trim();
     final imageFile = _selectedImage;
     final videoFile = _selectedVideo;
+    final audioFile = _selectedAudio;
     final docFile = _selectedFile;
 
     _messageController.clear();
@@ -816,6 +841,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _isSending = true;
       _selectedImage = null;
       _selectedVideo = null;
+      _selectedAudio = null;
       _selectedFile = null;
     });
 
@@ -907,6 +933,13 @@ class _ChatScreenState extends State<ChatScreen> {
           fileSize = docFile.size;
           mimeType = docFile.extension;
         }
+      } else if (audioFile != null) {
+        mediaUrl = await _messagingService.uploadChatMedia(
+          audioFile.path,
+          folder: 'audio',
+        );
+        messageType = MessageType.voice;
+        fileName = 'Audio Attachment';
       }
 
       // Always generate a fallback RSA encrypted copy for BOTH sender and recipient
@@ -1600,6 +1633,7 @@ class _ChatScreenState extends State<ChatScreen> {
               // Previews (Image/File)
               if (_selectedImage != null) _buildImagePreview(),
               if (_selectedFile != null) _buildFilePreview(),
+              if (_selectedAudio != null) _buildAudioPreview(),
               if (_selectedVideo != null)
                 _buildFilePreview(name: 'Video selected'),
 
@@ -2030,6 +2064,39 @@ class _ChatScreenState extends State<ChatScreen> {
             onPressed: () {
               setState(() {
                 _selectedFile = null;
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAudioPreview() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.audio_file_rounded, color: colorScheme.primary),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              'Audio selected',
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              setState(() {
+                _selectedAudio = null;
               });
             },
           ),
