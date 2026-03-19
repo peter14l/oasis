@@ -23,8 +23,12 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isPlaying = false;
   bool _isError = false;
+  bool _isDragging = false;
+  double _playbackSpeed = 1.0;
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
+
+  final List<double> _speeds = [0.5, 1.0, 1.5, 2.0];
 
   @override
   void initState() {
@@ -52,7 +56,7 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
       });
 
       _audioPlayer.onPositionChanged.listen((position) {
-        if (mounted) {
+        if (mounted && !_isDragging) {
           setState(() {
             _position = position;
           });
@@ -86,12 +90,34 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
         await _audioPlayer.pause();
       } else {
         if (widget.audioUrl.isEmpty) return;
+        // If we are at the end, restart
+        if (_position >= _duration && _duration.inSeconds > 0) {
+          await _audioPlayer.seek(Duration.zero);
+        }
+        await _audioPlayer.setPlaybackRate(_playbackSpeed);
         await _audioPlayer.play(UrlSource(widget.audioUrl));
       }
     } catch (e) {
       debugPrint('Error playing audio: $e');
       if (mounted) setState(() => _isError = true);
     }
+  }
+
+  Future<void> _cycleSpeed() async {
+    final currentIndex = _speeds.indexOf(_playbackSpeed);
+    final nextIndex = (currentIndex + 1) % _speeds.length;
+    final nextSpeed = _speeds[nextIndex];
+    
+    setState(() {
+      _playbackSpeed = nextSpeed;
+    });
+    
+    await _audioPlayer.setPlaybackRate(nextSpeed);
+  }
+
+  void _onSeek(double value) {
+    final targetPosition = Duration(seconds: value.toInt());
+    _audioPlayer.seek(targetPosition);
   }
 
   String _formatDuration(Duration duration) {
@@ -131,12 +157,12 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.only(left: 4, right: 8, top: 4, bottom: 4),
       decoration: BoxDecoration(
         color: widget.isMe 
-          ? widget.color.withValues(alpha: 0.15)
-          : Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
+          ? widget.color.withValues(alpha: 0.12)
+          : Colors.black.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -145,49 +171,81 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             icon: Icon(
-              _isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
+              _isPlaying ? Icons.pause_circle_filled_rounded : Icons.play_circle_filled_rounded,
               color: widget.color,
-              size: 32,
+              size: 38,
             ),
             onPressed: _togglePlayPause,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Text(
-                    _formatDuration(_position),
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: widget.color,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    ' / ' + _formatDuration(_duration),
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: widget.color.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
               SizedBox(
-                width: 120, // Slightly wider, fits within the bubble
-                height: 3,
-                child: LinearProgressIndicator(
-                  value: _duration.inSeconds > 0
-                      ? (_position.inSeconds / _duration.inSeconds).clamp(0.0, 1.0)
-                      : 0,
-                  backgroundColor: widget.color.withValues(alpha: 0.2),
-                  valueColor: AlwaysStoppedAnimation<Color>(widget.color),
+                width: 130, // Slightly reduced to fit speed button
+                height: 20,
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 3,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                    activeTrackColor: widget.color,
+                    inactiveTrackColor: widget.color.withValues(alpha: 0.2),
+                    thumbColor: widget.color,
+                    overlayColor: widget.color.withValues(alpha: 0.1),
+                  ),
+                  child: Slider(
+                    value: _position.inSeconds.toDouble().clamp(0, _duration.inSeconds.toDouble()),
+                    min: 0,
+                    max: _duration.inSeconds > 0 ? _duration.inSeconds.toDouble() : 1.0,
+                    onChangeStart: (_) => setState(() => _isDragging = true),
+                    onChangeEnd: (val) {
+                      _onSeek(val);
+                      setState(() => _isDragging = false);
+                    },
+                    onChanged: (val) {
+                      setState(() {
+                        _position = Duration(seconds: val.toInt());
+                      });
+                    },
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 12),
+                child: Text(
+                  '${_formatDuration(_position)} / ${_formatDuration(_duration)}',
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: widget.color.withValues(alpha: 0.7),
+                    fontWeight: FontWeight.w600,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
                 ),
               ),
             ],
+          ),
+          const SizedBox(width: 4),
+          // Speed Control Button
+          InkWell(
+            onTap: _cycleSpeed,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+              decoration: BoxDecoration(
+                color: widget.color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '${_playbackSpeed.toString().replaceAll('.0', '')}x',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: widget.color,
+                ),
+              ),
+            ),
           ),
         ],
       ),
