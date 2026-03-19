@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -166,31 +167,33 @@ class _ProfileScreenState extends State<ProfileScreen>
               SliverPersistentHeader(
                 pinned: true,
                 delegate: _SliverAppBarDelegate(
-                  ClipRRect(
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                      child: Container(
-                        color: colorScheme.surface.withValues(alpha: 0.7),
-                        child: TabBar(
-                          controller: _tabController,
-                          indicatorSize: TabBarIndicatorSize.label,
-                          dividerColor: Colors.transparent,
-                          labelColor: colorScheme.primary,
-                          unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.4),
-                          indicator: UnderlineTabIndicator(
-                            borderSide: BorderSide(width: 3, color: colorScheme.primary),
-                            borderRadius: BorderRadius.circular(3),
+                  PreferredSize(
+                    preferredSize: const Size.fromHeight(48),
+                    child: ClipRRect(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Container(
+                          color: colorScheme.surface.withValues(alpha: 0.7),
+                          child: TabBar(
+                            controller: _tabController,
+                            indicatorSize: TabBarIndicatorSize.label,
+                            dividerColor: Colors.transparent,
+                            labelColor: colorScheme.primary,
+                            unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.4),
+                            indicator: UnderlineTabIndicator(
+                              borderSide: BorderSide(width: 3, color: colorScheme.primary),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                            tabs: [
+                              const Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
+                              if (isOwnProfile)
+                                const Tab(icon: Icon(Icons.bookmark_rounded, size: 22)),
+                            ],
                           ),
-                          tabs: [
-                            const Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
-                            if (isOwnProfile)
-                              const Tab(icon: Icon(Icons.bookmark_rounded, size: 22)),
-                          ],
                         ),
                       ),
                     ),
                   ),
-                  48.0,
                 ),
               ),
               SliverFillRemaining(
