@@ -85,6 +85,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isLoading = false;
   bool _isSending = false;
   bool _isCompressing = false;
+  bool _isRecording = false;
   Message? _replyMessage;
   // SmartReplyService is static now
   List<String> _smartReplies = [];
@@ -1122,6 +1123,14 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _toggleRecording() async {
+    if (_isRecording) {
+      await _stopRecording();
+    } else {
+      await _startRecording();
+    }
+  }
+
   Future<void> _startRecording() async {
     try {
       if (await _audioRecorder.hasPermission()) {
@@ -1139,6 +1148,7 @@ class _ChatScreenState extends State<ChatScreen> {
         );
 
         setState(() {
+          _isRecording = true;
           _recordDuration = 0;
         });
 
@@ -1149,6 +1159,7 @@ class _ChatScreenState extends State<ChatScreen> {
             });
           }
         });
+        HapticUtils.lightImpact();
       }
     } catch (e) {
       _showError('Error starting recording: $e');
@@ -1158,18 +1169,24 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _stopRecording() async {
     try {
       _recordTimer?.cancel();
+      _recordTimer = null;
       final recordPath = await _audioRecorder.stop();
 
-      if (recordPath != null && mounted) {
+      if (mounted) {
         setState(() {
+          _isRecording = false;
           _recordDuration = 0;
         });
 
-        // Send the audio message
-        await _sendAudioMessage(recordPath);
+        if (recordPath != null) {
+          // Send the audio message
+          await _sendAudioMessage(recordPath);
+        }
       }
+      HapticUtils.lightImpact();
     } catch (e) {
       _showError('Error stopping recording: $e');
+      if (mounted) setState(() => _isRecording = false);
     }
   }
 
@@ -2863,6 +2880,48 @@ class _AttachmentOption extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _RecordingDot extends StatefulWidget {
+  const _RecordingDot();
+
+  @override
+  State<_RecordingDot> createState() => _RecordingDotState();
+}
+
+class _RecordingDotState extends State<_RecordingDot>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _controller,
+      child: Container(
+        width: 10,
+        height: 10,
+        decoration: const BoxDecoration(
+          color: Colors.red,
+          shape: BoxShape.circle,
+        ),
       ),
     );
   }
