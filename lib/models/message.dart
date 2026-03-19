@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:oasis_v2/models/message_reaction.dart';
 
 enum MessageType { text, image, document, voice, poll, location }
@@ -75,7 +76,9 @@ class Message {
     // Derive message type from URL fields since message_type column doesn't exist
     MessageType type = MessageType.text;
 
-    if (json['image_url'] != null && json['image_url'].toString().isNotEmpty) {
+    if (json['voice_url'] != null && json['voice_url'].toString().isNotEmpty) {
+      type = MessageType.voice;
+    } else if (json['image_url'] != null && json['image_url'].toString().isNotEmpty) {
       type = MessageType.image;
     } else if (json['video_url'] != null &&
         json['video_url'].toString().isNotEmpty) {
@@ -85,9 +88,13 @@ class Message {
       type = MessageType.document;
     }
 
+    debugPrint('Mapping message ${json['id']} type: $type (voice_url: ${json['voice_url']})');
+
     // Consolidate media URLs into single mediaUrl field
     String? mediaUrl;
-    if (json['image_url'] != null) {
+    if (json['voice_url'] != null) {
+      mediaUrl = json['voice_url'] as String?;
+    } else if (json['image_url'] != null) {
       mediaUrl = json['image_url'] as String?;
     } else if (json['video_url'] != null) {
       mediaUrl = json['video_url'] as String?;
@@ -155,6 +162,8 @@ class Message {
       'message_type': messageType.name,
       'image_url': messageType == MessageType.image ? mediaUrl : null,
       'file_url': messageType == MessageType.document ? mediaUrl : null,
+      'voice_url': messageType == MessageType.voice ? mediaUrl : null,
+      'voice_duration': voiceDuration,
       'file_name': mediaFileName,
       'file_size': mediaFileSize,
       'media_mime_type': mediaMimeType,

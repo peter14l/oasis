@@ -22,6 +22,7 @@ class VoiceMessagePlayer extends StatefulWidget {
 class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isPlaying = false;
+  bool _isError = false;
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
 
@@ -33,49 +34,63 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
   }
 
   Future<void> _initAudioPlayer() async {
-    _audioPlayer.onPlayerStateChanged.listen((state) {
-      if (mounted) {
-        setState(() {
-          _isPlaying = state == PlayerState.playing;
-        });
-      }
-    });
+    try {
+      _audioPlayer.onPlayerStateChanged.listen((state) {
+        if (mounted) {
+          setState(() {
+            _isPlaying = state == PlayerState.playing;
+          });
+        }
+      });
 
-    _audioPlayer.onDurationChanged.listen((duration) {
-      if (mounted) {
-        setState(() {
-          _duration = duration;
-        });
-      }
-    });
+      _audioPlayer.onDurationChanged.listen((duration) {
+        if (mounted && duration.inSeconds > 0) {
+          setState(() {
+            _duration = duration;
+          });
+        }
+      });
 
-    _audioPlayer.onPositionChanged.listen((position) {
-      if (mounted) {
-        setState(() {
-          _position = position;
-        });
-      }
-    });
+      _audioPlayer.onPositionChanged.listen((position) {
+        if (mounted) {
+          setState(() {
+            _position = position;
+          });
+        }
+      });
 
-    _audioPlayer.onPlayerComplete.listen((_) {
-      if (mounted) {
-        setState(() {
-          _isPlaying = false;
-          _position = _duration;
-        });
+      _audioPlayer.onPlayerComplete.listen((_) {
+        if (mounted) {
+          setState(() {
+            _isPlaying = false;
+            _position = Duration.zero; // Reset to start
+          });
+        }
+      });
+
+      // Pre-load the source
+      if (widget.audioUrl.isNotEmpty) {
+        await _audioPlayer.setSourceUrl(widget.audioUrl);
       }
-    });
+    } catch (e) {
+      debugPrint('Error initializing audio: $e');
+      if (mounted) setState(() => _isError = true);
+    }
   }
 
   Future<void> _togglePlayPause() async {
-    if (_isPlaying) {
-      await _audioPlayer.pause();
-    } else {
-      if (_position >= _duration) {
-        // If at the end, restart from beginning
-        await _audioPlayer.seek(Duration.zero);
+    if (_isError) return;
+    
+    try {
+      if (_isPlaying) {
+        await _audioPlayer.pause();
+      } else {
+        if (widget.audioUrl.isEmpty) return;
+        await _audioPlayer.play(UrlSource(widget.audioUrl));
       }
-      await _audioPlayer.play(UrlSource(widget.audioUrl));
+    } catch (e) {
+      debugPrint('Error playing audio: $e');
+      if (mounted) setState(() => _isError = true);
     }
   }
 
@@ -94,51 +109,85 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isError) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.red.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              'Audio error',
+              style: TextStyle(color: Colors.red[700], fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: widget.isMe 
-          ? widget.color.withValues(alpha: 0.2)
-          : Colors.grey[300],
-        borderRadius: BorderRadius.circular(16),
+          ? widget.color.withValues(alpha: 0.15)
+          : Colors.grey[200],
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
             icon: Icon(
-              _isPlaying ? Icons.pause : Icons.play_arrow,
+              _isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
               color: widget.color,
+              size: 32,
             ),
             onPressed: _togglePlayPause,
           ),
           const SizedBox(width: 8),
-          Text(
-            _formatDuration(_position),
-            style: TextStyle(
-              fontSize: 12,
-              color: widget.color,
-            ),
-          ),
-          const Text(' / '),
-          Text(
-            _formatDuration(_duration),
-            style: TextStyle(
-              fontSize: 12,
-              color: widget.color.withValues(alpha: 0.7),
-            ),
-          ),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 100,
-            height: 4,
-            child: LinearProgressIndicator(
-              value: _duration.inSeconds > 0
-                  ? (_position.inSeconds / _duration.inSeconds).clamp(0.0, 1.0)
-                  : 0,
-              backgroundColor: widget.color.withValues(alpha: 0.3),
-              valueColor: AlwaysStoppedAnimation<Color>(widget.color),
-            ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    _formatDuration(_position),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: widget.color,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    ' / ' + _formatDuration(_duration),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: widget.color.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              SizedBox(
+                width: 120, // Slightly wider, fits within the bubble
+                height: 3,
+                child: LinearProgressIndicator(
+                  value: _duration.inSeconds > 0
+                      ? (_position.inSeconds / _duration.inSeconds).clamp(0.0, 1.0)
+                      : 0,
+                  backgroundColor: widget.color.withValues(alpha: 0.2),
+                  valueColor: AlwaysStoppedAnimation<Color>(widget.color),
+                ),
+              ),
+            ],
           ),
         ],
       ),

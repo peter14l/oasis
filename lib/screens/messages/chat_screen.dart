@@ -8,6 +8,7 @@ import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:record/record.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,6 +43,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:oasis_v2/services/call_service.dart';
 import 'package:oasis_v2/screens/messages/incoming_call_overlay.dart';
 import 'package:oasis_v2/models/call.dart';
+import 'package:oasis_v2/services/audio_compression_service.dart';
 import 'package:go_router/go_router.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -72,6 +74,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _imagePicker = ImagePicker();
   final AudioRecorder _audioRecorder = AudioRecorder();
+  final AudioPlayer _durationPlayer = AudioPlayer();
   final FocusNode _focusNode = FocusNode();
   late VaultService _vaultService;
 
@@ -81,6 +84,7 @@ class _ChatScreenState extends State<ChatScreen> {
   List<Message> _messages = [];
   bool _isLoading = false;
   bool _isSending = false;
+  bool _isCompressing = false;
   // SmartReplyService is static now
   List<String> _smartReplies = [];
   bool _showingSmartReplies = false;
@@ -663,9 +667,35 @@ class _ChatScreenState extends State<ChatScreen> {
         type: FileType.audio,
       );
       if (result != null && result.files.single.path != null) {
-        setState(() => _selectedAudio = File(result.files.single.path!));
+        File audioFile = File(result.files.single.path!);
+        
+        // Check if compression is needed (> 48MB for safety)
+        if (await AudioCompressionService().needsCompression(audioFile.path)) {
+          setState(() => _isCompressing = true);
+          
+          final compressedPath = await AudioCompressionService().compressAudio(audioFile.path);
+          
+          setState(() => _isCompressing = false);
+
+          if (compressedPath != null) {
+            audioFile = File(compressedPath);
+          } else {
+            _showError('Failed to compress large audio file. It might fail to upload.');
+          }
+        }
+
+        final sizeInBytes = await audioFile.length();
+        final sizeInMb = sizeInBytes / (1024 * 1024);
+
+        if (sizeInMb > 50) {
+          _showError('File still too large after compression (Max 50MB).');
+          return;
+        }
+
+        setState(() => _selectedAudio = audioFile);
       }
     } catch (e) {
+      setState(() => _isCompressing = false);
       _showError('Error picking audio: $e');
     }
   }
@@ -818,6 +848,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_messageController.text.trim().isEmpty &&
         _selectedImage == null &&
         _selectedVideo == null &&
+        _selectedAudio == null &&
         _selectedFile == null) {
       return;
     }
@@ -1060,7 +1091,14 @@ class _ChatScreenState extends State<ChatScreen> {
         final filePath =
             '${directory.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
-        await _audioRecorder.start(const RecordConfig(), path: filePath);
+        await _audioRecorder.start(
+          const RecordConfig(
+            encoder: AudioEncoder.aacLc,
+            bitRate: 32000, // 32kbps is perfect for voice
+            numChannels: 1, // Mono
+          ),
+          path: filePath,
+        );
 
         setState(() {
           _recordDuration = 0;
@@ -2084,22 +2122,32 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       child: Row(
         children: [
-          Icon(Icons.audio_file_rounded, color: colorScheme.primary),
+          Icon(
+            _isCompressing ? Icons.hourglass_empty_rounded : Icons.audio_file_rounded,
+            color: colorScheme.primary,
+          ),
           const SizedBox(width: 8),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Audio selected',
-              style: TextStyle(fontWeight: FontWeight.w500),
+              _isCompressing ? 'Compressing audio...' : 'Audio selected',
+              style: const TextStyle(fontWeight: FontWeight.w500),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              setState(() {
-                _selectedAudio = null;
-              });
-            },
-          ),
+          if (_isCompressing)
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                setState(() {
+                  _selectedAudio = null;
+                });
+              },
+            ),
         ],
       ),
     );

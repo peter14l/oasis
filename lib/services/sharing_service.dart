@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:oasis_v2/models/message.dart';
 import 'package:oasis_v2/models/conversation.dart';
 import 'package:oasis_v2/services/messaging_service.dart';
 import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/services/audio_compression_service.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -169,24 +171,62 @@ class _ShareToChatModalState extends State<ShareToChatModal> {
       if (userId == null) return;
 
       for (final sharedFile in widget.files) {
+        String filePath = sharedFile.path;
+        final file = File(filePath);
+        final sizeInBytes = await file.length();
+        final sizeInMb = sizeInBytes / (1024 * 1024);
+
+        // Simple type detection
+        final pathLower = sharedFile.path.toLowerCase();
+        final isAudio = pathLower.endsWith('.mp3') || pathLower.endsWith('.m4a') || pathLower.endsWith('.wav');
+
+        if (sizeInMb > 50) {
+          if (isAudio) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Audio file is large. Compressing...')),
+              );
+            }
+            final compressedPath = await AudioCompressionService().compressAudio(sharedFile.path);
+            if (compressedPath != null) {
+              filePath = compressedPath;
+            } else {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('File ${sharedFile.path.split('/').last} is too large and compression failed.')),
+                );
+              }
+              continue;
+            }
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('File ${sharedFile.path.split('/').last} is too large (Max 50MB for Free Plan). Skipping.'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            }
+            continue;
+          }
+        }
+
         String folder = 'files';
         MessageType type = MessageType.document;
         
-        // Simple type detection
-        final path = sharedFile.path.toLowerCase();
-        if (path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png')) {
+        if (pathLower.endsWith('.jpg') || pathLower.endsWith('.jpeg') || pathLower.endsWith('.png')) {
           folder = 'images';
           type = MessageType.image;
-        } else if (path.endsWith('.mp4') || path.endsWith('.mov')) {
+        } else if (pathLower.endsWith('.mp4') || pathLower.endsWith('.mov')) {
           folder = 'videos';
-          type = MessageType.document; // Videos are handled as documents in this app
-        } else if (path.endsWith('.mp3') || path.endsWith('.m4a') || path.endsWith('.wav')) {
+          type = MessageType.document;
+        } else if (isAudio) {
           folder = 'audio';
           type = MessageType.voice;
         }
 
         final mediaUrl = await messagingService.uploadChatMedia(
-          sharedFile.path,
+          filePath,
           folder: folder,
         );
 
@@ -196,7 +236,7 @@ class _ShareToChatModalState extends State<ShareToChatModal> {
           content: 'Shared a file',
           messageType: type,
           mediaUrl: mediaUrl,
-          mediaFileName: sharedFile.path.split('/').last,
+          mediaFileName: filePath.split('/').last,
         );
       }
 

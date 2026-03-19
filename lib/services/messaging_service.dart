@@ -48,6 +48,8 @@ class MessagingService {
                 image_url,
                 video_url,
                 file_url,
+                voice_url,
+                voice_duration,
                 created_at,
                 iv,
                 encrypted_keys,
@@ -191,7 +193,10 @@ class MessagingService {
 
           // Derive message type from URL fields
           String? messageType = 'text';
-          if (lastMessage['image_url'] != null &&
+          if (lastMessage['voice_url'] != null &&
+              lastMessage['voice_url'].toString().isNotEmpty) {
+            messageType = 'voice';
+          } else if (lastMessage['image_url'] != null &&
               lastMessage['image_url'].toString().isNotEmpty) {
             messageType = 'image';
           } else if (lastMessage['video_url'] != null &&
@@ -475,6 +480,10 @@ class MessagingService {
             break;
           case MessageType.document:
             insertData['file_url'] = mediaUrl;
+            break;
+          case MessageType.voice:
+            insertData['voice_url'] = mediaUrl;
+            insertData['voice_duration'] = voiceDuration;
             break;
           default:
             // For text or other types, don't set a media URL
