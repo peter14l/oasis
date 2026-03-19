@@ -842,16 +842,6 @@ class _ChatScreenState extends State<ChatScreen> {
                               _pickAudio();
                             },
                           ),
-                          _AttachmentOption(
-                            icon: Icons.mic_rounded,
-                            label: 'Record',
-                            iconColor: const Color(0xFFFF922B),
-                            bgColor: const Color(0xFFFF922B).withValues(alpha: 0.1),
-                            onTap: () {
-                              Navigator.pop(context);
-                              _startRecording();
-                            },
-                          ),
                         ],
                       ),
                     ),
