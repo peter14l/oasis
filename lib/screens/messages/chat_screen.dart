@@ -397,6 +397,134 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<Message> _decryptSingleMessage(Message message) async {
+    final currentUserId = _authService.currentUser?.id;
+    Message decryptedMessage = message;
+
+    // 1. Decrypt main content
+    if (message.signalMessageType != null) {
+      try {
+        final isSender = currentUserId != null &&
+            message.senderId.toLowerCase() == currentUserId.toLowerCase();
+
+        if (isSender &&
+            message.signalSenderContent != null &&
+            message.encryptedKeys != null &&
+            message.iv != null) {
+          final decrypted = await _encryptionService.decryptMessage(
+            message.signalSenderContent!,
+            message.encryptedKeys!,
+            message.iv!,
+          );
+          decryptedMessage = decryptedMessage.copyWith(
+            content: decrypted ?? '🔒 Message encrypted',
+          );
+        } else if (!isSender) {
+          String decrypted = await SignalService().decryptMessage(
+            message.senderId,
+            message.content,
+            message.signalMessageType!,
+          );
+
+          if ((decrypted.contains('🔒 Message encrypted') ||
+                  decrypted.contains('Optimizing secure connection')) &&
+              message.signalSenderContent != null &&
+              message.encryptedKeys != null &&
+              message.iv != null) {
+            final rsaDecrypted = await _encryptionService.decryptMessage(
+              message.signalSenderContent!,
+              message.encryptedKeys!,
+              message.iv!,
+            );
+            if (rsaDecrypted != null) decrypted = rsaDecrypted;
+          }
+          decryptedMessage = decryptedMessage.copyWith(content: decrypted);
+        }
+      } catch (e) {
+        debugPrint('Decryption failed: $e');
+        decryptedMessage = decryptedMessage.copyWith(
+          content: '🔒 Message encrypted',
+        );
+      }
+    } else if (message.encryptedKeys != null && message.iv != null) {
+      final decrypted = await _encryptionService.decryptMessage(
+        message.content,
+        message.encryptedKeys!,
+        message.iv!,
+      );
+      decryptedMessage = decryptedMessage.copyWith(
+        content: decrypted ?? '🔒 Message encrypted',
+      );
+    }
+
+    // 2. Decrypt reply content if available
+    if (decryptedMessage.replyToId != null &&
+        decryptedMessage.replyToData != null) {
+      final replyData = decryptedMessage.replyToData!;
+      final replySenderId = replyData['sender_id'] as String?;
+      final replyEncryptedKeys =
+          replyData['encrypted_keys'] as Map<String, dynamic>?;
+      final replyIv = replyData['iv'] as String?;
+      final replySignalType = replyData['signal_message_type'] as int?;
+      final replyContent = replyData['content'] as String?;
+      final replySenderContent = replyData['signal_sender_content'] as String?;
+
+      if (replySenderId != null && replyContent != null) {
+        String? decryptedReply;
+        try {
+          if (replySignalType != null) {
+            final isSender = currentUserId != null &&
+                replySenderId.toLowerCase() == currentUserId.toLowerCase();
+
+            if (isSender &&
+                replySenderContent != null &&
+                replyEncryptedKeys != null &&
+                replyIv != null) {
+              decryptedReply = await _encryptionService.decryptMessage(
+                replySenderContent,
+                Map<String, String>.from(replyEncryptedKeys),
+                replyIv,
+              );
+            } else if (!isSender) {
+              decryptedReply = await SignalService().decryptMessage(
+                replySenderId,
+                replyContent,
+                replySignalType,
+              );
+
+              if (decryptedReply.contains('🔒') &&
+                  replySenderContent != null &&
+                  replyEncryptedKeys != null &&
+                  replyIv != null) {
+                decryptedReply = await _encryptionService.decryptMessage(
+                  replySenderContent,
+                  Map<String, String>.from(replyEncryptedKeys),
+                  replyIv,
+                );
+              }
+            }
+          } else if (replyEncryptedKeys != null && replyIv != null) {
+            decryptedReply = await _encryptionService.decryptMessage(
+              replyContent,
+              Map<String, String>.from(replyEncryptedKeys),
+              replyIv,
+            );
+          }
+
+          if (decryptedReply != null && !decryptedReply.contains('🔒')) {
+            decryptedMessage = decryptedMessage.copyWith(
+              replyToContent: decryptedReply,
+            );
+          }
+        } catch (e) {
+          debugPrint('Failed to decrypt reply context: $e');
+        }
+      }
+    }
+
+    return decryptedMessage;
+  }
+
   Future<void> _loadMessages() async {
     setState(() => _isLoading = true);
 
@@ -412,75 +540,8 @@ class _ChatScreenState extends State<ChatScreen> {
       for (final message in messages) {
         // Yield to the event loop to prevent UI freezing during decryption
         await Future.delayed(Duration.zero);
-        if (message.signalMessageType != null) {
-          try {
-            // Robust sender check (lowercase comparison to avoid UUID mismatch)
-            final isSender = currentUserId != null && 
-                           message.senderId.toLowerCase() == currentUserId.toLowerCase();
-              
-            if (isSender && message.signalSenderContent != null && message.encryptedKeys != null && message.iv != null) {
-              // Sender copy is encrypted via RSA using `signalSenderContent` and the `encryptedKeys` payload
-              final decrypted = await _encryptionService.decryptMessage(
-                message.signalSenderContent!,
-                message.encryptedKeys!,
-                message.iv!,
-              );
-              decryptedMessages.add(message.copyWith(content: decrypted ?? '🔒 Message encrypted'));
-            } else if (!isSender && message.signalMessageType != null) {
-              // Recipient copy is encrypted via Signal using `content`
-              String decrypted = await SignalService().decryptMessage(
-                message.senderId,
-                message.content,
-                message.signalMessageType!,
-              );
-              
-              // NEW: If Signal returns a failure placeholder OR optimization placeholder, try RSA fallback immediately
-              bool isSignalFailure = decrypted.contains('🔒 Message encrypted') || 
-                                   decrypted.contains('Optimizing secure connection');
-
-              if (isSignalFailure && 
-                  message.signalSenderContent != null && 
-                  message.encryptedKeys != null && 
-                  message.iv != null) {
-                final rsaDecrypted = await _encryptionService.decryptMessage(
-                  message.signalSenderContent!,
-                  message.encryptedKeys!,
-                  message.iv!,
-                );
-                if (rsaDecrypted != null) {
-                   decrypted = rsaDecrypted;
-                   debugPrint('[ChatScreen] Recovered message via RSA fallback.');
-                }
-              }
-              decryptedMessages.add(message.copyWith(content: decrypted));
-            } else {
-               decryptedMessages.add(message.copyWith(content: '🔒 Message encrypted'));
-            }
-          } catch (e) {
-            debugPrint('Decryption failed: $e');
-            decryptedMessages.add(
-              message.copyWith(content: '🔒 Message encrypted'),
-            );
-          }
-        } else if (message.encryptedKeys != null && message.iv != null) {
-          final decrypted = await _encryptionService.decryptMessage(
-            message.content,
-            message.encryptedKeys!,
-            message.iv!,
-          );
-
-          if (decrypted != null) {
-            decryptedMessages.add(message.copyWith(content: decrypted));
-          } else {
-            // Decryption failed - show placeholder
-            decryptedMessages.add(
-              message.copyWith(content: '🔒 Message encrypted'),
-            );
-          }
-        } else {
-          // Unencrypted message
-          decryptedMessages.add(message);
-        }
+        final decrypted = await _decryptSingleMessage(message);
+        decryptedMessages.add(decrypted);
       }
       setState(() {
         _messages = decryptedMessages;
@@ -504,67 +565,11 @@ class _ChatScreenState extends State<ChatScreen> {
       conversationId: widget.conversationId,
       onNewMessage: (message) async {
         if (mounted) {
-          // Decrypt if encrypted
-          Message finalMessage = message;
-          if (message.signalMessageType != null) {
-            try {
-              final isSender = message.senderId == _authService.currentUser?.id;
-              
-              if (isSender && message.signalSenderContent != null && message.encryptedKeys != null && message.iv != null) {
-                // Sender copy is encrypted via RSA using `signalSenderContent` and the `encryptedKeys` payload
-                final decrypted = await _encryptionService.decryptMessage(
-                  message.signalSenderContent!,
-                  message.encryptedKeys!,
-                  message.iv!,
-                );
-                finalMessage = message.copyWith(content: decrypted ?? '🔒 Message encrypted');
-              } else if (!isSender && message.signalMessageType != null) {
-                // Recipient copy is encrypted via Signal using `content`
-                String decrypted = await SignalService().decryptMessage(
-                  message.senderId,
-                  message.content,
-                  message.signalMessageType!,
-                );
-
-                // NEW: If Signal returns a failure placeholder, try RSA fallback immediately
-                if (decrypted.contains('🔒 Message encrypted') && 
-                    message.signalSenderContent != null && 
-                    message.encryptedKeys != null && 
-                    message.iv != null) {
-                  final rsaDecrypted = await _encryptionService.decryptMessage(
-                    message.signalSenderContent!,
-                    message.encryptedKeys!,
-                    message.iv!,
-                  );
-                  if (rsaDecrypted != null) {
-                     decrypted = rsaDecrypted;
-                     debugPrint('[ChatScreen] Recovered real-time message via RSA fallback.');
-                  }
-                }
-                finalMessage = message.copyWith(content: decrypted);
-              } else {
-                 finalMessage = message.copyWith(content: '🔒 Message encrypted');
-              }
-            } catch (e) {
-              debugPrint('Decryption failed: $e');
-              finalMessage = message.copyWith(content: '🔒 Message encrypted');
-            }
-          } else if (message.encryptedKeys != null && message.iv != null) {
-            final decrypted = await _encryptionService.decryptMessage(
-              message.content,
-              message.encryptedKeys!,
-              message.iv!,
-            );
-            if (decrypted != null) {
-              finalMessage = message.copyWith(content: decrypted);
-            } else {
-              finalMessage = message.copyWith(content: '🔒 Message encrypted');
-            }
-          }
+          final decryptedMessage = await _decryptSingleMessage(message);
 
           // Update state
           setState(() {
-            _messages.add(finalMessage);
+            _messages.add(decryptedMessage);
           });
           _scrollToBottom();
           _loadSmartReplies();
@@ -572,7 +577,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
           // Mark as read if message is from other user
           final currentUserId = _authService.currentUser?.id;
-          if (finalMessage.senderId != currentUserId) {
+          if (decryptedMessage.senderId != currentUserId) {
             _markAsRead();
           }
         }

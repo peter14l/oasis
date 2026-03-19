@@ -30,6 +30,7 @@ class Message {
   final String? replyToId;
   final String? replyToContent;
   final String? replyToSenderName;
+  final Map<String, dynamic>? replyToData;
 
   // Reactions
   final List<MessageReactionModel> reactions;
@@ -68,6 +69,7 @@ class Message {
     this.replyToId,
     this.replyToContent,
     this.replyToSenderName,
+    this.replyToData,
     this.reactions = const [],
     this.isEphemeral = false,
     this.ephemeralDuration = 86400, // Default to 24 hours
@@ -115,13 +117,11 @@ class Message {
     String? replySenderName;
     if (json['reply_to'] != null) {
       final replyData = json['reply_to'] as Map<String, dynamic>;
+      final isEncrypted = replyData['encrypted_keys'] != null || replyData['signal_message_type'] != null;
       
-      // Use raw content if it's already decrypted, otherwise use placeholder
-      final rawContent = replyData['content'] as String?;
-      if (rawContent != null && !rawContent.contains('🔒')) {
-        replyContent = rawContent;
-      } else if (replyData['encrypted_keys'] != null || replyData['signal_message_type'] != null) {
-        // We check if it's a media message to show better placeholder
+      if (isEncrypted) {
+        // Use placeholders for encrypted replies in synchronous mapping
+        // These will be replaced with decrypted text in the UI layer if possible
         if (replyData['voice_url'] != null) {
           replyContent = '🎤 Voice Message';
         } else if (replyData['image_url'] != null) {
@@ -134,7 +134,7 @@ class Message {
           replyContent = '🔒 Encrypted message';
         }
       } else {
-        replyContent = rawContent;
+        replyContent = replyData['content'] as String?;
       }
 
       if (replyData['profiles'] != null) {
@@ -168,6 +168,7 @@ class Message {
       replyToId: json['reply_to_id'] as String?,
       replyToContent: replyContent,
       replyToSenderName: replySenderName,
+      replyToData: json['reply_to'] as Map<String, dynamic>?,
       reactions:
           (json['reactions'] as List<dynamic>?)
               ?.map(
@@ -235,6 +236,7 @@ class Message {
     String? replyToId,
     String? replyToContent,
     String? replyToSenderName,
+    Map<String, dynamic>? replyToData,
   }) {
     return Message(
       id: id,
@@ -259,6 +261,7 @@ class Message {
       replyToId: replyToId ?? this.replyToId,
       replyToContent: replyToContent ?? this.replyToContent,
       replyToSenderName: replyToSenderName ?? this.replyToSenderName,
+      replyToData: replyToData ?? this.replyToData,
       reactions: reactions ?? this.reactions,
       isEphemeral: isEphemeral ?? this.isEphemeral,
       ephemeralDuration: ephemeralDuration ?? this.ephemeralDuration,
