@@ -146,65 +146,326 @@ class _ProfileScreenState extends State<ProfileScreen>
             controller: _scrollController,
             slivers: [
               _buildModernAppBar(profile, theme, colorScheme),
-              // Profile Card & Tabs
               SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _buildGlassProfileCard(
-                        profile,
-                        profileProvider,
-                        theme,
-                        colorScheme,
-                        userId,
-                      ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                  child: Column(
+                    children: [
+                      _buildProfileHeader(profile, theme, colorScheme),
+                      const SizedBox(height: 24),
+                      _buildStatsBar(profile, theme, colorScheme),
+                      const SizedBox(height: 24),
+                      _buildActivitySection(profile, theme, colorScheme),
+                      const SizedBox(height: 24),
+                      _buildActionButtons(profile, profileProvider, theme, colorScheme, userId),
+                    ],
+                  ),
+                ),
+              ),
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _SliverAppBarDelegate(
+                  TabBar(
+                    controller: _tabController,
+                    indicatorSize: TabBarIndicatorSize.label,
+                    dividerColor: Colors.transparent,
+                    labelColor: colorScheme.primary,
+                    unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.4),
+                    indicator: UnderlineTabIndicator(
+                      borderSide: BorderSide(width: 3, color: colorScheme.primary),
+                      borderRadius: BorderRadius.circular(3),
                     ),
-                    const SizedBox(height: 16), // Gap between card and tabs
-                    TabBar(
-                      controller: _tabController,
-                      tabs: [
-                        const Tab(icon: Icon(Icons.grid_on_rounded)),
-                        if (isOwnProfile)
-                          const Tab(icon: Icon(Icons.bookmark_border_rounded)),
-                      ],
-                    ),
-                  ],
+                    tabs: [
+                      const Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
+                      if (isOwnProfile)
+                        const Tab(icon: Icon(Icons.bookmark_rounded, size: 22)),
+                    ],
+                  ),
+                  theme.colorScheme.surface,
                 ),
               ),
               SliverFillRemaining(
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    CustomScrollView(
-                      physics: const ClampingScrollPhysics(),
-                      slivers: [
-                        SliverPadding(
-                          padding: const EdgeInsets.symmetric(horizontal: 2),
-                          sliver: _buildPostsGrid(_userPosts, userId),
-                        ),
-                      ],
-                    ),
-                    if (isOwnProfile)
-                      CustomScrollView(
-                        physics: const ClampingScrollPhysics(),
-                        slivers: [
-                          SliverPadding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2),
-                            sliver: _buildPostsGrid(_savedPosts, userId),
-                          ),
-                        ],
-                      ),
+                    _buildPostsTab(userId),
+                    if (isOwnProfile) _buildSavedTab(userId),
                   ],
                 ),
               ),
-              const SliverPadding(
-                padding: EdgeInsets.only(bottom: 80),
-              ), // Bottom spacing
+              const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildProfileHeader(UserProfile profile, ThemeData theme, ColorScheme colorScheme) {
+    return Row(
+      children: [
+        Stack(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [colorScheme.primary, colorScheme.tertiary],
+                ),
+              ),
+              child: CircleAvatar(
+                radius: 45,
+                backgroundColor: colorScheme.surface,
+                backgroundImage: profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
+                    ? CachedNetworkImageProvider(profile.avatarUrl!)
+                    : null,
+                child: profile.avatarUrl == null || profile.avatarUrl!.isEmpty
+                    ? Text(profile.username[0].toUpperCase(), style: const TextStyle(fontSize: 24))
+                    : null,
+              ),
+            ),
+            if (profile.isPro)
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: colorScheme.surface, width: 2),
+                  ),
+                  child: const Text(
+                    'PRO',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(width: 20),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                profile.fullName ?? profile.username,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                '@${profile.username}',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.5),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const WellnessBadge(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatsBar(UserProfile profile, ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: colorScheme.onSurface.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildStatItem('Posts', '${profile.postsCount}', theme),
+          _buildStatDivider(colorScheme),
+          GestureDetector(
+            onTap: () => context.push('/profile/${profile.id}/followers'),
+            child: _buildStatItem('Followers', '${profile.followersCount}', theme),
+          ),
+          _buildStatDivider(colorScheme),
+          GestureDetector(
+            onTap: () => context.push('/profile/${profile.id}/following'),
+            child: _buildStatItem('Following', '${profile.followingCount}', theme),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, ThemeData theme) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatDivider(ColorScheme colorScheme) {
+    return Container(
+      height: 24,
+      width: 1,
+      color: colorScheme.onSurface.withValues(alpha: 0.1),
+    );
+  }
+
+  Widget _buildActivitySection(UserProfile profile, ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.onSurface.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.insights_rounded, size: 18, color: colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                'ACTIVITY',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.5,
+                  color: colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ActivityGraph(posts: _userPosts),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(
+    UserProfile profile,
+    ProfileProvider profileProvider,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    String? currentUserId,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          child: isOwnProfile
+              ? FilledButton.icon(
+                  onPressed: () => context.push('/edit-profile'),
+                  icon: const Icon(Icons.edit_note_rounded, size: 20),
+                  label: const Text('Edit Profile'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                  ),
+                )
+              : (profileProvider.isFollowing
+                  ? OutlinedButton(
+                      onPressed: () {
+                        if (currentUserId != null) {
+                          profileProvider.unfollowUser(
+                            followerId: currentUserId,
+                            followingId: profile.id,
+                          );
+                        }
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      ),
+                      child: const Text('Following'),
+                    )
+                  : FilledButton(
+                      onPressed: () {
+                        if (currentUserId != null) {
+                          profileProvider.followUser(
+                            followerId: currentUserId,
+                            followingId: profile.id,
+                          );
+                        }
+                      },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      ),
+                      child: const Text('Follow'),
+                    )),
+        ),
+        const SizedBox(width: 12),
+        if (!isOwnProfile && currentUserId != null) ...[
+          IconButton.filledTonal(
+            onPressed: () => _handleMessage(currentUserId, profile.id),
+            icon: const Icon(Icons.chat_bubble_outline_rounded),
+            style: IconButton.styleFrom(
+              padding: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            ),
+          ),
+          const SizedBox(width: 12),
+        ],
+        IconButton.filledTonal(
+          onPressed: () => Share.share('Check out my profile on Morrow!'),
+          icon: const Icon(Icons.ios_share_rounded),
+          style: IconButton.styleFrom(
+            padding: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPostsTab(String? userId) {
+    return CustomScrollView(
+      physics: const ClampingScrollPhysics(),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.all(2),
+          sliver: _buildPostsGrid(_userPosts, userId),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSavedTab(String? userId) {
+    return CustomScrollView(
+      physics: const ClampingScrollPhysics(),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.all(2),
+          sliver: _buildPostsGrid(_savedPosts, userId),
+        ),
+      ],
     );
   }
 
@@ -213,294 +474,19 @@ class _ProfileScreenState extends State<ProfileScreen>
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    // bannerColor variable definition removed as it is no longer used
-
     return SliverAppBar(
       pinned: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.8),
+      elevation: 0,
+      centerTitle: true,
+      title: Text(
+        profile.username,
+        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+      ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.settings_outlined),
+          icon: const Icon(Icons.more_vert_rounded),
           onPressed: () => context.push('/settings'),
-        ),
-      ],
-      // flexibleSpace: FlexibleSpaceBar(
-      //   background: Stack(
-      //     fit: StackFit.expand,
-      //     children: [
-      //       // Gradient Overlay for readability
-      //       // Container(
-      //       //   decoration: BoxDecoration(
-      //       //     gradient: LinearGradient(
-      //       //       begin: Alignment.topCenter,
-      //       //       end: Alignment.bottomCenter,
-      //       //       colors: [
-      //       //         Colors.black.withValues(alpha: 0.3),
-      //       //         Colors.transparent,
-      //       //         Colors.black.withValues(alpha: 0.1),
-      //       //       ],
-      //       //     ),
-      //       //   ),
-      //       // ),
-      //       // Edit Banner Button
-      //       Positioned(
-      //         top: 48,
-      //         right: 48, // inset from settings button
-      //         child: Container(
-      //           decoration: BoxDecoration(
-      //             color: Colors.black.withValues(alpha: 0.4),
-      //             shape: BoxShape.circle,
-      //           ),
-      //           child: IconButton(
-      //             icon: const Icon(Icons.edit, color: Colors.white, size: 20),
-      //             onPressed: _handleEditBanner,
-      //           ),
-      //         ),
-      //       ),
-      //     ],
-      //   ),
-      // ),
-    );
-  }
-
-  Widget _buildGlassProfileCard(
-    UserProfile profile,
-    ProfileProvider profileProvider,
-    ThemeData theme,
-    ColorScheme colorScheme,
-    String? currentUserId,
-  ) {
-    return Column(
-      children: [
-        // Bento Row 1: Intro + Followers
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                flex: 2,
-                child: _buildBentoCard(
-                  colorScheme: colorScheme,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 30,
-                            backgroundImage: profile.avatarUrl != null &&
-                                    profile.avatarUrl!.isNotEmpty
-                                ? CachedNetworkImageProvider(profile.avatarUrl!)
-                                : null,
-                            child: profile.avatarUrl == null
-                                ? Text(profile.username[0].toUpperCase())
-                                : null,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Flexible(
-                                      child: Text(
-                                        profile.fullName ?? profile.username,
-                                        style: theme.textTheme.titleLarge?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    if (profile.isPro) ...[
-                                      const SizedBox(width: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: colorScheme.primary,
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: Text(
-                                          'PRO',
-                                          style: theme.textTheme.labelSmall?.copyWith(
-                                            color: colorScheme.onPrimary,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 10,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                                Text(
-                                  '@${profile.username}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (profile.bio != null && profile.bio!.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        Text(
-                          profile.bio!,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildBentoCard(
-                  colorScheme: colorScheme,
-                  onTap: () => context.push('/profile/${profile.id}/followers'),
-                  child: _buildStatColumn('Followers', '${profile.followersCount}', theme),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        // Bento Row 2: Following + Posts + Wellness
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: _buildBentoCard(
-                  colorScheme: colorScheme,
-                  onTap: () => context.push('/profile/${profile.id}/following'),
-                  child: _buildStatColumn('Following', '${profile.followingCount}', theme),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildBentoCard(
-                  colorScheme: colorScheme,
-                  child: _buildStatColumn('Posts', '${profile.postsCount}', theme),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildBentoCard(
-                  colorScheme: colorScheme,
-                  color: colorScheme.tertiary.withValues(alpha: 0.1),
-                  child: const Center(child: WellnessBadge()),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        // Bento Row 3: Activity Graph
-        _buildBentoCard(
-          colorScheme: colorScheme,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Activity',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              ActivityGraph(posts: _userPosts),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        // Actions
-        Row(
-          children: [
-            Expanded(
-              child: isOwnProfile
-                  ? FilledButton(
-                      onPressed: () => context.push('/edit-profile'),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: const Text('Edit Profile'),
-                    )
-                  : (profileProvider.isFollowing
-                      ? OutlinedButton(
-                          onPressed: () {
-                            if (currentUserId != null) {
-                              profileProvider.unfollowUser(
-                                followerId: currentUserId,
-                                followingId: profile.id,
-                              );
-                            }
-                          },
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                          child: const Text('Unfollow'),
-                        )
-                      : FilledButton(
-                          onPressed: () {
-                            if (currentUserId != null) {
-                              profileProvider.followUser(
-                                followerId: currentUserId,
-                                followingId: profile.id,
-                              );
-                            }
-                          },
-                          style: FilledButton.styleFrom(
-                            backgroundColor: colorScheme.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                          child: const Text('Follow'),
-                        )),
-            ),
-            if (!isOwnProfile && currentUserId != null) ...[
-              const SizedBox(width: 8),
-              IconButton.filledTonal(
-                onPressed: () => _handleMessage(currentUserId, profile.id),
-                style: IconButton.styleFrom(
-                  padding: const EdgeInsets.all(16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                icon: const Icon(Icons.message_outlined),
-              ),
-            ],
-            const SizedBox(width: 8),
-            IconButton.filledTonal(
-              onPressed: () => Share.share('Check out my profile!'),
-              style: IconButton.styleFrom(
-                padding: const EdgeInsets.all(16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              icon: const Icon(Icons.share_outlined),
-            ),
-          ],
         ),
       ],
     );
@@ -561,20 +547,22 @@ class _ProfileScreenState extends State<ProfileScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.photo_library_outlined,
-                size: 64,
-                color: Colors.grey,
+              Icon(
+                Icons.grid_off_rounded,
+                size: 48,
+                color: Colors.grey.withValues(alpha: 0.5),
               ),
               const SizedBox(height: 16),
-              const Text('No posts yet'),
+              Text(
+                'No posts yet',
+                style: TextStyle(color: Colors.grey.withValues(alpha: 0.5)),
+              ),
             ],
           ),
         ),
       );
     }
 
-    // Grid Logic
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
@@ -585,22 +573,48 @@ class _ProfileScreenState extends State<ProfileScreen>
       delegate: SliverChildBuilderDelegate((context, index) {
         final post = posts[index];
         return GestureDetector(
-          onTap: () {
-            // Navigation to Post Details
-            context.push('/post/${post.id}');
-          },
+          onTap: () => context.push('/post/${post.id}'),
           child: Container(
-            color: Colors.grey[300],
-            child:
-                post.imageUrl != null
-                    ? CachedNetworkImage(
-                      imageUrl: post.imageUrl!,
-                      fit: BoxFit.cover,
-                    )
-                    : const Center(child: Icon(Icons.text_fields)),
+            color: Colors.black.withValues(alpha: 0.05),
+            child: post.imageUrl != null
+                ? CachedNetworkImage(
+                    imageUrl: post.imageUrl!,
+                    fit: BoxFit.cover,
+                  )
+                : const Center(child: Icon(Icons.text_fields, size: 20)),
           ),
         );
       }, childCount: posts.length),
     );
   }
+}
+
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  _SliverAppBarDelegate(this._tabBar, this.backgroundColor);
+
+  final TabBar _tabBar;
+  final Color backgroundColor;
+
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(
+      color: backgroundColor,
+      child: _tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return false;
+  }
+}
 }
