@@ -2338,7 +2338,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           if (message.content.isNotEmpty &&
               message.content != 'Sent attachment' &&
-              message.content != '🔒 Message encrypted')
+              !message.content.contains('🔒'))
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(
