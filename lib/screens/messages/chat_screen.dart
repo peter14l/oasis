@@ -1915,7 +1915,33 @@ class _ChatScreenState extends State<ChatScreen> {
                                           ),
                                           const SizedBox(width: 8),
                                           Expanded(
-                                            child: CallbackShortcuts(
+                                            child: _isRecording
+                                                ? Row(
+                                                  children: [
+                                                    const SizedBox(width: 12),
+                                                    const _RecordingDot(),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      'Recording...',
+                                                      style: TextStyle(
+                                                        color: _backgroundUrl != null ? Colors.white : Colors.red[700],
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                    const Spacer(),
+                                                    Text(
+                                                      _formatDuration(Duration(seconds: _recordDuration)),
+                                                      style: TextStyle(
+                                                        color: _backgroundUrl != null ? Colors.white70 : Colors.red[700],
+                                                        fontFeatures: const [FontFeature.tabularFigures()],
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                  ],
+                                                )
+                                                : CallbackShortcuts(
                                               bindings: {
                                                 const SingleActivator(
                                                   LogicalKeyboardKey.enter,
@@ -1998,67 +2024,45 @@ class _ChatScreenState extends State<ChatScreen> {
                                             ),
                                           ),
                                           const SizedBox(width: 8),
-                                          GestureDetector(
-                                            onLongPressStart: (details) {
-                                              if (_messageController.text
-                                                      .trim()
-                                                      .isEmpty &&
-                                                  !_isSending) {
-                                                _startRecording();
-                                              }
-                                            },
-                                            onLongPressEnd: (details) {
-                                              if (_recordTimer != null) {
-                                                _stopRecording();
-                                              }
-                                            },
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color:
-                                                    _isSending
-                                                        ? colorScheme.onSurface
-                                                            .withValues(
-                                                              alpha: 0.12,
-                                                            )
-                                                        : colorScheme.primary,
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: IconButton(
-                                                onPressed:
-                                                    _isSending
-                                                        ? null
-                                                        : () {
-                                                          if (_messageController
-                                                              .text
-                                                              .trim()
-                                                              .isNotEmpty) {
-                                                            _sendMessage();
-                                                          }
-                                                        },
-                                                icon:
-                                                    _isSending
-                                                        ? const SizedBox(
-                                                          width: 20,
-                                                          height: 20,
-                                                          child:
-                                                              CircularProgressIndicator(
-                                                                strokeWidth: 2,
-                                                                color:
-                                                                    Colors
-                                                                        .white,
-                                                              ),
-                                                        )
-                                                        : Icon(
-                                                          _messageController
-                                                                  .text
-                                                                  .trim()
-                                                                  .isEmpty
-                                                              ? Icons.mic
-                                                              : Icons
-                                                                  .send_rounded,
-                                                          color: Colors.white,
-                                                        ),
-                                              ),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  _isSending
+                                                      ? colorScheme.onSurface
+                                                          .withValues(
+                                                            alpha: 0.12,
+                                                          )
+                                                      : (_isRecording ? Colors.red : colorScheme.primary),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: IconButton(
+                                              onPressed:
+                                                  _isSending
+                                                      ? null
+                                                      : (_messageController.text.trim().isEmpty ? _toggleRecording : _sendMessage),
+                                              icon:
+                                                  _isSending
+                                                      ? const SizedBox(
+                                                        width: 20,
+                                                        height: 20,
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                              strokeWidth: 2,
+                                                              color:
+                                                                  Colors
+                                                                      .white,
+                                                            ),
+                                                      )
+                                                      : Icon(
+                                                        _messageController
+                                                                .text
+                                                                .trim()
+                                                                .isEmpty
+                                                            ? (_isRecording ? Icons.stop_rounded : Icons.mic)
+                                                            : Icons
+                                                                .send_rounded,
+                                                        color: Colors.white,
+                                                      ),
                                             ),
                                           ),
                                         ],
