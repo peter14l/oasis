@@ -255,9 +255,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
             child: VisibilityDetector(
               key: Key('month_$monthStr'),
               onVisibilityChanged: (info) {
-                if (info.visibleFraction > 0.5) {
-                  _updateAmbientSound(monthInt);
-                }
+                // Legacy ambient sound trigger removed
               },
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
