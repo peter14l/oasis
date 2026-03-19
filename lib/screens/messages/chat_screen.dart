@@ -2417,72 +2417,91 @@ class _ChatScreenState extends State<ChatScreen> {
           showModalBottomSheet(
             context: context,
             backgroundColor: Colors.transparent,
+            isScrollControlled: true,
             builder:
                 (context) => Container(
-                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(20),
+                    color: theme.colorScheme.surface.withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
                     ),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.outline.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 32,
+                        offset: const Offset(0, -8),
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'React to message',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      MessageReactionPicker(
-                        onReactionSelected: (reaction) {
-                          _onReactionSelected(message, reaction.emoji);
-                          Navigator.pop(context);
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      const Divider(),
-                      ListTile(
-                        leading: const Icon(Icons.reply_rounded),
-                        title: const Text('Reply'),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _messageController.text = '@${message.senderName} ';
-                          _focusNode.requestFocus();
-                        },
-                      ),
-                      if (message.messageType == MessageType.text && message.content != '🔒 Message encrypted')
-                        ListTile(
-                          leading: const Icon(Icons.copy_rounded),
-                          title: const Text('Copy Text'),
-                          onTap: () {
-                            Clipboard.setData(ClipboardData(text: message.content));
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Copied to clipboard')),
-                            );
-                          },
-                        ),
-                      if (isMe)
-                        ListTile(
-                          leading: const Icon(Icons.delete_outline, color: Colors.red),
-                          title: const Text('Unsend', style: TextStyle(color: Colors.red)),
-                          onTap: () {
-                            Navigator.pop(context);
-                            _unsendMessage(message);
-                          },
-                        ),
-                      const SizedBox(height: 12),
                     ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(32),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(height: 12),
+                          Container(
+                            width: 36,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: MessageReactionPicker(
+                              onReactionSelected: (reaction) {
+                                _onReactionSelected(message, reaction.emoji);
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Divider(height: 1, indent: 24, endIndent: 24),
+                          const SizedBox(height: 8),
+                          _buildModalAction(
+                            context,
+                            icon: Icons.reply_rounded,
+                            label: 'Reply',
+                            onTap: () {
+                              Navigator.pop(context);
+                              _messageController.text = '@${message.senderName} ';
+                              _focusNode.requestFocus();
+                            },
+                          ),
+                          if (message.messageType == MessageType.text && message.content != '🔒 Message encrypted')
+                            _buildModalAction(
+                              context,
+                              icon: Icons.copy_rounded,
+                              label: 'Copy Text',
+                              onTap: () {
+                                Clipboard.setData(ClipboardData(text: message.content));
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Copied to clipboard')),
+                                );
+                              },
+                            ),
+                          if (isMe)
+                            _buildModalAction(
+                              context,
+                              icon: Icons.delete_outline_rounded,
+                              label: 'Unsend',
+                              isDestructive: true,
+                              onTap: () {
+                                Navigator.pop(context);
+                                _unsendMessage(message);
+                              },
+                            ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
           );
@@ -2585,6 +2604,37 @@ class _ChatScreenState extends State<ChatScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModalAction(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
+    final theme = Theme.of(context);
+    final color = isDestructive ? Colors.red : theme.colorScheme.onSurface;
+
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        child: Row(
+          children: [
+            Icon(icon, color: color.withValues(alpha: 0.8), size: 22),
+            const SizedBox(width: 16),
+            Text(
+              label,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
