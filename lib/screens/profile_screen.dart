@@ -150,7 +150,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               _buildModernAppBar(profile, theme, colorScheme),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 120, 20, 24),
+                  padding: const EdgeInsets.fromLTRB(20, 80, 20, 24),
                   child: Column(
                     children: [
                       _buildProfileHeader(profile, theme, colorScheme),
@@ -635,7 +635,7 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     return Container(
-      color: backgroundColor,
+      color: Colors.transparent,
       child: _widget,
     );
   }
