@@ -633,6 +633,7 @@ class MessagingService {
   RealtimeChannel subscribeToMessages({
     required String conversationId,
     required Function(Message) onNewMessage,
+    Function(String)? onDeleteMessage,
   }) {
     final channel = _supabase.channel('messages:$conversationId');
 
@@ -668,9 +669,77 @@ class MessagingService {
             }
           },
         )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.delete,
+          schema: 'public',
+          table: SupabaseConfig.messagesTable,
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'conversation_id',
+            value: conversationId,
+          ),
+          callback: (payload) {
+            if (onDeleteMessage != null) {
+              final messageId = payload.oldRecord['id'] as String;
+              onDeleteMessage(messageId);
+            }
+          },
+        )
         .subscribe();
 
     return channel;
+  }
+
+  /// Delete (unsend) a message
+  Future<void> deleteMessage(String messageId) async {
+    try {
+      // First, get message details to check for media
+      final messageResponse = await _supabase
+          .from(SupabaseConfig.messagesTable)
+          .select('image_url, video_url, file_url, voice_url')
+          .eq('id', messageId)
+          .maybeSingle();
+
+      if (messageResponse != null) {
+        // Collect all potential media URLs
+        final mediaUrls = [
+          messageResponse['image_url'],
+          messageResponse['video_url'],
+          messageResponse['file_url'],
+          messageResponse['voice_url'],
+        ].where((url) => url != null && url.toString().isNotEmpty).toList();
+
+        // Delete from database first
+        await _supabase
+            .from(SupabaseConfig.messagesTable)
+            .delete()
+            .eq('id', messageId);
+
+        // Then attempt to delete from storage if URLs are present
+        for (final url in mediaUrls) {
+          try {
+            final uri = Uri.parse(url as String);
+            final pathSegments = uri.pathSegments;
+            // Expected path: /storage/v1/object/public/bucket-name/folder/filename
+            // Segments: [storage, v1, object, public, bucket-name, folder, user-id, folder, filename]
+            // This is complex to parse reliably from URL, but usually it's after the bucket name
+            
+            final bucketName = SupabaseConfig.messageAttachmentsBucket;
+            final bucketIndex = pathSegments.indexOf(bucketName);
+            if (bucketIndex != -1 && bucketIndex < pathSegments.length - 1) {
+              final storagePath = pathSegments.sublist(bucketIndex + 1).join('/');
+              await _supabase.storage.from(bucketName).remove([storagePath]);
+              debugPrint('Deleted storage object: $storagePath');
+            }
+          } catch (e) {
+            debugPrint('Failed to delete media from storage: $e');
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error deleting message: $e');
+      rethrow;
+    }
   }
 
   /// Subscribe to conversation updates (unread count, participants changes)
@@ -732,34 +801,6 @@ class MessagingService {
   /// Unsubscribe from messages
   Future<void> unsubscribeFromMessages(RealtimeChannel channel) async {
     await _supabase.removeChannel(channel);
-  }
-
-  /// Delete a message
-  Future<void> deleteMessage({
-    required String messageId,
-    required String userId,
-  }) async {
-    try {
-      // Verify sender
-      final message =
-          await _supabase
-              .from(SupabaseConfig.messagesTable)
-              .select('sender_id')
-              .eq('id', messageId)
-              .single();
-
-      if (message['sender_id'] != userId) {
-        throw Exception('Not authorized to delete this message');
-      }
-
-      await _supabase
-          .from(SupabaseConfig.messagesTable)
-          .delete()
-          .eq('id', messageId);
-    } catch (e) {
-      debugPrint('Error deleting message: $e');
-      rethrow;
-    }
   }
 
   /// Clear chat for current user only (hides messages before now)

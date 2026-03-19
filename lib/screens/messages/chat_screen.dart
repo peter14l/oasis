@@ -576,6 +576,14 @@ class _ChatScreenState extends State<ChatScreen> {
           }
         }
       },
+      onDeleteMessage: (messageId) {
+        if (mounted) {
+          setState(() {
+            _messages.removeWhere((m) => m.id == messageId);
+          });
+          _saveMessagesToCache();
+        }
+      },
     );
   }
 
@@ -1040,6 +1048,23 @@ class _ChatScreenState extends State<ChatScreen> {
       if (mounted) {
         setState(() => _isSending = false);
       }
+    }
+  }
+
+  Future<void> _unsendMessage(Message message) async {
+    try {
+      // Optimistic update
+      setState(() {
+        _messages.removeWhere((m) => m.id == message.id);
+      });
+      _saveMessagesToCache();
+
+      await _messagingService.deleteMessage(message.id);
+    } catch (e) {
+      debugPrint('Error unsending message: $e');
+      _showError('Failed to unsend message');
+      // Reload messages to restore state if delete failed
+      _loadMessages();
     }
   }
 
@@ -2424,7 +2449,39 @@ class _ChatScreenState extends State<ChatScreen> {
                           Navigator.pop(context);
                         },
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
+                      const Divider(),
+                      ListTile(
+                        leading: const Icon(Icons.reply_rounded),
+                        title: const Text('Reply'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _messageController.text = '@${message.senderName} ';
+                          _focusNode.requestFocus();
+                        },
+                      ),
+                      if (message.messageType == MessageType.text && message.content != '🔒 Message encrypted')
+                        ListTile(
+                          leading: const Icon(Icons.copy_rounded),
+                          title: const Text('Copy Text'),
+                          onTap: () {
+                            Clipboard.setData(ClipboardData(text: message.content));
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Copied to clipboard')),
+                            );
+                          },
+                        ),
+                      if (isMe)
+                        ListTile(
+                          leading: const Icon(Icons.delete_outline, color: Colors.red),
+                          title: const Text('Unsend', style: TextStyle(color: Colors.red)),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _unsendMessage(message);
+                          },
+                        ),
+                      const SizedBox(height: 12),
                     ],
                   ),
                 ),
