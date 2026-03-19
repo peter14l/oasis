@@ -150,7 +150,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               _buildModernAppBar(profile, theme, colorScheme),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 80, 20, 24),
+                  padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
                   child: Column(
                     children: [
                       _buildProfileHeader(profile, theme, colorScheme),
