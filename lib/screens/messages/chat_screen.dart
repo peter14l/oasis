@@ -916,7 +916,7 @@ class _ChatScreenState extends State<ChatScreen> {
           try {
             final cipherMessage = await SignalService().encryptMessage(
               recipientId,
-              content.isNotEmpty ? content : 'Sent attachment',
+              content.isNotEmpty ? content : '',
             );
             finalContent = base64Encode(cipherMessage.serialize());
             signalMessageType = cipherMessage.getType();
@@ -944,7 +944,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
           // Encrypt message content
           final encrypted = await _encryptionService.encryptMessage(
-            content.isNotEmpty ? content : 'Sent attachment',
+            content.isNotEmpty ? content : '',
             [recipientPublicKey],
           );
           finalContent = encrypted.encryptedContent;
@@ -1017,7 +1017,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
           if (publicKeys.isNotEmpty) {
             final fallbackEncryption = await _encryptionService.encryptMessage(
-              content.isNotEmpty ? content : 'Sent attachment',
+              content.isNotEmpty ? content : '',
               publicKeys,
             );
             signalSenderContent = fallbackEncryption.encryptedContent;
@@ -1038,7 +1038,7 @@ class _ChatScreenState extends State<ChatScreen> {
       await _messagingService.sendMessage(
         conversationId: widget.conversationId,
         senderId: userId,
-        content: finalContent ?? 'Sent attachment',
+        content: finalContent ?? '',
         messageType: messageType,
         mediaUrl: mediaUrl,
         mediaFileName: fileName,
