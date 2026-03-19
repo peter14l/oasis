@@ -2588,6 +2588,20 @@ class _ChatScreenState extends State<ChatScreen> {
                               _focusNode.requestFocus();
                             },
                           ),
+                          _buildModalAction(
+                            context,
+                            icon: Icons.shortcut_rounded,
+                            label: 'Forward',
+                            onTap: () {
+                              Navigator.pop(context);
+                              showModalBottomSheet(
+                                context: context,
+                                backgroundColor: Colors.transparent,
+                                isScrollControlled: true,
+                                builder: (context) => ForwardMessageModal(message: message),
+                              );
+                            },
+                          ),
                           if (message.messageType == MessageType.text && message.content != '🔒 Message encrypted')
                             _buildModalAction(
                               context,
