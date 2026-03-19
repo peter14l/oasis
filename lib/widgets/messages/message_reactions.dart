@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:oasis_v2/models/message_reaction.dart';
 import 'package:oasis_v2/utils/haptic_utils.dart';
 
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:flutter/foundation.dart'; // For defaultTargetPlatform
+
 /// Widget to display reaction picker for messages
 class MessageReactionPicker extends StatelessWidget {
-  final Function(MessageReaction) onReactionSelected;
+  final Function(String emoji) onReactionSelected;
   final String? currentReaction;
 
   const MessageReactionPicker({
@@ -13,46 +16,115 @@ class MessageReactionPicker extends StatelessWidget {
     this.currentReaction,
   });
 
+  void _showFullEmojiPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.45,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Expanded(
+              child: EmojiPicker(
+                onEmojiSelected: (category, emoji) {
+                  onReactionSelected(emoji.emoji);
+                  Navigator.pop(context);
+                },
+                config: Config(
+                  height: 256,
+                  checkPlatformCompatibility: true,
+                  emojiViewConfig: EmojiViewConfig(
+                    backgroundColor: Colors.transparent,
+                    columns: 7,
+                    emojiSizeMax: 32 * (defaultTargetPlatform == TargetPlatform.iOS ? 1.30 : 1.0),
+                  ),
+                  categoryViewConfig: const CategoryViewConfig(
+                    backgroundColor: Colors.transparent,
+                    dividerColor: Colors.transparent,
+                  ),
+                  bottomActionBarConfig: const BottomActionBarConfig(
+                    enabled: false,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: colorScheme.onSurface.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(32),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children:
-            MessageReaction.values.map((reaction) {
-              final isSelected = currentReaction == reaction.emoji;
-              return GestureDetector(
-                onTap: () {
-                  HapticUtils.reaction();
-                  onReactionSelected(reaction);
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color:
-                        isSelected
-                            ? colorScheme.primaryContainer.withValues(
-                              alpha: 0.8,
-                            )
-                            : Colors.transparent,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    reaction.emoji,
-                    style: TextStyle(fontSize: isSelected ? 22 : 20),
-                  ),
+        children: [
+          ...MessageReaction.values.map((reaction) {
+            final isSelected = currentReaction == reaction.emoji;
+            return GestureDetector(
+              onTap: () {
+                HapticUtils.reaction();
+                onReactionSelected(reaction.emoji);
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? colorScheme.primaryContainer.withValues(alpha: 0.8)
+                      : Colors.transparent,
+                  shape: BoxShape.circle,
                 ),
-              );
-            }).toList(),
+                child: Text(
+                  reaction.emoji,
+                  style: TextStyle(fontSize: isSelected ? 22 : 20),
+                ),
+              ),
+            );
+          }).toList(),
+          // Add "+" button
+          GestureDetector(
+            onTap: () {
+              HapticUtils.selectionClick();
+              _showFullEmojiPicker(context);
+            },
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: colorScheme.onSurface.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.add,
+                size: 18,
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

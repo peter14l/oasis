@@ -120,6 +120,7 @@ dependencies:
   permission_handler: ^11.3.1
   receive_sharing_intent: ^1.8.1
   ffmpeg_kit_flutter_new: 4.1.0
+  emoji_picker_flutter: ^4.4.0
 
 dev_dependencies:
   sentry_dart_plugin: ^3.2.0

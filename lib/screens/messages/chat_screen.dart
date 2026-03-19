@@ -2455,8 +2455,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: MessageReactionPicker(
-                              onReactionSelected: (reaction) {
-                                _onReactionSelected(message, reaction.emoji);
+                              onReactionSelected: (emoji) {
+                                _onReactionSelected(message, emoji);
                                 Navigator.pop(context);
                               },
                             ),
