@@ -13,7 +13,43 @@ serve(async (req) => {
     const payload = await req.json();
     const { record } = payload; // This is the new notification record
 
-    // 1. Get recipient profile (for FCM token)
+    // 1. SAFETY CHECK: Ensure not blocked or muted (Backup for DB trigger)
+    // A. Check if recipient blocked actor
+    const { data: blockData } = await supabase
+      .from('blocked_users')
+      .select('id')
+      .eq('blocker_id', record.user_id)
+      .eq('blocked_id', record.actor_id)
+      .maybeSingle();
+
+    if (blockData) {
+      return new Response(JSON.stringify({ message: "Recipient has blocked actor" }), { status: 200 });
+    }
+
+    // B. Check if conversation is muted (for DMs)
+    if (record.type === 'dm' && record.message_id) {
+      // Get conversation_id
+      const { data: msgData } = await supabase
+        .from('messages')
+        .select('conversation_id')
+        .eq('id', record.message_id)
+        .single();
+
+      if (msgData) {
+        const { data: participant } = await supabase
+          .from('conversation_participants')
+          .select('is_muted')
+          .eq('conversation_id', msgData.conversation_id)
+          .eq('user_id', record.user_id)
+          .maybeSingle();
+
+        if (participant?.is_muted) {
+          return new Response(JSON.stringify({ message: "Conversation is muted" }), { status: 200 });
+        }
+      }
+    }
+
+    // 2. Get recipient profile (for FCM token)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('fcm_token, username')

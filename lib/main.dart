@@ -345,8 +345,9 @@ class _MyAppState extends State<MyApp> {
                 textScaler: TextScaler.linear(scale),
                 boldText: false,
               ),
-                child: MeshGradientBackground(
-                  child: Consumer<ScreenTimeService>(
+              child: Consumer<UserSettingsProvider>(
+                builder: (context, userSettings, _) {
+                  final childWidget = Consumer<ScreenTimeService>(
                     builder: (context, screenTime, child) {
                       final saturation = screenTime.saturationLevel;
                       if (saturation == 1.0) return child!;
@@ -361,8 +362,18 @@ class _MyAppState extends State<MyApp> {
                       );
                     },
                     child: child!,
-                  ),
-                ),
+                  );
+
+                  if (userSettings.meshEnabled) {
+                    return MeshGradientBackground(child: childWidget);
+                  } else {
+                    return Container(
+                      color: const Color(0xFF080A0E),
+                      child: childWidget,
+                    );
+                  }
+                },
+              ),
             );
           },
         );

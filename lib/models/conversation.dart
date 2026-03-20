@@ -11,6 +11,8 @@ class Conversation {
   final String? lastMessageType; // 'text', 'image', 'document', etc.
   final bool isOtherUserTyping;
   final bool isWhisperMode;
+  final bool isPinned;
+  final List<String> recentMessages;
 
   Conversation({
     required this.id,
@@ -25,6 +27,8 @@ class Conversation {
     this.lastMessageType,
     this.isOtherUserTyping = false,
     this.isWhisperMode = false,
+    this.isPinned = false,
+    this.recentMessages = const [],
   });
 
   factory Conversation.fromJson(Map<String, dynamic> json) {
@@ -47,6 +51,7 @@ class Conversation {
       lastMessageType: json['last_message_type'] as String?,
       isOtherUserTyping: json['is_other_user_typing'] as bool? ?? false,
       isWhisperMode: json['is_whisper_mode'] as bool? ?? false,
+      isPinned: json['is_pinned'] as bool? ?? false,
     );
   }
 
@@ -64,6 +69,7 @@ class Conversation {
       'last_message_type': lastMessageType,
       'is_other_user_typing': isOtherUserTyping,
       'is_whisper_mode': isWhisperMode,
+      'is_pinned': isPinned,
     };
   }
 
@@ -80,6 +86,7 @@ class Conversation {
     String? lastMessageType,
     bool? isOtherUserTyping,
     bool? isWhisperMode,
+    bool? isPinned,
   }) {
     return Conversation(
       id: id ?? this.id,
@@ -94,6 +101,7 @@ class Conversation {
       lastMessageType: lastMessageType ?? this.lastMessageType,
       isOtherUserTyping: isOtherUserTyping ?? this.isOtherUserTyping,
       isWhisperMode: isWhisperMode ?? this.isWhisperMode,
+      isPinned: isPinned ?? this.isPinned,
     );
   }
 

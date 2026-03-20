@@ -6,7 +6,6 @@ import 'package:oasis_v2/models/message.dart';
 import 'package:oasis_v2/models/conversation.dart';
 import 'package:oasis_v2/services/messaging_service.dart';
 import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/services/audio_compression_service.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -181,34 +180,15 @@ class _ShareToChatModalState extends State<ShareToChatModal> {
         final isAudio = pathLower.endsWith('.mp3') || pathLower.endsWith('.m4a') || pathLower.endsWith('.wav');
 
         if (sizeInMb > 50) {
-          if (isAudio) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Audio file is large. Compressing...')),
-              );
-            }
-            final compressedPath = await AudioCompressionService().compressAudio(sharedFile.path);
-            if (compressedPath != null) {
-              filePath = compressedPath;
-            } else {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('File ${sharedFile.path.split('/').last} is too large and compression failed.')),
-                );
-              }
-              continue;
-            }
-          } else {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('File ${sharedFile.path.split('/').last} is too large (Max 50MB for Free Plan). Skipping.'),
-                  backgroundColor: Colors.orange,
-                ),
-              );
-            }
-            continue;
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('File ${sharedFile.path.split('/').last} is too large (Max 50MB). Skipping.'),
+                backgroundColor: Colors.orange,
+              ),
+            );
           }
+          continue;
         }
 
         String folder = 'files';

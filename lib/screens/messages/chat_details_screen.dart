@@ -1,9 +1,14 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:oasis_v2/models/message.dart';
 import 'package:oasis_v2/services/messaging_service.dart';
 import 'package:oasis_v2/services/vault_service.dart';
+import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/services/encryption_service.dart';
+import 'package:oasis_v2/services/signal/signal_service.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -32,12 +37,22 @@ class ChatDetailsScreen extends StatefulWidget {
 
 class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   final MessagingService _messagingService = MessagingService();
+  final EncryptionService _encryptionService = EncryptionService();
+  final AuthService _authService = AuthService();
   final ImagePicker _imagePicker = ImagePicker();
 
   bool _isWhisperMode = false;
   bool _isLocked = false;
+  bool _isMuted = false;
+  bool _isBlocked = false;
   int _ephemeralDuration = 86400; // Default to 24h
   String? _selectedBackground;
+
+  // Search State
+  final TextEditingController _searchController = TextEditingController();
+  List<Message> _allMessages = [];
+  List<Message> _searchResults = [];
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -46,6 +61,318 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     _selectedBackground = widget.currentBackground;
     _loadPersistedSettings();
     _checkLockStatus();
+    _checkMuteStatus();
+    _checkBlockStatus();
+    _initDecryptionAndPreload();
+  }
+
+  Future<void> _checkMuteStatus() async {
+    try {
+      final userId = _authService.currentUser?.id;
+      if (userId == null) return;
+
+      final response = await Supabase.instance.client
+          .from('conversation_participants')
+          .select('is_muted')
+          .eq('conversation_id', widget.conversationId)
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      if (response != null && mounted) {
+        setState(() => _isMuted = response['is_muted'] as bool? ?? false);
+      }
+    } catch (e) {
+      debugPrint('Error checking mute status: $e');
+    }
+  }
+
+  Future<void> _checkBlockStatus() async {
+    try {
+      final blocked = await _messagingService.isUserBlocked(widget.otherUserId);
+      if (mounted) {
+        setState(() => _isBlocked = blocked);
+      }
+    } catch (e) {
+      debugPrint('Error checking block status: $e');
+    }
+  }
+
+  Future<void> _toggleMute(bool value) async {
+    try {
+      await _messagingService.toggleMute(widget.conversationId, value);
+      setState(() => _isMuted = value);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(value ? 'Notifications muted' : 'Notifications unmuted'),
+            backgroundColor: value ? Colors.orange : Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating mute status: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _toggleBlock() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(_isBlocked ? 'Unblock ${widget.otherUserName}?' : 'Block ${widget.otherUserName}?'),
+        content: Text(_isBlocked 
+          ? 'They will be able to message you again.' 
+          : 'They will no longer be able to message you or see your posts.'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true), 
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(_isBlocked ? 'Unblock' : 'Block'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        if (_isBlocked) {
+          await _messagingService.unblockUser(widget.otherUserId);
+        } else {
+          await _messagingService.blockUser(widget.otherUserId);
+        }
+        
+        setState(() => _isBlocked = !_isBlocked);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_isBlocked ? 'User blocked' : 'User unblocked'),
+              backgroundColor: _isBlocked ? Colors.red : Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error updating block status: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _initDecryptionAndPreload() async {
+    // 1. Initialize Services
+    if (!SignalService().isInitialized) {
+      await SignalService().init();
+    }
+    await _encryptionService.init();
+
+    // 2. Preload and Decrypt
+    await _preloadMessages();
+  }
+
+  Future<void> _preloadMessages() async {
+    try {
+      final messages = await _messagingService.getMessages(
+        conversationId: widget.conversationId,
+      );
+      
+      final decryptedMessages = <Message>[];
+      for (final message in messages) {
+        // Yield to prevent UI jank during bulk decryption
+        await Future.delayed(Duration.zero);
+        final decrypted = await _decryptSingleMessage(message);
+        decryptedMessages.add(decrypted);
+      }
+
+      if (mounted) {
+        setState(() {
+          _allMessages = decryptedMessages;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error preloading messages for search: $e');
+    }
+  }
+
+  Future<Message> _decryptSingleMessage(Message message) async {
+    final currentUserId = _authService.currentUser?.id;
+    Message decryptedMessage = message;
+
+    // 1. Handle Signal Protocol
+    if (message.signalMessageType != null) {
+      try {
+        final isSender = currentUserId != null &&
+            message.senderId.toLowerCase() == currentUserId.toLowerCase();
+
+        if (isSender &&
+            message.signalSenderContent != null &&
+            message.encryptedKeys != null &&
+            message.iv != null) {
+          final decrypted = await _encryptionService.decryptMessage(
+            message.signalSenderContent!,
+            message.encryptedKeys!,
+            message.iv!,
+          );
+          decryptedMessage = decryptedMessage.copyWith(
+            content: decrypted ?? '🔒 Message encrypted',
+          );
+        } else if (!isSender) {
+          String decrypted = await SignalService().decryptMessage(
+            message.senderId,
+            message.content,
+            message.signalMessageType!,
+          );
+
+          // Fallback to RSA if Signal session is out of sync but RSA copy exists
+          if ((decrypted.contains('🔒') || decrypted.contains('Optimizing')) &&
+              message.signalSenderContent != null &&
+              message.encryptedKeys != null &&
+              message.iv != null) {
+            final rsaDecrypted = await _encryptionService.decryptMessage(
+              message.signalSenderContent!,
+              message.encryptedKeys!,
+              message.iv!,
+            );
+            if (rsaDecrypted != null) decrypted = rsaDecrypted;
+          }
+          decryptedMessage = decryptedMessage.copyWith(content: decrypted);
+        }
+      } catch (e) {
+        debugPrint('Signal decryption failed in search: $e');
+        decryptedMessage = decryptedMessage.copyWith(content: '🔒 Message encrypted');
+      }
+    } 
+    // 2. Handle standard RSA/AES fallback
+    else if (message.encryptedKeys != null && message.iv != null) {
+      try {
+        final decrypted = await _encryptionService.decryptMessage(
+          message.content,
+          message.encryptedKeys!,
+          message.iv!,
+        );
+        decryptedMessage = decryptedMessage.copyWith(
+          content: decrypted ?? '🔒 Message encrypted',
+        );
+      } catch (e) {
+        debugPrint('RSA decryption failed in search: $e');
+      }
+    }
+
+    return decryptedMessage;
+  }
+
+  void _onSearchChanged(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        _searchResults = [];
+      });
+      return;
+    }
+
+    final results = _allMessages.where((m) {
+      return m.content.toLowerCase().contains(query.toLowerCase());
+    }).toList();
+
+    setState(() {
+      _searchResults = results;
+    });
+  }
+
+  void _showSearchModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final theme = Theme.of(context);
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.8,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(2))),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: TextField(
+                    controller: _searchController,
+                    autofocus: true,
+                    onChanged: (val) {
+                      _onSearchChanged(val);
+                      setModalState(() {});
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Search in this chat...',
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      suffixIcon: _searchController.text.isNotEmpty 
+                        ? IconButton(icon: const Icon(Icons.close_rounded), onPressed: () {
+                            _searchController.clear();
+                            _onSearchChanged('');
+                            setModalState(() {});
+                          })
+                        : null,
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.05),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: _searchController.text.isEmpty
+                    ? Center(child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.message_outlined, size: 48, color: Colors.white24),
+                          const SizedBox(height: 16),
+                          Text('Search for keywords', style: TextStyle(color: Colors.white38)),
+                        ],
+                      ))
+                    : _searchResults.isEmpty
+                      ? const Center(child: Text('No messages found', style: TextStyle(color: Colors.white38)))
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: _searchResults.length,
+                          itemBuilder: (context, index) {
+                            final msg = _searchResults[index];
+                            return ListTile(
+                              leading: const Icon(Icons.history_rounded, size: 20, color: Colors.white24),
+                              title: Text(msg.content, maxLines: 2, overflow: TextOverflow.ellipsis),
+                              subtitle: Text(_formatTimestamp(msg.timestamp), style: const TextStyle(fontSize: 11)),
+                              onTap: () {
+                                // For now just pop, in future could navigate to specific message
+                                Navigator.pop(context);
+                              },
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          );
+        }
+      ),
+    );
+  }
+
+  String _formatTimestamp(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+    if (difference.inDays < 1) return '${timestamp.hour}:${timestamp.minute.toString().padLeft(2, "0")}';
+    return '${timestamp.day}/${timestamp.month}/${timestamp.year % 100}';
   }
 
   Future<void> _checkLockStatus() async {
@@ -455,9 +782,25 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             child: Column(
               children: [
                 _buildActionTile(
-                  icon: Icons.notifications_none_rounded,
+                  icon: Icons.search_rounded,
+                  title: 'Search in Chat',
+                  subtitle: 'Coming soon',
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Search feature is being perfected and will be available soon!'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                ),
+                _buildSwitchTile(
+                  icon: _isMuted ? Icons.notifications_off_rounded : Icons.notifications_none_rounded,
                   title: 'Mute Notifications',
-                  onTap: () {},
+                  subtitle: 'Silence alerts for this chat',
+                  value: _isMuted,
+                  activeColor: Colors.orange,
+                  onChanged: _toggleMute,
                 ),
                 _buildActionTile(
                   icon: Icons.delete_sweep_outlined,
@@ -467,11 +810,11 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                   onTap: _clearChat,
                 ),
                 _buildActionTile(
-                  icon: Icons.block_flipped,
-                  title: 'Block ${widget.otherUserName}',
+                  icon: _isBlocked ? Icons.check_circle_outline : Icons.block_flipped,
+                  title: _isBlocked ? 'Unblock ${widget.otherUserName}' : 'Block ${widget.otherUserName}',
                   titleColor: colorScheme.error,
                   iconColor: colorScheme.error,
-                  onTap: () {},
+                  onTap: _toggleBlock,
                 ),
               ],
             ),

@@ -393,6 +393,19 @@ class SettingsScreen extends StatelessWidget {
                 ],
               ),
             ),
+            _buildSettingsTile(
+              context,
+              icon: Icons.auto_awesome_motion_outlined,
+              title: 'Mesh Background',
+              subtitle: 'Dynamic living background. May increase battery drain and device temperature.',
+              iconColor: Colors.indigo,
+              trailing: Switch(
+                value: userSettingsProvider.meshEnabled,
+                onChanged: (value) {
+                  userSettingsProvider.setMeshEnabled(value);
+                },
+              ),
+            ),
           ]),
 
           const SizedBox(height: 24),

@@ -1,63 +1,92 @@
 import { motion } from 'framer-motion';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 const Privacy = () => {
     return (
-        <div className="page-container">
-            <div className="container legal-container">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    <h1 className="page-title">Privacy Policy</h1>
-                    <p className="meta-text">Last Updated: December 2024</p>
+        <div className="bg-black min-h-screen text-white">
+            <Navbar />
+            
+            <main className="section-padding" style={{ paddingTop: '160px' }}>
+                <div className="container" style={{ maxWidth: '800px' }}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8 }}
+                    >
+                        <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', marginBottom: '1rem' }}>
+                            Privacy <span className="text-gradient">Policy</span>
+                        </h1>
+                        <p style={{ color: '#94a3b8', marginBottom: '4rem', fontSize: '1.1rem' }}>
+                            Last Updated: March 19, 2026
+                        </p>
 
-                    <div className="legal-content">
-                        <Section title="1. Information We Collect">
-                            <p>When you use Morrow, we collect the following types of information:</p>
-                            <ul className="legal-list">
-                                <li><strong>Account Information:</strong> Your email address, username, display name, and profile picture.</li>
-                                <li><strong>Content You Create:</strong> Posts, comments, messages, stories, and other content you share.</li>
-                                <li><strong>Usage Data:</strong> How you interact with the app, including features you use, time spent, and device information.</li>
-                                <li><strong>Device Information:</strong> Device type, operating system, and app version for improving compatibility.</li>
-                            </ul>
-                        </Section>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+                            <Section title="1. Our Commitment">
+                                <p>
+                                    At Morrow, privacy is not an afterthought—it's the core of our architecture. 
+                                    We believe that your digital moments should remain yours alone. Our platform 
+                                    is built on the principle of data minimization and end-to-end security.
+                                </p>
+                            </Section>
 
-                        <Section title="2. Support for End-to-End Encryption">
-                            <p>Morrow uses end-to-end encryption for direct messages:</p>
-                            <ul className="legal-list">
-                                <li>Your messages are encrypted on your device before being sent.</li>
-                                <li>Only you and the recipient can read your messages.</li>
-                                <li>We cannot access the content of encrypted messages.</li>
-                                <li>Encryption keys are protected by your PIN.</li>
-                            </ul>
-                        </Section>
+                            <Section title="2. Information We Collect">
+                                <p>To provide a functional and secure experience, we collect minimal data:</p>
+                                <ul style={{ listStyle: 'disc', paddingLeft: '1.5rem', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    <li><strong>Account Data:</strong> Email address and username used for authentication.</li>
+                                    <li><strong>Public Keys:</strong> Used to facilitate end-to-end encryption via the Signal Protocol.</li>
+                                    <li><strong>Device Metadata:</strong> Basic device type and OS version for technical compatibility.</li>
+                                </ul>
+                                <p style={{ marginTop: '1rem' }}>
+                                    We <strong>never</strong> collect your location without permission, and we <strong>never</strong> sell your data to third parties.
+                                </p>
+                            </Section>
 
-                        <Section title="3. How We Use Your Information">
-                            <p>We use your information to:</p>
-                            <ul className="legal-list">
-                                <li>Provide and maintain the Morrow service.</li>
-                                <li>Personalize your experience and content recommendations.</li>
-                                <li>Enable communication between users.</li>
-                                <li>Ensure safety and security of our platform.</li>
-                            </ul>
-                        </Section>
+                            <Section title="3. End-to-End Encryption">
+                                <p>
+                                    All personal messages and media sent through Morrow are encrypted using the 
+                                    Signal Protocol. This means only you and the intended recipient have the 
+                                    cryptographic keys to decrypt the content. 
+                                </p>
+                                <p style={{ marginTop: '1rem', fontStyle: 'italic', color: '#3b82f6' }}>
+                                    Morrow Inc. has zero technical ability to read your messages or view your media.
+                                </p>
+                            </Section>
 
-                        <Section title="4. Contact Us">
-                            <p>If you have questions about this privacy policy:</p>
-                            <p className="contact-link">Email: <a href="mailto:privacy@morrow.app">privacy@morrow.app</a></p>
-                        </Section>
-                    </div>
-                </motion.div>
-            </div>
+                            <Section title="4. Digital Wellbeing Data">
+                                <p>
+                                    Screen time tracking and "Zen Mode" statistics are processed 
+                                    <strong> locally on your device</strong>. This data is used solely to 
+                                    provide you with insights into your digital habits and is not 
+                                    transmitted to our servers.
+                                </p>
+                            </Section>
+
+                            <Section title="5. Contact Us">
+                                <p>
+                                    If you have questions about our privacy practices or your data, 
+                                    please reach out to our privacy team:
+                                </p>
+                                <p style={{ marginTop: '1rem', fontWeight: 700 }}>
+                                    Email: <a href="mailto:privacy@morrow.app" className="text-gradient">privacy@morrow.app</a>
+                                </p>
+                            </Section>
+                        </div>
+                    </motion.div>
+                </div>
+            </main>
+
+            <Footer />
         </div>
     );
 };
 
 const Section = ({ title, children }) => (
-    <section className="glass-card legal-section">
-        <h2 className="section-title">{title}</h2>
-        <div className="section-body">
+    <section className="glass" style={{ padding: '2.5rem', borderRadius: '24px' }}>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
+            {title}
+        </h2>
+        <div style={{ color: '#94a3b8', lineHeight: 1.8 }}>
             {children}
         </div>
     </section>

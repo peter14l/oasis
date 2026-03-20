@@ -352,6 +352,15 @@ class MessagingService {
     try {
       final messageId = _uuid.v4();
 
+      // 1. SAFETY CHECK: Ensure not blocked by recipient
+      final recipientId = await _getRecipientId(conversationId, senderId);
+      if (recipientId != null) {
+        final isBlocked = await _isBlockedBy(recipientId, senderId);
+        if (isBlocked) {
+          throw Exception('You cannot send messages to this user.');
+        }
+      }
+
       // Map message type to appropriate URL column
       final insertData = {
         'id': messageId,
@@ -999,6 +1008,108 @@ class MessagingService {
     } catch (e) {
       debugPrint('Error toggling whisper mode: $e');
       rethrow;
+    }
+  }
+
+  /// Toggle Mute for a conversation
+  Future<void> toggleMute(String conversationId, bool isMuted) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) throw Exception('Not authenticated');
+
+      await _supabase
+          .from('conversation_participants')
+          .update({'is_muted': isMuted})
+          .eq('conversation_id', conversationId)
+          .eq('user_id', userId);
+    } catch (e) {
+      debugPrint('Error toggling mute: $e');
+      rethrow;
+    }
+  }
+
+  /// Block a user
+  Future<void> blockUser(String userIdToBlock) async {
+    try {
+      final currentUserId = _supabase.auth.currentUser?.id;
+      if (currentUserId == null) throw Exception('Not authenticated');
+
+      await _supabase.from('blocked_users').upsert({
+        'blocker_id': currentUserId,
+        'blocked_id': userIdToBlock,
+      }, onConflict: 'blocker_id, blocked_id');
+    } catch (e) {
+      debugPrint('Error blocking user: $e');
+      rethrow;
+    }
+  }
+
+  /// Unblock a user
+  Future<void> unblockUser(String userIdToUnblock) async {
+    try {
+      final currentUserId = _supabase.auth.currentUser?.id;
+      if (currentUserId == null) throw Exception('Not authenticated');
+
+      await _supabase
+          .from('blocked_users')
+          .delete()
+          .eq('blocker_id', currentUserId)
+          .eq('blocked_id', userIdToUnblock);
+    } catch (e) {
+      debugPrint('Error unblocking user: $e');
+      rethrow;
+    }
+  }
+
+  /// Check if a user is blocked
+  Future<bool> isUserBlocked(String otherUserId) async {
+    try {
+      final currentUserId = _supabase.auth.currentUser?.id;
+      if (currentUserId == null) return false;
+
+      final response = await _supabase
+          .from('blocked_users')
+          .select('id')
+          .eq('blocker_id', currentUserId)
+          .eq('blocked_id', otherUserId)
+          .maybeSingle();
+
+      return response != null;
+    } catch (e) {
+      debugPrint('Error checking block status: $e');
+      return false;
+    }
+  }
+
+  /// Get the other participant's ID in a direct conversation
+  Future<String?> _getRecipientId(String conversationId, String senderId) async {
+    try {
+      final response = await _supabase
+          .from('conversation_participants')
+          .select('user_id')
+          .eq('conversation_id', conversationId)
+          .neq('user_id', senderId)
+          .maybeSingle();
+      
+      return response?['user_id'] as String?;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Check if sender is blocked by recipient
+  Future<bool> _isBlockedBy(String recipientId, String senderId) async {
+    try {
+      final response = await _supabase
+          .from('blocked_users')
+          .select('id')
+          .eq('blocker_id', recipientId)
+          .eq('blocked_id', senderId)
+          .maybeSingle();
+      
+      return response != null;
+    } catch (e) {
+      return false;
     }
   }
 

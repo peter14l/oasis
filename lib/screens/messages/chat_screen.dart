@@ -43,7 +43,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:oasis_v2/services/call_service.dart';
 import 'package:oasis_v2/screens/messages/incoming_call_overlay.dart';
 import 'package:oasis_v2/models/call.dart';
-import 'package:oasis_v2/services/audio_compression_service.dart';
 import 'package:oasis_v2/widgets/messages/forward_message_modal.dart';
 import 'package:go_router/go_router.dart';
 
@@ -85,7 +84,6 @@ class _ChatScreenState extends State<ChatScreen> {
   List<Message> _messages = [];
   bool _isLoading = false;
   bool _isSending = false;
-  bool _isCompressing = false;
   bool _isRecording = false;
   Message? _replyMessage;
   // SmartReplyService is static now
@@ -692,33 +690,17 @@ class _ChatScreenState extends State<ChatScreen> {
       if (result != null && result.files.single.path != null) {
         File audioFile = File(result.files.single.path!);
         
-        // Check if compression is needed (> 48MB for safety)
-        if (await AudioCompressionService().needsCompression(audioFile.path)) {
-          setState(() => _isCompressing = true);
-          
-          final compressedPath = await AudioCompressionService().compressAudio(audioFile.path);
-          
-          setState(() => _isCompressing = false);
-
-          if (compressedPath != null) {
-            audioFile = File(compressedPath);
-          } else {
-            _showError('Failed to compress large audio file. It might fail to upload.');
-          }
-        }
-
         final sizeInBytes = await audioFile.length();
         final sizeInMb = sizeInBytes / (1024 * 1024);
 
         if (sizeInMb > 50) {
-          _showError('File still too large after compression (Max 50MB).');
+          _showError('File too large (Max 50MB).');
           return;
         }
 
         setState(() => _selectedAudio = audioFile);
       }
     } catch (e) {
-      setState(() => _isCompressing = false);
       _showError('Error picking audio: $e');
     }
   }
@@ -2269,31 +2251,24 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Row(
         children: [
           Icon(
-            _isCompressing ? Icons.hourglass_empty_rounded : Icons.audio_file_rounded,
+            Icons.audio_file_rounded,
             color: colorScheme.primary,
           ),
           const SizedBox(width: 8),
-          Expanded(
+          const Expanded(
             child: Text(
-              _isCompressing ? 'Compressing audio...' : 'Audio selected',
-              style: const TextStyle(fontWeight: FontWeight.w500),
+              'Audio selected',
+              style: TextStyle(fontWeight: FontWeight.w500),
             ),
           ),
-          if (_isCompressing)
-            const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () {
-                setState(() {
-                  _selectedAudio = null;
-                });
-              },
-            ),
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              setState(() {
+                _selectedAudio = null;
+              });
+            },
+          ),
         ],
       ),
     );
@@ -2659,113 +2634,125 @@ class _ChatScreenState extends State<ChatScreen> {
                   isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color:
-                        isMe
-                            ? (_bubbleColorSent ?? colorScheme.primary)
-                            : (_bubbleColorReceived ??
-                                colorScheme.surfaceContainerHighest),
-                    borderRadius: BorderRadius.circular(16).copyWith(
-                      bottomRight: isMe ? const Radius.circular(4) : null,
-                      bottomLeft: !isMe ? const Radius.circular(4) : null,
+                IntrinsicWidth(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color:
+                          isMe
+                              ? (_bubbleColorSent ?? colorScheme.primary)
+                              : (_bubbleColorReceived ??
+                                  colorScheme.surfaceContainerHighest),
+                      borderRadius: BorderRadius.circular(24).copyWith(
+                        bottomRight: isMe ? const Radius.circular(8) : null,
+                        bottomLeft: !isMe ? const Radius.circular(8) : null,
+                      ),
+                      border: isMe 
+                        ? Border.all(color: Colors.white.withValues(alpha: 0.7), width: 0.8) 
+                        : null,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (message.replyToId != null)
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: IntrinsicHeight(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 3,
-                                  decoration: BoxDecoration(
-                                    color: isMe ? Colors.white70 : colorScheme.primary,
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Flexible(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        message.replyToSenderName ?? 'Unknown',
-                                        style: theme.textTheme.labelSmall?.copyWith(
-                                          color: isMe ? Colors.white : colorScheme.primary,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 10,
-                                        ),
-                                      ),
-                                      Text(
-                                        message.replyToContent ?? 'Original message',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: theme.textTheme.bodySmall?.copyWith(
-                                          color: isMe 
-                                              ? Colors.white.withValues(alpha: 0.7) 
-                                              : colorScheme.onSurface.withValues(alpha: 0.6),
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (message.replyToId != null)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                          ),
-                        ),
-                      content,
-                      if (isMe)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Align(
-                            alignment: Alignment.bottomRight,
-                            child: Icon(
-                              Icons.done_all,
-                              size: 14,
-                              color:
-                                  message.isRead ? Colors.blue : Colors.black,
-                            ),
-                          ),
-                        ),
-                      if (isMe &&
-                          message.isRead &&
-                          message.readAt != null &&
-                          _messages.indexOf(message) ==
-                              _messages.lastIndexWhere(
-                                (m) =>
-                                    m.senderId == userId &&
-                                    m.isRead &&
-                                    m.readAt != null,
-                              ))
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Align(
-                            alignment: Alignment.bottomRight,
-                            child: Text(
-                              _formatSeenTime(message.readAt!),
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                fontSize: 9,
-                                fontStyle: FontStyle.italic,
-                                color: (_textColorSent ?? colorScheme.onPrimary)
-                                    .withValues(alpha: 0.8),
+                            child: IntrinsicHeight(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 3,
+                                    decoration: BoxDecoration(
+                                      color: isMe ? Colors.white70 : colorScheme.primary,
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          message.replyToSenderName ?? 'Unknown',
+                                          style: theme.textTheme.labelSmall?.copyWith(
+                                            color: isMe ? Colors.white : colorScheme.primary,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 10,
+                                          ),
+                                        ),
+                                        Text(
+                                          message.replyToContent ?? 'Original message',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: theme.textTheme.bodySmall?.copyWith(
+                                            color: isMe 
+                                                ? Colors.white.withValues(alpha: 0.7) 
+                                                : colorScheme.onSurface.withValues(alpha: 0.6),
+                                            fontSize: 11,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                        ),
-                    ],
+                        content,
+                        if (isMe)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Align(
+                              alignment: Alignment.bottomRight,
+                              child: Icon(
+                                Icons.done_all,
+                                size: 14,
+                                color:
+                                    message.isRead ? Colors.blue : Colors.black, // Solid Black
+                              ),
+                            ),
+                          ),
+                        if (isMe &&
+                            message.isRead &&
+                            message.readAt != null &&
+                            _messages.indexOf(message) ==
+                                _messages.lastIndexWhere(
+                                  (m) =>
+                                      m.senderId == userId &&
+                                      m.isRead &&
+                                      m.readAt != null,
+                                ))
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Align(
+                              alignment: Alignment.bottomRight,
+                              child: Text(
+                                _formatSeenTime(message.readAt!),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  fontSize: 9,
+                                  fontStyle: FontStyle.italic,
+                                  color: (_textColorSent ?? colorScheme.onPrimary)
+                                      .withValues(alpha: 0.8),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
                 // Reactions Display

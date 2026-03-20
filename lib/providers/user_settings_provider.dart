@@ -6,16 +6,19 @@ class UserSettingsProvider with ChangeNotifier {
   static const String _fontSizeFactorKey = 'font_size_factor';
   static const String _highContrastKey = 'high_contrast';
   static const String _scrollLimitMinutesKey = 'scroll_limit_minutes';
+  static const String _meshEnabledKey = 'mesh_enabled';
 
   bool _dataSaver = false;
   double _fontSizeFactor = 1.0;
   bool _highContrast = false;
   int _scrollLimitMinutes = 30;
+  bool _meshEnabled = true;
 
   bool get dataSaver => _dataSaver;
   double get fontSizeFactor => _fontSizeFactor;
   bool get highContrast => _highContrast;
   int get scrollLimitMinutes => _scrollLimitMinutes;
+  bool get meshEnabled => _meshEnabled;
 
   Future<void> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
@@ -23,6 +26,14 @@ class UserSettingsProvider with ChangeNotifier {
     _fontSizeFactor = prefs.getDouble(_fontSizeFactorKey) ?? 1.0;
     _highContrast = prefs.getBool(_highContrastKey) ?? false;
     _scrollLimitMinutes = prefs.getInt(_scrollLimitMinutesKey) ?? 30;
+    _meshEnabled = prefs.getBool(_meshEnabledKey) ?? true;
+    notifyListeners();
+  }
+
+  Future<void> setMeshEnabled(bool value) async {
+    _meshEnabled = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_meshEnabledKey, value);
     notifyListeners();
   }
 
