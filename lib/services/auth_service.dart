@@ -1,11 +1,12 @@
 import 'dart:async';
-import 'dart:io';
+import 'package:universal_io/io.dart';
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase/supabase.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart' as all_platforms;
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:oasis_v2/models/user_model.dart' as app_models;
 import 'package:oasis_v2/config/supabase_config.dart';
@@ -41,6 +42,18 @@ class AuthService with ChangeNotifier {
     clientId: kIsWeb ? dotenv.get('GOOGLE_WEB_CLIENT_ID') : null,
     serverClientId: kIsWeb ? null : dotenv.get('GOOGLE_WEB_CLIENT_ID'),
     scopes: ['email', 'profile'],
+  );
+
+  // For Windows/Desktop fallback
+  static all_platforms.GoogleSignIn _googleSignInDesktop = all_platforms.GoogleSignIn(
+    params: all_platforms.GoogleSignInParams(
+      clientId: dotenv.get('GOOGLE_WEB_CLIENT_ID'),
+      // Client Secret is technically required for desktop loopback but sometimes optional
+      // depending on Google Console configuration.
+      clientSecret: dotenv.get('GOOGLE_WEB_CLIENT_SECRET', fallback: ''),
+      redirectPort: 3000,
+      scopes: ['email', 'profile', 'openid'],
+    ),
   );
 
   // Auth state changes
@@ -171,16 +184,28 @@ class AuthService with ChangeNotifier {
   // Sign in with Google
   Future<app_models.AppUser> signInWithGoogle() async {
     try {
-      // Start the Google sign in process
-      final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        throw AuthException('Google sign in was cancelled');
-      }
+      String? idToken;
+      String? accessToken;
 
-      // Get auth tokens
-      final googleAuth = await googleUser.authentication;
-      final idToken = googleAuth.idToken;
-      final accessToken = googleAuth.accessToken;
+      if (!kIsWeb && Platform.isWindows) {
+        // Desktop Flow
+        final response = await _googleSignInDesktop.signIn();
+        if (response == null) {
+          throw AuthException('Google sign in was cancelled');
+        }
+        idToken = response.idToken;
+        accessToken = response.accessToken;
+      } else {
+        // Mobile/Web Flow
+        final googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) {
+          throw AuthException('Google sign in was cancelled');
+        }
+
+        final googleAuth = await googleUser.authentication;
+        idToken = googleAuth.idToken;
+        accessToken = googleAuth.accessToken;
+      }
 
       if (idToken == null) {
         throw AuthException('No ID Token found.');
@@ -342,7 +367,20 @@ throw AuthException('Failed to sign in with Google: ${e.toString()}');
   // Sign out
   Future<void> signOut() async {
     try {
-      await _googleSignIn.signOut();
+      // Safe sign out for Google
+      if (kIsWeb || !Platform.isWindows) {
+        try {
+          await _googleSignIn.signOut();
+        } catch (e) {
+          developer.log('Non-critical: Google sign out failed: $e');
+        }
+      } else {
+        try {
+          await _googleSignInDesktop.signOut();
+        } catch (e) {
+          developer.log('Non-critical: Google desktop sign out failed: $e');
+        }
+      }
       
       // Clear encryption keys and Signal state before Supabase signout
       // to ensure they are wiped while we still have the session (if needed)
@@ -355,6 +393,7 @@ throw AuthException('Failed to sign in with Google: ${e.toString()}');
       throw AuthException('Failed to sign out: ${e.toString()}');
     }
   }
+
 
   @override
   void dispose() {

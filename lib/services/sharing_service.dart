@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io';
+import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:oasis_v2/models/message.dart';
@@ -9,6 +9,8 @@ import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+
+import 'package:oasis_v2/config/feature_flags.dart';
 
 class SharingService {
   static final SharingService _instance = SharingService._internal();
@@ -20,6 +22,8 @@ class SharingService {
   final AuthService _authService = AuthService();
 
   void init(BuildContext context) {
+    if (!FeatureFlags.supportSystemIntents) return;
+
     // For sharing images coming from outside the app while the app is in the memory
     _intentDataStreamSubscription = ReceiveSharingIntent.instance.getMediaStream().listen((List<SharedMediaFile> value) {
       if (value.isNotEmpty) {

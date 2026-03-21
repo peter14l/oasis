@@ -252,6 +252,36 @@ class ConversationProvider with ChangeNotifier {
     }
   }
 
+  /// Clear all data (used during logout)
+  Future<void> clear() async {
+    // Stop subscriptions
+    _conversationsSubscription?.unsubscribe();
+    for (final channel in _readReceiptSubscriptions.values) {
+      channel.unsubscribe();
+    }
+    for (final channel in _typingSubscriptions.values) {
+      channel.unsubscribe();
+    }
+    
+    _readReceiptSubscriptions.clear();
+    _typingSubscriptions.clear();
+    
+    // Clear cache if we have a user
+    if (_currentUserId != null) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('cached_conversations_${_currentUserId}');
+      } catch (e) {
+        debugPrint('Error clearing cached conversations: $e');
+      }
+    }
+    
+    _conversations = [];
+    _currentUserId = null;
+    _isLoading = false;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _conversationsSubscription?.unsubscribe();

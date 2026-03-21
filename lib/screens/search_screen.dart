@@ -103,109 +103,121 @@ class _SearchScreenState extends State<SearchScreen>
     if (isDesktop) {
       // Desktop layout without AppBar
       return GreyscaleWrapper(
-        child: Scaffold(
-          body: Column(
-            children: [
-              // Integrated search header
-              ClipRRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface.withValues(alpha: 0.6),
-                      border: Border(
-                        bottom: BorderSide(
-                          color: theme.dividerColor.withValues(alpha: 0.2),
-                          width: 1,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: Column(
+                    children: [
+                      // Integrated search header
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface.withValues(alpha: 0.2),
+                          border: Border(
+                            bottom: BorderSide(
+                              color: theme.dividerColor.withValues(alpha: 0.1),
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                height: 64, // Thicker search bar
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surfaceContainerHighest
+                                      .withValues(alpha: 0.3),
+                                  borderRadius: BorderRadius.circular(32),
+                                  border: Border.all(
+                                    color: theme.dividerColor.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: TextField(
+                                  controller: _searchController,
+                                  onChanged: _onSearchChanged,
+                                  onSubmitted: _onSearchSubmitted,
+                                  decoration: InputDecoration(
+                                    hintText: 'Search users or posts...',
+                                    border: InputBorder.none,
+                                    hintStyle: TextStyle(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                    prefixIcon: const Icon(Icons.search, size: 28),
+                                    suffixIcon:
+                                        _query.isNotEmpty
+                                            ? IconButton(
+                                              icon: const Icon(Icons.clear),
+                                              onPressed: () {
+                                                _searchController.clear();
+                                                _onSearchChanged('');
+                                              },
+                                            )
+                                            : null,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 20,
+                                    ),
+                                  ),
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: colorScheme.onSurface,
+                                  ),
+                                  textInputAction: TextInputAction.search,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            IconButton(
+                              icon: Icon(
+                                _showFilters
+                                    ? Icons.filter_list_off
+                                    : Icons.filter_list,
+                                size: 24,
+                              ),
+                              onPressed:
+                                  () =>
+                                      setState(() => _showFilters = !_showFilters),
+                              tooltip:
+                                  _showFilters ? 'Hide Filters' : 'Show Filters',
+                              style: IconButton.styleFrom(
+                                backgroundColor:
+                                    _showFilters
+                                        ? colorScheme.primaryContainer
+                                        : colorScheme.surfaceContainerHighest,
+                                foregroundColor:
+                                    _showFilters
+                                        ? colorScheme.primary
+                                        : colorScheme.onSurfaceVariant,
+                                minimumSize: const Size(64, 64),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(32),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            height: 64, // Thicker search bar
-                            decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerHighest
-                                  .withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(32),
-                              border: Border.all(
-                                color: theme.dividerColor.withValues(
-                                  alpha: 0.3,
-                                ),
-                                width: 1,
-                              ),
-                            ),
-                            child: TextField(
-                              controller: _searchController,
-                              onChanged: _onSearchChanged,
-                              onSubmitted: _onSearchSubmitted,
-                              decoration: InputDecoration(
-                                hintText: 'Search users or posts...',
-                                border: InputBorder.none,
-                                hintStyle: TextStyle(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                                prefixIcon: const Icon(Icons.search, size: 28),
-                                suffixIcon:
-                                    _query.isNotEmpty
-                                        ? IconButton(
-                                          icon: const Icon(Icons.clear),
-                                          onPressed: () {
-                                            _searchController.clear();
-                                            _onSearchChanged('');
-                                          },
-                                        )
-                                        : null,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 20,
-                                ),
-                              ),
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: colorScheme.onSurface,
-                              ),
-                              textInputAction: TextInputAction.search,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        IconButton(
-                          icon: Icon(
-                            _showFilters
-                                ? Icons.filter_list_off
-                                : Icons.filter_list,
-                            size: 24,
-                          ),
-                          onPressed:
-                              () =>
-                                  setState(() => _showFilters = !_showFilters),
-                          tooltip:
-                              _showFilters ? 'Hide Filters' : 'Show Filters',
-                          style: IconButton.styleFrom(
-                            backgroundColor:
-                                _showFilters
-                                    ? colorScheme.primaryContainer
-                                    : colorScheme.surfaceContainerHighest,
-                            foregroundColor:
-                                _showFilters
-                                    ? colorScheme.primary
-                                    : colorScheme.onSurfaceVariant,
-                            minimumSize: const Size(64, 64),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(32),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      // Content
+                      Expanded(child: _buildDesktopLayout()),
+                    ],
                   ),
                 ),
               ),
-              // Content
-              Expanded(child: _buildDesktopLayout()),
-            ],
+            ),
           ),
         ),
       );
@@ -330,7 +342,7 @@ class _SearchScreenState extends State<SearchScreen>
             decoration: BoxDecoration(
               border: Border(
                 right: BorderSide(
-                  color: Theme.of(context).dividerColor,
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                   width: 1,
                 ),
               ),

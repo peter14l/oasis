@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:oasis_v2/models/story_model.dart';
 import 'package:oasis_v2/services/supabase_service.dart';

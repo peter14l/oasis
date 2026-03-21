@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis_v2/screens/circles/circles_list_screen.dart';
@@ -30,29 +31,57 @@ class _SpacesScreenState extends State<SpacesScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final theme = Theme.of(context);
+
+    Widget spacesContent = Column(
+      children: [
+        // ── Custom top tab bar ───────────────────────────────────────
+        SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+            child: _SpacesTabBar(controller: _tabController),
+          ),
+        ),
+
+        // ── Tab views ────────────────────────────────────────────────
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            physics: const NeverScrollableScrollPhysics(),
+            children: const [CirclesListScreen(), CanvasListScreen()],
+          ),
+        ),
+      ],
+    );
+
+    if (isDesktop) {
+      return Padding(
+        padding: const EdgeInsets.all(12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Scaffold(
+                backgroundColor: Colors.transparent,
+                body: spacesContent,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Column(
-        children: [
-          // ── Custom top tab bar ───────────────────────────────────────
-          SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-              child: _SpacesTabBar(controller: _tabController),
-            ),
-          ),
-
-          // ── Tab views ────────────────────────────────────────────────
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: const [CirclesListScreen(), CanvasListScreen()],
-            ),
-          ),
-        ],
-      ),
+      body: spacesContent,
     );
   }
 }

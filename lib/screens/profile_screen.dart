@@ -123,6 +123,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final userId = _authService.currentUser?.id;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     return Consumer<ProfileProvider>(
       builder: (context, profileProvider, child) {
@@ -142,7 +143,8 @@ class _ProfileScreenState extends State<ProfileScreen>
           );
         }
 
-        return Scaffold(
+        Widget profileContent = Scaffold(
+          backgroundColor: Colors.transparent,
           extendBodyBehindAppBar: true,
           body: CustomScrollView(
             controller: _scrollController,
@@ -210,6 +212,28 @@ class _ProfileScreenState extends State<ProfileScreen>
             ],
           ),
         );
+
+        if (isDesktop) {
+          return Padding(
+            padding: const EdgeInsets.all(12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: profileContent,
+                ),
+              ),
+            ),
+          );
+        }
+
+        return profileContent;
       },
     );
   }

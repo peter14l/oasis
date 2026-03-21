@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:oasis_v2/models/user_profile.dart';
 import 'package:oasis_v2/models/post.dart';

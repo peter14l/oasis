@@ -1,10 +1,14 @@
-import 'dart:io';
+import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:gal/gal.dart';
 import 'package:oasis_v2/services/supabase_service.dart';
+
+import 'package:oasis_v2/config/feature_flags.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MediaDownloadService {
   final Dio _dio = Dio();
@@ -31,17 +35,25 @@ class MediaDownloadService {
         }
         return false;
       }
-      // Request storage permission
-      if (!await _requestPermission()) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Storage permission denied'),
-              backgroundColor: Colors.red,
-            ),
-          );
+
+      if (kIsWeb) {
+        // For web, just launch the URL to trigger browser download
+        return await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      }
+
+      // Request storage permission (Mobile only)
+      if (FeatureFlags.isMobile) {
+        if (!await _requestPermission()) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Storage permission denied'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return false;
         }
-        return false;
       }
 
       // Show downloading snackbar

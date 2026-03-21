@@ -1,0 +1,28 @@
+# Flutter build artifacts
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.dart_tool/
+
+# Platform-specific build outputs
+ios/Pods/
+ios/Flutter/Flutter.framework/
+ios/Flutter/Flutter.podspec
+android/.gradle/
+android/app/build/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.iml
+
+# Generated code and caches
+coverage/
+*.log
+*.tmp
+*.swp
+
+# Other large directories
+node_modules/

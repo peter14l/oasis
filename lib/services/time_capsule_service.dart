@@ -95,11 +95,13 @@ class TimeCapsuleService {
           .from(SupabaseConfig.profilesTable)
           .select('id, username, avatar_url')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
 
       return (response as List).map((e) {
         final mergedData = Map<String, dynamic>.from(e);
-        mergedData[SupabaseConfig.profilesTable] = profileResponse;
+        if (profileResponse != null) {
+          mergedData[SupabaseConfig.profilesTable] = profileResponse;
+        }
         return _transformResponse(mergedData);
       }).toList();
     } catch (e) {
@@ -126,11 +128,13 @@ class TimeCapsuleService {
           .from(SupabaseConfig.profilesTable)
           .select('username, avatar_url')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
 
       return (response as List).map((e) {
         final mergedData = Map<String, dynamic>.from(e);
-        mergedData[SupabaseConfig.profilesTable] = profileResponse;
+        if (profileResponse != null) {
+          mergedData[SupabaseConfig.profilesTable] = profileResponse;
+        }
         return _transformResponse(mergedData);
       }).toList();
     } catch (e) {

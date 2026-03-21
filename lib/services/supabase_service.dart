@@ -1,8 +1,10 @@
-import 'dart:io';
+import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/supabase_config.dart';
+
+import 'package:image_picker/image_picker.dart' show XFile;
 
 class SupabaseService {
   static final SupabaseService _instance = SupabaseService._internal();
@@ -115,14 +117,21 @@ class SupabaseService {
   Future<String> uploadFile({
     required String bucket,
     required String path,
-    required File file,
+    required XFile file,
     FileOptions? fileOptions,
   }) async {
     _checkInitialized();
     try {
-      await client.storage
-          .from(bucket)
-          .upload(path, file, fileOptions: fileOptions ?? const FileOptions());
+      if (kIsWeb) {
+        final bytes = await file.readAsBytes();
+        await client.storage
+            .from(bucket)
+            .uploadBinary(path, bytes, fileOptions: fileOptions ?? const FileOptions());
+      } else {
+        await client.storage
+            .from(bucket)
+            .upload(path, File(file.path), fileOptions: fileOptions ?? const FileOptions());
+      }
       
       return getPublicUrl(bucket, path);
     } catch (e) {

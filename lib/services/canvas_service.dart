@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io';
+import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:oasis_v2/models/oasis_canvas.dart';
 import 'package:oasis_v2/models/canvas_item.dart';

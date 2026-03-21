@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis_v2/providers/feed_provider.dart';
@@ -581,7 +582,89 @@ class _FeedScreenState extends State<FeedScreen>
               ),
             );
 
-            // Wrap in MaxWidthContainer for desktop and tablet
+            // Desktop Split Layout
+            if (ResponsiveLayout.isDesktop(context)) {
+              return Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    // Main Feed (Floating)
+                    Expanded(
+                      flex: 2,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.05),
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                            child: MaxWidthContainer(
+                              maxWidth: ResponsiveLayout.maxFeedWidth,
+                              child: feedContent,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Desktop Sidebar (Floating)
+                    Container(
+                      width: 350,
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.05),
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: ListView(
+                            padding: const EdgeInsets.all(20),
+                            children: [
+                              Text(
+                                'TRENDING',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.5,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              _buildTrendingItem('#MorrowApp', '2.4k posts'),
+                              _buildTrendingItem('#OasisV2', '1.8k posts'),
+                              _buildTrendingItem('#FlutterDesktop', '942 posts'),
+                              const SizedBox(height: 32),
+                              Text(
+                                'SUGGESTED FOR YOU',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.5,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              _buildSuggestionItem('DesignDaily', '@designdaily'),
+                              _buildSuggestionItem('TechNexus', '@technexus'),
+                              _buildSuggestionItem('CreativeSoul', '@creative'),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            // Wrap in MaxWidthContainer for tablet
             return !ResponsiveLayout.isMobile(context)
                 ? MaxWidthContainer(
                   maxWidth: ResponsiveLayout.maxFeedWidth,
@@ -590,10 +673,49 @@ class _FeedScreenState extends State<FeedScreen>
                 : feedContent;
           },
         ),
-        // floatingActionButton: FloatingActionButton(
-        //   onPressed: () => context.push('/create-post'),
-        //   child: const Icon(Icons.add_rounded, size: 28),
-        // ),
+      ),
+    );
+  }
+
+  Widget _buildTrendingItem(String tag, String count) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(tag, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          Text(count, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuggestionItem(String name, String handle) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+            child: Text(name[0], style: const TextStyle(fontSize: 12)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                Text(handle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11)),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: () {},
+            style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+            child: const Text('Follow'),
+          ),
+        ],
       ),
     );
   }

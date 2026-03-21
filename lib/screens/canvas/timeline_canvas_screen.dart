@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -50,10 +50,45 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     super.initState();
     _scrollController.addListener(_onScroll);
     CanvasAudioService().start();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CanvasProvider>().openCanvas(widget.canvasId);
-      _setupPulseChannel();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
+      if (currentUserId != null) {
+        // Auto-join to ensure the user is in canvas_members for RLS and sync
+        await context.read<CanvasProvider>().joinCanvas(widget.canvasId, currentUserId);
+      }
+      if (mounted) {
+        context.read<CanvasProvider>().openCanvas(widget.canvasId);
+        _setupPulseChannel();
+      }
     });
+  }
+
+  Future<void> _deleteCanvas() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Canvas'),
+        content: const Text('Are you sure you want to permanently delete this canvas and all its memories? This action cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true), 
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final success = await context.read<CanvasProvider>().deleteCanvas(widget.canvasId);
+      if (success && mounted) {
+        context.pop();
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Canvas deleted')));
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to delete canvas')));
+      }
+    }
   }
 
   void _setupPulseChannel() {
@@ -115,6 +150,8 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<CanvasProvider>();
     final canvas = provider.activeCanvas;
+    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
+    final isOwner = canvas?.createdBy == currentUserId;
 
     return Scaffold(
       body: StarryNightBackground(
@@ -168,6 +205,12 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                           },
                           tooltip: 'Invite Member',
                         ),
+                        if (isOwner)
+                          IconButton(
+                            icon: const Icon(FluentIcons.delete_24_regular, color: Colors.redAccent),
+                            onPressed: _deleteCanvas,
+                            tooltip: 'Delete Canvas',
+                          ),
                       ],
                     ),
 

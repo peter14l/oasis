@@ -1,0 +1,19 @@
+name: flutter_local_notifications_windows
+description: ATL-free stub for flutter_local_notifications_windows
+version: 0.0.1
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_local_notifications_platform_interface: ^9.1.0
+
+flutter:
+  plugin:
+    platforms:
+      windows:
+        pluginClass: FlutterLocalNotificationsWindowsPlugin

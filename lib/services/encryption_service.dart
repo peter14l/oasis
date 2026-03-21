@@ -78,10 +78,17 @@ class EncryptionService {
       final publicKeyPem = await _secureStorage.read(key: _publicKeyKey(userId));
 
       if (privateKeyPem != null && publicKeyPem != null) {
-        debugPrint('[Encryption] Local keys verified for user $userId.');
-        _isInitialized = true;
-        _isInitializing = false;
-        return EncryptionStatus.ready;
+        // Validation check for corrupted keys
+        try {
+          CryptoUtils.rsaPrivateKeyFromPem(privateKeyPem);
+          debugPrint('[Encryption] Local keys verified for user $userId.');
+          _isInitialized = true;
+          _isInitializing = false;
+          return EncryptionStatus.ready;
+        } catch (e) {
+          debugPrint('[Encryption] Local keys corrupted for $userId: $e. Healing...');
+          // Continue to server check/setup to heal the state
+        }
       }
 
       // 3. Try to fetch from server

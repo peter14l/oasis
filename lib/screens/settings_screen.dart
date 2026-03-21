@@ -17,9 +17,15 @@ import 'package:oasis_v2/screens/settings/help_support_screen.dart';
 import 'package:oasis_v2/screens/messages/encryption_setup_screen.dart';
 import 'package:oasis_v2/screens/moderation/moderation_screens.dart'; // For BlockedUsersScreen
 import 'package:oasis_v2/providers/user_settings_provider.dart';
+import 'package:oasis_v2/providers/conversation_provider.dart';
+import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/providers/feed_provider.dart';
+import 'package:oasis_v2/providers/community_provider.dart';
+import 'package:oasis_v2/providers/notification_provider.dart';
 import 'package:oasis_v2/services/screen_time_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:ui';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -33,10 +39,12 @@ class SettingsScreen extends StatelessWidget {
     final authService = Provider.of<AuthService>(context, listen: false);
     final profileService = ProfileService();
     final user = authService.currentUser;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
-    final content = Scaffold(
-      backgroundColor: colorScheme.surface,
+    final settingsContent = Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         title: const Text('Settings'),
         centerTitle: true,
         elevation: 0,
@@ -266,7 +274,6 @@ class SettingsScreen extends StatelessWidget {
                   : const Icon(Icons.lock_outline, size: 20, color: Colors.orange),
               onTap: () => _showScrollLimitPicker(context),
             ),
-            // ... existing items ...
           ]),
 
           const SizedBox(height: 24),
@@ -397,7 +404,7 @@ class SettingsScreen extends StatelessWidget {
               context,
               icon: Icons.auto_awesome_motion_outlined,
               title: 'Mesh Background',
-              subtitle: 'Dynamic living background. May increase battery drain and device temperature.',
+              subtitle: 'Dynamic living background.',
               iconColor: Colors.indigo,
               trailing: Switch(
                 value: userSettingsProvider.meshEnabled,
@@ -447,8 +454,6 @@ class SettingsScreen extends StatelessWidget {
               subtitle: 'Free up space',
               iconColor: Colors.deepOrange,
               onTap: () async {
-                // For cached_network_image, clearing cache is handled by its library
-                // but we can simulate/notify success here.
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(const SnackBar(content: Text('Cache cleared')));
@@ -594,6 +599,10 @@ class SettingsScreen extends StatelessWidget {
 
                 if (confirmed == true) {
                   try {
+                    if (context.mounted) {
+                      _clearProviders(context);
+                    }
+                    
                     await authService.signOut();
                     if (context.mounted) {
                       context.go('/login');
@@ -614,12 +623,41 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
 
-    return ResponsiveLayout.isDesktop(context)
-        ? MaxWidthContainer(
-          maxWidth: ResponsiveLayout.maxFormWidth,
-          child: content,
-        )
-        : content;
+    if (isDesktop) {
+      return Padding(
+        padding: const EdgeInsets.all(12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: MaxWidthContainer(
+                maxWidth: ResponsiveLayout.maxFormWidth,
+                child: settingsContent,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return MaxWidthContainer(
+      maxWidth: ResponsiveLayout.maxFormWidth,
+      child: settingsContent,
+    );
+  }
+
+  void _clearProviders(BuildContext context) {
+    context.read<ConversationProvider>().clear();
+    context.read<ProfileProvider>().clear();
+    context.read<FeedProvider>().clear();
+    context.read<CommunityProvider>().clear();
+    context.read<NotificationProvider>().init(null);
   }
 
   Widget _buildStatItem(

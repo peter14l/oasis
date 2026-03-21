@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart';
 import 'package:mime/mime.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart' as compress;

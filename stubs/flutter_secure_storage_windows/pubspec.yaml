@@ -1,0 +1,24 @@
+name: flutter_secure_storage_windows
+description: ATL-free stub for flutter_secure_storage_windows
+version: 0.0.1
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_secure_storage_platform_interface: ^1.1.0
+  shared_preferences: ^2.2.2
+  encrypt: ^5.0.3
+  path_provider: ^2.1.1
+  crypto: ^3.0.3
+
+flutter:
+  plugin:
+    platforms:
+      windows:
+        pluginClass: FlutterSecureStorageWindowsPlugin
+        dartPluginClass: FlutterSecureStorageWindows

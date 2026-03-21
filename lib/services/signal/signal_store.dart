@@ -124,6 +124,7 @@ class PersistentSignalStore implements SignalProtocolStore {
     final sessionPrefix = _sessionsKeyPrefix(userId);
     final preKeyPrefix = _preKeysKeyPrefix(userId);
     final signedPreKeyPrefix = _signedPreKeyKeyPrefix(userId);
+    final identityPrefix = 'signal_identity_${userId}_';
 
     for (final key in existingKeys) {
       if (key.startsWith(sessionPrefix)) {
@@ -137,6 +138,14 @@ class PersistentSignalStore implements SignalProtocolStore {
             final record = SessionRecord.fromSerialized(base64Decode(sessionData));
             _inMemoryStore.storeSession(address, record);
           }
+        }
+      } else if (key.startsWith(identityPrefix)) {
+        final addressName = key.replaceFirst(identityPrefix, '');
+        final address = SignalProtocolAddress(addressName, 1); // Default deviceId 1
+        final identityData = _prefs.getString(key);
+        if (identityData != null) {
+          final identityKey = IdentityKey.fromBytes(base64Decode(identityData), 0);
+          _inMemoryStore.saveIdentity(address, identityKey);
         }
       } else if (key.startsWith(preKeyPrefix)) {
         final preKeyId = int.tryParse(key.replaceFirst(preKeyPrefix, ''));
@@ -174,7 +183,14 @@ class PersistentSignalStore implements SignalProtocolStore {
 
   @override
   Future<bool> saveIdentity(SignalProtocolAddress address, IdentityKey? identityKey) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return false;
+
     final result = await _inMemoryStore.saveIdentity(address, identityKey);
+    if (identityKey != null) {
+      final key = 'signal_identity_${userId}_${address.getName()}';
+      await _prefs.setString(key, base64Encode(identityKey.serialize()));
+    }
     return result;
   }
 

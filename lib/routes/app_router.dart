@@ -69,6 +69,7 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   /// Routes that are locked when the collaboration kill-switch or focus mode is active.
   static const _restrictedRoutes = {'/feed', '/search'};
+  bool _isRailExtended = false;
 
   int _getCurrentIndex() {
     final location = GoRouterState.of(context).uri.path;
@@ -105,7 +106,7 @@ class _MainLayoutState extends State<MainLayout> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final currentIndex = _getCurrentIndex();
-    final isDesktop = MediaQuery.of(context).size.width >= 1200;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     return Consumer2<ScreenTimeService, WellnessService>(
       builder: (context, svc, wellness, _) {
@@ -126,18 +127,40 @@ class _MainLayoutState extends State<MainLayout> {
 
         if (isDesktop) {
           return Scaffold(
+            backgroundColor: Colors.transparent,
             body: Stack(
               children: [
-                Row(
-                  children: [
-                    _buildNavigationRail(
-                      context,
-                      currentIndex,
-                      theme,
-                      killSwitchActive: killSwitchActive,
-                    ),
-                    Expanded(child: widget.child),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      // Floating Navigation Rail
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0C0F14).withValues(alpha: 0.8),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: BackdropFilter(
+                            filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                            child: _buildNavigationRail(
+                              context,
+                              currentIndex,
+                              theme,
+                              killSwitchActive: killSwitchActive,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Floating Content Area
+                      Expanded(
+                        child: widget.child,
+                      ),
+                    ],
+                  ),
                 ),
                 if (killSwitchActive)
                   Positioned(
@@ -368,24 +391,38 @@ class _MainLayoutState extends State<MainLayout> {
         killSwitchActive ? Opacity(opacity: 0.3, child: icon) : icon;
 
     return NavigationRail(
+      extended: _isRailExtended,
       selectedIndex: currentIndex,
       onDestinationSelected:
           (i) => _onDestinationSelected(i, killSwitchActive: killSwitchActive),
-      labelType: NavigationRailLabelType.all,
+      labelType: _isRailExtended ? NavigationRailLabelType.none : NavigationRailLabelType.all,
       backgroundColor: const Color(0xFF0C0F14),
-      leading: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Icon(Icons.auto_awesome, size: 32, color: colorScheme.primary),
+      leading: Column(
+        children: [
+          const SizedBox(height: 8),
+          IconButton(
+            icon: Icon(_isRailExtended ? Icons.menu_open : Icons.menu),
+            onPressed: () => setState(() => _isRailExtended = !_isRailExtended),
+            color: colorScheme.onSurfaceVariant,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Icon(Icons.auto_awesome, size: 32, color: colorScheme.primary),
+          ),
+        ],
       ),
       trailing: Expanded(
         child: Align(
           alignment: Alignment.bottomCenter,
           child: Padding(
             padding: const EdgeInsets.only(bottom: 16),
-            child: CircleAvatar(
-              radius: 20,
-              backgroundColor: colorScheme.primaryContainer,
-              child: Icon(Icons.person, color: colorScheme.onPrimaryContainer),
+            child: InkWell(
+              onTap: () => context.go('/profile'),
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: colorScheme.primaryContainer,
+                child: Icon(Icons.person, color: colorScheme.onPrimaryContainer),
+              ),
             ),
           ),
         ),
@@ -646,19 +683,32 @@ class AppRouter {
               GoRoute(
                 path: ':conversationId',
                 name: 'chat_nested',
-                parentNavigatorKey: _rootNavigatorKey,
                 pageBuilder: (context, state) {
                   final conversationId = state.pathParameters['conversationId']!;
                   final extra = state.extra as Map<String, dynamic>?;
-                  return MaterialPage(
-                    key: state.pageKey,
-                    child: ChatScreen(
-                      conversationId: conversationId,
-                      otherUserName: extra?['otherUserName'] ?? 'User',
-                      otherUserAvatar: extra?['otherUserAvatar'] ?? '',
-                      otherUserId: extra?['otherUserId'] ?? '',
-                    ),
-                  );
+                  
+                  final isDesktop = MediaQuery.of(context).size.width >= 1000;
+
+                  if (isDesktop) {
+                    // On Desktop, the DirectMessagesScreen handles the 3rd pane internally.
+                    // We return the same screen but the internal logic will now see the ID in the URL.
+                    return NoTransitionPage(
+                      child: messages.DirectMessagesScreen(
+                        initialConversationId: conversationId,
+                        initialConversationData: extra,
+                      ),
+                    );
+                  } else {
+                    // On Mobile/Android, we push the dedicated ChatScreen
+                    return MaterialPage(
+                      child: ChatScreen(
+                        conversationId: conversationId,
+                        otherUserName: extra?['otherUserName'],
+                        otherUserAvatar: extra?['otherUserAvatar'],
+                        otherUserId: extra?['otherUserId'],
+                      ),
+                    );
+                  }
                 },
               ),
             ],

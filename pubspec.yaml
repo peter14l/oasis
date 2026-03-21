@@ -64,6 +64,7 @@ dependencies:
   flutter_local_notifications: ^19.5.0
   firebase_core: ^3.11.0
   firebase_messaging: ^15.2.10
+  google_sign_in_all_platforms: ^1.1.0
   
   # Form Validation
   form_validator: ^2.0.0
@@ -120,8 +121,10 @@ dependencies:
   permission_handler: ^11.3.1
   receive_sharing_intent: ^1.8.1
   emoji_picker_flutter: ^4.4.0
+  universal_io: ^2.3.1
 
 dev_dependencies:
+  msix: ^3.16.1
   sentry_dart_plugin: ^3.2.0
   flutter_test:
     sdk: flutter
@@ -132,6 +135,24 @@ dev_dependencies:
   test: ^1.24.10
   integration_test:
     sdk: flutter
+
+msix_config:
+  display_name: Oasis V2
+  publisher_display_name: Oasis
+  publisher: CN=Oasis, O=Oasis, L=Delhi, S=Delhi, C=IN
+  identity_name: com.oasis.v2
+  msix_version: 4.0.0.0
+  logo_path: assets/images/app_icon.png
+  capabilities: internetClient, location, microphone, webcam
+  architecture: x64
+  generate_certificate: true
+  install_certificate: true
+
+dependency_overrides:
+  flutter_secure_storage_windows:
+    path: ./stubs/flutter_secure_storage_windows
+  flutter_local_notifications_windows:
+    path: ./stubs/flutter_local_notifications_windows
 
 
 flutter:
