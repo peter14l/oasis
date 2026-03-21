@@ -17,7 +17,6 @@ class ScreenTimeService extends ChangeNotifier {
 
   final SharedPreferences _prefs;
 
-  int _scrollLimitMinutes = 30;
 
   // Real category tracking
   String? _currentCategory;
@@ -72,62 +71,8 @@ class ScreenTimeService extends ChangeNotifier {
 
   // ---- Digital Well-being computed state ----
 
-  /// The current scroll limit in minutes.
-  int get scrollLimitMinutes => _scrollLimitMinutes;
-
-  /// Set the scroll limit (used by Pro users).
-  void setScrollLimit(int minutes) {
-    _scrollLimitMinutes = minutes;
-    notifyListeners();
-  }
-
   /// Minutes elapsed in the current continuous session (live, updates every second).
   int get sessionElapsedMinutes => _currentSessionElapsedSeconds ~/ 60;
-
-  /// Saturation level for greyscale effect based on continuous scroll time.
-  /// Logic:
-  /// - Full color until [limit - 5] minutes.
-  /// - Fade to B/W over 5 minutes.
-  /// - B/W for 10 minutes.
-  /// - Fade back to color over 1 minute.
-  double get saturationLevel {
-    final t = sessionElapsedMinutes;
-    final limit = _scrollLimitMinutes;
-    final bwEnd = limit + 10;
-    final fadeBackEnd = bwEnd + 1;
-
-    if (t < limit - 5) return 1.0;
-    if (t < limit) {
-      // Ramp down 1.0 -> 0.0 over 5 mins
-      return 1.0 - ((t - (limit - 5)) / 5.0);
-    }
-    if (t < bwEnd) return 0.0;
-    if (t < fadeBackEnd) {
-      // Fade back 0.0 -> 1.0 over 1 min
-      // Using seconds for a smoother fade-back transition
-      final secondsInFade = _currentSessionElapsedSeconds - (bwEnd * 60);
-      return (secondsInFade / 60.0).clamp(0.0, 1.0);
-    }
-    return 1.0;
-  }
-
-  /// True when the session has reached the scroll limit and the break period is active.
-  /// Aligns with [saturationLevel] logic: active during the ramp-down and B/W period.
-  bool get isKillSwitchActive {
-    final t = sessionElapsedMinutes;
-    final limit = _scrollLimitMinutes;
-    // The kill switch is active from the moment we hit the limit
-    // until the end of the B/W period (limit + 10 mins).
-    return t >= limit && t < (limit + 10);
-  }
-
-  /// Reset the session counter, giving the user a fresh window.
-  void resetKillSwitch() {
-    _currentSessionElapsedSeconds = 0;
-    _sessionStartTime = DateTime.now();
-    notifyListeners();
-    debugPrint('ScreenTime: Scroll health reset. New session started.');
-  }
 
   /// Debug-only helper to jump forward by [minutes] minutes.
   void debugAddMinutes(int minutes) {

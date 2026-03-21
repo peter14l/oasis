@@ -51,9 +51,9 @@ import '../screens/legal/terms_of_service_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/capsules/create_capsule_screen.dart';
 import '../screens/stories/create_story_screen.dart';
+import '../screens/ripples_screen.dart';
 import 'package:oasis_v2/services/screen_time_service.dart';
 import 'package:oasis_v2/services/wellness_service.dart';
-import 'package:oasis_v2/widgets/wellbeing_break_overlay.dart';
 
 import 'package:oasis_v2/screens/settings/wellness_stats_screen.dart';
 
@@ -110,7 +110,7 @@ class _MainLayoutState extends State<MainLayout> {
 
     return Consumer2<ScreenTimeService, WellnessService>(
       builder: (context, svc, wellness, _) {
-        final killSwitchActive = svc.isKillSwitchActive || wellness.focusModeEnabled;
+        final killSwitchActive = wellness.focusModeEnabled;
 
         // Auto-redirect away from restricted routes when kill-switch or focus mode fires.
         if (killSwitchActive) {
@@ -162,16 +162,6 @@ class _MainLayoutState extends State<MainLayout> {
                     ],
                   ),
                 ),
-                if (killSwitchActive)
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: WellbeingBreakOverlay(
-                      limitMinutes: svc.scrollLimitMinutes,
-                      onReset: () => svc.resetKillSwitch(),
-                    ),
-                  ),
               ],
             ),
             floatingActionButton: _buildFloatingActionButton(
@@ -193,16 +183,6 @@ class _MainLayoutState extends State<MainLayout> {
                 padding: EdgeInsets.zero,
                 child: widget.child,
               ),
-              if (killSwitchActive)
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: WellbeingBreakOverlay(
-                    limitMinutes: svc.scrollLimitMinutes,
-                    onReset: () => svc.resetKillSwitch(),
-                  ),
-                ),
             ],
           ),
           floatingActionButton: _buildFloatingActionButton(
@@ -734,6 +714,16 @@ class AppRouter {
         ],
       ),
 
+      // Ripples Screen (Full screen, no bottom nav)
+      GoRoute(
+        path: '/ripples',
+        name: 'ripples',
+        pageBuilder: (context, state) => const MaterialPage(
+          key: ValueKey('ripples_screen'),
+          fullscreenDialog: true,
+          child: RipplesScreen(),
+        ),
+      ),
 
       // Integrated Call Screen
       GoRoute(

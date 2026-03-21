@@ -32,6 +32,7 @@ import 'package:oasis_v2/firebase_options.dart';
 import 'package:oasis_v2/services/notification_manager.dart';
 import 'package:oasis_v2/services/call_service.dart';
 import 'package:oasis_v2/services/sharing_service.dart';
+import 'package:oasis_v2/services/ripples_service.dart';
 
 // Theme Provider to manage theme mode
 class ThemeProvider with ChangeNotifier {
@@ -168,6 +169,7 @@ void main() async {
                   ChangeNotifierProvider(create: (_) => CallService()),
                   ChangeNotifierProvider(create: (_) => CanvasProvider()),
                   ChangeNotifierProvider(create: (_) => CircleProvider()),
+                  ChangeNotifierProvider(create: (_) => RipplesService()),
                   ChangeNotifierProvider<VaultService>(
                     create: (_) => VaultService(),
                   ),
@@ -347,22 +349,7 @@ class _MyAppState extends State<MyApp> {
               ),
               child: Consumer<UserSettingsProvider>(
                 builder: (context, userSettings, _) {
-                  final childWidget = Consumer<ScreenTimeService>(
-                    builder: (context, screenTime, child) {
-                      final saturation = screenTime.saturationLevel;
-                      if (saturation == 1.0) return child!;
-                      return ColorFiltered(
-                        colorFilter: ColorFilter.matrix([
-                          0.2126 + 0.7874 * saturation, 0.7152 - 0.7152 * saturation, 0.0722 - 0.0722 * saturation, 0, 0,
-                          0.2126 - 0.2126 * saturation, 0.7152 + 0.2848 * saturation, 0.0722 - 0.0722 * saturation, 0, 0,
-                          0.2126 - 0.2126 * saturation, 0.7152 - 0.7152 * saturation, 0.0722 + 0.9278 * saturation, 0, 0,
-                          0, 0, 0, 1, 0,
-                        ]),
-                        child: child,
-                      );
-                    },
-                    child: child!,
-                  );
+                  final childWidget = child!;
 
                   if (userSettings.meshEnabled) {
                     return MeshGradientBackground(child: childWidget);
