@@ -1,12 +1,33 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Download } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, Download, User, LogOut } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [user, setUser] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    navigate('/');
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -69,6 +90,33 @@ const Navbar = () => {
               {link.name}
             </Link>
           ))}
+
+          {user ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+              <button 
+                onClick={handleLogout} 
+                style={{ background: 'none', color: '#94a3b8', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', padding: 0 }}
+              >
+                <LogOut size={16} /> Logout
+              </button>
+              <Link to="/profile" style={{ color: '#fff', display: 'flex', alignItems: 'center' }}>
+                <User size={20} />
+              </Link>
+            </div>
+          ) : (
+            <Link 
+              to="/login"
+              style={{ 
+                fontSize: '0.9rem', 
+                fontWeight: 600, 
+                color: '#94a3b8',
+                transition: 'color 0.3s'
+              }}
+            >
+              Login
+            </Link>
+          )}
+
           <a 
             href="/apk/oasis-arm64-v8a-release.apk" 
             style={{

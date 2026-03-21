@@ -68,7 +68,7 @@ const Privacy = () => {
                                     please reach out to our privacy team:
                                 </p>
                                 <p style={{ marginTop: '1rem', fontWeight: 700 }}>
-                                    Email: <a href="mailto:privacy@morrow.app" className="text-gradient">privacy@morrow.app</a>
+                                    Email: <a href="mailto:privacy@oasis-web-red.vercel.app" className="text-gradient">privacy@oasis-web-red.vercel.app</a>
                                 </p>
                             </Section>
                         </div>

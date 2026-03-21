@@ -40,7 +40,7 @@ const Footer = () => {
         <div className="col-links">
           <h4 style={{ marginBottom: '1.25rem', fontSize: '1rem' }}>Support</h4>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', color: '#94a3b8', fontSize: '0.9rem' }}>
-            <li><a href="mailto:support@morrow.app">Contact Us</a></li>
+            <li><a href="mailto:support@oasis-web-red.vercel.app">Contact Us</a></li>
             <li><a href="#">Help Center</a></li>
             <li><a href="#">Status</a></li>
           </ul>

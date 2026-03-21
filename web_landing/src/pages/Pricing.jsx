@@ -1,16 +1,21 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Check, X, Shield, Star, Crown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import PayUPayment from '../components/PayUPayment';
 import LoginModal from '../components/LoginModal';
 
 const Pricing = () => {
   const [currency, setCurrency] = useState('USD');
   const [user, setUser] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleUpgrade = (planName) => {
+    navigate(`/checkout?plan=${planName}&currency=${currency}`);
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -216,7 +221,7 @@ const Pricing = () => {
 
                 {!user && plan.price > 0 ? (
                   <button
-                    onClick={() => setIsLoginOpen(true)}
+                    onClick={() => navigate('/login?redirect=pricing')}
                     style={{
                       width: '100%',
                       padding: '0.85rem',
@@ -230,7 +235,20 @@ const Pricing = () => {
                     Login to Upgrade
                   </button>
                 ) : plan.price > 0 ? (
-                  <PayUPayment plan={plan.name} amount={plan.price} currency={currency} />
+                  <button
+                    onClick={() => handleUpgrade(plan.name)}
+                    style={{
+                      width: '100%',
+                      padding: '0.85rem',
+                      borderRadius: '12px',
+                      background: plan.accent,
+                      color: '#fff',
+                      fontWeight: 700,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    {plan.buttonText}
+                  </button>
                 ) : (
                   <button
                     disabled
