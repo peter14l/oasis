@@ -53,123 +53,140 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     if (isDesktop) {
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surface.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Row(
-                children: [
-                  // Sidebar
-                  Container(
-                    width: 280,
-                    color: colorScheme.surfaceContainer.withValues(alpha: 0.2),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
-                          child: Text(
-                            'Settings',
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface,
+      return Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surface.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Row(
+                  children: [
+                    // Sidebar
+                    Container(
+                      width: 280,
+                      color: colorScheme.surfaceContainer.withValues(alpha: 0.2),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(12, 32, 24, 16),
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.arrow_back),
+                                  onPressed: () {
+                                    if (context.canPop()) {
+                                      context.pop();
+                                    } else {
+                                      context.go('/profile');
+                                    }
+                                  },
+                                  tooltip: 'Back',
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Settings',
+                                  style: theme.textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),                          Expanded(
+                            child: ListView(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              children: [
+                                _buildSidebarItem(
+                                  icon: Icons.person_outline,
+                                  selectedIcon: Icons.person,
+                                  label: 'Account',
+                                  category: SettingsCategory.account,
+                                ),
+                                _buildSidebarItem(
+                                  icon: Icons.timer_outlined,
+                                  selectedIcon: Icons.timer,
+                                  label: 'General',
+                                  category: SettingsCategory.general,
+                                ),
+                                _buildSidebarItem(
+                                  icon: Icons.shield_outlined,
+                                  selectedIcon: Icons.shield,
+                                  label: 'Privacy & Security',
+                                  category: SettingsCategory.privacy,
+                                ),
+                                _buildSidebarItem(
+                                  icon: Icons.palette_outlined,
+                                  selectedIcon: Icons.palette,
+                                  label: 'Appearance',
+                                  category: SettingsCategory.appearance,
+                                ),
+                                _buildSidebarItem(
+                                  icon: Icons.storage_outlined,
+                                  selectedIcon: Icons.storage,
+                                  label: 'Data & Storage',
+                                  category: SettingsCategory.data,
+                                ),
+                                _buildSidebarItem(
+                                  icon: Icons.text_fields_outlined,
+                                  selectedIcon: Icons.text_fields,
+                                  label: 'Accessibility',
+                                  category: SettingsCategory.accessibility,
+                                ),
+                                _buildSidebarItem(
+                                  icon: Icons.help_outline,
+                                  selectedIcon: Icons.help,
+                                  label: 'Support & About',
+                                  category: SettingsCategory.support,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: _buildSignOutButton(context, isDesktop: true),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const VerticalDivider(width: 1),
+                    // Content Area
+                    Expanded(
+                      child: Scaffold(
+                        backgroundColor: Colors.transparent,
+                        appBar: AppBar(
+                          backgroundColor: Colors.transparent,
+                          elevation: 0,
+                          title: Text(_getCategoryTitle(_selectedCategory)),
+                          automaticallyImplyLeading: false,
+                        ),
+                        body: SingleChildScrollView(
+                          padding: const EdgeInsets.all(32),
+                          child: Center(
+                            child: Container(
+                              constraints: const BoxConstraints(maxWidth: 800),
+                              child: _buildSelectedCategoryContent(context),
                             ),
                           ),
                         ),
-                        Expanded(
-                          child: ListView(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            children: [
-                              _buildSidebarItem(
-                                icon: Icons.person_outline,
-                                selectedIcon: Icons.person,
-                                label: 'Account',
-                                category: SettingsCategory.account,
-                              ),
-                              _buildSidebarItem(
-                                icon: Icons.timer_outlined,
-                                selectedIcon: Icons.timer,
-                                label: 'General',
-                                category: SettingsCategory.general,
-                              ),
-                              _buildSidebarItem(
-                                icon: Icons.shield_outlined,
-                                selectedIcon: Icons.shield,
-                                label: 'Privacy & Security',
-                                category: SettingsCategory.privacy,
-                              ),
-                              _buildSidebarItem(
-                                icon: Icons.palette_outlined,
-                                selectedIcon: Icons.palette,
-                                label: 'Appearance',
-                                category: SettingsCategory.appearance,
-                              ),
-                              _buildSidebarItem(
-                                icon: Icons.storage_outlined,
-                                selectedIcon: Icons.storage,
-                                label: 'Data & Storage',
-                                category: SettingsCategory.data,
-                              ),
-                              _buildSidebarItem(
-                                icon: Icons.text_fields_outlined,
-                                selectedIcon: Icons.text_fields,
-                                label: 'Accessibility',
-                                category: SettingsCategory.accessibility,
-                              ),
-                              _buildSidebarItem(
-                                icon: Icons.help_outline,
-                                selectedIcon: Icons.help,
-                                label: 'Support & About',
-                                category: SettingsCategory.support,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: _buildSignOutButton(context, isDesktop: true),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const VerticalDivider(width: 1),
-                  // Content Area
-                  Expanded(
-                    child: Scaffold(
-                      backgroundColor: Colors.transparent,
-                      appBar: AppBar(
-                        backgroundColor: Colors.transparent,
-                        elevation: 0,
-                        title: Text(_getCategoryTitle(_selectedCategory)),
-                        automaticallyImplyLeading: false,
-                      ),
-                      body: SingleChildScrollView(
-                        padding: const EdgeInsets.all(32),
-                        child: Center(
-                          child: Container(
-                            constraints: const BoxConstraints(maxWidth: 800),
-                            child: _buildSelectedCategoryContent(context),
-                          ),
-                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
         ),
       );
     }
-
     // Mobile Layout
     return MaxWidthContainer(
       maxWidth: ResponsiveLayout.maxFormWidth,
@@ -725,49 +742,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildSignOutButton(BuildContext context, {bool isDesktop = false}) {
     final authService = Provider.of<AuthService>(context, listen: false);
-    return Container(
-      decoration:
-          isDesktop
-              ? null
-              : BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
-              ),
-      child: ListTile(
-        leading: const Icon(Icons.logout, color: Colors.red),
-        title: const Text(
-          'Sign Out',
-          style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-        ),
-        onTap: () async {
-          final confirmed = await showDialog<bool>(
-            context: context,
-            builder:
-                (context) => AlertDialog(
-                  title: const Text('Sign Out'),
-                  content: const Text('Are you sure you want to sign out?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      style: TextButton.styleFrom(foregroundColor: Colors.red),
-                      child: const Text('Sign Out'),
-                    ),
-                  ],
-                ),
-          );
-
-          if (confirmed == true) {
-            _clearProviders(context);
-            await authService.signOut();
-            if (context.mounted) context.go('/login');
-          }
-        },
+    final button = ListTile(
+      leading: const Icon(Icons.logout, color: Colors.red),
+      title: const Text(
+        'Sign Out',
+        style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
       ),
+      onTap: () async {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                title: const Text('Sign Out'),
+                content: const Text('Are you sure you want to sign out?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                    child: const Text('Sign Out'),
+                  ),
+                ],
+              ),
+        );
+
+        if (confirmed == true) {
+          _clearProviders(context);
+          await authService.signOut();
+          if (context.mounted) context.go('/login');
+        }
+      },
+    );
+
+    if (isDesktop) {
+      return Material(
+        color: Colors.transparent,
+        child: button,
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.red.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+      ),
+      child: button,
     );
   }
 

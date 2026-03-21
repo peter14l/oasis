@@ -270,7 +270,10 @@ class MessagingService {
             messages[i] = messages[i].copyWith(
               readAt: myReadAt,
               anyReadAt: anyReadAt,
-              isRead: myReadAt != null, // Message is read if the current user has read it
+              // Message is considered "read" in the UI if:
+              // 1. I am the recipient and I have read it (myReadAt != null)
+              // 2. I am the sender and the other person has read it (anyReadAt != null)
+              isRead: isSender ? (anyReadAt != null) : (myReadAt != null),
             );
           }
         }
@@ -348,6 +351,8 @@ class MessagingService {
     int? ephemeralDuration,
     String? callId,
     String? replyToId,
+    String? rippleId,
+    String? storyId,
   }) async {
     try {
       final messageId = _uuid.v4();
@@ -373,6 +378,8 @@ class MessagingService {
         'ephemeral_duration': ephemeralDuration ?? 86400, // Default to 24h
         'call_id': callId,
         'reply_to_id': replyToId,
+        'ripple_id': rippleId,
+        'story_id': storyId,
       };
 
       // Add encryption fields if provided

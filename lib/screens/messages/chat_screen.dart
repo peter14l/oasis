@@ -37,6 +37,7 @@ import 'package:oasis_v2/widgets/messages/message_reactions.dart';
 import 'package:oasis_v2/widgets/messages/chat_theme_selector.dart';
 import 'package:oasis_v2/widgets/messages/invite_bubble.dart';
 import 'package:oasis_v2/widgets/gestures/gesture_widgets.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:any_link_preview/any_link_preview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -45,6 +46,7 @@ import 'package:oasis_v2/screens/messages/incoming_call_overlay.dart';
 import 'package:oasis_v2/models/call.dart';
 import 'package:oasis_v2/widgets/messages/forward_message_modal.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oasis_v2/widgets/dotted_border_painter.dart';
 
 class ChatScreen extends StatefulWidget {
   final String conversationId;
@@ -64,7 +66,7 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final MessagingService _messagingService = MessagingService();
   final AuthService _authService = AuthService();
   final MediaDownloadService _mediaDownloadService = MediaDownloadService();
@@ -123,6 +125,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _callService = context.read<CallService>();
     _loadPersistedSettings();
     _loadCachedMessages(); // Load cache immediately
@@ -140,6 +143,27 @@ class _ChatScreenState extends State<ChatScreen> {
     if (widget.otherUserId == null) {
       _fetchConversationDetails();
     }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Reload messages and re-subscribe when app comes back to foreground
+      _loadMessages();
+      _reconnectRealtime();
+    }
+  }
+
+  void _reconnectRealtime() {
+    if (_messageChannel != null) {
+      _messagingService.unsubscribeFromMessages(_messageChannel!);
+    }
+    _subscribeToMessages();
+    
+    if (_readReceiptChannel != null) {
+      SupabaseService().client.removeChannel(_readReceiptChannel!);
+    }
+    _subscribeToReadReceipts();
   }
 
   /// Load messages from SharedPreferences cache
@@ -224,6 +248,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _recordTimer?.cancel();
     _messageController.dispose();
     _scrollController.dispose();
@@ -1593,40 +1618,6 @@ class _ChatScreenState extends State<ChatScreen> {
           // Main Content
           Column(
             children: [
-              // Whisper Mode Indicator
-              if (_isWhisperMode)
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.only(
-                    top:
-                        MediaQuery.of(context).padding.top + kToolbarHeight + 8,
-                    bottom: 8,
-                    left: 16,
-                    right: 16,
-                  ),
-                  color: colorScheme.secondary.withValues(alpha: 0.2),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.auto_delete,
-                        size: 16,
-                        color: colorScheme.secondary,
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                       child: Text(
-                         'Whisper Mode • Messages vanish ${_ephemeralDuration == 0 ? "instantly" : "24hrs"} after being seen',
-                         style: theme.textTheme.bodySmall?.copyWith(
-                           color: colorScheme.secondary,
-                           fontWeight: FontWeight.w500,
-                         ),
-                         overflow: TextOverflow.ellipsis,
-                       ),
-                      ),                    ],
-                  ),
-                ),
-
               // Messages List
               Expanded(
                 child:
@@ -1635,9 +1626,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           reverse: true,
                           padding: EdgeInsets.only(
                             top:
-                                _isWhisperMode
-                                    ? 16
-                                    : MediaQuery.of(context).padding.top +
+                                MediaQuery.of(context).padding.top +
                                         kToolbarHeight +
                                         16,
                             bottom: 16,
@@ -1702,21 +1691,60 @@ class _ChatScreenState extends State<ChatScreen> {
                           controller: _scrollController,
                           padding: EdgeInsets.only(
                             top:
-                                _isWhisperMode
-                                    ? 16
-                                    : MediaQuery.of(context).padding.top +
+                                MediaQuery.of(context).padding.top +
                                         kToolbarHeight +
                                         16,
                             bottom: 16,
                             left: 16,
                             right: 16,
                           ),
-                          itemCount: _messages.length,
+                          itemCount: _messages.length + 1, // Add 1 for the Whisper Mode info message
                           itemBuilder: (context, index) {
+                            if (index == _messages.length) {
+                              // Display Whisper Mode info message at the top of the history or wherever appropriate.
+                              // For now, let's show it only if Whisper Mode is ON.
+                              if (!_isWhisperMode) return const SizedBox.shrink();
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      'You turned on disappearing messages. New messages and reactions will disappear ${_ephemeralDuration == 0 ? "instantly" : "24 hours"} after everyone has seen them.',
+                                      textAlign: TextAlign.center,
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: colorScheme.onSurface.withValues(alpha: 0.6),
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    GestureDetector(
+                                      onTap: _toggleWhisperMode,
+                                      child: Text(
+                                        'Change',
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.primary,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+
                             final message =
                                 _messages[_messages.length - 1 - index];
                             final isMe = message.senderId == userId;
-                            return _buildMessageBubble(message, isMe);
+                            
+                            switch (message.messageType) {
+                              case MessageType.ripple:
+                                return _buildRippleBubble(message, isMe);
+                              case MessageType.story_reply:
+                                return _buildStoryReplyBubble(message, isMe);
+                              default:
+                                return _buildMessageBubble(message, isMe);
+                            }
                           },
                         ),
               ),
@@ -1877,31 +1905,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         child: const SizedBox.shrink(),
                                       ),
                                     ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            _backgroundUrl != null
-                                                ? (_bubbleColorSent?.withValues(
-                                                      alpha: 0.15,
-                                                    ) ??
-                                                    colorScheme.primary
-                                                        .withValues(
-                                                          alpha: 0.15,
-                                                        ))
-                                                : colorScheme.surface
-                                                    .withValues(alpha: 0.5),
-                                        borderRadius: BorderRadius.circular(32),
-                                        border: Border.all(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.2,
-                                          ),
-                                          width: 0.5,
-                                        ),
-                                      ),
+                                    _buildInputDecoration(
                                       child: Row(
                                         children: [
                                           IconButton(
@@ -1981,7 +1985,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                               .onSurface,
                                                 ),
                                                 decoration: InputDecoration(
-                                                  hintText: 'Type a message...',
+                                                  hintText: _isWhisperMode ? 'Disappearing message...' : 'Type a message...',
                                                   hintStyle: TextStyle(
                                                     color: (_backgroundUrl !=
                                                                 null
@@ -2065,7 +2069,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                           ),
                                         ],
                                       ), // Row
-                                    ), // Container
+                                    ), // _buildInputDecoration
                                   ],
                                 ), // Stack
                               ), // ClipRRect
@@ -2274,26 +2278,143 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  Widget _buildRippleBubble(Message message, bool isMe) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+        decoration: BoxDecoration(
+          color: isMe ? (colorScheme.primary.withValues(alpha: 0.15)) : (colorScheme.surface.withValues(alpha: 0.1)),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AspectRatio(
+                aspectRatio: 9/16,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (message.mediaThumbnailUrl != null)
+                      CachedNetworkImage(imageUrl: message.mediaThumbnailUrl!, fit: BoxFit.cover)
+                    else
+                      Container(color: Colors.grey.withValues(alpha: 0.2)),
+                    Center(child: Icon(FluentIcons.play_24_filled, color: Colors.white, size: 48)),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Ripple shared', style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold)),
+                    if (message.content.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(message.content, style: theme.textTheme.bodyMedium),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStoryReplyBubble(Message message, bool isMe) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        padding: const EdgeInsets.all(12),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+        decoration: BoxDecoration(
+          color: isMe ? (colorScheme.primary.withValues(alpha: 0.15)) : (colorScheme.surface.withValues(alpha: 0.1)),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(FluentIcons.flash_24_regular, size: 16, color: Colors.amber),
+                  const SizedBox(width: 8),
+                  Text('Replied to story', style: theme.textTheme.labelSmall?.copyWith(color: Colors.white70)),
+                ],
+              ),
+            ),
+            Text(message.content, style: theme.textTheme.bodyMedium),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputDecoration({required Widget child}) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final borderRadius = BorderRadius.circular(32);
+
+    final decoration = BoxDecoration(
+      color: _backgroundUrl != null
+          ? (_bubbleColorSent?.withValues(alpha: 0.15) ??
+              colorScheme.primary.withValues(alpha: 0.15))
+          : colorScheme.surface.withValues(alpha: 0.5),
+      borderRadius: borderRadius,
+      border: _isWhisperMode
+          ? null
+          : Border.all(
+              color: Colors.black.withValues(alpha: 0.2),
+              width: 0.5,
+            ),
+    );
+
+    if (_isWhisperMode) {
+      return DottedBorder(
+        borderRadius: const Radius.circular(32),
+        color: (_textColorSent ?? colorScheme.onSurface).withValues(alpha: 0.5),
+        strokeWidth: 1.5,
+        gap: 4,
+        dash: 4,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          decoration: decoration.copyWith(border: null),
+          child: child,
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      decoration: decoration,
+      child: child,
+    );
+  }
+
   Widget _buildMessageBubble(Message message, bool isMe) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final userId = _authService.currentUser?.id;
-
-    // final bubbleColor = isMe
-    //     ? (colorScheme.primary.withValues(alpha:  ))
-    //     : (colorScheme.surfaceVariant);
-
-    // final textColor = isMe
-    //     ? colorScheme.onPrimary
-    //     : colorScheme.onSurfaceVariant;
-
-    // final bubbleColor = isMe
-    //     ? (colorScheme.primary.withValues(alpha:  ))
-    //     : (colorScheme.surfaceVariant);
-
-    // final textColor = isMe
-    //     ? colorScheme.onPrimary
-    //     : colorScheme.onSurfaceVariant;
 
     Widget content;
 
@@ -2493,10 +2614,138 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     }
 
-    // Use adaptive colors if background is set
-    // Colors are handled in the Container decoration below
-
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final borderRadius = BorderRadius.circular(24).copyWith(
+      bottomRight: isMe ? const Radius.circular(8) : null,
+      bottomLeft: !isMe ? const Radius.circular(8) : null,
+    );
+
+    final bubbleDecoration = BoxDecoration(
+      color:
+          isMe
+              ? (_bubbleColorSent ?? colorScheme.primary)
+              : (_bubbleColorReceived ??
+                  colorScheme.surfaceContainerHighest),
+      borderRadius: borderRadius,
+      border: (isMe && !message.isEphemeral) 
+        ? Border.all(color: Colors.white.withValues(alpha: 0.7), width: 0.8) 
+        : null,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.1),
+          blurRadius: 8,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    );
+
+    Widget bubble = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: bubbleDecoration,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (message.replyToId != null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IntrinsicHeight(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 3,
+                      decoration: BoxDecoration(
+                        color: isMe ? Colors.white70 : colorScheme.primary,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            message.replyToSenderName ?? 'Unknown',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: isMe ? Colors.white : colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
+                          ),
+                          Text(
+                            message.replyToContent ?? 'Original message',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: isMe 
+                                  ? Colors.white.withValues(alpha: 0.7) 
+                                  : colorScheme.onSurface.withValues(alpha: 0.6),
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          content,
+          if (isMe)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Align(
+                alignment: Alignment.bottomRight,
+                child: Icon(
+                  Icons.done_all,
+                  size: 14,
+                  color:
+                      message.isRead ? Colors.blue : Colors.black, // Solid Black
+                ),
+              ),
+            ),
+          if (isMe &&
+              message.isRead &&
+              message.readAt != null &&
+              _messages.indexOf(message) ==
+                  _messages.lastIndexWhere(
+                    (m) =>
+                        m.senderId == userId &&
+                        m.isRead &&
+                        m.readAt != null,
+                  ))
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Align(
+                alignment: Alignment.bottomRight,
+                child: Text(
+                  _formatSeenTime(message.readAt!),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontSize: 9,
+                    fontStyle: FontStyle.italic,
+                    color: (_textColorSent ?? colorScheme.onPrimary)
+                        .withValues(alpha: 0.8),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+
+    if (message.isEphemeral) {
+      bubble = DottedBorder(
+        borderRadius: const Radius.circular(24),
+        child: bubble,
+      );
+    }
+
     return SwipeableMessage(
       onSwipeReply: () {
         HapticUtils.selectionClick();
@@ -2527,125 +2776,7 @@ class _ChatScreenState extends State<ChatScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IntrinsicWidth(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color:
-                          isMe
-                              ? (_bubbleColorSent ?? colorScheme.primary)
-                              : (_bubbleColorReceived ??
-                                  colorScheme.surfaceContainerHighest),
-                      borderRadius: BorderRadius.circular(24).copyWith(
-                        bottomRight: isMe ? const Radius.circular(8) : null,
-                        bottomLeft: !isMe ? const Radius.circular(8) : null,
-                      ),
-                      border: isMe 
-                        ? Border.all(color: Colors.white.withValues(alpha: 0.7), width: 0.8) 
-                        : null,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (message.replyToId != null)
-                          Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: IntrinsicHeight(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 3,
-                                    decoration: BoxDecoration(
-                                      color: isMe ? Colors.white70 : colorScheme.primary,
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Flexible(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          message.replyToSenderName ?? 'Unknown',
-                                          style: theme.textTheme.labelSmall?.copyWith(
-                                            color: isMe ? Colors.white : colorScheme.primary,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 10,
-                                          ),
-                                        ),
-                                        Text(
-                                          message.replyToContent ?? 'Original message',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: theme.textTheme.bodySmall?.copyWith(
-                                            color: isMe 
-                                                ? Colors.white.withValues(alpha: 0.7) 
-                                                : colorScheme.onSurface.withValues(alpha: 0.6),
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        content,
-                        if (isMe)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Align(
-                              alignment: Alignment.bottomRight,
-                              child: Icon(
-                                Icons.done_all,
-                                size: 14,
-                                color:
-                                    message.isRead ? Colors.blue : Colors.black, // Solid Black
-                              ),
-                            ),
-                          ),
-                        if (isMe &&
-                            message.isRead &&
-                            message.readAt != null &&
-                            _messages.indexOf(message) ==
-                                _messages.lastIndexWhere(
-                                  (m) =>
-                                      m.senderId == userId &&
-                                      m.isRead &&
-                                      m.readAt != null,
-                                ))
-                          Padding(
-                            padding: const EdgeInsets.only(top: 2),
-                            child: Align(
-                              alignment: Alignment.bottomRight,
-                              child: Text(
-                                _formatSeenTime(message.readAt!),
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  fontSize: 9,
-                                  fontStyle: FontStyle.italic,
-                                  color: (_textColorSent ?? colorScheme.onPrimary)
-                                      .withValues(alpha: 0.8),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
+                  child: bubble,
                 ),
                 if (message.reactions.isNotEmpty)
                   Padding(
