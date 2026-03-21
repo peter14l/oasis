@@ -19,7 +19,7 @@ All TODO comments have been successfully resolved across the entire codebase. Th
 **Implementation**: 
 ```dart
 void _handleShare(String postId) {
-  final deepLink = 'https://morrow.app/post/$postId';
+  final deepLink = 'https://oasis-web-red.vercel.app/post/$postId';
   Share.share('Check out this post on Morrow! $deepLink');
 }
 ```
@@ -38,7 +38,7 @@ void _handleShare(String postId) {
 **Implementation**:
 - Copy post deep link to clipboard
 - Show confirmation snackbar
-- Deep link format: `https://morrow.app/post/{postId}`
+- Deep link format: `https://oasis-web-red.vercel.app/post/{postId}`
 
 ### 5. ✅ Comments Screen - Report Comment
 **Location**: `lib/screens/comments_screen.dart`

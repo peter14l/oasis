@@ -45,8 +45,8 @@ serve(async (req) => {
       firstname,
       email,
       phone,
-      surl: `${Deno.env.get('SITE_URL') || 'https://morrow.app'}/payment-success`,
-      furl: `${Deno.env.get('SITE_URL') || 'https://morrow.app'}/payment-failure`,
+      surl: `${Deno.env.get('SITE_URL') || 'https://oasis-web-red.vercel.app'}/payment-success`,
+      furl: `${Deno.env.get('SITE_URL') || 'https://oasis-web-red.vercel.app'}/payment-failure`,
       hash: hashHex,
       payu_url: PAYU_URL
     }

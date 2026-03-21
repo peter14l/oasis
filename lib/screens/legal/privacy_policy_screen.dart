@@ -156,7 +156,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                     '10. Contact Us',
                     '''If you have questions about this privacy policy:
 
-• Email: privacy@morrow.app
+• Email: privacy@oasis-web-red.vercel.app
 • In-app: Settings → Help & Support
 
 We aim to respond to all inquiries within 48 hours.''',

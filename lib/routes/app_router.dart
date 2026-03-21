@@ -52,6 +52,8 @@ import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/capsules/create_capsule_screen.dart';
 import '../screens/stories/create_story_screen.dart';
 import '../screens/ripples_screen.dart';
+import '../screens/create_ripple_screen.dart';
+import '../screens/oasis_pro_screen.dart';
 import 'package:oasis_v2/services/screen_time_service.dart';
 import 'package:oasis_v2/services/wellness_service.dart';
 
@@ -241,6 +243,16 @@ class _MainLayoutState extends State<MainLayout> {
                         onTap: () {
                           Navigator.pop(context);
                           context.pushNamed('create_post');
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      ListTile(
+                        leading: const Icon(FluentIcons.video_24_regular, size: 28),
+                        title: const Text('New Ripple'),
+                        subtitle: const Text('Share a short video ripple'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          context.pushNamed('create_ripple');
                         },
                       ),
                       const SizedBox(height: 12),
@@ -723,6 +735,34 @@ class AppRouter {
           fullscreenDialog: true,
           child: RipplesScreen(),
         ),
+      ),
+
+      // Create Ripple Screen
+      GoRoute(
+        path: '/create-ripple',
+        name: 'create_ripple',
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) {
+          return MaterialPage(
+            key: state.pageKey,
+            fullscreenDialog: true,
+            child: const CreateRippleScreen(),
+          );
+        },
+      ),
+
+      // Oasis Pro Screen
+      GoRoute(
+        path: '/oasis-pro',
+        name: 'oasis_pro',
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) {
+          return MaterialPage(
+            key: state.pageKey,
+            fullscreenDialog: true,
+            child: const OasisProScreen(),
+          );
+        },
       ),
 
       // Integrated Call Screen

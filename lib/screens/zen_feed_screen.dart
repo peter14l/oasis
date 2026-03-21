@@ -356,7 +356,7 @@ class _ZenPostPage extends StatelessWidget {
             icon: Icons.share_outlined,
             label: '${post.shares}',
             onTap: () {
-              final deepLink = 'https://morrow.app/post/${post.id}';
+              final deepLink = 'https://oasis-web-red.vercel.app/post/${post.id}';
               Share.share('Check out this post on Morrow! $deepLink');
             },
           ),

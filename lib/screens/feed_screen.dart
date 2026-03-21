@@ -200,7 +200,7 @@ class _FeedScreenState extends State<FeedScreen>
 
   void _handleShare(String postId) {
     // Share with deep link to post
-    final deepLink = 'https://morrow.app/post/$postId';
+    final deepLink = 'https://oasis-web-red.vercel.app/post/$postId';
     Share.share('Check out this post on Morrow! $deepLink');
   }
 
@@ -775,19 +775,26 @@ class _FeedScreenState extends State<FeedScreen>
                   const SizedBox(height: 8),
                   const Text('How long would you like to stay today?'),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children:
-                        [5, 10, 15].map((mins) {
-                          return ElevatedButton(
-                            onPressed: () {
-                              service.startSession(Duration(minutes: mins));
-                              Navigator.pop(context);
-                              context.push('/ripples');
-                            },
-                            child: Text('$mins min'),
-                          );
-                        }).toList(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: TextField(
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      decoration: InputDecoration(
+                        hintText: 'Minutes',
+                        suffixText: 'min',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      onSubmitted: (val) {
+                        final mins = int.tryParse(val);
+                        if (mins != null && mins > 0) {
+                          service.startSession(Duration(minutes: mins));
+                          Navigator.pop(context);
+                          context.push('/ripples');
+                        }
+                      },
+                    ),
                   ),
                   const SizedBox(height: 24),
                 ],

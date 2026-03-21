@@ -287,7 +287,7 @@ class _PostCardState extends State<PostCard>
   }
 
   void _copyPostLink() {
-    final postLink = 'https://morrow.app/post/${widget.post.id}';
+    final postLink = 'https://oasis-web-red.vercel.app/post/${widget.post.id}';
     Clipboard.setData(ClipboardData(text: postLink));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(

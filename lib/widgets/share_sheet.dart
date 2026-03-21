@@ -7,17 +7,24 @@ import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:oasis_v2/models/conversation.dart';
 import 'package:oasis_v2/services/messaging_service.dart';
 import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/models/message.dart';
 
 class ShareSheet extends StatefulWidget {
   final String title;
   final String payload;
   final String? successMessage;
+  final MessageType messageType;
+  final String? rippleId;
+  final String? storyId;
 
   const ShareSheet({
     super.key,
     required this.title,
     required this.payload,
     this.successMessage,
+    this.messageType = MessageType.text,
+    this.rippleId,
+    this.storyId,
   });
 
   static Future<void> show(
@@ -25,6 +32,9 @@ class ShareSheet extends StatefulWidget {
     required String title,
     required String payload,
     String? successMessage,
+    MessageType messageType = MessageType.text,
+    String? rippleId,
+    String? storyId,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -34,6 +44,9 @@ class ShareSheet extends StatefulWidget {
         title: title,
         payload: payload,
         successMessage: successMessage,
+        messageType: messageType,
+        rippleId: rippleId,
+        storyId: storyId,
       ),
     );
   }
@@ -74,7 +87,9 @@ class _ShareSheetState extends State<ShareSheet> {
     final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
     if (currentUserId == null) return;
 
-    setState(() => _isSending = true);
+    setState(() {
+      _isSending = true;
+    });
 
     try {
       final messagingService = MessagingService();
@@ -82,6 +97,9 @@ class _ShareSheetState extends State<ShareSheet> {
         conversationId: conversation.id,
         senderId: currentUserId,
         content: widget.payload,
+        messageType: widget.messageType,
+        rippleId: widget.rippleId,
+        storyId: widget.storyId,
       );
 
       setState(() {
@@ -222,7 +240,7 @@ class _ShareSheetState extends State<ShareSheet> {
                              onPressed: hasSent ? null : () => _sendToConversation(conversation),
                              style: FilledButton.styleFrom(
                                backgroundColor: hasSent 
-                                  ? colorScheme.surfaceVariant 
+                                  ? colorScheme.surfaceContainerHighest 
                                   : colorScheme.primaryContainer,
                                foregroundColor: hasSent
                                   ? colorScheme.onSurfaceVariant

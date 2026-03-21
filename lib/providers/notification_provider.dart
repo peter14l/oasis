@@ -138,6 +138,7 @@ class NotificationProvider with ChangeNotifier {
           title: notification.displayTitle,
           body: body,
           payload: notification.postId ?? notification.messageId, // Or route path
+          senderAvatar: notification.actorAvatar,
         );
       },
     );

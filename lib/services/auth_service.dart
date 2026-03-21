@@ -310,7 +310,7 @@ throw AuthException('Failed to sign in with Google: ${e.toString()}');
         webAuthenticationOptions: WebAuthenticationOptions(
           clientId: 'com.yourcompany.morrow.service',
           redirectUri: Uri.parse(
-            'https://your-app-url.com/auth/apple/callback',
+            'https://oasis-web-red.vercel.app/auth/apple/callback',
           ),
         ),
       );

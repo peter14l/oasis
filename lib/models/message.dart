@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:oasis_v2/models/message_reaction.dart';
 
-enum MessageType { text, image, document, voice, poll, location }
+enum MessageType { text, image, document, voice, poll, location, ripple, story_reply }
 
 class Message {
   final String id;
@@ -45,6 +45,8 @@ class Message {
   final String? signalSenderContent; // Encrypted copy for sender
   final int? signalSenderMessageType;
   final String? callId;
+  final String? rippleId;
+  final String? storyId;
 
   Message({
     required this.id,
@@ -80,6 +82,8 @@ class Message {
     this.signalSenderContent,
     this.signalSenderMessageType,
     this.callId,
+    this.rippleId,
+    this.storyId,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
@@ -188,6 +192,8 @@ class Message {
       signalSenderContent: json['signal_sender_content'] as String?,
       signalSenderMessageType: json['signal_sender_message_type'] as int?,
       callId: json['call_id'] as String?,
+      rippleId: json['ripple_id'] as String?,
+      storyId: json['story_id'] as String?,
     );
   }
 
@@ -221,6 +227,8 @@ class Message {
       'signal_sender_content': signalSenderContent,
       'signal_sender_message_type': signalSenderMessageType,
       'call_id': callId,
+      'ripple_id': rippleId,
+      'story_id': storyId,
     };
   }
 

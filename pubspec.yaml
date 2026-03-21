@@ -137,12 +137,12 @@ dev_dependencies:
     sdk: flutter
 
 msix_config:
-  display_name: Oasis V2
+  display_name: Oasis
   publisher_display_name: Oasis
   publisher: CN=Oasis, O=Oasis, L=Delhi, S=Delhi, C=IN
   identity_name: com.oasis.v2
   msix_version: 4.0.0.0
-  logo_path: assets/images/app_icon.png
+  logo_path: assets/images/logo.png
   capabilities: internetClient, location, microphone, webcam
   architecture: x64
   generate_certificate: true

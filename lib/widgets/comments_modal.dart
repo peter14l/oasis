@@ -7,6 +7,8 @@ import 'package:oasis_v2/services/auth_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:oasis_v2/providers/feed_provider.dart';
+import 'package:provider/provider.dart';
 
 class CommentsModal extends StatefulWidget {
   final String postId;
@@ -48,6 +50,7 @@ class _CommentsModalState extends State<CommentsModal> {
               setState(() {
                 _comments.insert(0, newComment);
               });
+              context.read<FeedProvider>().updatePostCommentCount(widget.postId, _comments.length);
             }
           } catch (e) {
             debugPrint('Error adding comment: $e');
@@ -59,6 +62,7 @@ class _CommentsModalState extends State<CommentsModal> {
           setState(() {
             _comments.removeWhere((c) => c.id == commentId);
           });
+          context.read<FeedProvider>().updatePostCommentCount(widget.postId, _comments.length);
         }
       },
     );
@@ -83,6 +87,10 @@ class _CommentsModalState extends State<CommentsModal> {
         _comments = comments;
         _isLoading = false;
       });
+
+      if (mounted) {
+        context.read<FeedProvider>().updatePostCommentCount(widget.postId, _comments.length);
+      }
     } catch (e) {
       setState(() {
         _error = e.toString();
@@ -115,6 +123,10 @@ class _CommentsModalState extends State<CommentsModal> {
         _replyingTo = null;
         _isSubmitting = false;
       });
+
+      if (mounted && _replyingTo == null) {
+        context.read<FeedProvider>().updatePostCommentCount(widget.postId, _comments.length);
+      }
 
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -183,6 +195,7 @@ class _CommentsModalState extends State<CommentsModal> {
       });
 
       if (mounted) {
+        context.read<FeedProvider>().updatePostCommentCount(widget.postId, _comments.length);
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Comment deleted')));

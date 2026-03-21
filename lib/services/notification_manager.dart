@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:oasis_v2/routes/app_router.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 /// Cross-platform notification manager
 class NotificationManager {
@@ -72,6 +74,7 @@ class NotificationManager {
     required String title,
     required String body,
     String? payload,
+    String? senderAvatar,
   }) async {
     if (!_isInitialized) {
       debugPrint('NotificationManager: Not initialized');
@@ -91,6 +94,7 @@ class NotificationManager {
           title: title,
           body: body,
           payload: payload,
+          senderAvatar: senderAvatar,
         );
       }
     } catch (e) {
@@ -155,28 +159,70 @@ class NotificationManager {
     required String title,
     required String body,
     String? payload,
+    String? senderAvatar,
   }) async {
-    await _localNotificationsPlugin.show(
-      _notificationId++,
-      title,
-      body,
-      NotificationDetails(
-        android: AndroidNotificationDetails(
+    AndroidNotificationDetails? androidDetails;
+    DarwinNotificationDetails? iosDetails;
+
+    if (senderAvatar != null && senderAvatar.isNotEmpty) {
+      try {
+        final String largeIconPath = await _downloadAndSaveImage(senderAvatar, 'notification_icon');
+        
+        androidDetails = AndroidNotificationDetails(
           'morrow_channel',
           'Morrow Notifications',
           channelDescription: 'Main notification channel for Morrow',
           importance: Importance.max,
           priority: Priority.high,
           showWhen: true,
-        ),
-        iOS: const DarwinNotificationDetails(
+          largeIcon: FilePathAndroidBitmap(largeIconPath),
+        );
+
+        iosDetails = DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
-        ),
+          attachments: [DarwinNotificationAttachment(largeIconPath)],
+        );
+      } catch (e) {
+        debugPrint('Error downloading notification icon: $e');
+      }
+    }
+
+    androidDetails ??= const AndroidNotificationDetails(
+      'morrow_channel',
+      'Morrow Notifications',
+      channelDescription: 'Main notification channel for Morrow',
+      importance: Importance.max,
+      priority: Priority.high,
+      showWhen: true,
+    );
+
+    iosDetails ??= const DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    await _localNotificationsPlugin.show(
+      _notificationId++,
+      title,
+      body,
+      NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
       ),
       payload: payload,
     );
+  }
+
+  Future<String> _downloadAndSaveImage(String url, String fileName) async {
+    final Directory directory = await getTemporaryDirectory();
+    final String filePath = '${directory.path}/$fileName';
+    final http.Response response = await http.get(Uri.parse(url));
+    final File file = File(filePath);
+    await file.writeAsBytes(response.bodyBytes);
+    return filePath;
   }
 
   /// Initialize local notifications for mobile

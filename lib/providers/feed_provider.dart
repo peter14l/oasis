@@ -6,11 +6,11 @@ import 'package:oasis_v2/services/cache_service.dart'; // Added import
 enum FeedType { forYou, following }
 
 class FeedProvider with ChangeNotifier {
-  final FeedService _feedService = FeedService();
+  final FeedService _feedService;
   final CacheService _cacheService =
       CacheService(); // Added CacheService instance
 
-  FeedProvider() {
+  FeedProvider({FeedService? feedService}) : _feedService = feedService ?? FeedService() {
     // Clear cache once to ensure new schema (avatar_url) is loaded
     _cacheService.saveFeed([]); 
     _loadFromCache();
@@ -328,6 +328,22 @@ class FeedProvider with ChangeNotifier {
         break;
       }
     }
+  }
+
+  /// Update comment count for a post
+  void updatePostCommentCount(String postId, int newCount) {
+    void updateList(List<Post> posts) {
+      for (int i = 0; i < posts.length; i++) {
+        if (posts[i].id == postId) {
+          posts[i] = posts[i].copyWith(comments: newCount);
+          break;
+        }
+      }
+    }
+
+    updateList(_forYouPosts);
+    updateList(_followingPosts);
+    notifyListeners();
   }
 
   /// Clear all data

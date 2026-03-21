@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis_v2/models/story_model.dart';
+import 'package:oasis_v2/models/message.dart';
 import 'package:oasis_v2/services/stories_service.dart';
 import 'package:oasis_v2/services/messaging_service.dart';
 import 'package:oasis_v2/services/auth_service.dart';
@@ -140,12 +141,13 @@ class _StoryViewScreenState extends State<StoryViewScreen>
         user2Id: story.userId,
       );
 
-      // 2. Send message with story context (simplified for now as text)
+      // 2. Send message with story context
       await _messagingService.sendMessage(
         conversationId: conversationId,
         senderId: currentUserId,
-        content: "Replied to your story: \"$text\"",
-        // In a real app, we might add a 'metadata' field to link the story
+        content: text,
+        messageType: MessageType.story_reply,
+        storyId: story.id,
       );
 
       if (mounted) {

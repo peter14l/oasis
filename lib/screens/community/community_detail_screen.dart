@@ -315,7 +315,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                         );
                       },
                       onShare: () {
-                        final deepLink = 'https://morrow.app/post/${post.id}';
+                        final deepLink = 'https://oasis-web-red.vercel.app/post/${post.id}';
                         Share.share('Check out this post on Morrow! $deepLink');
                       },
                       onDelete: () async {

@@ -1,17 +1,21 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:oasis_v2/services/supabase_service.dart';
 
 enum RipplesLayoutType {
   kineticCardStack,
-  focusDial,
   choiceMosaic,
-  rippleSwipe,
 }
 
 class RipplesService extends ChangeNotifier {
   static const String _lockoutEndTimeKey = 'ripples_lockout_end_time';
   static const String _layoutPreferenceKey = 'ripples_layout_preference';
+  static const String _remainingDurationKey = 'ripples_remaining_duration';
+  static const String _lastActiveKey = 'ripples_last_active';
+
+  final SupabaseClient _supabase;
 
   bool _isRipplesLocked = false;
   DateTime? _lockoutEndTime;
@@ -19,17 +23,20 @@ class RipplesService extends ChangeNotifier {
   Timer? _lockoutCheckTimer;
   RipplesLayoutType _currentLayout = RipplesLayoutType.kineticCardStack;
   String? _currentUserId;
+  
+  Duration? _remainingDuration;
+  DateTime? _lastSessionEndTime;
+  double _lockoutMultiplier = 1.0;
 
   bool get isRipplesLocked => _isRipplesLocked;
   DateTime? get lockoutEndTime => _lockoutEndTime;
   RipplesLayoutType get currentLayout => _currentLayout;
+  Duration? get remainingDuration => _remainingDuration;
 
-  // For UI to listen to session ending
   final StreamController<void> _sessionEndController = StreamController<void>.broadcast();
   Stream<void> get onSessionEnd => _sessionEndController.stream;
 
-  RipplesService() {
-    // Periodically check lockout status
+  RipplesService({SupabaseClient? supabase}) : _supabase = supabase ?? SupabaseService().client {
     _lockoutCheckTimer = Timer.periodic(const Duration(minutes: 1), (_) => checkLockout());
   }
 
@@ -41,17 +48,12 @@ class RipplesService extends ChangeNotifier {
     
     final prefs = await SharedPreferences.getInstance();
     
-    // Load Lockout State for this specific user
+    // Load local state
     final lockoutTimeString = prefs.getString(_getUserKey(_lockoutEndTimeKey));
     if (lockoutTimeString != null) {
       _lockoutEndTime = DateTime.parse(lockoutTimeString);
-      checkLockout();
-    } else {
-      _lockoutEndTime = null;
-      _isRipplesLocked = false;
     }
 
-    // Load Layout Preference for this specific user
     final layoutString = prefs.getString(_getUserKey(_layoutPreferenceKey));
     if (layoutString != null) {
       _currentLayout = RipplesLayoutType.values.firstWhere(
@@ -60,6 +62,45 @@ class RipplesService extends ChangeNotifier {
       );
     }
 
+    final remainingMs = prefs.getInt(_getUserKey(_remainingDurationKey));
+    if (remainingMs != null) {
+      _remainingDuration = Duration(milliseconds: remainingMs);
+    }
+
+    final lastActiveStr = prefs.getString(_getUserKey(_lastActiveKey));
+    if (lastActiveStr != null) {
+      final lastActive = DateTime.parse(lastActiveStr);
+      // Reset if > 30 mins passed
+      if (DateTime.now().difference(lastActive).inMinutes > 30) {
+        _remainingDuration = null;
+        prefs.remove(_getUserKey(_remainingDurationKey));
+      }
+    }
+
+    // Load from Supabase for sync/multiplier
+    try {
+      final data = await _supabase.from('profiles')
+          .select('ripples_lockout_multiplier, ripples_last_session_end, ripples_remaining_duration_ms')
+          .eq('id', userId)
+          .single();
+      
+      _lockoutMultiplier = (data['ripples_lockout_multiplier'] as num?)?.toDouble() ?? 1.0;
+      final dbLastEnd = data['ripples_last_session_end'] as String?;
+      if (dbLastEnd != null) _lastSessionEndTime = DateTime.parse(dbLastEnd);
+      
+      // Decay multiplier if long time passed (e.g. 24h)
+      if (_lastSessionEndTime != null) {
+        final hoursSince = DateTime.now().difference(_lastSessionEndTime!).inHours;
+        if (hoursSince > 24) {
+          _lockoutMultiplier = 1.0;
+          await _updateMultiplierInDb();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading ripple profile data: $e');
+    }
+
+    checkLockout();
     notifyListeners();
   }
 
@@ -80,33 +121,78 @@ class RipplesService extends ChangeNotifier {
 
   void startSession(Duration duration) {
     _activeSessionTimer?.cancel();
+    _remainingDuration = duration;
     _activeSessionTimer = Timer(duration, endSession);
+    _saveSessionState();
   }
 
-  /// Cancels the session timer without triggering a lockout (user exited early)
-  void cancelSession() {
+  void pauseSession(Duration remaining) {
     _activeSessionTimer?.cancel();
-    _activeSessionTimer = null;
+    _remainingDuration = remaining;
+    _saveSessionState();
     notifyListeners();
   }
 
-  /// Ends the session naturally (timer finished) and triggers the 30-min lockout
-  void endSession() {
+  Future<void> _saveSessionState() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_remainingDuration != null) {
+      await prefs.setInt(_getUserKey(_remainingDurationKey), _remainingDuration!.inMilliseconds);
+      await prefs.setString(_getUserKey(_lastActiveKey), DateTime.now().toIso8601String());
+    }
+  }
+
+  Future<void> endSession() async {
     _activeSessionTimer?.cancel();
     _activeSessionTimer = null;
+    _remainingDuration = null;
     
-    // 30 minute lockout
-    _lockoutEndTime = DateTime.now().add(const Duration(minutes: 30));
+    // Adaptive Lockout Logic
+    if (_lastSessionEndTime != null) {
+      final diff = DateTime.now().difference(_lastSessionEndTime!).inMinutes;
+      // If re-entering within 30 mins of lockout expiry (which is ~60 mins from last session end)
+      // Actually the requirement is: "if a user, say, sets a duration for 15mins, gets blocked for 30mins, 
+      // and again immediately after that sets a duration of 30mins and so and so forth, then increase the duration of the block"
+      
+      // We check if the lockout just ended recently (e.g. within 30 mins)
+      if (diff < 65) { // 30 min lockout + 35 min grace
+        _lockoutMultiplier += 0.5;
+      }
+    }
+
+    final baseLockout = const Duration(minutes: 30);
+    final actualLockoutMinutes = (baseLockout.inMinutes * _lockoutMultiplier).round();
+    
+    _lockoutEndTime = DateTime.now().add(Duration(minutes: actualLockoutMinutes));
+    _lastSessionEndTime = _lockoutEndTime;
     _isRipplesLocked = true;
     
-    if (_currentUserId != null) {
-      SharedPreferences.getInstance().then(
-        (prefs) => prefs.setString(_getUserKey(_lockoutEndTimeKey), _lockoutEndTime!.toIso8601String()),
-      );
-    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_getUserKey(_lockoutEndTimeKey), _lockoutEndTime!.toIso8601String());
+    await prefs.remove(_getUserKey(_remainingDurationKey));
+
+    await _updateMultiplierInDb();
     
     notifyListeners();
     _sessionEndController.add(null);
+  }
+
+  Future<void> _updateMultiplierInDb() async {
+    if (_currentUserId == null) return;
+    try {
+      await _supabase.from('profiles').update({
+        'ripples_lockout_multiplier': _lockoutMultiplier,
+        'ripples_last_session_end': _lastSessionEndTime?.toIso8601String(),
+      }).eq('id', _currentUserId!);
+    } catch (e) {
+      debugPrint('Error updating multiplier in DB: $e');
+    }
+  }
+
+  void cancelSession() {
+    // This is called when user exits manually
+    // We should save the remaining time
+    // For now we don't have a direct way to get elapsed time from Timer, 
+    // so the UI should pass it or we track start time.
   }
 
   Future<void> setLayoutPreference(RipplesLayoutType type) async {
@@ -118,14 +204,64 @@ class RipplesService extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<String> fetchDummyVideos() {
-    return [
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-      'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
-    ];
+  // Fetch real ripples from DB
+  Future<List<Map<String, dynamic>>> getRipples() async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      
+      // Fetch ripples where creator is public OR we follow them OR it's our own
+      // For now, simple implementation: public only + own
+      final response = await _supabase.from('ripples')
+          .select('''
+            *,
+            profiles:user_id (
+              username,
+              avatar_url,
+              is_private
+            )
+          ''')
+          .or('is_private.eq.false,user_id.eq.${userId})')
+          .order('created_at', ascending: false);
+      
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      debugPrint('Error fetching ripples: $e');
+      return [];
+    }
+  }
+
+  Future<void> likeRipple(String rippleId) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
+    try {
+      await _supabase.from('ripple_likes').upsert({'ripple_id': rippleId, 'user_id': userId});
+    } catch (e) {
+      debugPrint('Error liking ripple: $e');
+    }
+  }
+
+  Future<void> commentOnRipple(String rippleId, String content) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
+    try {
+      await _supabase.from('ripple_comments').insert({
+        'ripple_id': rippleId,
+        'user_id': userId,
+        'content': content,
+      });
+    } catch (e) {
+      debugPrint('Error commenting on ripple: $e');
+    }
+  }
+
+  Future<void> saveRipple(String rippleId) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
+    try {
+      await _supabase.from('ripple_saves').upsert({'ripple_id': rippleId, 'user_id': userId});
+    } catch (e) {
+      debugPrint('Error saving ripple: $e');
+    }
   }
 
   @override
