@@ -28,11 +28,20 @@ import 'package:oasis_v2/widgets/mesh_gradient_background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:oasis_v2/firebase_options.dart';
 import 'package:oasis_v2/services/notification_manager.dart';
 import 'package:oasis_v2/services/call_service.dart';
 import 'package:oasis_v2/services/sharing_service.dart';
 import 'package:oasis_v2/services/ripples_service.dart';
+
+// Background message handler for FCM
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Initialize Firebase if not already initialized (required for background)
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  debugPrint('Handling a background message: ${message.messageId}');
+}
 
 // Theme Provider to manage theme mode
 class ThemeProvider with ChangeNotifier {
@@ -96,6 +105,7 @@ void main() async {
         await Firebase.initializeApp(
           options: DefaultFirebaseOptions.currentPlatform,
         );
+        FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
         debugPrint('Firebase initialized successfully');
       } catch (e) {
         debugPrint('Firebase initialization failed: $e');

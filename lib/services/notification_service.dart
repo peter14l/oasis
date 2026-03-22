@@ -204,6 +204,35 @@ class NotificationService {
     }
   }
 
+  /// Send a "Pulse" notification to all members of a canvas (except the actor)
+  Future<void> sendPulseNotification({
+    required String canvasId,
+    required String canvasTitle,
+    required String actorId,
+    required List<String> memberIds,
+  }) async {
+    try {
+      final List<Map<String, dynamic>> notifications = [];
+      
+      for (final memberId in memberIds) {
+        if (memberId == actorId) continue;
+        
+        notifications.add({
+          'user_id': memberId,
+          'type': 'canvas_pulse',
+          'actor_id': actorId,
+          'content': 'is looking at your "$canvasTitle" Canvas right now.',
+        });
+      }
+      
+      if (notifications.isNotEmpty) {
+        await _supabase.from(SupabaseConfig.notificationsTable).insert(notifications);
+      }
+    } catch (e) {
+      debugPrint('Error sending pulse notification: $e');
+    }
+  }
+
   /// Update FCM token for the user
   Future<void> updateFcmToken(String userId) async {
     try {

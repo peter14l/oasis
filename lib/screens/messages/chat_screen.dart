@@ -760,6 +760,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      useRootNavigator: true,
       builder: (context) {
         return SafeArea(
           child: Container(
@@ -1628,25 +1629,28 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 } else if (value == 'theme') {
                   showModalBottomSheet(
                     context: context,
+                    useRootNavigator: true,
                     builder:
-                        (context) => ChatThemeSelector(
-                          selectedPreset: ChatThemePreset.values.firstWhere(
-                            (p) =>
-                                p.name.toLowerCase() ==
-                                _activeTheme?.themeName.toLowerCase(),
-                            orElse: () => ChatThemePreset.defaultTheme,
+                        (context) => SafeArea(
+                          child: ChatThemeSelector(
+                            selectedPreset: ChatThemePreset.values.firstWhere(
+                              (p) =>
+                                  p.name.toLowerCase() ==
+                                  _activeTheme?.themeName.toLowerCase(),
+                              orElse: () => ChatThemePreset.defaultTheme,
+                            ),
+                            onPresetSelected: (preset) {
+                              _handleThemeChange(
+                                ChatTheme.fromPreset(
+                                  preset,
+                                  'theme_${DateTime.now().millisecondsSinceEpoch}',
+                                  widget.conversationId,
+                                  _authService.currentUser?.id ?? '',
+                                ),
+                              );
+                              Navigator.pop(context);
+                            },
                           ),
-                          onPresetSelected: (preset) {
-                            _handleThemeChange(
-                              ChatTheme.fromPreset(
-                                preset,
-                                'theme_${DateTime.now().millisecondsSinceEpoch}',
-                                widget.conversationId,
-                                _authService.currentUser?.id ?? '',
-                              ),
-                            );
-                            Navigator.pop(context);
-                          },
                         ),
                   );
                 }
@@ -2863,8 +2867,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         showModalBottomSheet(
                           context: context,
                           backgroundColor: Colors.transparent,
-                          builder: (context) => MessageReactionsSheet(
-                            reactions: _groupReactions(message.reactions),
+                          useRootNavigator: true,
+                          builder: (context) => SafeArea(
+                            child: MessageReactionsSheet(
+                              reactions: _groupReactions(message.reactions),
+                            ),
                           ),
                         );
                       },
@@ -2889,104 +2896,110 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      useRootNavigator: true,
       builder:
-          (context) => Container(
-            margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface.withValues(alpha: 0.8),
-              borderRadius: BorderRadius.circular(32),
-              border: Border.all(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 32,
-                  offset: const Offset(0, -8),
+          (context) => SafeArea(
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
                 ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(32),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(height: 12),
-                    Container(
-                      width: 36,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 32,
+                    offset: const Offset(0, -8),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(32),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 12),
+                      Container(
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: MessageReactionPicker(
-                        onReactionSelected: (emoji) {
-                          _onReactionSelected(message, emoji);
-                          Navigator.pop(context);
-                        },
+                      const SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: MessageReactionPicker(
+                          onReactionSelected: (emoji) {
+                            _onReactionSelected(message, emoji);
+                            Navigator.pop(context);
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Divider(height: 1, indent: 24, endIndent: 24),
-                    const SizedBox(height: 8),
-                    _buildModalAction(
-                      context,
-                      icon: Icons.reply_rounded,
-                      label: 'Reply',
-                      onTap: () {
-                        Navigator.pop(context);
-                        setState(() {
-                          _replyMessage = message;
-                        });
-                        _focusNode.requestFocus();
-                      },
-                    ),
-                    _buildModalAction(
-                      context,
-                      icon: Icons.shortcut_rounded,
-                      label: 'Forward',
-                      onTap: () {
-                        Navigator.pop(context);
-                        showModalBottomSheet(
-                          context: context,
-                          backgroundColor: Colors.transparent,
-                          isScrollControlled: true,
-                          builder: (context) => ForwardMessageModal(message: message),
-                        );
-                      },
-                    ),
-                    if (message.messageType == MessageType.text && message.content != '🔒 Message encrypted')
+                      const SizedBox(height: 12),
+                      const Divider(height: 1, indent: 24, endIndent: 24),
+                      const SizedBox(height: 8),
                       _buildModalAction(
                         context,
-                        icon: Icons.copy_rounded,
-                        label: 'Copy Text',
+                        icon: Icons.reply_rounded,
+                        label: 'Reply',
                         onTap: () {
-                          Clipboard.setData(ClipboardData(text: message.content));
                           Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Copied to clipboard')),
+                          setState(() {
+                            _replyMessage = message;
+                          });
+                          _focusNode.requestFocus();
+                        },
+                      ),
+                      _buildModalAction(
+                        context,
+                        icon: Icons.shortcut_rounded,
+                        label: 'Forward',
+                        onTap: () {
+                          Navigator.pop(context);
+                          showModalBottomSheet(
+                            context: context,
+                            backgroundColor: Colors.transparent,
+                            isScrollControlled: true,
+                            useRootNavigator: true,
+                            builder: (context) => SafeArea(
+                              child: ForwardMessageModal(message: message),
+                            ),
                           );
                         },
                       ),
-                    if (isMe)
-                      _buildModalAction(
-                        context,
-                        icon: Icons.delete_outline_rounded,
-                        label: 'Unsend',
-                        isDestructive: true,
-                        onTap: () {
-                          Navigator.pop(context);
-                          _unsendMessage(message);
-                        },
-                      ),
-                    const SizedBox(height: 16),
-                  ],
+                      if (message.messageType == MessageType.text && message.content != '🔒 Message encrypted')
+                        _buildModalAction(
+                          context,
+                          icon: Icons.copy_rounded,
+                          label: 'Copy Text',
+                          onTap: () {
+                            Clipboard.setData(ClipboardData(text: message.content));
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Copied to clipboard')),
+                            );
+                          },
+                        ),
+                      if (isMe)
+                        _buildModalAction(
+                          context,
+                          icon: Icons.delete_outline_rounded,
+                          label: 'Unsend',
+                          isDestructive: true,
+                          onTap: () {
+                            Navigator.pop(context);
+                            _unsendMessage(message);
+                          },
+                        ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
                 ),
               ),
             ),

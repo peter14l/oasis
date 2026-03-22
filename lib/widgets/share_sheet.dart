@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:oasis_v2/models/conversation.dart';
 import 'package:oasis_v2/services/messaging_service.dart';
@@ -16,6 +17,7 @@ class ShareSheet extends StatefulWidget {
   final MessageType messageType;
   final String? rippleId;
   final String? storyId;
+  final String? externalMessage;
 
   const ShareSheet({
     super.key,
@@ -25,6 +27,7 @@ class ShareSheet extends StatefulWidget {
     this.messageType = MessageType.text,
     this.rippleId,
     this.storyId,
+    this.externalMessage,
   });
 
   static Future<void> show(
@@ -35,6 +38,7 @@ class ShareSheet extends StatefulWidget {
     MessageType messageType = MessageType.text,
     String? rippleId,
     String? storyId,
+    String? externalMessage,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -47,6 +51,7 @@ class ShareSheet extends StatefulWidget {
         messageType: messageType,
         rippleId: rippleId,
         storyId: storyId,
+        externalMessage: externalMessage,
       ),
     );
   }
@@ -131,6 +136,11 @@ class _ShareSheetState extends State<ShareSheet> {
     }
   }
 
+  void _shareExternally() {
+    final message = widget.externalMessage ?? widget.payload;
+    Share.share(message);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -186,19 +196,31 @@ class _ShareSheetState extends State<ShareSheet> {
             // Search Bar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: TextField(
-                onChanged: (value) => setState(() => _searchQuery = value),
-                decoration: InputDecoration(
-                  hintText: 'Search people...',
-                  prefixIcon: const Icon(FluentIcons.search_24_regular),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      onChanged: (value) => setState(() => _searchQuery = value),
+                      decoration: InputDecoration(
+                        hintText: 'Search people...',
+                        prefixIcon: const Icon(FluentIcons.search_24_regular),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                      ),
+                    ),
                   ),
-                  filled: true,
-                  fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                ),
+                  const SizedBox(width: 8),
+                  IconButton.filledTonal(
+                    onPressed: _shareExternally,
+                    icon: const Icon(FluentIcons.share_ios_24_regular),
+                    tooltip: 'Share externally',
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),

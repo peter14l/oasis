@@ -47,7 +47,14 @@ class CanvasProvider extends ChangeNotifier {
     required String title,
     required String coverColor,
     List<String> memberIds = const [],
+    bool isPro = false,
   }) async {
+    if (!isPro && _canvases.length >= 2) {
+      _error = 'FREE_LIMIT_REACHED';
+      notifyListeners();
+      return null;
+    }
+    
     try {
       final canvas = await _service.createCanvas(
         createdBy: createdBy,
@@ -68,6 +75,23 @@ class CanvasProvider extends ChangeNotifier {
   Future<bool> deleteCanvas(String canvasId) async {
     try {
       await _service.deleteCanvas(canvasId);
+      _canvases = _canvases.where((c) => c.id != canvasId).toList();
+      if (_activeCanvas?.id == canvasId) {
+        _activeCanvas = null;
+        _activeItems = [];
+      }
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> leaveCanvas(String canvasId) async {
+    try {
+      await _service.leaveCanvas(canvasId);
       _canvases = _canvases.where((c) => c.id != canvasId).toList();
       if (_activeCanvas?.id == canvasId) {
         _activeCanvas = null;

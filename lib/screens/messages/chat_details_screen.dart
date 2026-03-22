@@ -293,77 +293,80 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) {
-          final theme = Theme.of(context);
-          return Container(
-            height: MediaQuery.of(context).size.height * 0.8,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-            ),
-            child: Column(
-              children: [
-                const SizedBox(height: 12),
-                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(2))),
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: TextField(
-                    controller: _searchController,
-                    autofocus: true,
-                    onChanged: (val) {
-                      _onSearchChanged(val);
-                      setModalState(() {});
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Search in this chat...',
-                      prefixIcon: const Icon(Icons.search_rounded),
-                      suffixIcon: _searchController.text.isNotEmpty 
-                        ? IconButton(icon: const Icon(Icons.close_rounded), onPressed: () {
-                            _searchController.clear();
-                            _onSearchChanged('');
-                            setModalState(() {});
-                          })
-                        : null,
-                      filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.05),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+      useRootNavigator: true,
+      builder: (context) => SafeArea(
+        child: StatefulBuilder(
+          builder: (context, setModalState) {
+            final theme = Theme.of(context);
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.8,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(2))),
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: TextField(
+                      controller: _searchController,
+                      autofocus: true,
+                      onChanged: (val) {
+                        _onSearchChanged(val);
+                        setModalState(() {});
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search in this chat...',
+                        prefixIcon: const Icon(Icons.search_rounded),
+                        suffixIcon: _searchController.text.isNotEmpty 
+                          ? IconButton(icon: const Icon(Icons.close_rounded), onPressed: () {
+                              _searchController.clear();
+                              _onSearchChanged('');
+                              setModalState(() {});
+                            })
+                          : null,
+                        filled: true,
+                        fillColor: Colors.white.withValues(alpha: 0.05),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+                      ),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: _searchController.text.isEmpty
-                    ? Center(child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.message_outlined, size: 48, color: Colors.white24),
-                          const SizedBox(height: 16),
-                          Text('Search for keywords', style: TextStyle(color: Colors.white38)),
-                        ],
-                      ))
-                    : _searchResults.isEmpty
-                      ? const Center(child: Text('No messages found', style: TextStyle(color: Colors.white38)))
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: _searchResults.length,
-                          itemBuilder: (context, index) {
-                            final msg = _searchResults[index];
-                            return ListTile(
-                              leading: const Icon(Icons.history_rounded, size: 20, color: Colors.white24),
-                              title: Text(msg.content, maxLines: 2, overflow: TextOverflow.ellipsis),
-                              subtitle: Text(_formatTimestamp(msg.timestamp), style: const TextStyle(fontSize: 11)),
-                              onTap: () {
-                                // For now just pop, in future could navigate to specific message
-                                Navigator.pop(context);
-                              },
-                            );
-                          },
-                        ),
-                ),
-              ],
-            ),
-          );
-        }
+                  Expanded(
+                    child: _searchController.text.isEmpty
+                      ? Center(child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.message_outlined, size: 48, color: Colors.white24),
+                            const SizedBox(height: 16),
+                            Text('Search for keywords', style: TextStyle(color: Colors.white38)),
+                          ],
+                        ))
+                      : _searchResults.isEmpty
+                        ? const Center(child: Text('No messages found', style: TextStyle(color: Colors.white38)))
+                        : ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: _searchResults.length,
+                            itemBuilder: (context, index) {
+                              final msg = _searchResults[index];
+                              return ListTile(
+                                leading: const Icon(Icons.history_rounded, size: 20, color: Colors.white24),
+                                title: Text(msg.content, maxLines: 2, overflow: TextOverflow.ellipsis),
+                                subtitle: Text(_formatTimestamp(msg.timestamp), style: const TextStyle(fontSize: 11)),
+                                onTap: () {
+                                  // For now just pop, in future could navigate to specific message
+                                  Navigator.pop(context);
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          }
+        ),
       ),
     );
   }

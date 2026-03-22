@@ -242,6 +242,25 @@ class NotificationManager {
         _handleNotificationTap(response.payload);
       },
     );
+
+    // Create the default channel for Android
+    if (Platform.isAndroid) {
+      final androidPlugin = _localNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      
+      await androidPlugin?.createNotificationChannel(
+        const AndroidNotificationChannel(
+          'morrow_channel',
+          'Morrow Notifications',
+          description: 'Main notification channel for Morrow',
+          importance: Importance.max,
+          playSound: true,
+          enableVibration: true,
+          showBadge: true,
+        ),
+      );
+    }
   }
 
   /// Initialize FCM integration

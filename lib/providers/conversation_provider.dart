@@ -252,6 +252,31 @@ class ConversationProvider with ChangeNotifier {
     }
   }
 
+  /// Toggle pin status for a conversation
+  Future<void> togglePin(String conversationId) async {
+    if (_currentUserId == null) return;
+
+    final index = _conversations.indexWhere((c) => c.id == conversationId);
+    if (index == -1) return;
+
+    final conversation = _conversations[index];
+    final newPinnedStatus = !conversation.isPinned;
+
+    // Optimistic update
+    _conversations[index] = conversation.copyWith(isPinned: newPinnedStatus);
+    notifyListeners();
+
+    try {
+      await _messagingService.pinConversation(conversationId, _currentUserId!, newPinnedStatus);
+      await _saveConversationsToCache();
+    } catch (e) {
+      // Revert on error
+      _conversations[index] = conversation;
+      notifyListeners();
+      debugPrint('Error toggling pin: $e');
+    }
+  }
+
   /// Clear all data (used during logout)
   Future<void> clear() async {
     // Stop subscriptions

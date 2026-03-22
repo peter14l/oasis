@@ -117,6 +117,23 @@ class CanvasService {
     }
   }
 
+  /// Leave a canvas (remove membership).
+  Future<void> leaveCanvas(String canvasId) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) throw Exception('Not authenticated');
+
+      await _supabase
+          .from('canvas_members')
+          .delete()
+          .eq('canvas_id', canvasId)
+          .eq('user_id', userId);
+    } catch (e) {
+      debugPrint('CanvasService.leaveCanvas error: $e');
+      rethrow;
+    }
+  }
+
   /// Fetch a single canvas by ID
   Future<OasisCanvas> getCanvas(String canvasId) async {
     try {

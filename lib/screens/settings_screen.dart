@@ -14,6 +14,7 @@ import 'package:oasis_v2/screens/settings/download_data_screen.dart';
 import 'package:oasis_v2/screens/settings/storage_usage_screen.dart';
 import 'package:oasis_v2/screens/settings/font_size_screen.dart';
 import 'package:oasis_v2/screens/settings/help_support_screen.dart';
+import 'package:oasis_v2/screens/settings/digital_wellbeing_screen.dart';
 import 'package:oasis_v2/screens/messages/encryption_setup_screen.dart';
 import 'package:oasis_v2/screens/oasis_pro_screen.dart';
 import 'package:oasis_v2/screens/moderation/moderation_screens.dart'; // For BlockedUsersScreen
@@ -527,6 +528,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         onTap:
             () => Navigator.of(context).push(
               MaterialPageRoute(builder: (context) => const ScreenTimeScreen()),
+            ),
+      ),
+      _buildSettingsTile(
+        context,
+        icon: Icons.spa_outlined,
+        title: 'Digital Wellbeing',
+        subtitle: 'Habits and usage limits',
+        iconColor: Colors.green,
+        onTap:
+            () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const DigitalWellbeingScreen()),
             ),
       ),
     ]);

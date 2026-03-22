@@ -84,6 +84,41 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
     }
   }
 
+  void _leaveCanvas() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Leave Canvas?'),
+        content: const Text('You will no longer be able to see or contribute to this canvas unless invited back.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Leave'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final success = await context.read<CanvasProvider>().leaveCanvas(widget.canvasId);
+      if (success && mounted) {
+        context.pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You left the canvas')),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to leave canvas')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -122,12 +157,16 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
             },
             tooltip: 'Invite',
           ),
-          if (isOwner)
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                if (value == 'delete') _deleteCanvas();
-              },
-              itemBuilder: (context) => [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'delete') {
+                _deleteCanvas();
+              } else if (value == 'leave') {
+                _leaveCanvas();
+              }
+            },
+            itemBuilder: (context) => [
+              if (isOwner)
                 const PopupMenuItem(
                   value: 'delete',
                   child: Row(
@@ -137,9 +176,20 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
                       Text('Delete Canvas', style: TextStyle(color: Colors.red)),
                     ],
                   ),
+                )
+              else
+                const PopupMenuItem(
+                  value: 'leave',
+                  child: Row(
+                    children: [
+                      Icon(FluentIcons.arrow_exit_20_regular, color: Colors.red, size: 20),
+                      SizedBox(width: 12),
+                      Text('Leave Canvas', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
                 ),
-              ],
-            ),
+            ],
+          ),
         ],
       ),
       // ── Add Item FAB tray ──────────────────────────────────────────

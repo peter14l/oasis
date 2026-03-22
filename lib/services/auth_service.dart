@@ -65,6 +65,8 @@ class AuthService with ChangeNotifier {
       final session = _supabase.auth.currentSession;
       if (session != null) {
         developer.log('Session restored for user: ${session.user.id}');
+        // Refresh FCM token on session restore
+        _notificationService.updateFcmToken(session.user.id);
       } else {
         developer.log('No existing session found');
       }

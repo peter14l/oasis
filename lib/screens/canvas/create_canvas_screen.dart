@@ -5,6 +5,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis_v2/providers/canvas_provider.dart';
 import 'package:oasis_v2/providers/profile_provider.dart';
 import 'package:oasis_v2/models/user_profile.dart';
+import 'package:oasis_v2/screens/oasis_pro_screen.dart';
 
 class CreateCanvasScreen extends StatefulWidget {
   const CreateCanvasScreen({super.key});
@@ -63,24 +64,33 @@ class _CreateCanvasScreenState extends State<CreateCanvasScreen> {
     }
 
     final userId = profile.id;
+    final canvasProvider = context.read<CanvasProvider>();
 
     setState(() => _isLoading = true);
     try {
-      final canvas = await context.read<CanvasProvider>().createCanvas(
+      final canvas = await canvasProvider.createCanvas(
         createdBy: userId,
         title: title,
         coverColor: _selectedColor,
         memberIds: _isCollaborative ? _selectedMemberIds : [],
+        isPro: profile.isPro,
       );
+      
       if (!mounted) return;
+      
       if (canvas != null) {
         context.pushReplacementNamed(
           'canvas_detail',
           pathParameters: {'canvasId': canvas.id},
         );
+      } else if (canvasProvider.error == 'FREE_LIMIT_REACHED') {
+        canvasProvider.clearError();
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const OasisProScreen()),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to create canvas. Please try again.')),
+          SnackBar(content: Text(canvasProvider.error ?? 'Failed to create canvas')),
         );
       }
     } catch (e) {

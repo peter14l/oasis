@@ -1018,6 +1018,20 @@ class MessagingService {
     }
   }
 
+  /// Pin/Unpin a conversation for a user
+  Future<void> pinConversation(String conversationId, String userId, bool isPinned) async {
+    try {
+      await _supabase
+          .from('conversation_participants')
+          .update({'is_pinned': isPinned})
+          .eq('conversation_id', conversationId)
+          .eq('user_id', userId);
+    } catch (e) {
+      debugPrint('Error pinning conversation: $e');
+      rethrow;
+    }
+  }
+
   /// Toggle Mute for a conversation
   Future<void> toggleMute(String conversationId, bool isMuted) async {
     try {

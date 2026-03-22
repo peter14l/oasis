@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oasis_v2/models/feed_layout_strategy.dart';
+import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/screens/oasis_pro_screen.dart';
 
 /// Widget for switching between different feed layouts
 /// Displays as a popup menu in the AppBar
@@ -35,6 +38,17 @@ class _FeedLayoutSwitcherState extends State<FeedLayoutSwitcher> {
   }
 
   void _onLayoutSelected(FeedLayoutType layout) {
+    final profile = context.read<ProfileProvider>().currentProfile;
+    final isPro = profile?.isPro ?? false;
+    
+    // Lock ZenCarousel and PulseMap for free users
+    if (!isPro && (layout == FeedLayoutType.zenCarousel || layout == FeedLayoutType.pulseMap)) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const OasisProScreen()),
+      );
+      return;
+    }
+
     if (layout != widget.currentLayout) {
       _saveLayoutPreference(layout);
       widget.onLayoutChanged(layout);
@@ -44,6 +58,8 @@ class _FeedLayoutSwitcherState extends State<FeedLayoutSwitcher> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final profile = context.watch<ProfileProvider>().currentProfile;
+    final isPro = profile?.isPro ?? false;
 
     return PopupMenuButton<FeedLayoutType>(
       icon: Icon(widget.currentLayout.icon),
@@ -53,22 +69,27 @@ class _FeedLayoutSwitcherState extends State<FeedLayoutSwitcher> {
           (context) =>
               FeedLayoutType.values.map((layout) {
                 final isSelected = layout == widget.currentLayout;
+                final isLocked = !isPro && (layout == FeedLayoutType.zenCarousel || layout == FeedLayoutType.pulseMap);
 
                 return PopupMenuItem<FeedLayoutType>(
                   value: layout,
                   child: Row(
                     children: [
                       Icon(
-                        layout.icon,
-                        color: isSelected ? theme.colorScheme.primary : null,
+                        isLocked ? Icons.lock : layout.icon,
+                        size: 20,
+                        color: isLocked 
+                            ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5) 
+                            : isSelected ? theme.colorScheme.primary : null,
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           layout.displayName,
                           style: TextStyle(
-                            color:
-                                isSelected ? theme.colorScheme.primary : null,
+                            color: isLocked 
+                                ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
+                                : isSelected ? theme.colorScheme.primary : null,
                             fontWeight: isSelected ? FontWeight.bold : null,
                           ),
                         ),

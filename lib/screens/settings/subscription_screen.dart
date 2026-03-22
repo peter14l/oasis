@@ -41,6 +41,20 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
+              const SizedBox(height: 48),
+              OutlinedButton(
+                onPressed: () async {
+                  setState(() => _isProcessing = true);
+                  await subService.debugToggleProStatus(false);
+                  setState(() => _isProcessing = false);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Pro status reset to Free tier.')),
+                    );
+                  }
+                },
+                child: const Text('Reset to Free Tier (Debug)'),
+              ),
             ],
           ),
         ),

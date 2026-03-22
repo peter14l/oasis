@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:oasis_v2/models/commitment.dart';
 import 'package:oasis_v2/providers/circle_provider.dart';
@@ -9,6 +10,7 @@ import 'package:oasis_v2/providers/profile_provider.dart';
 import 'package:oasis_v2/widgets/circles/streak_banner.dart';
 import 'package:oasis_v2/widgets/circles/commitment_card.dart';
 import 'package:oasis_v2/widgets/share_sheet.dart';
+import 'package:oasis_v2/widgets/circles/shattering_glass_animation.dart';
 
 import 'package:oasis_v2/services/circle_service.dart';
 
@@ -24,6 +26,7 @@ class _CircleDetailScreenState extends State<CircleDetailScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final CircleService _circleService = CircleService();
+  bool _showShatterAnimation = false;
 
   @override
   void initState() {
@@ -34,6 +37,24 @@ class _CircleDetailScreenState extends State<CircleDetailScreen>
 
   Future<void> _load() async {
     await context.read<CircleProvider>().openCircle(widget.circleId);
+    _checkStreak();
+  }
+
+  Future<void> _checkStreak() async {
+    final provider = context.read<CircleProvider>();
+    final circle = provider.activeCircle;
+    if (circle == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final lastStreak = prefs.getInt('circle_streak_${circle.id}') ?? 0;
+    
+    // If streak was > 0 and is now 0, show shatter animation
+    if (lastStreak > 0 && circle.streakCount == 0) {
+      setState(() => _showShatterAnimation = true);
+    }
+    
+    // Update stored streak
+    await prefs.setInt('circle_streak_${circle.id}', circle.streakCount);
   }
 
   Future<void> _confirmDeleteCircle() async {
@@ -104,149 +125,157 @@ class _CircleDetailScreenState extends State<CircleDetailScreen>
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxScrolled) => [
-          // ── Header ────────────────────────────────────────────────────
-          SliverAppBar(
-            pinned: true,
-            expandedHeight: 140, // Reduced from 180 to shift upwards
-            backgroundColor: Colors.black.withValues(alpha: 0.2),
-            leading: IconButton(
-              icon: const Icon(FluentIcons.chevron_left_24_regular),
-              onPressed: () => context.pop(),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(FluentIcons.people_add_24_regular),
-                onPressed: () {
-                  if (circle != null) {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (context) => ShareSheet(
-                        title: 'Share Circle',
-                        payload: '[INVITE:circle:${circle.id}:${circle.name}]',
+      body: Stack(
+        children: [
+          NestedScrollView(
+            headerSliverBuilder: (context, innerBoxScrolled) => [
+              // ── Header ────────────────────────────────────────────────────
+              SliverAppBar(
+                pinned: true,
+                expandedHeight: 140, // Reduced from 180 to shift upwards
+                backgroundColor: Colors.black.withValues(alpha: 0.2),
+                leading: IconButton(
+                  icon: const Icon(FluentIcons.chevron_left_24_regular),
+                  onPressed: () => context.pop(),
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(FluentIcons.people_add_24_regular),
+                    onPressed: () {
+                      if (circle != null) {
+                        final userName = context.read<ProfileProvider>().currentProfile?.fullName ?? 'Someone';
+                        final commitment = commitments.isNotEmpty ? commitments.first.title : 'their commitments';
+                        
+                        ShareSheet.show(
+                          context,
+                          title: 'Invite Accountability Partner',
+                          payload: '[INVITE:circle:${circle.id}:${circle.name}]',
+                          externalMessage: '$userName committed to "$commitment". They invited you to be their judge. Download Oasis to verify their streak: https://oasis-app.com/circle/join/${circle.id}',
+                        );
+                      }
+                    },
+                    tooltip: 'Invite Partner',
+                  ),
+                  if (isCreator)
+                    PopupMenuButton<String>(
+                      icon: const Icon(FluentIcons.more_vertical_24_regular),
+                      onSelected: (value) {
+                        if (value == 'delete') {
+                          _confirmDeleteCircle();
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(FluentIcons.delete_24_regular,
+                                  color: theme.colorScheme.error, size: 20),
+                              const SizedBox(width: 12),
+                              Text('Delete Circle',
+                                  style: TextStyle(color: theme.colorScheme.error)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+                flexibleSpace: FlexibleSpaceBar(
+                  titlePadding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  centerTitle: false,
+                  title: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        circle?.emoji ?? '🌊',
+                        style: const TextStyle(fontSize: 20),
                       ),
-                    );
-                  }
-                },
-                tooltip: 'Invite Member',
-              ),
-              if (isCreator)
-                PopupMenuButton<String>(
-                  icon: const Icon(FluentIcons.more_vertical_24_regular),
-                  onSelected: (value) {
-                    if (value == 'delete') {
-                      _confirmDeleteCircle();
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(FluentIcons.delete_24_regular,
-                              color: theme.colorScheme.error, size: 20),
-                          const SizedBox(width: 12),
-                          Text('Delete Circle',
-                              style: TextStyle(color: theme.colorScheme.error)),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          circle?.name ?? '',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          theme.colorScheme.primary.withValues(alpha: 0.3),
+                          theme.colorScheme.primary.withValues(alpha: 0.05),
                         ],
                       ),
                     ),
-                  ],
-                ),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              centerTitle: false,
-              title: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    circle?.emoji ?? '🌊',
-                    style: const TextStyle(fontSize: 20),
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      circle?.name ?? '',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 60, right: 20),
+                      child: Align(
+                        alignment: Alignment.topRight,
+                        child: circle != null
+                            ? StreakBanner(streakCount: circle.streakCount)
+                            : const SizedBox.shrink(),
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                ],
-              ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      theme.colorScheme.primary.withValues(alpha: 0.3),
-                      theme.colorScheme.primary.withValues(alpha: 0.05),
-                    ],
-                  ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 60, right: 20),
-                  child: Align(
-                    alignment: Alignment.topRight,
-                    child: circle != null
-                        ? StreakBanner(streakCount: circle.streakCount)
-                        : const SizedBox.shrink(),
-                  ),
+                bottom: TabBar(
+                  controller: _tabController,
+                  tabs: const [
+                    Tab(text: "Today's Commitments"),
+                    Tab(text: 'History'),
+                  ],
                 ),
               ),
-            ),
-            bottom: TabBar(
+            ],
+            body: TabBarView(
               controller: _tabController,
-              tabs: const [
-                Tab(text: "Today's Commitments"),
-                Tab(text: 'History'),
+              children: [
+                // ── Today's Commitments Tab ────────────────────────────────
+                _TodayTab(
+                  commitments: commitments,
+                  isLoading: provider.isLoading,
+                  currentUserId: _currentUserId,
+                  onMarkComplete: (commitmentId, note) {
+                    context.read<CircleProvider>().markComplete(
+                          commitmentId: commitmentId,
+                          userId: _currentUserId,
+                          note: note,
+                        );
+                  },
+                  onSetIntent: (commitmentId, intent) {
+                    context.read<CircleProvider>().setIntent(
+                          commitmentId: commitmentId,
+                          userId: _currentUserId,
+                          intent: intent,
+                        );
+                  },
+                  onAddCommitment: circle != null
+                      ? () => context.pushNamed(
+                            'create_commitment',
+                            pathParameters: {'circleId': circle.id},
+                          )
+                      : null,
+                ),
+
+                // ── History Tab (placeholder) ──────────────────────────────
+                const _HistoryTab(),
               ],
             ),
           ),
-        ],
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            // ── Today's Commitments Tab ────────────────────────────────
-            _TodayTab(
-              commitments: commitments,
-              isLoading: provider.isLoading,
-              currentUserId: _currentUserId,
-              onMarkComplete: (commitmentId, note) {
-                context.read<CircleProvider>().markComplete(
-                      commitmentId: commitmentId,
-                      userId: _currentUserId,
-                      note: note,
-                    );
-              },
-              onSetIntent: (commitmentId, intent) {
-                context.read<CircleProvider>().setIntent(
-                      commitmentId: commitmentId,
-                      userId: _currentUserId,
-                      intent: intent,
-                    );
-              },
-              onAddCommitment: circle != null
-                  ? () => context.pushNamed(
-                        'create_commitment',
-                        pathParameters: {'circleId': circle.id},
-                      )
-                  : null,
+          if (_showShatterAnimation)
+            ShatteringGlassAnimation(
+              onComplete: () => setState(() => _showShatterAnimation = false),
             ),
-
-            // ── History Tab (placeholder) ──────────────────────────────
-            const _HistoryTab(),
-          ],
-        ),
+        ],
       ),
     );
   }

@@ -22,6 +22,7 @@ import 'package:oasis_v2/services/canvas_audio_service.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:visibility_detector/visibility_detector.dart';
+import 'package:oasis_v2/services/notification_service.dart';
 
 class _PulseData {
   final String id;
@@ -57,8 +58,20 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
         await context.read<CanvasProvider>().joinCanvas(widget.canvasId, currentUserId);
       }
       if (mounted) {
-        context.read<CanvasProvider>().openCanvas(widget.canvasId);
+        final canvasProvider = context.read<CanvasProvider>();
+        canvasProvider.openCanvas(widget.canvasId);
         _setupPulseChannel();
+        
+        // Send Pulse Notification to other members
+        final canvas = canvasProvider.activeCanvas;
+        if (canvas != null && currentUserId != null) {
+          NotificationService().sendPulseNotification(
+            canvasId: canvas.id,
+            canvasTitle: canvas.title,
+            actorId: currentUserId,
+            memberIds: canvas.memberIds,
+          );
+        }
       }
     });
   }
@@ -87,6 +100,34 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Canvas deleted')));
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to delete canvas')));
+      }
+    }
+  }
+
+  void _leaveCanvas() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Leave Canvas?'),
+        content: const Text('You will no longer be able to see or contribute to this canvas unless invited back.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Leave'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final success = await context.read<CanvasProvider>().leaveCanvas(widget.canvasId);
+      if (success && mounted) {
+        context.pop();
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You left the canvas')));
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to leave canvas')));
       }
     }
   }
@@ -210,6 +251,12 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                             icon: const Icon(FluentIcons.delete_24_regular, color: Colors.redAccent),
                             onPressed: _deleteCanvas,
                             tooltip: 'Delete Canvas',
+                          )
+                        else
+                          IconButton(
+                            icon: const Icon(FluentIcons.arrow_exit_20_regular, color: Colors.redAccent),
+                            onPressed: _leaveCanvas,
+                            tooltip: 'Leave Canvas',
                           ),
                       ],
                     ),

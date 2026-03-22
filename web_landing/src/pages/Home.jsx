@@ -113,6 +113,92 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Ripples Teaser Section */}
+      <section className="section-padding" style={{ position: 'relative', background: 'var(--bg-primary)' }}>
+        <div className="container">
+          <motion.div 
+            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
+            style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              textAlign: 'center',
+              position: 'relative'
+            }}
+          >
+            <h2 className="heading-large" style={{ marginBottom: '40px' }}>Experience the <span className="text-gradient">Pulse.</span></h2>
+            
+            <div style={{
+              width: '100%',
+              maxWidth: '800px',
+              height: '450px',
+              borderRadius: '32px',
+              overflow: 'hidden',
+              position: 'relative',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+              border: '1px solid var(--glass-border)'
+            }}>
+              {/* Fake Video Teaser with Glassmorphic Overlay */}
+              <div style={{
+                width: '100%',
+                height: '100%',
+                background: 'linear-gradient(45deg, #0f172a, #1e293b)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                 <img 
+                   src="IMAGE4.jpg" 
+                   alt="Ripple Teaser" 
+                   style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }}
+                 />
+              </div>
+              
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backdropFilter: 'blur(12px)',
+                background: 'rgba(0, 0, 0, 0.4)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '40px'
+              }}>
+                <div style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.1)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '24px'
+                }}>
+                  <div style={{
+                    width: '0',
+                    height: '0',
+                    borderTop: '15px solid transparent',
+                    borderBottom: '15px solid transparent',
+                    borderLeft: '25px solid white',
+                    marginLeft: '8px'
+                  }}></div>
+                </div>
+                <h3 className="heading-medium" style={{ marginBottom: '16px' }}>Unlock this moment</h3>
+                <p className="text-body" style={{ maxWidth: '400px', marginBottom: '32px' }}>
+                  A shared memory is waiting for you. Get the app to see the full high-definition Ripple.
+                </p>
+                <Link to="/signup" className="btn btn-primary">Open in Oasis</Link>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Pro Teaser Section */}
       <section className="section-padding" style={{ position: 'relative' }}>
          <div className="ambient-glow" style={{ bottom: '0', left: '0', background: 'radial-gradient(circle, rgba(0,255,136,0.15) 0%, transparent 50%)' }}></div>

@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/services/time_capsule_service.dart';
 import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/widgets/share_sheet.dart';
+import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/screens/oasis_pro_screen.dart';
 
 class CreateCapsuleScreen extends StatefulWidget {
   const CreateCapsuleScreen({super.key});
@@ -17,39 +20,62 @@ class _CreateCapsuleScreenState extends State<CreateCapsuleScreen> {
   final TimeCapsuleService _capsuleService = TimeCapsuleService();
   
   bool _isLoading = false;
-  DateTime _selectedDate = DateTime.now().add(const Duration(days: 365)); // Default 1 year
+  DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   
   // Presets
   final List<Map<String, dynamic>> _datePresets = [
     {
       'label': 'Tomorrow', 
       'duration': const Duration(days: 1),
-      'icon': Icons.brightness_3
+      'icon': Icons.brightness_3,
+      'isPro': false,
     },
     {
       'label': 'Next Week', 
       'duration': const Duration(days: 7),
-      'icon': Icons.calendar_view_week
+      'icon': Icons.calendar_view_week,
+      'isPro': false,
     },
     {
       'label': 'Next Year', 
       'duration': const Duration(days: 365),
-      'icon': Icons.calendar_today
+      'icon': Icons.calendar_today,
+      'isPro': true,
     },
     {
       'label': '5 Years', 
       'duration': const Duration(days: 365 * 5),
-      'icon': Icons.rocket_launch
+      'icon': Icons.rocket_launch,
+      'isPro': true,
     },
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profile = context.read<ProfileProvider>().currentProfile;
+      if (profile != null && profile.isPro) {
+        setState(() {
+          _selectedDate = DateTime.now().add(const Duration(days: 365));
+        });
+      }
+    });
+  }
+
   Future<void> _pickCustomDate() async {
     final now = DateTime.now();
+    final profile = context.read<ProfileProvider>().currentProfile;
+    final isPro = profile?.isPro ?? false;
+    final maxFreeDate = now.add(const Duration(days: 14));
+
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
+      initialDate: _selectedDate.isAfter(isPro ? now.add(const Duration(days: 365 * 50)) : maxFreeDate) 
+          ? now.add(const Duration(days: 1)) 
+          : _selectedDate,
       firstDate: now.add(const Duration(days: 1)),
-      lastDate: now.add(const Duration(days: 365 * 50)), // 50 years
+      lastDate: isPro ? now.add(const Duration(days: 365 * 50)) : maxFreeDate,
     );
     if (picked != null) {
       setState(() {
@@ -74,7 +100,7 @@ class _CreateCapsuleScreenState extends State<CreateCapsuleScreen> {
       final userId = context.read<AuthService>().currentUser?.id;
       if (userId == null) throw Exception('User not logged in');
 
-      await _capsuleService.createCapsule(
+      final capsule = await _capsuleService.createCapsule(
         userId: userId,
         content: _contentController.text.trim(),
         unlockDate: _selectedDate,
@@ -85,7 +111,16 @@ class _CreateCapsuleScreenState extends State<CreateCapsuleScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Time Capsule sealed successfully!')),
       );
-      context.pop();
+      
+      // Show Share Sheet
+      await ShareSheet.show(
+        context,
+        title: 'Share your memory',
+        payload: 'https://oasis-app.com/capsule/${capsule.id}',
+        externalMessage: 'I buried a memory in a Time Capsule. It unlocks on ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}. Download Oasis to open it together: https://oasis-app.com/capsule/${capsule.id}',
+      );
+
+      if (mounted) context.pop();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -213,16 +248,29 @@ class _CreateCapsuleScreenState extends State<CreateCapsuleScreen> {
               itemBuilder: (context, index) {
                 final preset = _datePresets[index];
                 final duration = preset['duration'] as Duration;
+                final isProPreset = preset['isPro'] as bool;
+                final userIsPro = context.read<ProfileProvider>().currentProfile?.isPro ?? false;
+                final isLocked = isProPreset && !userIsPro;
                 
                 return OutlinedButton.icon(
                   onPressed: () {
-                    setState(() {
-                      _selectedDate = DateTime.now().add(duration);
-                    });
+                    if (isLocked) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => const OasisProScreen()),
+                      );
+                    } else {
+                      setState(() {
+                        _selectedDate = DateTime.now().add(duration);
+                      });
+                    }
                   },
-                  icon: Icon(preset['icon'] as IconData),
+                  icon: Icon(isLocked ? Icons.lock : preset['icon'] as IconData, size: 18),
                   label: Text(preset['label'] as String),
                   style: OutlinedButton.styleFrom(
+                    foregroundColor: isLocked ? colorScheme.onSurfaceVariant : colorScheme.primary,
+                    side: BorderSide(
+                      color: isLocked ? colorScheme.outlineVariant : colorScheme.primary.withValues(alpha: 0.5),
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

@@ -152,8 +152,51 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
     _saveConversationSizes();
   }
 
+  void _handleLongPressBubble(Conversation conversation, Offset position) {
+    final theme = Theme.of(context);
+    
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx, position.dy),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      items: [
+        PopupMenuItem(
+          onTap: () => _showStealthPreview(conversation, position),
+          child: const Row(
+            children: [
+              Icon(Icons.visibility_rounded, size: 20),
+              SizedBox(width: 12),
+              Text('Peek Preview'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          onTap: () {
+            context.read<ConversationProvider>().togglePin(conversation.id);
+          },
+          child: Row(
+            children: [
+              Icon(conversation.isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined, size: 20),
+              SizedBox(width: 12),
+              Text(conversation.isPinned ? 'Unfavorite' : 'Add to Favorites'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   void _showStealthPreview(Conversation conversation, Offset position) {
     if (!mounted) return;
+    
+    // If no unread messages, don't show peek (per request)
+    if (conversation.unreadCount == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No new messages to peek')),
+      );
+      return;
+    }
+
     HapticFeedback.heavyImpact();
     setState(() {
       _previewConversation = conversation;
@@ -416,7 +459,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                 children: regularConversations.map((c) => _FloatingBubble(
                   conversation: c,
                   onTap: () => _handleConversationTap(c, isDesktop),
-                  onLongPress: (pos) => _showStealthPreview(c, pos),
+                  onLongPress: _handleLongPressBubble,
                 )).toList(),
               ),
             ),
@@ -488,7 +531,12 @@ class _BentoItem extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final vibeColor = _getVibeColor(conversation.otherUserName);
     return GestureDetector(
-      onTap: onTap, onLongPress: onLongPress,
+      onTap: onTap, 
+      onLongPress: onLongPress,
+      onSecondaryTapDown: (details) {
+        // Desktop right-click support
+        _showBentoMenu(context, details.globalPosition);
+      },
       child: Container(
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), border: Border.all(color: selected ? colorScheme.primary : colorScheme.outlineVariant.withValues(alpha: 0.2), width: selected ? 2 : 1), gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [vibeColor.withValues(alpha: 0.12), vibeColor.withValues(alpha: 0.04)])),
         child: ClipRRect(
@@ -511,12 +559,44 @@ class _BentoItem extends StatelessWidget {
       ),
     ).animate().scale(delay: 100.ms, duration: 200.ms);
   }
+
+  void _showBentoMenu(BuildContext context, Offset position) {
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx, position.dy),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      items: [
+        PopupMenuItem(
+          onTap: onLongPress,
+          child: const Row(
+            children: [
+              Icon(Icons.aspect_ratio_rounded, size: 20),
+              SizedBox(width: 12),
+              Text('Resize Grid'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          onTap: () {
+            context.read<ConversationProvider>().togglePin(conversation.id);
+          },
+          child: const Row(
+            children: [
+              Icon(Icons.push_pin_rounded, size: 20, color: Colors.redAccent),
+              SizedBox(width: 12),
+              Text('Unfavorite'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _FloatingBubble extends StatelessWidget {
   final Conversation conversation;
   final VoidCallback onTap;
-  final Function(Offset) onLongPress;
+  final Function(Conversation, Offset) onLongPress;
   const _FloatingBubble({required this.conversation, required this.onTap, required this.onLongPress});
   @override
   Widget build(BuildContext context) {
@@ -524,7 +604,7 @@ class _FloatingBubble extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final vibeColor = _getVibeColor(conversation.otherUserName);
     return GestureDetector(
-      onTap: onTap, onLongPressStart: (details) => onLongPress(details.globalPosition),
+      onTap: onTap, onLongPressStart: (details) => onLongPress(conversation, details.globalPosition),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

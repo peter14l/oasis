@@ -26,9 +26,9 @@ class TimeCapsuleService {
             .eq('user_id', userId)
             .eq('is_locked', true);
 
-        if (activeCapsulesResponse.length >= 3) {
+        if (activeCapsulesResponse.length >= 2) {
           throw Exception(
-            'Free tier is limited to 3 active time capsules. Upgrade to Morrow Pro for unlimited capsules.',
+            'Free tier is limited to 2 active time capsules. Upgrade to Morrow Pro for unlimited capsules.',
           );
         }
       }
