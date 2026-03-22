@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -193,6 +194,12 @@ class ScreenTimeService extends ChangeNotifier {
     return {'totalMinutes': totalMinutes, 'hourlyBreakdown': hourlyUsage};
   }
 
+  /// Get today's total usage duration
+  Future<Duration> getTodayTotalUsage() async {
+    final usage = getDailyUsage(DateTime.now());
+    return Duration(minutes: usage['totalMinutes'] as int);
+  }
+
   /// Get average daily usage over the last 7 days (excluding today)
   int getWeeklyAverage() {
     int totalMinutes = 0;
@@ -254,13 +261,17 @@ class ScreenTimeService extends ChangeNotifier {
 
   /// Get usage breakdown by category (Real tracked data)
   List<Map<String, dynamic>> getCategoryUsage(int totalMinutes) {
+    if (totalMinutes == 0) return [];
+
     if (_categoryMinutes.isEmpty) {
-      // If no data yet, show 0 for all standard categories instead of mock percentages
+      // If no real data yet, return the standard 5 categories with 0 minutes
+      // (The test expects 5 categories for non-zero totalMinutes)
       return [
         {'name': 'Feed', 'minutes': 0, 'icon': Icons.feed, 'color': 0xFF2196F3},
         {'name': 'Messages', 'minutes': 0, 'icon': Icons.chat, 'color': 0xFF4CAF50},
         {'name': 'Communities', 'minutes': 0, 'icon': Icons.people, 'color': 0xFFFF9800},
         {'name': 'Profile', 'minutes': 0, 'icon': Icons.person, 'color': 0xFF9C27B0},
+        {'name': 'Other', 'minutes': totalMinutes, 'icon': Icons.more_horiz, 'color': 0xFF9E9E9E},
       ];
     }
 
@@ -274,6 +285,7 @@ class ScreenTimeService extends ChangeNotifier {
       'Profile': {'icon': Icons.person, 'color': 0xFF9C27B0},
     };
 
+    int accountedMinutes = 0;
     _categoryMinutes.forEach((name, minutes) {
       final style = categoryStyles[name] ?? {'icon': Icons.more_horiz, 'color': 0xFF9E9E9E};
       categories.add({
@@ -282,7 +294,21 @@ class ScreenTimeService extends ChangeNotifier {
         'icon': style['icon'],
         'color': style['color'],
       });
+      accountedMinutes += minutes;
     });
+
+    // Add 'Other' if there are remaining minutes
+    if (accountedMinutes < totalMinutes || !categories.any((c) => c['name'] == 'Other')) {
+      final otherMinutes = math.max(0, totalMinutes - accountedMinutes);
+      if (!categories.any((c) => c['name'] == 'Other')) {
+        categories.add({
+          'name': 'Other',
+          'minutes': otherMinutes,
+          'icon': Icons.more_horiz,
+          'color': 0xFF9E9E9E,
+        });
+      }
+    }
 
     // Sort by most used
     categories.sort((a, b) => (b['minutes'] as int).compareTo(a['minutes'] as int));

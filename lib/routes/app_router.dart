@@ -50,14 +50,20 @@ import '../screens/legal/privacy_policy_screen.dart';
 import '../screens/legal/terms_of_service_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/capsules/create_capsule_screen.dart';
+import '../screens/capsules/capsule_view_screen.dart';
+import '../screens/circles/circle_join_screen.dart';
 import '../screens/stories/create_story_screen.dart';
 import '../screens/ripples_screen.dart';
 import '../screens/create_ripple_screen.dart';
 import '../screens/oasis_pro_screen.dart';
 import 'package:oasis_v2/services/screen_time_service.dart';
 import 'package:oasis_v2/services/wellness_service.dart';
+import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:flutter_animate/flutter_animate.dart' as motion;
 
 import 'package:oasis_v2/screens/settings/wellness_stats_screen.dart';
+
+import 'package:oasis_v2/widgets/account_switcher_sheet.dart';
 
 class MainLayout extends StatefulWidget {
   final Widget child;
@@ -72,6 +78,9 @@ class _MainLayoutState extends State<MainLayout> {
   /// Routes that are locked when the collaboration kill-switch or focus mode is active.
   static const _restrictedRoutes = {'/feed', '/search'};
   bool _isRailExtended = false;
+  
+  // Panel state for Desktop
+  String? _activePanel; // 'search', 'notifications', or null
 
   int _getCurrentIndex() {
     final location = GoRouterState.of(context).uri.path;
@@ -108,13 +117,15 @@ class _MainLayoutState extends State<MainLayout> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final currentIndex = _getCurrentIndex();
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
+
+    // Sync active panel only if NOT on desktop or if we want to handle deep links.
+    // For "Instagram-style" where sheets slide over, we'll keep _activePanel state-driven.
 
     return Consumer2<ScreenTimeService, WellnessService>(
       builder: (context, svc, wellness, _) {
         final killSwitchActive = wellness.focusModeEnabled;
 
-        // Auto-redirect away from restricted routes when kill-switch or focus mode fires.
         if (killSwitchActive) {
           final location = GoRouterState.of(context).uri.path;
           final isRestricted = _restrictedRoutes.any(
@@ -132,38 +143,89 @@ class _MainLayoutState extends State<MainLayout> {
             backgroundColor: Colors.transparent,
             body: Stack(
               children: [
+                // Background Main Content (Remains stable)
                 Padding(
                   padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [
-                      // Floating Navigation Rail
-                      Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0C0F14).withValues(alpha: 0.8),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(24),
-                          child: BackdropFilter(
-                            filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            child: _buildNavigationRail(
-                              context,
-                              currentIndex,
-                              theme,
-                              killSwitchActive: killSwitchActive,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Floating Content Area
+                      SizedBox(width: (_isRailExtended ? 240 : 120) + 12), 
                       Expanded(
                         child: widget.child,
                       ),
                     ],
                   ),
                 ),
+
+                // Dimmer/Dismiss Layer
+                if (_activePanel != null)
+                  Positioned.fill(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _activePanel = null),
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.4),
+                      ),
+                    ),
+                  ),
+
+                // Navigation Rail
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Container(
+                    width: _isRailExtended ? 240 : 120,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0C0F14).withValues(alpha: 0.8),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: BackdropFilter(
+                        filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: _buildNavigationRail(
+                          context,
+                          currentIndex,
+                          theme,
+                          killSwitchActive: killSwitchActive,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Sliding Panels - Now truly sliding OVER current content
+                if (_activePanel != null)
+                  Positioned(
+                    top: 12,
+                    bottom: 12,
+                    left: (_isRailExtended ? 240 : 120) + 24,
+                    child: motion.Animate(
+                      effects: [
+                        motion.MoveEffect(begin: const Offset(-50, 0), end: const Offset(0, 0), curve: Curves.easeOutCubic), 
+                        motion.FadeEffect()
+                      ],
+                      child: Container(
+                        width: 450,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0C0F14).withValues(alpha: 0.98),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.6),
+                              blurRadius: 60,
+                              offset: const Offset(20, 0),
+                            ),
+                          ],
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: _activePanel == 'search' 
+                            ? const SearchScreen(isPanel: true) 
+                            : const NotificationsScreen(isPanel: true),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
             floatingActionButton: _buildFloatingActionButton(
@@ -359,8 +421,14 @@ class _MainLayoutState extends State<MainLayout> {
                 label: 'Alerts',
               ),
               NavigationDestinationM3E(
-                icon: const Icon(FluentIcons.person_24_regular),
-                selectedIcon: const Icon(FluentIcons.person_24_filled),
+                icon: GestureDetector(
+                  onLongPress: () => AccountSwitcherSheet.show(context),
+                  child: const Icon(FluentIcons.person_24_regular),
+                ),
+                selectedIcon: GestureDetector(
+                  onLongPress: () => AccountSwitcherSheet.show(context),
+                  child: const Icon(FluentIcons.person_24_filled),
+                ),
                 label: 'Profile',
               ),
             ],
@@ -410,6 +478,7 @@ class _MainLayoutState extends State<MainLayout> {
             padding: const EdgeInsets.only(bottom: 16),
             child: InkWell(
               onTap: () => context.go('/profile'),
+              onLongPress: () => AccountSwitcherSheet.show(context),
               child: CircleAvatar(
                 radius: 20,
                 backgroundColor: colorScheme.primaryContainer,
@@ -462,8 +531,14 @@ class _MainLayoutState extends State<MainLayout> {
           label: const Text('Notifications'),
         ),
         NavigationRailDestination(
-          icon: const Icon(FluentIcons.person_24_regular),
-          selectedIcon: const Icon(FluentIcons.person_24_filled),
+          icon: GestureDetector(
+            onLongPress: () => AccountSwitcherSheet.show(context),
+            child: const Icon(FluentIcons.person_24_regular),
+          ),
+          selectedIcon: GestureDetector(
+            onLongPress: () => AccountSwitcherSheet.show(context),
+            child: const Icon(FluentIcons.person_24_filled),
+          ),
           label: const Text('Profile'),
         ),
       ],
@@ -471,9 +546,27 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   void _onDestinationSelected(int index, {bool killSwitchActive = false}) {
-    // Block navigation to Feed (0) and Search (1) when kill-switch is active.
+    // Block interaction with Feed (0) and Search (1) when kill-switch is active.
     if (killSwitchActive && (index == 0 || index == 1)) return;
 
+    final isDesktop = ResponsiveLayout.isDesktop(context);
+
+    if (isDesktop) {
+      if (index == 1) { // Search
+        setState(() {
+          _activePanel = _activePanel == 'search' ? null : 'search';
+        });
+        return;
+      }
+      if (index == 4) { // Notifications
+        setState(() {
+          _activePanel = _activePanel == 'notifications' ? null : 'notifications';
+        });
+        return;
+      }
+    }
+
+    // Normal navigation for non-panel items or non-desktop
     switch (index) {
       case 0:
         context.go('/feed');
@@ -550,6 +643,10 @@ class AppRouter {
 
       // Authenticated users trying to reach login/register → feed
       if (isLoggedIn && _isLoginOnlyRoute(state.uri.path)) {
+        // Allow if specifically adding a new account
+        if (state.uri.queryParameters['add_account'] == 'true') {
+          return null;
+        }
         return '/feed';
       }
 
@@ -803,6 +900,26 @@ class AppRouter {
             fullscreenDialog: true,
             child: const CreateCapsuleScreen(),
           );
+        },
+      ),
+
+      // View Time Capsule (Deep Link)
+      GoRoute(
+        path: '/capsule/:capsuleId',
+        name: 'view_capsule',
+        builder: (context, state) {
+          final id = state.pathParameters['capsuleId']!;
+          return CapsuleViewScreen(capsuleId: id);
+        },
+      ),
+
+      // Join Circle (Deep Link)
+      GoRoute(
+        path: '/circle/join/:circleId',
+        name: 'join_circle',
+        builder: (context, state) {
+          final id = state.pathParameters['circleId']!;
+          return CircleJoinScreen(circleId: id);
         },
       ),
 

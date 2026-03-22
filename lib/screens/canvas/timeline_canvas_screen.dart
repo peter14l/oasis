@@ -1,4 +1,5 @@
 import 'package:universal_io/io.dart';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +24,10 @@ import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:oasis_v2/services/notification_service.dart';
+import 'package:oasis_v2/widgets/canvas/scattered_polaroid_spread.dart';
+import 'package:oasis_v2/widgets/canvas/scrapbook_motif_wrapper.dart';
+import 'package:oasis_v2/widgets/canvas/journal_entry_widget.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class _PulseData {
   final String id;
@@ -306,6 +311,77 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
         onAddVoice: () => _showVoiceRecorder(context),
         onAddSticker: () => _showStickerPicker(context),
         onAddMilestone: () => _showAddMilestone(context),
+        onAddJournal: () => _showAddJournal(context),
+      ),
+    );
+  }
+
+  void _showAddJournal(BuildContext context) {
+    final controller = TextEditingController();
+    final profile = context.read<ProfileProvider>().currentProfile;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.7,
+          padding: const EdgeInsets.all(32),
+          decoration: const BoxDecoration(
+            color: Color(0xFFFDFCF0),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('NEW JOURNAL ENTRY', 
+                    style: GoogleFonts.montserrat(color: Colors.brown[300], letterSpacing: 2, fontSize: 12, fontWeight: FontWeight.bold)),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.brown),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  maxLines: null,
+                  autofocus: true,
+                  style: GoogleFonts.playfairDisplay(fontSize: 20, color: Colors.black87, height: 1.6),
+                  decoration: const InputDecoration(
+                    hintText: 'Pour your thoughts here...',
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () {
+                    if (controller.text.trim().isNotEmpty) {
+                      context.read<CanvasProvider>().addItem(
+                        authorId: profile?.id ?? '',
+                        type: CanvasItemType.journal,
+                        content: controller.text.trim(),
+                        xPos: 0, yPos: 0,
+                      );
+                      Navigator.pop(context);
+                    }
+                  },
+                  style: FilledButton.styleFrom(backgroundColor: Colors.brown[700]),
+                  child: const Text('Seal Entry'),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -422,7 +498,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
               );
             }
           },
-          child: InfiniteCardStack(items: group),
+          child: ScatteredPolaroidSpread(items: group),
         ),
       );
     }
@@ -445,18 +521,35 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
         },
         builder: (context, candidateData, rejectedData) {
           Widget child;
+          bool useMotif = true;
+          
           switch (item.type) {
             case CanvasItemType.voice:
               child = VoiceMemoWidget(content: item.content, createdAt: item.createdAt);
               break;
             case CanvasItemType.sticker:
               child = Center(child: Text(item.content, style: const TextStyle(fontSize: 64)));
+              useMotif = false;
               break;
             case CanvasItemType.milestone:
               child = _buildMilestoneWidget(item);
+              useMotif = false;
+              break;
+            case CanvasItemType.journal:
+              child = JournalEntryWidget(content: item.content, createdAt: item.createdAt);
               break;
             default:
               child = GlowingNote(content: item.content, colorHex: item.color, createdAt: item.createdAt);
+          }
+
+          if (useMotif) {
+            final random = math.Random(item.id.hashCode);
+            child = ScrapbookMotifWrapper(
+              hasTape: random.nextBool(),
+              hasPaperClip: random.nextBool() && item.type == CanvasItemType.voice,
+              rotation: (random.nextDouble() - 0.5) * 0.1,
+              child: child,
+            );
           }
 
           return VisibilityDetector(
@@ -1009,6 +1102,7 @@ class _TimelineAddItemTray extends StatefulWidget {
   final VoidCallback onAddVoice;
   final VoidCallback onAddSticker;
   final VoidCallback onAddMilestone;
+  final VoidCallback onAddJournal;
 
   const _TimelineAddItemTray({
     required this.onAddText, 
@@ -1016,6 +1110,7 @@ class _TimelineAddItemTray extends StatefulWidget {
     required this.onAddVoice,
     required this.onAddSticker,
     required this.onAddMilestone,
+    required this.onAddJournal,
   });
 
   @override
@@ -1037,6 +1132,13 @@ class _TimelineAddItemTrayState extends State<_TimelineAddItemTray> {
             onPressed: () { setState(() => _expanded = false); widget.onAddMilestone(); },
             backgroundColor: Colors.white,
             child: const Icon(FluentIcons.star_24_regular, color: Colors.black),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton.small(
+            heroTag: 'journal',
+            onPressed: () { setState(() => _expanded = false); widget.onAddJournal(); },
+            backgroundColor: const Color(0xFFFDFCF0),
+            child: const Icon(FluentIcons.book_24_regular, color: Colors.brown),
           ),
           const SizedBox(height: 12),
           FloatingActionButton.small(

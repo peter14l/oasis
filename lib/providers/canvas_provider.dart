@@ -268,6 +268,16 @@ class CanvasProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clear() {
+    _canvases = [];
+    _activeCanvas = null;
+    _activeItems = [];
+    _isLoading = false;
+    _error = null;
+    _realtimeSubscription?.cancel();
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _realtimeSubscription?.cancel();

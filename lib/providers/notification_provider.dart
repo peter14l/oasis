@@ -175,6 +175,13 @@ class NotificationProvider with ChangeNotifier {
     }
   }
 
+  void clear() {
+    _notifications = [];
+    _isLoading = false;
+    _cleanup();
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _cleanup();

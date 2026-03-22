@@ -239,11 +239,11 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
               width: 350,
               decoration: BoxDecoration(
                 color: colorScheme.surface.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(12),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Column(
@@ -268,11 +268,11 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   color: colorScheme.surface.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(12),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                     child: AnimatedSwitcher(
@@ -326,11 +326,11 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                 width: 350,
                 decoration: BoxDecoration(
                   color: colorScheme.surface.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(12),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                     child: ChatDetailsScreen(

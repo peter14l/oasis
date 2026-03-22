@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis_v2/models/commitment.dart';
 
-class CommitmentCard extends StatelessWidget {
+import 'dart:math' as math;
+import 'package:flutter/material.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:oasis_v2/models/commitment.dart';
+import 'package:oasis_v2/utils/haptic_utils.dart';
+
+class CommitmentCard extends StatefulWidget {
   final Commitment commitment;
   final String currentUserId;
   final VoidCallback onMarkComplete;
@@ -17,168 +23,275 @@ class CommitmentCard extends StatelessWidget {
   });
 
   @override
+  State<CommitmentCard> createState() => _CommitmentCardState();
+}
+
+class _CommitmentCardState extends State<CommitmentCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _fillController;
+  bool _isHolding = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fillController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+
+    _fillController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        HapticUtils.heavyImpact();
+        widget.onMarkComplete();
+        _resetFill();
+      }
+    });
+  }
+
+  void _resetFill() {
+    setState(() => _isHolding = false);
+    _fillController.reverse();
+  }
+
+  @override
+  void dispose() {
+    _fillController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final myResponse = commitment.responses[currentUserId];
+    final colorScheme = theme.colorScheme;
+    final myResponse = widget.commitment.responses[widget.currentUserId];
     final isCompleted = myResponse?.completed ?? false;
     final intent = myResponse?.intent;
+    final totalResponses = widget.commitment.responses.length;
 
-    final totalResponses = commitment.responses.length;
-
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: theme.colorScheme.surface,
-        border: Border.all(
-          color: isCompleted
-              ? theme.colorScheme.primary.withValues(alpha: 0.5)
-              : theme.colorScheme.outline.withValues(alpha: 0.15),
-          width: isCompleted ? 1.5 : 1,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Title row ─────────────────────────────────────────────
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Completion check icon
-                GestureDetector(
-                  onTap: isCompleted ? null : onMarkComplete,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isCompleted
-                          ? theme.colorScheme.primary
-                          : Colors.transparent,
-                      border: Border.all(
-                        color: isCompleted
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.outline.withValues(alpha: 0.5),
-                        width: 2,
-                      ),
-                    ),
-                    child: isCompleted
-                        ? const Icon(
-                            FluentIcons.checkmark_16_filled,
-                            size: 16,
-                            color: Colors.white,
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    commitment.title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      decoration:
-                          isCompleted ? TextDecoration.lineThrough : null,
-                      color: isCompleted
-                          ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
-                          : null,
-                    ),
-                  ),
-                ),
-              ],
+    return GestureDetector(
+      onLongPressStart: (_) {
+        if (!isCompleted && intent == MemberIntent.inTrying) {
+          setState(() => _isHolding = true);
+          _fillController.forward();
+          HapticUtils.selectionClick();
+        }
+      },
+      onLongPressEnd: (_) => _resetFill(),
+      child: AnimatedScale(
+        duration: const Duration(milliseconds: 200),
+        scale: _isHolding ? 0.98 : 1.0,
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            color: colorScheme.surface,
+            border: Border.all(
+              color: isCompleted
+                  ? colorScheme.primary.withValues(alpha: 0.5)
+                  : colorScheme.outline.withValues(alpha: 0.15),
+              width: isCompleted ? 1.5 : 1,
             ),
-
-            // ── Description ──────────────────────────────────────────
-            if (commitment.description != null) ...[
-              const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.only(left: 40),
-                child: Text(
-                  commitment.description!,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+          child: Stack(
+            children: [
+              // Fluid Fill Background
+              if (_isHolding || _fillController.value > 0)
+                Positioned.fill(
+                  child: AnimatedBuilder(
+                    animation: _fillController,
+                    builder: (context, child) {
+                      return CustomPaint(
+                        painter: _FluidFillPainter(
+                          progress: _fillController.value,
+                          color: colorScheme.primary.withValues(alpha: 0.15),
+                        ),
+                      );
+                    },
                   ),
                 ),
-              ),
-            ],
 
-            const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Title row ─────────────────────────────────────────────
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Completion check icon
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isCompleted
+                                ? colorScheme.primary
+                                : Colors.transparent,
+                            border: Border.all(
+                              color: isCompleted
+                                  ? colorScheme.primary
+                                  : colorScheme.outline.withValues(alpha: 0.5),
+                              width: 2,
+                            ),
+                          ),
+                          child: isCompleted
+                              ? const Icon(
+                                  FluentIcons.checkmark_16_filled,
+                                  size: 18,
+                                  color: Colors.white,
+                                )
+                              : _isHolding 
+                                  ? Center(
+                                      child: SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          value: _fillController.value,
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation(colorScheme.primary),
+                                        ),
+                                      ),
+                                    )
+                                  : const SizedBox.shrink(),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.commitment.title,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  decoration:
+                                      isCompleted ? TextDecoration.lineThrough : null,
+                                  color: isCompleted
+                                      ? colorScheme.onSurface.withValues(alpha: 0.5)
+                                      : null,
+                                ),
+                              ),
+                              if (widget.commitment.description != null)
+                                Text(
+                                  widget.commitment.description!,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
 
-            // ── Progress dots ────────────────────────────────────────
-            if (totalResponses > 0) ...[
-              _MemberProgressRow(commitment: commitment),
-              const SizedBox(height: 12),
-            ],
+                    const SizedBox(height: 20),
 
-            // ── Intent buttons ───────────────────────────────────────
-            if (!isCompleted) ...[
-              Row(
-                children: [
-                  _IntentChip(
-                    label: "I'm In 👊",
-                    isSelected: intent == MemberIntent.inTrying,
-                    onTap: () => onSetIntent(MemberIntent.inTrying),
-                    activeColor: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  _IntentChip(
-                    label: "Skip today",
-                    isSelected: intent == MemberIntent.out,
-                    onTap: () => onSetIntent(MemberIntent.out),
-                    activeColor: theme.colorScheme.error,
-                  ),
-                  const Spacer(),
-                  if (intent == MemberIntent.inTrying)
-                    TextButton(
-                      onPressed: onMarkComplete,
-                      style: TextButton.styleFrom(
-                        foregroundColor: theme.colorScheme.primary,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
+                    // ── Progress & Intent ────────────────────────────────────
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (totalResponses > 0)
+                          _MemberProgressRow(commitment: widget.commitment),
+                        
+                        if (!isCompleted)
+                          Row(
+                            children: [
+                              _IntentChip(
+                                label: "👊",
+                                isSelected: intent == MemberIntent.inTrying,
+                                onTap: () => widget.onSetIntent(MemberIntent.inTrying),
+                                activeColor: colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              _IntentChip(
+                                label: "Skip",
+                                isSelected: intent == MemberIntent.out,
+                                onTap: () => widget.onSetIntent(MemberIntent.out),
+                                activeColor: colorScheme.error,
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+
+                    if (isCompleted && myResponse?.note != null) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: colorScheme.primary.withValues(alpha: 0.08),
+                        ),
+                        child: Text(
+                          '"${myResponse!.note}"',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontStyle: FontStyle.italic,
+                            color: colorScheme.primary,
+                          ),
                         ),
                       ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            FluentIcons.checkmark_circle_24_regular,
-                            size: 16,
+                    ],
+                    
+                    if (!isCompleted && intent == MemberIntent.inTrying && !_isHolding)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Center(
+                          child: Text(
+                            'HOLD TO VERIFY',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: colorScheme.primary.withValues(alpha: 0.5),
+                              letterSpacing: 2,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          SizedBox(width: 4),
-                          Text('Done!'),
-                        ],
+                        ),
                       ),
-                    ),
-                ],
-              ),
-            ] else ...[
-              // Show completion note if any
-              if (myResponse?.note != null)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color:
-                        theme.colorScheme.primary.withValues(alpha: 0.08),
-                  ),
-                  child: Text(
-                    '"${myResponse!.note}"',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontStyle: FontStyle.italic,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
+                  ],
                 ),
+              ),
             ],
-          ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _FluidFillPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+
+  _FluidFillPainter({required this.progress, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final path = Path();
+
+    final fillHeight = size.height * progress;
+    final y = size.height - fillHeight;
+
+    path.moveTo(0, size.height);
+    path.lineTo(size.width, size.height);
+    path.lineTo(size.width, y);
+
+    // Add some wave movement
+    for (double i = 0; i <= size.width; i++) {
+      path.lineTo(
+        size.width - i,
+        y + math.sin((i / size.width * 2 * math.pi) + (progress * 10)) * 4,
+      );
+    }
+
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _FluidFillPainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }
 
 // ─── sub-widgets ─────────────────────────────────────────────────────────────

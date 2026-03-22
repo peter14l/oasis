@@ -6,6 +6,9 @@ import 'package:oasis_v2/services/auth_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 class CommentsScreen extends StatefulWidget {
   final String postId;
@@ -19,12 +22,14 @@ class CommentsScreen extends StatefulWidget {
 class _CommentsScreenState extends State<CommentsScreen> {
   final CommentService _commentService = CommentService();
   final AuthService _authService = AuthService();
+  final AudioRecorder _audioRecorder = AudioRecorder();
   final TextEditingController _commentController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
   List<Comment> _comments = [];
   bool _isLoading = false;
   bool _isSubmitting = false;
+  bool _isRecording = false;
   String? _error;
   Comment? _replyingTo;
   RealtimeChannel? _commentsChannel;
@@ -34,6 +39,41 @@ class _CommentsScreenState extends State<CommentsScreen> {
     super.initState();
     _loadComments();
     _subscribeToComments();
+  }
+
+  @override
+  void dispose() {
+    if (_commentsChannel != null) {
+      _commentService.unsubscribeFromComments(_commentsChannel!);
+    }
+    _commentController.dispose();
+    _scrollController.dispose();
+    _audioRecorder.dispose();
+    super.dispose();
+  }
+
+  Future<void> _toggleRecording() async {
+    if (_isRecording) {
+      final path = await _audioRecorder.stop();
+      setState(() => _isRecording = false);
+      if (path != null) {
+        _uploadVoiceComment(path);
+      }
+    } else {
+      if (await _audioRecorder.hasPermission()) {
+        final tempDir = await getTemporaryDirectory();
+        final path = '${tempDir.path}/comment_voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        await _audioRecorder.start(const RecordConfig(), path: path);
+        setState(() => _isRecording = true);
+      }
+    }
+  }
+
+  Future<void> _uploadVoiceComment(String path) async {
+    // UI placeholder for now
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Voice comments are coming soon to posts!')),
+    );
   }
 
   void _subscribeToComments() {
@@ -385,7 +425,6 @@ class _CommentsScreenState extends State<CommentsScreen> {
               ),
             ),
 
-          // Comment Input
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -397,11 +436,16 @@ class _CommentsScreenState extends State<CommentsScreen> {
             child: SafeArea(
               child: Row(
                 children: [
+                  IconButton(
+                    icon: Icon(_isRecording ? Icons.stop_circle : Icons.mic_none_rounded, 
+                      color: _isRecording ? Colors.red : colorScheme.onSurfaceVariant),
+                    onPressed: _toggleRecording,
+                  ),
                   Expanded(
                     child: TextField(
                       controller: _commentController,
                       decoration: InputDecoration(
-                        hintText: 'Add a comment...',
+                        hintText: _isRecording ? 'Recording...' : 'Add a comment...',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
                         ),
@@ -412,11 +456,12 @@ class _CommentsScreenState extends State<CommentsScreen> {
                       ),
                       maxLines: null,
                       textCapitalization: TextCapitalization.sentences,
+                      enabled: !_isRecording,
                     ),
                   ),
                   const SizedBox(width: 8),
                   IconButton.filled(
-                    onPressed: _isSubmitting ? null : _submitComment,
+                    onPressed: (_isSubmitting || _isRecording) ? null : _submitComment,
                     icon:
                         _isSubmitting
                             ? const SizedBox(
@@ -538,15 +583,5 @@ class _CommentsScreenState extends State<CommentsScreen> {
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    if (_commentsChannel != null) {
-      _commentService.unsubscribeFromComments(_commentsChannel!);
-    }
-    _commentController.dispose();
-    _scrollController.dispose();
-    super.dispose();
   }
 }

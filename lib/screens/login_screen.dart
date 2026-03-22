@@ -227,7 +227,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed:
                       (_isLoggingIn || _isResettingPassword)
                           ? null
-                          : () => context.go('/register'),
+                          : () {
+                              final addAccount = GoRouterState.of(context).uri.queryParameters['add_account'];
+                              if (addAccount == 'true') {
+                                context.go('/register?add_account=true');
+                              } else {
+                                context.go('/register');
+                              }
+                            },
                   child: const Text("Don't have an account? Sign Up"),
                 ),
               ],

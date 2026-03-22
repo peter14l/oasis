@@ -11,6 +11,7 @@ import 'package:oasis_v2/widgets/circles/streak_banner.dart';
 import 'package:oasis_v2/widgets/circles/commitment_card.dart';
 import 'package:oasis_v2/widgets/share_sheet.dart';
 import 'package:oasis_v2/widgets/circles/shattering_glass_animation.dart';
+import 'package:oasis_v2/widgets/fluid_mesh_background.dart';
 
 import 'package:oasis_v2/services/circle_service.dart';
 
@@ -205,26 +206,33 @@ class _CircleDetailScreenState extends State<CircleDetailScreen>
                       ),
                     ],
                   ),
-                  background: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          theme.colorScheme.primary.withValues(alpha: 0.3),
-                          theme.colorScheme.primary.withValues(alpha: 0.05),
-                        ],
+                  background: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: FluidMeshBackground(streakCount: circle?.streakCount ?? 0),
                       ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 60, right: 20),
-                      child: Align(
-                        alignment: Alignment.topRight,
-                        child: circle != null
-                            ? StreakBanner(streakCount: circle.streakCount)
-                            : const SizedBox.shrink(),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.4),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 60, right: 20),
+                        child: Align(
+                          alignment: Alignment.topRight,
+                          child: circle != null
+                              ? StreakBanner(streakCount: circle.streakCount)
+                              : const SizedBox.shrink(),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 bottom: TabBar(

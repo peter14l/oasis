@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oasis_v2/themes/app_theme.dart';
+import '../test_setup.dart';
 
 void main() {
+  setupTestEnvironment();
+  
   group('AppTheme', () {
     group('Light Theme', () {
       test('should have correct primary color', () {
@@ -88,12 +91,15 @@ void main() {
 
   group('Theme Widget Tests', () {
     testWidgets('Light theme applies correctly to MaterialApp', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.light,
-          home: const Scaffold(body: Center(child: Text('Test'))),
-        ),
-      );
+      await tester.runAsync(() async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.light,
+            home: const Scaffold(body: Center(child: Text('Test'))),
+          ),
+        );
+        await tester.pumpAndSettle();
+      });
 
       final context = tester.element(find.byType(Scaffold));
       final theme = Theme.of(context);

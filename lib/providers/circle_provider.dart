@@ -199,6 +199,16 @@ class CircleProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clear() {
+    _circles = [];
+    _activeCircle = null;
+    _todaysCommitments = [];
+    _isLoading = false;
+    _error = null;
+    _realtimeSubscription?.cancel();
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _realtimeSubscription?.cancel();

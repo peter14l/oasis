@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis_v2/models/canvas_item.dart';
 
+import 'package:oasis_v2/widgets/canvas/journal_entry_widget.dart';
+
 /// Draggable and long-press-deletable item on the canvas.
 class CanvasItemWidget extends StatefulWidget {
   final CanvasItem item;
@@ -209,6 +211,12 @@ class _CanvasItemWidgetState extends State<CanvasItemWidget> {
             widget.item.content,
             style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
           ),
+        );
+
+      case CanvasItemType.journal:
+        return JournalEntryWidget(
+          content: widget.item.content,
+          createdAt: widget.item.createdAt,
         );
     }
   }

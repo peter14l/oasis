@@ -11,6 +11,8 @@ import 'package:oasis_v2/models/user_profile.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:oasis_v2/widgets/wellness_badge.dart';
 import 'package:oasis_v2/widgets/profile/activity_graph.dart';
+import 'package:oasis_v2/widgets/account_switcher_sheet.dart';
+import 'package:oasis_v2/utils/responsive_layout.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userId;
@@ -123,7 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final userId = _authService.currentUser?.id;
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
 
     return Consumer<ProfileProvider>(
       builder: (context, profileProvider, child) {
@@ -149,19 +151,45 @@ class _ProfileScreenState extends State<ProfileScreen>
           body: CustomScrollView(
             controller: _scrollController,
             slivers: [
-              _buildModernAppBar(profile, theme, colorScheme),
+              _buildModernAppBar(profile, theme, colorScheme, isDesktop),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
+                  padding: EdgeInsets.fromLTRB(
+                    isDesktop ? 64 : 20, 
+                    isDesktop ? 120 : 32, 
+                    isDesktop ? 64 : 20, 
+                    24
+                  ),
                   child: Column(
                     children: [
-                      _buildProfileHeader(profile, theme, colorScheme),
-                      const SizedBox(height: 24),
-                      _buildStatsBar(profile, theme, colorScheme),
-                      const SizedBox(height: 24),
-                      _buildActivitySection(profile, theme, colorScheme),
-                      const SizedBox(height: 24),
-                      _buildActionButtons(profile, profileProvider, theme, colorScheme, userId),
+                      if (isDesktop)
+                        _buildDesktopProfileHeader(profile, theme, colorScheme, profileProvider, userId)
+                      else
+                        _buildProfileHeader(profile, theme, colorScheme),
+                      
+                      const SizedBox(height: 32),
+                      
+                      if (!isDesktop) ...[
+                        _buildStatsBar(profile, theme, colorScheme),
+                        const SizedBox(height: 24),
+                        _buildActivitySection(profile, theme, colorScheme),
+                        const SizedBox(height: 24),
+                        _buildActionButtons(profile, profileProvider, theme, colorScheme, userId),
+                      ] else 
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: _buildActivitySection(profile, theme, colorScheme),
+                            ),
+                            const SizedBox(width: 32),
+                            Expanded(
+                              flex: 1,
+                              child: _buildDesktopInfoCard(profile, theme, colorScheme),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -170,27 +198,33 @@ class _ProfileScreenState extends State<ProfileScreen>
                 pinned: true,
                 delegate: _SliverAppBarDelegate(
                   PreferredSize(
-                    preferredSize: const Size.fromHeight(48),
+                    preferredSize: const Size.fromHeight(64),
                     child: ClipRRect(
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                         child: Container(
                           color: colorScheme.surface.withValues(alpha: 0.7),
-                          child: TabBar(
-                            controller: _tabController,
-                            indicatorSize: TabBarIndicatorSize.label,
-                            dividerColor: Colors.transparent,
-                            labelColor: colorScheme.primary,
-                            unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.4),
-                            indicator: UnderlineTabIndicator(
-                              borderSide: BorderSide(width: 3, color: colorScheme.primary),
-                              borderRadius: BorderRadius.circular(3),
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 800),
+                              child: TabBar(
+                                controller: _tabController,
+                                indicatorSize: TabBarIndicatorSize.label,
+                                dividerColor: Colors.transparent,
+                                labelColor: colorScheme.primary,
+                                unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.4),
+                                labelStyle: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
+                                indicator: UnderlineTabIndicator(
+                                  borderSide: BorderSide(width: 3, color: colorScheme.primary),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                                tabs: [
+                                  const Tab(child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.grid_view_rounded, size: 20), SizedBox(width: 8), Text('POSTS')])),
+                                  if (isOwnProfile)
+                                    const Tab(child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.bookmark_rounded, size: 20), SizedBox(width: 8), Text('SAVED')])),
+                                ],
+                              ),
                             ),
-                            tabs: [
-                              const Tab(icon: Icon(Icons.grid_view_rounded, size: 22)),
-                              if (isOwnProfile)
-                                const Tab(icon: Icon(Icons.bookmark_rounded, size: 22)),
-                            ],
                           ),
                         ),
                       ),
@@ -203,8 +237,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildPostsTab(userId),
-                    if (isOwnProfile) _buildSavedTab(userId),
+                    _buildPostsTab(userId, isDesktop),
+                    if (isOwnProfile) _buildSavedTab(userId, isDesktop),
                   ],
                 ),
               ),
@@ -219,11 +253,11 @@ class _ProfileScreenState extends State<ProfileScreen>
             child: Container(
               decoration: BoxDecoration(
                 color: colorScheme.surface.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(12),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: profileContent,
@@ -235,6 +269,232 @@ class _ProfileScreenState extends State<ProfileScreen>
 
         return profileContent;
       },
+    );
+  }
+
+  Widget _buildDesktopProfileHeader(
+    UserProfile profile, 
+    ThemeData theme, 
+    ColorScheme colorScheme,
+    ProfileProvider profileProvider,
+    String? currentUserId,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Stack(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [colorScheme.primary, colorScheme.tertiary],
+                ),
+              ),
+              child: CircleAvatar(
+                radius: 100,
+                backgroundColor: colorScheme.surface,
+                backgroundImage: profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
+                    ? CachedNetworkImageProvider(profile.avatarUrl!)
+                    : null,
+                child: profile.avatarUrl == null || profile.avatarUrl!.isEmpty
+                    ? Text(profile.username[0].toUpperCase(), style: const TextStyle(fontSize: 48))
+                    : null,
+              ),
+            ),
+            if (profile.isPro)
+              Positioned(
+                bottom: 15,
+                right: 15,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: colorScheme.surface, width: 4),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10)
+                    ],
+                  ),
+                  child: const Text(
+                    'PRO MEMBER',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(width: 64),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    profile.username,
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -1,
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  _buildDesktopActionButtons(profile, profileProvider, theme, colorScheme, currentUserId),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  _buildDesktopStatItem('${profile.postsCount}', 'posts'),
+                  const SizedBox(width: 40),
+                  _buildDesktopStatItem('${profile.followersCount}', 'followers', onTap: () => context.push('/profile/${profile.id}/followers')),
+                  const SizedBox(width: 40),
+                  _buildDesktopStatItem('${profile.followingCount}', 'following', onTap: () => context.push('/profile/${profile.id}/following')),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Text(
+                profile.fullName ?? profile.username,
+                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              if (profile.bio != null)
+                Text(
+                  profile.bio!,
+                  style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface.withValues(alpha: 0.7)),
+                ),
+              const SizedBox(height: 16),
+              const WellnessBadge(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopStatItem(String value, String label, {VoidCallback? onTap}) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      child: RichText(
+        text: TextSpan(
+          children: [
+            TextSpan(
+              text: value,
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, color: theme.colorScheme.onSurface),
+            ),
+            const TextSpan(text: ' '),
+            TextSpan(
+              text: label,
+              style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDesktopActionButtons(
+    UserProfile profile,
+    ProfileProvider profileProvider,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    String? currentUserId,
+  ) {
+    if (isOwnProfile) {
+      return Row(
+        children: [
+          OutlinedButton(
+            onPressed: () => context.push('/edit-profile'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Edit Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(width: 12),
+          IconButton.filledTonal(
+            onPressed: () => context.push('/settings'),
+            icon: const Icon(Icons.settings_outlined),
+            style: IconButton.styleFrom(
+              padding: const EdgeInsets.all(12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        FilledButton(
+          onPressed: () {
+            if (currentUserId != null) {
+              if (profileProvider.isFollowing) {
+                profileProvider.unfollowUser(followerId: currentUserId, followingId: profile.id);
+              } else {
+                profileProvider.followUser(followerId: currentUserId, followingId: profile.id);
+              }
+            }
+          },
+          style: FilledButton.styleFrom(
+            backgroundColor: profileProvider.isFollowing ? colorScheme.surfaceContainerHighest : colorScheme.primary,
+            foregroundColor: profileProvider.isFollowing ? colorScheme.onSurface : colorScheme.onPrimary,
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          child: Text(profileProvider.isFollowing ? 'Following' : 'Follow', style: const TextStyle(fontWeight: FontWeight.bold)),
+        ),
+        const SizedBox(width: 12),
+        if (currentUserId != null)
+          IconButton.filledTonal(
+            onPressed: () => _handleMessage(currentUserId, profile.id),
+            icon: const Icon(Icons.chat_bubble_outline_rounded),
+            style: IconButton.styleFrom(
+              padding: const EdgeInsets.all(12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopInfoCard(UserProfile profile, ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: colorScheme.onSurface.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('COMMUNITY STATUS', style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 1.5, color: colorScheme.primary)),
+          const SizedBox(height: 24),
+          _buildInfoRow(Icons.calendar_today_outlined, 'Joined March 2024'),
+          const SizedBox(height: 16),
+          _buildInfoRow(Icons.verified_user_outlined, 'Identity Verified'),
+          const SizedBox(height: 16),
+          _buildInfoRow(Icons.favorite_outline_rounded, 'Top 5% Contributor'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+        const SizedBox(width: 12),
+        Text(text, style: const TextStyle(fontWeight: FontWeight.w500)),
+      ],
     );
   }
 
@@ -320,7 +580,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
         color: colorScheme.onSurface.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05)),
       ),
       child: Row(
@@ -483,25 +743,25 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildPostsTab(String? userId) {
+  Widget _buildPostsTab(String? userId, bool isDesktop) {
     return CustomScrollView(
       physics: const ClampingScrollPhysics(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.all(2),
-          sliver: _buildPostsGrid(_userPosts, userId),
+          sliver: _buildPostsGrid(_userPosts, userId, isDesktop),
         ),
       ],
     );
   }
 
-  Widget _buildSavedTab(String? userId) {
+  Widget _buildSavedTab(String? userId, bool isDesktop) {
     return CustomScrollView(
       physics: const ClampingScrollPhysics(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.all(2),
-          sliver: _buildPostsGrid(_savedPosts, userId),
+          sliver: _buildPostsGrid(_savedPosts, userId, isDesktop),
         ),
       ],
     );
@@ -511,23 +771,41 @@ class _ProfileScreenState extends State<ProfileScreen>
     UserProfile profile,
     ThemeData theme,
     ColorScheme colorScheme,
+    bool isDesktop,
   ) {
     return SliverAppBar(
       pinned: true,
       floating: true,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      centerTitle: true,
-      title: ClipRRect(
+      centerTitle: !isDesktop,
+      title: InkWell(
+        onTap: isOwnProfile ? () => AccountSwitcherSheet.show(context) : null,
         borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: theme.colorScheme.surface.withValues(alpha: 0.4),
-            child: Text(
-              profile.username,
-              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: theme.colorScheme.surface.withValues(alpha: 0.4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    profile.username,
+                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+                  ),
+                  if (isOwnProfile) ...[
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 18,
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ),
@@ -544,48 +822,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildBentoCard({
-    required ColorScheme colorScheme,
-    required Widget child,
-    Color? color,
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color ?? colorScheme.surface.withValues(alpha: 0.6),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: colorScheme.onSurface.withValues(alpha: 0.05),
-          ),
-        ),
-        child: child,
-      ),
-    );
-  }
-
-  Widget _buildStatColumn(String label, String count, ThemeData theme) {
-    return Column(
-      children: [
-        Text(
-          count,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPostsGrid(List<Post> posts, String? userId) {
+  Widget _buildPostsGrid(List<Post> posts, String? userId, bool isDesktop) {
     if (_isLoadingPosts) {
       return const SliverFillRemaining(
         child: Center(child: CircularProgressIndicator()),
@@ -616,10 +853,10 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
 
     return SliverGrid(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 2,
-        mainAxisSpacing: 2,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: isDesktop ? 4 : 3,
+        crossAxisSpacing: isDesktop ? 12 : 2,
+        mainAxisSpacing: isDesktop ? 12 : 2,
         childAspectRatio: 1.0,
       ),
       delegate: SliverChildBuilderDelegate((context, index) {
@@ -627,13 +864,22 @@ class _ProfileScreenState extends State<ProfileScreen>
         return GestureDetector(
           onTap: () => context.push('/post/${post.id}'),
           child: Container(
-            color: Colors.black.withValues(alpha: 0.05),
-            child: post.imageUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: post.imageUrl!,
-                    fit: BoxFit.cover,
-                  )
-                : const Center(child: Icon(Icons.text_fields, size: 20)),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.05),
+              borderRadius: isDesktop ? BorderRadius.circular(12) : BorderRadius.zero,
+            ),
+            child: ClipRRect(
+              borderRadius: isDesktop ? BorderRadius.circular(12) : BorderRadius.zero,
+              child: post.imageUrl != null
+                  ? Hero(
+                      tag: 'post_${post.id}',
+                      child: CachedNetworkImage(
+                        imageUrl: post.imageUrl!,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  : const Center(child: Icon(Icons.text_fields, size: 20)),
+            ),
           ),
         );
       }, childCount: posts.length),

@@ -9,7 +9,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis_v2/utils/responsive_layout.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  final bool isPanel;
+  const SearchScreen({super.key, this.isPanel = false});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -98,19 +99,20 @@ class _SearchScreenState extends State<SearchScreen>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDesktop = ResponsiveLayout.isDesktop(context);
+    final usePanelLayout = widget.isPanel;
 
-    if (isDesktop) {
-      // Desktop layout without AppBar
+    if (isDesktop && !usePanelLayout) {
+      // Full Screen Desktop layout
       return Padding(
         padding: const EdgeInsets.all(12),
         child: Container(
           decoration: BoxDecoration(
             color: colorScheme.surface.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(12),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Scaffold(
@@ -224,11 +226,12 @@ class _SearchScreenState extends State<SearchScreen>
       );
     }
 
-    // Mobile layout with AppBar
+    // Mobile layout OR Panel layout (Simplified for narrow width)
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: usePanelLayout ? Colors.transparent : theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: colorScheme.surface.withValues(alpha: 0.6),
+        automaticallyImplyLeading: !usePanelLayout,
         flexibleSpace: ClipRRect(
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -236,9 +239,9 @@ class _SearchScreenState extends State<SearchScreen>
           ),
         ),
         elevation: 0,
-        toolbarHeight: 80, // Taller AppBar for thicker search bar
+        toolbarHeight: 80, 
         title: Container(
-          height: 52, // Thicker search bar
+          height: 52, 
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(26),
@@ -251,7 +254,7 @@ class _SearchScreenState extends State<SearchScreen>
             onChanged: _onSearchChanged,
             onSubmitted: _onSearchSubmitted,
             decoration: InputDecoration(
-              hintText: 'Search users or posts...',
+              hintText: 'Search...',
               border: InputBorder.none,
               hintStyle: TextStyle(
                 color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
@@ -281,22 +284,56 @@ class _SearchScreenState extends State<SearchScreen>
                 _onSearchChanged('');
               },
             ),
+          if (usePanelLayout)
+             IconButton(
+               icon: const Icon(Icons.filter_list_rounded),
+               onPressed: () => _showPanelFilters(context),
+             ),
+          const SizedBox(width: 8),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             child: TabBar(
               controller: _tabController,
-              indicator: const BoxDecoration(), // Hide default indicator
+              indicator: const BoxDecoration(), 
               dividerColor: Colors.transparent,
-              labelPadding: const EdgeInsets.symmetric(horizontal: 8),
+              labelPadding: const EdgeInsets.symmetric(horizontal: 4),
               tabs: [_buildTab('People', 0), _buildTab('Posts', 1)],
             ),
           ),
         ),
       ),
       body: _buildMobileLayout(),
+    );
+  }
+
+  void _showPanelFilters(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Sort Results',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 24),
+            _buildSortOption('Relevance', 'relevance', Icons.star_outline),
+            _buildSortOption('Recent', 'recent', Icons.access_time),
+            _buildSortOption('Popular', 'popular', Icons.trending_up),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
     );
   }
 
@@ -662,8 +699,9 @@ class _SearchScreenState extends State<SearchScreen>
     }
 
     final isDesktop = ResponsiveLayout.isDesktop(context);
+    final usePanelLayout = widget.isPanel;
 
-    if (isDesktop) {
+    if (isDesktop && !usePanelLayout) {
       return MaxWidthContainer(
         maxWidth: ResponsiveLayout.maxContentWidth,
         child: GridView.builder(
@@ -804,7 +842,7 @@ class _SearchScreenState extends State<SearchScreen>
       },
     );
 
-    return ResponsiveLayout.isDesktop(context)
+    return (ResponsiveLayout.isDesktop(context) && !widget.isPanel)
         ? MaxWidthContainer(
           maxWidth: ResponsiveLayout.maxFeedWidth,
           child: postList,

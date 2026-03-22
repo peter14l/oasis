@@ -5,6 +5,9 @@ import 'package:video_player/video_player.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oasis_v2/services/ripples_service.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import 'dart:ui';
 import 'package:oasis_v2/widgets/share_sheet.dart';
 import 'package:oasis_v2/models/message.dart';
@@ -114,35 +117,67 @@ class _RipplesScreenState extends State<RipplesScreen> {
   @override
   Widget build(BuildContext context) {
     final ripplesService = context.watch<RipplesService>();
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          if (_isLoading)
-            const Center(child: CircularProgressIndicator(color: Colors.white24))
-          else if (_ripples.isEmpty)
-            const Center(child: Text('No ripples yet. Be the first to share one!', style: TextStyle(color: Colors.white54)))
-          else
-            _buildActiveLayout(ripplesService.currentLayout),
+          if (isDesktop && _ripples.isNotEmpty && _currentIndex < _ripples.length)
+            Positioned.fill(
+              child: Image.network(
+                _ripples[_currentIndex]['thumbnail_url'] ?? '',
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(color: Colors.black),
+              ),
+            ),
+          if (isDesktop)
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+                child: Container(color: Colors.black.withValues(alpha: 0.5)),
+              ),
+            ),
+          
+          Center(
+            child: Container(
+              constraints: isDesktop ? const BoxConstraints(maxWidth: 500) : null,
+              child: AspectRatio(
+                aspectRatio: isDesktop ? 9 / 16 : MediaQuery.of(context).size.aspectRatio,
+                child: ClipRRect(
+                  borderRadius: isDesktop ? BorderRadius.circular(8) : BorderRadius.zero,
+                  child: Stack(
+                    children: [
+                      if (_isLoading)
+                        const Center(child: CircularProgressIndicator(color: Colors.white24))
+                      else if (_ripples.isEmpty)
+                        const Center(child: Text('No ripples yet. Be the first to share one!', style: TextStyle(color: Colors.white54)))
+                      else
+                        _buildActiveLayout(ripplesService.currentLayout),
 
-          // Custom AppBar
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 10,
-            left: 16,
-            right: 16,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildGlassCircleButton(
-                  icon: FluentIcons.dismiss_24_filled,
-                  onTap: _handleExit,
+                      // Custom AppBar inside the aspect ratio container on desktop
+                      Positioned(
+                        top: (isDesktop ? 20 : MediaQuery.of(context).padding.top + 10),
+                        left: 16,
+                        right: 16,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _buildGlassCircleButton(
+                              icon: FluentIcons.dismiss_24_filled,
+                              onTap: _handleExit,
+                            ),
+                            _buildGlassCircleButton(
+                              icon: FluentIcons.grid_24_regular,
+                              onTap: () => _showLayoutSwitcher(context, ripplesService),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                _buildGlassCircleButton(
-                  icon: FluentIcons.grid_24_regular,
-                  onTap: () => _showLayoutSwitcher(context, ripplesService),
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -571,8 +606,10 @@ class RippleCommentsSheet extends StatefulWidget {
 
 class _RippleCommentsSheetState extends State<RippleCommentsSheet> {
   final TextEditingController _commentController = TextEditingController();
+  final AudioRecorder _audioRecorder = AudioRecorder();
   List<dynamic> _comments = [];
   bool _isLoading = true;
+  bool _isRecording = false;
 
   @override
   void initState() {
@@ -583,7 +620,32 @@ class _RippleCommentsSheetState extends State<RippleCommentsSheet> {
   @override
   void dispose() {
     _commentController.dispose();
+    _audioRecorder.dispose();
     super.dispose();
+  }
+
+  Future<void> _toggleRecording() async {
+    if (_isRecording) {
+      final path = await _audioRecorder.stop();
+      setState(() => _isRecording = false);
+      if (path != null) {
+        _uploadVoiceComment(path);
+      }
+    } else {
+      if (await _audioRecorder.hasPermission()) {
+        final tempDir = await getTemporaryDirectory();
+        final path = '${tempDir.path}/ripple_comment_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        await _audioRecorder.start(const RecordConfig(), path: path);
+        setState(() => _isRecording = true);
+      }
+    }
+  }
+
+  Future<void> _uploadVoiceComment(String path) async {
+    // Implement voice comment upload logic here
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Voice comments coming soon!')),
+    );
   }
 
   Future<void> _loadComments() async {
@@ -654,11 +716,16 @@ class _RippleCommentsSheetState extends State<RippleCommentsSheet> {
             padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 16, left: 16, right: 16, top: 8),
             child: Row(
               children: [
+                IconButton(
+                  icon: Icon(_isRecording ? Icons.stop_circle : Icons.mic_none_rounded, 
+                    color: _isRecording ? Colors.red : Colors.white54),
+                  onPressed: _toggleRecording,
+                ),
                 Expanded(
                   child: TextField(
                     controller: _commentController,
                     decoration: InputDecoration(
-                      hintText: 'Add a comment...',
+                      hintText: _isRecording ? 'Recording...' : 'Add a comment...',
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.05),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
@@ -667,7 +734,7 @@ class _RippleCommentsSheetState extends State<RippleCommentsSheet> {
                 ),
                 IconButton(
                   icon: const Icon(FluentIcons.send_24_filled, color: Colors.blueAccent),
-                  onPressed: _postComment,
+                  onPressed: _isRecording ? null : _postComment,
                 ),
               ],
             ),

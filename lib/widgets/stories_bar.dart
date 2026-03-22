@@ -261,34 +261,32 @@ class _StoriesBarState extends State<StoriesBar> {
             .where((group) => group.userId != currentUserId)
             .toList();
 
-    return SliverToBoxAdapter(
-      child: Container(
-        height: 110,
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        child: ListView.separated(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          scrollDirection: Axis.horizontal,
-          itemCount: widget.isLoading ? 6 : otherUserGroups.length + 1,
-          separatorBuilder: (context, index) => const SizedBox(width: 16),
-          itemBuilder: (context, index) {
-            if (widget.isLoading) {
-              return Column(
-                children: [
-                  const SkeletonContainer.circular(size: 70),
-                  const SizedBox(height: 4),
-                  const SkeletonContainer.rounded(width: 50, height: 10),
-                ],
-              );
-            }
+    return Container(
+      height: 110,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        scrollDirection: Axis.horizontal,
+        itemCount: widget.isLoading ? 6 : otherUserGroups.length + 1,
+        separatorBuilder: (context, index) => const SizedBox(width: 16),
+        itemBuilder: (context, index) {
+          if (widget.isLoading) {
+            return Column(
+              children: [
+                const SkeletonContainer.circular(size: 70),
+                const SizedBox(height: 4),
+                const SkeletonContainer.rounded(width: 50, height: 10),
+              ],
+            );
+          }
 
-            if (index == 0) {
-              return _buildYourStoryButton(context, theme);
-            }
+          if (index == 0) {
+            return _buildYourStoryButton(context, theme);
+          }
 
-            final group = otherUserGroups[index - 1];
-            return _buildStoryGroupCircle(context, theme, group);
-          },
-        ),
+          final group = otherUserGroups[index - 1];
+          return _buildStoryGroupCircle(context, theme, group);
+        },
       ),
     );
   }

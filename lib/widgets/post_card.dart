@@ -498,31 +498,34 @@ class _PostCardState extends State<PostCard>
                                             },
                                           ),
                                         )
-                                        : CachedNetworkImage(
-                                          imageUrl: images.first,
-                                          fit: BoxFit.cover,
-                                          width: double.infinity,
-                                          placeholder:
-                                              (context, url) => Container(
-                                                height: 300,
-                                                color:
-                                                    colorScheme
-                                                        .surfaceContainerHighest,
-                                                child: const Center(
-                                                  child:
-                                                      CircularProgressIndicator(),
+                                        : Hero(
+                                          tag: 'post_${widget.post.id}',
+                                          child: CachedNetworkImage(
+                                            imageUrl: images.first,
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                            placeholder:
+                                                (context, url) => Container(
+                                                  height: 300,
+                                                  color:
+                                                      colorScheme
+                                                          .surfaceContainerHighest,
+                                                  child: const Center(
+                                                    child:
+                                                        CircularProgressIndicator(),
+                                                  ),
                                                 ),
-                                              ),
-                                          errorWidget:
-                                              (context, url, error) => Container(
-                                                height: 300,
-                                                color:
-                                                    colorScheme
-                                                        .surfaceContainerHighest,
-                                                child: const Center(
-                                                  child: Icon(Icons.error_outline),
+                                            errorWidget:
+                                                (context, url, error) => Container(
+                                                  height: 300,
+                                                  color:
+                                                      colorScheme
+                                                          .surfaceContainerHighest,
+                                                  child: const Center(
+                                                    child: Icon(Icons.error_outline),
+                                                  ),
                                                 ),
-                                              ),
+                                          ),
                                         ),
                               ),
                             ),

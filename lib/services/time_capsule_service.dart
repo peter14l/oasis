@@ -148,6 +148,32 @@ class TimeCapsuleService {
   /// though strictly speaking we can compute isLocked on the fly from unlockDate.
   /// For this implementation, we'll mostly rely on DateTime comparison in the Model/UI.
 
+  /// Get a single capsule by ID
+  Future<TimeCapsule> getCapsule(String capsuleId) async {
+    try {
+      final response = await _supabase
+          .from(SupabaseConfig.timeCapsulesTable)
+          .select()
+          .eq('id', capsuleId)
+          .single();
+
+      // Fetch profile separately
+      final profileResponse = await _supabase
+          .from(SupabaseConfig.profilesTable)
+          .select('username, avatar_url')
+          .eq('id', response['user_id'])
+          .single();
+
+      final mergedData = Map<String, dynamic>.from(response);
+      mergedData[SupabaseConfig.profilesTable] = profileResponse;
+
+      return _transformResponse(mergedData);
+    } catch (e) {
+      debugPrint('Error getting capsule: $e');
+      rethrow;
+    }
+  }
+
   TimeCapsule _transformResponse(Map<String, dynamic> data) {
     final map = Map<String, dynamic>.from(data);
     final profile = map[SupabaseConfig.profilesTable];

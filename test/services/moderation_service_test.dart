@@ -1,8 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oasis_v2/services/moderation_service.dart';
 import 'package:oasis_v2/models/moderation.dart';
+import '../test_setup.dart';
 
 void main() {
+  setupTestEnvironment();
+  
   group('ModerationService', () {
     group('Content Filtering', () {
       final moderationService = ModerationService();

@@ -7,6 +7,7 @@ import Privacy from './pages/Privacy';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import Checkout from './pages/Checkout';
+import SharedMoment from './pages/SharedMoment';
 
 // A simple ScrollToTop utility
 function ScrollToTop() {
@@ -72,6 +73,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/moment/:id" element={<SharedMoment />} />
           </Routes>
         </main>
         <GlobalFooter />

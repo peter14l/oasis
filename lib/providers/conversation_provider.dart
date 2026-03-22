@@ -281,6 +281,7 @@ class ConversationProvider with ChangeNotifier {
   Future<void> clear() async {
     // Stop subscriptions
     _conversationsSubscription?.unsubscribe();
+    _conversationsSubscription = null;
     for (final channel in _readReceiptSubscriptions.values) {
       channel.unsubscribe();
     }

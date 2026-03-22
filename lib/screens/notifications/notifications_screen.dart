@@ -9,7 +9,8 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:oasis_v2/utils/responsive_layout.dart';
 
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({super.key});
+  final bool isPanel;
+  const NotificationsScreen({super.key, this.isPanel = false});
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
@@ -25,7 +26,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
-    // Notifications are loaded globally by MainWrapper/MyApp via Provider
   }
 
   Future<void> _markAsRead(AppNotification notification) async {
@@ -96,12 +96,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     _markAsRead(notification);
 
     final isDesktop = ResponsiveLayout.isDesktop(context);
+    final usePanelLayout = widget.isPanel;
 
-    if (isDesktop) {
-      // On desktop, show in detail panel
+    if (isDesktop && !usePanelLayout) {
+      // On full desktop, show in detail panel
       setState(() => _selectedNotification = notification);
     } else {
-      // On mobile, navigate
+      // On mobile or panel, navigate
       if (notification.postId != null) {
         context.push('/post/${notification.postId}/comments');
       } else if (notification.actorId != null &&
@@ -109,11 +110,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         context.push('/profile/${notification.actorId}');
       }
     }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   List<AppNotification> get _filteredNotifications {
@@ -163,9 +159,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       }
     }
 
-    // Remove empty groups
     grouped.removeWhere((key, value) => value.isEmpty);
-
     return grouped;
   }
 
@@ -175,15 +169,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final unreadCount = provider.unreadCount;
 
     final isDesktop = ResponsiveLayout.isDesktop(context);
+    final usePanelLayout = widget.isPanel;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    if (isDesktop) {
-      // Desktop layout without AppBar
+    if (isDesktop && !usePanelLayout) {
+      // Desktop full screen layout
       return Scaffold(
         body: Column(
           children: [
-            // Integrated header
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               decoration: BoxDecoration(
@@ -258,21 +252,23 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ],
               ),
             ),
-            // Content
             Expanded(child: _buildDesktopLayout()),
           ],
         ),
       );
     }
 
-    // Mobile layout with AppBar
+    // Mobile layout OR Panel layout (Simplified)
     return Scaffold(
+      backgroundColor: usePanelLayout ? Colors.transparent : theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        backgroundColor: usePanelLayout ? colorScheme.surface.withValues(alpha: 0.6) : null,
+        automaticallyImplyLeading: !usePanelLayout,
         title: const Text(
           'Notifications',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        centerTitle: true,
+        centerTitle: !usePanelLayout,
         actions: [
           if (_filteredNotifications.isNotEmpty)
             PopupMenuButton<String>(
@@ -281,16 +277,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   _markAllAsRead();
                 } else if (value == 'clear_all') {
                   _clearAll();
+                } else if (value == 'toggle_unread') {
+                  setState(() => _showUnreadOnly = !_showUnreadOnly);
                 }
               },
               itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'toggle_unread',
+                  child: Row(
+                    children: [
+                      Icon(_showUnreadOnly ? Icons.visibility : Icons.visibility_off, size: 20),
+                      const SizedBox(width: 12),
+                      Text(_showUnreadOnly ? 'Show All' : 'Unread Only'),
+                    ],
+                  ),
+                ),
                 const PopupMenuItem(
                   value: 'mark_read',
                   child: Row(
                     children: [
                       Icon(Icons.done_all, size: 20),
                       SizedBox(width: 12),
-                      Text('Mark all as read'),
+                      Text('Mark all read'),
                     ],
                   ),
                 ),
@@ -318,7 +326,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget _buildDesktopLayout() {
     return Row(
       children: [
-        // Filters Sidebar
         if (_showSidebar)
           Container(
             width: 250,
@@ -332,9 +339,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
             child: _buildFiltersSidebar(),
           ),
-        // Notifications List
         Expanded(flex: 2, child: _buildNotificationsList()),
-        // Detail Panel
         Expanded(flex: 3, child: _buildDetailPanel()),
       ],
     );
@@ -348,9 +353,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ? _buildEmptyState()
         : RefreshIndicator(
           onRefresh: () async {
-            // To refresh, we re-run init logic or just reload
-            // Provider handles it internally usually, but let's expose a reload
-            // For now just allow pull diff
             final userId =
                 Provider.of<AuthService>(
                   context,
@@ -380,7 +382,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ),
         const SizedBox(height: 16),
 
-        // Unread Only Toggle
         SwitchListTile(
           title: const Text('Unread Only'),
           subtitle: Text('$unreadCount unread'),
@@ -393,7 +394,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         const Divider(),
         const SizedBox(height: 16),
 
-        // Type Filters
         Text(
           'Type',
           style: theme.textTheme.titleSmall?.copyWith(
@@ -412,7 +412,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         const Divider(),
         const SizedBox(height: 16),
 
-        // Stats
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -509,47 +508,39 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     final isDesktop = ResponsiveLayout.isDesktop(context);
+    final usePanelLayout = widget.isPanel;
     final grouped = _groupedNotifications;
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        final userId =
-            Provider.of<AuthService>(context, listen: false).currentUser?.id;
-        await context.read<NotificationProvider>().init(userId);
-      },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: grouped.length * 2, // Headers + items
-        itemBuilder: (context, index) {
-          if (index.isEven) {
-            // Header
-            final groupIndex = index ~/ 2;
-            final groupKey = grouped.keys.elementAt(groupIndex);
-            return Padding(
-              padding: const EdgeInsets.only(top: 16, bottom: 8),
-              child: Text(
-                groupKey,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: grouped.length * 2, 
+      itemBuilder: (context, index) {
+        if (index.isEven) {
+          final groupIndex = index ~/ 2;
+          final groupKey = grouped.keys.elementAt(groupIndex);
+          return Padding(
+            padding: const EdgeInsets.only(top: 16, bottom: 8),
+            child: Text(
+              groupKey,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
               ),
-            );
-          } else {
-            // Notifications for this group
-            final groupIndex = index ~/ 2;
-            final groupKey = grouped.keys.elementAt(groupIndex);
-            final notifications = grouped[groupKey]!;
+            ),
+          );
+        } else {
+          final groupIndex = index ~/ 2;
+          final groupKey = grouped.keys.elementAt(groupIndex);
+          final notifications = grouped[groupKey]!;
 
-            return Column(
-              children:
-                  notifications.map((notification) {
-                    return _buildNotificationItem(notification, isDesktop);
-                  }).toList(),
-            );
-          }
-        },
-      ),
+          return Column(
+            children:
+                notifications.map((notification) {
+                  return _buildNotificationItem(notification, isDesktop && !usePanelLayout);
+                }).toList(),
+          );
+        }
+      },
     );
   }
 
@@ -572,19 +563,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
               ),
               const SizedBox(height: 16),
-              Text(
-                'Select a notification',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Choose a notification to view details',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
+              const Text('Select a notification'),
             ],
           ),
         ),
@@ -600,7 +579,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Row(
               children: [
                 CircleAvatar(
@@ -644,16 +622,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             const SizedBox(height: 24),
             const Divider(),
             const SizedBox(height: 24),
-
-            // Actions
-            Text(
-              'Actions',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-
             if (_selectedNotification!.postId != null)
               OutlinedButton.icon(
                 onPressed: () {
@@ -664,7 +632,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 icon: const Icon(Icons.open_in_new),
                 label: const Text('View Post'),
               ),
-
             if (_selectedNotification!.actorId != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
@@ -685,7 +652,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget _buildNotificationItem(AppNotification notification, bool isDesktop) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isSelected = _selectedNotification?.id == notification.id;
+    final isSelected = isDesktop && _selectedNotification?.id == notification.id;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),

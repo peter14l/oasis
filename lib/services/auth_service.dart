@@ -15,12 +15,24 @@ import 'package:oasis_v2/services/supabase_service.dart';
 import 'package:oasis_v2/services/encryption_service.dart';
 import 'package:oasis_v2/services/signal/signal_service.dart';
 import 'package:oasis_v2/services/notification_service.dart';
+import 'package:oasis_v2/services/session_registry_service.dart';
+import 'package:provider/provider.dart';
+import 'package:oasis_v2/providers/conversation_provider.dart';
+import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/providers/circle_provider.dart';
+import 'package:oasis_v2/providers/canvas_provider.dart';
+import 'package:oasis_v2/providers/notification_provider.dart';
+import 'package:oasis_v2/providers/community_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthService with ChangeNotifier {
   late final SupabaseClient _supabase;
   final NotificationService _notificationService = NotificationService();
+  final SessionRegistryService _registry = SessionRegistryService();
   StreamSubscription<AuthState>? _authStateSubscription;
+
+  List<RegisteredAccount> _registeredAccounts = [];
+  List<RegisteredAccount> get registeredAccounts => _registeredAccounts;
 
   AuthService() {
     _supabase = SupabaseService().client;
@@ -33,9 +45,92 @@ class AuthService with ChangeNotifier {
       developer.log('Auth state changed: $event');
       if (session != null) {
         developer.log('User ID: ${session.user.id}');
+        _syncCurrentSessionToRegistry(session);
       }
       notifyListeners();
     });
+    
+    // Initial registry load
+    _loadRegistry();
+  }
+
+  Future<void> _loadRegistry() async {
+    _registeredAccounts = await _registry.getAllAccounts();
+    notifyListeners();
+  }
+
+  Future<void> _syncCurrentSessionToRegistry(Session session) async {
+    final user = session.user;
+    final metadata = user.userMetadata ?? {};
+    
+    final account = RegisteredAccount(
+      userId: user.id,
+      email: user.email ?? '',
+      username: metadata['username'] ?? user.email?.split('@')[0] ?? 'user',
+      fullName: metadata['full_name'],
+      avatarUrl: metadata['avatar_url'],
+      session: session,
+      lastUsed: DateTime.now(),
+    );
+    
+    await _registry.saveAccount(account);
+    await _loadRegistry();
+  }
+
+  /// Switch to a different logged-in account
+  Future<void> switchAccount(BuildContext context, String userId) async {
+    final account = _registeredAccounts.firstWhere((a) => a.userId == userId);
+    
+    try {
+      // 1. Save current session state if possible
+      // (Supabase auto-manages the current session, but we sync it periodically)
+
+      // 2. Clear all providers to prevent "ghost data"
+      _resetAllProviders(context);
+
+      // 3. Swap Supabase session
+      await _supabase.auth.setSession(account.session.refreshToken!);
+      
+      // 4. Mark as last used
+      await _registry.markAsUsed(userId);
+      await _loadRegistry();
+      
+      // 5. Provision keys for the new user context
+      _provisionEncryptionKeys();
+      _notificationService.updateFcmToken(userId);
+      
+      notifyListeners();
+    } catch (e) {
+      developer.log('Error switching account: $e');
+      rethrow;
+    }
+  }
+
+  void _resetAllProviders(BuildContext context) {
+    context.read<ConversationProvider>().clear();
+    context.read<ProfileProvider>().clear();
+    context.read<CircleProvider>().clear();
+    context.read<CanvasProvider>().clear();
+    context.read<NotificationProvider>().clear();
+    context.read<CommunityProvider>().clear();
+  }
+
+  /// Remove an account from the registry (Logout specific account)
+  Future<void> removeAccount(BuildContext context, String userId) async {
+    final isCurrent = _supabase.auth.currentUser?.id == userId;
+    
+    await _registry.removeAccount(userId);
+    await _loadRegistry();
+    
+    if (isCurrent) {
+      if (_registeredAccounts.isNotEmpty) {
+        // Switch to the next available account
+        await switchAccount(context, _registeredAccounts.first.userId);
+      } else {
+        // No accounts left, full sign out
+        await signOut();
+      }
+    }
   }
 
   static final GoogleSignIn _googleSignIn = GoogleSignIn(

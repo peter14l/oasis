@@ -6,14 +6,66 @@ import 'package:oasis_v2/services/supabase_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:oasis_v2/services/notification_service.dart';
+
 class CircleService {
   final SupabaseClient _supabase;
+  final NotificationService _notificationService;
   final _uuid = const Uuid();
 
-  CircleService({SupabaseClient? client}) 
-      : _supabase = client ?? SupabaseService().client;
+  CircleService({SupabaseClient? client, NotificationService? notificationService}) 
+      : _supabase = client ?? SupabaseService().client,
+        _notificationService = notificationService ?? NotificationService();
 
   // ─── Circles ─────────────────────────────────────────────────────────────────
+
+  /// Join a circle (add membership).
+  Future<void> joinCircle(String circleId, String userId) async {
+    try {
+      await _supabase.from('circle_members').insert({
+        'circle_id': circleId,
+        'user_id': userId,
+        'role': 'member',
+        'joined_at': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      debugPrint('CircleService.joinCircle error: $e');
+      rethrow;
+    }
+  }
+
+  /// Get details for a specific circle (used for previewing invites).
+  Future<Circle> getCircleDetails(String circleId) async {
+    return getCircle(circleId);
+  }
+
+  /// Check if any circles have unverified commitments for today and notify.
+  Future<void> checkStreaksAtRisk(String userId) async {
+    try {
+      final circles = await fetchUserCircles(userId);
+      for (final circle in circles) {
+        if (circle.streakCount > 0) {
+          final commitments = await fetchCommitments(circle.id);
+          final myUnverified = commitments.where((c) {
+            final myRes = c.responses[userId];
+            return myRes == null || (!myRes.completed && myRes.intent != MemberIntent.out);
+          });
+
+          if (myUnverified.isNotEmpty) {
+            // Trigger a local notification or insert a notification record
+            await _notificationService.createNotification(
+              userId: userId,
+              type: 'streak_at_risk',
+              actorId: userId, // Self-notification
+              message: 'Your ${circle.streakCount}-day streak in "${circle.name}" is at risk! Verify your commitments before they shatter.',
+            );
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking streaks: $e');
+    }
+  }
 
   /// Fetch all circles the current user belongs to.
   Future<List<Circle>> fetchUserCircles(String userId) async {

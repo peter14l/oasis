@@ -1,3 +1,0 @@
-{"dsn":"https://356d298b7887a400a196e23847931238@o4509384326774784.ingest.us.sentry.io/4510527783501824"}
-{"type":"session","length":219}
-{"init":true,"sid":"0557f845-ac98-4a6f-626d-eff7f93fb6b3","status":"crashed","errors":1,"started":"2026-03-21T15:31:33.779257Z","duration":8756.269490000001,"attrs":{"release":"morrow_v2@4.0.0+1","environment":"debug"}}
