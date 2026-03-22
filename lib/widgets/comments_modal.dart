@@ -83,12 +83,11 @@ class _CommentsModalState extends State<CommentsModal> {
         currentUserId: userId,
       );
 
-      setState(() {
-        _comments = comments;
-        _isLoading = false;
-      });
-
       if (mounted) {
+        setState(() {
+          _comments = comments;
+          _isLoading = false;
+        });
         context.read<FeedProvider>().updatePostCommentCount(widget.postId, _comments.length);
       }
     } catch (e) {

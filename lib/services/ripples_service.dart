@@ -208,22 +208,42 @@ class RipplesService extends ChangeNotifier {
   Future<List<Map<String, dynamic>>> getRipples() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
-      
-      // Fetch ripples where creator is public OR we follow them OR it's our own
-      // For now, simple implementation: public only + own
-      final response = await _supabase.from('ripples')
-          .select('''
+
+      // Fetch ripples with profiles and check if current user liked/saved them
+      final response = await _supabase.from('ripples').select('''
             *,
             profiles:user_id (
               username,
               avatar_url,
               is_private
+            ),
+            ripple_likes!left (
+              user_id
+            ),
+            ripple_saves!left (
+              user_id
             )
-          ''')
-          .or('is_private.eq.false,user_id.eq.${userId})')
-          .order('created_at', ascending: false);
-      
-      return List<Map<String, dynamic>>.from(response);
+          ''').or('is_private.eq.false,user_id.eq.${userId})').order(
+        'created_at',
+        ascending: false,
+      );
+
+      final ripples = List<Map<String, dynamic>>.from(response);
+
+      // Process ripples to add is_liked and is_saved fields
+      for (var ripple in ripples) {
+        final likes = ripple['ripple_likes'] as List<dynamic>?;
+        ripple['is_liked'] =
+            likes != null && likes.any((l) => l['user_id'] == userId);
+        ripple.remove('ripple_likes');
+
+        final saves = ripple['ripple_saves'] as List<dynamic>?;
+        ripple['is_saved'] =
+            saves != null && saves.any((s) => s['user_id'] == userId);
+        ripple.remove('ripple_saves');
+      }
+
+      return ripples;
     } catch (e) {
       debugPrint('Error fetching ripples: $e');
       return [];
@@ -234,20 +254,36 @@ class RipplesService extends ChangeNotifier {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
     try {
-      await _supabase.from('ripple_likes').upsert({'ripple_id': rippleId, 'user_id': userId});
+      await _supabase.from('ripple_likes').upsert({
+        'ripple_id': rippleId,
+        'user_id': userId,
+      });
     } catch (e) {
       debugPrint('Error liking ripple: $e');
     }
   }
 
-  Future<void> commentOnRipple(String rippleId, String content) async {
+  Future<void> unlikeRipple(String rippleId) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
+    try {
+      await _supabase.from('ripple_likes').delete().match({
+        'ripple_id': rippleId,
+        'user_id': userId,
+      });
+    } catch (e) {
+      debugPrint('Error unliking ripple: $e');
+    }
+  }
+
+  Future<void> commentOnRipple(String rippleId, String comment) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
     try {
       await _supabase.from('ripple_comments').insert({
         'ripple_id': rippleId,
         'user_id': userId,
-        'content': content,
+        'content': comment,
       });
     } catch (e) {
       debugPrint('Error commenting on ripple: $e');
@@ -261,6 +297,19 @@ class RipplesService extends ChangeNotifier {
       await _supabase.from('ripple_saves').upsert({'ripple_id': rippleId, 'user_id': userId});
     } catch (e) {
       debugPrint('Error saving ripple: $e');
+    }
+  }
+
+  Future<void> unsaveRipple(String rippleId) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
+    try {
+      await _supabase.from('ripple_saves').delete().match({
+        'ripple_id': rippleId,
+        'user_id': userId,
+      });
+    } catch (e) {
+      debugPrint('Error unsaving ripple: $e');
     }
   }
 

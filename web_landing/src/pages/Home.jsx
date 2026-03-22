@@ -1,255 +1,131 @@
-import { useRef, useState, useEffect } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { 
-  Shield, 
-  Clock, 
-  Lock, 
-  EyeOff,
-  HeartPulse,
-  Users,
-  Download,
-  AlertCircle
-} from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 
-const Home = () => {
-  const containerRef = useRef(null);
-  const [testerCount, setTesterCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const maxSlots = 20;
+export default function Home() {
+  const fadeUp = {
+    hidden: { opacity: 0, y: 40 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.25, 1, 0.5, 1] } }
+  };
 
-  useEffect(() => {
-    fetchTesterCount();
-
-    // Realtime subscription to profiles table
-    const subscription = supabase
-      .channel('public:profiles')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
-        fetchTesterCount();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(subscription);
-    };
-  }, []);
-
-  const fetchTesterCount = async () => {
-    try {
-      const { count, error } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
-      
-      if (error) throw error;
-      setTesterCount(count || 0);
-    } catch (err) {
-      console.error('Error fetching tester count:', err);
-    } finally {
-      setLoading(false);
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
     }
   };
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
-
-  const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.8]);
-  const opacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
-  const y = useTransform(scrollYProgress, [0, 0.2], [0, -100]);
-
-  const isFull = testerCount >= maxSlots;
-
   return (
-    <div ref={containerRef} className="bg-black text-white">
-      <Navbar />
+    <div style={{ width: '100%', overflow: 'hidden' }}>
       
       {/* Hero Section */}
-      <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden px-6" style={{ paddingTop: '100px' }}>
-        <div className="glow-orb" style={{ top: '20%', left: '30%' }} />
-        <div className="glow-orb" style={{ bottom: '20%', right: '30%', background: 'radial-gradient(circle, #d946ef, transparent 70%)' }} />
+      <section style={{ position: 'relative', minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="ambient-glow" style={{ top: '20%', left: '50%', transform: 'translate(-50%, -50%)', background: 'radial-gradient(circle, rgba(0,122,255,0.3) 0%, transparent 60%)' }}></div>
         
         <motion.div 
-          style={{ scale, opacity, y }}
-          className="container relative z-10 text-center"
+          className="container"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          style={{ textAlign: 'center', zIndex: 10 }}
         >
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {/* Beta Counter Badge */}
-            <div style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.6rem 1.25rem', 
-              background: isFull ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)', 
-              border: `1px solid ${isFull ? 'rgba(239, 68, 68, 0.2)' : 'rgba(59, 130, 246, 0.2)'}`,
-              borderRadius: '99px',
-              color: isFull ? '#ef4444' : '#3b82f6',
-              fontSize: '0.9rem',
-              fontWeight: 700,
-              marginBottom: '2rem'
-            }}>
-              <span style={{ 
-                width: '8px', 
-                height: '8px', 
-                borderRadius: '50%', 
-                background: isFull ? '#ef4444' : '#3b82f6',
-                boxShadow: `0 0 10px ${isFull ? '#ef4444' : '#3b82f6'}`
-              }} />
-              {loading ? 'CALCULATING SLOTS...' : isFull ? 'BETA SLOTS FULL' : `BETA ACCESS: ${testerCount} / ${maxSlots} SLOTS TAKEN`}
-            </div>
-
-            <h1 className="hero-title" style={{ fontSize: 'clamp(2.5rem, 8vw, 7rem)', fontWeight: 800, lineHeight: 1, marginBottom: '1.5rem' }}>
-              Connect<br />
-              <span className="text-gradient">Differently</span>
-            </h1>
-            <p style={{ fontSize: 'clamp(1rem, 1.5vw, 1.25rem)', color: '#94a3b8', maxWidth: '600px', margin: '0 auto 2.5rem' }}>
-              Morrow is building a safer, more private social engine. We're currently in invite-only beta testing with our first 20 founding members.
-            </p>
-
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button 
-                disabled={isFull}
-                onClick={() => {
-                  if (!isFull) {
-                    const link = document.createElement('a');
-                    link.href = '/apk/oasis-arm64-v8a-release.apk';
-                    link.download = 'morrow-beta.apk';
-                    link.click();
-                  }
-                }}
-                style={{
-                  background: isFull ? 'rgba(255,255,255,0.05)' : '#fff',
-                  color: isFull ? '#475569' : '#000',
-                  padding: '1.25rem 2.5rem',
-                  borderRadius: '99px',
-                  fontWeight: 800,
-                  fontSize: '1.1rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  cursor: isFull ? 'not-allowed' : 'pointer',
-                  border: isFull ? '1px solid rgba(255,255,255,0.1)' : 'none',
-                  transition: 'all 0.3s var(--ease-apple)'
-                }}
-              >
-                {isFull ? <AlertCircle size={20} /> : <Download size={20} />}
-                {isFull ? 'Beta Slots Full' : 'Download for Android'}
-              </button>
-              
-              <Link to="/features" style={{
-                background: 'rgba(255,255,255,0.05)', color: '#fff', padding: '1.25rem 2.5rem', borderRadius: '99px', fontWeight: 800, fontSize: '1.1rem', border: '1px solid rgba(255,255,255,0.1)'
-              }}>See Features</Link>
-            </div>
-
-            {isFull && (
-              <p style={{ marginTop: '1.5rem', color: '#64748b', fontSize: '0.9rem' }}>
-                Follow us on <a href="#" className="text-white underline">Twitter</a> to know when more slots open.
-              </p>
-            )}
+          <motion.h1 variants={fadeUp} className="heading-massive" style={{ marginBottom: '24px' }}>
+            Where your world <br/><span className="text-gradient">connects.</span>
+          </motion.h1>
+          <motion.p variants={fadeUp} className="text-body" style={{ maxWidth: '600px', margin: '0 auto 40px auto' }}>
+            Oasis is the ultimate private sanctuary for your digital life. Share ripples, collaborate on canvases, and keep your circles close. With Signal Protocol encryption, your privacy is absolute.
+          </motion.p>
+          <motion.div variants={fadeUp} style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+            <Link to="/signup" className="btn btn-primary" style={{ padding: '16px 32px', fontSize: '1.1rem' }}>Download Now</Link>
+            <Link to="/features" className="btn btn-secondary" style={{ padding: '16px 32px', fontSize: '1.1rem' }}>See Features</Link>
           </motion.div>
         </motion.div>
-
-        <motion.div 
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          style={{ position: 'absolute', bottom: '2rem', left: '50%', translateX: '-50%', opacity: 0.5 }}
-        >
-          <div style={{ width: '2px', height: '40px', background: 'linear-gradient(to bottom, transparent, #fff, transparent)' }} />
-        </motion.div>
       </section>
 
-      {/* Feature Sections - Grid */}
-      <section className="section-padding bg-zinc-950">
+      {/* Bento Grid Features Section */}
+      <section className="section-padding" style={{ backgroundColor: 'var(--bg-secondary)' }}>
         <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)', marginBottom: '1rem' }}>Founding <span className="text-gradient">Tester</span> Perks</h2>
-            <p style={{ color: '#94a3b8', fontSize: '1.1rem' }}>Help us refine the experience and earn permanent rewards.</p>
-          </div>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeUp}
+            style={{ textAlign: 'center', marginBottom: '80px' }}
+          >
+            <h2 className="heading-large">Everything you love, <br/>beautifully designed.</h2>
+          </motion.div>
 
-          <div className="grid sm-grid-cols-1 lg-grid-cols-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-            <BentoCard 
-              icon={<Shield size={32} className="text-blue-500" />}
-              title="Lifetime Pro Status"
-              description="Our first 20 beta testers will receive permanent access to all Pro features forever, absolutely free."
-              color="#3b82f6"
-            />
-            <BentoCard 
-              icon={<HeartPulse size={32} className="text-emerald-500" />}
-              title="Direct Dev Feedback"
-              description="Chat directly with the engineering team to report bugs and suggest new features for the roadmap."
-              color="#10b981"
-            />
-            <BentoCard 
-              icon={<Users size={32} style={{ color: '#d946ef' }} />}
-              title="Early Access Badge"
-              description="A unique, verified 'Founding Member' badge on your profile that will never be available again."
-              color="#d946ef"
-            />
-            <BentoCard 
-              icon={<Clock size={32} style={{ color: '#f59e0b' }} />}
-              title="Reserved Usernames"
-              description="Secure your preferred handle before the general public release. First come, first served."
-              color="#f59e0b"
-            />
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+            gap: '24px',
+            gridAutoRows: '300px'
+          }}>
+            {/* Feature 1 */}
+            <motion.div 
+              initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
+              className="glass-panel" 
+              style={{ gridColumn: '1 / -1', padding: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', position: 'relative', overflow: 'hidden' }}
+            >
+              <div className="ambient-glow" style={{ top: '-100px', right: '-100px', background: 'radial-gradient(circle, rgba(138,43,226,0.3) 0%, transparent 70%)' }}></div>
+              <h3 className="heading-medium" style={{ marginBottom: '16px', zIndex: 2 }}>Absolute Privacy</h3>
+              <p className="text-body" style={{ maxWidth: '500px', zIndex: 2 }}>Encrypted with the gold-standard Signal Protocol. Your messages, stories, and connections belong exclusively to you, and no one else.</p>
+            </motion.div>
+
+            {/* Feature 2 */}
+            <motion.div 
+              initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
+              className="glass-panel" 
+              style={{ padding: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+            >
+              <div>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '12px' }}>Ripples</h3>
+                <p className="text-body" style={{ fontSize: '1rem' }}>Share short, disappearing moments that matter to you. Fluid, fast, and fun.</p>
+              </div>
+            </motion.div>
+
+            {/* Feature 3 */}
+            <motion.div 
+              initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
+              className="glass-panel" 
+              style={{ padding: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+            >
+              <div>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '12px' }}>Canvas</h3>
+                <p className="text-body" style={{ fontSize: '1rem' }}>A collaborative infinite drawing board. Brainstorm, sketch, or just mess around with your circle.</p>
+              </div>
+            </motion.div>
+
+            {/* Feature 4 */}
+             <motion.div 
+              initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
+              className="glass-panel" 
+              style={{ gridColumn: 'span 2', padding: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+            >
+              <div>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '12px' }}>Inner Circles</h3>
+                <p className="text-body" style={{ fontSize: '1rem', maxWidth: '400px' }}>Organize your friends into distinct circles. Share exactly what you want, only with who you want.</p>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="section-padding text-center px-6">
-        <div className="container">
-          <div className="glass" style={{ padding: '4rem 1.5rem', borderRadius: '32px', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(217, 70, 239, 0.1))' }}>
-            <h2 style={{ fontSize: 'clamp(1.75rem, 5vw, 3rem)', marginBottom: '1.25rem' }}>Be Part of the <span className="text-gradient">Origin</span></h2>
-            <p style={{ color: '#94a3b8', fontSize: '1.1rem', marginBottom: '2.5rem', maxWidth: '500px', margin: '0 auto 2.5rem' }}>
-              We're building something different. Join the private beta and help us prove that social can be private.
-            </p>
-            {!isFull ? (
-               <button 
-               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-               style={{
-                 background: '#fff', color: '#000', padding: '1rem 2.5rem', borderRadius: '99px', fontWeight: 800, fontSize: '1.1rem'
-               }}>Claim Your Slot</button>
-            ) : (
-              <div style={{ color: '#ef4444', fontWeight: 700 }}>BETAS SLOTS CURRENTLY FULL</div>
-            )}
-          </div>
-        </div>
+      {/* Pro Teaser Section */}
+      <section className="section-padding" style={{ position: 'relative' }}>
+         <div className="ambient-glow" style={{ bottom: '0', left: '0', background: 'radial-gradient(circle, rgba(0,255,136,0.15) 0%, transparent 50%)' }}></div>
+         <div className="container" style={{ textAlign: 'center' }}>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+              <h2 className="heading-large" style={{ marginBottom: '24px' }}>Go further with <span className="text-gradient">Oasis Pro.</span></h2>
+              <p className="text-body" style={{ maxWidth: '600px', margin: '0 auto 40px auto' }}>
+                Unlock the full potential of Oasis with a premium tier designed for power users. Get unlimited Ripples, uncapped Circles, advanced Canvas tools, and zero compromises on speed or privacy.
+              </p>
+              <Link to="/pricing" className="btn btn-accent" style={{ padding: '16px 32px', fontSize: '1.1rem' }}>Explore Pricing</Link>
+            </motion.div>
+         </div>
       </section>
-
-      <Footer />
     </div>
   );
-};
-
-const BentoCard = ({ icon, title, description, color }) => (
-  <motion.div
-    whileHover={{ y: -5 }}
-    className="glass"
-    style={{
-      padding: '2rem',
-      borderRadius: '24px',
-      border: '1px solid rgba(255,255,255,0.05)',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '1.25rem',
-      background: `linear-gradient(135deg, rgba(255,255,255,0.02), rgba(${color}, 0.03))`
-    }}
-  >
-    <div style={{ background: 'rgba(255,255,255,0.05)', width: '56px', height: '56px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      {icon}
-    </div>
-    <div>
-      <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>{title}</h3>
-      <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.6 }}>{description}</p>
-    </div>
-  </motion.div>
-);
-
-export default Home;
+}

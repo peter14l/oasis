@@ -38,8 +38,8 @@ class Comment {
       repliesCount: json['replies_count'] as int? ?? 0,
       isLiked: json['is_liked'] as bool? ?? false,
       timestamp: json['created_at'] != null
-          ? DateTime.parse(json['created_at'] as String)
-          : DateTime.now(),
+          ? DateTime.parse(json['created_at'] as String).toUtc()
+          : DateTime.now().toUtc(),
     );
   }
 

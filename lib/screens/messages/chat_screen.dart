@@ -122,6 +122,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _whisperTriggered = false; // one-shot: prevent re-triggering mid-drag
   static const double _whisperDragThreshold = 80.0; // px to pull to trigger
 
+  // Cache for public keys to avoid redundant network calls
+  final Map<String, String> _publicKeyCache = {};
+
   @override
   void initState() {
     super.initState();
@@ -254,6 +257,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _scrollController.dispose();
     _focusNode.dispose();
     _audioRecorder.dispose();
+    _publicKeyCache.clear();
 
     // Clean up Realtime subscriptions
     if (_messageChannel != null) {
@@ -598,7 +602,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
           // Update state
           setState(() {
-            _messages.add(decryptedMessage);
+            // Avoid duplicates (especially from optimistic updates if implemented)
+            if (!_messages.any((m) => m.id == decryptedMessage.id)) {
+              _messages.add(decryptedMessage);
+            }
           });
           _scrollToBottom();
           _loadSmartReplies();
@@ -872,11 +879,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _sendMessage() async {
-    if (_messageController.text.trim().isEmpty &&
-        _selectedImage == null &&
-        _selectedVideo == null &&
-        _selectedAudio == null &&
-        _selectedFile == null) {
+    final String content = _messageController.text.trim();
+    final imageFile = _selectedImage;
+    final videoFile = _selectedVideo;
+    final audioFile = _selectedAudio;
+    final docFile = _selectedFile;
+
+    if (content.isEmpty &&
+        imageFile == null &&
+        videoFile == null &&
+        audioFile == null &&
+        docFile == null) {
       return;
     }
 
@@ -888,19 +901,39 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final userId = _authService.currentUser?.id;
     if (userId == null) return;
 
-    final content = _messageController.text.trim();
-    final imageFile = _selectedImage;
-    final videoFile = _selectedVideo;
-    final audioFile = _selectedAudio;
-    final docFile = _selectedFile;
-
+    // Reset attachments and controller immediately for responsive feel
     _messageController.clear();
+
+    // Optimistic UI for text-only messages
+    Message? optimisticMessage;
+    if (content.isNotEmpty && imageFile == null && videoFile == null && audioFile == null && docFile == null) {
+      optimisticMessage = Message(
+        id: 'optimistic_${DateTime.now().millisecondsSinceEpoch}',
+        conversationId: widget.conversationId,
+        senderId: userId,
+        senderName: _authService.currentUser?.username ?? 'Me',
+        senderAvatar: _authService.currentUser?.photoUrl ?? '',
+        content: content,
+        timestamp: DateTime.now(),
+        isRead: false,
+        messageType: MessageType.text,
+      );
+      
+      setState(() {
+        _messages.insert(0, optimisticMessage!);
+      });
+      _scrollToBottom();
+    }
+
     setState(() {
-      _isSending = true;
       _selectedImage = null;
       _selectedVideo = null;
       _selectedAudio = null;
       _selectedFile = null;
+      // ONLY show loading for media, text should be instant
+      if (imageFile != null || videoFile != null || audioFile != null || docFile != null) {
+        _isSending = true;
+      }
     });
 
     try {
@@ -912,7 +945,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       bool usedSignal = false;
 
       if (EncryptionService.isEnabled) {
-        // Validate otherUserId is not empty (group chats not yet supported for encryption)
         final recipientId = widget.otherUserId ?? _otherUserId;
         if (recipientId == null || recipientId.isEmpty) {
           throw Exception('Recipient ID is required for encryption');
@@ -933,15 +965,23 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         }
 
         if (!usedSignal) {
-          // Get recipient's public key
-          final recipientProfile =
-              await Supabase.instance.client
-                  .from('profiles')
-                  .select('public_key')
-                  .eq('id', recipientId)
-                  .single();
+          // Check cache for public key first
+          String? recipientPublicKey = _publicKeyCache[recipientId];
+          
+          if (recipientPublicKey == null) {
+            final recipientProfile =
+                await Supabase.instance.client
+                    .from('profiles')
+                    .select('public_key')
+                    .eq('id', recipientId)
+                    .single();
 
-          final recipientPublicKey = recipientProfile['public_key'] as String?;
+            recipientPublicKey = recipientProfile['public_key'] as String?;
+            if (recipientPublicKey != null) {
+              _publicKeyCache[recipientId] = recipientPublicKey;
+            }
+          }
+
           if (recipientPublicKey == null) {
             throw Exception(
               'Recipient has not updated the app to support encrypted messaging yet',
@@ -967,58 +1007,74 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       int? fileSize;
       String? mimeType;
 
-    if (imageFile != null) {
-      fileName = imageFile.name;
-      mediaUrl = await _messagingService.uploadChatMedia(
-        imageFile.path,
-        folder: 'images',
-      );
-      messageType = MessageType.image;
-    } else if (videoFile != null) {
-      fileName = videoFile.path.split(Platform.pathSeparator).last;
-      mediaUrl = await _messagingService.uploadChatMedia(
-        videoFile.path,
-        folder: 'videos',
-      );
-      messageType = MessageType.document;
-    } else if (docFile != null) {
-      if (docFile.path != null) {
-        fileName = docFile.name;
+      if (imageFile != null) {
+        fileName = imageFile.name;
         mediaUrl = await _messagingService.uploadChatMedia(
-          docFile.path!,
-          folder: 'files',
+          imageFile.path,
+          folder: 'images',
+        );
+        messageType = MessageType.image;
+      } else if (videoFile != null) {
+        fileName = videoFile.path.split(Platform.pathSeparator).last;
+        mediaUrl = await _messagingService.uploadChatMedia(
+          videoFile.path,
+          folder: 'videos',
         );
         messageType = MessageType.document;
-        fileSize = docFile.size;
-        mimeType = docFile.extension;
+      } else if (docFile != null) {
+        if (docFile.path != null) {
+          fileName = docFile.name;
+          mediaUrl = await _messagingService.uploadChatMedia(
+            docFile.path!,
+            folder: 'files',
+          );
+          messageType = MessageType.document;
+          fileSize = docFile.size;
+          mimeType = docFile.extension;
+        }
+      } else if (audioFile != null) {
+        fileName = audioFile.path.split(Platform.pathSeparator).last;
+        mediaUrl = await _messagingService.uploadChatMedia(
+          audioFile.path,
+          folder: 'audio',
+        );
+        messageType = MessageType.voice;
       }
-    } else if (audioFile != null) {
-      fileName = audioFile.path.split(Platform.pathSeparator).last;
-      // Remove 'compressed_' or 'audio_' prefix if we want the 'original' look, 
-      // but splitting the path is the most reliable way to get the actual name.
-      mediaUrl = await _messagingService.uploadChatMedia(
-        audioFile.path,
-        folder: 'audio',
-      );
-      messageType = MessageType.voice;
-    }
 
       // Always generate a fallback RSA encrypted copy for BOTH sender and recipient
       if (EncryptionService.isEnabled && content.isNotEmpty) {
         try {
           final recipientId = widget.otherUserId ?? _otherUserId;
+          final List<String> publicKeys = [];
 
-          // Get both public keys
-          final profilesResponse =
-              await Supabase.instance.client
+          // Try cache first
+          final cachedRecipientPk = _publicKeyCache[recipientId];
+          final cachedSenderPk = _publicKeyCache[userId];
+
+          if (cachedRecipientPk != null) publicKeys.add(cachedRecipientPk);
+          if (cachedSenderPk != null) publicKeys.add(cachedSenderPk);
+
+          // If either is missing, fetch and update cache
+          if (publicKeys.length < 2) {
+            final idsToFetch = <String>[];
+            if (cachedRecipientPk == null) idsToFetch.add(recipientId!);
+            if (cachedSenderPk == null) idsToFetch.add(userId);
+
+            if (idsToFetch.isNotEmpty) {
+              final profilesResponse = await Supabase.instance.client
                   .from('profiles')
                   .select('id, public_key')
-                  .inFilter('id', [userId, recipientId]);
+                  .inFilter('id', idsToFetch);
 
-          final List<String> publicKeys = [];
-          for (var profile in profilesResponse) {
-            final pk = profile['public_key'] as String?;
-            if (pk != null) publicKeys.add(pk);
+              for (var profile in profilesResponse) {
+                final pk = profile['public_key'] as String?;
+                final id = profile['id'] as String;
+                if (pk != null) {
+                  _publicKeyCache[id] = pk;
+                  if (!publicKeys.contains(pk)) publicKeys.add(pk);
+                }
+              }
+            }
           }
 
           if (publicKeys.isNotEmpty) {
@@ -1028,8 +1084,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             );
             signalSenderContent = fallbackEncryption.encryptedContent;
 
-            // If using Signal, we store the RSA-encrypted keys in the existing fields
-            // so both users can use them as a fallback.
             if (usedSignal) {
               encryptedKeys = fallbackEncryption.encryptedKeys;
               iv = fallbackEncryption.iv;
@@ -1041,7 +1095,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       }
 
       // Send message
-      await _messagingService.sendMessage(
+      final sentMessage = await _messagingService.sendMessage(
         conversationId: widget.conversationId,
         senderId: userId,
         content: finalContent ?? '',
@@ -1059,6 +1113,23 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         replyToId: _replyMessage?.id,
       );
 
+      // Replace optimistic message with the real one to avoid double-showing and ensure correct ID
+      if (optimisticMessage != null && mounted) {
+        setState(() {
+          final index = _messages.indexWhere((m) => m.id == optimisticMessage!.id);
+          if (index >= 0) {
+            // Decrypt the sent message locally so it shows nicely
+            _decryptSingleMessage(sentMessage).then((decrypted) {
+              if (mounted) {
+                setState(() {
+                  _messages[index] = decrypted;
+                });
+              }
+            });
+          }
+        });
+      }
+
       // Clear reply state
       setState(() {
         _replyMessage = null;
@@ -1067,25 +1138,30 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       // Refresh DM list preview in provider
       if (mounted) {
         final conversationProvider = context.read<ConversationProvider>();
-        // 1. Update locally for immediate rearrangement and preview update
         conversationProvider.onMessageSent(
           widget.conversationId, 
           content,
           messageType.name,
         );
-        // 2. Fetch full details from server after a short delay to ensure DB triggers finished
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) conversationProvider.refreshConversation(widget.conversationId);
         });
       }
       _saveMessagesToCache();
     } catch (e) {
+      // Remove optimistic message on failure
+      if (optimisticMessage != null && mounted) {
+        setState(() {
+          _messages.removeWhere((m) => m.id == optimisticMessage!.id);
+        });
+      }
       _showError('Error: ${e.toString()}');
     } finally {
       if (mounted) {
         setState(() => _isSending = false);
       }
     }
+
   }
 
   Future<void> _unsendMessage(Message message) async {

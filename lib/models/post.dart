@@ -152,10 +152,10 @@ class Post {
       communityName: json['community_name'] as String?,
       timestamp:
           json['created_at'] != null
-              ? DateTime.parse(json['created_at'] as String)
+              ? DateTime.parse(json['created_at'] as String).toUtc()
               : (json['timestamp'] != null
-                   ? DateTime.parse(json['timestamp'] as String)
-                   : DateTime.now()),
+                   ? DateTime.parse(json['timestamp'] as String).toUtc()
+                   : DateTime.now().toUtc()),
       likes: isLiked ? (rawLikes > 0 ? rawLikes : 1) : rawLikes,
       comments: json['comments_count'] as int? ?? json['comments'] as int? ?? 0,
       shares: json['shares_count'] as int? ?? json['shares'] as int? ?? 0,

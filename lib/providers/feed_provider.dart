@@ -330,6 +330,22 @@ class FeedProvider with ChangeNotifier {
     }
   }
 
+  /// Update a specific post in the feed
+  void updatePost(Post updatedPost) {
+    void updateList(List<Post> posts) {
+      for (int i = 0; i < posts.length; i++) {
+        if (posts[i].id == updatedPost.id) {
+          posts[i] = updatedPost;
+          break;
+        }
+      }
+    }
+
+    updateList(_forYouPosts);
+    updateList(_followingPosts);
+    notifyListeners();
+  }
+
   /// Update comment count for a post
   void updatePostCommentCount(String postId, int newCount) {
     void updateList(List<Post> posts) {

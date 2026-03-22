@@ -9,6 +9,7 @@ void main() {
       bool isEphemeral = false,
       DateTime? timestamp,
       DateTime? readAt,
+      DateTime? anyReadAt,
       bool isRead = false,
       int ephemeralDuration = 86400,
     }) {
@@ -24,6 +25,7 @@ void main() {
         ephemeralDuration: ephemeralDuration,
         isRead: isRead,
         readAt: readAt,
+        anyReadAt: anyReadAt ?? readAt, // Default to readAt if not provided
       );
     }
 

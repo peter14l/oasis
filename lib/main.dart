@@ -354,8 +354,16 @@ class _MyAppState extends State<MyApp> {
                   if (userSettings.meshEnabled) {
                     return MeshGradientBackground(child: childWidget);
                   } else {
+                    final isDark = themeProvider.themeMode == ThemeMode.dark ||
+                        (themeProvider.themeMode == ThemeMode.system &&
+                            MediaQuery.platformBrightnessOf(context) ==
+                                Brightness.dark);
+
                     return Container(
-                      color: const Color(0xFF080A0E),
+                      color:
+                          isDark
+                              ? const Color(0xFF080A0E)
+                              : const Color(0xFFF8F9FA),
                       child: childWidget,
                     );
                   }

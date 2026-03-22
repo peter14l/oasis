@@ -15,6 +15,7 @@ import 'package:oasis_v2/screens/settings/storage_usage_screen.dart';
 import 'package:oasis_v2/screens/settings/font_size_screen.dart';
 import 'package:oasis_v2/screens/settings/help_support_screen.dart';
 import 'package:oasis_v2/screens/messages/encryption_setup_screen.dart';
+import 'package:oasis_v2/screens/oasis_pro_screen.dart';
 import 'package:oasis_v2/screens/moderation/moderation_screens.dart'; // For BlockedUsersScreen
 import 'package:oasis_v2/providers/user_settings_provider.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
@@ -45,6 +46,18 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   SettingsCategory _selectedCategory = SettingsCategory.account;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      if (authService.currentUser != null) {
+        Provider.of<ProfileProvider>(context, listen: false)
+            .loadCurrentProfile(authService.currentUser!.id);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -323,7 +336,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildProfileSection(BuildContext context) {
     final authService = Provider.of<AuthService>(context, listen: false);
-    final profileService = ProfileService();
+    final profileProvider = Provider.of<ProfileProvider>(context);
+    final profile = profileProvider.currentProfile;
     final user = authService.currentUser;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -333,107 +347,133 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        FutureBuilder(
-          future: profileService.getProfile(user.id),
-          builder: (context, snapshot) {
-            final profile = snapshot.data;
-            return Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    colorScheme.primaryContainer,
-                    colorScheme.secondaryContainer,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
+        if (profileProvider.isLoading && profile == null)
+          const Center(child: CircularProgressIndicator())
+        else if (profile != null)
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  colorScheme.primaryContainer,
+                  colorScheme.secondaryContainer,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundImage:
-                            profile?.avatarUrl != null
-                                ? CachedNetworkImageProvider(profile!.avatarUrl!)
-                                : null,
-                        child:
-                            profile?.avatarUrl == null
-                                ? Text(
-                                  profile?.username
-                                          .substring(0, 1)
-                                          .toUpperCase() ??
-                                      'U',
-                                  style: theme.textTheme.headlineMedium,
-                                )
-                                : null,
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundImage:
+                          profile.avatarUrl != null
+                              ? CachedNetworkImageProvider(profile.avatarUrl!)
+                              : null,
+                      child:
+                          profile.avatarUrl == null
+                              ? Text(
+                                profile.username.substring(0, 1).toUpperCase(),
+                                style: theme.textTheme.headlineMedium,
+                              )
+                              : null,
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  profile.username,
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.onPrimaryContainer,
+                                  ),
+                                ),
+                              ),
+                              if (profile.isPro)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.amber,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Text(
+                                    'PRO',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          if (profile.fullName != null)
                             Text(
-                              profile?.username ?? user.email,
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
+                              profile.fullName!,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onPrimaryContainer
+                                    .withValues(alpha: 0.8),
                               ),
                             ),
-                            if (profile?.fullName != null)
-                              Text(
-                                profile!.fullName!,
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                          ],
-                        ),
+                        ],
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined),
-                        onPressed: () => context.push('/edit-profile'),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined),
+                      color: colorScheme.onPrimaryContainer,
+                      onPressed: () => context.push('/edit-profile'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.onPrimaryContainer.withValues(
+                      alpha: 0.15,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildStatItem(
+                        context,
+                        '${profile.postsCount}',
+                        'Posts',
+                        colorScheme.onPrimaryContainer,
+                      ),
+                      _buildDivider(colorScheme.onPrimaryContainer),
+                      _buildStatItem(
+                        context,
+                        '${profile.followersCount}',
+                        'Followers',
+                        colorScheme.onPrimaryContainer,
+                      ),
+                      _buildDivider(colorScheme.onPrimaryContainer),
+                      _buildStatItem(
+                        context,
+                        '${profile.followingCount}',
+                        'Following',
+                        colorScheme.onPrimaryContainer,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStatItem(
-                          context,
-                          '${profile?.postsCount ?? 0}',
-                          'Posts',
-                          colorScheme.onPrimaryContainer,
-                        ),
-                        _buildDivider(colorScheme.onPrimaryContainer),
-                        _buildStatItem(
-                          context,
-                          '${profile?.followersCount ?? 0}',
-                          'Followers',
-                          colorScheme.onPrimaryContainer,
-                        ),
-                        _buildDivider(colorScheme.onPrimaryContainer),
-                        _buildStatItem(
-                          context,
-                          '${profile?.followingCount ?? 0}',
-                          'Following',
-                          colorScheme.onPrimaryContainer,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+                ),
+              ],
+            ),
+          ),
         const SizedBox(height: 24),
         _buildPremiumTile(context),
       ],
@@ -469,7 +509,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         onTap:
             () => Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => const SubscriptionScreen(),
+                builder: (context) => OasisProScreen(),
               ),
             ),
       ),
@@ -899,7 +939,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       title: Text(
         title,
-        style: theme.textTheme.bodyLarge?.copyWith(
+        style: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w500,
           color: textColor,
         ),

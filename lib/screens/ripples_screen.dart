@@ -198,18 +198,27 @@ class _RipplesScreenState extends State<RipplesScreen> {
             }
             return Transform(
               alignment: Alignment.center,
-              transform: Matrix4.identity()
-                ..setEntry(3, 2, 0.001)
-                ..scale(value)
-                ..rotateX((_pageController.position.haveDimensions ? _pageController.page! - index : 0) * 0.5),
+              transform:
+                  Matrix4.identity()
+                    ..setEntry(3, 2, 0.001)
+                    ..scale(value)
+                    ..rotateX(
+                      (_pageController.position.haveDimensions
+                              ? _pageController.page! - index
+                              : 0) *
+                          0.5,
+                    ),
               child: Opacity(
                 opacity: value,
                 child: Stack(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 80.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 0.0,
+                        vertical: 0.0,
+                      ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(30),
+                        borderRadius: BorderRadius.circular(0),
                         child: RippleVideoPlayer(
                           url: _ripples[index]['video_url'],
                           isPlaying: _currentIndex == index,
@@ -218,15 +227,13 @@ class _RipplesScreenState extends State<RipplesScreen> {
                     ),
                     if (_currentIndex == index)
                       Positioned(
-                        right: 24,
-                        bottom: 120,
-                        child: RippleInteractionBar(ripple: _ripples[index]),
+                        bottom: 90,
+                        left: 16,
+                        right: 16,
+                        child: Center(
+                          child: DynamicRipplePill(ripple: _ripples[index]),
+                        ),
                       ),
-                    Positioned(
-                      left: 32,
-                      bottom: 100,
-                      child: _buildRippleInfo(_ripples[index]),
-                    ),
                   ],
                 ),
               ),
@@ -251,9 +258,11 @@ class _RipplesScreenState extends State<RipplesScreen> {
         final ripple = _ripples[index];
         return GestureDetector(
           onTap: () {
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => FullScreenRippleView(ripple: ripple),
-            ));
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => FullScreenRippleView(ripple: ripple),
+              ),
+            );
           },
           child: ClipRRect(
             borderRadius: BorderRadius.circular(24),
@@ -268,21 +277,34 @@ class _RipplesScreenState extends State<RipplesScreen> {
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.transparent, Colors.black.withValues(alpha: 0.6)],
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.6),
+                        ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       ),
                     ),
                   ),
                 ),
-                const Center(child: Icon(FluentIcons.play_24_filled, color: Colors.white, size: 40)),
+                const Center(
+                  child: Icon(
+                    FluentIcons.play_24_filled,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                ),
                 Positioned(
                   left: 12,
                   bottom: 12,
                   right: 12,
                   child: Text(
                     ripple['profiles']['username'] ?? 'User',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -294,54 +316,18 @@ class _RipplesScreenState extends State<RipplesScreen> {
       },
     );
   }
-
-  Widget _buildRippleInfo(Map<String, dynamic> ripple) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          children: [
-            CircleAvatar(
-              radius: 16,
-              backgroundImage: ripple['profiles']['avatar_url'] != null
-                  ? NetworkImage(ripple['profiles']['avatar_url'])
-                  : null,
-              child: ripple['profiles']['avatar_url'] == null ? const Icon(Icons.person, size: 20) : null,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              ripple['profiles']['username'] ?? 'User',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-          ],
-        ),
-        if (ripple['caption'] != null) ...[
-          const SizedBox(height: 8),
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.6,
-            child: Text(
-              ripple['caption'],
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
 }
 
-class RippleInteractionBar extends StatefulWidget {
+class DynamicRipplePill extends StatefulWidget {
   final Map<String, dynamic> ripple;
-  const RippleInteractionBar({super.key, required this.ripple});
+  const DynamicRipplePill({super.key, required this.ripple});
 
   @override
-  State<RippleInteractionBar> createState() => _RippleInteractionBarState();
+  State<DynamicRipplePill> createState() => _DynamicRipplePillState();
 }
 
-class _RippleInteractionBarState extends State<RippleInteractionBar> {
+class _DynamicRipplePillState extends State<DynamicRipplePill> {
+  bool _isExpanded = false;
   bool _isLiked = false;
   bool _isSaved = false;
   late int _likesCount;
@@ -352,15 +338,18 @@ class _RippleInteractionBarState extends State<RippleInteractionBar> {
     super.initState();
     _likesCount = widget.ripple['likes_count'] ?? 0;
     _commentsCount = widget.ripple['comments_count'] ?? 0;
+    _isLiked = widget.ripple['is_liked'] ?? false;
+    _isSaved = widget.ripple['is_saved'] ?? false;
   }
 
-  void _showComments() {
-    showModalBottomSheet(
+  void _showComments() async {
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => RippleCommentsSheet(rippleId: widget.ripple['id']),
     );
+    // Ideally update comment count here if changed
   }
 
   void _shareRipple() {
@@ -373,59 +362,199 @@ class _RippleInteractionBarState extends State<RippleInteractionBar> {
     );
   }
 
+  void _toggleLike() {
+    final service = context.read<RipplesService>();
+    setState(() {
+      if (_isLiked) {
+        _likesCount--;
+        _isLiked = false;
+        service.unlikeRipple(widget.ripple['id']);
+      } else {
+        _likesCount++;
+        _isLiked = true;
+        service.likeRipple(widget.ripple['id']);
+      }
+      if (_likesCount < 0) _likesCount = 0;
+    });
+  }
+
+  void _toggleSave() {
+    final service = context.read<RipplesService>();
+    setState(() {
+      if (_isSaved) {
+        _isSaved = false;
+        service.unsaveRipple(widget.ripple['id']);
+      } else {
+        _isSaved = true;
+        service.saveRipple(widget.ripple['id']);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final service = context.read<RipplesService>();
-    return Column(
-      children: [
-        _buildActionButton(
-          icon: _isLiked ? FluentIcons.heart_24_filled : FluentIcons.heart_24_regular,
-          label: '$_likesCount',
-          color: _isLiked ? Colors.redAccent : Colors.white,
-          onTap: () {
-            setState(() {
-              _isLiked = !_isLiked;
-              _likesCount += _isLiked ? 1 : -1;
-              if (_likesCount < 0) _likesCount = 0;
-            });
-            service.likeRipple(widget.ripple['id']);
-          },
+    final username = widget.ripple['profiles']['username'] ?? 'User';
+    final avatarUrl = widget.ripple['profiles']['avatar_url'];
+    final caption = widget.ripple['caption'];
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _isExpanded = !_isExpanded;
+        });
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(32),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.1),
+                width: 1,
+              ),
+            ),
+            width: MediaQuery.of(context).size.width * 0.85,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top Row: Avatar & Text
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundImage:
+                          avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                      child:
+                          avatarUrl == null
+                              ? const Icon(Icons.person, size: 20)
+                              : null,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            username,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          if (caption != null)
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 200),
+                              crossFadeState:
+                                  _isExpanded
+                                      ? CrossFadeState.showSecond
+                                      : CrossFadeState.showFirst,
+                              firstChild: Text(
+                                caption,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  fontSize: 13,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              secondChild: Text(
+                                caption,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                // Expanded Action Row
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                  child: Container(
+                    height: _isExpanded ? null : 0,
+                    child: Opacity(
+                      opacity: _isExpanded ? 1.0 : 0.0,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildActionPill(
+                              icon:
+                                  _isLiked
+                                      ? FluentIcons.heart_24_filled
+                                      : FluentIcons.heart_24_regular,
+                              color: _isLiked ? Colors.redAccent : Colors.white,
+                              label: '$_likesCount',
+                              onTap: _toggleLike,
+                            ),
+                            _buildActionPill(
+                              icon: FluentIcons.comment_24_regular,
+                              label: '$_commentsCount',
+                              onTap: _showComments,
+                            ),
+                            _buildActionPill(
+                              icon:
+                                  _isSaved
+                                      ? FluentIcons.bookmark_24_filled
+                                      : FluentIcons.bookmark_24_regular,
+                              color:
+                                  _isSaved ? Colors.blueAccent : Colors.white,
+                              label: 'Save',
+                              onTap: _toggleSave,
+                            ),
+                            _buildActionPill(
+                              icon: FluentIcons.share_24_regular,
+                              label: 'Share',
+                              onTap: _shareRipple,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        _buildActionButton(
-          icon: FluentIcons.comment_24_regular,
-          label: '$_commentsCount',
-          onTap: _showComments,
-        ),
-        _buildActionButton(
-          icon: _isSaved ? FluentIcons.bookmark_24_filled : FluentIcons.bookmark_24_regular,
-          label: '',
-          onTap: () {
-            setState(() => _isSaved = !_isSaved);
-            service.saveRipple(widget.ripple['id']);
-          },
-        ),
-        _buildActionButton(
-          icon: FluentIcons.share_24_regular,
-          label: '',
-          onTap: _shareRipple,
-        ),
-      ],
+      ),
     );
   }
 
-  Widget _buildActionButton({required IconData icon, required String label, Color color = Colors.white, required VoidCallback onTap}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+  Widget _buildActionPill({
+    required IconData icon,
+    required String label,
+    Color color = Colors.white,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          GestureDetector(
-            onTap: onTap,
-            child: Icon(icon, color: color, size: 32),
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          if (label.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(label, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
-          ],
         ],
       ),
     );
@@ -561,29 +690,21 @@ class FullScreenRippleView extends StatelessWidget {
         children: [
           RippleVideoPlayer(url: ripple['video_url'], isPlaying: true),
           Positioned(
-            top: 40,
+            top: MediaQuery.of(context).padding.top + 10,
             left: 10,
             child: IconButton(
-              icon: const Icon(FluentIcons.chevron_left_24_filled, color: Colors.white),
+              icon: const Icon(
+                FluentIcons.chevron_left_24_filled,
+                color: Colors.white,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
           ),
           Positioned(
-            right: 24,
-            bottom: 100,
-            child: RippleInteractionBar(ripple: ripple),
-          ),
-          Positioned(
-            left: 24,
             bottom: 40,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(ripple['profiles']['username'] ?? 'User', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-                if (ripple['caption'] != null) Text(ripple['caption'], style: const TextStyle(color: Colors.white, fontSize: 14)),
-              ],
-            ),
+            left: 16,
+            right: 16,
+            child: Center(child: DynamicRipplePill(ripple: ripple)),
           ),
         ],
       ),
@@ -649,7 +770,7 @@ class _RippleVideoPlayerState extends State<RippleVideoPlayer> {
     
     return SizedBox.expand(
       child: FittedBox(
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
         child: SizedBox(
           width: _controller.value.size.width,
           height: _controller.value.size.height,
