@@ -13,6 +13,7 @@ import 'package:oasis_v2/providers/community_provider.dart';
 import 'package:oasis_v2/providers/user_settings_provider.dart';
 import 'package:oasis_v2/providers/typing_indicator_provider.dart';
 import 'package:oasis_v2/providers/notification_provider.dart';
+import 'package:oasis_v2/providers/presence_provider.dart';
 import 'package:oasis_v2/providers/capsule_provider.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:oasis_v2/providers/canvas_provider.dart';
@@ -204,13 +205,18 @@ void main() async {
                   ChangeNotifierProvider(
                     create: (_) => TypingIndicatorProvider(),
                   ),
+                  ChangeNotifierProvider(create: (_) => PresenceProvider()),
+                  ChangeNotifierProxyProvider<PresenceProvider, ConversationProvider>(
+                    create: (_) => ConversationProvider(),
+                    update: (context, presenceProvider, conversationProvider) =>
+                        conversationProvider!..updatePresenceProvider(presenceProvider),
+                  ),
                    ChangeNotifierProvider(create: (_) => NotificationProvider()),
-                  ChangeNotifierProvider(create: (_) => CapsuleProvider()),
-                  ChangeNotifierProvider(create: (_) => ConversationProvider()),
                   ChangeNotifierProvider(create: (_) => CallService()),
                   ChangeNotifierProvider(create: (_) => CanvasProvider()),
                   ChangeNotifierProvider(create: (_) => CircleProvider()),
                   ChangeNotifierProvider(create: (_) => RipplesService()),
+                  ChangeNotifierProvider(create: (_) => CapsuleProvider()),
                   ChangeNotifierProvider<VaultService>(
                     create: (_) => VaultService(),
                   ),
@@ -362,6 +368,7 @@ class _MyAppState extends State<MyApp> {
                 // Defer to next frame to avoid build-time state updates
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   context.read<NotificationProvider>().init(userId);
+                  context.read<PresenceProvider>().updateUserPresence(userId, 'online');
                   context.read<ConversationProvider>().initialize(userId);
                   context.read<ProfileProvider>().loadCurrentProfile(userId);
                   context.read<CircleProvider>().loadCircles(userId);

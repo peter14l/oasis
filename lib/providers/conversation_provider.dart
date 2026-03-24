@@ -6,12 +6,21 @@ import 'package:oasis_v2/services/messaging_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:oasis_v2/providers/presence_provider.dart';
+
 class ConversationProvider with ChangeNotifier {
   final MessagingService _messagingService = MessagingService();
+  PresenceProvider? _presenceProvider;
   
   List<Conversation> _conversations = [];
+  Set<String> _pinnedIds = {};
   bool _isLoading = false;
   String? _currentUserId;
+
+  void updatePresenceProvider(PresenceProvider presenceProvider) {
+    _presenceProvider = presenceProvider;
+    _setupPresenceSubscriptions();
+  }
   
   // Realtime subscriptions
   RealtimeChannel? _conversationsSubscription;
@@ -37,6 +46,11 @@ class ConversationProvider with ChangeNotifier {
     
     _currentUserId = userId;
     
+    // Load pinned IDs first
+    final prefs = await SharedPreferences.getInstance();
+    final pinnedList = prefs.getStringList('pinned_conversations_${_currentUserId}') ?? [];
+    _pinnedIds = pinnedList.toSet();
+
     // Load cache first
     await _loadCachedConversations();
     
@@ -57,7 +71,10 @@ class ConversationProvider with ChangeNotifier {
       final String? cachedData = prefs.getString('cached_conversations_${_currentUserId}');
       if (cachedData != null) {
         final List<dynamic> decodedData = jsonDecode(cachedData);
-        _conversations = decodedData.map((item) => Conversation.fromJson(item)).toList();
+        _conversations = decodedData.map((item) {
+          final c = Conversation.fromJson(item);
+          return c.copyWith(isPinned: _pinnedIds.contains(c.id));
+        }).toList();
         
         // Sort cached conversations
         _conversations.sort((a, b) {
@@ -104,8 +121,9 @@ class ConversationProvider with ChangeNotifier {
         return timeB.compareTo(timeA);
       });
 
-      _conversations = conversations;
+      _conversations = conversations.map((c) => c.copyWith(isPinned: _pinnedIds.contains(c.id))).toList();
       await _saveConversationsToCache();
+      _setupPresenceSubscriptions();
       
       // Setup individual subscriptions for each conversation
       for (final conversation in _conversations) {
@@ -175,11 +193,12 @@ class ConversationProvider with ChangeNotifier {
     try {
       final updatedConversation = await _messagingService.getConversationDetails(conversationId);
       
+      final c = updatedConversation.copyWith(isPinned: _pinnedIds.contains(updatedConversation.id));
       final index = _conversations.indexWhere((c) => c.id == conversationId);
       if (index != -1) {
-        _conversations[index] = updatedConversation;
+        _conversations[index] = c;
       } else {
-        _conversations.insert(0, updatedConversation);
+        _conversations.insert(0, c);
       }
 
       // Always re-sort to move the most recent conversation to the top
@@ -189,10 +208,19 @@ class ConversationProvider with ChangeNotifier {
         return timeB.compareTo(timeA);
       });
       
+      _conversations = List.from(_conversations);
+      _setupPresenceSubscriptions();
       notifyListeners();
       await _saveConversationsToCache();
     } catch (e) {
       debugPrint('Error refreshing conversation: $e');
+    }
+  }
+
+  void _setupPresenceSubscriptions() {
+    if (_presenceProvider == null || _conversations.isEmpty) return;
+    for (final conversation in _conversations) {
+      _presenceProvider!.subscribeToUserPresence(conversation.otherUserId);
     }
   }
 
@@ -228,6 +256,7 @@ class ConversationProvider with ChangeNotifier {
         return timeB.compareTo(timeA);
       });
 
+      _conversations = List.from(_conversations);
       notifyListeners();
       _saveConversationsToCache();
     } else {
@@ -247,6 +276,7 @@ class ConversationProvider with ChangeNotifier {
       final index = _conversations.indexWhere((c) => c.id == conversationId);
       if (index != -1) {
         _conversations[index] = _conversations[index].copyWith(unreadCount: 0);
+        _conversations = List.from(_conversations);
         notifyListeners();
       }
     } catch (e) {
@@ -266,13 +296,26 @@ class ConversationProvider with ChangeNotifier {
 
     // Optimistic update
     _conversations[index] = conversation.copyWith(isPinned: newPinnedStatus);
+    _conversations = List.from(_conversations);
     notifyListeners();
 
     try {
-      await _messagingService.pinConversation(conversationId, _currentUserId!, newPinnedStatus);
+      if (newPinnedStatus) {
+        _pinnedIds.add(conversationId);
+      } else {
+        _pinnedIds.remove(conversationId);
+      }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('pinned_conversations_${_currentUserId}', _pinnedIds.toList());
+      
       await _saveConversationsToCache();
     } catch (e) {
       // Revert on error
+      if (newPinnedStatus) {
+        _pinnedIds.remove(conversationId);
+      } else {
+        _pinnedIds.add(conversationId);
+      }
       _conversations[index] = conversation;
       notifyListeners();
       debugPrint('Error toggling pin: $e');
@@ -281,6 +324,13 @@ class ConversationProvider with ChangeNotifier {
 
   /// Clear all data (used during logout)
   Future<void> clear() async {
+    // Unsubscribe from presence
+    if (_presenceProvider != null) {
+      for (final conversation in _conversations) {
+        _presenceProvider!.unsubscribeFromUserPresence(conversation.otherUserId);
+      }
+    }
+
     // Stop subscriptions
     _conversationsSubscription?.unsubscribe();
     _conversationsSubscription = null;

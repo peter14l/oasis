@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:universal_io/io.dart';
 import 'package:oasis_v2/config/supabase_config.dart';
 import 'package:oasis_v2/models/notification.dart';
 import 'package:oasis_v2/services/supabase_service.dart';
@@ -149,10 +150,12 @@ class NotificationService {
                           .from(SupabaseConfig.profilesTable)
                           .select('username, avatar_url')
                           .eq('id', notificationData['actor_id'])
-                          .single();
+                          .maybeSingle();
 
-                  notificationData['actor_name'] = profile['username'];
-                  notificationData['actor_avatar'] = profile['avatar_url'];
+                  if (profile != null) {
+                    notificationData['actor_name'] = profile['username'];
+                    notificationData['actor_avatar'] = profile['avatar_url'];
+                  }
                 } catch (e) {
                   debugPrint('Could not fetch actor profile for notification: $e');
                 }
@@ -200,7 +203,7 @@ class NotificationService {
       });
     } catch (e) {
       debugPrint('Error creating notification: $e');
-      rethrow;
+      // Don't rethrow - notification failures should not crash the caller
     }
   }
 
@@ -236,6 +239,8 @@ class NotificationService {
   /// Update FCM token for the user
   Future<void> updateFcmToken(String userId) async {
     try {
+      if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) return;
+
       final fcmToken = await FirebaseMessaging.instance.getToken();
       if (fcmToken != null) {
         await _supabase

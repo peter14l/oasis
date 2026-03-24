@@ -47,7 +47,9 @@ import 'package:oasis_v2/models/call.dart';
 import 'package:oasis_v2/widgets/messages/forward_message_modal.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oasis_v2/widgets/dotted_border_painter.dart';
+import 'package:oasis_v2/widgets/messages/typing_indicator_widget.dart';
 import 'package:oasis_v2/providers/typing_indicator_provider.dart';
+import 'package:oasis_v2/providers/presence_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final String conversationId;
@@ -147,6 +149,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     
     _messageController.addListener(() {
       _textNotifier.value = _messageController.text;
+      
+      // Update typing status
+      final userId = _authService.currentUser?.id;
+      if (userId != null && _messageController.text.isNotEmpty) {
+        context.read<TypingIndicatorProvider>().setTyping(
+          widget.conversationId,
+          userId,
+          true,
+        );
+      }
     });
 
     _loadPersistedSettings();
@@ -163,6 +175,25 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
     _subscribeToCalls();
     _fetchConversationDetails();
+
+    // Subscribe to presence
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final otherId = widget.otherUserId ?? _otherUserId;
+      if (otherId != null) {
+        context.read<PresenceProvider>().subscribeToUserPresence(otherId);
+      }
+    });
+
+    // Subscribe to typing status
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userId = _authService.currentUser?.id;
+      if (userId != null) {
+        context.read<TypingIndicatorProvider>().subscribeToTypingStatus(
+          widget.conversationId,
+          userId,
+        );
+      }
+    });
   }
 
   DateTime? _lastResumeTime;
@@ -287,10 +318,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _vaultService = Provider.of<VaultService>(context, listen: false);
+    _typingIndicatorProvider = Provider.of<TypingIndicatorProvider>(context, listen: false);
+    _presenceProvider = Provider.of<PresenceProvider>(context, listen: false);
   }
 
   String? _otherUserName;
   String? _otherUserId;
+
+  // Cached provider references for safe use in dispose()
+  TypingIndicatorProvider? _typingIndicatorProvider;
+  PresenceProvider? _presenceProvider;
 
   @override
   void dispose() {
@@ -320,6 +357,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       SupabaseService().client.removeChannel(_conversationChannel!);
     }
     _callsSubscription?.cancel();
+
+    // Unsubscribe from typing status
+    _typingIndicatorProvider?.unsubscribeFromTypingStatus(widget.conversationId);
+
+    // Unsubscribe from presence
+    final otherId = widget.otherUserId ?? _otherUserId;
+    if (otherId != null) {
+      _presenceProvider?.unsubscribeFromUserPresence(otherId);
+    }
 
     // Lock chat if interval is set to On Chat Close
     if (_vaultService.getLockInterval(widget.conversationId) == 'chat_close') {
@@ -730,6 +776,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   anyReadAt: currentAnyReadAt,
                   isRead: isMe ? true : _messages[index].isRead,
                 );
+                
+                // NEW: Instant Vanish - if Whisper Mode and receiver read it, immediately remove from screen for both users
+                if (_messages[index].ephemeralDuration == 0) {
+                  _messages.removeAt(index);
+                  return; // Don't do further processing on this removed item
+                }
               }
 
               // Also update my own read status if I'm the one who read it
@@ -749,15 +801,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Future<void> _markAsRead() async {
     final userId = _authService.currentUser?.id;
     if (userId == null) return;
-    await _messagingService.markConversationAsRead(
-      widget.conversationId,
-      userId,
-    );
+    
+    // Find explicitly unread messages from the other user
+    final unreadMessageIds = _messages
+        .where((m) => m.senderId != userId && !m.isRead)
+        .map((m) => m.id)
+        .toList();
 
-    // Also update local state for messages sent by the other user
+    if (unreadMessageIds.isEmpty) return;
+
+    // Optimistically update UI
     setState(() {
       for (int i = 0; i < _messages.length; i++) {
-        if (_messages[i].senderId != userId && !_messages[i].isRead) {
+        if (unreadMessageIds.contains(_messages[i].id)) {
           _messages[i] = _messages[i].copyWith(
             isRead: true,
             readAt: DateTime.now(),
@@ -765,16 +821,46 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         }
       }
     });
+
+    try {
+      await _messagingService.markMessagesAsRead(
+        widget.conversationId,
+        unreadMessageIds,
+        userId,
+      );
+    } catch (e) {
+      debugPrint('Error marking messages as read: $e');
+    }
+  }
+
+  Future<String?> _getInitialDirectory() async {
+    if (Platform.isWindows) {
+      try {
+        final dir = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
+        return dir.path;
+      } catch (_) {}
+    }
+    return null;
   }
 
   Future<void> _pickImage() async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 70,
-      );
-      if (image != null) {
-        setState(() => _selectedImage = image);
+      if (Platform.isWindows) {
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.image,
+          initialDirectory: await _getInitialDirectory(),
+        );
+        if (result != null && result.files.single.path != null) {
+          setState(() => _selectedImage = XFile(result.files.single.path!));
+        }
+      } else {
+        final XFile? image = await _imagePicker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 70,
+        );
+        if (image != null) {
+          setState(() => _selectedImage = image);
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -787,7 +873,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   Future<void> _pickFile() async {
     try {
-      final result = await FilePicker.platform.pickFiles();
+      final result = await FilePicker.platform.pickFiles(
+        initialDirectory: await _getInitialDirectory(),
+      );
       if (result != null) {
         setState(() => _selectedFile = result.files.first);
         _sendMessage();
@@ -799,11 +887,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   Future<void> _pickVideo() async {
     try {
-      final XFile? video = await _imagePicker.pickVideo(
-        source: ImageSource.gallery,
-      );
-      if (video != null) {
-        setState(() => _selectedVideo = File(video.path));
+      if (Platform.isWindows) {
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.video,
+          initialDirectory: await _getInitialDirectory(),
+        );
+        if (result != null && result.files.single.path != null) {
+          setState(() => _selectedVideo = File(result.files.single.path!));
+        }
+      } else {
+        final XFile? video = await _imagePicker.pickVideo(
+          source: ImageSource.gallery,
+        );
+        if (video != null) {
+          setState(() => _selectedVideo = File(video.path));
+        }
       }
     } catch (e) {
       _showError('Error picking video: $e');
@@ -814,6 +912,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.audio,
+        initialDirectory: await _getInitialDirectory(),
       );
       if (result != null && result.files.single.path != null) {
         File audioFile = File(result.files.single.path!);
@@ -1017,7 +1116,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       );
       
       setState(() {
-        _messages.insert(0, optimisticMessage!);
+        _messages.add(optimisticMessage!);
       });
       _scrollToBottom();
     }
@@ -1219,13 +1318,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       // Replace optimistic message with the real one to avoid double-showing and ensure correct ID
       if (optimisticMessage != null && mounted) {
         setState(() {
-          final index = _messages.indexWhere((m) => m.id == optimisticMessage!.id);
-          if (index >= 0) {
-            // Decrypt the sent message locally so it shows nicely
+          _messages.removeWhere((m) => m.id == optimisticMessage!.id);
+          if (!_messages.any((m) => m.id == sentMessage.id)) {
             _decryptSingleMessage(sentMessage).then((decrypted) {
               if (mounted) {
                 setState(() {
-                  _messages[index] = decrypted;
+                  _messages.add(decrypted);
                 });
               }
             });
@@ -1262,6 +1360,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     } finally {
       if (mounted) {
         setState(() => _isSending = false);
+        _focusNode.requestFocus();
       }
     }
 
@@ -1703,18 +1802,24 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             )
                           : null,
                     ),
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: colorScheme.surface, width: 1.5),
-                        ),
-                      ),
+                    Consumer<PresenceProvider>(
+                      builder: (context, presenceProvider, child) {
+                        final otherId = widget.otherUserId ?? _otherUserId;
+                        final isOnline = otherId != null && presenceProvider.isUserOnline(otherId);
+                        return Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: isOnline ? Colors.green : Colors.grey,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: colorScheme.surface, width: 1.5),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -1731,34 +1836,34 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         letterSpacing: -0.2,
                       ),
                     ),
-                    if (_encryptionReady || _encryptionService.isInitialized)
-                      Row(
-                        children: [
-                          Icon(
-                            FluentIcons.lock_closed_12_filled,
-                            size: 10,
-                            color: colorScheme.primary.withValues(alpha: 0.7),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'End-to-end encrypted',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
+                    Consumer<PresenceProvider>(
+                      builder: (context, presenceProvider, child) {
+                        final otherId = widget.otherUserId ?? _otherUserId;
+                        final presence = otherId != null ? presenceProvider.getUserPresence(otherId) : null;
+                        final bool isOnline = presence?.status == 'online';
+                        
+                        return Row(
+                          children: [
+                            if (_encryptionReady || _encryptionService.isInitialized) ...[
+                              Icon(
+                                FluentIcons.lock_closed_12_filled,
+                                size: 10,
+                                color: colorScheme.primary.withValues(alpha: 0.7),
+                              ),
+                              const SizedBox(width: 4),
+                            ],
+                            Text(
+                              isOnline ? 'Online' : (presence?.lastSeen != null ? 'Last seen ${_formatSeenTime(presence!.lastSeen!)}' : 'Offline'),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: isOnline ? Colors.green.withValues(alpha: 0.8) : colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                        ],
-                      )
-                    else
-                      Text(
-                        'Online',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.green.withValues(alpha: 0.8),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                          ],
+                        );
+                      },
+                    ),
                   ],
                 ),
               ],
@@ -1875,6 +1980,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     _isLoading
                         ? ListView.builder(
                           reverse: true,
+                          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                           padding: EdgeInsets.only(
                             top:
                                 MediaQuery.of(context).padding.top +
@@ -1940,6 +2046,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         : ListView.builder(
                           reverse: true,
                           controller: _scrollController,
+                          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                           padding: EdgeInsets.only(
                             top:
                                 MediaQuery.of(context).padding.top +
@@ -2039,6 +2146,23 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Typing Indicator
+                      Consumer<TypingIndicatorProvider>(
+                        builder: (context, provider, child) {
+                          if (provider.isUserTyping(widget.conversationId)) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8, left: 8),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: TypingIndicatorWidget(
+                                  username: widget.otherUserName ?? _otherUserName ?? 'Someone',
+                                ),
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
                       // ── Whisper Mode pull-up trigger ──
                       GestureDetector(
                         behavior: HitTestBehavior.translucent,
@@ -2226,9 +2350,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                               child: TextField(
                                                 controller: _messageController,
                                                 focusNode: _focusNode,
-                                                onTapOutside: (event) => _focusNode.unfocus(),
-                                                onChanged: (val) {
-                                                  // Optimized: Only send typing indicator to DB, no full screen rebuild
+                                                onChanged: (val) {                                                  // Optimized: Only send typing indicator to DB, no full screen rebuild
                                                   final userId = _authService.currentUser?.id;
                                                   if (userId != null && val.isNotEmpty) {
                                                     context.read<TypingIndicatorProvider>().setTyping(

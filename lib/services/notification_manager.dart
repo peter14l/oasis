@@ -8,6 +8,7 @@ import 'package:win_toast/win_toast.dart';
 import 'package:oasis_v2/routes/app_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Cross-platform notification manager
 class NotificationManager {
@@ -136,12 +137,20 @@ class NotificationManager {
         }
 
         // Use win_toast for native Windows notifications
-        await WinToast.instance().showToast(
-          type: iconPath != null ? ToastType.imageAndText02 : ToastType.text02,
-          title: title,
-          subtitle: body,
-          imagePath: iconPath ?? '',
-        );
+        if (iconPath != null && iconPath.isNotEmpty) {
+          await WinToast.instance().showToast(
+            type: ToastType.imageAndText02,
+            title: title,
+            subtitle: body,
+            imagePath: iconPath,
+          );
+        } else {
+          await WinToast.instance().showToast(
+            type: ToastType.text02,
+            title: title,
+            subtitle: body,
+          );
+        }
       } catch (e) {
         debugPrint('NotificationManager (Windows - WinToast): Failed: $e');
       }
@@ -280,6 +289,28 @@ class NotificationManager {
     final messaging = FirebaseMessaging.instance;
 
     await messaging.requestPermission(alert: true, badge: true, sound: true);
+
+    try {
+      final token = await messaging.getToken();
+      if (token != null) {
+        final userId = Supabase.instance.client.auth.currentUser?.id;
+        if (userId != null) {
+          await Supabase.instance.client.from('profiles').update({'fcm_token': token}).eq('id', userId);
+        }
+      }
+      messaging.onTokenRefresh.listen((newToken) async {
+        final userId = Supabase.instance.client.auth.currentUser?.id;
+        if (userId != null) {
+          try {
+            await Supabase.instance.client.from('profiles').update({'fcm_token': newToken}).eq('id', userId);
+          } catch (e) {
+            debugPrint('Error updating refreshed FCM token: $e');
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('Failed to retrieve or save FCM token: $e');
+    }
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (message.notification != null) {

@@ -36,6 +36,9 @@ class NotificationProvider with ChangeNotifier {
         await _notificationManager.requestPermission();
       }
 
+      // Update FCM token for push notifications
+      await _notificationService.updateFcmToken(_userId!);
+
       await _loadNotifications();
       _subscribe();
     } else {

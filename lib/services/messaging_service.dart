@@ -15,9 +15,11 @@ class MessagingService {
   final _uuid = const Uuid();
   late final NotificationService _notificationService;
 
-  MessagingService({SupabaseClient? client, NotificationService? notificationService}) 
-      : _supabase = client ?? SupabaseService().client,
-        _notificationService = notificationService ?? NotificationService();
+  MessagingService({
+    SupabaseClient? client,
+    NotificationService? notificationService,
+  }) : _supabase = client ?? SupabaseService().client,
+       _notificationService = notificationService ?? NotificationService();
 
   /// Get user's conversations
   Future<List<Conversation>> getConversations({
@@ -38,9 +40,10 @@ class MessagingService {
       final List<Conversation> conversations = [];
       for (final item in response) {
         final conversationMap = Map<String, dynamic>.from(item);
-        
+
         // 1. Extract "other user" info from the all_participants list
-        if (conversationMap['type'] == 'direct' && conversationMap['all_participants'] != null) {
+        if (conversationMap['type'] == 'direct' &&
+            conversationMap['all_participants'] != null) {
           final participants = conversationMap['all_participants'] as List;
           final otherParticipant = participants.firstWhere(
             (p) => p['user_id'] != userId,
@@ -50,13 +53,16 @@ class MessagingService {
           if (otherParticipant != null && otherParticipant['profile'] != null) {
             final profile = otherParticipant['profile'];
             conversationMap['other_user_id'] = otherParticipant['user_id'];
-            conversationMap['other_user_name'] = profile['username'] ?? profile['full_name'] ?? 'Unknown';
+            conversationMap['other_user_name'] =
+                profile['username'] ?? profile['full_name'] ?? 'Unknown';
             conversationMap['other_user_avatar'] = profile['avatar_url'] ?? '';
           }
         } else {
           conversationMap['other_user_id'] = '';
-          conversationMap['other_user_name'] = conversationMap['name'] ?? 'Group Chat';
-          conversationMap['other_user_avatar'] = conversationMap['image_url'] ?? '';
+          conversationMap['other_user_name'] =
+              conversationMap['name'] ?? 'Group Chat';
+          conversationMap['other_user_avatar'] =
+              conversationMap['image_url'] ?? '';
         }
 
         // Initialize last_message_time from sort_time (which is the true latest activity)
@@ -70,7 +76,10 @@ class MessagingService {
 
           // Decryption Logic
           try {
-            if (isSender && lastMsgData['msg_signal_sender_content'] != null && lastMsgData['msg_encrypted_keys'] != null && lastMsgData['msg_iv'] != null) {
+            if (isSender &&
+                lastMsgData['msg_signal_sender_content'] != null &&
+                lastMsgData['msg_encrypted_keys'] != null &&
+                lastMsgData['msg_iv'] != null) {
               final decrypted = await EncryptionService().decryptMessage(
                 lastMsgData['msg_signal_sender_content'],
                 Map<String, String>.from(lastMsgData['msg_encrypted_keys']),
@@ -84,8 +93,11 @@ class MessagingService {
                 content,
                 lastMsgData['msg_signal_type'],
               );
-              
-              if (content.contains('🔒') && lastMsgData['msg_encrypted_keys'] != null && lastMsgData['msg_iv'] != null && lastMsgData['msg_signal_sender_content'] != null) {
+
+              if (content.contains('🔒') &&
+                  lastMsgData['msg_encrypted_keys'] != null &&
+                  lastMsgData['msg_iv'] != null &&
+                  lastMsgData['msg_signal_sender_content'] != null) {
                 final rsaDecrypted = await EncryptionService().decryptMessage(
                   lastMsgData['msg_signal_sender_content'],
                   Map<String, String>.from(lastMsgData['msg_encrypted_keys']),
@@ -93,7 +105,8 @@ class MessagingService {
                 );
                 if (rsaDecrypted != null) content = rsaDecrypted;
               }
-            } else if (lastMsgData['msg_encrypted_keys'] != null && lastMsgData['msg_iv'] != null) {
+            } else if (lastMsgData['msg_encrypted_keys'] != null &&
+                lastMsgData['msg_iv'] != null) {
               final decrypted = await EncryptionService().decryptMessage(
                 content,
                 Map<String, String>.from(lastMsgData['msg_encrypted_keys']),
@@ -107,13 +120,21 @@ class MessagingService {
 
           conversationMap['last_message'] = content;
           conversationMap['last_message_sender_id'] = lastMsgData['sender_id'];
-          
+
           // Type detection
           String messageType = 'text';
-          if (lastMsgData['msg_voice_url'] != null && lastMsgData['msg_voice_url'].toString().isNotEmpty) messageType = 'voice';
-          else if (lastMsgData['msg_image_url'] != null && lastMsgData['msg_image_url'].toString().isNotEmpty) messageType = 'image';
-          else if (lastMsgData['msg_video_url'] != null && lastMsgData['msg_video_url'].toString().isNotEmpty) messageType = 'video';
-          else if (lastMsgData['msg_file_url'] != null && lastMsgData['msg_file_url'].toString().isNotEmpty) messageType = 'document';
+          if (lastMsgData['msg_voice_url'] != null &&
+              lastMsgData['msg_voice_url'].toString().isNotEmpty)
+            messageType = 'voice';
+          else if (lastMsgData['msg_image_url'] != null &&
+              lastMsgData['msg_image_url'].toString().isNotEmpty)
+            messageType = 'image';
+          else if (lastMsgData['msg_video_url'] != null &&
+              lastMsgData['msg_video_url'].toString().isNotEmpty)
+            messageType = 'video';
+          else if (lastMsgData['msg_file_url'] != null &&
+              lastMsgData['msg_file_url'].toString().isNotEmpty)
+            messageType = 'document';
           conversationMap['last_message_type'] = messageType;
         }
 
@@ -149,9 +170,10 @@ class MessagingService {
   /// Clean up Instagram-style vanish mode messages
   Future<void> cleanupVanishModeMessages(String conversationId) async {
     try {
-      await _supabase.rpc('cleanup_vanish_mode_messages', params: {
-        'p_conversation_id': conversationId
-      });
+      await _supabase.rpc(
+        'cleanup_vanish_mode_messages',
+        params: {'p_conversation_id': conversationId},
+      );
     } catch (e) {
       debugPrint('Error cleaning up vanish mode messages: $e');
     }
@@ -169,21 +191,27 @@ class MessagingService {
       if (userId == null) throw Exception('Not authenticated');
 
       // Lazy cleanup of read vanish mode messages (Instagram style)
-      _supabase.rpc('cleanup_vanish_mode_messages', params: {
-        'p_conversation_id': conversationId
-      }).catchError((e) => debugPrint('Vanish mode cleanup error: $e'));
+      _supabase
+          .rpc(
+            'cleanup_vanish_mode_messages',
+            params: {'p_conversation_id': conversationId},
+          )
+          .catchError((e) => debugPrint('Vanish mode cleanup error: $e'));
 
       // Fetch cleared_at timestamp for this user in this conversation
-      final participantResponse = await _supabase
-          .from('conversation_participants')
-          .select('cleared_at')
-          .eq('conversation_id', conversationId)
-          .eq('user_id', userId)
-          .maybeSingle();
+      final participantResponse =
+          await _supabase
+              .from('conversation_participants')
+              .select('cleared_at')
+              .eq('conversation_id', conversationId)
+              .eq('user_id', userId)
+              .maybeSingle();
 
-      final clearedAt = participantResponse != null && participantResponse['cleared_at'] != null
-          ? DateTime.parse(participantResponse['cleared_at'])
-          : null;
+      final clearedAt =
+          participantResponse != null &&
+                  participantResponse['cleared_at'] != null
+              ? DateTime.parse(participantResponse['cleared_at'])
+              : null;
 
       var query = _supabase
           .from(SupabaseConfig.messagesTable)
@@ -213,7 +241,7 @@ class MessagingService {
             media_views:message_media_views!left(view_count)
           ''')
           .eq('conversation_id', conversationId);
-      
+
       // Filter for current user's media views specifically if we can't do it in the join
       // Actually, we'll map it in the loop below.
 
@@ -277,7 +305,9 @@ class MessagingService {
             final senderId = messages[msgIndex].senderId;
             if (userId != senderId) {
               if (!firstReadMap.containsKey(messageId) ||
-                  DateTime.parse(readAt).isBefore(DateTime.parse(firstReadMap[messageId]!))) {
+                  DateTime.parse(
+                    readAt,
+                  ).isBefore(DateTime.parse(firstReadMap[messageId]!))) {
                 firstReadMap[messageId] = readAt;
               }
             }
@@ -352,13 +382,10 @@ class MessagingService {
       // Calculate expiration based on message's duration
       final duration = Duration(seconds: message.ephemeralDuration);
 
-      // Duration 0 (Vanish instantly on reopen - Instagram style)
+      // Duration 0 (Vanish instantly)
       if (message.ephemeralDuration == 0) {
-        if (sessionStart != null) {
-          // Keep it visible if it was read DURING this session
-          return seenAt.isAfter(sessionStart);
-        }
-        // If no session start provided (e.g. background check), we assume it's "old"
+        // Since the requirement is "vanish instantly on seen", we return false
+        // immediately when 'seenAt' is populated, rather than waiting for session reopen.
         return false;
       }
 
@@ -523,22 +550,24 @@ class MessagingService {
             .neq('user_id', senderId);
 
         // Fetch sender's profile for the notification title
-        final senderProfile = await _supabase
-            .from(SupabaseConfig.profilesTable)
-            .select('username')
-            .eq('id', senderId)
-            .single();
-            
+        final senderProfile =
+            await _supabase
+                .from(SupabaseConfig.profilesTable)
+                .select('username')
+                .eq('id', senderId)
+                .single();
+
         final senderName = senderProfile['username'] ?? 'Someone';
 
         for (final participant in participantsResponse) {
           final recipientId = participant['user_id'] as String;
-          
+
           // Use a placeholder for encrypted messages in notifications
-          final notificationMessage = (encryptedKeys != null || signalMessageType != null)
-              ? '🔒 Encrypted Message'
-              : content;
-          
+          final notificationMessage =
+              (encryptedKeys != null || signalMessageType != null)
+                  ? '🔒 Encrypted Message'
+                  : content;
+
           await _notificationService.createNotification(
             userId: recipientId,
             type: 'dm',
@@ -651,9 +680,10 @@ class MessagingService {
 
               // If it's a reply, fetch the replied message details
               if (messageData['reply_to_id'] != null) {
-                final replyResponse = await _supabase
-                    .from(SupabaseConfig.messagesTable)
-                    .select('''
+                final replyResponse =
+                    await _supabase
+                        .from(SupabaseConfig.messagesTable)
+                        .select('''
                       id,
                       content,
                       sender_id,
@@ -669,9 +699,9 @@ class MessagingService {
                         username
                       )
                     ''')
-                    .eq('id', messageData['reply_to_id'])
-                    .maybeSingle();
-                
+                        .eq('id', messageData['reply_to_id'])
+                        .maybeSingle();
+
                 if (replyResponse != null) {
                   messageData['reply_to'] = replyResponse;
                 }
@@ -704,20 +734,22 @@ class MessagingService {
   Future<void> deleteMessage(String messageId) async {
     try {
       // First, get message details to check for media
-      final messageResponse = await _supabase
-          .from(SupabaseConfig.messagesTable)
-          .select('image_url, video_url, file_url, voice_url')
-          .eq('id', messageId)
-          .maybeSingle();
+      final messageResponse =
+          await _supabase
+              .from(SupabaseConfig.messagesTable)
+              .select('image_url, video_url, file_url, voice_url')
+              .eq('id', messageId)
+              .maybeSingle();
 
       if (messageResponse != null) {
         // Collect all potential media URLs
-        final mediaUrls = [
-          messageResponse['image_url'],
-          messageResponse['video_url'],
-          messageResponse['file_url'],
-          messageResponse['voice_url'],
-        ].where((url) => url != null && url.toString().isNotEmpty).toList();
+        final mediaUrls =
+            [
+              messageResponse['image_url'],
+              messageResponse['video_url'],
+              messageResponse['file_url'],
+              messageResponse['voice_url'],
+            ].where((url) => url != null && url.toString().isNotEmpty).toList();
 
         // Delete from database first
         await _supabase
@@ -733,11 +765,13 @@ class MessagingService {
             // Expected path: /storage/v1/object/public/bucket-name/folder/filename
             // Segments: [storage, v1, object, public, bucket-name, folder, user-id, folder, filename]
             // This is complex to parse reliably from URL, but usually it's after the bucket name
-            
+
             final bucketName = SupabaseConfig.messageAttachmentsBucket;
             final bucketIndex = pathSegments.indexOf(bucketName);
             if (bucketIndex != -1 && bucketIndex < pathSegments.length - 1) {
-              final storagePath = pathSegments.sublist(bucketIndex + 1).join('/');
+              final storagePath = pathSegments
+                  .sublist(bucketIndex + 1)
+                  .join('/');
               await _supabase.storage.from(bucketName).remove([storagePath]);
               debugPrint('Deleted storage object: $storagePath');
             }
@@ -771,7 +805,8 @@ class MessagingService {
           ),
           callback: (payload) {
             if (payload.newRecord.isNotEmpty) {
-              final conversationId = payload.newRecord['conversation_id'] as String;
+              final conversationId =
+                  payload.newRecord['conversation_id'] as String;
               onUpdate(conversationId);
             }
           },
@@ -878,10 +913,7 @@ class MessagingService {
       // Update conversation's last message and timestamp to null
       await _supabase
           .from(SupabaseConfig.conversationsTable)
-          .update({
-            'last_message_id': null,
-            'last_message_at': null,
-          })
+          .update({'last_message_id': null, 'last_message_at': null})
           .eq('id', conversationId);
     } catch (e) {
       debugPrint('Error clearing conversation messages: $e');
@@ -909,7 +941,10 @@ class MessagingService {
   }
 
   /// Update chat background for all participants
-  Future<void> updateChatBackground(String conversationId, String? backgroundUrl) async {
+  Future<void> updateChatBackground(
+    String conversationId,
+    String? backgroundUrl,
+  ) async {
     try {
       // Fetch all participants
       final participants = await _supabase
@@ -1031,6 +1066,42 @@ class MessagingService {
     }
   }
 
+  /// Mark specific messages as read
+  Future<void> markMessagesAsRead(
+    String conversationId,
+    List<String> messageIds,
+    String userId,
+  ) async {
+    try {
+      if (messageIds.isEmpty) return;
+
+      // Reset unread count
+      await _supabase.rpc(
+        'reset_unread_count',
+        params: {'p_conversation_id': conversationId, 'p_user_id': userId},
+      );
+
+      // Create read receipts for the specific messages
+      final readReceipts = messageIds
+          .map(
+            (id) => {
+              'message_id': id,
+              'user_id': userId,
+              'read_at': DateTime.now().toIso8601String(),
+            },
+          )
+          .toList();
+
+      // Use upsert to avoid duplicates
+      await _supabase
+          .from(SupabaseConfig.messageReadReceiptsTable)
+          .upsert(readReceipts, onConflict: 'message_id,user_id');
+    } catch (e) {
+      debugPrint('Error marking messages as read: $e');
+      rethrow;
+    }
+  }
+
   /// Mark all messages in conversation as read
   Future<void> markConversationAsRead(
     String conversationId,
@@ -1075,6 +1146,24 @@ class MessagingService {
     }
   }
 
+  /// Pin or unpin a conversation for the current user
+  Future<void> pinConversation(
+    String conversationId,
+    String userId,
+    bool isPinned,
+  ) async {
+    try {
+      await _supabase
+          .from(SupabaseConfig.conversationParticipantsTable)
+          .update({'is_pinned': isPinned})
+          .eq('conversation_id', conversationId)
+          .eq('user_id', userId);
+    } catch (e) {
+      debugPrint('Error pinning conversation: $e');
+      rethrow;
+    }
+  }
+
   /// Increment media view count for a user
   Future<void> incrementMediaViewCount(String messageId) async {
     try {
@@ -1082,14 +1171,16 @@ class MessagingService {
       if (userId == null) return;
 
       // Get current view count
-      final response = await _supabase
-          .from('message_media_views')
-          .select('view_count')
-          .eq('message_id', messageId)
-          .eq('user_id', userId)
-          .maybeSingle();
+      final response =
+          await _supabase
+              .from('message_media_views')
+              .select('view_count')
+              .eq('message_id', messageId)
+              .eq('user_id', userId)
+              .maybeSingle();
 
-      final currentCount = response != null ? (response['view_count'] as int? ?? 0) : 0;
+      final currentCount =
+          response != null ? (response['view_count'] as int? ?? 0) : 0;
 
       await _supabase.from('message_media_views').upsert({
         'message_id': messageId,
@@ -1111,20 +1202,6 @@ class MessagingService {
           .eq('id', conversationId);
     } catch (e) {
       debugPrint('Error toggling whisper mode: $e');
-      rethrow;
-    }
-  }
-
-  /// Pin/Unpin a conversation for a user
-  Future<void> pinConversation(String conversationId, String userId, bool isPinned) async {
-    try {
-      await _supabase
-          .from('conversation_participants')
-          .update({'is_pinned': isPinned})
-          .eq('conversation_id', conversationId)
-          .eq('user_id', userId);
-    } catch (e) {
-      debugPrint('Error pinning conversation: $e');
       rethrow;
     }
   }
@@ -1185,12 +1262,13 @@ class MessagingService {
       final currentUserId = _supabase.auth.currentUser?.id;
       if (currentUserId == null) return false;
 
-      final response = await _supabase
-          .from('blocked_users')
-          .select('id')
-          .eq('blocker_id', currentUserId)
-          .eq('blocked_id', otherUserId)
-          .maybeSingle();
+      final response =
+          await _supabase
+              .from('blocked_users')
+              .select('id')
+              .eq('blocker_id', currentUserId)
+              .eq('blocked_id', otherUserId)
+              .maybeSingle();
 
       return response != null;
     } catch (e) {
@@ -1200,15 +1278,19 @@ class MessagingService {
   }
 
   /// Get the other participant's ID in a direct conversation
-  Future<String?> _getRecipientId(String conversationId, String senderId) async {
+  Future<String?> _getRecipientId(
+    String conversationId,
+    String senderId,
+  ) async {
     try {
-      final response = await _supabase
-          .from('conversation_participants')
-          .select('user_id')
-          .eq('conversation_id', conversationId)
-          .neq('user_id', senderId)
-          .maybeSingle();
-      
+      final response =
+          await _supabase
+              .from('conversation_participants')
+              .select('user_id')
+              .eq('conversation_id', conversationId)
+              .neq('user_id', senderId)
+              .maybeSingle();
+
       return response?['user_id'] as String?;
     } catch (e) {
       return null;
@@ -1218,13 +1300,14 @@ class MessagingService {
   /// Check if sender is blocked by recipient
   Future<bool> _isBlockedBy(String recipientId, String senderId) async {
     try {
-      final response = await _supabase
-          .from('blocked_users')
-          .select('id')
-          .eq('blocker_id', recipientId)
-          .eq('blocked_id', senderId)
-          .maybeSingle();
-      
+      final response =
+          await _supabase
+              .from('blocked_users')
+              .select('id')
+              .eq('blocker_id', recipientId)
+              .eq('blocked_id', senderId)
+              .maybeSingle();
+
       return response != null;
     } catch (e) {
       return false;
@@ -1262,15 +1345,19 @@ class MessagingService {
               .single();
 
       final conversationMap = Map<String, dynamic>.from(response);
-      
+
       // Extract unread count and cleared_at
       final myInfo = conversationMap['my_participant_info'] as List;
-      conversationMap['unread_count'] = myInfo.isNotEmpty ? (myInfo[0]['unread_count'] ?? 0) : 0;
-      final clearedAtStr = myInfo.isNotEmpty ? myInfo[0]['cleared_at'] as String? : null;
-      final clearedAt = clearedAtStr != null ? DateTime.parse(clearedAtStr) : null;
+      conversationMap['unread_count'] =
+          myInfo.isNotEmpty ? (myInfo[0]['unread_count'] ?? 0) : 0;
+      final clearedAtStr =
+          myInfo.isNotEmpty ? myInfo[0]['cleared_at'] as String? : null;
+      final clearedAt =
+          clearedAtStr != null ? DateTime.parse(clearedAtStr) : null;
 
       // Extract "other user" info
-      if (conversationMap['type'] == 'direct' && conversationMap['all_participants'] != null) {
+      if (conversationMap['type'] == 'direct' &&
+          conversationMap['all_participants'] != null) {
         final participants = conversationMap['all_participants'] as List;
         final otherParticipant = participants.firstWhere(
           (p) => p['user_id'] != userId,
@@ -1280,19 +1367,23 @@ class MessagingService {
         if (otherParticipant != null && otherParticipant['profile'] != null) {
           final profile = otherParticipant['profile'];
           conversationMap['other_user_id'] = otherParticipant['user_id'];
-          conversationMap['other_user_name'] = profile['username'] ?? profile['full_name'] ?? 'Unknown';
+          conversationMap['other_user_name'] =
+              profile['username'] ?? profile['full_name'] ?? 'Unknown';
           conversationMap['other_user_avatar'] = profile['avatar_url'] ?? '';
         }
       } else {
         conversationMap['other_user_id'] = '';
-        conversationMap['other_user_name'] = conversationMap['name'] ?? 'Group Chat';
-        conversationMap['other_user_avatar'] = conversationMap['image_url'] ?? '';
+        conversationMap['other_user_name'] =
+            conversationMap['name'] ?? 'Group Chat';
+        conversationMap['other_user_avatar'] =
+            conversationMap['image_url'] ?? '';
       }
 
       // 2. Fetch the TRUE latest message directly from messages table (bulletproof)
-      final lastMsgResponse = await _supabase
-          .from(SupabaseConfig.messagesTable)
-          .select('''
+      final lastMsgResponse =
+          await _supabase
+              .from(SupabaseConfig.messagesTable)
+              .select('''
             id,
             content,
             sender_id,
@@ -1306,23 +1397,31 @@ class MessagingService {
             signal_message_type,
             signal_sender_content
           ''')
-          .eq('conversation_id', conversationId)
-          .filter('created_at', 'gt', clearedAt?.toIso8601String() ?? '1970-01-01')
-          .order('created_at', ascending: false)
-          .limit(1)
-          .maybeSingle();
+              .eq('conversation_id', conversationId)
+              .filter(
+                'created_at',
+                'gt',
+                clearedAt?.toIso8601String() ?? '1970-01-01',
+              )
+              .order('created_at', ascending: false)
+              .limit(1)
+              .maybeSingle();
 
       if (lastMsgResponse != null) {
         final lastMsgData = Map<String, dynamic>.from(lastMsgResponse);
         final msgCreatedAtStr = lastMsgData['created_at'] as String?;
-        final msgCreatedAt = msgCreatedAtStr != null ? DateTime.parse(msgCreatedAtStr) : null;
+        final msgCreatedAt =
+            msgCreatedAtStr != null ? DateTime.parse(msgCreatedAtStr) : null;
 
         String content = lastMsgData['content'] ?? '';
         final isSender = lastMsgData['sender_id'] == userId;
 
         // Decryption Logic
         try {
-          if (isSender && lastMsgData['signal_sender_content'] != null && lastMsgData['encrypted_keys'] != null && lastMsgData['iv'] != null) {
+          if (isSender &&
+              lastMsgData['signal_sender_content'] != null &&
+              lastMsgData['encrypted_keys'] != null &&
+              lastMsgData['iv'] != null) {
             final decrypted = await EncryptionService().decryptMessage(
               lastMsgData['signal_sender_content'],
               Map<String, String>.from(lastMsgData['encrypted_keys']),
@@ -1336,8 +1435,11 @@ class MessagingService {
               content,
               lastMsgData['signal_message_type'],
             );
-            
-            if (content.contains('🔒') && lastMsgData['encrypted_keys'] != null && lastMsgData['iv'] != null && lastMsgData['signal_sender_content'] != null) {
+
+            if (content.contains('🔒') &&
+                lastMsgData['encrypted_keys'] != null &&
+                lastMsgData['iv'] != null &&
+                lastMsgData['signal_sender_content'] != null) {
               final rsaDecrypted = await EncryptionService().decryptMessage(
                 lastMsgData['signal_sender_content'],
                 Map<String, String>.from(lastMsgData['encrypted_keys']),
@@ -1345,7 +1447,8 @@ class MessagingService {
               );
               if (rsaDecrypted != null) content = rsaDecrypted;
             }
-          } else if (lastMsgData['encrypted_keys'] != null && lastMsgData['iv'] != null) {
+          } else if (lastMsgData['encrypted_keys'] != null &&
+              lastMsgData['iv'] != null) {
             final decrypted = await EncryptionService().decryptMessage(
               content,
               Map<String, String>.from(lastMsgData['encrypted_keys']),
@@ -1360,18 +1463,23 @@ class MessagingService {
         conversationMap['last_message'] = content;
         conversationMap['last_message_time'] = lastMsgData['created_at'];
         conversationMap['last_message_sender_id'] = lastMsgData['sender_id'];
-        
+
         // Type detection
         String messageType = 'text';
-        if (lastMsgData['voice_url'] != null) messageType = 'voice';
-        else if (lastMsgData['image_url'] != null) messageType = 'image';
-        else if (lastMsgData['video_url'] != null) messageType = 'video';
-        else if (lastMsgData['file_url'] != null) messageType = 'document';
+        if (lastMsgData['voice_url'] != null)
+          messageType = 'voice';
+        else if (lastMsgData['image_url'] != null)
+          messageType = 'image';
+        else if (lastMsgData['video_url'] != null)
+          messageType = 'video';
+        else if (lastMsgData['file_url'] != null)
+          messageType = 'document';
         conversationMap['last_message_type'] = messageType;
       } else {
         // No messages after cleared_at
         conversationMap['last_message'] = null;
-        conversationMap['last_message_time'] = conversationMap['last_message_at'] ?? conversationMap['created_at'];
+        conversationMap['last_message_time'] =
+            conversationMap['last_message_at'] ?? conversationMap['created_at'];
       }
 
       return Conversation.fromJson(conversationMap);

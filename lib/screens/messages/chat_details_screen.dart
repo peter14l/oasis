@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'package:universal_io/io.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
@@ -515,12 +518,33 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     widget.onBackgroundSettingsChanged?.call(_bgOpacity, _bgBrightness);
   }
 
+  Future<String?> _getInitialDirectory() async {
+    if (Platform.isWindows) {
+      try {
+        final dir = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
+        return dir.path;
+      } catch (_) {}
+    }
+    return null;
+  }
+
   Future<void> _pickBackground() async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 70,
-      );
+      XFile? image;
+      if (Platform.isWindows) {
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.image,
+          initialDirectory: await _getInitialDirectory(),
+        );
+        if (result != null && result.files.single.path != null) {
+          image = XFile(result.files.single.path!);
+        }
+      } else {
+        image = await _imagePicker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 70,
+        );
+      }
 
       if (image != null) {
         final backgroundUrl = await _messagingService.uploadChatMedia(
