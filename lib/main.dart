@@ -34,12 +34,24 @@ import 'package:oasis_v2/services/notification_manager.dart';
 import 'package:oasis_v2/services/call_service.dart';
 import 'package:oasis_v2/services/sharing_service.dart';
 import 'package:oasis_v2/services/ripples_service.dart';
+import 'package:oasis_v2/services/desktop_window_service.dart';
+import 'package:universal_io/io.dart';
 
 // Background message handler for FCM
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Initialize Firebase if not already initialized (required for background)
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  // Show local notification if it's a data message
+  if (message.data.isNotEmpty) {
+    await NotificationManager.instance.initialize();
+    await NotificationManager.instance.showNotification(
+      title: message.notification?.title ?? message.data['title'] ?? 'New Notification',
+      body: message.notification?.body ?? message.data['body'] ?? '',
+      payload: message.data['payload'],
+    );
+  }
   debugPrint('Handling a background message: ${message.messageId}');
 }
 
@@ -128,6 +140,16 @@ void main() async {
         final userSettingsProvider = UserSettingsProvider();
         await userSettingsProvider.loadSettings();
 
+        // Desktop Windows UI Enhancements
+        if (Platform.isWindows) {
+          await DesktopWindowService.instance.initialize();
+          await DesktopWindowService.instance.enableCloseToTray();
+          await DesktopWindowService.instance.setWindowEffect(
+            enabled: userSettingsProvider.micaEnabled,
+            effect: userSettingsProvider.windowEffect,
+          );
+        }
+
         // Initialize ScreenTimeService
         final screenTimeService = await ScreenTimeService.init();
 
@@ -139,6 +161,15 @@ void main() async {
 
         // Initialize Notification Manager
         await NotificationManager.instance.initialize();
+
+        // Initialize encryption keys in the background for all users
+        unawaited(Future.wait([
+          EncryptionService().init(),
+          SignalService().init(),
+        ]).catchError((e) {
+          debugPrint('Encryption/Signal init failed: $e');
+          return [EncryptionStatus.error, false];
+        }));
 
         // Initialize SubscriptionService
         final subscriptionService = SubscriptionService();
@@ -336,15 +367,6 @@ class _MyAppState extends State<MyApp> {
                   context.read<CircleProvider>().loadCircles(userId);
                   context.read<CanvasProvider>().loadCanvases(userId);
                   SharingService().init(context);
-
-                  // Initialize encryption keys in the background for all users
-                  Future.wait([
-                    EncryptionService().init(),
-                    SignalService().init(),
-                  ]).catchError((e) {
-                    debugPrint('Encryption/Signal init failed: $e');
-                    return [EncryptionStatus.error, false];
-                  });
                 });
               } else {
               WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -359,7 +381,29 @@ class _MyAppState extends State<MyApp> {
               ),
               child: Consumer<UserSettingsProvider>(
                 builder: (context, userSettings, _) {
-                  final childWidget = child!;
+                  Widget childWidget = child!;
+
+                  if (Platform.isWindows && userSettings.micaEnabled) {
+                    final theme = Theme.of(context);
+                    childWidget = Theme(
+                      data: theme.copyWith(
+                        colorScheme: theme.colorScheme.copyWith(
+                          surface: Colors.black.withValues(alpha: 0.05),
+                          surfaceContainer: Colors.black.withValues(alpha: 0.02),
+                          onSurface: Colors.white,
+                        ),
+                        scaffoldBackgroundColor: Colors.transparent,
+                        canvasColor: Colors.transparent,
+                        cardColor: Colors.white.withValues(alpha: 0.02),
+                      ),
+                      child: childWidget,
+                    );
+
+                    return Container(
+                      color: Colors.transparent,
+                      child: childWidget,
+                    );
+                  }
 
                   if (userSettings.meshEnabled) {
                     return MeshGradientBackground(child: childWidget);

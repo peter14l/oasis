@@ -12,13 +12,9 @@ class AccountPrivacyScreen extends StatelessWidget {
     final authService = Provider.of<AuthService>(context, listen: false);
     final user = authService.currentUser;
     final isPrivate = profileProvider.currentProfile?.isPrivate ?? false;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Account Privacy'),
-        centerTitle: true,
-      ),
-      body: ListView(
+    final content = ListView(
         padding: const EdgeInsets.all(16),
         children: [
           SwitchListTile(
@@ -52,7 +48,16 @@ class AccountPrivacyScreen extends StatelessWidget {
             ),
           ),
         ],
+      );
+
+    if (isDesktop) return Material(color: Colors.transparent, child: content);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Account Privacy'),
+        centerTitle: true,
       ),
+      body: content,
     );
   }
 }

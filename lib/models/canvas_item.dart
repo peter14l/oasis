@@ -15,6 +15,9 @@ class CanvasItem {
   final DateTime? unlockAt; // New: For Time Capsule
   final String? groupId; 
   final Map<String, dynamic> metadata; 
+  final Map<String, List<String>> reactions; // emoji -> list of userIds
+  final bool isLocked;
+  final String? lastModifiedBy;
 
   CanvasItem({
     required this.id,
@@ -31,9 +34,18 @@ class CanvasItem {
     this.unlockAt,
     this.groupId,
     this.metadata = const {},
+    this.reactions = const {},
+    this.isLocked = false,
+    this.lastModifiedBy,
   });
 
   factory CanvasItem.fromJson(Map<String, dynamic> json) {
+    // Parse reactions safely
+    final rawReactions = json['reactions'] as Map<String, dynamic>? ?? {};
+    final parsedReactions = rawReactions.map(
+      (key, value) => MapEntry(key, (value as List).cast<String>()),
+    );
+
     return CanvasItem(
       id: json['id'] as String,
       canvasId: json['canvas_id'] as String,
@@ -52,6 +64,9 @@ class CanvasItem {
       unlockAt: json['unlock_at'] != null ? DateTime.parse(json['unlock_at'] as String) : null,
       groupId: json['group_id'] as String?,
       metadata: (json['metadata'] as Map<String, dynamic>?) ?? {},
+      reactions: parsedReactions,
+      isLocked: json['is_locked'] as bool? ?? false,
+      lastModifiedBy: json['last_modified_by'] as String?,
     );
   }
 
@@ -71,6 +86,9 @@ class CanvasItem {
       'unlock_at': unlockAt?.toIso8601String(),
       'group_id': groupId,
       'metadata': metadata,
+      'reactions': reactions,
+      'is_locked': isLocked,
+      'last_modified_by': lastModifiedBy,
     };
   }
 
@@ -89,6 +107,9 @@ class CanvasItem {
     DateTime? unlockAt,
     String? groupId,
     Map<String, dynamic>? metadata,
+    Map<String, List<String>>? reactions,
+    bool? isLocked,
+    String? lastModifiedBy,
   }) {
     return CanvasItem(
       id: id ?? this.id,
@@ -105,6 +126,9 @@ class CanvasItem {
       unlockAt: unlockAt ?? this.unlockAt,
       groupId: groupId ?? this.groupId,
       metadata: metadata ?? this.metadata,
+      reactions: reactions ?? this.reactions,
+      isLocked: isLocked ?? this.isLocked,
+      lastModifiedBy: lastModifiedBy ?? this.lastModifiedBy,
     );
   }
 }

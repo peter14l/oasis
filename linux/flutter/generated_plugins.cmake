@@ -7,12 +7,16 @@ list(APPEND FLUTTER_PLUGIN_LIST
   dynamic_color
   emoji_picker_flutter
   file_selector_linux
+  flutter_acrylic
   flutter_secure_storage_linux
   flutter_webrtc
   gtk
   record_linux
+  screen_retriever_linux
   sentry_flutter
+  tray_manager
   url_launcher_linux
+  window_manager
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

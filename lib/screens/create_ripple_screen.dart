@@ -37,13 +37,24 @@ class _CreateRippleScreenState extends State<CreateRippleScreen> {
       _videoController?.dispose();
       final file = File(video.path);
       final controller = VideoPlayerController.file(file);
-      await controller.initialize();
-      setState(() {
-        _videoFile = file;
-        _videoController = controller;
-      });
-      controller.setLooping(true);
-      controller.play();
+      try {
+        await controller.initialize();
+        if (mounted) {
+          setState(() {
+            _videoFile = file;
+            _videoController = controller;
+          });
+          controller.setLooping(true);
+          controller.play();
+        }
+      } catch (e) {
+        debugPrint('Error initializing video: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not play this video: $e')),
+          );
+        }
+      }
     }
   }
 
@@ -89,30 +100,12 @@ class _CreateRippleScreenState extends State<CreateRippleScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(FluentIcons.dismiss_24_filled, color: Colors.white),
-          onPressed: () => context.pop(),
-        ),
-        title: const Text('New Ripple', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        actions: [
-          if (_videoFile != null)
-            TextButton(
-              onPressed: _isLoading ? null : _uploadRipple,
-              child: _isLoading 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Text('Share', style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 16)),
-            ),
-        ],
-      ),
-      body: SingleChildScrollView(
+    final content = SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: EdgeInsets.all(isDesktop ? 32.0 : 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -158,10 +151,88 @@ class _CreateRippleScreenState extends State<CreateRippleScreen> {
                   ),
                 ),
               ),
+              if (isDesktop && _videoFile != null) ...[
+                const SizedBox(height: 32),
+                SizedBox(
+                  height: 50,
+                  child: FilledButton(
+                    onPressed: _isLoading ? null : _uploadRipple,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: _isLoading 
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text('Share Ripple', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
+      );
+
+    if (isDesktop) {
+      return Material(
+        color: Colors.transparent,
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 500),
+            decoration: BoxDecoration(
+              color: const Color(0xFF121212),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 40),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                  child: Row(
+                    children: [
+                      const Text('New Ripple', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () => context.pop(),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(color: Colors.white10),
+                Flexible(child: content),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(FluentIcons.dismiss_24_filled, color: Colors.white),
+          onPressed: () => context.pop(),
+        ),
+        title: const Text('New Ripple', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        actions: [
+          if (_videoFile != null)
+            TextButton(
+              onPressed: _isLoading ? null : _uploadRipple,
+              child: _isLoading 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Text('Share', style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+            ),
+        ],
       ),
+      body: content,
     );
   }
 }

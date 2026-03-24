@@ -17,15 +17,9 @@ class _DigitalWellbeingScreenState extends State<DigitalWellbeingScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final userSettings = context.watch<UserSettingsProvider>();
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: const Text('Digital Wellbeing'),
-        centerTitle: true,
-      ),
-      body: ListView(
+    final content = ListView(
         padding: const EdgeInsets.all(24),
         children: [
           _buildUsageCard(theme),
@@ -82,7 +76,18 @@ class _DigitalWellbeingScreenState extends State<DigitalWellbeingScreen> {
           const SizedBox(height: 40),
           _buildQuoteCard(theme),
         ],
+      );
+
+    if (isDesktop) return Material(color: Colors.transparent, child: content);
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        title: const Text('Digital Wellbeing'),
+        centerTitle: true,
       ),
+      body: content,
     );
   }
 

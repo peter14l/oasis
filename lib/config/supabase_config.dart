@@ -37,6 +37,7 @@ class SupabaseConfig {
   static const String messagesTable = 'messages';
   static const String messageReadReceiptsTable = 'message_read_receipts';
   static const String messageReactionsTable = 'message_reactions';
+  static const String messageMediaViewsTable = 'message_media_views';
   static const String typingIndicatorsTable = 'typing_indicators';
   static const String storiesTable = 'stories';
   static const String timeCapsulesTable = 'time_capsules';

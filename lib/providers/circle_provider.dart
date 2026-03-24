@@ -23,7 +23,9 @@ class CircleProvider extends ChangeNotifier {
 
   // ─── Circles ──────────────────────────────────────────────────────────────────
 
-  Future<void> loadCircles(String userId) async {
+  Future<void> loadCircles(String userId, {bool forceRefresh = false}) async {
+    if (_circles.isNotEmpty && !forceRefresh) return;
+
     _isLoading = true;
     _error = null;
     notifyListeners();

@@ -4,119 +4,329 @@ import 'package:intl/intl.dart';
 
 class ActivityGraph extends StatelessWidget {
   final List<Post> posts;
-  final int monthsToShow;
 
   const ActivityGraph({
     super.key,
     required this.posts,
-    this.monthsToShow = 6,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
-    // Calculate monthly post frequencies
+    // Calculate daily post frequencies for the last year
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     
-    // Generate the last X months list for the X-axis
-    List<DateTime> monthsList = [];
-    for (int i = monthsToShow - 1; i >= 0; i--) {
-      int targetMonth = now.month - i;
-      int targetYear = now.year;
-      if (targetMonth <= 0) {
-        targetMonth += 12;
-        targetYear -= 1;
-      }
-      monthsList.add(DateTime(targetYear, targetMonth, 1));
-    }
-
-    final Map<DateTime, int> monthlyCounts = {
-      for (var m in monthsList) m: 0
-    };
-
+    final endDate = today;
+    final startDate = today.subtract(const Duration(days: 364));
+    final adjustedStartDate = startDate.subtract(Duration(days: startDate.weekday % 7));
+    
+    final Map<DateTime, int> dailyCounts = {};
     for (var post in posts) {
-      // Find the corresponding month bin
-      final postMonth = DateTime(post.timestamp.year, post.timestamp.month, 1);
-      if (monthlyCounts.containsKey(postMonth)) {
-        monthlyCounts[postMonth] = monthlyCounts[postMonth]! + 1;
+      final postDate = DateTime(post.timestamp.year, post.timestamp.month, post.timestamp.day);
+      if (postDate.isAfter(adjustedStartDate.subtract(const Duration(days: 1))) && 
+          postDate.isBefore(endDate.add(const Duration(days: 1)))) {
+        dailyCounts[postDate] = (dailyCounts[postDate] ?? 0) + 1;
       }
     }
 
-    // Determine max frequency for color scaling
-    int maxCount = 1;
-    if (monthlyCounts.isNotEmpty) {
-       final maxVal = monthlyCounts.values.reduce((a, b) => a > b ? a : b);
-       maxCount = maxVal == 0 ? 1 : maxVal;
+    final totalContributions = dailyCounts.values.fold(0, (sum, count) => sum + count);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '$totalContributions contributions in the last year',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              Row(
+                children: [
+                  Text(
+                    'Contribution settings',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  Icon(Icons.arrow_drop_down, size: 16, color: colorScheme.onSurface.withValues(alpha: 0.5)),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 20, right: 8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 13), // skip Sun
+                                _buildDayLabel('Mon'),
+                                const SizedBox(height: 13), // skip Tue
+                                _buildDayLabel('Wed'),
+                                const SizedBox(height: 13), // skip Thu
+                                _buildDayLabel('Fri'),
+                              ],
+                            ),
+                          ),                          _buildContributionGrid(context, adjustedStartDate, endDate, dailyCounts),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Learn how we count contributions',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurface.withValues(alpha: 0.4),
+                            fontSize: 10,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              'Less',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurface.withValues(alpha: 0.4),
+                                fontSize: 10,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            _buildLegendSquare(context, 0),
+                            const SizedBox(width: 2),
+                            _buildLegendSquare(context, 1),
+                            const SizedBox(width: 2),
+                            _buildLegendSquare(context, 2),
+                            const SizedBox(width: 2),
+                            _buildLegendSquare(context, 3),
+                            const SizedBox(width: 2),
+                            _buildLegendSquare(context, 4),
+                            const SizedBox(width: 4),
+                            Text(
+                              'More',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurface.withValues(alpha: 0.4),
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (isDesktop) ...[
+              const SizedBox(width: 16),
+              _buildYearSelector(context),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildYearSelector(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    return Column(
+      children: [
+        _buildYearButton(context, '2026', isSelected: true),
+        const SizedBox(height: 8),
+        _buildYearButton(context, '2025', isSelected: false),
+        const SizedBox(height: 8),
+        _buildYearButton(context, '2024', isSelected: false),
+      ],
+    );
+  }
+
+  Widget _buildYearButton(BuildContext context, String year, {required bool isSelected}) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    return Container(
+      width: 80,
+      height: 32,
+      decoration: BoxDecoration(
+        color: isSelected ? colorScheme.primary : Colors.transparent,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        year,
+        style: TextStyle(
+          color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface.withValues(alpha: 0.6),
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDayLabel(String label) {
+    return SizedBox(
+      height: 10,
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 10, color: Colors.grey),
+      ),
+    );
+  }
+
+  Widget _buildContributionGrid(
+    BuildContext context, 
+    DateTime startDate, 
+    DateTime endDate, 
+    Map<DateTime, int> dailyCounts
+  ) {
+    List<List<DateTime?>> weeks = [];
+    DateTime current = startDate;
+    
+    while (current.isBefore(endDate.add(const Duration(days: 1)))) {
+      List<DateTime?> week = List.generate(7, (index) {
+        DateTime day = current.add(Duration(days: index));
+        if (day.isAfter(endDate)) return null;
+        return day;
+      });
+      weeks.add(week);
+      current = current.add(const Duration(days: 7));
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Activity',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+        Row(
+          children: _buildMonthLabels(weeks),
         ),
-        const SizedBox(height: 16),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: monthsList.map((monthDate) {
-                final count = monthlyCounts[monthDate] ?? 0;
-                
-                Color cellColor;
-                if (count == 0) {
-                  cellColor = colorScheme.surfaceContainerHighest.withValues(alpha: 0.3);
-                } else {
-                  // Scale opacity from 0.4 to 1.0 based on count vs maxCount
-                  final intensity = 0.4 + (0.6 * (count / maxCount));
-                  cellColor = colorScheme.primary.withValues(alpha: intensity);
-                }
-
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Tooltip(
-                      message: '${DateFormat('MMMM yyyy').format(monthDate)}: $count post${count == 1 ? '' : 's'}',
-                      child: Container(
-                        width: 24,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: cellColor,
-                          borderRadius: BorderRadius.circular(6),
-                          border: count == 0 ? Border.all(
-                            color: theme.dividerColor.withValues(alpha: 0.1),
-                            width: 1,
-                          ) : null,
-                          boxShadow: count > 0 ? [
-                            BoxShadow(
-                              color: cellColor.withValues(alpha: 0.3),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            )
-                          ] : null,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      DateFormat('MMM').format(monthDate),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                );
+        const SizedBox(height: 4),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: weeks.map((week) {
+            return Column(
+              children: week.map((day) {
+                if (day == null) return const SizedBox(width: 13, height: 13);
+                final count = dailyCounts[day] ?? 0;
+                return _buildContributionSquare(context, day, count);
               }).toList(),
             );
-          }
+          }).toList(),
         ),
       ],
     );
+  }
+
+  List<Widget> _buildMonthLabels(List<List<DateTime?>> weeks) {
+    return weeks.asMap().entries.map((entry) {
+      final weekIndex = entry.key;
+      final week = entry.value;
+      final firstDay = week.firstWhere((d) => d != null, orElse: () => null);
+      
+      if (firstDay != null && firstDay.day <= 7) {
+        return SizedBox(
+          width: 13, 
+          height: 15,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                left: 0,
+                top: 0,
+                width: 40,
+                child: Text(
+                  DateFormat('MMM').format(firstDay),
+                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                  maxLines: 1,
+                  overflow: TextOverflow.visible,
+                  softWrap: false,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+      return const SizedBox(width: 13, height: 15);
+    }).toList();
+  }
+
+  Widget _buildContributionSquare(BuildContext context, DateTime date, int count) {
+    final color = _getContributionColor(context, count);
+    return Tooltip(
+      message: '${DateFormat('MMM d, y').format(date)}: $count contributions',
+      child: Container(
+        width: 11,
+        height: 11,
+        margin: const EdgeInsets.all(1),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(2),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLegendSquare(BuildContext context, int level) {
+    return Container(
+      width: 11,
+      height: 11,
+      decoration: BoxDecoration(
+        color: _getContributionColor(context, level, isLegend: true),
+        borderRadius: BorderRadius.circular(2),
+      ),
+    );
+  }
+
+  Color _getContributionColor(BuildContext context, int count, {bool isLegend = false}) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    if (count == 0) {
+      return isDark ? const Color(0xFF161B22) : const Color(0xFFEBEDF0);
+    }
+
+    if (isDark) {
+      if (count == 1 || (isLegend && count == 1)) return const Color(0xFF0E4429);
+      if (count == 2 || (isLegend && count == 2)) return const Color(0xFF006D32);
+      if (count == 3 || (isLegend && count == 3)) return const Color(0xFF26A641);
+      return const Color(0xFF39D353);
+    } else {
+      if (count == 1 || (isLegend && count == 1)) return const Color(0xFF9BE9A8);
+      if (count == 2 || (isLegend && count == 2)) return const Color(0xFF40C463);
+      if (count == 3 || (isLegend && count == 3)) return const Color(0xFF30A14E);
+      return const Color(0xFF216E39);
+    }
   }
 }

@@ -1,15 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Download, User, LogOut } from 'lucide-react';
+import { Menu, X, Download, User, LogOut, ChevronDown, Smartphone, Monitor } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [downloadDropdownOpen, setDownloadDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDownloadDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -39,13 +51,19 @@ const Navbar = () => {
 
   // Close mobile menu on route change
   useEffect(() => {
-    setIsOpen(false);
-  }, [location]);
+    if (isOpen) setIsOpen(false);
+    if (downloadDropdownOpen) setDownloadDropdownOpen(false);
+  }, [location, isOpen, downloadDropdownOpen]);
 
   const navLinks = [
     { name: 'Features', path: '/features' },
     { name: 'Pricing', path: '/pricing' },
     { name: 'Privacy', path: '/privacy' },
+  ];
+
+  const downloadOptions = [
+    { name: 'Windows (MSIX)', icon: <Monitor size={16} />, href: '/windows/oasis.msix' },
+    { name: 'Android (APK)', icon: <Smartphone size={16} />, href: '/apk/oasis-arm64-v8a-release.apk' },
   ];
 
   return (
@@ -71,7 +89,7 @@ const Navbar = () => {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text'
-          }}>MORROW</span>
+          }}>OASIS</span>
         </Link>
 
         {/* Desktop Nav */}
@@ -117,22 +135,71 @@ const Navbar = () => {
             </Link>
           )}
 
-          <a 
-            href="/apk/oasis-arm64-v8a-release.apk" 
-            style={{
-              padding: '0.6rem 1.2rem',
-              borderRadius: '99px',
-              background: '#fff',
-              color: '#000',
-              fontWeight: 700,
-              fontSize: '0.85rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            <Download size={16} /> Get App
-          </a>
+          <div style={{ position: 'relative' }} ref={dropdownRef}>
+            <button 
+              onClick={() => setDownloadDropdownOpen(!downloadDropdownOpen)}
+              style={{
+                padding: '0.6rem 1.2rem',
+                borderRadius: '99px',
+                background: '#fff',
+                color: '#000',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              <Download size={16} /> Get App <ChevronDown size={14} style={{ transform: downloadDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }} />
+            </button>
+
+            <AnimatePresence>
+              {downloadDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  style={{
+                    position: 'absolute',
+                    top: '120%',
+                    right: 0,
+                    background: 'rgba(0, 0, 0, 0.9)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '16px',
+                    padding: '0.5rem',
+                    minWidth: '200px',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+                    zIndex: 1000
+                  }}
+                >
+                  {downloadOptions.map((opt) => (
+                    <a
+                      key={opt.name}
+                      href={opt.href}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        padding: '0.75rem 1rem',
+                        color: '#fff',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        borderRadius: '10px',
+                        transition: 'background 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      {opt.icon} {opt.name}
+                    </a>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* Mobile Toggle */}
@@ -176,19 +243,30 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
-            <a 
-              href="/apk/oasis-arm64-v8a-release.apk" 
-              style={{
-                padding: '1rem 2rem',
-                borderRadius: '99px',
-                background: '#fff',
-                color: '#000',
-                fontWeight: 800,
-                fontSize: '1.1rem'
-              }}
-            >
-              Download App
-            </a>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '80%', maxWidth: '300px' }}>
+              <p style={{ color: '#94a3b8', fontSize: '0.8rem', fontWeight: 700, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Download App</p>
+              {downloadOptions.map((opt) => (
+                <a 
+                  key={opt.name}
+                  href={opt.href} 
+                  style={{
+                    padding: '1rem 2rem',
+                    borderRadius: '99px',
+                    background: opt.name.includes('Windows') ? 'transparent' : '#fff',
+                    border: opt.name.includes('Windows') ? '1px solid rgba(255,255,255,0.2)' : 'none',
+                    color: opt.name.includes('Windows') ? '#fff' : '#000',
+                    fontWeight: 800,
+                    fontSize: '1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.75rem'
+                  }}
+                >
+                  {opt.icon} {opt.name}
+                </a>
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

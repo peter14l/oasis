@@ -115,6 +115,8 @@ class AppNotification {
         return 'New Follower';
       case 'mention':
         return 'Mentioned You';
+      case 'canvas_pulse':
+        return 'Canvas Pulse';
       default:
         return 'New Notification';
     }
@@ -132,6 +134,8 @@ class AppNotification {
         return '${actorName ?? 'Someone'} mentioned you in a comment';
       case 'dm':
         return message ?? 'New message';
+      case 'canvas_pulse':
+        return '${actorName ?? 'Someone'} ${message ?? 'is on the Canvas'}';
       default:
         return message ?? 'New notification';
     }
@@ -149,6 +153,8 @@ class AppNotification {
         return Icons.alternate_email;
       case 'dm':
         return Icons.chat_outlined;
+      case 'canvas_pulse':
+        return Icons.blur_on_rounded;
       default:
         return Icons.notifications;
     }

@@ -26,7 +26,9 @@ class CanvasProvider extends ChangeNotifier {
 
   // ─── Canvas list ─────────────────────────────────────────────────────────────
 
-  Future<void> loadCanvases(String userId) async {
+  Future<void> loadCanvases(String userId, {bool forceRefresh = false}) async {
+    if (_canvases.isNotEmpty && !forceRefresh) return;
+
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -109,7 +111,7 @@ class CanvasProvider extends ChangeNotifier {
   Future<void> joinCanvas(String canvasId, String userId) async {
     try {
       await _service.joinCanvas(canvasId, userId);
-      await loadCanvases(userId); // Refresh list
+      await loadCanvases(userId, forceRefresh: true); // Refresh list
     } catch (e) {
       _error = e.toString();
       notifyListeners();
@@ -222,8 +224,14 @@ class CanvasProvider extends ChangeNotifier {
     required double yPos,
     double? rotation,
     double? scale,
+    String? lastModifiedBy,
   }) async {
     if (_activeCanvas == null) return;
+    
+    // Check if locked
+    final item = _activeItems.firstWhere((i) => i.id == itemId);
+    if (item.isLocked && item.authorId != lastModifiedBy) return;
+
     // Optimistic local update
     _activeItems = _activeItems.map((item) {
       if (item.id == itemId) {
@@ -232,6 +240,7 @@ class CanvasProvider extends ChangeNotifier {
           yPos: yPos,
           rotation: rotation ?? item.rotation,
           scale: scale ?? item.scale,
+          lastModifiedBy: lastModifiedBy,
         );
       }
       return item;
@@ -245,7 +254,56 @@ class CanvasProvider extends ChangeNotifier {
         yPos: yPos,
         rotation: rotation,
         scale: scale,
+        lastModifiedBy: lastModifiedBy,
       );
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  Future<void> toggleReaction(String itemId, String userId, String emoji) async {
+    try {
+      // Optimistic update
+      _activeItems = _activeItems.map((item) {
+        if (item.id == itemId) {
+          final reactions = Map<String, List<String>>.from(item.reactions);
+          final List<String> users = reactions[emoji] != null ? List<String>.from(reactions[emoji]!) : <String>[];
+          if (users.contains(userId)) {
+            users.remove(userId);
+          } else {
+            users.add(userId);
+          }
+          if (users.isEmpty) {
+            reactions.remove(emoji);
+          } else {
+            reactions[emoji] = users;
+          }
+          return item.copyWith(reactions: reactions);
+        }
+        return item;
+      }).toList();
+      notifyListeners();
+
+      await _service.toggleReaction(itemId: itemId, userId: userId, emoji: emoji);
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  Future<void> setItemLock(String itemId, bool isLocked) async {
+    try {
+      // Optimistic
+      _activeItems = _activeItems.map((item) {
+        if (item.id == itemId) {
+          return item.copyWith(isLocked: isLocked);
+        }
+        return item;
+      }).toList();
+      notifyListeners();
+
+      await _service.updateItemLock(itemId, isLocked);
     } catch (e) {
       _error = e.toString();
       notifyListeners();

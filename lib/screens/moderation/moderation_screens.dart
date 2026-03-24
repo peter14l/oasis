@@ -61,10 +61,9 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Blocked Users')),
-      body:
-          _isLoading
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+
+    final content = _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _blockedUsers.isEmpty
               ? const Center(child: Text('You haven\'t blocked anyone'))
@@ -95,7 +94,13 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
                     ),
                   );
                 },
-              ),
+              );
+
+    if (isDesktop) return Material(color: Colors.transparent, child: content);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Blocked Users')),
+      body: content,
     );
   }
 
@@ -162,10 +167,9 @@ class _MutedUsersScreenState extends State<MutedUsersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Muted Users')),
-      body:
-          _isLoading
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+
+    final content = _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _mutedUsers.isEmpty
               ? const Center(child: Text('You haven\'t muted anyone'))
@@ -200,7 +204,13 @@ class _MutedUsersScreenState extends State<MutedUsersScreen> {
                     ),
                   );
                 },
-              ),
+              );
+
+    if (isDesktop) return Material(color: Colors.transparent, child: content);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Muted Users')),
+      body: content,
     );
   }
 

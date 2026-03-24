@@ -98,19 +98,11 @@ class CanvasService {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('Not authenticated');
 
-      // Check if user is owner
-      final member = await _supabase
-          .from('canvas_members')
-          .select('role')
-          .eq('canvas_id', canvasId)
-          .eq('user_id', userId)
-          .maybeSingle();
-
-      if (member == null || member['role'] != 'owner') {
-        throw Exception('Only the canvas creator can delete it');
-      }
-
-      await _supabase.from('canvases').delete().eq('id', canvasId);
+      // The DB RLS policy will handle security, but we can do a quick check here if needed.
+      // We'll let the DB enforce deletion rights.
+      final result = await _supabase.from('canvases').delete().eq('id', canvasId);
+      
+      // If no error was thrown, it was either successful or nothing matched.
     } catch (e) {
       debugPrint('CanvasService.deleteCanvas error: $e');
       rethrow;
@@ -228,6 +220,7 @@ class CanvasService {
     required double yPos,
     double? rotation,
     double? scale,
+    String? lastModifiedBy,
   }) async {
     try {
       final Map<String, dynamic> updates = {
@@ -237,10 +230,63 @@ class CanvasService {
       };
       if (rotation != null) updates['rotation'] = rotation;
       if (scale != null) updates['scale'] = scale;
+      if (lastModifiedBy != null) updates['last_modified_by'] = lastModifiedBy;
 
       await _supabase.from('canvas_items').update(updates).eq('id', itemId);
     } catch (e) {
       debugPrint('CanvasService.updateItemTransform error: $e');
+      rethrow;
+    }
+  }
+
+  /// Toggle a reaction on a canvas item.
+  Future<void> toggleReaction({
+    required String itemId,
+    required String userId,
+    required String emoji,
+  }) async {
+    try {
+      // 1. Get current reactions
+      final itemData = await _supabase
+          .from('canvas_items')
+          .select('reactions')
+          .eq('id', itemId)
+          .single();
+      
+      final Map<String, dynamic> reactions = Map<String, dynamic>.from(itemData['reactions'] ?? {});
+      final List<dynamic> users = reactions[emoji] != null ? List.from(reactions[emoji]) : [];
+      
+      if (users.contains(userId)) {
+        users.remove(userId);
+      } else {
+        users.add(userId);
+      }
+      
+      if (users.isEmpty) {
+        reactions.remove(emoji);
+      } else {
+        reactions[emoji] = users;
+      }
+      
+      await _supabase
+          .from('canvas_items')
+          .update({'reactions': reactions})
+          .eq('id', itemId);
+    } catch (e) {
+      debugPrint('CanvasService.toggleReaction error: $e');
+      rethrow;
+    }
+  }
+
+  /// Lock or unlock an item.
+  Future<void> updateItemLock(String itemId, bool isLocked) async {
+    try {
+      await _supabase
+          .from('canvas_items')
+          .update({'is_locked': isLocked})
+          .eq('id', itemId);
+    } catch (e) {
+      debugPrint('CanvasService.updateItemLock error: $e');
       rethrow;
     }
   }

@@ -146,6 +146,17 @@ class MessagingService {
     }
   }
 
+  /// Clean up Instagram-style vanish mode messages
+  Future<void> cleanupVanishModeMessages(String conversationId) async {
+    try {
+      await _supabase.rpc('cleanup_vanish_mode_messages', params: {
+        'p_conversation_id': conversationId
+      });
+    } catch (e) {
+      debugPrint('Error cleaning up vanish mode messages: $e');
+    }
+  }
+
   /// Get messages for a conversation
   Future<List<Message>> getMessages({
     required String conversationId,
@@ -156,6 +167,11 @@ class MessagingService {
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('Not authenticated');
+
+      // Lazy cleanup of read vanish mode messages (Instagram style)
+      _supabase.rpc('cleanup_vanish_mode_messages', params: {
+        'p_conversation_id': conversationId
+      }).catchError((e) => debugPrint('Vanish mode cleanup error: $e'));
 
       // Fetch cleared_at timestamp for this user in this conversation
       final participantResponse = await _supabase
@@ -193,9 +209,13 @@ class MessagingService {
                 username
               )
             ),
-            reactions:message_reactions(*)
+            reactions:message_reactions(*),
+            media_views:message_media_views!left(view_count)
           ''')
           .eq('conversation_id', conversationId);
+      
+      // Filter for current user's media views specifically if we can't do it in the join
+      // Actually, we'll map it in the loop below.
 
       // Filter out messages deleted before 'cleared_at'
       if (clearedAt != null) {
@@ -219,6 +239,15 @@ class MessagingService {
           messageMap['sender_name'] = profile['username'];
           messageMap['sender_avatar'] = profile['avatar_url'];
         }
+
+        // Process media view count for current user
+        if (messageMap['media_views'] != null) {
+          final views = messageMap['media_views'] as List;
+          if (views.isNotEmpty) {
+            messageMap['current_user_view_count'] = views[0]['view_count'] ?? 0;
+          }
+        }
+
         messages.add(Message.fromJson(messageMap));
         messageIds.add(messageMap['id']);
       }
@@ -242,11 +271,16 @@ class MessagingService {
             myReadMap[messageId] = readAt;
           }
 
-          if (!firstReadMap.containsKey(messageId) ||
-              DateTime.parse(
-                readAt,
-              ).isBefore(DateTime.parse(firstReadMap[messageId]!))) {
-            firstReadMap[messageId] = readAt;
+          // For anyReadAt, we want the first time it was read by ANYONE who is NOT the sender
+          final msgIndex = messages.indexWhere((m) => m.id == messageId);
+          if (msgIndex >= 0) {
+            final senderId = messages[msgIndex].senderId;
+            if (userId != senderId) {
+              if (!firstReadMap.containsKey(messageId) ||
+                  DateTime.parse(readAt).isBefore(DateTime.parse(firstReadMap[messageId]!))) {
+                firstReadMap[messageId] = readAt;
+              }
+            }
           }
         }
 
@@ -309,9 +343,11 @@ class MessagingService {
     return messages.where((message) {
       if (!message.isEphemeral) return true;
 
-      // Use anyReadAt to determine if the message should vanish for everyone
+      // Use anyReadAt (earliest read) or readAt (when current user read it)
+      final DateTime? seenAt = message.anyReadAt ?? message.readAt;
+
       // If nobody has read it yet, it's visible to everyone
-      if (message.anyReadAt == null) return true;
+      if (seenAt == null) return true;
 
       // Calculate expiration based on message's duration
       final duration = Duration(seconds: message.ephemeralDuration);
@@ -320,13 +356,13 @@ class MessagingService {
       if (message.ephemeralDuration == 0) {
         if (sessionStart != null) {
           // Keep it visible if it was read DURING this session
-          return message.anyReadAt!.isAfter(sessionStart);
+          return seenAt.isAfter(sessionStart);
         }
         // If no session start provided (e.g. background check), we assume it's "old"
         return false;
       }
 
-      final expirationTime = message.anyReadAt!.add(duration);
+      final expirationTime = seenAt.add(duration);
       return now.isBefore(expirationTime);
     }).toList();
   }
@@ -353,6 +389,9 @@ class MessagingService {
     String? replyToId,
     String? rippleId,
     String? storyId,
+    String? postId,
+    Map<String, dynamic>? shareData,
+    String mediaViewMode = 'unlimited',
   }) async {
     try {
       final messageId = _uuid.v4();
@@ -380,6 +419,9 @@ class MessagingService {
         'reply_to_id': replyToId,
         'ripple_id': rippleId,
         'story_id': storyId,
+        'post_id': postId,
+        'share_data': shareData,
+        'media_view_mode': mediaViewMode,
       };
 
       // Add encryption fields if provided
@@ -403,6 +445,7 @@ class MessagingService {
       if (mediaUrl != null) {
         switch (messageType) {
           case MessageType.image:
+          case MessageType.ripple:
             insertData['image_url'] = mediaUrl;
             break;
           case MessageType.document:
@@ -645,11 +688,6 @@ class MessagingService {
           event: PostgresChangeEvent.delete,
           schema: 'public',
           table: SupabaseConfig.messagesTable,
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'conversation_id',
-            value: conversationId,
-          ),
           callback: (payload) {
             if (onDeleteMessage != null) {
               final messageId = payload.oldRecord['id'] as String;
@@ -765,6 +803,38 @@ class MessagingService {
               onUpdate(messageId, userId, readAt);
             } catch (e) {
               debugPrint('Error processing read receipt: $e');
+            }
+          },
+        )
+        .subscribe();
+
+    return channel;
+  }
+
+  /// Subscribe to changes for a specific conversation (like whisper mode)
+  RealtimeChannel subscribeToConversation({
+    required String conversationId,
+    required Function(bool isWhisperMode) onUpdate,
+  }) {
+    final channel = _supabase.channel('conversation_details:$conversationId');
+
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: SupabaseConfig.conversationsTable,
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'id',
+            value: conversationId,
+          ),
+          callback: (payload) {
+            try {
+              final data = payload.newRecord;
+              final isWhisperMode = data['is_whisper_mode'] as bool? ?? false;
+              onUpdate(isWhisperMode);
+            } catch (e) {
+              debugPrint('Error processing conversation update: $e');
             }
           },
         )
@@ -1002,6 +1072,33 @@ class MessagingService {
     } catch (e) {
       debugPrint('Error marking conversation as read: $e');
       rethrow;
+    }
+  }
+
+  /// Increment media view count for a user
+  Future<void> incrementMediaViewCount(String messageId) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return;
+
+      // Get current view count
+      final response = await _supabase
+          .from('message_media_views')
+          .select('view_count')
+          .eq('message_id', messageId)
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      final currentCount = response != null ? (response['view_count'] as int? ?? 0) : 0;
+
+      await _supabase.from('message_media_views').upsert({
+        'message_id': messageId,
+        'user_id': userId,
+        'view_count': currentCount + 1,
+        'last_viewed_at': DateTime.now().toIso8601String(),
+      }, onConflict: 'message_id,user_id');
+    } catch (e) {
+      debugPrint('Error incrementing media view count: $e');
     }
   }
 

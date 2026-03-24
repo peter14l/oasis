@@ -271,61 +271,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
-    final content = Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Create Post',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        elevation: 0,
-        scrolledUnderElevation: 1,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: FilledButton.tonal(
-              onPressed: _isLoading ? null : _createPost,
-              style: FilledButton.styleFrom(
-                backgroundColor:
-                    _isLoading
-                        ? colorScheme.primary.withValues(alpha: 0.1)
-                        : colorScheme.primary,
-                foregroundColor:
-                    _isLoading
-                        ? colorScheme.onSurface.withValues(alpha: 0.6)
-                        : colorScheme.onPrimary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 8,
-                ),
-              ),
-              child:
-                  _isLoading
-                      ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        ),
-                      )
-                      : const Text(
-                        'Post',
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-            ),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+    final formContent = SingleChildScrollView(
+        padding: EdgeInsets.all(isDesktop ? 32.0 : 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -716,16 +665,125 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               ),
             ],
 
-            const SizedBox(height: 24),
-
-            // Privacy selector removed (depends on account privacy)
+            if (isDesktop) ...[
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _isLoading ? null : _createPost,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.all(16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: _isLoading 
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Text('Post to Feed', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
           ],
         ),
-      ),
-    );
+      );
 
-    return ResponsiveLayout.isDesktop(context)
-        ? MaxWidthContainer(maxWidth: 600, child: content)
-        : content;
+    if (isDesktop) {
+      return Material(
+        color: Colors.transparent,
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 700),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 40,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Create New Post',
+                        style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => context.pop(),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                Flexible(child: formContent),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Create Post',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        elevation: 0,
+        scrolledUnderElevation: 1,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: FilledButton.tonal(
+              onPressed: _isLoading ? null : _createPost,
+              style: FilledButton.styleFrom(
+                backgroundColor:
+                    _isLoading
+                        ? colorScheme.primary.withValues(alpha: 0.1)
+                        : colorScheme.primary,
+                foregroundColor:
+                    _isLoading
+                        ? colorScheme.onSurface.withValues(alpha: 0.6)
+                        : colorScheme.onPrimary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
+              ),
+              child:
+                  _isLoading
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                      : const Text(
+                        'Post',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+            ),
+          ),
+        ],
+      ),
+      body: formContent,
+    );
   }
 }

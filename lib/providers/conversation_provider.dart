@@ -86,25 +86,28 @@ class ConversationProvider with ChangeNotifier {
   }
 
   /// Load conversations from service
-  Future<void> loadConversations() async {
+  Future<void> loadConversations({bool silent = false}) async {
     if (_currentUserId == null) return;
     
-    _isLoading = true;
-    notifyListeners();
+    if (!silent && _conversations.isEmpty) {
+      _isLoading = true;
+      notifyListeners();
+    }
     
     try {
-      _conversations = await _messagingService.getConversations(userId: _currentUserId!);
+      final conversations = await _messagingService.getConversations(userId: _currentUserId!);
       
-      // Ensure they are sorted by last message time (rearranged based on latest text)
-      _conversations.sort((a, b) {
+      // Ensure they are sorted by last message time
+      conversations.sort((a, b) {
         final timeA = a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
         final timeB = b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
         return timeB.compareTo(timeA);
       });
 
+      _conversations = conversations;
       await _saveConversationsToCache();
       
-      // Setup individual subscriptions for each conversation (read receipts, typing)
+      // Setup individual subscriptions for each conversation
       for (final conversation in _conversations) {
         _listenToConversationDetails(conversation.id);
       }
@@ -127,7 +130,7 @@ class ConversationProvider with ChangeNotifier {
     _conversationsSubscription = _messagingService.subscribeToConversations(
       userId: _currentUserId!,
       onUpdate: (conversationId) async {
-        // Add a small delay to ensure DB triggers have finished updating the 'conversations' table
+        // Add a small delay to ensure DB triggers have finished updating
         await Future.delayed(const Duration(milliseconds: 300));
         refreshConversation(conversationId);
       },
@@ -161,9 +164,8 @@ class ConversationProvider with ChangeNotifier {
 
   /// Handle read receipt updates for a specific conversation
   Future<void> _handleReadReceiptUpdate(String conversationId) async {
-    // Optimization: Instead of reloading everyone, just reload this conversation's seen status
-    // or reload the whole list to maintain sort order if last message changed.
-    loadConversations();
+    // Optimization: Just refresh the single conversation instead of reloading the full list
+    refreshConversation(conversationId);
   }
 
   /// Reload a single conversation's state

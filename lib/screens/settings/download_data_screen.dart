@@ -5,12 +5,9 @@ class DownloadDataScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Download Your Data'),
-        centerTitle: true,
-      ),
-      body: Padding(
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+
+    final content = Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
@@ -44,7 +41,16 @@ class DownloadDataScreen extends StatelessWidget {
             ),
           ],
         ),
+      );
+
+    if (isDesktop) return Material(color: Colors.transparent, child: content);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Download Your Data'),
+        centerTitle: true,
       ),
+      body: content,
     );
   }
 }

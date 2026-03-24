@@ -124,14 +124,9 @@ class _EncryptionSetupScreenState extends State<EncryptionSetupScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.isRestore ? 'Restore Access' : 'Secure Messages'),
-        // Don't allow dismissal mid-operation
-        automaticallyImplyLeading: !_isLoading,
-      ),
-      body: SafeArea(
+    final content = SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -306,7 +301,17 @@ class _EncryptionSetupScreenState extends State<EncryptionSetupScreen> {
             ],
           ),
         ),
+      );
+
+    if (isDesktop) return Material(color: Colors.transparent, child: content);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.isRestore ? 'Restore Access' : 'Secure Messages'),
+        // Don't allow dismissal mid-operation
+        automaticallyImplyLeading: !_isLoading,
       ),
+      body: content,
     );
   }
 

@@ -38,7 +38,13 @@ export default function Home() {
             Oasis is the ultimate private sanctuary for your digital life. Share ripples, collaborate on canvases, and keep your circles close. With Signal Protocol encryption, your privacy is absolute.
           </motion.p>
           <motion.div variants={fadeUp} style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
-            <Link to="/signup" className="btn btn-primary" style={{ padding: '16px 32px', fontSize: '1.1rem' }}>Download Now</Link>
+            <button 
+              onClick={() => document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' })} 
+              className="btn btn-primary" 
+              style={{ padding: '16px 32px', fontSize: '1.1rem', border: 'none', cursor: 'pointer' }}
+            >
+              Download Now
+            </button>
             <Link to="/features" className="btn btn-secondary" style={{ padding: '16px 32px', fontSize: '1.1rem' }}>See Features</Link>
           </motion.div>
         </motion.div>
@@ -192,7 +198,7 @@ export default function Home() {
                 <p className="text-body" style={{ maxWidth: '400px', marginBottom: '32px' }}>
                   A shared memory is waiting for you. Get the app to see the full high-definition Ripple.
                 </p>
-                <Link to="/signup" className="btn btn-primary">Open in Oasis</Link>
+                <button onClick={() => document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' })} className="btn btn-primary">Open in Oasis</button>
               </div>
             </div>
           </motion.div>
@@ -211,6 +217,47 @@ export default function Home() {
               <Link to="/pricing" className="btn btn-accent" style={{ padding: '16px 32px', fontSize: '1.1rem' }}>Explore Pricing</Link>
             </motion.div>
          </div>
+      </section>
+
+      {/* Download Section */}
+      <section id="download" className="section-padding" style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--glass-border)' }}>
+        <div className="container">
+          <motion.div 
+            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
+            style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}
+          >
+            <h2 className="heading-large" style={{ marginBottom: '24px' }}>Ready to join the <span className="text-gradient">Oasis?</span></h2>
+            <p className="text-body" style={{ marginBottom: '48px' }}>
+              Experience the future of private social connection on all your devices.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+              {/* Windows Download */}
+              <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', transition: 'transform 0.3s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-10px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'none'}>
+                <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px auto', color: '#3b82f6' }}>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 3v18"/><path d="M3 12h18"/></svg>
+                </div>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '12px' }}>Windows</h3>
+                <p className="text-body" style={{ fontSize: '0.9rem', marginBottom: '24px' }}>Full desktop experience with MSIX installer.</p>
+                <a href="/windows/oasis.msix" className="btn btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
+                   Download .msix
+                </a>
+              </div>
+
+              {/* Android Download */}
+              <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', transition: 'transform 0.3s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-10px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'none'}>
+                <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px auto', color: '#10b981' }}>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 16V9h14v7"/><path d="M9 16c0 1.1-.9 2-2 2s-2-.9-2-2"/><path d="M15 16c0 1.1.9 2 2 2s2-.9 2-2"/><path d="M12 9V5"/><path d="m9 5 3 4 3-4"/></svg>
+                </div>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '12px' }}>Android</h3>
+                <p className="text-body" style={{ fontSize: '0.9rem', marginBottom: '24px' }}>Stay connected on the go with our Android app.</p>
+                <a href="/apk/oasis-arm64-v8a-release.apk" className="btn btn-secondary" style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
+                  Download .apk
+                </a>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </section>
     </div>
   );

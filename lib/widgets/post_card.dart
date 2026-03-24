@@ -9,6 +9,9 @@ import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis_v2/providers/profile_provider.dart';
 import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/models/message.dart';
+import 'package:oasis_v2/widgets/messages/share_to_dm_modal.dart';
+import 'package:oasis_v2/utils/haptic_utils.dart';
 
 class PostCard extends StatefulWidget {
   final Post post;
@@ -39,6 +42,7 @@ class _PostCardState extends State<PostCard>
   late AnimationController _likeAnimationController;
   late Animation<double> _likeAnimation;
   bool _isHovered = false;
+  final GlobalKey _moreButtonKey = GlobalKey();
 
   @override
   void initState() {
@@ -72,20 +76,88 @@ class _PostCardState extends State<PostCard>
     super.dispose();
   }
 
-  void _handleLike() {
-    if (widget.post.isLiked) {
+  void _handleLike({bool forceLike = false}) {
+    HapticFeedback.lightImpact();
+    
+    final wasLiked = widget.post.isLiked;
+    
+    if (forceLike && wasLiked) {
+      // Already liked, just show animation
+      _likeAnimationController.forward().then((_) {
+        _likeAnimationController.reverse();
+      });
+      return;
+    }
+
+    if (wasLiked) {
       _likeAnimationController.reverse();
     } else {
       _likeAnimationController.forward().then((_) {
         _likeAnimationController.reverse();
       });
     }
-    widget.onLike?.call();
+    
+    // Call onLike only if we are toggling OR if we want to ensure it's liked
+    if (!forceLike || !wasLiked) {
+      widget.onLike?.call();
+    }
   }
 
   void _showMoreOptions() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+
+    if (isDesktop) {
+      final RenderBox? button = _moreButtonKey.currentContext?.findRenderObject() as RenderBox?;
+      if (button == null) return;
+      
+      final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+      final RelativeRect position = RelativeRect.fromRect(
+        Rect.fromPoints(
+          button.localToGlobal(Offset.zero, ancestor: overlay),
+          button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+        ),
+        Offset.zero & overlay.size,
+      );
+
+      showMenu(
+        context: context,
+        position: position,
+        color: theme.brightness == Brightness.dark ? const Color(0xFF1A1D24) : Colors.white,
+        surfaceTintColor: Colors.transparent,
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        ),
+        items: [
+          if (widget.isOwnPost)
+            PopupMenuItem(
+              onTap: _confirmDelete,
+              child: _buildMenuRow(FluentIcons.delete_24_regular, 'Delete Post', colorScheme.error),
+            )
+          else
+            PopupMenuItem(
+              onTap: _showReportDialog,
+              child: _buildMenuRow(FluentIcons.flag_24_regular, 'Report Post', colorScheme.error),
+            ),
+          PopupMenuItem(
+            onTap: _copyPostLink,
+            child: _buildMenuRow(FluentIcons.link_24_regular, 'Copy Link', colorScheme.onSurface),
+          ),
+          PopupMenuItem(
+            onTap: _shareToDM,
+            child: _buildMenuRow(FluentIcons.send_24_regular, 'Share to Message', colorScheme.onSurface),
+          ),
+          PopupMenuItem(
+            onTap: () => widget.onShare?.call(),
+            child: _buildMenuRow(FluentIcons.share_24_regular, 'Share via...', colorScheme.onSurface),
+          ),
+        ],
+      );
+      return;
+    }
 
     showModalBottomSheet(
       context: context,
@@ -94,18 +166,9 @@ class _PostCardState extends State<PostCard>
         child: Container(
           margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
           decoration: BoxDecoration(
-            color: colorScheme.surface.withValues(alpha: 0.85),
+            color: colorScheme.surface.withValues(alpha: 0.98),
             borderRadius: BorderRadius.circular(32),
-            border: Border.all(
-              color: colorScheme.onSurface.withValues(alpha: 0.1),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 32,
-                offset: const Offset(0, -8),
-              ),
-            ],
+            border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.1)),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(32),
@@ -157,6 +220,15 @@ class _PostCardState extends State<PostCard>
                   ),
                   _buildMoreTile(
                     context,
+                    icon: FluentIcons.send_24_regular,
+                    title: 'Share to Message',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _shareToDM();
+                    },
+                  ),
+                  _buildMoreTile(
+                    context,
                     icon: FluentIcons.share_24_regular,
                     title: 'Share via...',
                     onTap: () {
@@ -171,6 +243,37 @@ class _PostCardState extends State<PostCard>
           ),
         ),
       ),
+    );
+  }
+
+  void _shareToDM() {
+    showDialog(
+      context: context,
+      builder: (context) => ShareToDirectMessageModal(
+        title: 'Share Post',
+        content: widget.post.content ?? 'Shared a post',
+        messageType: MessageType.post_share,
+        postId: widget.post.id,
+        mediaUrl: widget.post.mediaUrls.isNotEmpty ? widget.post.mediaUrls.first : widget.post.imageUrl,
+        shareData: {
+          'username': widget.post.username,
+          'user_avatar': widget.post.userAvatar,
+          'content': widget.post.content,
+          'media_urls': widget.post.mediaUrls,
+          'image_url': widget.post.imageUrl,
+        },
+      ),
+    );
+  }
+
+  Widget _buildMenuRow(IconData icon, String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 18, color: color),
+        const SizedBox(width: 12),
+        Text(label, style: TextStyle(color: color, fontSize: 14)),
+      ],
     );
   }
 
@@ -297,6 +400,22 @@ class _PostCardState extends State<PostCard>
     );
   }
 
+  Widget _buildImageItem(String url, ColorScheme colorScheme) {
+    return CachedNetworkImage(
+      imageUrl: url,
+      fit: BoxFit.contain, // Properly fit the image in the container
+      width: double.infinity,
+      placeholder: (context, url) => Container(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      ),
+      errorWidget: (context, url, error) => Container(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        child: const Center(child: Icon(Icons.error_outline)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -310,49 +429,41 @@ class _PostCardState extends State<PostCard>
         scale: isDesktop && _isHovered ? 1.01 : 1.0,
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    colorScheme.surface.withValues(alpha: 0.7),
-                    colorScheme.surface.withValues(alpha: 0.4),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: _isHovered 
-                    ? colorScheme.primary.withValues(alpha: 0.3)
-                    : colorScheme.primary.withValues(alpha: 0.1),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: _isHovered ? 0.1 : 0.05),
-                    blurRadius: _isHovered ? 20 : 10,
-                    offset: const Offset(0, 4),
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: isDesktop ? 12 : 16, 
+            left: isDesktop ? 8 : 16, 
+            right: isDesktop ? 8 : 16
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(isDesktop ? 16 : 24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      colorScheme.surface.withValues(alpha: 0.7),
+                      colorScheme.surface.withValues(alpha: 0.4),
+                    ],
                   ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                  borderRadius: BorderRadius.circular(isDesktop ? 16 : 24),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   // Header
                   Padding(
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.all(isDesktop ? 8 : 12),
                     child: Row(
                       children: [
                         GestureDetector(
                           onTap:
                               () => context.push('/profile/${widget.post.userId}'),
                           child: CircleAvatar(
-                            radius: 20,
+                            radius: isDesktop ? 16 : 20,
                             backgroundImage:
                                 widget.post.userAvatar.isNotEmpty
                                     ? CachedNetworkImageProvider(
@@ -361,7 +472,7 @@ class _PostCardState extends State<PostCard>
                                     : null,
                             child:
                                 widget.post.userAvatar.isEmpty
-                                    ? Text(widget.post.username[0].toUpperCase())
+                                    ? Text(widget.post.username[0].toUpperCase(), style: TextStyle(fontSize: isDesktop ? 10 : 14))
                                     : null,
                           ),
                         ),
@@ -378,7 +489,7 @@ class _PostCardState extends State<PostCard>
                                   children: [
                                     Text(
                                       widget.post.username,
-                                      style: theme.textTheme.titleMedium?.copyWith(
+                                      style: (isDesktop ? theme.textTheme.titleSmall : theme.textTheme.titleMedium)?.copyWith(
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -386,7 +497,7 @@ class _PostCardState extends State<PostCard>
                                       const SizedBox(width: 4),
                                       Icon(
                                         Icons.verified,
-                                        size: 16,
+                                        size: isDesktop ? 14 : 16,
                                         color: colorScheme.primary,
                                       ),
                                     ],
@@ -409,7 +520,7 @@ class _PostCardState extends State<PostCard>
                                               },
                                               child: Text(
                                                 'Follow',
-                                                style: theme.textTheme.labelMedium?.copyWith(
+                                                style: (isDesktop ? theme.textTheme.labelSmall : theme.textTheme.labelMedium)?.copyWith(
                                                   color: colorScheme.primary,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -424,6 +535,7 @@ class _PostCardState extends State<PostCard>
                                   timeago.format(widget.post.timestamp),
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
+                                    fontSize: isDesktop ? 10 : 12,
                                   ),
                                 ),
                               ],
@@ -431,8 +543,10 @@ class _PostCardState extends State<PostCard>
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(FluentIcons.more_vertical_24_regular),
+                          key: _moreButtonKey,
+                          icon: Icon(FluentIcons.more_vertical_24_regular, size: isDesktop ? 18 : 24),
                           onPressed: _showMoreOptions,
+                          visualDensity: isDesktop ? VisualDensity.compact : VisualDensity.standard,
                         ),
                       ],
                     ),
@@ -452,81 +566,25 @@ class _PostCardState extends State<PostCard>
                         return Column(
                           children: [
                             GestureDetector(
-                              onDoubleTap: _handleLike,
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(maxHeight: 500),
-                                child:
-                                    images.length > 1
-                                        ? SizedBox(
-                                          height: 400, // Fixed height for carousel
-                                          child: PageView.builder(
-                                            itemCount: images.length,
-                                            onPageChanged: (index) {
-                                              // You could add state here for dots if you lift this Builder out
-                                            },
-                                            itemBuilder: (context, index) {
-                                              return CachedNetworkImage(
-                                                imageUrl: images[index],
-                                                fit: BoxFit.cover,
-                                                width: double.infinity,
-                                                placeholder:
-                                                    (context, url) => Container(
-                                                      color:
-                                                          colorScheme
-                                                              .surfaceContainerHighest,
-                                                      child: const Center(
-                                                        child:
-                                                            CircularProgressIndicator(),
-                                                      ),
-                                                    ),
-                                                errorWidget:
-                                                    (
-                                                      context,
-                                                      url,
-                                                      error,
-                                                    ) => Container(
-                                                      color:
-                                                          colorScheme
-                                                              .surfaceContainerHighest,
-                                                      child: const Center(
-                                                        child: Icon(
-                                                          Icons.error_outline,
-                                                        ),
-                                                      ),
-                                                    ),
-                                              );
-                                            },
-                                          ),
+                              onDoubleTap: () => _handleLike(forceLike: true),
+                              child: AspectRatio(
+                                aspectRatio: isDesktop ? 1.2 : 4 / 5, // Wider aspect ratio on desktop to make it look smaller vertically
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                                  ),
+                                  child: images.length > 1
+                                      ? PageView.builder(
+                                          itemCount: images.length,
+                                          itemBuilder: (context, index) {
+                                            return _buildImageItem(images[index], colorScheme);
+                                          },
                                         )
-                                        : Hero(
+                                      : Hero(
                                           tag: 'post_${widget.post.id}',
-                                          child: CachedNetworkImage(
-                                            imageUrl: images.first,
-                                            fit: BoxFit.cover,
-                                            width: double.infinity,
-                                            placeholder:
-                                                (context, url) => Container(
-                                                  height: 300,
-                                                  color:
-                                                      colorScheme
-                                                          .surfaceContainerHighest,
-                                                  child: const Center(
-                                                    child:
-                                                        CircularProgressIndicator(),
-                                                  ),
-                                                ),
-                                            errorWidget:
-                                                (context, url, error) => Container(
-                                                  height: 300,
-                                                  color:
-                                                      colorScheme
-                                                          .surfaceContainerHighest,
-                                                  child: const Center(
-                                                    child: Icon(Icons.error_outline),
-                                                  ),
-                                                ),
-                                          ),
+                                          child: _buildImageItem(images.first, colorScheme),
                                         ),
+                                ),
                               ),
                             ),
                             if (images.length > 1)
@@ -561,10 +619,12 @@ class _PostCardState extends State<PostCard>
                   if (widget.post.content != null &&
                       widget.post.content!.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                      padding: EdgeInsets.fromLTRB(16, isDesktop ? 12 : 12, 16, isDesktop ? 8 : 8),
                       child: RichText(
                         text: TextSpan(
-                          style: theme.textTheme.bodyMedium,
+                          style: isDesktop 
+                            ? theme.textTheme.bodyMedium?.copyWith(fontSize: 15, height: 1.4) 
+                            : theme.textTheme.bodyMedium,
                           children: [
                             TextSpan(
                               text: '${widget.post.username} ',
@@ -577,49 +637,59 @@ class _PostCardState extends State<PostCard>
                     ),
 
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                    padding: EdgeInsets.only(
+                      left: 12,
+                      right: 12,
+                      top: isDesktop ? 4 : 8,
+                      bottom: isDesktop ? 12 : 20,
                     ),
                     child: Row(
                       children: [
                         ScaleTransition(
                           scale: _likeAnimation,
                           child: IconButton(
+                            key: const ValueKey('post_card_like_button'),
                             icon: Icon(
                               widget.post.isLiked
                                   ? FluentIcons.heart_24_filled
                                   : FluentIcons.heart_24_regular,
                               color: widget.post.isLiked ? Colors.red : null,
+                              size: isDesktop ? 24 : 32,
                             ),
                             onPressed: _handleLike,
-                            iconSize: 28,
+                            padding: isDesktop ? EdgeInsets.zero : const EdgeInsets.all(8),
+                            constraints: isDesktop ? const BoxConstraints() : null,
                           ),
                         ),
                         const SizedBox(width: 4),
                         Text(
                           '${widget.post.likes}',
-                          style: theme.textTheme.bodyMedium,
+                          style: isDesktop ? theme.textTheme.bodySmall : theme.textTheme.bodyMedium,
                         ),
                         const SizedBox(width: 16),
                         IconButton(
-                          icon: const Icon(FluentIcons.chat_24_regular),
+                          key: const ValueKey('post_card_comment_button'),
+                          icon: Icon(FluentIcons.chat_24_regular, size: isDesktop ? 22 : 28),
                           onPressed: widget.onComment,
-                          iconSize: 24,
+                          padding: isDesktop ? EdgeInsets.zero : const EdgeInsets.all(8),
+                          constraints: isDesktop ? const BoxConstraints() : null,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           '${widget.post.comments}',
-                          style: theme.textTheme.bodyMedium,
+                          style: isDesktop ? theme.textTheme.bodySmall : theme.textTheme.bodyMedium,
                         ),
                         const SizedBox(width: 16),
                         IconButton(
-                          icon: const Icon(FluentIcons.share_24_regular),
+                          key: const ValueKey('post_card_share_button'),
+                          icon: Icon(FluentIcons.share_24_regular, size: isDesktop ? 22 : 28),
                           onPressed: widget.onShare,
-                          iconSize: 24,
+                          padding: isDesktop ? EdgeInsets.zero : const EdgeInsets.all(8),
+                          constraints: isDesktop ? const BoxConstraints() : null,
                         ),
                         const Spacer(),
                         IconButton(
+                          key: const ValueKey('post_card_bookmark_button'),
                           icon: Icon(
                             widget.post.isBookmarked
                                 ? FluentIcons.bookmark_24_filled
@@ -628,9 +698,11 @@ class _PostCardState extends State<PostCard>
                                 widget.post.isBookmarked
                                     ? colorScheme.primary
                                     : null,
+                            size: isDesktop ? 22 : 28,
                           ),
                           onPressed: widget.onBookmark,
-                          iconSize: 24,
+                          padding: isDesktop ? EdgeInsets.zero : const EdgeInsets.all(8),
+                          constraints: isDesktop ? const BoxConstraints() : null,
                         ),
                       ],
                     ),
@@ -641,6 +713,7 @@ class _PostCardState extends State<PostCard>
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

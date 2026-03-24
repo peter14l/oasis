@@ -81,10 +81,6 @@ class _LoginScreenState extends State<LoginScreen> {
           _emailController.text.trim(),
           _passwordController.text,
         );
-
-        if (mounted) {
-          context.go('/feed');
-        }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(

@@ -16,7 +16,7 @@ const Footer = () => {
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text'
-            }}>MORROW</span>
+            }}>OASIS</span>
           </Link>
           <p style={{ marginTop: '1rem', color: '#94a3b8', fontSize: '0.9rem' }}>
             Built for privacy, powered by Signal Protocol. The social engine for meaningful moments.
@@ -34,6 +34,14 @@ const Footer = () => {
             <li><Link to="/features">Features</Link></li>
             <li><Link to="/pricing">Pricing</Link></li>
             <li><Link to="/privacy">Privacy Policy</Link></li>
+          </ul>
+        </div>
+
+        <div className="col-links">
+          <h4 style={{ marginBottom: '1.25rem', fontSize: '1rem' }}>Downloads</h4>
+          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', color: '#94a3b8', fontSize: '0.9rem' }}>
+            <li><a href="/windows/oasis.msix" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>Windows (MSIX)</a></li>
+            <li><a href="/apk/oasis-arm64-v8a-release.apk" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>Android (APK)</a></li>
           </ul>
         </div>
 
@@ -69,7 +77,7 @@ const Footer = () => {
         </div>
       </div>
       <div className="container" style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', color: '#475569', fontSize: '0.8rem' }}>
-        <p>© 2026 Morrow Inc. All rights reserved.</p>
+        <p>© 2026 Oasis Inc. All rights reserved.</p>
       </div>
     </footer>
   );

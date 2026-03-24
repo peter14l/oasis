@@ -7,6 +7,10 @@ import 'package:navigation_bar_m3e/navigation_bar_m3e.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/services/screen_time_service.dart';
+import 'package:oasis_v2/services/wellness_service.dart';
+import 'package:oasis_v2/providers/user_settings_provider.dart';
+import 'package:universal_io/io.dart';
 import 'package:oasis_v2/screens/spaces/spaces_screen.dart';
 
 import 'package:oasis_v2/screens/circles/circle_detail_screen.dart';
@@ -56,14 +60,36 @@ import '../screens/stories/create_story_screen.dart';
 import '../screens/ripples_screen.dart';
 import '../screens/create_ripple_screen.dart';
 import '../screens/oasis_pro_screen.dart';
-import 'package:oasis_v2/services/screen_time_service.dart';
-import 'package:oasis_v2/services/wellness_service.dart';
 import 'package:oasis_v2/utils/responsive_layout.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 
 import 'package:oasis_v2/screens/settings/wellness_stats_screen.dart';
 
 import 'package:oasis_v2/widgets/account_switcher_sheet.dart';
+
+class UnreadMessagesBadge extends StatelessWidget {
+  final Widget child;
+  final bool isSelected;
+
+  const UnreadMessagesBadge({
+    super.key,
+    required this.child,
+    this.isSelected = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ConversationProvider>(
+      builder: (context, provider, _) {
+        return Badge(
+          isLabelVisible: provider.totalUnreadCount > 0,
+          label: Text(provider.totalUnreadCount.toString()),
+          child: child,
+        );
+      },
+    );
+  }
+}
 
 class MainLayout extends StatefulWidget {
   final Widget child;
@@ -119,12 +145,18 @@ class _MainLayoutState extends State<MainLayout> {
     final currentIndex = _getCurrentIndex();
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
-    // Sync active panel only if NOT on desktop or if we want to handle deep links.
-    // For "Instagram-style" where sheets slide over, we'll keep _activePanel state-driven.
-
-    return Consumer2<ScreenTimeService, WellnessService>(
-      builder: (context, svc, wellness, _) {
+    return Consumer3<ScreenTimeService, WellnessService, UserSettingsProvider>(
+      builder: (context, svc, wellness, userSettings, _) {
         final killSwitchActive = wellness.focusModeEnabled;
+        final isMica = userSettings.micaEnabled && Platform.isWindows;
+        
+        final panelColor = isMica 
+            ? Colors.black.withValues(alpha: 0.1) 
+            : const Color(0xFF0C0F14).withValues(alpha: 0.8);
+            
+        final slidingPanelColor = isMica 
+            ? Colors.black.withValues(alpha: 0.8) 
+            : const Color(0xFF0C0F14);
 
         if (killSwitchActive) {
           final location = GoRouterState.of(context).uri.path;
@@ -173,26 +205,27 @@ class _MainLayoutState extends State<MainLayout> {
                   child: Container(
                     width: _isRailExtended ? 240 : 120,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0C0F14).withValues(alpha: 0.8),
+                      color: panelColor,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: BackdropFilter(
-                        filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        filter: ui.ImageFilter.blur(sigmaX: isMica ? 0 : 10, sigmaY: isMica ? 0 : 10),
                         child: _buildNavigationRail(
                           context,
                           currentIndex,
                           theme,
                           killSwitchActive: killSwitchActive,
+                          isMica: isMica,
                         ),
                       ),
                     ),
                   ),
                 ),
 
-                // Sliding Panels - Now truly sliding OVER current content
+                // Sliding Panels - Truly opaque now
                 if (_activePanel != null)
                   Positioned(
                     top: 12,
@@ -206,7 +239,7 @@ class _MainLayoutState extends State<MainLayout> {
                       child: Container(
                         width: 450,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0C0F14).withValues(alpha: 0.98),
+                          color: slidingPanelColor,
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
@@ -274,6 +307,9 @@ class _MainLayoutState extends State<MainLayout> {
     ThemeData theme, {
     required bool killSwitchActive,
   }) {
+    final isDesktop = ResponsiveLayout.isDesktop(context);
+    if (isDesktop) return null;
+
     if (currentIndex == 2) {
       // Spaces tab — no FAB needed, circles/canvas have their own buttons
       return null;
@@ -403,15 +439,11 @@ class _MainLayoutState extends State<MainLayout> {
                 label: 'Spaces',
               ),
               NavigationDestinationM3E(
-                icon: Badge(
-                  isLabelVisible: conversationProvider.totalUnreadCount > 0,
-                  label: Text(conversationProvider.totalUnreadCount.toString()),
-                  child: const Icon(FluentIcons.chat_24_regular),
+                icon: const UnreadMessagesBadge(
+                  child: Icon(FluentIcons.chat_24_regular),
                 ),
-                selectedIcon: Badge(
-                  isLabelVisible: conversationProvider.totalUnreadCount > 0,
-                  label: Text(conversationProvider.totalUnreadCount.toString()),
-                  child: const Icon(FluentIcons.chat_24_filled),
+                selectedIcon: const UnreadMessagesBadge(
+                  child: Icon(FluentIcons.chat_24_filled),
                 ),
                 label: 'Messages',
               ),
@@ -443,8 +475,8 @@ class _MainLayoutState extends State<MainLayout> {
     int currentIndex,
     ThemeData theme, {
     required bool killSwitchActive,
+    bool isMica = false,
   }) {
-    final conversationProvider = Provider.of<ConversationProvider>(context);
     final colorScheme = theme.colorScheme;
 
     Widget restrictedIcon(Widget icon) =>
@@ -456,7 +488,7 @@ class _MainLayoutState extends State<MainLayout> {
       onDestinationSelected:
           (i) => _onDestinationSelected(i, killSwitchActive: killSwitchActive),
       labelType: _isRailExtended ? NavigationRailLabelType.none : NavigationRailLabelType.all,
-      backgroundColor: const Color(0xFF0C0F14),
+      backgroundColor: isMica ? Colors.transparent : const Color(0xFF0C0F14),
       leading: Column(
         children: [
           const SizedBox(height: 8),
@@ -465,10 +497,27 @@ class _MainLayoutState extends State<MainLayout> {
             onPressed: () => setState(() => _isRailExtended = !_isRailExtended),
             color: colorScheme.onSurfaceVariant,
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Icon(Icons.auto_awesome, size: 32, color: colorScheme.primary),
-          ),
+          if (_isRailExtended)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+              child: _buildDesktopCreateButton(context, theme),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: GestureDetector(
+                onTapDown: (details) => _showCreateMenu(context, details.globalPosition, theme),
+                child: IconButton.filled(
+                  onPressed: () {}, // Handled by onTapDown for position
+                  icon: const Icon(Icons.add_rounded),
+                  style: IconButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    minimumSize: const Size(56, 56),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
       trailing: Expanded(
@@ -513,15 +562,11 @@ class _MainLayoutState extends State<MainLayout> {
           label: const Text('Spaces'),
         ),
         NavigationRailDestination(
-          icon: Badge(
-            isLabelVisible: conversationProvider.totalUnreadCount > 0,
-            label: Text(conversationProvider.totalUnreadCount.toString()),
-            child: const Icon(FluentIcons.chat_24_regular),
+          icon: const UnreadMessagesBadge(
+            child: Icon(FluentIcons.chat_24_regular),
           ),
-          selectedIcon: Badge(
-            isLabelVisible: conversationProvider.totalUnreadCount > 0,
-            label: Text(conversationProvider.totalUnreadCount.toString()),
-            child: const Icon(FluentIcons.chat_24_filled),
+          selectedIcon: const UnreadMessagesBadge(
+            child: Icon(FluentIcons.chat_24_filled),
           ),
           label: const Text('Messages'),
         ),
@@ -540,6 +585,112 @@ class _MainLayoutState extends State<MainLayout> {
             child: const Icon(FluentIcons.person_24_filled),
           ),
           label: const Text('Profile'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopCreateButton(BuildContext context, ThemeData theme) {
+    return GestureDetector(
+      onTapDown: (details) => _showCreateMenu(context, details.globalPosition, theme),
+      child: InkWell(
+        onTap: () {}, // Handled by onTapDown
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          height: 56,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.add_rounded, color: Colors.white),
+              SizedBox(width: 12),
+              Text(
+                'CREATE',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showCreateMenu(BuildContext context, Offset position, ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position.dx,
+        position.dy,
+        overlay.size.width - position.dx,
+        overlay.size.height - position.dy,
+      ),
+      color: theme.brightness == Brightness.dark ? const Color(0xFF1A1D24) : Colors.white,
+      surfaceTintColor: Colors.transparent,
+      elevation: 8,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      items: [
+        PopupMenuItem(
+          onTap: () {
+            // Delay slightly to allow menu to close
+            Future.delayed(const Duration(milliseconds: 10), () {
+              if (context.mounted) context.pushNamed('create_post');
+            });
+          },
+          child: Row(
+            children: [
+              Icon(Icons.post_add, size: 20, color: colorScheme.onSurfaceVariant),
+              const SizedBox(width: 12),
+              const Text('New Post'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          onTap: () {
+            Future.delayed(const Duration(milliseconds: 10), () {
+              if (context.mounted) context.pushNamed('create_ripple');
+            });
+          },
+          child: Row(
+            children: [
+              Icon(FluentIcons.video_24_regular, size: 20, color: colorScheme.onSurfaceVariant),
+              const SizedBox(width: 12),
+              const Text('New Ripple'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          onTap: () {
+            Future.delayed(const Duration(milliseconds: 10), () {
+              if (context.mounted) context.pushNamed('create_capsule');
+            });
+          },
+          child: Row(
+            children: [
+              Icon(Icons.lock_clock, size: 20, color: colorScheme.onSurfaceVariant),
+              const SizedBox(width: 12),
+              const Text('Time Capsule'),
+            ],
+          ),
         ),
       ],
     );

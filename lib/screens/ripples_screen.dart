@@ -1,58 +1,67 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oasis_v2/services/ripples_service.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:record/record.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
-import 'dart:ui';
-import 'package:oasis_v2/widgets/share_sheet.dart';
-import 'package:oasis_v2/models/message.dart';
 import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/widgets/share_sheet.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/widgets/messages/share_to_dm_modal.dart';
+import 'package:oasis_v2/models/message.dart';
+import 'package:flutter_animate/flutter_animate.dart' as motion;
 
 class RipplesScreen extends StatefulWidget {
-  const RipplesScreen({super.key});
+  final VoidCallback? onExit;
+  final String? initialRippleId;
+
+  const RipplesScreen({super.key, this.onExit, this.initialRippleId});
 
   @override
   State<RipplesScreen> createState() => _RipplesScreenState();
 }
 
 class _RipplesScreenState extends State<RipplesScreen> {
-  List<Map<String, dynamic>> _ripples = [];
   final PageController _pageController = PageController();
   StreamSubscription? _sessionSub;
   int _currentIndex = 0;
-  bool _isLoading = true;
   DateTime? _sessionStartTime;
 
   @override
   void initState() {
     super.initState();
     _sessionStartTime = DateTime.now();
-    _loadRipples();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final service = context.read<RipplesService>();
+      service.refreshRipples().then((_) {
+        if (widget.initialRippleId != null) {
+          final index = service.ripples.indexWhere((r) => r['id'] == widget.initialRippleId);
+          if (index >= 0) {
+            setState(() {
+              _currentIndex = index;
+              _pageController.jumpToPage(index);
+            });
+          }
+        }
+      });
+    });
 
     final ripplesService = context.read<RipplesService>();
     _sessionSub = ripplesService.onSessionEnd.listen((_) {
       if (mounted) {
-        context.go('/feed');
+        if (widget.onExit != null) {
+          widget.onExit!();
+        } else {
+          context.go('/feed');
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Your Ripples session has ended. Time to reconnect!')),
         );
       }
     });
-  }
-
-  Future<void> _loadRipples() async {
-    final ripples = await context.read<RipplesService>().getRipples();
-    if (mounted) {
-      setState(() {
-        _ripples = ripples;
-        _isLoading = false;
-      });
-    }
   }
 
   @override
@@ -75,41 +84,63 @@ class _RipplesScreenState extends State<RipplesScreen> {
         }
       }
     }
-    context.pop();
+    
+    if (widget.onExit != null) {
+      widget.onExit!();
+    } else {
+      context.pop();
+    }
   }
 
   void _showLayoutSwitcher(BuildContext context, RipplesService service) {
     showModalBottomSheet(
       context: context,
-      useRootNavigator: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Layout Style', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 16),
-            ...RipplesLayoutType.values.map((type) {
-              return RadioListTile<RipplesLayoutType>(
-                title: Text(type.name.replaceAll(RegExp(r'(?=[A-Z])'), ' ').toUpperCase()),
-                value: type,
-                groupValue: service.currentLayout,
-                onChanged: (val) {
-                  if (val != null) {
-                    service.setLayoutPreference(val);
-                    Navigator.pop(context);
-                  }
-                },
-              );
-            }),
+            const Text('Layout Style', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildLayoutOption(context, service, RipplesLayoutType.kineticCardStack, 'Kinetic', Icons.view_carousel),
+                _buildLayoutOption(context, service, RipplesLayoutType.choiceMosaic, 'Mosaic', Icons.grid_view_rounded),
+              ],
+            ),
+            const SizedBox(height: 32),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildLayoutOption(BuildContext context, RipplesService service, RipplesLayoutType type, String label, IconData icon) {
+    final isSelected = service.currentLayout == type;
+    return GestureDetector(
+      onTap: () {
+        service.setLayoutPreference(type);
+        Navigator.pop(context);
+      },
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surfaceContainerHighest,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: isSelected ? Colors.white : Colors.grey, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(label, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+        ],
       ),
     );
   }
@@ -117,70 +148,333 @@ class _RipplesScreenState extends State<RipplesScreen> {
   @override
   Widget build(BuildContext context) {
     final ripplesService = context.watch<RipplesService>();
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final ripples = ripplesService.ripples;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          if (isDesktop && _ripples.isNotEmpty && _currentIndex < _ripples.length)
-            Positioned.fill(
-              child: Image.network(
-                _ripples[_currentIndex]['thumbnail_url'] ?? '',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(color: Colors.black),
-              ),
-            ),
-          if (isDesktop)
-            Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-                child: Container(color: Colors.black.withValues(alpha: 0.5)),
-              ),
-            ),
-          
-          Center(
-            child: Container(
-              constraints: isDesktop ? const BoxConstraints(maxWidth: 500) : null,
-              child: AspectRatio(
-                aspectRatio: isDesktop ? 9 / 16 : MediaQuery.of(context).size.aspectRatio,
-                child: ClipRRect(
-                  borderRadius: isDesktop ? BorderRadius.circular(8) : BorderRadius.zero,
-                  child: Stack(
-                    children: [
-                      if (_isLoading)
-                        const Center(child: CircularProgressIndicator(color: Colors.white24))
-                      else if (_ripples.isEmpty)
-                        const Center(child: Text('No ripples yet. Be the first to share one!', style: TextStyle(color: Colors.white54)))
-                      else
-                        _buildActiveLayout(ripplesService.currentLayout),
+    if (ripplesService.isLoading && ripples.isEmpty) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: CircularProgressIndicator(color: Colors.white24)),
+      );
+    }
 
-                      // Custom AppBar inside the aspect ratio container on desktop
-                      Positioned(
-                        top: (isDesktop ? 20 : MediaQuery.of(context).padding.top + 10),
-                        left: 16,
-                        right: 16,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _buildGlassCircleButton(
-                              icon: FluentIcons.dismiss_24_filled,
-                              onTap: _handleExit,
+    if (ripples.isEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('No ripples yet.', style: TextStyle(color: Colors.white54, fontSize: 18)),
+              const SizedBox(height: 16),
+              _buildGlassCircleButton(icon: Icons.close, onTap: _handleExit),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final currentRipple = ripples[_currentIndex];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isDesktop = constraints.maxWidth >= 1000;
+
+        if (isDesktop) {
+          return Scaffold(
+            backgroundColor: Colors.black,
+            body: Stack(
+              children: [
+                // Immersive Blurred Background
+                Positioned.fill(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 500),
+                    child: Image.network(
+                      currentRipple['thumbnail_url'] ?? '',
+                      key: ValueKey('bg_${currentRipple['id']}'),
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(color: Colors.black),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
+                    child: Container(color: Colors.black.withValues(alpha: 0.6)),
+                  ),
+                ),
+
+                // Desktop Layout
+                Row(
+                  children: [
+                    // Left: Navigation Queue
+                    Container(
+                      width: 300,
+                      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildGlassCircleButton(icon: Icons.arrow_back, onTap: _handleExit),
+                          const SizedBox(height: 32),
+                          const Text('Coming Up', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                          const SizedBox(height: 16),
+                          Expanded(
+                            child: ListView.separated(
+                              itemCount: ripples.length,
+                              separatorBuilder: (context, index) => const SizedBox(height: 12),
+                              itemBuilder: (context, index) {
+                                final ripple = ripples[index];
+                                final isCurrent = index == _currentIndex;
+                                return GestureDetector(
+                                  onTap: () => setState(() {
+                                    _currentIndex = index;
+                                    _pageController.jumpToPage(index);
+                                  }),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: isCurrent ? Colors.white.withValues(alpha: 0.1) : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: isCurrent ? Colors.white.withValues(alpha: 0.2) : Colors.transparent),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(8),
+                                          child: Image.network(ripple['thumbnail_url'] ?? '', width: 60, height: 80, fit: BoxFit.cover),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                ripple['profiles']['username'] ?? 'User',
+                                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              Text(ripple['caption'] ?? '', style: const TextStyle(color: Colors.white54, fontSize: 11), maxLines: 2, overflow: TextOverflow.ellipsis),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
-                            _buildGlassCircleButton(
-                              icon: FluentIcons.grid_24_regular,
-                              onTap: () => _showLayoutSwitcher(context, ripplesService),
-                            ),
-                          ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Center: Video Player
+                    Expanded(
+                      child: Center(
+                        child: Container(
+                          constraints: const BoxConstraints(maxWidth: 500),
+                          margin: const EdgeInsets.symmetric(vertical: 40),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 40, spreadRadius: 10),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(24),
+                            child: _buildActiveLayout(ripplesService.currentLayout, ripples),
+                          ),
                         ),
                       ),
-                    ],
+                    ),
+
+                    // Right: Info & Comments
+                    Container(
+                      width: 400,
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 24,
+                                backgroundImage: currentRipple['profiles']['avatar_url'] != null 
+                                  ? NetworkImage(currentRipple['profiles']['avatar_url']) 
+                                  : null,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      currentRipple['profiles']['username'] ?? 'User',
+                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const Text('Original Ripple', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                                  ],
+                                ),
+                              ),
+                              _buildGlassCircleButton(
+                                icon: FluentIcons.grid_24_regular, 
+                                onTap: () => _showLayoutSwitcher(context, ripplesService)
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          Text(currentRipple['caption'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 15)),
+                          const SizedBox(height: 32),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _buildDesktopAction(
+                                icon: currentRipple['is_liked'] ? FluentIcons.heart_24_filled : FluentIcons.heart_24_regular,
+                                label: '${currentRipple['likes_count']}',
+                                color: currentRipple['is_liked'] ? Colors.redAccent : Colors.white,
+                                onTap: () => _toggleLikeInBuild(currentRipple),
+                              ),
+                              _buildDesktopAction(
+                                icon: FluentIcons.comment_24_regular,
+                                label: '${currentRipple['comments_count']}',
+                                onTap: () => _showMobileComments(context, currentRipple['id']),
+                              ),
+                              _buildDesktopAction(
+                                icon: currentRipple['is_saved'] ? FluentIcons.bookmark_24_filled : FluentIcons.bookmark_24_regular,
+                                label: 'Save',
+                                color: currentRipple['is_saved'] ? Colors.blueAccent : Colors.white,
+                                onTap: () => _toggleSaveInBuild(currentRipple),
+                              ),
+                              _buildDesktopAction(
+                                icon: FluentIcons.send_24_regular,
+                                label: 'Send',
+                                onTap: () => _shareToDM(currentRipple),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 32),
+                          const Divider(color: Colors.white10),
+                          const SizedBox(height: 16),
+                          const Text('Comments', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                          const SizedBox(height: 16),
+                          Expanded(
+                            child: RippleCommentsList(rippleId: currentRipple['id']),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }
+
+        // Mobile Layout
+        return Scaffold(
+          backgroundColor: Colors.black,
+          body: Stack(
+            children: [
+              _buildActiveLayout(ripplesService.currentLayout, ripples),
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 10,
+                left: 16,
+                right: 16,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildGlassCircleButton(icon: FluentIcons.dismiss_24_filled, onTap: _handleExit),
+                    _buildGlassCircleButton(icon: FluentIcons.grid_24_regular, onTap: () => _showLayoutSwitcher(context, ripplesService)),
+                  ],
+                ),
+              ),
+              
+              // Bottom Pill for Mobile
+              Positioned(
+                bottom: MediaQuery.of(context).padding.bottom + 24,
+                left: 24,
+                right: 24,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(32),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(32),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildMobileAction(
+                            icon: currentRipple['is_liked'] == true ? FluentIcons.heart_24_filled : FluentIcons.heart_24_regular,
+                            color: currentRipple['is_liked'] == true ? Colors.redAccent : Colors.white,
+                            onTap: () => _toggleLikeInBuild(currentRipple),
+                          ),
+                          _buildMobileAction(
+                            icon: FluentIcons.comment_24_regular,
+                            color: Colors.white,
+                            onTap: () => _showMobileComments(context, currentRipple['id']),
+                          ),
+                          _buildMobileAction(
+                            icon: currentRipple['is_saved'] == true ? FluentIcons.bookmark_24_filled : FluentIcons.bookmark_24_regular,
+                            color: currentRipple['is_saved'] == true ? Colors.blueAccent : Colors.white,
+                            onTap: () => _toggleSaveInBuild(currentRipple),
+                          ),
+                          _buildMobileAction(
+                            icon: FluentIcons.send_24_regular,
+                            color: Colors.white,
+                            onTap: () => _shareToDM(currentRipple),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        );
+      },
+    );
+  }
+
+  Widget _buildMobileAction({required IconData icon, required Color color, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        child: Icon(icon, color: color, size: 28),
+      ),
+    );
+  }
+
+  void _showMobileComments(BuildContext context, String rippleId) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          children: [
+            const Text('Comments', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 16),
+            Expanded(
+              child: RippleCommentsList(rippleId: rippleId),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -189,12 +483,11 @@ class _RipplesScreenState extends State<RipplesScreen> {
     return GestureDetector(
       onTap: onTap,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(30),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
-            height: 50,
-            width: 50,
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.1),
               shape: BoxShape.circle,
@@ -207,70 +500,36 @@ class _RipplesScreenState extends State<RipplesScreen> {
     );
   }
 
-  Widget _buildActiveLayout(RipplesLayoutType layout) {
+  Widget _buildActiveLayout(RipplesLayoutType layout, List<dynamic> ripples) {
     switch (layout) {
       case RipplesLayoutType.kineticCardStack:
-        return _buildKineticCardStack();
+        return _buildKineticCardStack(ripples);
       case RipplesLayoutType.choiceMosaic:
-        return _buildChoiceMosaic();
+        return _buildChoiceMosaic(ripples);
     }
   }
 
-  Widget _buildKineticCardStack() {
+  Widget _buildKineticCardStack(List<dynamic> ripples) {
     return PageView.builder(
       controller: _pageController,
       scrollDirection: Axis.vertical,
-      itemCount: _ripples.length,
+      itemCount: ripples.length,
       onPageChanged: (index) => setState(() => _currentIndex = index),
       itemBuilder: (context, index) {
         return AnimatedBuilder(
           animation: _pageController,
           builder: (context, child) {
-            double value = 1.0;
+            double value = 0;
             if (_pageController.position.haveDimensions) {
               value = _pageController.page! - index;
-              value = (1 - (value.abs() * 0.3)).clamp(0.0, 1.0);
             }
-            return Transform(
-              alignment: Alignment.center,
-              transform:
-                  Matrix4.identity()
-                    ..setEntry(3, 2, 0.001)
-                    ..scale(value)
-                    ..rotateX(
-                      (_pageController.position.haveDimensions
-                              ? _pageController.page! - index
-                              : 0) *
-                          0.5,
-                    ),
-              child: Opacity(
-                opacity: value,
-                child: Stack(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 0.0,
-                        vertical: 0.0,
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(0),
-                        child: RippleVideoPlayer(
-                          url: _ripples[index]['video_url'],
-                          isPlaying: _currentIndex == index,
-                        ),
-                      ),
-                    ),
-                    if (_currentIndex == index)
-                      Positioned(
-                        bottom: 90,
-                        left: 16,
-                        right: 16,
-                        child: Center(
-                          child: DynamicRipplePill(ripple: _ripples[index]),
-                        ),
-                      ),
-                  ],
-                ),
+            final scale = 1.0 - (value.abs() * 0.2).clamp(0.0, 1.0);
+            return Transform.scale(
+              scale: scale,
+              child: RippleVideoPlayer(
+                rippleId: ripples[index]['id'],
+                videoUrl: ripples[index]['video_url'],
+                isPlaying: _currentIndex == index,
               ),
             );
           },
@@ -279,337 +538,153 @@ class _RipplesScreenState extends State<RipplesScreen> {
     );
   }
 
-  Widget _buildChoiceMosaic() {
+  Widget _buildChoiceMosaic(List<dynamic> ripples) {
     return GridView.builder(
-      padding: const EdgeInsets.only(top: 120, left: 16, right: 16, bottom: 40),
+      padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.65,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 9/16,
       ),
-      itemCount: _ripples.length,
+      itemCount: ripples.length,
       itemBuilder: (context, index) {
-        final ripple = _ripples[index];
         return GestureDetector(
           onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => FullScreenRippleView(ripple: ripple),
-              ),
-            );
+            setState(() {
+              _currentIndex = index;
+              _pageController.jumpToPage(index);
+            });
+            context.read<RipplesService>().setLayoutPreference(RipplesLayoutType.kineticCardStack);
           },
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (ripple['thumbnail_url'] != null)
-                  Image.network(ripple['thumbnail_url'], fit: BoxFit.cover)
-                else
-                  Container(color: Colors.grey.withValues(alpha: 0.2)),
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.6),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                  ),
-                ),
-                const Center(
-                  child: Icon(
-                    FluentIcons.play_24_filled,
-                    color: Colors.white,
-                    size: 40,
-                  ),
-                ),
-                Positioned(
-                  left: 12,
-                  bottom: 12,
-                  right: 12,
-                  child: Text(
-                    ripple['profiles']['username'] ?? 'User',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
+            borderRadius: BorderRadius.circular(16),
+            child: Image.network(ripples[index]['thumbnail_url'] ?? '', fit: BoxFit.cover),
           ),
         );
       },
     );
   }
+
+  Widget _buildDesktopAction({required IconData icon, required String label, Color color = Colors.white, required VoidCallback onTap}) {
+    return Column(
+      children: [
+        IconButton(
+          icon: Icon(icon, color: color, size: 28),
+          onPressed: onTap,
+        ),
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+      ],
+    );
+  }
+
+  void _toggleLikeInBuild(Map<String, dynamic> ripple) {
+    final service = context.read<RipplesService>();
+    if (ripple['is_liked'] == true) {
+      service.unlikeRipple(ripple['id']);
+    } else {
+      service.likeRipple(ripple['id']);
+    }
+  }
+
+  void _toggleSaveInBuild(Map<String, dynamic> ripple) {
+    final service = context.read<RipplesService>();
+    if (ripple['is_saved'] == true) {
+      service.unsaveRipple(ripple['id']);
+    } else {
+      service.saveRipple(ripple['id']);
+    }
+  }
+
+  void _shareToDM(Map<String, dynamic> ripple) {
+    showDialog(
+      context: context,
+      builder: (context) => ShareToDirectMessageModal(
+        title: 'Share Ripple',
+        content: ripple['caption'] ?? 'Shared a ripple',
+        messageType: MessageType.ripple,
+        rippleId: ripple['id'],
+        mediaUrl: ripple['thumbnail_url'],
+        shareData: {
+          'username': ripple['profiles']['username'],
+          'user_avatar': ripple['profiles']['avatar_url'],
+          'caption': ripple['caption'],
+          'video_url': ripple['video_url'],
+          'thumbnail_url': ripple['thumbnail_url'],
+        },
+      ),
+    );
+  }
 }
 
-class DynamicRipplePill extends StatefulWidget {
-  final Map<String, dynamic> ripple;
-  const DynamicRipplePill({super.key, required this.ripple});
+class RippleVideoPlayer extends StatefulWidget {
+  final String rippleId;
+  final String videoUrl;
+  final bool isPlaying;
+
+  const RippleVideoPlayer({super.key, required this.rippleId, required this.videoUrl, required this.isPlaying});
 
   @override
-  State<DynamicRipplePill> createState() => _DynamicRipplePillState();
+  State<RippleVideoPlayer> createState() => _RippleVideoPlayerState();
 }
 
-class _DynamicRipplePillState extends State<DynamicRipplePill> {
-  bool _isExpanded = false;
-  bool _isLiked = false;
-  bool _isSaved = false;
-  late int _likesCount;
-  late int _commentsCount;
+class _RippleVideoPlayerState extends State<RippleVideoPlayer> {
+  late VideoPlayerController _controller;
 
   @override
   void initState() {
     super.initState();
-    _likesCount = widget.ripple['likes_count'] ?? 0;
-    _commentsCount = widget.ripple['comments_count'] ?? 0;
-    _isLiked = widget.ripple['is_liked'] ?? false;
-    _isSaved = widget.ripple['is_saved'] ?? false;
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl))
+      ..initialize().then((_) {
+        setState(() {});
+        if (widget.isPlaying) _controller.play();
+      })
+      ..setLooping(true);
   }
 
-  void _showComments() async {
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => RippleCommentsSheet(rippleId: widget.ripple['id']),
-    );
-    // Ideally update comment count here if changed
+  @override
+  void didUpdateWidget(RippleVideoPlayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isPlaying) {
+      _controller.play();
+    } else {
+      _controller.pause();
+    }
   }
 
-  void _shareRipple() {
-    ShareSheet.show(
-      context,
-      title: 'Share Ripple',
-      payload: widget.ripple['caption'] ?? 'Check out this Ripple!',
-      messageType: MessageType.ripple,
-      rippleId: widget.ripple['id'],
-    );
-  }
-
-  void _toggleLike() {
-    final service = context.read<RipplesService>();
-    setState(() {
-      if (_isLiked) {
-        _likesCount--;
-        _isLiked = false;
-        service.unlikeRipple(widget.ripple['id']);
-      } else {
-        _likesCount++;
-        _isLiked = true;
-        service.likeRipple(widget.ripple['id']);
-      }
-      if (_likesCount < 0) _likesCount = 0;
-    });
-  }
-
-  void _toggleSave() {
-    final service = context.read<RipplesService>();
-    setState(() {
-      if (_isSaved) {
-        _isSaved = false;
-        service.unsaveRipple(widget.ripple['id']);
-      } else {
-        _isSaved = true;
-        service.saveRipple(widget.ripple['id']);
-      }
-    });
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final username = widget.ripple['profiles']['username'] ?? 'User';
-    final avatarUrl = widget.ripple['profiles']['avatar_url'];
-    final caption = widget.ripple['caption'];
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _isExpanded = !_isExpanded;
-        });
-      },
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(32),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOutCubic,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(32),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.1),
-                width: 1,
-              ),
-            ),
-            width: MediaQuery.of(context).size.width * 0.85,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Row: Avatar & Text
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 16,
-                      backgroundImage:
-                          avatarUrl != null ? NetworkImage(avatarUrl) : null,
-                      child:
-                          avatarUrl == null
-                              ? const Icon(Icons.person, size: 20)
-                              : null,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            username,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          if (caption != null)
-                            AnimatedCrossFade(
-                              duration: const Duration(milliseconds: 200),
-                              crossFadeState:
-                                  _isExpanded
-                                      ? CrossFadeState.showSecond
-                                      : CrossFadeState.showFirst,
-                              firstChild: Text(
-                                caption,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                  fontSize: 13,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              secondChild: Text(
-                                caption,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                // Expanded Action Row
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOutCubic,
-                  child: Container(
-                    height: _isExpanded ? null : 0,
-                    child: Opacity(
-                      opacity: _isExpanded ? 1.0 : 0.0,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _buildActionPill(
-                              icon:
-                                  _isLiked
-                                      ? FluentIcons.heart_24_filled
-                                      : FluentIcons.heart_24_regular,
-                              color: _isLiked ? Colors.redAccent : Colors.white,
-                              label: '$_likesCount',
-                              onTap: _toggleLike,
-                            ),
-                            _buildActionPill(
-                              icon: FluentIcons.comment_24_regular,
-                              label: '$_commentsCount',
-                              onTap: _showComments,
-                            ),
-                            _buildActionPill(
-                              icon:
-                                  _isSaved
-                                      ? FluentIcons.bookmark_24_filled
-                                      : FluentIcons.bookmark_24_regular,
-                              color:
-                                  _isSaved ? Colors.blueAccent : Colors.white,
-                              label: 'Save',
-                              onTap: _toggleSave,
-                            ),
-                            _buildActionPill(
-                              icon: FluentIcons.share_24_regular,
-                              label: 'Share',
-                              onTap: _shareRipple,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionPill({
-    required IconData icon,
-    required String label,
-    Color color = Colors.white,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+    if (!_controller.value.isInitialized) {
+      return const Center(child: CircularProgressIndicator(color: Colors.white24));
+    }
+    return FittedBox(
+      fit: BoxFit.contain,
+      child: SizedBox(
+        width: _controller.value.size.width,
+        height: _controller.value.size.height,
+        child: VideoPlayer(_controller),
       ),
     );
   }
 }
 
-class RippleCommentsSheet extends StatefulWidget {
+class RippleCommentsList extends StatefulWidget {
   final String rippleId;
-  const RippleCommentsSheet({super.key, required this.rippleId});
+  const RippleCommentsList({super.key, required this.rippleId});
 
   @override
-  State<RippleCommentsSheet> createState() => _RippleCommentsSheetState();
+  State<RippleCommentsList> createState() => _RippleCommentsListState();
 }
 
-class _RippleCommentsSheetState extends State<RippleCommentsSheet> {
-  final TextEditingController _commentController = TextEditingController();
-  final AudioRecorder _audioRecorder = AudioRecorder();
+class _RippleCommentsListState extends State<RippleCommentsList> {
   List<dynamic> _comments = [];
   bool _isLoading = true;
-  bool _isRecording = false;
 
   @override
   void initState() {
@@ -618,37 +693,15 @@ class _RippleCommentsSheetState extends State<RippleCommentsSheet> {
   }
 
   @override
-  void dispose() {
-    _commentController.dispose();
-    _audioRecorder.dispose();
-    super.dispose();
-  }
-
-  Future<void> _toggleRecording() async {
-    if (_isRecording) {
-      final path = await _audioRecorder.stop();
-      setState(() => _isRecording = false);
-      if (path != null) {
-        _uploadVoiceComment(path);
-      }
-    } else {
-      if (await _audioRecorder.hasPermission()) {
-        final tempDir = await getTemporaryDirectory();
-        final path = '${tempDir.path}/ripple_comment_${DateTime.now().millisecondsSinceEpoch}.m4a';
-        await _audioRecorder.start(const RecordConfig(), path: path);
-        setState(() => _isRecording = true);
-      }
+  void didUpdateWidget(RippleCommentsList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.rippleId != widget.rippleId) {
+      _loadComments();
     }
   }
 
-  Future<void> _uploadVoiceComment(String path) async {
-    // Implement voice comment upload logic here
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Voice comments coming soon!')),
-    );
-  }
-
   Future<void> _loadComments() async {
+    setState(() => _isLoading = true);
     final supabase = SupabaseService().client;
     try {
       final response = await supabase
@@ -668,182 +721,42 @@ class _RippleCommentsSheetState extends State<RippleCommentsSheet> {
     }
   }
 
-  Future<void> _postComment() async {
-    if (_commentController.text.trim().isEmpty) return;
-    
-    final service = context.read<RipplesService>();
-    await service.commentOnRipple(widget.rippleId, _commentController.text.trim());
-    _commentController.clear();
-    _loadComments();
-  }
-
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.7,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 12),
-          Container(width: 32, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(height: 16),
-          Text('Comments', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 16),
-          Expanded(
-            child: _isLoading 
-              ? const Center(child: CircularProgressIndicator())
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _comments.length,
-                  itemBuilder: (context, index) {
-                    final comment = _comments[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        radius: 16,
-                        backgroundImage: comment['profiles']['avatar_url'] != null ? NetworkImage(comment['profiles']['avatar_url']) : null,
-                      ),
-                      title: Text(comment['profiles']['username'] ?? 'User', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                      subtitle: Text(comment['content'], style: const TextStyle(fontSize: 14)),
-                    );
-                  },
-                ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 16, left: 16, right: 16, top: 8),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(_isRecording ? Icons.stop_circle : Icons.mic_none_rounded, 
-                    color: _isRecording ? Colors.red : Colors.white54),
-                  onPressed: _toggleRecording,
-                ),
-                Expanded(
-                  child: TextField(
-                    controller: _commentController,
-                    decoration: InputDecoration(
-                      hintText: _isRecording ? 'Recording...' : 'Add a comment...',
-                      filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.05),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
-                    ),
+    if (_isLoading) return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+    if (_comments.isEmpty) return const Center(child: Text('No comments yet', style: TextStyle(color: Colors.white24)));
+
+    return ListView.separated(
+      itemCount: _comments.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 16),
+      itemBuilder: (context, index) {
+        final comment = _comments[index];
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 14,
+              backgroundImage: comment['profiles']['avatar_url'] != null ? NetworkImage(comment['profiles']['avatar_url']) : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    comment['profiles']['username'] ?? 'User',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(FluentIcons.send_24_filled, color: Colors.blueAccent),
-                  onPressed: _isRecording ? null : _postComment,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class FullScreenRippleView extends StatelessWidget {
-  final Map<String, dynamic> ripple;
-  const FullScreenRippleView({super.key, required this.ripple});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          RippleVideoPlayer(url: ripple['video_url'], isPlaying: true),
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 10,
-            left: 10,
-            child: IconButton(
-              icon: const Icon(
-                FluentIcons.chevron_left_24_filled,
-                color: Colors.white,
+                  const SizedBox(height: 2),
+                  Text(comment['content'], style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                ],
               ),
-              onPressed: () => Navigator.pop(context),
             ),
-          ),
-          Positioned(
-            bottom: 40,
-            left: 16,
-            right: 16,
-            child: Center(child: DynamicRipplePill(ripple: ripple)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class RippleVideoPlayer extends StatefulWidget {
-  final String url;
-  final bool isPlaying;
-
-  const RippleVideoPlayer({super.key, required this.url, required this.isPlaying});
-
-  @override
-  State<RippleVideoPlayer> createState() => _RippleVideoPlayerState();
-}
-
-class _RippleVideoPlayerState extends State<RippleVideoPlayer> {
-  late VideoPlayerController _controller;
-  bool _isInitialized = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
-      ..initialize().then((_) {
-        if (mounted) {
-          setState(() {
-            _isInitialized = true;
-            _controller.setLooping(true);
-            if (widget.isPlaying) _controller.play();
-          });
-        }
-      });
-  }
-
-  @override
-  void didUpdateWidget(RippleVideoPlayer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.isPlaying != widget.isPlaying) {
-      if (widget.isPlaying) {
-        _controller.play();
-      } else {
-        _controller.pause();
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!_isInitialized) {
-      return Container(
-        color: Colors.black,
-        child: const Center(child: CircularProgressIndicator(color: Colors.white24)),
-      );
-    }
-    
-    return SizedBox.expand(
-      child: FittedBox(
-        fit: BoxFit.contain,
-        child: SizedBox(
-          width: _controller.value.size.width,
-          height: _controller.value.size.height,
-          child: VideoPlayer(_controller),
-        ),
-      ),
+          ],
+        );
+      },
     );
   }
 }

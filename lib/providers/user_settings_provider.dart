@@ -8,6 +8,8 @@ class UserSettingsProvider with ChangeNotifier {
   static const String _meshEnabledKey = 'mesh_enabled';
   static const String _dailyLimitKey = 'daily_limit';
   static const String _windDownKey = 'wind_down_enabled';
+  static const String _micaEnabledKey = 'mica_enabled';
+  static const String _windowEffectKey = 'window_effect'; // 'mica' or 'acrylic'
 
   bool _dataSaver = false;
   double _fontSizeFactor = 1.0;
@@ -15,6 +17,8 @@ class UserSettingsProvider with ChangeNotifier {
   bool _meshEnabled = true;
   int _dailyLimitMinutes = 0;
   bool _windDownEnabled = false;
+  bool _micaEnabled = false;
+  String _windowEffect = 'mica';
 
   bool get dataSaver => _dataSaver;
   double get fontSizeFactor => _fontSizeFactor;
@@ -22,6 +26,8 @@ class UserSettingsProvider with ChangeNotifier {
   bool get meshEnabled => _meshEnabled;
   int get dailyLimitMinutes => _dailyLimitMinutes;
   bool get windDownEnabled => _windDownEnabled;
+  bool get micaEnabled => _micaEnabled;
+  String get windowEffect => _windowEffect;
 
   Future<void> loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
@@ -31,6 +37,22 @@ class UserSettingsProvider with ChangeNotifier {
     _meshEnabled = prefs.getBool(_meshEnabledKey) ?? true;
     _dailyLimitMinutes = prefs.getInt(_dailyLimitKey) ?? 0;
     _windDownEnabled = prefs.getBool(_windDownKey) ?? false;
+    _micaEnabled = prefs.getBool(_micaEnabledKey) ?? false;
+    _windowEffect = prefs.getString(_windowEffectKey) ?? 'mica';
+    notifyListeners();
+  }
+
+  Future<void> setMicaEnabled(bool value) async {
+    _micaEnabled = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_micaEnabledKey, value);
+    notifyListeners();
+  }
+
+  Future<void> setWindowEffect(String value) async {
+    _windowEffect = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_windowEffectKey, value);
     notifyListeners();
   }
 

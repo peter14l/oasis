@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:win_toast/win_toast.dart';
 import 'package:oasis_v2/routes/app_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -39,10 +40,21 @@ class NotificationManager {
 
     try {
       if (_isDesktop) {
+        if (Platform.isWindows) {
+          // Initialize WinToast for Windows
+          await WinToast.instance().initialize(
+            appName: "Oasis",
+            productName: "Oasis",
+            companyName: "Oasis",
+          );
+        } else if (Platform.isMacOS) {
+          await _initLocalNotifications();
+        }
+        
+        _isInitialized = true;
         debugPrint(
           'NotificationManager: Initialized for desktop (${Platform.operatingSystem})',
         );
-        _isInitialized = true;
         return true;
       } else if (_isMobile) {
         _isInitialized = true;
@@ -88,7 +100,11 @@ class NotificationManager {
 
     try {
       if (_isDesktop) {
-        await _showDesktopNotification(title: title, body: body);
+        await _showDesktopNotification(
+          title: title,
+          body: body,
+          senderAvatar: senderAvatar,
+        );
       } else if (_isMobile) {
         await _showMobileNotification(
           title: title,
@@ -106,55 +122,50 @@ class NotificationManager {
   Future<void> _showDesktopNotification({
     required String title,
     required String body,
+    String? senderAvatar,
   }) async {
     if (Platform.isWindows) {
       try {
-        final script = '''
-[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
-[Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] | Out-Null
-\$template = @"
-<toast>
-  <visual>
-    <binding template="ToastGeneric">
-      <text>$title</text>
-      <text>$body</text>
-    </binding>
-  </visual>
-</toast>
-"@
-\$xml = New-Object Windows.Data.Xml.Dom.XmlDocument
-\$xml.LoadXml(\$template)
-\$toast = [Windows.UI.Notifications.ToastNotification]::new(\$xml)
-[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("Morrow").Show(\$toast)
-''';
+        String? iconPath;
+        if (senderAvatar != null && senderAvatar.isNotEmpty) {
+          try {
+            iconPath = await _downloadAndSaveImage(senderAvatar, 'noti_icon_${DateTime.now().millisecondsSinceEpoch}.png');
+          } catch (e) {
+            debugPrint('Error preparing Windows notification icon: $e');
+          }
+        }
 
-        await Process.run('powershell', [
-          '-NoProfile',
-          '-Command',
-          script,
-        ], runInShell: true);
+        // Use win_toast for native Windows notifications
+        await WinToast.instance().showToast(
+          type: iconPath != null ? ToastType.imageAndText02 : ToastType.text02,
+          title: title,
+          subtitle: body,
+          imagePath: iconPath ?? '',
+        );
       } catch (e) {
-        debugPrint('NotificationManager: [$title] $body');
+        debugPrint('NotificationManager (Windows - WinToast): Failed: $e');
       }
     } else if (Platform.isMacOS) {
       try {
+        // Use flutter_local_notifications for macOS as it supports images better than osascript
+        await _showMobileNotification(title: title, body: body, senderAvatar: senderAvatar);
+      } catch (e) {
+        // Fallback to simple osascript
         await Process.run('osascript', [
           '-e',
           'display notification "$body" with title "$title"',
         ]);
-      } catch (e) {
-        debugPrint('NotificationManager: [$title] $body');
       }
     } else if (Platform.isLinux) {
       try {
         await Process.run('notify-send', [title, body]);
       } catch (e) {
-        debugPrint('NotificationManager: [$title] $body');
+        debugPrint('NotificationManager (Linux): [$title] $body');
       }
     }
   }
 
-  /// Show a mobile notification
+  /// Show a mobile notification (restored exactly as it was)
   Future<void> _showMobileNotification({
     required String title,
     required String body,
@@ -162,7 +173,7 @@ class NotificationManager {
     String? senderAvatar,
   }) async {
     AndroidNotificationDetails? androidDetails;
-    DarwinNotificationDetails? iosDetails;
+    DarwinNotificationDetails? darwinDetails;
 
     if (senderAvatar != null && senderAvatar.isNotEmpty) {
       try {
@@ -178,7 +189,7 @@ class NotificationManager {
           largeIcon: FilePathAndroidBitmap(largeIconPath),
         );
 
-        iosDetails = DarwinNotificationDetails(
+        darwinDetails = DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
@@ -198,7 +209,7 @@ class NotificationManager {
       showWhen: true,
     );
 
-    iosDetails ??= const DarwinNotificationDetails(
+    darwinDetails ??= const DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
@@ -210,7 +221,8 @@ class NotificationManager {
       body,
       NotificationDetails(
         android: androidDetails,
-        iOS: iosDetails,
+        iOS: darwinDetails,
+        macOS: darwinDetails,
       ),
       payload: payload,
     );

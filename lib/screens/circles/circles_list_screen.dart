@@ -32,7 +32,9 @@ class _CirclesListScreenState extends State<CirclesListScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final circles = context.watch<CircleProvider>();
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -42,7 +44,12 @@ class _CirclesListScreenState extends State<CirclesListScreen> {
             // ── App Bar ────────────────────────────────────────────────────
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                padding: EdgeInsets.fromLTRB(
+                  isDesktop ? 40 : 20, 
+                  isDesktop ? 40 : 20, 
+                  isDesktop ? 40 : 20, 
+                  0
+                ),
                 child: Row(
                   children: [
                     Expanded(
@@ -51,21 +58,26 @@ class _CirclesListScreenState extends State<CirclesListScreen> {
                         children: [
                           Text(
                             'Circles',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: (isDesktop 
+                              ? theme.textTheme.headlineLarge 
+                              : theme.textTheme.headlineMedium)?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -1,
+                              ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Your private commitment groups',
-                            style: theme.textTheme.bodySmall,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ],
                       ),
                     ),
                     // Create circle button
                     _PrimaryButton(
-                      label: 'New Circle',
+                      label: isDesktop ? 'Create New Circle' : 'New Circle',
                       icon: FluentIcons.add_circle_24_regular,
                       onTap: () => context.pushNamed('create_circle'),
                     ),
@@ -74,7 +86,7 @@ class _CirclesListScreenState extends State<CirclesListScreen> {
               ),
             ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
             // ── Content ────────────────────────────────────────────────────
             if (circles.isLoading)
@@ -85,6 +97,29 @@ class _CirclesListScreenState extends State<CirclesListScreen> {
               SliverFillRemaining(
                 child: _EmptyCirclesState(
                   onCreateTap: () => context.pushNamed('create_circle'),
+                ),
+              )
+            else if (isDesktop)
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                sliver: SliverGrid.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 20,
+                    crossAxisSpacing: 20,
+                    childAspectRatio: 1.1,
+                  ),
+                  itemCount: circles.circles.length,
+                  itemBuilder: (context, i) {
+                    final circle = circles.circles[i];
+                    return CircleListCard(
+                      circle: circle,
+                      onTap: () => context.pushNamed(
+                        'circle_detail',
+                        pathParameters: {'circleId': circle.id},
+                      ),
+                    );
+                  },
                 ),
               )
             else

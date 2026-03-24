@@ -145,104 +145,136 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Vault Settings')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+    final content = ListView(
+        padding: EdgeInsets.all(isDesktop ? 40 : 16),
         children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  _isEnabled ? Icons.lock : Icons.lock_open,
-                  size: 64,
-                  color: _isEnabled ? theme.colorScheme.primary : Colors.grey,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  _isEnabled ? 'Vault is Enabled' : 'Vault is Disabled',
-                  style: theme.textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _isEnabled
-                      ? 'Your private content is secured locally'
-                      : 'Enable vault to hide sensitive content',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+          Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          _isEnabled ? Icons.lock : Icons.lock_open,
+                          size: 64,
+                          color: _isEnabled ? theme.colorScheme.primary : Colors.grey,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _isEnabled ? 'Vault is Enabled' : 'Vault is Disabled',
+                          style: theme.textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _isEnabled
+                              ? 'Your private content is secured locally'
+                              : 'Enable vault to hide sensitive content',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-          if (!_isEnabled) ...[
-            Text('Setup Vault', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 16),
-            Form(
-              key: _formKey,
-              child: TextFormField(
-                controller: _pinController,
-                keyboardType: TextInputType.number,
-                obscureText: true,
-                maxLength: 4,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(
-                  labelText: 'Set a 4-digit PIN',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.pin),
-                  counterText: '',
-                ),
-                validator: (value) {
-                  if (value == null || value.length != 4) {
-                    return 'Please enter a 4-digit PIN';
-                  }
-                  return null;
-                },
+                  const SizedBox(height: 32),
+                  if (!_isEnabled) ...[
+                    Text('Setup Vault', style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 16),
+                    Form(
+                      key: _formKey,
+                      child: TextFormField(
+                        controller: _pinController,
+                        keyboardType: TextInputType.number,
+                        obscureText: true,
+                        maxLength: 4,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        decoration: const InputDecoration(
+                          labelText: 'Set a 4-digit PIN',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.pin),
+                          counterText: '',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.length != 4) {
+                            return 'Please enter a 4-digit PIN';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: _enableVault,
+                        icon: const Icon(Icons.shield),
+                        label: const Text('Enable Vault'),
+                        style: FilledButton.styleFrom(padding: const EdgeInsets.all(16)),
+                      ),
+                    ),
+                  ] else ...[
+                    Container(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3)),
+                      ),
+                      child: Column(
+                        children: [
+                          ListTile(
+                            leading: const Icon(Icons.password),
+                            title: const Text('Change PIN'),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () {
+                              // TODO: Implement change PIN
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Feature coming soon')),
+                              );
+                            },
+                          ),
+                          const Divider(height: 1),
+                          ListTile(
+                            leading: const Icon(Icons.delete_outline),
+                            title: const Text('Disable Vault'),
+                            subtitle: const Text('This will unhide all secluded content'),
+                            textColor: theme.colorScheme.error,
+                            iconColor: theme.colorScheme.error,
+                            onTap: _disableVault,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: _enableVault,
-              icon: const Icon(Icons.shield),
-              label: const Text('Enable Vault'),
-              style: FilledButton.styleFrom(padding: const EdgeInsets.all(16)),
-            ),
-          ] else ...[
-            ListTile(
-              leading: const Icon(Icons.password),
-              title: const Text('Change PIN'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                // TODO: Implement change PIN
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Feature coming soon')),
-                );
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.delete_outline),
-              title: const Text('Disable Vault'),
-              subtitle: const Text('This will unhide all secluded content'),
-              textColor: theme.colorScheme.error,
-              iconColor: theme.colorScheme.error,
-              onTap: _disableVault,
-            ),
-          ],
+          ),
         ],
-      ),
+      );
+
+    if (isDesktop) {
+      return Material(color: Colors.transparent, child: content);
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Vault Settings')),
+      body: content,
     );
   }
 }

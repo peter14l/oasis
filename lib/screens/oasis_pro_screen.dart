@@ -38,10 +38,9 @@ class _OasisProScreenState extends State<OasisProScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
+    final content = Stack(
         children: [
           // Background Glow
           Positioned(
@@ -61,24 +60,25 @@ class _OasisProScreenState extends State<OasisProScreen> {
 
           CustomScrollView(
             slivers: [
-              SliverAppBar(
-                backgroundColor: Colors.transparent,
-                leading: IconButton(
-                  icon: const Icon(FluentIcons.dismiss_24_filled, color: Colors.white),
-                  onPressed: () => context.pop(),
-                ),
-                expandedHeight: 200,
-                flexibleSpace: FlexibleSpaceBar(
-                  centerTitle: true,
-                  title: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('Oasis Pro', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 24)),
-                      Text('Elevate your experience', style: theme.textTheme.labelSmall?.copyWith(color: Colors.white70)),
-                    ],
+              if (!isDesktop)
+                SliverAppBar(
+                  backgroundColor: Colors.transparent,
+                  leading: IconButton(
+                    icon: const Icon(FluentIcons.dismiss_24_filled, color: Colors.white),
+                    onPressed: () => context.pop(),
+                  ),
+                  expandedHeight: 200,
+                  flexibleSpace: FlexibleSpaceBar(
+                    centerTitle: true,
+                    title: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('Oasis Pro', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 24)),
+                        Text('Elevate your experience', style: theme.textTheme.labelSmall?.copyWith(color: Colors.white70)),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
               SliverPadding(
                 padding: const EdgeInsets.all(24),
@@ -113,7 +113,13 @@ class _OasisProScreenState extends State<OasisProScreen> {
             ],
           ),
         ],
-      ),
+      );
+
+    if (isDesktop) return Material(color: Colors.black, child: content);
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: content,
     );
   }
 

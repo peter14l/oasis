@@ -15,6 +15,9 @@ class TypingIndicatorProvider with ChangeNotifier {
   // Debounce timers for stopping typing indicator
   final Map<String, Timer> _debounceTimers = {};
 
+  // Local throttle to avoid spamming the database while typing
+  final Map<String, DateTime> _lastDatabaseUpdate = {};
+
   // Getters
   bool isUserTyping(String conversationId) {
     return _typingStatus[conversationId] ?? false;
@@ -27,6 +30,18 @@ class TypingIndicatorProvider with ChangeNotifier {
     bool isTyping,
   ) async {
     try {
+      // Throttle database updates to once every 2 seconds when typing
+      final lastUpdate = _lastDatabaseUpdate[conversationId];
+      if (isTyping && lastUpdate != null && 
+          DateTime.now().difference(lastUpdate).inSeconds < 2) {
+        // Reset the auto-stop timer but don't hit the DB yet
+        _debounceTimers[conversationId]?.cancel();
+        _debounceTimers[conversationId] = Timer(const Duration(seconds: 4), () {
+          setTyping(conversationId, userId, false);
+        });
+        return;
+      }
+
       // Cancel existing debounce timer
       _debounceTimers[conversationId]?.cancel();
 
@@ -36,12 +51,16 @@ class TypingIndicatorProvider with ChangeNotifier {
         userId,
         isTyping,
       );
+      
+      _lastDatabaseUpdate[conversationId] = DateTime.now();
 
-      // If typing, set a timer to auto-stop after 3 seconds
+      // If typing, set a timer to auto-stop after 4 seconds of inactivity
       if (isTyping) {
-        _debounceTimers[conversationId] = Timer(const Duration(seconds: 3), () {
+        _debounceTimers[conversationId] = Timer(const Duration(seconds: 4), () {
           setTyping(conversationId, userId, false);
         });
+      } else {
+        _lastDatabaseUpdate.remove(conversationId);
       }
     } catch (e) {
       debugPrint('Error setting typing status: $e');

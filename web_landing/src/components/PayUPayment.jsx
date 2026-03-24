@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import axios from 'axios';
 import { supabase } from '../supabaseClient';
 
-const PayUPayment = ({ plan, amount, currency, onSuccess, onCancel }) => {
+const PayUPayment = ({ plan, amount, currency }) => {
   const [loading, setLoading] = useState(false);
 
   const initiatePayment = async () => {
@@ -55,7 +54,7 @@ const PayUPayment = ({ plan, amount, currency, onSuccess, onCancel }) => {
       };
 
       for (const key in fields) {
-        if (fields.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(fields, key)) {
           const hiddenField = document.createElement('input');
           hiddenField.type = 'hidden';
           hiddenField.name = key;

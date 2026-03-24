@@ -12,6 +12,7 @@ import 'package:oasis_v2/services/signal/signal_service.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String conversationId;
@@ -20,6 +21,7 @@ class ChatDetailsScreen extends StatefulWidget {
   final String otherUserId;
   final bool isWhisperMode;
   final String? currentBackground;
+  final Function(double opacity, double brightness)? onBackgroundSettingsChanged;
 
   const ChatDetailsScreen({
     super.key,
@@ -29,6 +31,7 @@ class ChatDetailsScreen extends StatefulWidget {
     required this.otherUserId,
     required this.isWhisperMode,
     this.currentBackground,
+    this.onBackgroundSettingsChanged,
   });
 
   @override
@@ -47,12 +50,14 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   bool _isBlocked = false;
   int _ephemeralDuration = 86400; // Default to 24h
   String? _selectedBackground;
+  double _bgOpacity = 1.0;
+  double _bgBrightness = 0.7;
 
   // Search State
   final TextEditingController _searchController = TextEditingController();
   List<Message> _allMessages = [];
   List<Message> _searchResults = [];
-  bool _isSearching = false;
+  RealtimeChannel? _conversationChannel;
 
   @override
   void initState() {
@@ -64,6 +69,29 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     _checkMuteStatus();
     _checkBlockStatus();
     _initDecryptionAndPreload();
+    _subscribeToConversationUpdates();
+  }
+
+  void _subscribeToConversationUpdates() {
+    _conversationChannel = _messagingService.subscribeToConversation(
+      conversationId: widget.conversationId,
+      onUpdate: (isWhisperMode) {
+        if (mounted && isWhisperMode != _isWhisperMode) {
+          setState(() {
+            _isWhisperMode = isWhisperMode;
+          });
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    if (_conversationChannel != null) {
+      Supabase.instance.client.removeChannel(_conversationChannel!);
+    }
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkMuteStatus() async {
@@ -170,13 +198,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   }
 
   Future<void> _initDecryptionAndPreload() async {
-    // 1. Initialize Services
     if (!SignalService().isInitialized) {
       await SignalService().init();
     }
     await _encryptionService.init();
-
-    // 2. Preload and Decrypt
     await _preloadMessages();
   }
 
@@ -188,7 +213,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       
       final decryptedMessages = <Message>[];
       for (final message in messages) {
-        // Yield to prevent UI jank during bulk decryption
         await Future.delayed(Duration.zero);
         final decrypted = await _decryptSingleMessage(message);
         decryptedMessages.add(decrypted);
@@ -208,7 +232,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     final currentUserId = _authService.currentUser?.id;
     Message decryptedMessage = message;
 
-    // 1. Handle Signal Protocol
     if (message.signalMessageType != null) {
       try {
         final isSender = currentUserId != null &&
@@ -233,7 +256,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             message.signalMessageType!,
           );
 
-          // Fallback to RSA if Signal session is out of sync but RSA copy exists
           if ((decrypted.contains('🔒') || decrypted.contains('Optimizing')) &&
               message.signalSenderContent != null &&
               message.encryptedKeys != null &&
@@ -252,7 +274,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         decryptedMessage = decryptedMessage.copyWith(content: '🔒 Message encrypted');
       }
     } 
-    // 2. Handle standard RSA/AES fallback
     else if (message.encryptedKeys != null && message.iv != null) {
       try {
         final decrypted = await _encryptionService.decryptMessage(
@@ -319,9 +340,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                       },
                       decoration: InputDecoration(
                         hintText: 'Search in this chat...',
-                        prefixIcon: const Icon(Icons.search_rounded),
+                        prefixIcon: const Icon(FluentIcons.search_24_regular),
                         suffixIcon: _searchController.text.isNotEmpty 
-                          ? IconButton(icon: const Icon(Icons.close_rounded), onPressed: () {
+                          ? IconButton(icon: const Icon(FluentIcons.dismiss_24_regular), onPressed: () {
                               _searchController.clear();
                               _onSearchChanged('');
                               setModalState(() {});
@@ -338,9 +359,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                       ? Center(child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.message_outlined, size: 48, color: Colors.white24),
+                            Icon(FluentIcons.chat_24_regular, size: 48, color: Colors.white24),
                             const SizedBox(height: 16),
-                            Text('Search for keywords', style: TextStyle(color: Colors.white38)),
+                            Text('Search for keywords', style: const TextStyle(color: Colors.white38)),
                           ],
                         ))
                       : _searchResults.isEmpty
@@ -351,11 +372,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                             itemBuilder: (context, index) {
                               final msg = _searchResults[index];
                               return ListTile(
-                                leading: const Icon(Icons.history_rounded, size: 20, color: Colors.white24),
+                                leading: const Icon(FluentIcons.history_24_regular, size: 20, color: Colors.white24),
                                 title: Text(msg.content, maxLines: 2, overflow: TextOverflow.ellipsis),
                                 subtitle: Text(_formatTimestamp(msg.timestamp), style: const TextStyle(fontSize: 11)),
                                 onTap: () {
-                                  // For now just pop, in future could navigate to specific message
                                   Navigator.pop(context);
                                 },
                               );
@@ -396,14 +416,14 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       setState(() {
         _ephemeralDuration =
             prefs.getInt('chat_duration_${widget.conversationId}') ?? 86400;
+        _bgOpacity = prefs.getDouble('chat_bg_opacity_${widget.conversationId}') ?? 1.0;
+        _bgBrightness = prefs.getDouble('chat_bg_brightness_${widget.conversationId}') ?? 0.7;
       });
     }
   }
 
   Future<void> _toggleChatLock(bool value) async {
     final vaultService = Provider.of<VaultService>(context, listen: false);
-
-    // Check if vault is enabled first
     final isVaultEnabled = await vaultService.isVaultEnabled();
     if (!isVaultEnabled && value) {
       if (mounted) {
@@ -451,8 +471,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     try {
       await _messagingService.toggleWhisperMode(widget.conversationId, value);
       setState(() => _isWhisperMode = value);
-
-      // Persist the whisper mode setting
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('chat_whisper_${widget.conversationId}', value);
 
@@ -481,6 +499,20 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     setState(() => _ephemeralDuration = duration);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('chat_duration_${widget.conversationId}', duration);
+  }
+
+  Future<void> _updateBgOpacity(double value) async {
+    setState(() => _bgOpacity = value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('chat_bg_opacity_${widget.conversationId}', value);
+    widget.onBackgroundSettingsChanged?.call(_bgOpacity, _bgBrightness);
+  }
+
+  Future<void> _updateBgBrightness(double value) async {
+    setState(() => _bgBrightness = value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('chat_bg_brightness_${widget.conversationId}', value);
+    widget.onBackgroundSettingsChanged?.call(_bgOpacity, _bgBrightness);
   }
 
   Future<void> _pickBackground() async {
@@ -606,225 +638,277 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+
+    final canPop = Navigator.of(context).canPop();
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: isDesktop ? Colors.transparent : colorScheme.surface,
+      extendBodyBehindAppBar: isDesktop,
       appBar: AppBar(
-        title: const Text('Chat Details'),
+        title: Text(
+          isDesktop ? 'Details' : 'Chat Details',
+          style: TextStyle(
+            fontWeight: isDesktop ? FontWeight.w900 : FontWeight.bold,
+            fontSize: isDesktop ? 24 : 18,
+            letterSpacing: isDesktop ? -0.5 : null,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        centerTitle: !isDesktop,
         elevation: 0,
+        scrolledUnderElevation: 0,
         backgroundColor: Colors.transparent,
+        titleSpacing: isDesktop ? 24 : null,
+        automaticallyImplyLeading: false, // Always manual to control Desktop vs Mobile
+        leading: isDesktop
+            ? (widget.onBackgroundSettingsChanged != null // Heuristic: if callback exists, it's likely the desktop pane
+                ? IconButton(
+                    icon: const Icon(FluentIcons.dismiss_24_regular),
+                    onPressed: widget.onBackgroundSettingsChanged != null 
+                        ? () => widget.onBackgroundSettingsChanged!(0,0) // This is a hacky way to signal close if needed, but better to use onDetailsToggle
+                        : null,
+                  )
+                : null)
+            : (canPop
+                ? IconButton(
+                    icon: const Icon(FluentIcons.chevron_left_24_regular),
+                    onPressed: () => Navigator.of(context).maybePop(),
+                  )
+                : null),
+        actions: [
+          if (isDesktop && widget.onBackgroundSettingsChanged != null)
+             IconButton(
+                icon: const Icon(FluentIcons.dismiss_24_regular),
+                onPressed: () {
+                  // If we are in the desktop pane, we should probably have a way to close it
+                  // For now, I'll rely on the parent (DirectMessagesScreen) to close it
+                  // but I'll add a close button in actions for Desktop
+                },
+              ),
+        ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        children: [
-          // Profile Header Card
-          _buildProfileHeader(theme, colorScheme),
-
-          const SizedBox(height: 24),
-
-          // Customization Section
-          _buildSectionTitle(theme, 'Personalization'),
-          _buildDetailCard(
-            colorScheme,
-            child: Column(
-              children: [
-                _buildActionTile(
-                  icon: Icons.palette_outlined,
-                  title: 'Chat Background',
-                  subtitle: 'Custom image for this chat',
-                  trailing:
-                      _selectedBackground != null
-                          ? const Icon(
-                            Icons.check_circle,
-                            color: Colors.green,
-                            size: 20,
-                          )
-                          : null,
-                  onTap: _pickBackground,
-                ),
-                if (_selectedBackground != null)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Stack(
-                        children: [
-                          CachedNetworkImage(
-                            imageUrl: _selectedBackground!,
-                            height: 100,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.close,
-                                size: 18,
-                                color: Colors.white,
+      body: Center(
+        child: Container(
+          constraints:
+              BoxConstraints(maxWidth: isDesktop ? 600 : double.infinity),
+          child: ListView(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: isDesktop ? (kToolbarHeight + 20) : 16,
+              bottom: 48,
+            ),
+            children: [
+              _buildProfileHeader(theme, colorScheme),
+              const SizedBox(height: 24),
+              _buildSectionTitle(theme, 'Personalization'),
+              _buildDetailCard(
+                colorScheme,
+                child: Column(
+                  children: [
+                    _buildActionTile(
+                      icon: FluentIcons.color_24_regular,
+                      title: 'Chat Background',
+                      subtitle: 'Custom image for this chat',
+                      trailing:
+                          _selectedBackground != null
+                              ? const Icon(
+                                FluentIcons.checkmark_circle_24_filled,
+                                color: Colors.green,
+                                size: 20,
+                              )
+                              : null,
+                      onTap: _pickBackground,
+                    ),
+                    if (_selectedBackground != null) ...[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Stack(
+                            children: [
+                              CachedNetworkImage(
+                                imageUrl: _selectedBackground!,
+                                height: 100,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
                               ),
-                              onPressed: _removeBackground,
-                              style: IconButton.styleFrom(
-                                backgroundColor: Colors.black45,
-                                padding: EdgeInsets.zero,
-                                minimumSize: const Size(28, 28),
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: IconButton(
+                                  icon: const Icon(
+                                    FluentIcons.dismiss_12_filled,
+                                    size: 14,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: _removeBackground,
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: Colors.black45,
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: const Size(28, 28),
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      _buildSliderTile(
+                        icon: FluentIcons.eye_24_regular,
+                        title: 'Background Opacity',
+                        value: _bgOpacity,
+                        onChanged: _updateBgOpacity,
+                      ),
+                      _buildSliderTile(
+                        icon: FluentIcons.brightness_high_24_regular,
+                        title: 'Background Brightness',
+                        value: _bgBrightness,
+                        onChanged: _updateBgBrightness,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    _buildActionTile(
+                      icon: FluentIcons.image_24_regular,
+                      title: 'Media, Files & Links',
+                      subtitle: 'Shared content',
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Coming soon'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              _buildSectionTitle(theme, 'Privacy & Safety'),
+              _buildDetailCard(
+                colorScheme,
+                child: Column(
+                  children: [
+                    _buildSwitchTile(
+                      icon: _isLocked ? FluentIcons.lock_closed_24_filled : FluentIcons.lock_open_24_regular,
+                      title: 'Vault Lock',
+                      subtitle: 'Hide and protect this chat',
+                      value: _isLocked,
+                      activeColor: Colors.indigo,
+                      onChanged: _toggleChatLock,
+                    ),
+                    if (_isLocked)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(56, 0, 16, 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Lock Interval',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.primary,
                               ),
                             ),
+                            const SizedBox(height: 8),
+                            _buildCompactRadio(
+                              'App close',
+                              'app_close',
+                              colorScheme,
+                            ),
+                            _buildCompactRadio(
+                              'Chat close',
+                              'chat_close',
+                              colorScheme,
+                            ),
+                            _buildCompactRadio('5 mins', '5mins', colorScheme),
+                          ],
+                        ),
+                      ),
+                    const Divider(indent: 56),
+                    _buildSwitchTile(
+                      icon: FluentIcons.delete_dismiss_24_regular,
+                      title: 'Whisper Mode',
+                      subtitle: 'Self-vanishing messages',
+                      value: _isWhisperMode,
+                      activeColor: colorScheme.secondary,
+                      onChanged: _toggleWhisperMode,
+                    ),
+                    if (_isWhisperMode)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(56, 0, 16, 16),
+                        child: SegmentedButton<int>(
+                          segments: const [
+                            ButtonSegment<int>(
+                              value: 86400,
+                              label: Text('24h'),
+                              icon: Icon(FluentIcons.timer_24_regular, size: 16),
+                            ),
+                            ButtonSegment<int>(
+                              value: 0,
+                              label: Text('Instant'),
+                              icon: Icon(FluentIcons.flash_24_regular, size: 16),
+                            ),
+                          ],
+                          selected: {_ephemeralDuration},
+                          onSelectionChanged: (Set<int> newSelection) {
+                            _setEphemeralDuration(newSelection.first);
+                          },
+                          style: SegmentedButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            textStyle: const TextStyle(fontSize: 12),
                           ),
-                        ],
+                        ),
                       ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              _buildSectionTitle(theme, 'Manage'),
+              _buildDetailCard(
+                colorScheme,
+                child: Column(
+                  children: [
+                    _buildActionTile(
+                      icon: FluentIcons.search_24_regular,
+                      title: 'Search in Chat',
+                      subtitle: 'Find keywords',
+                      onTap: _showSearchModal,
                     ),
-                  ),
-                _buildActionTile(
-                  icon: Icons.photo_library_outlined,
-                  title: 'Media, Files & Links',
-                  subtitle: 'Shared content',
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Coming soon'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Privacy Section
-          _buildSectionTitle(theme, 'Privacy & Safety'),
-          _buildDetailCard(
-            colorScheme,
-            child: Column(
-              children: [
-                _buildSwitchTile(
-                  icon: _isLocked ? Icons.lock : Icons.lock_open_outlined,
-                  title: 'Vault Lock',
-                  subtitle: 'Hide and protect this chat',
-                  value: _isLocked,
-                  activeColor: Colors.indigo,
-                  onChanged: _toggleChatLock,
-                ),
-                if (_isLocked)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(56, 0, 16, 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Lock Interval',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildCompactRadio(
-                          'App close',
-                          'app_close',
-                          colorScheme,
-                        ),
-                        _buildCompactRadio(
-                          'Chat close',
-                          'chat_close',
-                          colorScheme,
-                        ),
-                        _buildCompactRadio('5 mins', '5mins', colorScheme),
-                      ],
+                    _buildSwitchTile(
+                      icon: _isMuted ? FluentIcons.alert_off_24_regular : FluentIcons.alert_24_regular,
+                      title: 'Mute Notifications',
+                      subtitle: 'Silence alerts for this chat',
+                      value: _isMuted,
+                      activeColor: Colors.orange,
+                      onChanged: _toggleMute,
                     ),
-                  ),
-                const Divider(indent: 56),
-                _buildSwitchTile(
-                  icon: Icons.auto_delete_outlined,
-                  title: 'Whisper Mode',
-                  subtitle: 'Self-vanishing messages',
-                  value: _isWhisperMode,
-                  activeColor: colorScheme.secondary,
-                  onChanged: _toggleWhisperMode,
-                ),
-                if (_isWhisperMode)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(56, 0, 16, 16),
-                    child: SegmentedButton<int>(
-                      segments: const [
-                        ButtonSegment<int>(
-                          value: 86400,
-                          label: Text('24h'),
-                          icon: Icon(Icons.timer_outlined, size: 16),
-                        ),
-                        ButtonSegment<int>(
-                          value: 0,
-                          label: Text('Instant'),
-                          icon: Icon(Icons.flash_on_outlined, size: 16),
-                        ),
-                      ],
-                      selected: {_ephemeralDuration},
-                      onSelectionChanged: (Set<int> newSelection) {
-                        _setEphemeralDuration(newSelection.first);
-                      },
-                      style: SegmentedButton.styleFrom(
-                        visualDensity: VisualDensity.compact,
-                        textStyle: const TextStyle(fontSize: 12),
-                      ),
+                    _buildActionTile(
+                      icon: FluentIcons.delete_24_regular,
+                      title: 'Clear Chat',
+                      titleColor: colorScheme.error,
+                      iconColor: colorScheme.error,
+                      onTap: _clearChat,
                     ),
-                  ),
-              ],
-            ),
+                    _buildActionTile(
+                      icon: _isBlocked ? FluentIcons.person_available_24_regular : FluentIcons.person_prohibited_24_regular,
+                      title: _isBlocked ? 'Unblock ${widget.otherUserName}' : 'Block ${widget.otherUserName}',
+                      titleColor: colorScheme.error,
+                      iconColor: colorScheme.error,
+                      onTap: _toggleBlock,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 48),
+            ],
           ),
-
-          const SizedBox(height: 24),
-
-          // Actions Section
-          _buildSectionTitle(theme, 'Manage'),
-          _buildDetailCard(
-            colorScheme,
-            child: Column(
-              children: [
-                _buildActionTile(
-                  icon: Icons.search_rounded,
-                  title: 'Search in Chat',
-                  subtitle: 'Coming soon',
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Search feature is being perfected and will be available soon!'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                ),
-                _buildSwitchTile(
-                  icon: _isMuted ? Icons.notifications_off_rounded : Icons.notifications_none_rounded,
-                  title: 'Mute Notifications',
-                  subtitle: 'Silence alerts for this chat',
-                  value: _isMuted,
-                  activeColor: Colors.orange,
-                  onChanged: _toggleMute,
-                ),
-                _buildActionTile(
-                  icon: Icons.delete_sweep_outlined,
-                  title: 'Clear Chat',
-                  titleColor: colorScheme.error,
-                  iconColor: colorScheme.error,
-                  onTap: _clearChat,
-                ),
-                _buildActionTile(
-                  icon: _isBlocked ? Icons.check_circle_outline : Icons.block_flipped,
-                  title: _isBlocked ? 'Unblock ${widget.otherUserName}' : 'Block ${widget.otherUserName}',
-                  titleColor: colorScheme.error,
-                  iconColor: colorScheme.error,
-                  onTap: _toggleBlock,
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 48),
-        ],
+        ),
       ),
     );
   }
@@ -873,7 +957,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.verified_user, size: 14, color: colorScheme.primary),
+                Icon(FluentIcons.shield_task_24_regular, size: 14, color: colorScheme.primary),
                 const SizedBox(width: 6),
                 Text(
                   'End-to-End Encrypted',
@@ -911,7 +995,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
       ),
-      child: child,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: child,
+      ),
     );
   }
 
@@ -935,9 +1022,8 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         ),
       ),
       subtitle: subtitle != null ? Text(subtitle) : null,
-      trailing: trailing ?? const Icon(Icons.chevron_right, size: 20),
+      trailing: trailing ?? const Icon(FluentIcons.chevron_right_24_regular, size: 20),
       onTap: onTap,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     );
   }
 
@@ -959,6 +1045,44 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       value: value,
       activeColor: activeColor,
       onChanged: onChanged,
+    );
+  }
+
+  Widget _buildSliderTile({
+    required IconData icon,
+    required String title,
+    required double value,
+    required Function(double) onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 24, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                ),
+                Slider(
+                  value: value,
+                  onChanged: onChanged,
+                  min: 0.0,
+                  max: 1.0,
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '${(value * 100).toInt()}%',
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
     );
   }
 

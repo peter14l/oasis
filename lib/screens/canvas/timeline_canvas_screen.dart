@@ -7,6 +7,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis_v2/providers/canvas_provider.dart';
 import 'package:oasis_v2/providers/profile_provider.dart';
 import 'package:oasis_v2/models/canvas_item.dart';
+import 'package:oasis_v2/models/oasis_canvas.dart';
 import 'package:oasis_v2/widgets/canvas/starry_night_background.dart';
 import 'package:oasis_v2/widgets/canvas/glowing_note.dart';
 import 'package:oasis_v2/widgets/canvas/infinite_card_stack.dart';
@@ -27,6 +28,7 @@ import 'package:oasis_v2/services/notification_service.dart';
 import 'package:oasis_v2/widgets/canvas/scattered_polaroid_spread.dart';
 import 'package:oasis_v2/widgets/canvas/scrapbook_motif_wrapper.dart';
 import 'package:oasis_v2/widgets/canvas/journal_entry_widget.dart';
+import 'package:oasis_v2/widgets/canvas/canvas_item_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class _PulseData {
@@ -50,6 +52,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
   RealtimeChannel? _pulseChannel;
   final AudioRecorder _audioRecorder = AudioRecorder();
   bool _isMapMode = false;
+  Offset _lastCursorPos = Offset.zero;
 
   @override
   void initState() {
@@ -59,7 +62,6 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
       if (currentUserId != null) {
-        // Auto-join to ensure the user is in canvas_members for RLS and sync
         await context.read<CanvasProvider>().joinCanvas(widget.canvasId, currentUserId);
       }
       if (mounted) {
@@ -67,7 +69,6 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
         canvasProvider.openCanvas(widget.canvasId);
         _setupPulseChannel();
         
-        // Send Pulse Notification to other members
         final canvas = canvasProvider.activeCanvas;
         if (canvas != null && currentUserId != null) {
           NotificationService().sendPulseNotification(
@@ -79,62 +80,6 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
         }
       }
     });
-  }
-
-  Future<void> _deleteCanvas() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Canvas'),
-        content: const Text('Are you sure you want to permanently delete this canvas and all its memories? This action cannot be undone.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true), 
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && mounted) {
-      final success = await context.read<CanvasProvider>().deleteCanvas(widget.canvasId);
-      if (success && mounted) {
-        context.pop();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Canvas deleted')));
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to delete canvas')));
-      }
-    }
-  }
-
-  void _leaveCanvas() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Leave Canvas?'),
-        content: const Text('You will no longer be able to see or contribute to this canvas unless invited back.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Leave'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && mounted) {
-      final success = await context.read<CanvasProvider>().leaveCanvas(widget.canvasId);
-      if (success && mounted) {
-        context.pop();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You left the canvas')));
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to leave canvas')));
-      }
-    }
   }
 
   void _setupPulseChannel() {
@@ -192,126 +137,240 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     super.dispose();
   }
 
+  void _updatePresence(PointerEvent event) {
+    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
+    if (currentUserId == null) return;
+
+    final x = event.localPosition.dx / MediaQuery.of(context).size.width;
+    final y = event.localPosition.dy / MediaQuery.of(context).size.height;
+    
+    // Throttling presence updates implicitly via the service if needed, 
+    // but here we just send it.
+    context.read<CanvasProvider>().updatePresence(currentUserId, x, y);
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CanvasProvider>();
     final canvas = provider.activeCanvas;
     final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
     final isOwner = canvas?.createdBy == currentUserId;
+    final isDesktop = MediaQuery.of(context).size.width > 900;
 
     return Scaffold(
       body: StarryNightBackground(
         scrollOffset: _scrollOffset,
-        child: GestureDetector(
-          onLongPressStart: (details) => _sendPulse(details.localPosition),
-          child: Stack(
-            children: [
-              if (_isMapMode)
-                _buildMapMode(provider)
-              else
-                CustomScrollView(
-                  controller: _scrollController,
-                  slivers: [
-                    SliverAppBar(
-                      floating: true,
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                      leading: IconButton(
-                        icon: const Icon(FluentIcons.chevron_left_24_regular, color: Colors.white),
-                        onPressed: () => context.pop(),
-                      ),
-                      title: Text(
-                        canvas?.title ?? 'Our Canvas',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                      centerTitle: true,
-                      actions: [
-                        IconButton(
-                          icon: Icon(
-                            _isMapMode ? FluentIcons.list_24_regular : FluentIcons.glance_24_regular, 
-                            color: Colors.white,
-                          ),
-                          onPressed: () => setState(() => _isMapMode = !_isMapMode),
-                          tooltip: _isMapMode ? 'Switch to Timeline' : 'Switch to Spatial Map',
-                        ),
-                        IconButton(
-                          icon: const Icon(FluentIcons.people_add_24_regular, color: Colors.white),
-                          onPressed: () {
-                            if (canvas != null) {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (context) => ShareSheet(
-                                  title: 'Share Canvas',
-                                  payload: '[INVITE:canvas:${canvas.id}:${canvas.title}]',
-                                ),
-                              );
-                            }
-                          },
-                          tooltip: 'Invite Member',
-                        ),
-                        if (isOwner)
-                          IconButton(
-                            icon: const Icon(FluentIcons.delete_24_regular, color: Colors.redAccent),
-                            onPressed: _deleteCanvas,
-                            tooltip: 'Delete Canvas',
-                          )
-                        else
-                          IconButton(
-                            icon: const Icon(FluentIcons.arrow_exit_20_regular, color: Colors.redAccent),
-                            onPressed: _leaveCanvas,
-                            tooltip: 'Leave Canvas',
-                          ),
-                      ],
-                    ),
+        child: MouseRegion(
+          onHover: _updatePresence,
+          child: GestureDetector(
+            onLongPressStart: (details) => _sendPulse(details.localPosition),
+            child: Stack(
+              children: [
+                if (_isMapMode)
+                  _buildMapMode(provider)
+                else
+                  CustomScrollView(
+                    controller: _scrollController,
+                    slivers: [
+                      if (!isDesktop)
+                        _buildMobileAppBar(canvas, isOwner)
+                      else
+                        SliverToBoxAdapter(child: _buildDesktopHeader(canvas, provider)),
 
-                    if (provider.isLoading)
-                      const SliverFillRemaining(
-                        child: Center(child: CircularProgressIndicator(color: Colors.white)),
-                      )
-                    else if (provider.activeItems.isEmpty)
-                      SliverFillRemaining(
-                        child: _buildEmptyState(),
-                      )
-                    else
-                      ..._buildTimelineSlivers(provider.activeItems),
-                      
-                    const SliverToBoxAdapter(child: SizedBox(height: 120)),
-                  ],
-                ),
+                      if (provider.isLoading)
+                        const SliverFillRemaining(
+                          child: Center(child: CircularProgressIndicator(color: Colors.white)),
+                        )
+                      else if (provider.activeItems.isEmpty)
+                        SliverFillRemaining(
+                          child: _buildEmptyState(),
+                        )
+                      else
+                        ..._buildTimelineSlivers(provider.activeItems),
+                        
+                      const SliverToBoxAdapter(child: SizedBox(height: 120)),
+                    ],
+                  ),
 
-              if (provider.activeItems.isNotEmpty && !_isMapMode)
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: Center(
-                    child: TimelineScrubber(
-                      items: provider.activeItems,
-                      scrollController: _scrollController,
+                // Collaborative Cursors (Visible only on Map Mode or Desktop)
+                if (_isMapMode || isDesktop)
+                  ..._buildPresenceCursors(provider),
+
+                if (provider.activeItems.isNotEmpty && !_isMapMode)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: TimelineScrubber(
+                        items: provider.activeItems,
+                        scrollController: _scrollController,
+                      ),
                     ),
                   ),
-                ),
 
-              ..._pulses.map((p) => PulseRipple(
-                    key: ValueKey(p.id),
-                    position: p.position,
-                    color: Colors.white,
-                  )),
-
-              ..._buildPresenceAvatars(provider),
-            ],
+                ..._pulses.map((p) => PulseRipple(
+                      key: ValueKey(p.id),
+                      position: p.position,
+                      color: Colors.white,
+                    )),
+              ],
+            ),
           ),
         ),
       ),
-      floatingActionButton: _TimelineAddItemTray(
+      floatingActionButton: isDesktop ? null : _TimelineAddItemTray(
         onAddText: () => _showAddNote(context),
         onAddPhoto: () => _pickAndUploadPhoto(),
         onAddVoice: () => _showVoiceRecorder(context),
         onAddSticker: () => _showStickerPicker(context),
         onAddMilestone: () => _showAddMilestone(context),
         onAddJournal: () => _showAddJournal(context),
+      ),
+    );
+  }
+
+  Widget _buildMobileAppBar(OasisCanvas? canvas, bool isOwner) {
+    return SliverAppBar(
+      floating: true,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(FluentIcons.chevron_left_24_regular, color: Colors.white),
+        onPressed: () => context.pop(),
+      ),
+      title: Text(
+        canvas?.title ?? 'Our Canvas',
+        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      ),
+      centerTitle: true,
+      actions: [
+        IconButton(
+          icon: Icon(_isMapMode ? FluentIcons.list_24_regular : FluentIcons.glance_24_regular, color: Colors.white),
+          onPressed: () => setState(() => _isMapMode = !_isMapMode),
+        ),
+        IconButton(
+          icon: const Icon(FluentIcons.people_add_24_regular, color: Colors.white),
+          onPressed: () => _showInviteSheet(canvas),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopHeader(OasisCanvas? canvas, CanvasProvider provider) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(FluentIcons.chevron_left_24_regular, color: Colors.white),
+            onPressed: () => context.pop(),
+          ),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                canvas?.title ?? 'Our Canvas',
+                style: theme.textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              _buildActiveUsersRow(provider),
+            ],
+          ),
+          const Spacer(),
+          _DesktopCanvasToolbar(
+            onAddText: () => _showAddNote(context),
+            onAddPhoto: () => _pickAndUploadPhoto(),
+            onAddVoice: () => _showVoiceRecorder(context),
+            onAddSticker: () => _showStickerPicker(context),
+            onAddMilestone: () => _showAddMilestone(context),
+            onToggleView: () => setState(() => _isMapMode = !_isMapMode),
+            isMapMode: _isMapMode,
+          ),
+          const SizedBox(width: 16),
+          FilledButton.icon(
+            onPressed: () => _showInviteSheet(canvas),
+            icon: const Icon(FluentIcons.people_add_20_regular, size: 18),
+            label: const Text('Invite'),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.white10,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActiveUsersRow(CanvasProvider provider) {
+    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
+    final othersCount = provider.presenceState.length - (provider.presenceState.containsKey(currentUserId) ? 1 : 0);
+
+    return Row(
+      children: [
+        Container(
+          width: 8, height: 8,
+          decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          '${othersCount + 1} online',
+          style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildPresenceCursors(CanvasProvider provider) {
+    final List<Widget> cursors = [];
+    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
+
+    provider.presenceState.forEach((userId, stateList) {
+      if (userId == currentUserId) return;
+      
+      final state = (stateList as List).first;
+      final x = (state['x'] as num?)?.toDouble() ?? 0.5;
+      final y = (state['y'] as num?)?.toDouble() ?? 0.5;
+
+      cursors.add(
+        AnimatedPositioned(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.linear,
+          left: x * MediaQuery.of(context).size.width,
+          top: y * MediaQuery.of(context).size.height,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(FluentIcons.cursor_24_filled, size: 20, color: Colors.blueAccent),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.blueAccent,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text('Friend', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+
+    return cursors;
+  }
+
+  void _showInviteSheet(OasisCanvas? canvas) {
+    if (canvas == null) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ShareSheet(
+        title: 'Share Canvas',
+        payload: '[INVITE:canvas:${canvas.id}:${canvas.title}]',
       ),
     );
   }
@@ -412,54 +471,47 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     for (var group in timelineGroups) {
       final firstItem = group is List ? group.first as CanvasItem : group as CanvasItem;
       final monthStr = DateFormat('MMMM yyyy').format(firstItem.createdAt);
-      final monthInt = firstItem.createdAt.month;
 
       if (monthStr != currentMonth) {
         currentMonth = monthStr;
         slivers.add(
           SliverToBoxAdapter(
-            child: VisibilityDetector(
-              key: Key('month_$monthStr'),
-              onVisibilityChanged: (info) {
-                // Legacy ambient sound trigger removed
-              },
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 2, height: 40,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.white.withValues(alpha: 0), Colors.white.withValues(alpha: 0.2)],
-                        ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
+              child: Column(
+                children: [
+                  Container(
+                    width: 2, height: 40,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.white.withValues(alpha: 0), Colors.white.withValues(alpha: 0.2)],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      monthStr.toUpperCase(),
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
-                        letterSpacing: 4,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    monthStr.toUpperCase(),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.6),
+                      letterSpacing: 4,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 2, height: 40,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.white.withValues(alpha: 0.2), Colors.white.withValues(alpha: 0)],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Container(
-                      width: 2, height: 40,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.white.withValues(alpha: 0.2), Colors.white.withValues(alpha: 0)],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -485,127 +537,28 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     if (group is List<CanvasItem>) {
       final isLocked = group.any((item) => item.unlockAt != null && item.unlockAt!.isAfter(DateTime.now()));
       if (isLocked) return _buildTimeCapsuleWidget(group.first);
-      return RepaintBoundary(
-        child: VisibilityDetector(
-          key: Key('group_${group.first.id}'),
-          onVisibilityChanged: (info) {
-            if (info.visibleFraction > 0.1 && currentUserId != null) {
-              context.read<CanvasProvider>().updatePresence(
-                currentUserId, 
-                0.5, 
-                _scrollController.hasClients ? (_scrollController.offset / _scrollController.position.maxScrollExtent) : 0.0,
-                activeItemId: group.first.id,
-              );
-            }
-          },
-          child: ScatteredPolaroidSpread(items: group),
-        ),
-      );
+      return ScatteredPolaroidSpread(items: group);
     }
 
     final item = group as CanvasItem;
     final isLocked = item.unlockAt != null && item.unlockAt!.isAfter(DateTime.now());
     if (isLocked) return _buildTimeCapsuleWidget(item);
 
-    return RepaintBoundary(
-      child: DragTarget<String>(
-        onAcceptWithDetails: (details) {
-          final sticker = details.data;
-          context.read<CanvasProvider>().addItem(
-            authorId: currentUserId ?? '',
-            type: CanvasItemType.sticker,
-            content: sticker,
-            xPos: details.offset.dx / MediaQuery.of(context).size.width,
-            yPos: details.offset.dy / MediaQuery.of(context).size.height,
-          );
-        },
-        builder: (context, candidateData, rejectedData) {
-          Widget child;
-          bool useMotif = true;
-          
-          switch (item.type) {
-            case CanvasItemType.voice:
-              child = VoiceMemoWidget(content: item.content, createdAt: item.createdAt);
-              break;
-            case CanvasItemType.sticker:
-              child = Center(child: Text(item.content, style: const TextStyle(fontSize: 64)));
-              useMotif = false;
-              break;
-            case CanvasItemType.milestone:
-              child = _buildMilestoneWidget(item);
-              useMotif = false;
-              break;
-            case CanvasItemType.journal:
-              child = JournalEntryWidget(content: item.content, createdAt: item.createdAt);
-              break;
-            default:
-              child = GlowingNote(content: item.content, colorHex: item.color, createdAt: item.createdAt);
-          }
-
-          if (useMotif) {
-            final random = math.Random(item.id.hashCode);
-            child = ScrapbookMotifWrapper(
-              hasTape: random.nextBool(),
-              hasPaperClip: random.nextBool() && item.type == CanvasItemType.voice,
-              rotation: (random.nextDouble() - 0.5) * 0.1,
-              child: child,
-            );
-          }
-
-          return VisibilityDetector(
-            key: Key('item_${item.id}'),
-            onVisibilityChanged: (info) {
-              if (info.visibleFraction > 0.5 && currentUserId != null) {
-                context.read<CanvasProvider>().updatePresence(
-                  currentUserId, 
-                  item.xPos, 
-                  _scrollController.hasClients ? (_scrollController.offset / _scrollController.position.maxScrollExtent) : 0.0,
-                  activeItemId: item.id,
-                );
-              }
-            },
-            child: child,
-          );
-        },
-      ),
+    return CanvasItemWidget(
+      item: item,
+      onMoved: (dx, dy, rotation) {
+        context.read<CanvasProvider>().moveItem(
+          itemId: item.id,
+          xPos: dx,
+          yPos: dy,
+          rotation: rotation,
+          lastModifiedBy: currentUserId,
+        );
+      },
+      onDelete: () => context.read<CanvasProvider>().deleteItem(item.id),
+      onReact: (emoji) => context.read<CanvasProvider>().toggleReaction(item.id, currentUserId!, emoji),
+      onLock: (lock) => context.read<CanvasProvider>().setItemLock(item.id, lock),
     );
-  }
-
-  List<Widget> _buildPresenceAvatars(CanvasProvider provider) {
-    final List<Widget> avatars = [];
-    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
-
-    provider.presenceState.forEach((userId, stateList) {
-      if (userId == currentUserId) return;
-      
-      final state = (stateList as List).first;
-      final x = (state['x'] as num?)?.toDouble() ?? 0.5;
-      final y = (state['y'] as num?)?.toDouble() ?? 0.5;
-
-      avatars.add(
-        AnimatedPositioned(
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.easeInOut,
-          left: x * MediaQuery.of(context).size.width,
-          top: y * MediaQuery.of(context).size.height,
-          child: Container(
-            padding: const EdgeInsets.all(2),
-            decoration: const BoxDecoration(
-              color: Colors.white30,
-              shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
-            ),
-            child: CircleAvatar(
-              radius: 14,
-              backgroundColor: Theme.of(context).colorScheme.secondary,
-              child: const Icon(FluentIcons.person_12_filled, size: 14, color: Colors.white),
-            ),
-          ),
-        ),
-      );
-    });
-
-    return avatars;
   }
 
   Widget _buildTimeCapsuleWidget(CanvasItem item) {
@@ -630,6 +583,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
   }
 
   Widget _buildMapMode(CanvasProvider provider) {
+    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
     return InteractiveViewer(
       boundaryMargin: const EdgeInsets.all(1000),
       minScale: 0.1,
@@ -639,68 +593,23 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
         height: 3000,
         child: Stack(
           children: provider.activeItems.map((item) {
-            return Positioned(
-              left: item.xPos * 3000,
-              top: item.yPos * 3000,
-              child: Transform.rotate(
-                angle: item.rotation,
-                child: SizedBox(
-                  width: 250,
-                  child: _buildTimelineItem(item),
-                ),
-              ),
+            return CanvasItemWidget(
+              item: item,
+              onMoved: (dx, dy, rotation) {
+                context.read<CanvasProvider>().moveItem(
+                  itemId: item.id,
+                  xPos: dx / 3000,
+                  yPos: dy / 3000,
+                  rotation: rotation,
+                  lastModifiedBy: currentUserId,
+                );
+              },
+              onDelete: () => context.read<CanvasProvider>().deleteItem(item.id),
+              onReact: (emoji) => context.read<CanvasProvider>().toggleReaction(item.id, currentUserId!, emoji),
+              onLock: (lock) => context.read<CanvasProvider>().setItemLock(item.id, lock),
             );
           }).toList(),
         ),
-      ),
-    );
-  }
-
-  Widget _buildMilestoneWidget(CanvasItem milestone) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Color(int.parse('FF${milestone.color.replaceAll('#', '')}', radix: 16)),
-            Color(int.parse('FF${milestone.color.replaceAll('#', '')}', radix: 16)).withValues(alpha: 0.5),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Color(int.parse('FF${milestone.color.replaceAll('#', '')}', radix: 16)).withValues(alpha: 0.3),
-            blurRadius: 20,
-            spreadRadius: 5,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          const Icon(FluentIcons.star_24_filled, color: Colors.white, size: 32),
-          const SizedBox(height: 16),
-          Text(
-            milestone.content.toUpperCase(),
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 2,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'CHAPTER MILESTONE',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 4,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -817,8 +726,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                           type: CanvasItemType.text,
                           content: controller.text.trim(),
                           color: selectedColor,
-                          xPos: 0.1 + (0.8 * (DateTime.now().millisecond / 1000)),
-                          yPos: 0.1 + (0.8 * (DateTime.now().microsecond / 1000000)),
+                          xPos: 0.5, yPos: 0.5,
                           unlockAt: unlockAt,
                         );
                         Navigator.pop(context);
@@ -964,35 +872,20 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
               spacing: 16,
               runSpacing: 16,
               alignment: WrapAlignment.center,
-              children: stickers.map((sticker) => Draggable<String>(
-                data: sticker,
-                feedback: Material(
-                  color: Colors.transparent,
-                  child: Text(sticker, style: const TextStyle(fontSize: 64)),
-                ),
-                childWhenDragging: Opacity(
-                  opacity: 0.5,
-                  child: Text(sticker, style: const TextStyle(fontSize: 48)),
-                ),
-                onDragEnd: (details) {
-                  if (details.wasAccepted) Navigator.pop(context);
+              children: stickers.map((sticker) => GestureDetector(
+                onTap: () {
+                  context.read<CanvasProvider>().addItem(
+                    authorId: context.read<ProfileProvider>().currentProfile?.id ?? '',
+                    type: CanvasItemType.sticker,
+                    content: sticker,
+                    xPos: 0.5, yPos: 0.5,
+                  );
+                  Navigator.pop(context);
                 },
-                child: GestureDetector(
-                  onTap: () {
-                    context.read<CanvasProvider>().addItem(
-                      authorId: context.read<ProfileProvider>().currentProfile?.id ?? '',
-                      type: CanvasItemType.sticker,
-                      content: sticker,
-                      xPos: 0.5, yPos: 0.5,
-                    );
-                    Navigator.pop(context);
-                  },
-                  child: Text(sticker, style: const TextStyle(fontSize: 48)),
-                ),
+                child: Text(sticker, style: const TextStyle(fontSize: 48)),
               )).toList(),
             ),
             const SizedBox(height: 24),
-            const Text('Drag & Drop onto memories to pin', style: TextStyle(color: Colors.white54, fontSize: 12)),
           ],
         ),
       ),
@@ -1034,7 +927,6 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                     });
                     
                     if (recordPath != null && mounted) {
-                      // Capture references BEFORE popping the modal context
                       final profile = context.read<ProfileProvider>().currentProfile;
                       final canvasProvider = context.read<CanvasProvider>();
                       final messenger = ScaffoldMessenger.of(context);
@@ -1090,6 +982,79 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                 ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DesktopCanvasToolbar extends StatelessWidget {
+  final VoidCallback onAddText;
+  final VoidCallback onAddPhoto;
+  final VoidCallback onAddVoice;
+  final VoidCallback onAddSticker;
+  final VoidCallback onAddMilestone;
+  final VoidCallback onToggleView;
+  final bool isMapMode;
+
+  const _DesktopCanvasToolbar({
+    required this.onAddText,
+    required this.onAddPhoto,
+    required this.onAddVoice,
+    required this.onAddSticker,
+    required this.onAddMilestone,
+    required this.onToggleView,
+    required this.isMapMode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ToolbarAction(icon: FluentIcons.text_description_24_regular, label: 'Note', onTap: onAddText),
+          _ToolbarAction(icon: FluentIcons.image_24_regular, label: 'Photo', onTap: onAddPhoto),
+          _ToolbarAction(icon: FluentIcons.mic_24_regular, label: 'Voice', onTap: onAddVoice),
+          _ToolbarAction(icon: FluentIcons.sticker_24_regular, label: 'Sticker', onTap: onAddSticker),
+          _ToolbarAction(icon: FluentIcons.star_24_regular, label: 'Milestone', onTap: onAddMilestone),
+          const VerticalDivider(width: 24, indent: 8, endIndent: 8, color: Colors.white10),
+          _ToolbarAction(
+            icon: isMapMode ? FluentIcons.list_24_regular : FluentIcons.glance_24_regular,
+            label: isMapMode ? 'Timeline' : 'Spatial',
+            onTap: onToggleView,
+            isVibrant: true,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ToolbarAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool isVibrant;
+
+  const _ToolbarAction({required this.icon, required this.label, required this.onTap, this.isVibrant = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          child: Icon(icon, color: isVibrant ? Colors.blueAccent : Colors.white70, size: 20),
         ),
       ),
     );

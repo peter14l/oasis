@@ -228,9 +228,9 @@ class _SearchScreenState extends State<SearchScreen>
 
     // Mobile layout OR Panel layout (Simplified for narrow width)
     return Scaffold(
-      backgroundColor: usePanelLayout ? Colors.transparent : theme.scaffoldBackgroundColor,
+      backgroundColor: usePanelLayout ? colorScheme.surface : theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: colorScheme.surface.withValues(alpha: 0.6),
+        backgroundColor: colorScheme.surface,
         automaticallyImplyLeading: !usePanelLayout,
         flexibleSpace: ClipRRect(
           child: BackdropFilter(

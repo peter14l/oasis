@@ -10,7 +10,6 @@ import 'package:oasis_v2/models/post.dart';
 import 'package:oasis_v2/models/user_profile.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:oasis_v2/widgets/wellness_badge.dart';
-import 'package:oasis_v2/widgets/profile/activity_graph.dart';
 import 'package:oasis_v2/widgets/account_switcher_sheet.dart';
 import 'package:oasis_v2/utils/responsive_layout.dart';
 
@@ -155,9 +154,9 @@ class _ProfileScreenState extends State<ProfileScreen>
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
-                    isDesktop ? 64 : 20, 
-                    isDesktop ? 120 : 32, 
-                    isDesktop ? 64 : 20, 
+                    isDesktop ? 32 : 20, 
+                    isDesktop ? 80 : 32, 
+                    isDesktop ? 32 : 20, 
                     24
                   ),
                   child: Column(
@@ -172,18 +171,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                       if (!isDesktop) ...[
                         _buildStatsBar(profile, theme, colorScheme),
                         const SizedBox(height: 24),
-                        _buildActivitySection(profile, theme, colorScheme),
-                        const SizedBox(height: 24),
                         _buildActionButtons(profile, profileProvider, theme, colorScheme, userId),
                       ] else 
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              flex: 2,
-                              child: _buildActivitySection(profile, theme, colorScheme),
-                            ),
-                            const SizedBox(width: 32),
                             Expanded(
                               flex: 1,
                               child: _buildDesktopInfoCard(profile, theme, colorScheme),
@@ -285,7 +277,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         Stack(
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
@@ -293,44 +285,44 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ),
               ),
               child: CircleAvatar(
-                radius: 100,
+                radius: 60,
                 backgroundColor: colorScheme.surface,
                 backgroundImage: profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
                     ? CachedNetworkImageProvider(profile.avatarUrl!)
                     : null,
                 child: profile.avatarUrl == null || profile.avatarUrl!.isEmpty
-                    ? Text(profile.username[0].toUpperCase(), style: const TextStyle(fontSize: 48))
+                    ? Text(profile.username[0].toUpperCase(), style: const TextStyle(fontSize: 32))
                     : null,
               ),
             ),
             if (profile.isPro)
               Positioned(
-                bottom: 15,
-                right: 15,
+                bottom: 8,
+                right: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.amber,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: colorScheme.surface, width: 4),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: colorScheme.surface, width: 3),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10)
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 5)
                     ],
                   ),
                   child: const Text(
                     'PRO MEMBER',
                     style: TextStyle(
                       color: Colors.black,
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: FontWeight.w900,
-                      letterSpacing: 1,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ),
               ),
           ],
         ),
-        const SizedBox(width: 64),
+        const SizedBox(width: 32),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -339,37 +331,37 @@ class _ProfileScreenState extends State<ProfileScreen>
                 children: [
                   Text(
                     profile.username,
-                    style: theme.textTheme.headlineLarge?.copyWith(
+                    style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.w900,
-                      letterSpacing: -1,
+                      letterSpacing: -0.5,
                     ),
                   ),
-                  const SizedBox(width: 24),
+                  const SizedBox(width: 16),
                   _buildDesktopActionButtons(profile, profileProvider, theme, colorScheme, currentUserId),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   _buildDesktopStatItem('${profile.postsCount}', 'posts'),
-                  const SizedBox(width: 40),
+                  const SizedBox(width: 24),
                   _buildDesktopStatItem('${profile.followersCount}', 'followers', onTap: () => context.push('/profile/${profile.id}/followers')),
-                  const SizedBox(width: 40),
+                  const SizedBox(width: 24),
                   _buildDesktopStatItem('${profile.followingCount}', 'following', onTap: () => context.push('/profile/${profile.id}/following')),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               Text(
                 profile.fullName ?? profile.username,
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               if (profile.bio != null)
                 Text(
                   profile.bio!,
-                  style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface.withValues(alpha: 0.7)),
+                  style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface.withValues(alpha: 0.7)),
                 ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               const WellnessBadge(),
             ],
           ),
@@ -387,12 +379,12 @@ class _ProfileScreenState extends State<ProfileScreen>
           children: [
             TextSpan(
               text: value,
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, color: theme.colorScheme.onSurface),
+              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900, color: theme.colorScheme.onSurface),
             ),
             const TextSpan(text: ' '),
             TextSpan(
               text: label,
-              style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
+              style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
             ),
           ],
         ),
@@ -413,18 +405,18 @@ class _ProfileScreenState extends State<ProfileScreen>
           OutlinedButton(
             onPressed: () => context.push('/edit-profile'),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text('Edit Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text('Edit Profile', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           IconButton.filledTonal(
             onPressed: () => context.push('/settings'),
-            icon: const Icon(Icons.settings_outlined),
+            icon: const Icon(Icons.settings_outlined, size: 18),
             style: IconButton.styleFrom(
-              padding: const EdgeInsets.all(12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.all(10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
           ),
         ],
@@ -446,19 +438,19 @@ class _ProfileScreenState extends State<ProfileScreen>
           style: FilledButton.styleFrom(
             backgroundColor: profileProvider.isFollowing ? colorScheme.surfaceContainerHighest : colorScheme.primary,
             foregroundColor: profileProvider.isFollowing ? colorScheme.onSurface : colorScheme.onPrimary,
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
-          child: Text(profileProvider.isFollowing ? 'Following' : 'Follow', style: const TextStyle(fontWeight: FontWeight.bold)),
+          child: Text(profileProvider.isFollowing ? 'Following' : 'Follow', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         if (currentUserId != null)
           IconButton.filledTonal(
             onPressed: () => _handleMessage(currentUserId, profile.id),
-            icon: const Icon(Icons.chat_bubble_outline_rounded),
+            icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
             style: IconButton.styleFrom(
-              padding: const EdgeInsets.all(12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.all(10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
           ),
       ],
@@ -467,7 +459,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Widget _buildDesktopInfoCard(UserProfile profile, ThemeData theme, ColorScheme colorScheme) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colorScheme.onSurface.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
@@ -476,12 +468,12 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('COMMUNITY STATUS', style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 1.5, color: colorScheme.primary)),
-          const SizedBox(height: 24),
+          Text('COMMUNITY STATUS', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 1.0, color: colorScheme.primary)),
+          const SizedBox(height: 16),
           _buildInfoRow(Icons.calendar_today_outlined, 'Joined March 2024'),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           _buildInfoRow(Icons.verified_user_outlined, 'Identity Verified'),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           _buildInfoRow(Icons.favorite_outline_rounded, 'Top 5% Contributor'),
         ],
       ),
@@ -632,39 +624,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildActivitySection(UserProfile profile, ThemeData theme, ColorScheme colorScheme) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colorScheme.onSurface.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.insights_rounded, size: 18, color: colorScheme.primary),
-              const SizedBox(width: 8),
-              Text(
-                'ACTIVITY',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.5,
-                  color: colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ActivityGraph(posts: _userPosts),
-        ],
-      ),
-    );
-  }
-
   Widget _buildActionButtons(
     UserProfile profile,
     ProfileProvider profileProvider,
@@ -811,13 +770,14 @@ class _ProfileScreenState extends State<ProfileScreen>
         ),
       ),
       actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: IconButton(
-            icon: const Icon(Icons.more_vert_rounded),
-            onPressed: () => context.push('/settings'),
+        if (!isDesktop)
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: IconButton(
+              icon: const Icon(Icons.more_vert_rounded),
+              onPressed: () => context.push('/settings'),
+            ),
           ),
-        ),
       ],
     );
   }

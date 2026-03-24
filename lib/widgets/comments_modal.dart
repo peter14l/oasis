@@ -12,8 +12,13 @@ import 'package:provider/provider.dart';
 
 class CommentsModal extends StatefulWidget {
   final String postId;
+  final bool isSidePane;
 
-  const CommentsModal({super.key, required this.postId});
+  const CommentsModal({
+    super.key, 
+    required this.postId,
+    this.isSidePane = false,
+  });
 
   @override
   State<CommentsModal> createState() => _CommentsModalState();
@@ -37,6 +42,19 @@ class _CommentsModalState extends State<CommentsModal> {
     super.initState();
     _loadComments();
     _subscribeToComments();
+  }
+
+  @override
+  void didUpdateWidget(CommentsModal oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.postId != oldWidget.postId) {
+      if (_commentsChannel != null) {
+        _commentService.unsubscribeFromComments(_commentsChannel!);
+      }
+      _comments = [];
+      _loadComments();
+      _subscribeToComments();
+    }
   }
 
   void _subscribeToComments() {
@@ -91,10 +109,12 @@ class _CommentsModalState extends State<CommentsModal> {
         context.read<FeedProvider>().updatePostCommentCount(widget.postId, _comments.length);
       }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -135,8 +155,8 @@ class _CommentsModalState extends State<CommentsModal> {
         );
       }
     } catch (e) {
-      setState(() => _isSubmitting = false);
       if (mounted) {
+        setState(() => _isSubmitting = false);
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
@@ -222,7 +242,7 @@ class _CommentsModalState extends State<CommentsModal> {
             child: Container(
               margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
               decoration: BoxDecoration(
-                color: colorScheme.surface.withValues(alpha: 0.85),
+                color: colorScheme.surface.withValues(alpha: 0.98),
                 borderRadius: BorderRadius.circular(32),
                 border: Border.all(
                   color: colorScheme.onSurface.withValues(alpha: 0.1),
@@ -314,9 +334,9 @@ class _CommentsModalState extends State<CommentsModal> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final userId = _authService.currentUser?.id;
+    if (widget.isSidePane) {
+      return _buildMainContent(context, _scrollController);
+    }
 
     return DraggableScrollableSheet(
       initialChildSize: 0.75,
@@ -324,182 +344,191 @@ class _CommentsModalState extends State<CommentsModal> {
       maxChildSize: 0.95,
       expand: false,
       builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surface.withValues(alpha: 0.85),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-            border: Border.all(
-              color: colorScheme.onSurface.withValues(alpha: 0.1),
-            ),
-          ),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-              child: Column(
-                children: [
-                  // Handle and Title
-                  Container(
-                    padding: const EdgeInsets.only(top: 12, bottom: 8),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: colorScheme.onSurface.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Comments',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Comments List
-                  Expanded(
-                    child: _isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : _error != null
-                            ? Center(child: Text('Error: $_error'))
-                            : _comments.isEmpty
-                                ? Center(
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          FluentIcons.chat_24_regular,
-                                          size: 48,
-                                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          'No comments yet',
-                                          style: theme.textTheme.bodyLarge?.copyWith(
-                                            color: colorScheme.onSurfaceVariant,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                : ListView.builder(
-                                    controller: scrollController,
-                                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                                    itemCount: _comments.length,
-                                    itemBuilder: (context, index) {
-                                      final comment = _comments[index];
-                                      return _buildCommentItem(comment, userId);
-                                    },
-                                  ),
-                  ),
-
-                  // Reply indicator and Input Field
-                  SafeArea(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom,
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (_replyingTo != null)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                              color: colorScheme.primary.withValues(alpha: 0.05),
-                              child: Row(
-                                children: [
-                                  Icon(FluentIcons.arrow_reply_16_regular, size: 14, color: colorScheme.primary),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      'Replying to ${_replyingTo!.username}',
-                                      style: theme.textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.primary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () => setState(() => _replyingTo = null),
-                                    child: Icon(FluentIcons.dismiss_16_regular, size: 16, color: colorScheme.onSurfaceVariant),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          Container(
-                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                            decoration: BoxDecoration(
-                              color: colorScheme.surface,
-                              border: Border(
-                                top: BorderSide(
-                                  color: colorScheme.onSurface.withValues(alpha: 0.05),
-                                ),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _commentController,
-                                    decoration: InputDecoration(
-                                      hintText: 'Add a comment...',
-                                      hintStyle: TextStyle(
-                                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                                        fontSize: 15,
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(24),
-                                        borderSide: BorderSide.none,
-                                      ),
-                                      filled: true,
-                                      fillColor: colorScheme.onSurface.withValues(alpha: 0.05),
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                    ),
-                                    maxLines: 4,
-                                    minLines: 1,
-                                    textCapitalization: TextCapitalization.sentences,
-                                    style: const TextStyle(fontSize: 15),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                IconButton.filled(
-                                  onPressed: _isSubmitting ? null : _submitComment,
-                                  icon: _isSubmitting
-                                      ? const SizedBox(
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : const Icon(FluentIcons.send_24_filled, size: 20),
-                                  style: IconButton.styleFrom(
-                                    backgroundColor: colorScheme.primary,
-                                    foregroundColor: colorScheme.onPrimary,
-                                    minimumSize: const Size(44, 44),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
+        return _buildMainContent(context, scrollController);
       },
+    );
+  }
+
+  Widget _buildMainContent(BuildContext context, ScrollController scrollController) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final userId = _authService.currentUser?.id;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: widget.isSidePane ? Colors.transparent : colorScheme.surface.withValues(alpha: 0.85),
+        borderRadius: widget.isSidePane ? null : const BorderRadius.vertical(top: Radius.circular(32)),
+        border: widget.isSidePane ? null : Border.all(
+          color: colorScheme.onSurface.withValues(alpha: 0.1),
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: widget.isSidePane ? BorderRadius.zero : const BorderRadius.vertical(top: Radius.circular(32)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Column(
+            children: [
+              // Handle and Title
+              if (!widget.isSidePane)
+                Container(
+                  padding: const EdgeInsets.only(top: 12, bottom: 8),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: colorScheme.onSurface.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Comments',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              // Comments List
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _error != null
+                        ? Center(child: Text('Error: $_error'))
+                        : _comments.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      FluentIcons.chat_24_regular,
+                                      size: 48,
+                                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'No comments yet',
+                                      style: theme.textTheme.bodyLarge?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : ListView.builder(
+                                controller: scrollController,
+                                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                                itemCount: _comments.length,
+                                itemBuilder: (context, index) {
+                                  final comment = _comments[index];
+                                  return _buildCommentItem(comment, userId);
+                                },
+                              ),
+              ),
+
+              // Reply indicator and Input Field
+              SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_replyingTo != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                          color: colorScheme.primary.withValues(alpha: 0.05),
+                          child: Row(
+                            children: [
+                              Icon(FluentIcons.arrow_reply_16_regular, size: 14, color: colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Replying to ${_replyingTo!.username}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () => setState(() => _replyingTo = null),
+                                child: Icon(FluentIcons.dismiss_16_regular, size: 16, color: colorScheme.onSurfaceVariant),
+                              ),
+                            ],
+                          ),
+                        ),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                        decoration: BoxDecoration(
+                          color: widget.isSidePane ? Colors.transparent : colorScheme.surface,
+                          border: Border(
+                            top: BorderSide(
+                              color: colorScheme.onSurface.withValues(alpha: 0.05),
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _commentController,
+                                decoration: InputDecoration(
+                                  hintText: 'Add a comment...',
+                                  hintStyle: TextStyle(
+                                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                                    fontSize: 15,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  filled: true,
+                                  fillColor: colorScheme.onSurface.withValues(alpha: 0.05),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                ),
+                                maxLines: 4,
+                                minLines: 1,
+                                textCapitalization: TextCapitalization.sentences,
+                                style: const TextStyle(fontSize: 15),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            IconButton.filled(
+                              onPressed: _isSubmitting ? null : _submitComment,
+                              icon: _isSubmitting
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Icon(FluentIcons.send_24_filled, size: 20),
+                              style: IconButton.styleFrom(
+                                backgroundColor: colorScheme.primary,
+                                foregroundColor: colorScheme.onPrimary,
+                                minimumSize: const Size(44, 44),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

@@ -15,6 +15,7 @@ import 'package:oasis_v2/widgets/stories_bar.dart';
 import 'package:oasis_v2/widgets/capsules/capsule_carousel.dart';
 import 'package:oasis_v2/models/feed_layout_strategy.dart';
 import 'package:oasis_v2/widgets/feed_layout_switcher.dart';
+import 'package:oasis_v2/screens/ripples_screen.dart';
 import 'package:oasis_v2/screens/zen_feed_screen.dart';
 import 'package:oasis_v2/screens/pulse_feed_screen.dart';
 import 'package:oasis_v2/widgets/comments_modal.dart';
@@ -35,7 +36,6 @@ class FeedScreen extends StatefulWidget {
 class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ScrollController _scrollController = ScrollController();
-  final AuthService _authService = AuthService();
   final StoriesService _storiesService = StoriesService();
   List<StoryGroup> _storyGroups = [];
   List<StoryModel> _myStories = [];
@@ -44,6 +44,13 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
   Timer? _wellbeingTimer;
   bool _showWellbeingNudge = false;
   bool _isStoriesLoading = true;
+  bool _showRipplesOverlay = false;
+  
+  // Desktop Comment Pane State
+  String? _selectedPostId;
+  bool _showCommentPane = false;
+
+  AuthService get _authService => context.read<AuthService>();
 
   @override
   void initState() {
@@ -171,6 +178,8 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
   }
 
   void _handleRipplesTap(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final service = context.read<RipplesService>();
     if (service.isRipplesLocked) {
       final end = service.lockoutEndTime;
@@ -188,42 +197,106 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
       context: context,
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => SafeArea(
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            color: theme.colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 20,
+                offset: const Offset(0, -5),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Enter Ripples', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 8),
-              const Text('How long would you like to stay today?'),
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  color: colorScheme.onSurface.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Icon(
+                Icons.waves_rounded,
+                size: 48,
+                color: colorScheme.primary,
+              ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+               .scale(duration: 1.seconds, curve: Curves.easeInOut),
               const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40),
+              Text(
+                'Enter Ripples',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Set your intentional focus duration',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
                 child: TextField(
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  autofocus: true,
+                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900),
                   decoration: InputDecoration(
-                    hintText: 'Minutes',
+                    hintText: '00',
                     suffixText: 'min',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                    suffixStyle: theme.textTheme.titleMedium?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   onSubmitted: (val) {
                     final mins = int.tryParse(val);
                     if (mins != null && mins > 0) {
                       service.startSession(Duration(minutes: mins));
                       Navigator.pop(context);
-                      context.push('/ripples');
+                      if (ResponsiveLayout.isDesktop(context)) {
+                        setState(() => _showRipplesOverlay = true);
+                      } else {
+                        context.push('/ripples');
+                      }
                     }
                   },
                 ),
               ),
               const SizedBox(height: 24),
+              Text(
+                'Ripples limits distractions to help you stay present.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -235,6 +308,7 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
 
     if (_currentLayout == FeedLayoutType.zenCarousel) {
       return ZenFeedScreen(
@@ -252,77 +326,25 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          SliverAppBar(
-            pinned: true,
-            floating: true,
-            snap: true,
-            elevation: 0,
-            backgroundColor: _isScrolled ? Colors.black.withValues(alpha: 0.8) : Colors.transparent,
-            toolbarHeight: ResponsiveLayout.isDesktop(context) ? 80 : 70,
-            automaticallyImplyLeading: false,
-            centerTitle: !ResponsiveLayout.isDesktop(context),
-            title: Row(
-              mainAxisAlignment: ResponsiveLayout.isDesktop(context) ? MainAxisAlignment.start : MainAxisAlignment.center,
-              children: [
-                if (ResponsiveLayout.isDesktop(context)) const SizedBox(width: 8),
-                PopupMenuButton<int>(
-                  onSelected: (index) => _tabController.animateTo(index),
-                  offset: const Offset(0, 45),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(value: 0, child: Text('FOLLOWING', style: TextStyle(fontWeight: FontWeight.bold))),
-                    const PopupMenuItem(value: 1, child: Text('EXPLORE', style: TextStyle(fontWeight: FontWeight.bold))),
-                  ],
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface.withValues(alpha: 0.8),
-                      borderRadius: BorderRadius.circular(32),
-                      border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.1)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          _tabController.index == 0 ? 'FOLLOWING' : 'EXPLORE',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                        ),
-                        const SizedBox(width: 6),
-                        const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-                      ],
-                    ),
-                  ),
+          if (!isDesktop)
+            SliverAppBar(
+              pinned: true,
+              floating: true,
+              snap: true,
+              elevation: 0,
+              backgroundColor: _isScrolled ? Colors.black.withValues(alpha: 0.8) : Colors.transparent,
+              toolbarHeight: 70,
+              automaticallyImplyLeading: false,
+              centerTitle: true,
+              title: _buildMobileHeader(colorScheme),
+              actions: [
+                FeedLayoutSwitcher(
+                  currentLayout: _currentLayout,
+                  onLayoutChanged: (layout) => setState(() => _currentLayout = layout),
                 ),
                 const SizedBox(width: 16),
-                GestureDetector(
-                  onTap: () => _handleRipplesTap(context),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: colorScheme.secondary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(32),
-                      border: Border.all(color: colorScheme.secondary.withValues(alpha: 0.2)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.waves_rounded, size: 18, color: colorScheme.secondary),
-                        const SizedBox(width: 8),
-                        Text('Ripples', style: TextStyle(color: colorScheme.secondary, fontWeight: FontWeight.bold, fontSize: 14)),
-                      ],
-                    ),
-                  ),
-                ),
               ],
             ),
-            actions: [
-              FeedLayoutSwitcher(
-                currentLayout: _currentLayout,
-                onLayoutChanged: (layout) => setState(() => _currentLayout = layout),
-              ),
-              const SizedBox(width: 16),
-            ],
-          ),
 
           SliverToBoxAdapter(
             child: StoriesBar(
@@ -351,14 +373,54 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
               }
               return SliverPadding(
                 padding: EdgeInsets.symmetric(
-                  horizontal: ResponsiveLayout.isDesktop(context) ? 40 : 0,
+                  horizontal: isDesktop ? 20 : 0,
                 ),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
-                    (context, index) => PostCard(
-                      post: posts[index],
-                      onComment: () => context.push('/post/${posts[index].id}/comments'),
-                    ),
+                    (context, index) {
+                      final post = posts[index];
+                      return PostCard(
+                        post: post,
+                        onLike: () {
+                          final userId = _authService.currentUser?.id;
+                          if (userId == null) return;
+
+                          if (post.isLiked) {
+                            provider.unlikePost(userId: userId, postId: post.id);
+                          } else {
+                            provider.likePost(userId: userId, postId: post.id);
+                          }
+                        },
+                        onComment: () {
+                          if (isDesktop) {
+                            setState(() {
+                              if (_selectedPostId == post.id) {
+                                _showCommentPane = !_showCommentPane;
+                              } else {
+                                _selectedPostId = post.id;
+                                _showCommentPane = true;
+                              }
+                            });
+                          } else {
+                            context.push('/post/${post.id}/comments');
+                          }
+                        },
+                        onBookmark: () {
+                          final userId = _authService.currentUser?.id;
+                          if (userId == null) return;
+
+                          if (post.isBookmarked) {
+                            provider.unbookmarkPost(userId: userId, postId: post.id);
+                          } else {
+                            provider.bookmarkPost(userId: userId, postId: post.id);
+                          }
+                        },
+                        onShare: () {
+                          final deepLink = 'https://oasis-web-red.vercel.app/post/${post.id}';
+                          Share.share('Check out this post on Morrow! $deepLink');
+                        },
+                      );
+                    },
                     childCount: posts.length,
                   ),
                 ),
@@ -374,7 +436,7 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          ResponsiveLayout.isDesktop(context)
+          isDesktop
               ? Padding(
                   padding: const EdgeInsets.all(12),
                   child: Row(
@@ -384,71 +446,230 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
                           decoration: BoxDecoration(
                             color: colorScheme.surface.withValues(alpha: 0.4),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                              child: MaxWidthContainer(
-                                maxWidth: ResponsiveLayout.maxFeedWidth + 100, 
-                                child: feedContent,
+                          child: Column(
+                            children: [
+                              _buildDesktopHeader(colorScheme),
+                              const Divider(height: 1, thickness: 0.5),
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                    child: MaxWidthContainer(
+                                      maxWidth: 600,
+                                      child: feedContent,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Container(
-                        width: 400,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surface.withValues(alpha: 0.4),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            child: ListView(
-                              padding: const EdgeInsets.all(32),
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(Icons.trending_up, size: 20, color: colorScheme.primary),
-                                    const SizedBox(width: 12),
-                                    Text('TRENDING', style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 2, color: colorScheme.primary)),
-                                  ],
-                                ),
-                                const SizedBox(height: 24),
-                                _buildTrendingItem('#MorrowApp', '2.4k posts'),
-                                _buildTrendingItem('#OasisV2', '1.8k posts'),
-                                _buildTrendingItem('#FlutterDesktop', '942 posts'),
-                                _buildTrendingItem('#CyberDesign', '621 posts'),
-                                const SizedBox(height: 48),
-                                Row(
-                                  children: [
-                                    Icon(Icons.person_add_outlined, size: 20, color: colorScheme.primary),
-                                    const SizedBox(width: 12),
-                                    Text('SUGGESTED', style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 2, color: colorScheme.primary)),
-                                  ],
-                                ),
-                                const SizedBox(height: 24),
-                                _buildSuggestionItem('DesignDaily', '@designdaily'),
-                                _buildSuggestionItem('TechNexus', '@technexus'),
-                                _buildSuggestionItem('CreativeSoul', '@creative'),
-                                _buildSuggestionItem('FutureVibe', '@future'),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+                      _showCommentPane && _selectedPostId != null
+                          ? _buildDesktopCommentPane(theme, colorScheme)
+                          : _buildDesktopSidebar(theme, colorScheme),
                     ],
                   ),
                 )
               : (ResponsiveLayout.isMobile(context) ? feedContent : MaxWidthContainer(maxWidth: ResponsiveLayout.maxFeedWidth, child: feedContent)),
+          
+          if (_showRipplesOverlay && isDesktop)
+            Positioned.fill(
+              child: motion.Animate(
+                effects: const [motion.FadeEffect()],
+                child: RipplesScreen(
+                  onExit: () => setState(() => _showRipplesOverlay = false),
+                ),
+              ),
+            ),
+
           if (_showWellbeingNudge) _buildWellbeingNudge(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopCommentPane(ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      width: 450,
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                height: 80,
+                child: Row(
+                  children: [
+                    Text(
+                      'Comments',
+                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => setState(() => _showCommentPane = false),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: CommentsModal(
+                  postId: _selectedPostId!,
+                  isSidePane: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileHeader(ColorScheme colorScheme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildTabSwitcher(colorScheme),
+        const SizedBox(width: 16),
+        _buildRipplesButton(colorScheme),
+      ],
+    );
+  }
+
+  Widget _buildDesktopHeader(ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      height: 80,
+      child: Row(
+        children: [
+          Text(
+            'Feed',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const Spacer(),
+          _buildTabSwitcher(colorScheme),
+          const SizedBox(width: 24),
+          _buildRipplesButton(colorScheme),
+          const SizedBox(width: 24),
+          FeedLayoutSwitcher(
+            currentLayout: _currentLayout,
+            onLayoutChanged: (layout) => setState(() => _currentLayout = layout),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabSwitcher(ColorScheme colorScheme) {
+    return PopupMenuButton<int>(
+      onSelected: (index) => _tabController.animateTo(index),
+      offset: const Offset(0, 45),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      itemBuilder: (context) => [
+        const PopupMenuItem(value: 0, child: Text('FOLLOWING', style: TextStyle(fontWeight: FontWeight.bold))),
+        const PopupMenuItem(value: 1, child: Text('EXPLORE', style: TextStyle(fontWeight: FontWeight.bold))),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: colorScheme.surface.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.1)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _tabController.index == 0 ? 'FOLLOWING' : 'EXPLORE',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRipplesButton(ColorScheme colorScheme) {
+    return GestureDetector(
+      onTap: () => _handleRipplesTap(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: colorScheme.secondary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(color: colorScheme.secondary.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.waves_rounded, size: 18, color: colorScheme.secondary),
+            const SizedBox(width: 8),
+            Text('Ripples', style: TextStyle(color: colorScheme.secondary, fontWeight: FontWeight.bold, fontSize: 14)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDesktopSidebar(ThemeData theme, ColorScheme colorScheme) {
+    return Container(
+      width: 400,
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: ListView(
+            padding: const EdgeInsets.all(32),
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.trending_up, size: 20, color: colorScheme.primary),
+                  const SizedBox(width: 12),
+                  Text('TRENDING', style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 2, color: colorScheme.primary)),
+                ],
+              ),
+              const SizedBox(height: 24),
+              _buildTrendingItem('#MorrowApp', '2.4k posts'),
+              _buildTrendingItem('#OasisV2', '1.8k posts'),
+              _buildTrendingItem('#FlutterDesktop', '942 posts'),
+              _buildTrendingItem('#CyberDesign', '621 posts'),
+              const SizedBox(height: 48),
+              Row(
+                children: [
+                  Icon(Icons.person_add_outlined, size: 20, color: colorScheme.primary),
+                  const SizedBox(width: 12),
+                  Text('SUGGESTED', style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 2, color: colorScheme.primary)),
+                ],
+              ),
+              const SizedBox(height: 24),
+              _buildSuggestionItem('DesignDaily', '@designdaily'),
+              _buildSuggestionItem('TechNexus', '@technexus'),
+              _buildSuggestionItem('CreativeSoul', '@creative'),
+              _buildSuggestionItem('FutureVibe', '@future'),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -139,25 +139,10 @@ class _CreateCapsuleScreenState extends State<CreateCapsuleScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
     
-    final content = Scaffold(
-      appBar: AppBar(
-        title: const Text('New Time Capsule'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: FilledButton.icon(
-              onPressed: _isLoading ? null : _createCapsule,
-              icon: _isLoading 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Icon(Icons.lock_clock), 
-              label: const Text('Seal'),
-            ),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+    final capsuleContent = SingleChildScrollView(
+        padding: EdgeInsets.all(isDesktop ? 32.0 : 24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -278,13 +263,82 @@ class _CreateCapsuleScreenState extends State<CreateCapsuleScreen> {
                 );
               },
             ),
+            if (isDesktop) ...[
+              const SizedBox(height: 40),
+              SizedBox(
+                height: 50,
+                child: FilledButton.icon(
+                  onPressed: _isLoading ? null : _createCapsule,
+                  icon: _isLoading 
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.lock_clock), 
+                  label: const Text('Seal Time Capsule', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
-      ),
-    );
+      );
 
-    return ResponsiveLayout.isDesktop(context)
-        ? MaxWidthContainer(maxWidth: 600, child: content)
-        : content;
+    if (isDesktop) {
+      return Material(
+        color: Colors.transparent,
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 600),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 40),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                  child: Row(
+                    children: [
+                      Text('New Time Capsule', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => context.pop(),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                Flexible(child: capsuleContent),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('New Time Capsule'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: FilledButton.icon(
+              onPressed: _isLoading ? null : _createCapsule,
+              icon: _isLoading 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Icon(Icons.lock_clock), 
+              label: const Text('Seal'),
+            ),
+          ),
+        ],
+      ),
+      body: capsuleContent,
+    );
   }
 }

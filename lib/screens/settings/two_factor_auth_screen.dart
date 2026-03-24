@@ -5,12 +5,9 @@ class TwoFactorAuthScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Two-Factor Authentication'),
-        centerTitle: true,
-      ),
-      body: Center(
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+
+    final content = Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -25,14 +22,25 @@ class TwoFactorAuthScreen extends StatelessWidget {
               'This feature is currently unavailable.',
               style: TextStyle(color: Colors.grey),
             ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Go Back'),
-            ),
+            if (!isDesktop) ...[
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Go Back'),
+              ),
+            ],
           ],
         ),
+      );
+
+    if (isDesktop) return Material(color: Colors.transparent, child: content);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Two-Factor Authentication'),
+        centerTitle: true,
       ),
+      body: content,
     );
   }
 }

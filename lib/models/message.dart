@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:oasis_v2/models/message_reaction.dart';
 
-enum MessageType { text, image, document, voice, poll, location, ripple, story_reply }
+enum MessageType { text, image, document, voice, poll, location, ripple, story_reply, post_share }
 
 class Message {
   final String id;
@@ -24,6 +24,7 @@ class Message {
   final String? mediaMimeType;
   final Map<String, dynamic>? pollData;
   final Map<String, dynamic>? locationData;
+  final Map<String, dynamic>? shareData;
   final int? voiceDuration; // in seconds
 
   // Reply context
@@ -47,6 +48,11 @@ class Message {
   final String? callId;
   final String? rippleId;
   final String? storyId;
+  final String? postId;
+
+  // View once/twice media
+  final String mediaViewMode; // 'unlimited', 'once', 'twice'
+  final int currentUserViewCount;
 
   Message({
     required this.id,
@@ -67,6 +73,7 @@ class Message {
     this.mediaMimeType,
     this.pollData,
     this.locationData,
+    this.shareData,
     this.voiceDuration,
     this.replyToId,
     this.replyToContent,
@@ -84,25 +91,39 @@ class Message {
     this.callId,
     this.rippleId,
     this.storyId,
+    this.postId,
+    this.mediaViewMode = 'unlimited',
+    this.currentUserViewCount = 0,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
     // Derive message type from URL fields since message_type column doesn't exist
     MessageType type = MessageType.text;
 
-    if (json['voice_url'] != null && json['voice_url'].toString().isNotEmpty) {
-      type = MessageType.voice;
-    } else if (json['image_url'] != null && json['image_url'].toString().isNotEmpty) {
-      type = MessageType.image;
-    } else if (json['video_url'] != null &&
-        json['video_url'].toString().isNotEmpty) {
-      type = MessageType.image; // Treat video as image for now
-    } else if (json['file_url'] != null &&
-        json['file_url'].toString().isNotEmpty) {
-      type = MessageType.document;
+    if (json['message_type'] != null) {
+      type = MessageType.values.firstWhere(
+        (e) => e.name == json['message_type'],
+        orElse: () => MessageType.text,
+      );
+    } else {
+      if (json['voice_url'] != null && json['voice_url'].toString().isNotEmpty) {
+        type = MessageType.voice;
+      } else if (json['image_url'] != null && json['image_url'].toString().isNotEmpty) {
+        type = MessageType.image;
+      } else if (json['video_url'] != null &&
+          json['video_url'].toString().isNotEmpty) {
+        type = MessageType.image; // Treat video as image for now
+      } else if (json['file_url'] != null &&
+          json['file_url'].toString().isNotEmpty) {
+        type = MessageType.document;
+      } else if (json['post_id'] != null) {
+        type = MessageType.post_share;
+      } else if (json['ripple_id'] != null) {
+        type = MessageType.ripple;
+      }
     }
 
-    debugPrint('Mapping message ${json['id']} type: $type (voice_url: ${json['voice_url']})');
+    debugPrint('Mapping message ${json['id']} type: $type');
 
     // Consolidate media URLs into single mediaUrl field
     String? mediaUrl;
@@ -168,6 +189,7 @@ class Message {
       mediaMimeType: json['media_mime_type'] as String?,
       pollData: json['poll_data'] as Map<String, dynamic>?,
       locationData: json['location_data'] as Map<String, dynamic>?,
+      shareData: json['share_data'] as Map<String, dynamic>?,
       voiceDuration: json['voice_duration'] as int?,
       replyToId: json['reply_to_id'] as String?,
       replyToContent: replyContent,
@@ -194,6 +216,9 @@ class Message {
       callId: json['call_id'] as String?,
       rippleId: json['ripple_id'] as String?,
       storyId: json['story_id'] as String?,
+      postId: json['post_id'] as String?,
+      mediaViewMode: json['media_view_mode'] as String? ?? 'unlimited',
+      currentUserViewCount: json['current_user_view_count'] as int? ?? 0,
     );
   }
 
@@ -218,6 +243,9 @@ class Message {
       'file_name': mediaFileName,
       'file_size': mediaFileSize,
       'media_mime_type': mediaMimeType,
+      'poll_data': pollData,
+      'location_data': locationData,
+      'share_data': shareData,
       'is_ephemeral': isEphemeral,
       'ephemeral_duration': ephemeralDuration,
       'expires_at': expiresAt?.toIso8601String(),
@@ -229,6 +257,8 @@ class Message {
       'call_id': callId,
       'ripple_id': rippleId,
       'story_id': storyId,
+      'post_id': postId,
+      'media_view_mode': mediaViewMode,
     };
   }
 
@@ -245,6 +275,11 @@ class Message {
     String? replyToContent,
     String? replyToSenderName,
     Map<String, dynamic>? replyToData,
+    Map<String, dynamic>? shareData,
+    String? mediaViewMode,
+    int? currentUserViewCount,
+    String? postId,
+    String? rippleId,
   }) {
     return Message(
       id: id,
@@ -265,6 +300,7 @@ class Message {
       mediaMimeType: mediaMimeType,
       pollData: pollData,
       locationData: locationData,
+      shareData: shareData ?? this.shareData,
       voiceDuration: voiceDuration,
       replyToId: replyToId ?? this.replyToId,
       replyToContent: replyToContent ?? this.replyToContent,
@@ -280,6 +316,11 @@ class Message {
       signalSenderContent: signalSenderContent,
       signalSenderMessageType: signalSenderMessageType,
       callId: callId,
+      rippleId: rippleId ?? this.rippleId,
+      storyId: storyId,
+      postId: postId ?? this.postId,
+      mediaViewMode: mediaViewMode ?? this.mediaViewMode,
+      currentUserViewCount: currentUserViewCount ?? this.currentUserViewCount,
     );
   }
 

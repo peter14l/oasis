@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis_v2/providers/canvas_provider.dart';
 import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/models/oasis_canvas.dart';
 import 'package:oasis_v2/widgets/canvas/canvas_list_tile.dart';
 
 class CanvasListScreen extends StatefulWidget {
@@ -30,7 +31,9 @@ class _CanvasListScreenState extends State<CanvasListScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final provider = context.watch<CanvasProvider>();
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -39,7 +42,12 @@ class _CanvasListScreenState extends State<CanvasListScreen> {
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                padding: EdgeInsets.fromLTRB(
+                  isDesktop ? 40 : 20, 
+                  isDesktop ? 40 : 20, 
+                  isDesktop ? 40 : 20, 
+                  0
+                ),
                 child: Row(
                   children: [
                     Expanded(
@@ -48,14 +56,19 @@ class _CanvasListScreenState extends State<CanvasListScreen> {
                         children: [
                           Text(
                             'Canvas',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: (isDesktop 
+                              ? theme.textTheme.headlineLarge 
+                              : theme.textTheme.headlineMedium)?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -1,
+                              ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Shared visual memory boards',
-                            style: theme.textTheme.bodySmall,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ],
                       ),
@@ -64,7 +77,7 @@ class _CanvasListScreenState extends State<CanvasListScreen> {
                       onPressed: () => context.pushNamed('create_canvas'),
                       icon: const Icon(FluentIcons.add_circle_24_regular,
                           size: 18),
-                      label: const Text('New Canvas'),
+                      label: Text(isDesktop ? 'Create New Canvas' : 'New Canvas'),
                       style: FilledButton.styleFrom(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -80,7 +93,7 @@ class _CanvasListScreenState extends State<CanvasListScreen> {
               ),
             ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
             if (provider.isLoading)
               const SliverFillRemaining(
@@ -94,19 +107,19 @@ class _CanvasListScreenState extends State<CanvasListScreen> {
               )
             else
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: isDesktop ? 40 : 16),
                 sliver: SliverGrid.builder(
                   gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
+                      SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: isDesktop ? 4 : 2,
+                    mainAxisSpacing: isDesktop ? 20 : 12,
+                    crossAxisSpacing: isDesktop ? 20 : 12,
                     childAspectRatio: 0.85,
                   ),
                   itemCount: provider.canvases.length,
                   itemBuilder: (context, i) {
                     final canvas = provider.canvases[i];
-                    return CanvasListTile(
+                    return _CanvasTileWrapper(
                       canvas: canvas,
                       onTap: () => context.pushNamed(
                         'canvas_detail',
@@ -169,6 +182,125 @@ class _EmptyCanvasState extends StatelessWidget {
             label: const Text('Create a Canvas'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CanvasTileWrapper extends StatelessWidget {
+  final OasisCanvas canvas;
+  final VoidCallback onTap;
+
+  const _CanvasTileWrapper({
+    required this.canvas,
+    required this.onTap,
+  });
+
+  void _showContextMenu(BuildContext context, Offset position) async {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final canvasProvider = context.read<CanvasProvider>();
+    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
+    final isOwner = canvas.createdBy == currentUserId;
+
+    final result = await showMenu<String>(
+      context: context,
+      position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx, position.dy),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      elevation: 8,
+      items: <PopupMenuEntry<String>>[
+        PopupMenuItem(
+          value: 'open',
+          child: Row(
+            children: [
+              Icon(FluentIcons.open_24_regular, size: 20, color: colorScheme.onSurfaceVariant),
+              const SizedBox(width: 12),
+              const Text('Open Canvas'),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        if (isOwner)
+          PopupMenuItem(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(FluentIcons.delete_24_regular, size: 20, color: colorScheme.error),
+                const SizedBox(width: 12),
+                Text('Delete Canvas', style: TextStyle(color: colorScheme.error)),
+              ],
+            ),
+          )
+        else
+          PopupMenuItem(
+            value: 'leave',
+            child: Row(
+              children: [
+                Icon(FluentIcons.arrow_exit_20_regular, size: 20, color: colorScheme.error),
+                const SizedBox(width: 12),
+                Text('Leave Canvas', style: TextStyle(color: colorScheme.error)),
+              ],
+            ),
+          ),
+      ],
+    );
+
+    if (result == 'open') {
+      onTap();
+    } else if (result == 'delete') {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Delete Canvas?'),
+          content: const Text('This will permanently delete this canvas. This action cannot be undone.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true) {
+        await canvasProvider.deleteCanvas(canvas.id);
+      }
+    } else if (result == 'leave') {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Leave Canvas?'),
+          content: const Text('Are you sure you want to leave this canvas?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Leave'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true) {
+        await canvasProvider.leaveCanvas(canvas.id);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onSecondaryTapDown: (details) => _showContextMenu(context, details.globalPosition),
+      onLongPressStart: (details) => _showContextMenu(context, details.globalPosition),
+      child: CanvasListTile(
+        canvas: canvas,
+        onTap: onTap,
       ),
     );
   }

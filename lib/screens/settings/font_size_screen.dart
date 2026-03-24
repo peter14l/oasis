@@ -8,13 +8,9 @@ class FontSizeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<UserSettingsProvider>(context);
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Font Size'),
-        centerTitle: true,
-      ),
-      body: Padding(
+    final content = Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
@@ -71,7 +67,16 @@ class FontSizeScreen extends StatelessWidget {
             ),
           ],
         ),
+      );
+
+    if (isDesktop) return Material(color: Colors.transparent, child: content);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Font Size'),
+        centerTitle: true,
       ),
+      body: content,
     );
   }
 }

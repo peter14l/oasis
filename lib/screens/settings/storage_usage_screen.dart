@@ -19,13 +19,9 @@ class _StorageUsageScreenState extends State<StorageUsageScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final totalSize = _imageSize + _videoSize + _otherSize;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Storage Usage'),
-        centerTitle: true,
-      ),
-      body: ListView(
+    final content = ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _buildStorageBar(context, totalSize),
@@ -65,7 +61,16 @@ class _StorageUsageScreenState extends State<StorageUsageScreen> {
             ),
           ),
         ],
+      );
+
+    if (isDesktop) return Material(color: Colors.transparent, child: content);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Storage Usage'),
+        centerTitle: true,
       ),
+      body: content,
     );
   }
 

@@ -1,11 +1,52 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 export default function Pricing() {
+  const [pricing, setPricing] = useState({
+    currency: 'USD',
+    symbol: '$',
+    plusPrice: 4.99,
+    proPrice: 9.99,
+    country: 'US'
+  });
+
   const fadeUp = {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } }
   };
+
+  useEffect(() => {
+    // Attempt to get user location for PPP pricing
+    fetch('https://ipapi.co/json/')
+      .then(res => res.json())
+      .then(data => {
+        const country = data.country_code; // e.g., 'IN', 'US', 'GB', 'FR'
+        
+        // PPP Mapping
+        const mapping = {
+          'IN': { currency: 'INR', symbol: '₹', plus: 149, pro: 299 },
+          'GB': { currency: 'GBP', symbol: '£', plus: 4.49, pro: 8.99 },
+          'EU': { currency: 'EUR', symbol: '€', plus: 4.99, pro: 9.99 }, // Simplified for Eurozone
+          'DE': { currency: 'EUR', symbol: '€', plus: 4.99, pro: 9.99 },
+          'FR': { currency: 'EUR', symbol: '€', plus: 4.99, pro: 9.99 },
+          'US': { currency: 'USD', symbol: '$', plus: 4.99, pro: 9.99 }
+        };
+
+        const config = mapping[country] || mapping['US'];
+        setPricing({
+          currency: config.currency,
+          symbol: config.symbol,
+          plusPrice: config.plus,
+          proPrice: config.pro,
+          country: country
+        });
+      })
+      .catch(() => {
+        // Fallback to USD
+        console.log('Location fetch failed, using default pricing.');
+      });
+  }, []);
 
   return (
     <div style={{ width: '100%', paddingBottom: '120px' }}>
@@ -36,7 +77,7 @@ export default function Pricing() {
           <div className="glass-panel" style={{ flex: '1 1 350px', maxWidth: '400px', padding: '40px', display: 'flex', flexDirection: 'column' }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Free</h2>
             <div style={{ margin: '24px 0', borderBottom: '1px solid var(--glass-border)', paddingBottom: '24px' }}>
-              <span style={{ fontSize: '3rem', fontWeight: 800 }}>$0</span>
+              <span style={{ fontSize: '3rem', fontWeight: 800 }}>{pricing.symbol}0</span>
               <span style={{ color: 'var(--text-secondary)', marginLeft: '8px' }}>/ forever</span>
             </div>
             
@@ -68,7 +109,7 @@ export default function Pricing() {
 
             <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--accent-color)' }}>Oasis Pro</h2>
             <div style={{ margin: '24px 0', borderBottom: '1px solid var(--glass-border)', paddingBottom: '24px' }}>
-              <span style={{ fontSize: '3rem', fontWeight: 800 }}>$4.99</span>
+              <span style={{ fontSize: '3rem', fontWeight: 800 }}>{pricing.symbol}{pricing.plusPrice}</span>
               <span style={{ color: 'var(--text-secondary)', marginLeft: '8px' }}>/ month</span>
             </div>
             
@@ -93,7 +134,13 @@ export default function Pricing() {
               </li>
             </ul>
 
-            <Link to="/checkout" className="btn btn-accent" style={{ width: '100%', zIndex: 2 }}>Upgrade to Pro</Link>
+            <Link 
+              to={`/checkout?plan=Pro&currency=${pricing.currency}`} 
+              className="btn btn-accent" 
+              style={{ width: '100%', zIndex: 2 }}
+            >
+              Upgrade to Pro
+            </Link>
           </div>
         </motion.div>
       </section>

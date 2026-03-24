@@ -260,9 +260,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     // Mobile layout OR Panel layout (Simplified)
     return Scaffold(
-      backgroundColor: usePanelLayout ? Colors.transparent : theme.scaffoldBackgroundColor,
+      backgroundColor: usePanelLayout ? colorScheme.surface : theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: usePanelLayout ? colorScheme.surface.withValues(alpha: 0.6) : null,
+        backgroundColor: usePanelLayout ? colorScheme.surface : null,
         automaticallyImplyLeading: !usePanelLayout,
         title: const Text(
           'Notifications',

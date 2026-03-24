@@ -18,11 +18,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final subService = Provider.of<SubscriptionService>(context);
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     if (subService.isPro) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Oasis Pro'), centerTitle: true),
-        body: Center(
+      final proContent = Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -57,22 +56,17 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               ),
             ],
           ),
-        ),
+        );
+
+      if (isDesktop) return Material(color: Colors.transparent, child: proContent);
+
+      return Scaffold(
+        appBar: AppBar(title: const Text('Oasis Pro'), centerTitle: true),
+        body: proContent,
       );
     }
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: const Text(
-          'Upgrade to Pro',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
+    final upgradeContent = SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,7 +259,22 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               const SizedBox(height: 32),
             ],
           ),
+        );
+
+    if (isDesktop) return Material(color: Colors.transparent, child: upgradeContent);
+
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        title: const Text(
+          'Upgrade to Pro',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: upgradeContent,
       ),
     );
   }

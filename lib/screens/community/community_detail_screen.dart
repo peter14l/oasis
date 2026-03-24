@@ -298,12 +298,20 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                       onLike: () {
                         final userId = _authService.currentUser?.id;
                         if (userId == null) return;
-                        provider.likePost(userId: userId, postId: post.id);
+                        if (post.isLiked) {
+                          provider.unlikePost(userId: userId, postId: post.id);
+                        } else {
+                          provider.likePost(userId: userId, postId: post.id);
+                        }
                       },
                       onBookmark: () {
                         final userId = _authService.currentUser?.id;
                         if (userId == null) return;
-                        provider.bookmarkPost(userId: userId, postId: post.id);
+                        if (post.isBookmarked) {
+                          provider.unbookmarkPost(userId: userId, postId: post.id);
+                        } else {
+                          provider.bookmarkPost(userId: userId, postId: post.id);
+                        }
                       },
                       onComment: () {
                         showModalBottomSheet(

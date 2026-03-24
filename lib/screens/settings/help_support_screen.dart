@@ -6,12 +6,9 @@ class HelpSupportScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Help & Support'),
-        centerTitle: true,
-      ),
-      body: ListView(
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+
+    final content = ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _buildHelpSection(
@@ -68,7 +65,16 @@ class HelpSupportScreen extends StatelessWidget {
             ],
           ),
         ],
+      );
+
+    if (isDesktop) return Material(color: Colors.transparent, child: content);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Help & Support'),
+        centerTitle: true,
       ),
+      body: content,
     );
   }
 

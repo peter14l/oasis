@@ -15,7 +15,7 @@ export default function SharedMoment() {
       }
     }, 100);
 
-    if (timeLeft <= 0) {
+    if (timeLeft <= 0 && !isTeasing) {
       setIsTeasing(true);
       if (videoRef.current) {
         videoRef.current.pause();

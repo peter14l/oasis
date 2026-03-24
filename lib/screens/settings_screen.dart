@@ -15,6 +15,7 @@ import 'package:oasis_v2/screens/settings/storage_usage_screen.dart';
 import 'package:oasis_v2/screens/settings/font_size_screen.dart';
 import 'package:oasis_v2/screens/settings/help_support_screen.dart';
 import 'package:oasis_v2/screens/settings/digital_wellbeing_screen.dart';
+import 'package:oasis_v2/screens/edit_profile_screen.dart';
 import 'package:oasis_v2/screens/messages/encryption_setup_screen.dart';
 import 'package:oasis_v2/screens/oasis_pro_screen.dart';
 import 'package:oasis_v2/screens/moderation/moderation_screens.dart'; // For BlockedUsersScreen
@@ -24,8 +25,11 @@ import 'package:oasis_v2/providers/profile_provider.dart';
 import 'package:oasis_v2/providers/feed_provider.dart';
 import 'package:oasis_v2/providers/community_provider.dart';
 import 'package:oasis_v2/providers/notification_provider.dart';
+import 'package:oasis_v2/services/desktop_window_service.dart';
+import 'package:universal_io/io.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'dart:ui';
 
 enum SettingsCategory {
@@ -47,6 +51,8 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   SettingsCategory _selectedCategory = SettingsCategory.account;
+  Widget? _selectedSubPage;
+  String? _subPageTitle;
 
   @override
   void initState() {
@@ -97,7 +103,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 IconButton(
                                   icon: const Icon(Icons.arrow_back),
                                   onPressed: () {
-                                    if (context.canPop()) {
+                                    if (_selectedSubPage != null) {
+                                      setState(() {
+                                        _selectedSubPage = null;
+                                        _subPageTitle = null;
+                                      });
+                                    } else if (context.canPop()) {
                                       context.pop();
                                     } else {
                                       context.go('/profile');
@@ -115,49 +126,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                               ],
                             ),
-                          ),                          Expanded(
+                          ),
+                          Expanded(
                             child: ListView(
                               padding: const EdgeInsets.symmetric(horizontal: 12),
                               children: [
                                 _buildSidebarItem(
-                                  icon: Icons.person_outline,
-                                  selectedIcon: Icons.person,
+                                  icon: FluentIcons.person_24_regular,
+                                  selectedIcon: FluentIcons.person_24_filled,
                                   label: 'Account',
                                   category: SettingsCategory.account,
                                 ),
                                 _buildSidebarItem(
-                                  icon: Icons.timer_outlined,
-                                  selectedIcon: Icons.timer,
+                                  icon: FluentIcons.timer_24_regular,
+                                  selectedIcon: FluentIcons.timer_24_filled,
                                   label: 'General',
                                   category: SettingsCategory.general,
                                 ),
                                 _buildSidebarItem(
-                                  icon: Icons.shield_outlined,
-                                  selectedIcon: Icons.shield,
+                                  icon: FluentIcons.shield_24_regular,
+                                  selectedIcon: FluentIcons.shield_24_filled,
                                   label: 'Privacy & Security',
                                   category: SettingsCategory.privacy,
                                 ),
                                 _buildSidebarItem(
-                                  icon: Icons.palette_outlined,
-                                  selectedIcon: Icons.palette,
+                                  icon: FluentIcons.paint_brush_24_regular,
+                                  selectedIcon: FluentIcons.paint_brush_24_filled,
                                   label: 'Appearance',
                                   category: SettingsCategory.appearance,
                                 ),
                                 _buildSidebarItem(
-                                  icon: Icons.storage_outlined,
-                                  selectedIcon: Icons.storage,
+                                  icon: FluentIcons.storage_24_regular,
+                                  selectedIcon: FluentIcons.storage_24_filled,
                                   label: 'Data & Storage',
                                   category: SettingsCategory.data,
                                 ),
                                 _buildSidebarItem(
-                                  icon: Icons.text_fields_outlined,
-                                  selectedIcon: Icons.text_fields,
+                                  icon: FluentIcons.text_font_24_regular,
+                                  selectedIcon: FluentIcons.text_font_24_filled,
                                   label: 'Accessibility',
                                   category: SettingsCategory.accessibility,
                                 ),
                                 _buildSidebarItem(
-                                  icon: Icons.help_outline,
-                                  selectedIcon: Icons.help,
+                                  icon: FluentIcons.question_circle_24_regular,
+                                  selectedIcon: FluentIcons.question_circle_24_filled,
                                   label: 'Support & About',
                                   category: SettingsCategory.support,
                                 ),
@@ -174,22 +186,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const VerticalDivider(width: 1),
                     // Content Area
                     Expanded(
-                      child: Scaffold(
-                        backgroundColor: Colors.transparent,
-                        appBar: AppBar(
-                          backgroundColor: Colors.transparent,
-                          elevation: 0,
-                          title: Text(_getCategoryTitle(_selectedCategory)),
-                          automaticallyImplyLeading: false,
-                        ),
-                        body: SingleChildScrollView(
-                          padding: const EdgeInsets.all(32),
-                          child: Center(
-                            child: Container(
-                              constraints: const BoxConstraints(maxWidth: 800),
-                              child: _buildSelectedCategoryContent(context),
+                      child: Container(
+                        color: Colors.transparent,
+                        child: Column(
+                          children: [
+                            // Content Header
+                            Container(
+                              padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
+                              child: Row(
+                                children: [
+                                  if (_selectedSubPage != null)
+                                    IconButton(
+                                      icon: const Icon(Icons.arrow_back),
+                                      onPressed: () => setState(() {
+                                        _selectedSubPage = null;
+                                        _subPageTitle = null;
+                                      }),
+                                    ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    _selectedSubPage != null 
+                                      ? _subPageTitle ?? '' 
+                                      : _getCategoryTitle(_selectedCategory),
+                                    style: theme.textTheme.headlineSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
+                            Expanded(
+                              child: _selectedSubPage != null 
+                                ? _selectedSubPage! 
+                                : SingleChildScrollView(
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                                  child: Center(
+                                    child: Container(
+                                      constraints: const BoxConstraints(maxWidth: 800),
+                                      child: _buildSelectedCategoryContent(context),
+                                    ),
+                                  ),
+                                ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -243,6 +283,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  void _navigateToSubPage(String title, Widget page) {
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    if (isDesktop) {
+      setState(() {
+        _selectedSubPage = page;
+        _subPageTitle = title;
+      });
+    } else {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => page),
+      );
+    }
+  }
+
   Widget _buildSidebarItem({
     required IconData icon,
     required IconData selectedIcon,
@@ -258,7 +312,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => setState(() => _selectedCategory = category),
+          onTap: () => setState(() {
+            _selectedCategory = category;
+            _selectedSubPage = null;
+            _subPageTitle = null;
+          }),
           borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -433,7 +491,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     IconButton(
                       icon: const Icon(Icons.edit_outlined),
                       color: colorScheme.onPrimaryContainer,
-                      onPressed: () => context.push('/edit-profile'),
+                      onPressed: () => _navigateToSubPage('Edit Profile', EditProfileScreen()),
                     ),
                   ],
                 ),
@@ -525,10 +583,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Screen Time & Wellness',
         subtitle: 'Track usage and manage wellbeing',
         iconColor: Theme.of(context).colorScheme.secondary,
-        onTap:
-            () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const ScreenTimeScreen()),
-            ),
+        onTap: () => _navigateToSubPage('Screen Time', const ScreenTimeScreen()),
       ),
       _buildSettingsTile(
         context,
@@ -536,10 +591,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Digital Wellbeing',
         subtitle: 'Habits and usage limits',
         iconColor: Colors.green,
-        onTap:
-            () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const DigitalWellbeingScreen()),
-            ),
+        onTap: () => _navigateToSubPage('Digital Wellbeing', const DigitalWellbeingScreen()),
       ),
     ]);
   }
@@ -553,12 +605,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Vault',
         subtitle: 'Manage hidden content and security',
         iconColor: colorScheme.primary,
-        onTap:
-            () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const VaultSettingsScreen(),
-              ),
-            ),
+        onTap: () => _navigateToSubPage('Vault', const VaultSettingsScreen()),
       ),
       _buildSettingsTile(
         context,
@@ -566,12 +613,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Encryption',
         subtitle: 'Manage End-to-End Encryption keys',
         iconColor: Colors.purple,
-        onTap:
-            () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const EncryptionSetupScreen(),
-              ),
-            ),
+        onTap: () => _navigateToSubPage('Encryption', const EncryptionSetupScreen()),
       ),
       _buildSettingsTile(
         context,
@@ -579,12 +621,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Account Privacy',
         subtitle: 'Control who can see your content',
         iconColor: Colors.green,
-        onTap:
-            () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const AccountPrivacyScreen(),
-              ),
-            ),
+        onTap: () => _navigateToSubPage('Account Privacy', const AccountPrivacyScreen()),
       ),
       _buildSettingsTile(
         context,
@@ -592,12 +629,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Blocked Accounts',
         subtitle: 'Manage blocked users',
         iconColor: Colors.red,
-        onTap:
-            () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const BlockedUsersScreen(),
-              ),
-            ),
+        onTap: () => _navigateToSubPage('Blocked Accounts', const BlockedUsersScreen()),
       ),
       _buildSettingsTile(
         context,
@@ -605,12 +637,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Two-Factor Authentication',
         subtitle: 'Add extra security',
         iconColor: Colors.indigo,
-        onTap:
-            () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const TwoFactorAuthScreen(),
-              ),
-            ),
+        onTap: () => _navigateToSubPage('Two-Factor Auth', const TwoFactorAuthScreen()),
       ),
       _buildSettingsTile(
         context,
@@ -618,12 +645,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Download Your Data',
         subtitle: 'Request a copy of your data',
         iconColor: Colors.teal,
-        onTap:
-            () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const DownloadDataScreen(),
-              ),
-            ),
+        onTap: () => _navigateToSubPage('Download Data', const DownloadDataScreen()),
       ),
     ]);
   }
@@ -662,6 +684,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onChanged: (v) => userSettingsProvider.setMeshEnabled(v),
         ),
       ),
+      if (Platform.isWindows)
+        _buildSettingsTile(
+          context,
+          icon: Icons.window_outlined,
+          title: 'Mica UI',
+          subtitle: 'Enable Windows translucent effect.',
+          iconColor: Colors.blueGrey,
+          trailing: Switch(
+            value: userSettingsProvider.micaEnabled,
+            onChanged: (v) async {
+              await userSettingsProvider.setMicaEnabled(v);
+              await DesktopWindowService.instance.setWindowEffect(
+                enabled: v,
+                effect: userSettingsProvider.windowEffect,
+              );
+            },
+          ),
+        ),
+      if (Platform.isWindows && userSettingsProvider.micaEnabled)
+        _buildSettingsTile(
+          context,
+          icon: Icons.blur_on,
+          title: 'Effect Style',
+          subtitle: 'Choose between Mica or Acrylic.',
+          iconColor: Colors.cyan,
+          trailing: DropdownButton<String>(
+            value: userSettingsProvider.windowEffect,
+            dropdownColor: themeProvider.themeMode == ThemeMode.dark ? Colors.grey[900] : Colors.white,
+            underline: const SizedBox(),
+            items: const [
+              DropdownMenuItem(value: 'mica', child: Text('Mica')),
+              DropdownMenuItem(value: 'acrylic', child: Text('Acrylic')),
+            ],
+            onChanged: (v) async {
+              if (v != null) {
+                await userSettingsProvider.setWindowEffect(v);
+                await DesktopWindowService.instance.setWindowEffect(
+                  enabled: userSettingsProvider.micaEnabled,
+                  effect: v,
+                );
+              }
+            },
+          ),
+        ),
     ]);
   }
 
@@ -674,12 +740,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Storage Usage',
         subtitle: 'Manage app storage',
         iconColor: Colors.amber,
-        onTap:
-            () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const StorageUsageScreen(),
-              ),
-            ),
+        onTap: () => _navigateToSubPage('Storage Usage', const StorageUsageScreen()),
       ),
       _buildSettingsTile(
         context,
@@ -715,10 +776,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Font Size',
         subtitle: 'Adjust text size',
         iconColor: Theme.of(context).colorScheme.primary,
-        onTap:
-            () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const FontSizeScreen()),
-            ),
+        onTap: () => _navigateToSubPage('Font Size', const FontSizeScreen()),
       ),
       _buildSettingsTile(
         context,
@@ -750,10 +808,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Help & Support',
         subtitle: 'Get help with Oasis',
         iconColor: Colors.green,
-        onTap:
-            () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const HelpSupportScreen()),
-            ),
+        onTap: () => _navigateToSubPage('Help & Support', const HelpSupportScreen()),
       ),
       _buildSettingsTile(
         context,

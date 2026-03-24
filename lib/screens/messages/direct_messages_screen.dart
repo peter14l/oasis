@@ -18,6 +18,7 @@ import 'package:oasis_v2/screens/messages/chat_screen.dart';
 import 'package:oasis_v2/screens/messages/chat_details_screen.dart';
 import 'package:oasis_v2/services/vault_service.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class DirectMessagesScreen extends StatefulWidget {
   final String? initialConversationId;
@@ -36,6 +37,8 @@ class DirectMessagesScreen extends StatefulWidget {
 class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
   Conversation? _selectedConversation;
   bool _showDetails = false;
+  double _bgOpacity = 1.0;
+  double _bgBrightness = 0.7;
   Timer? _refreshTimer;
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
@@ -153,20 +156,29 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
   }
 
   void _handleLongPressBubble(Conversation conversation, Offset position) {
+    _showContextMenu(context, position, conversation);
+  }
+
+  void _showContextMenu(BuildContext context, Offset position, Conversation conversation) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     
     showMenu(
       context: context,
       position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx, position.dy),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      items: [
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      elevation: 8,
+      items: <PopupMenuEntry>[
         PopupMenuItem(
           onTap: () => _showStealthPreview(conversation, position),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.visibility_rounded, size: 20),
-              SizedBox(width: 12),
-              Text('Peek Preview'),
+              Icon(FluentIcons.eye_24_regular, size: 20, color: colorScheme.onSurfaceVariant),
+              const SizedBox(width: 12),
+              const Text('Peek Preview'),
             ],
           ),
         ),
@@ -176,9 +188,38 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
           },
           child: Row(
             children: [
-              Icon(conversation.isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined, size: 20),
-              SizedBox(width: 12),
+              Icon(
+                conversation.isPinned ? FluentIcons.pin_off_24_regular : FluentIcons.pin_24_regular, 
+                size: 20, 
+                color: conversation.isPinned ? Colors.redAccent : colorScheme.onSurfaceVariant
+              ),
+              const SizedBox(width: 12),
               Text(conversation.isPinned ? 'Unfavorite' : 'Add to Favorites'),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          onTap: () {
+            _toggleSize(conversation.id);
+          },
+          child: Row(
+            children: [
+              Icon(FluentIcons.resize_video_24_regular, size: 20, color: colorScheme.onSurfaceVariant),
+              const SizedBox(width: 12),
+              const Text('Resize Grid'),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          onTap: () {
+            // Future: Implement delete conversation
+          },
+          child: Row(
+            children: [
+              Icon(FluentIcons.delete_24_regular, size: 20, color: colorScheme.error),
+              const SizedBox(width: 12),
+              Text('Delete Chat', style: TextStyle(color: colorScheme.error)),
             ],
           ),
         ),
@@ -298,19 +339,10 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                                   otherUserName: _selectedConversation!.otherUserName,
                                   otherUserAvatar: _selectedConversation!.otherUserAvatar,
                                   otherUserId: _selectedConversation!.otherUserId,
-                                ),
-                                // Details Toggle Button (Desktop Only)
-                                Positioned(
-                                  top: 12,
-                                  right: 16,
-                                  child: IconButton(
-                                    icon: Icon(_showDetails ? Icons.info : Icons.info_outline),
-                                    onPressed: () => setState(() => _showDetails = !_showDetails),
-                                    color: colorScheme.onSurface,
-                                    style: IconButton.styleFrom(
-                                      backgroundColor: colorScheme.surface.withValues(alpha: 0.5),
-                                    ),
-                                  ),
+                                  isDetailsOpen: _showDetails,
+                                  onDetailsToggle: () => setState(() => _showDetails = !_showDetails),
+                                  bgOpacity: _bgOpacity,
+                                  bgBrightness: _bgBrightness,
                                 ),
                               ],
                             ),
@@ -339,6 +371,12 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                       otherUserAvatar: _selectedConversation!.otherUserAvatar,
                       otherUserId: _selectedConversation!.otherUserId,
                       isWhisperMode: false,
+                      onBackgroundSettingsChanged: (opacity, brightness) {
+                        setState(() {
+                          _bgOpacity = opacity;
+                          _bgBrightness = brightness;
+                        });
+                      },
                     ),
                   ),
                 ),
@@ -375,98 +413,142 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
   Widget _buildConversationList({required bool isDesktop}) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final provider = Provider.of<ConversationProvider>(context);
 
-    if (provider.isLoading) return const Center(child: CircularProgressIndicator());
+    return Selector<ConversationProvider, List<Conversation>>(
+      selector: (_, provider) => provider.conversations,
+      builder: (context, conversations, child) {
+        final provider = Provider.of<ConversationProvider>(context, listen: false);
+        if (provider.isLoading && conversations.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    final List<Conversation> allConversations = [...provider.conversations, if (_useMockData) ..._generateMockConversations()];
-    final List<Conversation> filteredConversations = allConversations.where((c) {
-      final query = _searchQuery.toLowerCase();
-      return c.otherUserName.toLowerCase().contains(query) || (c.lastMessage?.toLowerCase().contains(query) ?? false);
-    }).toList();
+        final List<Conversation> allConversations = [
+          ...conversations,
+          if (_useMockData) ..._generateMockConversations()
+        ];
+        
+        final List<Conversation> filteredConversations = allConversations.where((c) {
+          final query = _searchQuery.toLowerCase();
+          return c.otherUserName.toLowerCase().contains(query) ||
+              (c.lastMessage?.toLowerCase().contains(query) ?? false);
+        }).toList();
 
-    final pinnedConversations = filteredConversations.where((c) => c.isPinned).toList();
-    final regularConversations = filteredConversations.where((c) => !c.isPinned).toList();
+        final pinnedConversations = filteredConversations.where((c) => c.isPinned).toList();
+        final regularConversations = filteredConversations.where((c) => !c.isPinned).toList();
 
-    return RefreshIndicator(
-      onRefresh: provider.loadConversations,
-      child: CustomScrollView(
-        controller: _scrollController,
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              child: Container(
-                height: 46,
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(23),
-                  border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.2)),
-                ),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (val) => setState(() => _searchQuery = val),
-                  style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
-                  decoration: InputDecoration(
-                    hintText: 'Search...',
-                    hintStyle: TextStyle(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5), fontSize: 14),
-                    prefixIcon: Icon(Icons.search_rounded, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5), size: 18),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+        return RefreshIndicator(
+          onRefresh: () => provider.loadConversations(silent: false),
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  child: Container(
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(23),
+                      border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.2)),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (val) => setState(() => _searchQuery = val),
+                      style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
+                      decoration: InputDecoration(
+                        hintText: 'Search...',
+                        hintStyle: TextStyle(
+                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                          fontSize: 14,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search_rounded,
+                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                          size: 18,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-          if (pinnedConversations.isNotEmpty) ...[
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 4),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('FAVORITES', style: theme.textTheme.labelSmall?.copyWith(color: Colors.white.withValues(alpha: 0.3), fontWeight: FontWeight.w900, letterSpacing: 1.5)),
-                    Text('LONG-PRESS TO RESIZE', style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.primary.withValues(alpha: 0.4), fontWeight: FontWeight.w800, fontSize: 8)).animate(onPlay: (c) => c.repeat()).shimmer(delay: 2.seconds),
-                  ],
+              if (pinnedConversations.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'FAVORITES',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                        Text(
+                          'LONG-PRESS TO RESIZE',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.primary.withValues(alpha: 0.4),
+                            fontWeight: FontWeight.w800,
+                            fontSize: 8,
+                          ),
+                        ).animate(onPlay: (c) => c.repeat()).shimmer(delay: 2.seconds),
+                      ],
+                    ),
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverToBoxAdapter(
+                    child: _BentoPinnedGrid(
+                      conversations: pinnedConversations,
+                      onTap: (c) => _handleConversationTap(c, isDesktop),
+                      isSelected: (c) => isDesktop && _selectedConversation?.id == c.id,
+                      conversationSizes: _conversationSizes,
+                      onToggleSize: _toggleSize,
+                    ),
+                  ),
+                ),
+              ],
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 32, 20, 16),
+                  child: Text(
+                    'RECENT BUBBLES',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.3),
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
                 ),
               ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverToBoxAdapter(
-                child: _BentoPinnedGrid(
-                  conversations: pinnedConversations,
-                  onTap: (c) => _handleConversationTap(c, isDesktop),
-                  isSelected: (c) => isDesktop && _selectedConversation?.id == c.id,
-                  conversationSizes: _conversationSizes,
-                  onToggleSize: _toggleSize,
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverToBoxAdapter(
+                  child: Wrap(
+                    spacing: 20,
+                    runSpacing: 24,
+                    children: regularConversations
+                        .map((c) => _FloatingBubble(
+                              key: ValueKey(c.id),
+                              conversation: c,
+                              onTap: () => _handleConversationTap(c, isDesktop),
+                              onLongPress: _handleLongPressBubble,
+                            ))
+                        .toList(),
+                  ),
                 ),
               ),
-            ),
-          ],
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 32, 20, 16),
-              child: Text('RECENT BUBBLES', style: theme.textTheme.labelSmall?.copyWith(color: Colors.white.withValues(alpha: 0.3), fontWeight: FontWeight.w900, letterSpacing: 1.5)),
-            ),
+              const SliverToBoxAdapter(child: SizedBox(height: 120)),
+            ],
           ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            sliver: SliverToBoxAdapter(
-              child: Wrap(
-                spacing: 20, runSpacing: 24,
-                children: regularConversations.map((c) => _FloatingBubble(
-                  conversation: c,
-                  onTap: () => _handleConversationTap(c, isDesktop),
-                  onLongPress: _handleLongPressBubble,
-                )).toList(),
-              ),
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 120)),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -489,7 +571,15 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
     }
 
     if (isDesktop) {
-      setState(() => _selectedConversation = conversation);
+      if (_selectedConversation?.id != conversation.id) {
+        // Load individual chat settings for this conversation
+        final prefs = await SharedPreferences.getInstance();
+        setState(() {
+          _selectedConversation = conversation;
+          _bgOpacity = prefs.getDouble('chat_bg_opacity_${conversation.id}') ?? 1.0;
+          _bgBrightness = prefs.getDouble('chat_bg_brightness_${conversation.id}') ?? 0.7;
+        });
+      }
     } else {
       if (mounted) context.push('/messages/${conversation.id}', extra: {'otherUserName': conversation.otherUserName, 'otherUserAvatar': conversation.otherUserAvatar, 'otherUserId': conversation.otherUserId});
     }
@@ -511,7 +601,19 @@ class _BentoPinnedGrid extends StatelessWidget {
         final sizeTier = conversationSizes[conversation.id] ?? 0;
         int crossAxis = 2; int mainAxis = 1;
         if (sizeTier == 1) mainAxis = 2; else if (sizeTier == 2) crossAxis = 4;
-        return StaggeredGridTile.count(crossAxisCellCount: crossAxis, mainAxisCellCount: mainAxis, child: _BentoItem(conversation: conversation, onTap: () => onTap(conversation), onLongPress: () => onToggleSize(conversation.id), selected: isSelected(conversation), isLarge: mainAxis > 1, isWide: crossAxis > 2));
+        return StaggeredGridTile.count(
+          crossAxisCellCount: crossAxis, 
+          mainAxisCellCount: mainAxis, 
+          child: _BentoItem(
+            key: ValueKey(conversation.id),
+            conversation: conversation, 
+            onTap: () => onTap(conversation), 
+            onLongPress: () => onToggleSize(conversation.id), 
+            selected: isSelected(conversation), 
+            isLarge: mainAxis > 1, 
+            isWide: crossAxis > 2
+          ),
+        );
       }).toList(),
     );
   }
@@ -524,7 +626,7 @@ class _BentoItem extends StatelessWidget {
   final bool selected;
   final bool isLarge;
   final bool isWide;
-  const _BentoItem({required this.conversation, required this.onTap, required this.onLongPress, required this.selected, required this.isLarge, this.isWide = false});
+  const _BentoItem({super.key, required this.conversation, required this.onTap, required this.onLongPress, required this.selected, required this.isLarge, this.isWide = false});
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -565,7 +667,7 @@ class _BentoItem extends StatelessWidget {
       context: context,
       position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx, position.dy),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      items: [
+      items: <PopupMenuEntry>[
         PopupMenuItem(
           onTap: onLongPress,
           child: const Row(
@@ -597,7 +699,7 @@ class _FloatingBubble extends StatelessWidget {
   final Conversation conversation;
   final VoidCallback onTap;
   final Function(Conversation, Offset) onLongPress;
-  const _FloatingBubble({required this.conversation, required this.onTap, required this.onLongPress});
+  const _FloatingBubble({super.key, required this.conversation, required this.onTap, required this.onLongPress});
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

@@ -28,10 +28,15 @@ class RipplesService extends ChangeNotifier {
   DateTime? _lastSessionEndTime;
   double _lockoutMultiplier = 1.0;
 
+  List<Map<String, dynamic>> _ripples = [];
+  bool _isLoading = false;
+
   bool get isRipplesLocked => _isRipplesLocked;
   DateTime? get lockoutEndTime => _lockoutEndTime;
   RipplesLayoutType get currentLayout => _currentLayout;
   Duration? get remainingDuration => _remainingDuration;
+  List<Map<String, dynamic>> get ripples => _ripples;
+  bool get isLoading => _isLoading;
 
   final StreamController<void> _sessionEndController = StreamController<void>.broadcast();
   Stream<void> get onSessionEnd => _sessionEndController.stream;
@@ -101,6 +106,7 @@ class RipplesService extends ChangeNotifier {
     }
 
     checkLockout();
+    refreshRipples();
     notifyListeners();
   }
 
@@ -205,7 +211,9 @@ class RipplesService extends ChangeNotifier {
   }
 
   // Fetch real ripples from DB
-  Future<List<Map<String, dynamic>>> getRipples() async {
+  Future<void> refreshRipples() async {
+    _isLoading = true;
+    notifyListeners();
     try {
       final userId = _supabase.auth.currentUser?.id;
 
@@ -223,15 +231,15 @@ class RipplesService extends ChangeNotifier {
             ripple_saves!left (
               user_id
             )
-          ''').or('is_private.eq.false,user_id.eq.${userId})').order(
+          ''').or('is_private.eq.false,user_id.eq.${userId}').order(
         'created_at',
         ascending: false,
       );
 
-      final ripples = List<Map<String, dynamic>>.from(response);
+      final ripplesData = List<Map<String, dynamic>>.from(response);
 
       // Process ripples to add is_liked and is_saved fields
-      for (var ripple in ripples) {
+      for (var ripple in ripplesData) {
         final likes = ripple['ripple_likes'] as List<dynamic>?;
         ripple['is_liked'] =
             likes != null && likes.any((l) => l['user_id'] == userId);
@@ -243,16 +251,27 @@ class RipplesService extends ChangeNotifier {
         ripple.remove('ripple_saves');
       }
 
-      return ripples;
+      _ripples = ripplesData;
     } catch (e) {
       debugPrint('Error fetching ripples: $e');
-      return [];
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
   Future<void> likeRipple(String rippleId) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
+    
+    // Update locally first for instant feedback
+    final index = _ripples.indexWhere((r) => r['id'] == rippleId);
+    if (index != -1 && !(_ripples[index]['is_liked'] ?? false)) {
+      _ripples[index]['is_liked'] = true;
+      _ripples[index]['likes_count'] = (_ripples[index]['likes_count'] ?? 0) + 1;
+      notifyListeners();
+    }
+
     try {
       await _supabase.from('ripple_likes').upsert({
         'ripple_id': rippleId,
@@ -260,12 +279,23 @@ class RipplesService extends ChangeNotifier {
       });
     } catch (e) {
       debugPrint('Error liking ripple: $e');
+      // Revert local change on error if needed
     }
   }
 
   Future<void> unlikeRipple(String rippleId) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
+
+    // Update locally first
+    final index = _ripples.indexWhere((r) => r['id'] == rippleId);
+    if (index != -1 && (_ripples[index]['is_liked'] ?? false)) {
+      _ripples[index]['is_liked'] = false;
+      _ripples[index]['likes_count'] = (_ripples[index]['likes_count'] ?? 0) - 1;
+      if (_ripples[index]['likes_count'] < 0) _ripples[index]['likes_count'] = 0;
+      notifyListeners();
+    }
+
     try {
       await _supabase.from('ripple_likes').delete().match({
         'ripple_id': rippleId,
@@ -285,6 +315,13 @@ class RipplesService extends ChangeNotifier {
         'user_id': userId,
         'content': comment,
       });
+      
+      // Update local count
+      final index = _ripples.indexWhere((r) => r['id'] == rippleId);
+      if (index != -1) {
+        _ripples[index]['comments_count'] = (_ripples[index]['comments_count'] ?? 0) + 1;
+        notifyListeners();
+      }
     } catch (e) {
       debugPrint('Error commenting on ripple: $e');
     }
@@ -293,6 +330,13 @@ class RipplesService extends ChangeNotifier {
   Future<void> saveRipple(String rippleId) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
+
+    final index = _ripples.indexWhere((r) => r['id'] == rippleId);
+    if (index != -1) {
+      _ripples[index]['is_saved'] = true;
+      notifyListeners();
+    }
+
     try {
       await _supabase.from('ripple_saves').upsert({'ripple_id': rippleId, 'user_id': userId});
     } catch (e) {
@@ -303,6 +347,13 @@ class RipplesService extends ChangeNotifier {
   Future<void> unsaveRipple(String rippleId) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return;
+
+    final index = _ripples.indexWhere((r) => r['id'] == rippleId);
+    if (index != -1) {
+      _ripples[index]['is_saved'] = false;
+      notifyListeners();
+    }
+
     try {
       await _supabase.from('ripple_saves').delete().match({
         'ripple_id': rippleId,
