@@ -25,8 +25,10 @@ import 'package:oasis_v2/providers/notification_provider.dart';
 import 'package:oasis_v2/providers/community_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+
 class AuthService with ChangeNotifier {
-  late final SupabaseClient _supabase;
+  static final AuthService _instance = AuthService._internal();
+  SupabaseClient get _supabase => SupabaseService().client;
   final NotificationService _notificationService = NotificationService();
   final SessionRegistryService _registry = SessionRegistryService();
   StreamSubscription<AuthState>? _authStateSubscription;
@@ -34,17 +36,19 @@ class AuthService with ChangeNotifier {
   List<RegisteredAccount> _registeredAccounts = [];
   List<RegisteredAccount> get registeredAccounts => _registeredAccounts;
 
-  AuthService() {
-    _supabase = SupabaseService().client;
+  factory AuthService() {
+    return _instance;
+  }
 
+  AuthService._internal() {
     // Listen to auth state changes
     _authStateSubscription = _supabase.auth.onAuthStateChange.listen((data) {
       final AuthChangeEvent event = data.event;
       final Session? session = data.session;
 
-      developer.log('Auth state changed: $event');
+      if (kDebugMode) developer.log('Auth state changed: $event');
       if (session != null) {
-        developer.log('User ID: ${session.user.id}');
+        if (kDebugMode) developer.log('User ID: ${session.user.id}');
         _syncCurrentSessionToRegistry(session);
       }
       notifyListeners();
@@ -133,19 +137,29 @@ class AuthService with ChangeNotifier {
     }
   }
 
+  static String get _googleWebClientId {
+    const fromEnv = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    return dotenv.env['GOOGLE_WEB_CLIENT_ID'] ?? '';
+  }
+
+  static String get _googleWebClientSecret {
+    const fromEnv = String.fromEnvironment('GOOGLE_WEB_CLIENT_SECRET');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    return dotenv.env['GOOGLE_WEB_CLIENT_SECRET'] ?? '';
+  }
+
   static final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: kIsWeb ? dotenv.get('GOOGLE_WEB_CLIENT_ID') : null,
-    serverClientId: kIsWeb ? null : dotenv.get('GOOGLE_WEB_CLIENT_ID'),
+    clientId: kIsWeb ? _googleWebClientId : null,
+    serverClientId: kIsWeb ? null : _googleWebClientId,
     scopes: ['email', 'profile'],
   );
 
   // For Windows/Desktop fallback
   static all_platforms.GoogleSignIn _googleSignInDesktop = all_platforms.GoogleSignIn(
     params: all_platforms.GoogleSignInParams(
-      clientId: dotenv.get('GOOGLE_WEB_CLIENT_ID'),
-      // Client Secret is technically required for desktop loopback but sometimes optional
-      // depending on Google Console configuration.
-      clientSecret: dotenv.get('GOOGLE_WEB_CLIENT_SECRET', fallback: ''),
+      clientId: _googleWebClientId,
+      clientSecret: _googleWebClientSecret,
       redirectPort: 3000,
       scopes: ['email', 'profile', 'openid'],
     ),
@@ -251,7 +265,7 @@ class AuthService with ChangeNotifier {
           'username': username.toLowerCase(),
           'full_name': displayName ?? username,
         },
-        emailRedirectTo: 'morrow://login-callback',
+        emailRedirectTo: 'https://oasis-web-red.vercel.app/auth/callback',
       );
 
       if (response.user == null) {
@@ -384,17 +398,18 @@ class AuthService with ChangeNotifier {
           avatarUrl: user.userMetadata?['avatar_url'],
         );
       }
-// Provision/restore E2E keys in the background
-_provisionEncryptionKeys();
-_notificationService.updateFcmToken(user.id);
-
-return _userFromSupabaseUser(user);
-} on AuthException catch (e) {
-rethrow;
-} catch (e) {
-throw AuthException('Failed to sign in with Google: ${e.toString()}');
-}
-}
+      
+      // Provision/restore E2E keys in the background
+      _provisionEncryptionKeys();
+      _notificationService.updateFcmToken(user.id);
+      
+      return _userFromSupabaseUser(user);
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      throw AuthException('Failed to sign in with Google: ${e.toString()}');
+    }
+  }
   // Sign in with Apple
   Future<app_models.AppUser> signInWithApple() async {
     try {
@@ -405,7 +420,12 @@ throw AuthException('Failed to sign in with Google: ${e.toString()}');
           AppleIDAuthorizationScopes.fullName,
         ],
         webAuthenticationOptions: WebAuthenticationOptions(
-          clientId: 'com.yourcompany.morrow.service',
+          // Register this Service ID in Apple Developer Portal:
+          // https://developer.apple.com/account/resources/identifiers/list/serviceId
+          clientId: const String.fromEnvironment(
+            'APPLE_SERVICE_ID',
+            defaultValue: 'com.yourcompany.morrow.service',
+          ),
           redirectUri: Uri.parse(
             'https://oasis-web-red.vercel.app/auth/apple/callback',
           ),
@@ -503,7 +523,7 @@ throw AuthException('Failed to sign in with Google: ${e.toString()}');
     try {
       await _supabase.auth.resetPasswordForEmail(
         email,
-        redirectTo: 'morrow://reset-password',
+        redirectTo: 'https://oasis-web-red.vercel.app/auth/reset-password',
       );
     } catch (e) {
       throw AuthException(
@@ -663,8 +683,9 @@ throw AuthException('Failed to sign in with Google: ${e.toString()}');
         'updated_at': DateTime.now().toIso8601String(),
       });
     } catch (e) {
-      // If profile creation fails, delete the auth user to keep things clean
-      await _supabase.auth.admin.deleteUser(userId);
+      // Profile creation failed — rethrow so the caller can handle it.
+      // Auth user cleanup is handled by the on_auth_user_created trigger
+      // cascade; do NOT call auth.admin here (requires service_role key).
       rethrow;
     }
   }

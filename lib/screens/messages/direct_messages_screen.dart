@@ -372,7 +372,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                       otherUserName: _selectedConversation!.otherUserName,
                       otherUserAvatar: _selectedConversation!.otherUserAvatar,
                       otherUserId: _selectedConversation!.otherUserId,
-                      isWhisperMode: false,
+                      whisperMode: _selectedConversation!.whisperMode,
                       onBackgroundSettingsChanged: (opacity, brightness) {
                         setState(() {
                           _bgOpacity = opacity;

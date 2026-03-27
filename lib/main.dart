@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 import 'package:oasis_v2/routes/app_router.dart';
 import 'package:oasis_v2/themes/app_theme.dart';
 import 'package:oasis_v2/services/auth_service.dart';
@@ -97,19 +99,23 @@ class ThemeProvider with ChangeNotifier {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Load environment variables first so they're available for Sentry
+
+  // Load environment variables
   try {
     await dotenv.load(fileName: ".env");
+    debugPrint('.env loaded successfully');
   } catch (e) {
     debugPrint('Could not load .env file: $e');
   }
-
-  // Initialize Sentry with DSN from .env or fallback
+  
+  SentryWidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Sentry
   await SentryFlutter.init(
     (options) {
-      options.dsn = dotenv.env['SENTRY_DSN'] ?? 'https://356d298b7887a400a196e23847931238@o4509384326774784.ingest.us.sentry.io/4510527783501824';
-      options.tracesSampleRate = 1.0;
+      options.dsn = const String.fromEnvironment('SENTRY_DSN');
+      options.tracesSampleRate = kDebugMode ? 1.0 : 0.05;
+      options.sendDefaultPii = false;
     },
     appRunner: () async {
 

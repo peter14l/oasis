@@ -10,7 +10,7 @@ class Conversation {
   final int unreadCount;
   final String? lastMessageType; // 'text', 'image', 'document', etc.
   final bool isOtherUserTyping;
-  final bool isWhisperMode;
+  final int whisperMode; // 0: Off, 1: Instant, 2: 24h
   final bool isPinned;
   final List<String> recentMessages;
 
@@ -26,7 +26,7 @@ class Conversation {
     this.unreadCount = 0,
     this.lastMessageType,
     this.isOtherUserTyping = false,
-    this.isWhisperMode = false,
+    this.whisperMode = 0,
     this.isPinned = false,
     this.recentMessages = const [],
   });
@@ -50,8 +50,9 @@ class Conversation {
       unreadCount: json['unread_count'] as int? ?? 0,
       lastMessageType: json['last_message_type'] as String?,
       isOtherUserTyping: json['is_other_user_typing'] as bool? ?? false,
-      isWhisperMode: json['is_whisper_mode'] as bool? ?? false,
+      whisperMode: json['whisper_mode'] as int? ?? (json['is_whisper_mode'] == true ? 1 : 0),
       isPinned: json['is_pinned'] as bool? ?? false,
+      recentMessages: (json['recent_messages'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const [],
     );
   }
 
@@ -68,8 +69,9 @@ class Conversation {
       'unread_count': unreadCount,
       'last_message_type': lastMessageType,
       'is_other_user_typing': isOtherUserTyping,
-      'is_whisper_mode': isWhisperMode,
+      'whisper_mode': whisperMode,
       'is_pinned': isPinned,
+      'recent_messages': recentMessages,
     };
   }
 
@@ -85,8 +87,9 @@ class Conversation {
     int? unreadCount,
     String? lastMessageType,
     bool? isOtherUserTyping,
-    bool? isWhisperMode,
+    int? whisperMode,
     bool? isPinned,
+    List<String>? recentMessages,
   }) {
     return Conversation(
       id: id ?? this.id,
@@ -100,8 +103,9 @@ class Conversation {
       unreadCount: unreadCount ?? this.unreadCount,
       lastMessageType: lastMessageType ?? this.lastMessageType,
       isOtherUserTyping: isOtherUserTyping ?? this.isOtherUserTyping,
-      isWhisperMode: isWhisperMode ?? this.isWhisperMode,
+      whisperMode: whisperMode ?? this.whisperMode,
       isPinned: isPinned ?? this.isPinned,
+      recentMessages: recentMessages ?? this.recentMessages,
     );
   }
 

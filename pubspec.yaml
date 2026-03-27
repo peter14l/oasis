@@ -39,7 +39,7 @@ dependencies:
   supabase_flutter: ^2.3.4
   gotrue: ^2.9.1
   postgrest: ^2.4.1
-  flutter_dotenv: ^5.1.0
+  flutter_dotenv: ^5.1.0  # Keep for local dev flutter run (reads .env at runtime only)
   realtime_client: ^2.4.1
   storage_client: ^2.2.1
   functions_client: ^2.2.1

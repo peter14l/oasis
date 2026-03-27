@@ -7,14 +7,16 @@ class DottedBorderPainter extends CustomPainter {
   final double strokeWidth;
   final double gap;
   final double dash;
-  final Radius borderRadius;
+  final BorderRadius? borderRadius;
+  final Radius? radius;
 
   DottedBorderPainter({
     this.color = Colors.white,
     this.strokeWidth = 1.0,
     this.gap = 3.0,
     this.dash = 3.0,
-    this.borderRadius = Radius.zero,
+    this.borderRadius,
+    this.radius,
   });
 
   @override
@@ -24,11 +26,17 @@ class DottedBorderPainter extends CustomPainter {
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
 
-    final Path path = Path()
-      ..addRRect(RRect.fromRectAndRadius(
+    final Path path = Path();
+    if (borderRadius != null) {
+      path.addRRect(borderRadius!.toRRect(Rect.fromLTWH(0, 0, size.width, size.height)));
+    } else if (radius != null) {
+      path.addRRect(RRect.fromRectAndRadius(
         Rect.fromLTWH(0, 0, size.width, size.height),
-        borderRadius,
+        radius!,
       ));
+    } else {
+      path.addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+    }
 
     final Path dashPath = Path();
     double distance = 0.0;
@@ -53,7 +61,8 @@ class DottedBorderPainter extends CustomPainter {
         oldDelegate.strokeWidth != strokeWidth ||
         oldDelegate.gap != gap ||
         oldDelegate.dash != dash ||
-        oldDelegate.borderRadius != borderRadius;
+        oldDelegate.borderRadius != borderRadius ||
+        oldDelegate.radius != radius;
   }
 }
 
@@ -63,7 +72,8 @@ class DottedBorder extends StatelessWidget {
   final double strokeWidth;
   final double gap;
   final double dash;
-  final Radius borderRadius;
+  final BorderRadius? borderRadius;
+  final Radius? radius;
   final EdgeInsets padding;
 
   const DottedBorder({
@@ -73,7 +83,8 @@ class DottedBorder extends StatelessWidget {
     this.strokeWidth = 1.0,
     this.gap = 3.0,
     this.dash = 3.0,
-    this.borderRadius = Radius.zero,
+    this.borderRadius,
+    this.radius,
     this.padding = EdgeInsets.zero,
   });
 
@@ -86,6 +97,7 @@ class DottedBorder extends StatelessWidget {
         gap: gap,
         dash: dash,
         borderRadius: borderRadius,
+        radius: radius,
       ),
       child: Padding(
         padding: padding,

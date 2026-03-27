@@ -1,0 +1,592 @@
+ flutter run -d windows
+Launching lib\main.dart on Windows in debug mode...
+CMake Deprecation Warning at F:/morrow_v2/build/windows/x64/extracted/firebase_cpp_sdk_windows/CMakeLists.txt:17 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+CMake Warning (dev) at flutter/ephemeral/.plugin_symlinks/video_player_win/windows/CMakeLists.txt:40 (add_custom_command):
+  The following keywords are not supported when using
+  add_custom_command(TARGET): DEPENDS.
+
+  Policy CMP0175 is not set: add_custom_command() rejects invalid arguments.
+  Run "cmake --help-policy CMP0175" for policy details.  Use the cmake_policy
+  command to set the policy and suppress this warning.
+This warning is for project developers.  Use -Wno-dev to suppress it.
+
+firebase_app.lib(d3d7d08a438878e74aeb2cbaaedfc967_flatbuffers.dir_Debug_idl_parser.obj) : warning LNK4099: PDB 'flatbuffers.pdb' was not found with 'firebase_app.lib(d3d7d08a438878e74aeb2cbaaedfc967_flatbuffers.dir_Debug_idl_parser.obj)' or at 'F:\morrow_v2\build\windows\x64\runner\Debug\flatbuffers.pdb'; linking object as if no debug info [F:\morrow_v2\build\windows\x64\runner\morrow_v2.vcxproj]
+firebase_app.lib(d3d7d08a438878e74aeb2cbaaedfc967_flatbuffers.dir_Debug_util.obj) : warning LNK4099: PDB 'flatbuffers.pdb' was not found with 'firebase_app.lib(d3d7d08a438878e74aeb2cbaaedfc967_flatbuffers.dir_Debug_util.obj)' or at 'F:\morrow_v2\build\windows\x64\runner\Debug\flatbuffers.pdb'; linking object as if no debug info [F:\morrow_v2\build\windows\x64\runner\morrow_v2.vcxproj]
+firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_app_common.obj) : warning LNK4099: PDB 'firebase_app.pdb' was not found with 'firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_app_common.obj)' or at 'F:\morrow_v2\build\windows\x64\runner\Debug\firebase_app.pdb'; linking object as if no debug info [F:\morrow_v2\build\windows\x64\runner\morrow_v2.vcxproj]
+firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_app_options.obj) : warning LNK4099: PDB 'firebase_app.pdb' was not found with 'firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_app_options.obj)' or at 'F:\morrow_v2\build\windows\x64\runner\Debug\firebase_app.pdb'; linking object as if no debug info [F:\morrow_v2\build\windows\x64\runner\morrow_v2.vcxproj]
+firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_callback.obj) : warning LNK4099: PDB 'firebase_app.pdb' was not found with 'firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_callback.obj)' or at 'F:\morrow_v2\build\windows\x64\runner\Debug\firebase_app.pdb'; linking object as if no debug info [F:\morrow_v2\build\windows\x64\runner\morrow_v2.vcxproj]
+firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_cleanup_notifier.obj) : warning LNK4099: PDB 'firebase_app.pdb' was not found with 'firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_cleanup_notifier.obj)' or at 'F:\morrow_v2\build\windows\x64\runner\Debug\firebase_app.pdb'; linking object as if no debug info [F:\morrow_v2\build\windows\x64\runner\morrow_v2.vcxproj]
+firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_reference_counted_future_impl.obj) : warning LNK4099: PDB 'firebase_app.pdb' was not found with 'firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_reference_counted_future_impl.obj)' or at 'F:\morrow_v2\build\windows\x64\runner\Debug\firebase_app.pdb'; linking object as if no debug info [F:\morrow_v2\build\windows\x64\runner\morrow_v2.vcxproj]
+firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_scheduler.obj) : warning LNK4099: PDB 'firebase_app.pdb' was not found with 'firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_scheduler.obj)' or at 'F:\morrow_v2\build\windows\x64\runner\Debug\firebase_app.pdb'; linking object as if no debug info [F:\morrow_v2\build\windows\x64\runner\morrow_v2.vcxproj]
+firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_util.obj) : warning LNK4099: PDB 'firebase_app.pdb' was not found with 'firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_util.obj)' or at 'F:\morrow_v2\build\windows\x64\runner\Debug\firebase_app.pdb'; linking object as if no debug info [F:\morrow_v2\build\windows\x64\runner\morrow_v2.vcxproj]
+firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_variant.obj) : warning LNK4099: PDB 'firebase_app.pdb' was not found with 'firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_variant.obj)' or at 'F:\morrow_v2\build\windows\x64\runner\Debug\firebase_app.pdb'; linking object as if no debug info [F:\morrow_v2\build\windows\x64\runner\morrow_v2.vcxproj]
+firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_base64.obj) : warning LNK4099: PDB 'firebase_app.pdb' was not found with 'firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_base64.obj)' or at 'F:\morrow_v2\build\windows\x64\runner\Debug\firebase_app.pdb'; linking object as if no debug info [F:\morrow_v2\build\windows\x64\runner\morrow_v2.vcxproj]
+firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_app_desktop.obj) : warning LNK4099: PDB 'firebase_app.pdb' was not found with 'firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_app_desktop.obj)' or at 'F:\morrow_v2\build\windows\x64\runner\Debug\firebase_app.pdb'; linking object as if no debug info [F:\morrow_v2\build\windows\x64\runner\morrow_v2.vcxproj]
+firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_variant_util.obj) : warning LNK4099: PDB 'firebase_app.pdb' was not found with 'firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_variant_util.obj)' or at 'F:\morrow_v2\build\windows\x64\runner\Debug\firebase_app.pdb'; linking object as if no debug info [F:\morrow_v2\build\windows\x64\runner\morrow_v2.vcxproj]
+firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_heartbeat_storage_desktop.obj) : warning LNK4099: PDB 'firebase_app.pdb' was not found with 'firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_heartbeat_storage_desktop.obj)' or at 'F:\morrow_v2\build\windows\x64\runner\Debug\firebase_app.pdb'; linking object as if no debug info [F:\morrow_v2\build\windows\x64\runner\morrow_v2.vcxproj]
+firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_heartbeat_controller_desktop.obj) : warning LNK4099: PDB 'firebase_app.pdb' was not found with 'firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_heartbeat_controller_desktop.obj)' or at 'F:\morrow_v2\build\windows\x64\runner\Debug\firebase_app.pdb'; linking object as if no debug info [F:\morrow_v2\build\windows\x64\runner\morrow_v2.vcxproj]
+firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_filesystem_desktop_windows.obj) : warning LNK4099: PDB 'firebase_app.pdb' was not found with 'firebase_app.lib(d94e1bff3c0e8414a6679ea91c3e103e_firebase_app.dir_Debug_filesystem_desktop_windows.obj)' or at 'F:\morrow_v2\build\windows\x64\runner\Debug\firebase_app.pdb'; linking object as if no debug info [F:\morrow_v2\build\windows\x64\runner\morrow_v2.vcxproj]
+Building Windows application...                                   529.0s
+✓ Built build\windows\x64\runner\Debug\morrow_v2.exe
+.env loaded successfully
+[sentry] INFO using database path "F:\morrow_v2\.sentry-native"
+[sentry] WARN the provided DSN "" is not valid
+[sentry] DEBUG starting transport
+[sentry] DEBUG starting background worker thread
+[sentry] DEBUG starting backend
+[sentry] DEBUG background worker thread started
+[sentry] DEBUG starting crashpad backend with handler "F:\morrow_v2\build\windows\x64\runner\Debug\crashpad_handler.exe"
+[sentry] DEBUG registering crashpad WER handler "F:\morrow_v2\build\windows\x64\runner\Debug\crashpad_wer.dll"
+[sentry] INFO started crashpad client handler
+[sentry] DEBUG processing and pruning old runs
+[sentry] DEBUG sending envelope
+[sentry] DEBUG submitting task to background worker thread
+[sentry] DEBUG executing task on worker thread
+Firebase initialized successfully
+supabase.supabase_flutter: INFO: ***** Supabase init completed *****
+Supabase initialized successfully
+DesktopWindowService: Mica effect enabled
+Default App User Model Id: Oasis.Oasis
+Default shell link path: C:\Users\peter\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\
+Default shell link file path: C:\Users\peter\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Oasis.lnk
+NotificationManager: Initialized for desktop (windows)
+[Signal] Local keys missing, attempting restoration...
+supabase.auth: INFO: Refresh session
+[Encryption] Local keys verified for user 15c21bf5-087a-4e2f-92bd-a27d1c7033bd.
+ScreenTime: Session started at 2026-03-26 18:20:16.032134
+GoRouter: INFO: Full paths for routes:
+  => /login
+  => /register
+  => /reset-password
+  => /feed
+  => /search
+  => /spaces
+  =>   /spaces/circles/create
+  =>   /spaces/canvas/create
+  =>   /spaces/circles/:circleId
+  =>     /spaces/circles/:circleId/add-commitment
+  =>   /spaces/canvas/:canvasId
+  => /messages
+  =>   /messages/:conversationId
+  => /notifications
+  => /profile
+  => /ripples
+  => /create-ripple
+  => /oasis-pro
+  => /call/:callId
+  => /create-post
+  => /create-capsule
+  => /capsule/:capsuleId
+  => /circle/join/:circleId
+  => /stories/create
+  => /post/:postId
+  => /post/:postId/comments
+  => /edit-profile
+  => /settings
+  => /subscription
+  => /settings/account-privacy
+  => /settings/blocked-users
+  => /settings/two-factor-auth
+  => /settings/download-data
+  => /settings/storage-usage
+  => /settings/font-size
+  => /settings/help-support
+  => /story/:storyId
+  => /wellness-stats
+  => /profile/:userId
+  => /profile/:userId/followers
+  => /profile/:userId/following
+  => /new-message
+  => /privacy-policy
+  => /terms-of-service
+  => /onboarding
+known full paths for route names:
+  login => /login
+  register => /register
+  reset_password => /reset-password
+  feed => /feed
+  search => /search
+  spaces => /spaces
+  create_circle => /spaces/circles/create
+  create_canvas => /spaces/canvas/create
+  circle_detail => /spaces/circles/:circleId
+  create_commitment => /spaces/circles/:circleId/add-commitment
+  canvas_detail => /spaces/canvas/:canvasId
+  messages => /messages
+  chat_nested => /messages/:conversationId
+  notifications => /notifications
+  profile => /profile
+  ripples => /ripples
+  create_ripple => /create-ripple
+  oasis_pro => /oasis-pro
+  active_call => /call/:callId
+  create_post => /create-post
+  create_capsule => /create-capsule
+  view_capsule => /capsule/:capsuleId
+  join_circle => /circle/join/:circleId
+  create_story => /stories/create
+  post_details => /post/:postId
+  comments => /post/:postId/comments
+  edit_profile => /edit-profile
+  settings => /settings
+  subscription => /subscription
+  account_privacy => /settings/account-privacy
+  blocked_users => /settings/blocked-users
+  two_factor_auth => /settings/two-factor-auth
+  download_data => /settings/download-data
+  storage_usage => /settings/storage-usage
+  font_size => /settings/font-size
+  help_support => /settings/help-support
+  story_view => /story/:storyId
+  wellness_stats => /wellness-stats
+  user_profile => /profile/:userId
+  followers => /profile/:userId/followers
+  following => /profile/:userId/following
+  new_message => /new-message
+  privacy_policy => /privacy-policy
+  terms_of_service => /terms-of-service
+  onboarding => /onboarding
+
+GoRouter: INFO: setting initial location /feed
+GoRouter: INFO: Using MaterialApp configuration
+supabase.auth: INFO: Refresh session
+supabase.auth: INFO: Refresh session
+supabase.auth: INFO: Refresh session
+supabase.auth: INFO: Refresh session
+supabase.auth: INFO: Refresh session
+supabase.auth: INFO: Refresh session
+supabase.auth: INFO: Refresh session
+supabase.auth: INFO: Refresh session
+supabase.auth: INFO: Refresh session
+[Signal] Restoration data found, saving locally...
+[Signal] Restoration complete.
+[Signal] Bundle refresh required (New user, missing keys, or identity change). Generating...
+Syncing files to device Windows...                                  7.4s
+
+Flutter run key commands.
+r Hot reload. 🔥🔥🔥
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
+
+A Dart VM Service on Windows is available at: http://127.0.0.1:63992/OCvgBp8kX6I=/
+The Flutter DevTools debugger and profiler on Windows is available at: http://127.0.0.1:63992/OCvgBp8kX6I=/devtools/?uri=ws://127.0.0.1:63992/OCvgBp8kX6I=/ws
+[Signal] Backing up identity keys to server...
+[Signal] Initialization complete.
+GoRouter: INFO: going to /profile
+GoRouter: INFO: going to /messages
+Mapping message 67381d5d-21a5-4ab7-a7d2-351a5a69b44b type: MessageType.text
+Mapping message 6e0f6e15-55d6-45c5-b541-9d0379bea045 type: MessageType.text
+Mapping message 41ba2f5e-7ca9-49a0-a1cc-94e333a87648 type: MessageType.text
+Mapping message 562e8d20-2b0b-440a-944c-cadc4537afc6 type: MessageType.text
+Mapping message 869ff629-a0c5-4a44-851d-4738c2afcf24 type: MessageType.text
+Mapping message 4e8e3729-5984-482d-bfea-aa000a2a6e3f type: MessageType.text
+Mapping message b601b0ae-1be5-4e02-a3dc-a5d310be72f1 type: MessageType.ripple
+Mapping message c7b3ebb9-0db4-4f04-80d7-778e71668607 type: MessageType.ripple
+Mapping message d2fa454b-8585-4587-8418-31765785bfb7 type: MessageType.post_share
+Mapping message 5e63570d-336d-4038-9780-920b21342750 type: MessageType.text
+Mapping message 4a776525-f414-44e3-9f97-a1866d2808f7 type: MessageType.text
+Mapping message 4810646c-0d4f-45ba-8dbf-ca11ca8e037b type: MessageType.text
+Mapping message 0da9b783-0fbd-4b2b-a6b7-41b7b1505969 type: MessageType.text
+Mapping message 54c5fce5-5723-460d-a885-b76d6bf09ed7 type: MessageType.text
+Mapping message 25b63b47-8505-4b3d-8a2b-74714f432c52 type: MessageType.text
+Mapping message a5014b17-af8e-40d2-9b86-4930b24f2d8c type: MessageType.text
+Mapping message 9e32f7b1-b63f-4a65-a61b-16bd3ff5981e type: MessageType.text
+Mapping message f416d481-35ba-40f6-ab56-1b6aaf03637f type: MessageType.text
+Mapping message 4810646c-0d4f-45ba-8dbf-ca11ca8e037b type: MessageType.text
+Mapping message 4a776525-f414-44e3-9f97-a1866d2808f7 type: MessageType.text
+Mapping message 5e63570d-336d-4038-9780-920b21342750 type: MessageType.text
+Mapping message d2fa454b-8585-4587-8418-31765785bfb7 type: MessageType.post_share
+Mapping message c7b3ebb9-0db4-4f04-80d7-778e71668607 type: MessageType.ripple
+Mapping message b601b0ae-1be5-4e02-a3dc-a5d310be72f1 type: MessageType.ripple
+Mapping message 4e8e3729-5984-482d-bfea-aa000a2a6e3f type: MessageType.text
+Mapping message 869ff629-a0c5-4a44-851d-4738c2afcf24 type: MessageType.text
+Mapping message 562e8d20-2b0b-440a-944c-cadc4537afc6 type: MessageType.text
+Mapping message 41ba2f5e-7ca9-49a0-a1cc-94e333a87648 type: MessageType.text
+Mapping message 6e0f6e15-55d6-45c5-b541-9d0379bea045 type: MessageType.text
+Mapping message 67381d5d-21a5-4ab7-a7d2-351a5a69b44b type: MessageType.text
+[Signal] Decrypting PreKeySignalMessage from d09cafd9-dabf-4f55-b235-c7d64bc5568f
+[Signal] Decryption failed for d09cafd9-dabf-4f55-b235-c7d64bc5568f (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with d09cafd9-dabf-4f55-b235-c7d64bc5568f. Resetting session to recover...
+[Signal] Force-refreshing bundle for d09cafd9-dabf-4f55-b235-c7d64bc5568f...
+
+══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during layout:
+A RenderFlex overflowed by 50 pixels on the right.
+
+The relevant error-causing widget was:
+  Row Row:file:///F:/morrow_v2/lib/screens/messages/chat_screen.dart:1788:20
+
+To inspect this widget in Flutter DevTools, visit:
+http://127.0.0.1:63992/OCvgBp8kX6I=/devtools//#/inspector?uri=http%3A%2F%2F127.0.0.1%3A63992%2FOCvgBp8kX6I%3D%2F&inspectorRef=inspector-0
+
+The overflowing RenderFlex has an orientation of Axis.horizontal.
+The edge of the RenderFlex that is overflowing has been marked in the rendering with a yellow and
+black striped pattern. This is usually caused by the contents being too big for the RenderFlex.
+Consider applying a flex factor (e.g. using an Expanded widget) to force the children of the
+RenderFlex to fit within the available space instead of being sized to their natural size.
+This is considered an error condition because it indicates that there is content that cannot be
+seen. If the content is legitimately bigger than the available space, consider clipping it with a
+ClipRect widget before putting it in the flex, or using a scrollable container rather than a Flex,
+like a ListView.
+The specific RenderFlex in question is: RenderFlex#f317a relayoutBoundary=up36 OVERFLOWING:
+  creator: Row ← Padding ← Listener ← RawGestureDetector ← GestureDetector ← Semantics ←
+    DefaultSelectionStyle ← Builder ← MouseRegion ← Semantics ← _FocusInheritedScope ← Focus ← ⋯
+  parentData: offset=Offset(8.0, 4.0) (can use size)
+  constraints: BoxConstraints(0.0<=w<=58.0, 0.0<=h<=Infinity)
+  size: Size(58.0, 36.0)
+  direction: horizontal
+  mainAxisAlignment: start
+  mainAxisSize: min
+  crossAxisAlignment: center
+  textDirection: ltr
+  verticalDirection: down
+  spacing: 0.0
+◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+Mapping message 0da9b783-0fbd-4b2b-a6b7-41b7b1505969 type: MessageType.text
+Mapping message 54c5fce5-5723-460d-a885-b76d6bf09ed7 type: MessageType.text
+Mapping message 25b63b47-8505-4b3d-8a2b-74714f432c52 type: MessageType.text
+Mapping message a5014b17-af8e-40d2-9b86-4930b24f2d8c type: MessageType.text
+Mapping message 9e32f7b1-b63f-4a65-a61b-16bd3ff5981e type: MessageType.text
+Mapping message f416d481-35ba-40f6-ab56-1b6aaf03637f type: MessageType.text
+Mapping message 4810646c-0d4f-45ba-8dbf-ca11ca8e037b type: MessageType.text
+Mapping message 4a776525-f414-44e3-9f97-a1866d2808f7 type: MessageType.text
+Mapping message 5e63570d-336d-4038-9780-920b21342750 type: MessageType.text
+Mapping message d2fa454b-8585-4587-8418-31765785bfb7 type: MessageType.post_share
+Mapping message c7b3ebb9-0db4-4f04-80d7-778e71668607 type: MessageType.ripple
+Mapping message b601b0ae-1be5-4e02-a3dc-a5d310be72f1 type: MessageType.ripple
+Mapping message 4e8e3729-5984-482d-bfea-aa000a2a6e3f type: MessageType.text
+Mapping message 869ff629-a0c5-4a44-851d-4738c2afcf24 type: MessageType.text
+Mapping message 562e8d20-2b0b-440a-944c-cadc4537afc6 type: MessageType.text
+Mapping message 41ba2f5e-7ca9-49a0-a1cc-94e333a87648 type: MessageType.text
+Mapping message 6e0f6e15-55d6-45c5-b541-9d0379bea045 type: MessageType.text
+Mapping message 67381d5d-21a5-4ab7-a7d2-351a5a69b44b type: MessageType.text
+[Signal] Decrypting PreKeySignalMessage from d09cafd9-dabf-4f55-b235-c7d64bc5568f
+[Signal] Decryption failed for d09cafd9-dabf-4f55-b235-c7d64bc5568f (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with d09cafd9-dabf-4f55-b235-c7d64bc5568f. Resetting session to recover...
+[Signal] Force-refreshing bundle for d09cafd9-dabf-4f55-b235-c7d64bc5568f...
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error updating typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Error setting typing status: PostgrestException(message: duplicate key value violates unique constraint "typing_indicators_conversation_id_user_id_key", code: 23505, details: Conflict, hint: null)
+Mapping message 93ecc38c-aa83-4743-b17e-61882bc4eec7 type: MessageType.text
+Mapping message 93ecc38c-aa83-4743-b17e-61882bc4eec7 type: MessageType.text
+Error creating notification: PostgrestException(message: relation "metadata" does not exist, code: 42P01, details: Not Found, hint: null)
+GoRouter: INFO: going to /profile
+Another exception was thrown: setState() or markNeedsBuild() called when widget tree was locked.
+GoRouter: INFO: pushing /settings
+supabase.auth: INFO: Signing out user with scope: SignOutScope.local
+GoRouter: INFO: redirecting to RouteMatchList#c8608(uri: /login, matches: [RouteMatch#64427(route: GoRoute#ac3f7(name: "login", path: "/login"))])
+GoRouter: INFO: redirecting to RouteMatchList#77ee8(uri: /feed, matches: [ShellRouteMatch#80009(route: ShellRoute#184e0(navigatorKey: [LabeledGlobalKey<NavigatorState>#3be70]))])
+GoRouter: INFO: redirecting to RouteMatchList#77ee8(uri: /feed, matches: [ShellRouteMatch#80009(route: ShellRoute#184e0(navigatorKey: [LabeledGlobalKey<NavigatorState>#3be70]))])
+ScreenTime: Session started at 2026-03-26 18:22:19.706220
+[Encryption] No local keys. Checking server for d09cafd9-dabf-4f55-b235-c7d64bc5568f...
+[Encryption] Backup found on server — attempting auto-restore...
+[Encryption] Fetching encrypted backup from server...
+[Encryption] Saving restored keys to secure storage...
+[Encryption] Keys restored successfully.
+GoRouter: INFO: going to /messages
+Mapping message 67381d5d-21a5-4ab7-a7d2-351a5a69b44b type: MessageType.text
+Mapping message 6e0f6e15-55d6-45c5-b541-9d0379bea045 type: MessageType.text
+Mapping message 41ba2f5e-7ca9-49a0-a1cc-94e333a87648 type: MessageType.text
+Mapping message 562e8d20-2b0b-440a-944c-cadc4537afc6 type: MessageType.text
+Mapping message 869ff629-a0c5-4a44-851d-4738c2afcf24 type: MessageType.text
+Mapping message 4e8e3729-5984-482d-bfea-aa000a2a6e3f type: MessageType.text
+Mapping message b601b0ae-1be5-4e02-a3dc-a5d310be72f1 type: MessageType.ripple
+Mapping message c7b3ebb9-0db4-4f04-80d7-778e71668607 type: MessageType.ripple
+Mapping message d2fa454b-8585-4587-8418-31765785bfb7 type: MessageType.post_share
+Mapping message 5e63570d-336d-4038-9780-920b21342750 type: MessageType.text
+Mapping message 4a776525-f414-44e3-9f97-a1866d2808f7 type: MessageType.text
+Mapping message 4810646c-0d4f-45ba-8dbf-ca11ca8e037b type: MessageType.text
+Mapping message f416d481-35ba-40f6-ab56-1b6aaf03637f type: MessageType.text
+Mapping message 9e32f7b1-b63f-4a65-a61b-16bd3ff5981e type: MessageType.text
+Mapping message a5014b17-af8e-40d2-9b86-4930b24f2d8c type: MessageType.text
+Mapping message 25b63b47-8505-4b3d-8a2b-74714f432c52 type: MessageType.text
+Mapping message 54c5fce5-5723-460d-a885-b76d6bf09ed7 type: MessageType.text
+Mapping message 0da9b783-0fbd-4b2b-a6b7-41b7b1505969 type: MessageType.text
+Mapping message 93ecc38c-aa83-4743-b17e-61882bc4eec7 type: MessageType.text
+[Signal] Local keys missing, attempting restoration...
+[Signal] Restoration data found, saving locally...
+[Signal] Restoration complete.
+[Signal] Bundle refresh required (New user, missing keys, or identity change). Generating...
+Mapping message 93ecc38c-aa83-4743-b17e-61882bc4eec7 type: MessageType.text
+Mapping message 0da9b783-0fbd-4b2b-a6b7-41b7b1505969 type: MessageType.text
+Mapping message 54c5fce5-5723-460d-a885-b76d6bf09ed7 type: MessageType.text
+Mapping message 25b63b47-8505-4b3d-8a2b-74714f432c52 type: MessageType.text
+Mapping message a5014b17-af8e-40d2-9b86-4930b24f2d8c type: MessageType.text
+Mapping message 9e32f7b1-b63f-4a65-a61b-16bd3ff5981e type: MessageType.text
+Mapping message f416d481-35ba-40f6-ab56-1b6aaf03637f type: MessageType.text
+Mapping message 4810646c-0d4f-45ba-8dbf-ca11ca8e037b type: MessageType.text
+Mapping message 4a776525-f414-44e3-9f97-a1866d2808f7 type: MessageType.text
+Mapping message 5e63570d-336d-4038-9780-920b21342750 type: MessageType.text
+Mapping message d2fa454b-8585-4587-8418-31765785bfb7 type: MessageType.post_share
+Mapping message c7b3ebb9-0db4-4f04-80d7-778e71668607 type: MessageType.ripple
+Mapping message b601b0ae-1be5-4e02-a3dc-a5d310be72f1 type: MessageType.ripple
+Mapping message 4e8e3729-5984-482d-bfea-aa000a2a6e3f type: MessageType.text
+Mapping message 869ff629-a0c5-4a44-851d-4738c2afcf24 type: MessageType.text
+Mapping message 562e8d20-2b0b-440a-944c-cadc4537afc6 type: MessageType.text
+Mapping message 41ba2f5e-7ca9-49a0-a1cc-94e333a87648 type: MessageType.text
+Mapping message 6e0f6e15-55d6-45c5-b541-9d0379bea045 type: MessageType.text
+Mapping message 67381d5d-21a5-4ab7-a7d2-351a5a69b44b type: MessageType.text
+[Signal] Backing up identity keys to server...
+[Signal] Initialization complete.
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 7dfcad7f-bd34-482b-b24b-908770742b4b
+[Signal] Decryption failed for 7dfcad7f-bd34-482b-b24b-908770742b4b (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 7dfcad7f-bd34-482b-b24b-908770742b4b. Resetting session to recover...
+[Signal] Force-refreshing bundle for 7dfcad7f-bd34-482b-b24b-908770742b4b...
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 2): NoSessionException - No session for: 15c21bf5-087a-4e2f-92bd-a27d1c7033bd:1
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 2): NoSessionException - No session for: 15c21bf5-087a-4e2f-92bd-a27d1c7033bd:1
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 2): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+Mapping message a208484e-f100-461f-96ea-52b1e847b29e type: MessageType.text
+Mapping message b5574633-c7e0-4acb-b9f8-026bfbd7b0bc type: MessageType.text
+Mapping message 3ddabcee-8382-4880-b4e9-a038201b4bb1 type: MessageType.text
+Mapping message 283e89c6-9bde-4d1b-bb97-c80879b09090 type: MessageType.text
+Mapping message b1fc6463-21bb-4e79-958f-6b2949aee57c type: MessageType.text
+Mapping message 51ac6555-6608-46f0-add8-eec1b028c8cf type: MessageType.text
+Mapping message bb421b05-f765-4511-b793-f629ebddced0 type: MessageType.text
+Mapping message cd385879-4a88-4cbc-9ff3-176572418af6 type: MessageType.text
+Mapping message d30e7416-c05f-4095-9948-7984434e10fc type: MessageType.text
+Another exception was thrown: setState() or markNeedsBuild() called when widget tree was locked.
+Mapping message d30e7416-c05f-4095-9948-7984434e10fc type: MessageType.text
+Mapping message cd385879-4a88-4cbc-9ff3-176572418af6 type: MessageType.text
+Mapping message bb421b05-f765-4511-b793-f629ebddced0 type: MessageType.text
+Mapping message 51ac6555-6608-46f0-add8-eec1b028c8cf type: MessageType.text
+Mapping message b1fc6463-21bb-4e79-958f-6b2949aee57c type: MessageType.text
+Mapping message 283e89c6-9bde-4d1b-bb97-c80879b09090 type: MessageType.text
+Mapping message 3ddabcee-8382-4880-b4e9-a038201b4bb1 type: MessageType.text
+Mapping message b5574633-c7e0-4acb-b9f8-026bfbd7b0bc type: MessageType.text
+Mapping message a208484e-f100-461f-96ea-52b1e847b29e type: MessageType.text
+[Signal] Decrypting PreKeySignalMessage from 7dfcad7f-bd34-482b-b24b-908770742b4b
+[Signal] Decryption failed for 7dfcad7f-bd34-482b-b24b-908770742b4b (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 7dfcad7f-bd34-482b-b24b-908770742b4b. Resetting session to recover...
+[Signal] Force-refreshing bundle for 7dfcad7f-bd34-482b-b24b-908770742b4b...
+[Signal] Decrypting PreKeySignalMessage from 7dfcad7f-bd34-482b-b24b-908770742b4b
+[Signal] Decryption failed for 7dfcad7f-bd34-482b-b24b-908770742b4b (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 7dfcad7f-bd34-482b-b24b-908770742b4b. Resetting session to recover...
+[Signal] Force-refreshing bundle for 7dfcad7f-bd34-482b-b24b-908770742b4b...
+[Signal] Decrypting PreKeySignalMessage from 7dfcad7f-bd34-482b-b24b-908770742b4b
+[Signal] Decryption failed for 7dfcad7f-bd34-482b-b24b-908770742b4b (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 7dfcad7f-bd34-482b-b24b-908770742b4b. Resetting session to recover...
+[Signal] Force-refreshing bundle for 7dfcad7f-bd34-482b-b24b-908770742b4b...
+[Signal] Decrypting PreKeySignalMessage from 7dfcad7f-bd34-482b-b24b-908770742b4b
+[Signal] Decryption failed for 7dfcad7f-bd34-482b-b24b-908770742b4b (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 7dfcad7f-bd34-482b-b24b-908770742b4b. Resetting session to recover...
+[Signal] Force-refreshing bundle for 7dfcad7f-bd34-482b-b24b-908770742b4b...
+[Signal] Decrypting PreKeySignalMessage from 7dfcad7f-bd34-482b-b24b-908770742b4b
+[Signal] Decryption failed for 7dfcad7f-bd34-482b-b24b-908770742b4b (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 7dfcad7f-bd34-482b-b24b-908770742b4b. Resetting session to recover...
+[Signal] Force-refreshing bundle for 7dfcad7f-bd34-482b-b24b-908770742b4b...
+Mapping message 67381d5d-21a5-4ab7-a7d2-351a5a69b44b type: MessageType.text
+Mapping message 6e0f6e15-55d6-45c5-b541-9d0379bea045 type: MessageType.text
+Mapping message 41ba2f5e-7ca9-49a0-a1cc-94e333a87648 type: MessageType.text
+Mapping message 562e8d20-2b0b-440a-944c-cadc4537afc6 type: MessageType.text
+Mapping message 869ff629-a0c5-4a44-851d-4738c2afcf24 type: MessageType.text
+Mapping message 4e8e3729-5984-482d-bfea-aa000a2a6e3f type: MessageType.text
+Mapping message b601b0ae-1be5-4e02-a3dc-a5d310be72f1 type: MessageType.ripple
+Mapping message c7b3ebb9-0db4-4f04-80d7-778e71668607 type: MessageType.ripple
+Mapping message d2fa454b-8585-4587-8418-31765785bfb7 type: MessageType.post_share
+Mapping message 5e63570d-336d-4038-9780-920b21342750 type: MessageType.text
+Mapping message 4a776525-f414-44e3-9f97-a1866d2808f7 type: MessageType.text
+Mapping message 4810646c-0d4f-45ba-8dbf-ca11ca8e037b type: MessageType.text
+Mapping message 9e32f7b1-b63f-4a65-a61b-16bd3ff5981e type: MessageType.text
+Mapping message 54c5fce5-5723-460d-a885-b76d6bf09ed7 type: MessageType.text
+Mapping message 0da9b783-0fbd-4b2b-a6b7-41b7b1505969 type: MessageType.text
+Another exception was thrown: setState() or markNeedsBuild() called when widget tree was locked.
+Mapping message 93ecc38c-aa83-4743-b17e-61882bc4eec7 type: MessageType.text
+Mapping message 0da9b783-0fbd-4b2b-a6b7-41b7b1505969 type: MessageType.text
+Mapping message 54c5fce5-5723-460d-a885-b76d6bf09ed7 type: MessageType.text
+Mapping message 25b63b47-8505-4b3d-8a2b-74714f432c52 type: MessageType.text
+Mapping message a5014b17-af8e-40d2-9b86-4930b24f2d8c type: MessageType.text
+Mapping message 9e32f7b1-b63f-4a65-a61b-16bd3ff5981e type: MessageType.text
+Mapping message f416d481-35ba-40f6-ab56-1b6aaf03637f type: MessageType.text
+Mapping message 4810646c-0d4f-45ba-8dbf-ca11ca8e037b type: MessageType.text
+Mapping message 4a776525-f414-44e3-9f97-a1866d2808f7 type: MessageType.text
+Mapping message 5e63570d-336d-4038-9780-920b21342750 type: MessageType.text
+Mapping message d2fa454b-8585-4587-8418-31765785bfb7 type: MessageType.post_share
+Mapping message c7b3ebb9-0db4-4f04-80d7-778e71668607 type: MessageType.ripple
+Mapping message b601b0ae-1be5-4e02-a3dc-a5d310be72f1 type: MessageType.ripple
+Mapping message 4e8e3729-5984-482d-bfea-aa000a2a6e3f type: MessageType.text
+Mapping message 869ff629-a0c5-4a44-851d-4738c2afcf24 type: MessageType.text
+Mapping message 562e8d20-2b0b-440a-944c-cadc4537afc6 type: MessageType.text
+Mapping message 41ba2f5e-7ca9-49a0-a1cc-94e333a87648 type: MessageType.text
+Mapping message 6e0f6e15-55d6-45c5-b541-9d0379bea045 type: MessageType.text
+Mapping message 67381d5d-21a5-4ab7-a7d2-351a5a69b44b type: MessageType.text
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 2): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 2): NoSessionException - No session for: 15c21bf5-087a-4e2f-92bd-a27d1c7033bd:1
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 2): NoSessionException - No session for: 15c21bf5-087a-4e2f-92bd-a27d1c7033bd:1
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...
+[Signal] Decrypting PreKeySignalMessage from 15c21bf5-087a-4e2f-92bd-a27d1c7033bd
+[Signal] Decryption failed for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 15c21bf5-087a-4e2f-92bd-a27d1c7033bd. Resetting session to recover...
+[Signal] Force-refreshing bundle for 15c21bf5-087a-4e2f-92bd-a27d1c7033bd...

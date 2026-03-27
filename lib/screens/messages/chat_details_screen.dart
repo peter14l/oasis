@@ -22,7 +22,7 @@ class ChatDetailsScreen extends StatefulWidget {
   final String otherUserName;
   final String otherUserAvatar;
   final String otherUserId;
-  final bool isWhisperMode;
+  final int whisperMode;
   final String? currentBackground;
   final Function(double opacity, double brightness)? onBackgroundSettingsChanged;
 
@@ -32,7 +32,7 @@ class ChatDetailsScreen extends StatefulWidget {
     required this.otherUserName,
     required this.otherUserAvatar,
     required this.otherUserId,
-    required this.isWhisperMode,
+    required this.whisperMode,
     this.currentBackground,
     this.onBackgroundSettingsChanged,
   });
@@ -47,16 +47,14 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   final AuthService _authService = AuthService();
   final ImagePicker _imagePicker = ImagePicker();
 
-  bool _isWhisperMode = false;
+  int _whisperMode = 0;
   bool _isLocked = false;
   bool _isMuted = false;
   bool _isBlocked = false;
-  int _ephemeralDuration = 86400; // Default to 24h
   String? _selectedBackground;
   double _bgOpacity = 1.0;
   double _bgBrightness = 0.7;
 
-  // Search State
   final TextEditingController _searchController = TextEditingController();
   List<Message> _allMessages = [];
   List<Message> _searchResults = [];
@@ -65,7 +63,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _isWhisperMode = widget.isWhisperMode;
+    _whisperMode = widget.whisperMode;
     _selectedBackground = widget.currentBackground;
     _loadPersistedSettings();
     _checkLockStatus();
@@ -78,10 +76,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   void _subscribeToConversationUpdates() {
     _conversationChannel = _messagingService.subscribeToConversation(
       conversationId: widget.conversationId,
-      onUpdate: (isWhisperMode) {
-        if (mounted && isWhisperMode != _isWhisperMode) {
+      onUpdate: (mode) {
+        if (mounted && mode != _whisperMode) {
           setState(() {
-            _isWhisperMode = isWhisperMode;
+            _whisperMode = mode;
           });
         }
       },
@@ -368,7 +366,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                           ],
                         ))
                       : _searchResults.isEmpty
-                        ? const Center(child: Text('No messages found', style: TextStyle(color: Colors.white38)))
+                        ? const Center(child: Text('No messages found', style: const TextStyle(color: Colors.white38)))
                         : ListView.builder(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             itemCount: _searchResults.length,
@@ -417,8 +415,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     final prefs = await SharedPreferences.getInstance();
     if (mounted) {
       setState(() {
-        _ephemeralDuration =
-            prefs.getInt('chat_duration_${widget.conversationId}') ?? 86400;
         _bgOpacity = prefs.getDouble('chat_bg_opacity_${widget.conversationId}') ?? 1.0;
         _bgBrightness = prefs.getDouble('chat_bg_brightness_${widget.conversationId}') ?? 0.7;
       });
@@ -470,21 +466,33 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     }
   }
 
-  Future<void> _toggleWhisperMode(bool value) async {
+  Future<void> _toggleWhisperMode() async {
+    final int nextMode = (_whisperMode + 1) % 3;
+    
     try {
-      await _messagingService.toggleWhisperMode(widget.conversationId, value);
-      setState(() => _isWhisperMode = value);
+      await _messagingService.toggleWhisperMode(widget.conversationId, nextMode);
+      setState(() => _whisperMode = nextMode);
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('chat_whisper_${widget.conversationId}', value);
+      await prefs.setInt('chat_whisper_mode_${widget.conversationId}', nextMode);
+
+      String message;
+      switch (nextMode) {
+        case 1:
+          message = '✨ Instant Vanish enabled';
+          break;
+        case 2:
+          message = '🕒 24h Vanish enabled';
+          break;
+        default:
+          message = 'Whisper Mode disabled';
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              value ? '✨ Whisper Mode enabled' : 'Whisper Mode disabled',
-            ),
+            content: Text(message),
             backgroundColor:
-                value ? Theme.of(context).colorScheme.secondary : Colors.green,
+                nextMode > 0 ? Theme.of(context).colorScheme.secondary : Colors.green,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -496,12 +504,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     }
-  }
-
-  Future<void> _setEphemeralDuration(int duration) async {
-    setState(() => _ephemeralDuration = duration);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('chat_duration_${widget.conversationId}', duration);
   }
 
   Future<void> _updateBgOpacity(double value) async {
@@ -684,13 +686,13 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         scrolledUnderElevation: 0,
         backgroundColor: Colors.transparent,
         titleSpacing: isDesktop ? 24 : null,
-        automaticallyImplyLeading: false, // Always manual to control Desktop vs Mobile
+        automaticallyImplyLeading: false, 
         leading: isDesktop
-            ? (widget.onBackgroundSettingsChanged != null // Heuristic: if callback exists, it's likely the desktop pane
+            ? (widget.onBackgroundSettingsChanged != null
                 ? IconButton(
                     icon: const Icon(FluentIcons.dismiss_24_regular),
                     onPressed: widget.onBackgroundSettingsChanged != null 
-                        ? () => widget.onBackgroundSettingsChanged!(0,0) // This is a hacky way to signal close if needed, but better to use onDetailsToggle
+                        ? () => widget.onBackgroundSettingsChanged!(0,0)
                         : null,
                   )
                 : null)
@@ -704,11 +706,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
           if (isDesktop && widget.onBackgroundSettingsChanged != null)
              IconButton(
                 icon: const Icon(FluentIcons.dismiss_24_regular),
-                onPressed: () {
-                  // If we are in the desktop pane, we should probably have a way to close it
-                  // For now, I'll rely on the parent (DirectMessagesScreen) to close it
-                  // but I'll add a close button in actions for Desktop
-                },
+                onPressed: () {},
               ),
         ],
       ),
@@ -853,40 +851,30 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                         ),
                       ),
                     const Divider(indent: 56),
-                    _buildSwitchTile(
-                      icon: FluentIcons.delete_dismiss_24_regular,
+                    _buildActionTile(
+                      icon: _whisperMode > 0 ? FluentIcons.delete_dismiss_24_filled : FluentIcons.delete_dismiss_24_regular,
                       title: 'Whisper Mode',
-                      subtitle: 'Self-vanishing messages',
-                      value: _isWhisperMode,
-                      activeColor: colorScheme.secondary,
-                      onChanged: _toggleWhisperMode,
-                    ),
-                    if (_isWhisperMode)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(56, 0, 16, 16),
-                        child: SegmentedButton<int>(
-                          segments: const [
-                            ButtonSegment<int>(
-                              value: 86400,
-                              label: Text('24h'),
-                              icon: Icon(FluentIcons.timer_24_regular, size: 16),
+                      subtitle: _whisperMode == 1 
+                          ? 'Instant Vanish active' 
+                          : _whisperMode == 2 
+                              ? '24h Vanish active' 
+                              : 'Self-vanishing messages',
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _whisperMode == 1 ? 'Instant' : _whisperMode == 2 ? '24h' : 'Off',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: _whisperMode > 0 ? colorScheme.secondary : colorScheme.onSurfaceVariant,
+                              fontWeight: _whisperMode > 0 ? FontWeight.bold : FontWeight.normal,
                             ),
-                            ButtonSegment<int>(
-                              value: 0,
-                              label: Text('Instant'),
-                              icon: Icon(FluentIcons.flash_24_regular, size: 16),
-                            ),
-                          ],
-                          selected: {_ephemeralDuration},
-                          onSelectionChanged: (Set<int> newSelection) {
-                            _setEphemeralDuration(newSelection.first);
-                          },
-                          style: SegmentedButton.styleFrom(
-                            visualDensity: VisualDensity.compact,
-                            textStyle: const TextStyle(fontSize: 12),
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          const Icon(FluentIcons.chevron_right_24_regular, size: 20),
+                        ],
                       ),
+                      onTap: _toggleWhisperMode,
+                    ),
                   ],
                 ),
               ),

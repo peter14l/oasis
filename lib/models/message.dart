@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:oasis_v2/models/message_reaction.dart';
 
-enum MessageType { text, image, document, voice, poll, location, ripple, story_reply, post_share }
+enum MessageType { text, image, document, voice, poll, location, ripple, story_reply, post_share, system }
 
 class Message {
   final String id;

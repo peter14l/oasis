@@ -764,11 +764,15 @@ class AppRouter {
     return path == '/login' || path == '/register';
   }
 
-  static final GoRouter router = GoRouter(
-    navigatorKey: _rootNavigatorKey,
-    initialLocation: '/feed',
-    debugLogDiagnostics: true,
-    redirect: (context, state) async {
+  static GoRouter? _router;
+  
+  static GoRouter get router {
+    _router ??= GoRouter(
+      navigatorKey: _rootNavigatorKey,
+      initialLocation: '/feed',
+      refreshListenable: AuthService(),
+      debugLogDiagnostics: true,
+      redirect: (context, state) async {
       // Password-reset screen is always reachable once Supabase sets the
       // recovery session — never redirect away from it automatically.
       if (state.uri.path == '/reset-password') return null;
@@ -780,11 +784,6 @@ class AppRouter {
       }
 
       final authService = Provider.of<AuthService>(context, listen: false);
-      // Wait for session restoration if it hasn't happened yet
-      if (authService.currentUser == null) {
-        await authService.restoreSession();
-      }
-
       final isLoggedIn = authService.currentUser != null;
 
       // Unauthenticated users trying to reach a protected route → login
@@ -1316,4 +1315,6 @@ class AppRouter {
       ),
     ],
   );
+  return _router!;
+ }
 }

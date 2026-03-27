@@ -167,7 +167,7 @@ class MessagingService {
     }
   }
 
-  /// Clean up Instagram-style vanish mode messages
+  /// Clean up expired ephemeral messages
   Future<void> cleanupVanishModeMessages(String conversationId) async {
     try {
       await _supabase.rpc(
@@ -175,7 +175,7 @@ class MessagingService {
         params: {'p_conversation_id': conversationId},
       );
     } catch (e) {
-      debugPrint('Error cleaning up vanish mode messages: $e');
+      debugPrint('Error cleaning up expired messages: $e');
     }
   }
 
@@ -190,7 +190,7 @@ class MessagingService {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('Not authenticated');
 
-      // Lazy cleanup of read vanish mode messages (Instagram style)
+      // Lazy cleanup of read vanish mode messages
       _supabase
           .rpc(
             'cleanup_vanish_mode_messages',
@@ -241,9 +241,6 @@ class MessagingService {
             media_views:message_media_views!left(view_count)
           ''')
           .eq('conversation_id', conversationId);
-
-      // Filter for current user's media views specifically if we can't do it in the join
-      // Actually, we'll map it in the loop below.
 
       // Filter out messages deleted before 'cleared_at'
       if (clearedAt != null) {
@@ -339,6 +336,20 @@ class MessagingService {
               // 2. I am the sender and the other person has read it (anyReadAt != null)
               isRead: isSender ? (anyReadAt != null) : (myReadAt != null),
             );
+
+            // HEAL: If expiresAt is missing but message has been read, calculate it locally
+            // This ensures logic works even if DB trigger is delayed or missing
+            if (messages[i].isEphemeral &&
+                messages[i].expiresAt == null &&
+                anyReadAt != null) {
+              final calculatedExpiry = anyReadAt.add(
+                Duration(seconds: messages[i].ephemeralDuration),
+              );
+              messages[i] = messages[i].copyWith(expiresAt: calculatedExpiry);
+              debugPrint(
+                'Whisper Mode: Calculated local expiry for ${messages[i].id}: $calculatedExpiry',
+              );
+            }
           }
         }
       }
@@ -357,40 +368,53 @@ class MessagingService {
   }
 
   /// Filter out expired ephemeral messages
-  /// Visible if:
-  /// 1. Not ephemeral
-  /// 2. Is ephemeral but not read yet by ANYONE
-  /// 3. Is ephemeral (Duration > 0), read by someone, but seen < duration ago
-  /// 4. Is ephemeral (Duration 0 - Vanish Mode), but read during CURRENT session
+  /// Logic:
+  /// 1. If not ephemeral, it's visible.
+  /// 2. If ephemeral but 'expiresAt' is null, it hasn't been read by recipient yet -> visible.
+  /// 3. If 'expiresAt' is set:
+  ///    a. If duration is 0 (Instant Vanish): Visible ONLY if it expired AFTER this session started.
+  ///    b. If duration > 0 (e.g. 24h): Visible if NOW is before 'expiresAt'.
   static List<Message> filterExpiredMessages(
     List<Message> messages, {
     DateTime? sessionStart,
   }) {
     if (messages.isEmpty) return [];
 
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
 
     return messages.where((message) {
       if (!message.isEphemeral) return true;
 
-      // Use anyReadAt (earliest read) or readAt (when current user read it)
-      final DateTime? seenAt = message.anyReadAt ?? message.readAt;
+      // If expiresAt is null, it hasn't been read by the recipient yet.
+      if (message.expiresAt == null) {
+        debugPrint(
+          'Whisper Mode: Message ${message.id} is ephemeral but not yet read (expiresAt is null)',
+        );
+        return true;
+      }
 
-      // If nobody has read it yet, it's visible to everyone
-      if (seenAt == null) return true;
+      final expiresAt = message.expiresAt!.toUtc();
+      final isExpired = now.isAfter(expiresAt);
 
-      // Calculate expiration based on message's duration
-      final duration = Duration(seconds: message.ephemeralDuration);
+      debugPrint(
+        'Whisper Mode: Message ${message.id} | Duration: ${message.ephemeralDuration}s | Expires At: $expiresAt | Now: $now | Is Expired: $isExpired',
+      );
 
-      // Duration 0 (Vanish instantly)
+      // Vanish Mode (Instant)
       if (message.ephemeralDuration == 0) {
-        // Since the requirement is "vanish instantly on seen", we return false
-        // immediately when 'seenAt' is populated, rather than waiting for session reopen.
+        // Stay visible if it was seen during the current session
+        // We compare expiresAt (which is 'read_at' for duration 0) with sessionStart
+        if (sessionStart != null && expiresAt.isAfter(sessionStart.toUtc())) {
+          debugPrint(
+            'Whisper Mode: Keeping Instant message ${message.id} (Seen this session)',
+          );
+          return true;
+        }
         return false;
       }
 
-      final expirationTime = seenAt.add(duration);
-      return now.isBefore(expirationTime);
+      // Timed Vanish (e.g. 24h)
+      return !isExpired;
     }).toList();
   }
 
@@ -410,8 +434,7 @@ class MessagingService {
     int? signalMessageType,
     String? signalSenderContent,
     int? signalSenderMessageType,
-    bool isWhisperMode = false,
-    int? ephemeralDuration,
+    int whisperMode = 0, // 0: Off, 1: Instant, 2: 24h
     String? callId,
     String? replyToId,
     String? rippleId,
@@ -440,8 +463,8 @@ class MessagingService {
         'content': content,
         'file_name': mediaFileName,
         'file_size': mediaFileSize,
-        'is_ephemeral': isWhisperMode,
-        'ephemeral_duration': ephemeralDuration ?? 86400, // Default to 24h
+        'is_ephemeral': whisperMode > 0,
+        'ephemeral_duration': whisperMode == 1 ? 0 : (whisperMode == 2 ? 86400 : 86400),
         'call_id': callId,
         'reply_to_id': replyToId,
         'ripple_id': rippleId,
@@ -849,7 +872,7 @@ class MessagingService {
   /// Subscribe to changes for a specific conversation (like whisper mode)
   RealtimeChannel subscribeToConversation({
     required String conversationId,
-    required Function(bool isWhisperMode) onUpdate,
+    required Function(int whisperMode) onUpdate,
   }) {
     final channel = _supabase.channel('conversation_details:$conversationId');
 
@@ -866,8 +889,8 @@ class MessagingService {
           callback: (payload) {
             try {
               final data = payload.newRecord;
-              final isWhisperMode = data['is_whisper_mode'] as bool? ?? false;
-              onUpdate(isWhisperMode);
+              final mode = data['whisper_mode'] as int? ?? 0;
+              onUpdate(mode);
             } catch (e) {
               debugPrint('Error processing conversation update: $e');
             }
@@ -1072,34 +1095,33 @@ class MessagingService {
     List<String> messageIds,
     String userId,
   ) async {
-    try {
-      if (messageIds.isEmpty) return;
+    if (messageIds.isEmpty) return;
 
-      // Reset unread count
-      await _supabase.rpc(
-        'reset_unread_count',
-        params: {'p_conversation_id': conversationId, 'p_user_id': userId},
-      );
+    // Reset unread count — fire-and-forget so a missing RPC never
+    // prevents the read receipts from being written.
+    _supabase
+        .rpc(
+          'reset_unread_count',
+          params: {'p_conversation_id': conversationId, 'p_user_id': userId},
+        )
+        .catchError((e) => debugPrint('reset_unread_count error (non-fatal): $e'));
 
-      // Create read receipts for the specific messages
-      final readReceipts = messageIds
-          .map(
-            (id) => {
-              'message_id': id,
-              'user_id': userId,
-              'read_at': DateTime.now().toIso8601String(),
-            },
-          )
-          .toList();
+    // Create read receipts for the specific messages — this MUST succeed
+    // for Whisper-Mode vanish logic to work correctly on reopen.
+    final readReceipts = messageIds
+        .map(
+          (id) => {
+            'message_id': id,
+            'user_id': userId,
+            'read_at': DateTime.now().toIso8601String(),
+          },
+        )
+        .toList();
 
-      // Use upsert to avoid duplicates
-      await _supabase
-          .from(SupabaseConfig.messageReadReceiptsTable)
-          .upsert(readReceipts, onConflict: 'message_id,user_id');
-    } catch (e) {
-      debugPrint('Error marking messages as read: $e');
-      rethrow;
-    }
+    // Use upsert to avoid duplicates
+    await _supabase
+        .from(SupabaseConfig.messageReadReceiptsTable)
+        .upsert(readReceipts, onConflict: 'message_id,user_id');
   }
 
   /// Mark all messages in conversation as read
@@ -1194,11 +1216,11 @@ class MessagingService {
   }
 
   /// Toggle Whisper Mode for a conversation
-  Future<void> toggleWhisperMode(String conversationId, bool isEnabled) async {
+  Future<void> toggleWhisperMode(String conversationId, int mode) async {
     try {
       await _supabase
           .from(SupabaseConfig.conversationsTable)
-          .update({'is_whisper_mode': isEnabled})
+          .update({'whisper_mode': mode})
           .eq('id', conversationId);
     } catch (e) {
       debugPrint('Error toggling whisper mode: $e');

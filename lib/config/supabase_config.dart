@@ -1,14 +1,23 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SupabaseConfig {
-  // Load Supabase URL from environment variables
-  static String get supabaseUrl => dotenv.get('SUPABASE_URL');
+  // Use a hybrid approach: check String.fromEnvironment (for builds) first,
+  // then fallback to dotenv (for local run).
+  static String get supabaseUrl {
+    const fromEnv = String.fromEnvironment('SUPABASE_URL');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    return dotenv.env['SUPABASE_URL'] ?? '';
+  }
 
-  // Load Supabase anon key from environment variables
-  static String get supabaseAnonKey => dotenv.get('SUPABASE_ANON_KEY');
+  static String get supabaseAnonKey {
+    const fromEnv = String.fromEnvironment('SUPABASE_ANON_KEY');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    return dotenv.env['SUPABASE_ANON_KEY'] ?? '';
+  }
 
-  // Enable debug logging in development
-  static const bool debug = true;
+  // Enable debug logging only in development builds
+  static bool get debug => kDebugMode;
 
   // Storage buckets
   static const String profilePicturesBucket = 'profile-pictures';

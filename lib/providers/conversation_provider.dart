@@ -270,14 +270,27 @@ class ConversationProvider with ChangeNotifier {
     if (_currentUserId == null) return;
     
     try {
-      await _messagingService.markConversationAsRead(conversationId, _currentUserId!);
-      
-      // Update local state immediately for responsiveness
+      // 1. Optimistic update for responsiveness
       final index = _conversations.indexWhere((c) => c.id == conversationId);
       if (index != -1) {
         _conversations[index] = _conversations[index].copyWith(unreadCount: 0);
         _conversations = List.from(_conversations);
         notifyListeners();
+      }
+
+      // 2. Server update
+      await _messagingService.markConversationAsRead(conversationId, _currentUserId!);
+      
+      // 3. Fetch fresh state from server to ensure perfect synchronization (unread count, last message, etc.)
+      final updatedConversation = await _messagingService.getConversationDetails(conversationId);
+      final c = updatedConversation.copyWith(isPinned: _pinnedIds.contains(updatedConversation.id));
+      
+      final freshIndex = _conversations.indexWhere((conv) => conv.id == conversationId);
+      if (freshIndex >= 0) {
+        _conversations[freshIndex] = c;
+        _conversations = List.from(_conversations);
+        notifyListeners();
+        await _saveConversationsToCache();
       }
     } catch (e) {
       debugPrint('Error marking conversation as read: $e');

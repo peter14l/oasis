@@ -33,6 +33,7 @@ import 'package:oasis_v2/models/message_reaction.dart';
 import 'package:oasis_v2/models/chat_theme.dart';
 import 'package:oasis_v2/utils/haptic_utils.dart';
 import 'package:oasis_v2/services/smart_reply_service.dart';
+import 'package:screen_protector/screen_protector.dart';
 import 'package:oasis_v2/widgets/messages/message_reactions.dart';
 import 'package:oasis_v2/widgets/messages/chat_theme_selector.dart';
 import 'package:oasis_v2/widgets/messages/invite_bubble.dart';
@@ -107,10 +108,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   // Theme state
   ChatTheme? _activeTheme;
 
-  bool _isWhisperMode = false;
+  int _isWhisperMode = 0;
+  int _lastActiveWhisperMode = 1; // Default to Instant
   int _recordDuration = 0;
   Timer? _recordTimer;
-  // Duplicate variable removed
 
   RealtimeChannel? _messageChannel;
   RealtimeChannel? _backgroundChannel;
@@ -296,19 +297,22 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       conversationId: widget.conversationId,
       onUpdate: (backgroundUrl) {
         if (mounted && backgroundUrl != _backgroundUrl) {
-          setState(() {
-            _backgroundUrl = backgroundUrl;
-          });
-          if (backgroundUrl != null) {
-            _extractColorsFromBackground();
-          } else {
+          SchedulerBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
             setState(() {
-              _bubbleColorSent = null;
-              _bubbleColorReceived = null;
-              _textColorSent = null;
-              _textColorReceived = null;
+              _backgroundUrl = backgroundUrl;
             });
-          }
+            if (backgroundUrl != null) {
+              _extractColorsFromBackground();
+            } else {
+              setState(() {
+                _bubbleColorSent = null;
+                _bubbleColorReceived = null;
+                _textColorSent = null;
+                _textColorReceived = null;
+              });
+            }
+          });
         }
       },
     );
@@ -372,28 +376,78 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _vaultService.lockItem(widget.conversationId);
     }
 
+    // Ensure screen protection is disabled when leaving
+    if (_isWhisperMode > 0) {
+      _disableScreenProtection();
+    }
+
     super.dispose();
+  }
+
+  void _enableScreenProtection() async {
+    try {
+      if (Platform.isAndroid || Platform.isIOS) {
+        await ScreenProtector.preventScreenshotOn();
+      }
+    } catch (e) {
+      debugPrint('Error enabling screen protection: $e');
+    }
+  }
+
+  void _disableScreenProtection() async {
+    try {
+      if (Platform.isAndroid || Platform.isIOS) {
+        await ScreenProtector.preventScreenshotOff();
+      }
+    } catch (e) {
+      debugPrint('Error disabling screen protection: $e');
+    }
+  }
+
+  void _insertSystemMessage(String content) {
+    if (!mounted) return;
+    setState(() {
+      _messages.add(Message(
+        id: 'system_${DateTime.now().millisecondsSinceEpoch}',
+        conversationId: widget.conversationId,
+        senderId: 'system',
+        senderName: 'System',
+        senderAvatar: '',
+        content: content,
+        timestamp: DateTime.now(),
+        messageType: MessageType.system,
+        isRead: true,
+      ));
+    });
   }
 
   void _subscribeToConversationUpdates() {
     _conversationChannel = _messagingService.subscribeToConversation(
       conversationId: widget.conversationId,
-      onUpdate: (isWhisperMode) {
-        if (mounted && isWhisperMode != _isWhisperMode) {
+      onUpdate: (int whisperMode) {
+        if (mounted && whisperMode != _isWhisperMode) {
+          final int oldMode = _isWhisperMode;
           setState(() {
-            _isWhisperMode = isWhisperMode;
-            _ephemeralDuration = isWhisperMode ? 0 : 86400;
+            _isWhisperMode = whisperMode;
+            _ephemeralDuration = whisperMode == 1 ? 0 : 86400;
           });
+
+          // Manage screen protection on remote toggle
+          if (whisperMode > 0 && oldMode == 0) {
+            _enableScreenProtection();
+          } else if (whisperMode == 0 && oldMode > 0) {
+            _disableScreenProtection();
+          }
           
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                isWhisperMode
+                whisperMode > 0
                     ? '✨ Whisper Mode enabled by other participant.'
                     : 'Whisper Mode disabled by other participant.',
               ),
-              backgroundColor: isWhisperMode ? Theme.of(context).colorScheme.secondary : Colors.blue,
+              backgroundColor: whisperMode > 0 ? Theme.of(context).colorScheme.secondary : Colors.blue,
               duration: const Duration(seconds: 2),
             ),
           );
@@ -411,9 +465,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         setState(() {
           _otherUserName = details.otherUserName;
           _otherUserId = details.otherUserId;
-          _isWhisperMode = details.isWhisperMode;
-          _ephemeralDuration = details.isWhisperMode ? 0 : 86400;
+          _isWhisperMode = details.whisperMode;
+          _ephemeralDuration = details.whisperMode == 1 ? 0 : 86400;
         });
+
+        // Enable protection if we started in whisper mode
+        if (_isWhisperMode > 0) {
+          _enableScreenProtection();
+        }
       }
     } catch (e) {
       debugPrint('Error fetching conversation details: $e');
@@ -701,7 +760,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       
       if (mounted) {
         setState(() {
-          _messages = decryptedMessages;
+          _messages = MessagingService.filterExpiredMessages(
+            decryptedMessages,
+            sessionStart: _sessionStartTime,
+          );
           _isLoading = false;
         });
         _scrollToBottom();
@@ -722,14 +784,28 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _messageChannel = _messagingService.subscribeToMessages(
       conversationId: widget.conversationId,
       onNewMessage: (message) async {
-        if (mounted) {
-          final decryptedMessage = await _decryptSingleMessage(message);
+        if (!mounted) return;
+        final decryptedMessage = await _decryptSingleMessage(message);
 
-          // Update state
+        // Apply client-side filtering for new messages
+        final filtered = MessagingService.filterExpiredMessages(
+          [decryptedMessage],
+          sessionStart: _sessionStartTime,
+        );
+        if (filtered.isEmpty) {
+          debugPrint('Whisper Mode: New message ${decryptedMessage.id} filtered out immediately');
+          return;
+        }
+
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
           setState(() {
             // Avoid duplicates (especially from optimistic updates if implemented)
-            if (!_messages.any((m) => m.id == decryptedMessage.id)) {
+            final index = _messages.indexWhere((m) => m.id == decryptedMessage.id);
+            if (index == -1) {
               _messages.add(decryptedMessage);
+            } else {
+              _messages[index] = decryptedMessage;
             }
           });
           _scrollToBottom();
@@ -741,15 +817,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           if (decryptedMessage.senderId != currentUserId) {
             _markAsRead();
           }
-        }
+        });
       },
       onDeleteMessage: (messageId) {
-        if (mounted) {
+        if (!mounted) return;
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
           setState(() {
             _messages.removeWhere((m) => m.id == messageId);
           });
           _saveMessagesToCache();
-        }
+        });
       },
     );
   }
@@ -758,7 +836,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _readReceiptChannel = _messagingService.subscribeToReadReceipts(
       conversationId: widget.conversationId,
       onUpdate: (messageId, userId, readAt) {
-        if (mounted) {
+        if (!mounted) return;
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
           setState(() {
             final index = _messages.indexWhere((m) => m.id == messageId);
             if (index >= 0) {
@@ -778,7 +858,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 );
                 
                 // NEW: Instant Vanish - if Whisper Mode and receiver read it, immediately remove from screen for both users
-                if (_messages[index].ephemeralDuration == 0) {
+                if (_messages[index].isEphemeral && _messages[index].ephemeralDuration == 0) {
+                  debugPrint('Whisper Mode: Instant vanish triggered for message $messageId');
                   _messages.removeAt(index);
                   return; // Don't do further processing on this removed item
                 }
@@ -793,7 +874,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               }
             }
           });
-        }
+        });
       },
     );
   }
@@ -1113,6 +1194,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         timestamp: DateTime.now(),
         isRead: false,
         messageType: MessageType.text,
+        isEphemeral: _isWhisperMode > 0,
+        ephemeralDuration: _ephemeralDuration,
       );
       
       setState(() {
@@ -1304,8 +1387,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         iv: iv,
         signalMessageType: signalMessageType,
         signalSenderContent: signalSenderContent,
-        isWhisperMode: _isWhisperMode,
-        ephemeralDuration: _ephemeralDuration,
+        whisperMode: _isWhisperMode,
         replyToId: _replyMessage?.id,
         mediaViewMode: _mediaViewMode,
       );
@@ -1405,7 +1487,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   widget.otherUserName ?? _otherUserName ?? 'Unknown',
               otherUserAvatar: widget.otherUserAvatar ?? '',
               otherUserId: widget.otherUserId ?? _otherUserId ?? '',
-              isWhisperMode: _isWhisperMode,
+              whisperMode: _isWhisperMode,
               currentBackground: _backgroundUrl,
             ),
       ),
@@ -1726,14 +1808,41 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   void _toggleWhisperMode() {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final bool newMode = !_isWhisperMode;
+    final int oldMode = _isWhisperMode;
+    
+    // Cycle logic: 
+    // If OFF -> Toggle to Last Active (Instant or 24h)
+    // If ON -> Toggle to OFF
+    // To change BETWEEN Instant and 24h, user can use the "Change" button in the info message
+    int newMode;
+    if (oldMode == 0) {
+      newMode = _lastActiveWhisperMode;
+    } else {
+      newMode = 0;
+    }
     
     setState(() {
       _isWhisperMode = newMode;
-      // When Whisper Mode is ON, we use Vanish Mode (duration 0)
-      // When OFF, we reset to default 24h
-      _ephemeralDuration = newMode ? 0 : 86400;
+      _ephemeralDuration = newMode == 1 ? 0 : 86400;
+      if (newMode > 0) {
+        _lastActiveWhisperMode = newMode;
+      }
     });
+
+    // Manage screen protection
+    if (newMode > 0 && oldMode == 0) {
+      _enableScreenProtection();
+    } else if (newMode == 0 && oldMode > 0) {
+      _disableScreenProtection();
+    }
+
+    _insertSystemMessage(
+      newMode > 0
+          ? (newMode == 1
+              ? '✨ You enabled Whisper Mode (Instant). Messages vanish after being seen.'
+              : '🕒 You enabled Whisper Mode (24h). Messages vanish after 24 hours.')
+          : 'You disabled Whisper Mode.',
+    );
 
     _messagingService.toggleWhisperMode(widget.conversationId, newMode);
     // Persist the whisper mode setting
@@ -1742,11 +1851,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          newMode
-              ? '✨ Whisper Mode enabled. Messages will vanish after being seen.'
+          newMode > 0
+              ? '✨ Whisper Mode enabled.'
               : 'Whisper Mode disabled.',
         ),
-        backgroundColor: newMode ? colorScheme.secondary : Colors.green,
+        backgroundColor: newMode > 0 ? colorScheme.secondary : Colors.green,
         duration: const Duration(seconds: 3),
       ),
     );
@@ -2061,7 +2170,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             if (index == _messages.length) {
                               // Display Whisper Mode info message at the top of the history or wherever appropriate.
                               // For now, let's show it only if Whisper Mode is ON.
-                              if (!_isWhisperMode) return const SizedBox.shrink();
+                              if (_isWhisperMode == 0) return const SizedBox.shrink();
                               return Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
                                 child: Column(
@@ -2102,6 +2211,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                 return _buildPostShareBubble(message, isMe);
                               case MessageType.story_reply:
                                 return _buildStoryReplyBubble(message, isMe);
+                              case MessageType.system:
+                                return _buildSystemMessage(message);
                               default:
                                 return _buildMessageBubble(message, isMe);
                             }
@@ -2369,7 +2480,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                                               .onSurface,
                                                 ),
                                                 decoration: InputDecoration(
-                                                  hintText: _isWhisperMode ? 'Disappearing message...' : 'Type a message...',
+                                                  hintText: _isWhisperMode > 0 ? 'Disappearing message...' : 'Type a message...',
                                                   hintStyle: TextStyle(
                                                     color: (_backgroundUrl !=
                                                                 null
@@ -2473,12 +2584,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
-                            _isWhisperMode
+                            _isWhisperMode > 0
                                 ? '👻  Whisper on — pull up to disable'
                                 : 'Pull up to enable Whisper Mode',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color:
-                                  _isWhisperMode
+                                  _isWhisperMode > 0
                                       ? colorScheme.secondary.withValues(
                                         alpha: 0.8,
                                       )
@@ -3219,7 +3330,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     if (message.isEphemeral) {
       bubble = DottedBorder(
-        borderRadius: const Radius.circular(24),
+        borderRadius: borderRadius,
+        color: isMe ? Colors.white.withValues(alpha: 0.6) : colorScheme.primary.withValues(alpha: 0.6),
+        strokeWidth: 1.5,
+        gap: 4,
+        dash: 4,
         child: bubble,
       );
     }
@@ -3888,9 +4003,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
     );
 
-    if (_isWhisperMode) {
+    if (_isWhisperMode > 0) {
       return DottedBorder(
-        borderRadius: const Radius.circular(32),
+        borderRadius: borderRadius,
         color: Colors.white.withValues(alpha: 0.4),
         strokeWidth: 1.5,
         gap: 4,

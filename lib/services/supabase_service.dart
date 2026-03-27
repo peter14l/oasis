@@ -1,6 +1,6 @@
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/supabase_config.dart';
 
@@ -36,13 +36,10 @@ class SupabaseService {
     if (isInitialized) return;
     
     try {
-      // Make sure environment variables are loaded
-      await dotenv.load(fileName: ".env");
-      
       await Supabase.initialize(
-        url: dotenv.get('SUPABASE_URL'),
-        anonKey: dotenv.get('SUPABASE_ANON_KEY'),
-        debug: true,
+        url: SupabaseConfig.supabaseUrl,
+        anonKey: SupabaseConfig.supabaseAnonKey,
+        debug: SupabaseConfig.debug,
         authOptions: const FlutterAuthClientOptions(
           authFlowType: AuthFlowType.pkce,
         ),
