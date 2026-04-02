@@ -203,7 +203,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         context,
                         listen: false,
                       );
-                      await authService.signInWithGoogle();
+                      final addAccount = GoRouterState.of(context).uri.queryParameters['add_account'] == 'true';
+                      await authService.signInWithGoogle(forceSignIn: addAccount);
                       if (mounted) {
                         context.go('/feed');
                       }

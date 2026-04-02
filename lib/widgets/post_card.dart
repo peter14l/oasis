@@ -672,36 +672,35 @@ class _PostCardState extends State<PostCard>
                   children: [
                     GestureDetector(
                       onDoubleTap: () => _handleLike(forceLike: true),
-                      child: AspectRatio(
-                        aspectRatio:
-                            isDesktop
-                                ? 1.2
-                                : 4 /
-                                    5, // Wider aspect ratio on desktop to make it look smaller vertically
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerHighest
-                                .withValues(alpha: 0.3),
-                          ),
-                          child:
-                              images.length > 1
-                                  ? PageView.builder(
-                                    itemCount: images.length,
-                                    itemBuilder: (context, index) {
-                                      return _buildImageItem(
-                                        images[index],
-                                        colorScheme,
-                                      );
-                                    },
-                                  )
-                                  : Hero(
-                                    tag: 'post_${widget.post.id}',
-                                    child: _buildImageItem(
-                                      images.first,
-                                      colorScheme,
-                                    ),
-                                  ),
+                      child: Container(
+                        width: double.infinity,
+                        constraints: BoxConstraints(
+                          maxHeight: isDesktop ? 600 : MediaQuery.of(context).size.height * 0.7,
                         ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.3),
+                        ),
+                        child: images.length > 1
+                            ? AspectRatio(
+                                aspectRatio: isDesktop ? 1.2 : 4 / 5,
+                                child: PageView.builder(
+                                  itemCount: images.length,
+                                  itemBuilder: (context, index) {
+                                    return _buildImageItem(
+                                      images[index],
+                                      colorScheme,
+                                    );
+                                  },
+                                ),
+                              )
+                            : Hero(
+                                tag: 'post_${widget.post.id}',
+                                child: _buildImageItem(
+                                  images.first,
+                                  colorScheme,
+                                ),
+                              ),
                       ),
                     ),
                     if (images.length > 1)

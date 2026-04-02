@@ -6,14 +6,14 @@ import 'package:oasis_v2/services/supabase_service.dart';
 class PresenceService {
   final SupabaseClient _supabase = SupabaseService().client;
   final Map<String, RealtimeChannel> _presenceChannels = {};
-  
+
   // Track a user's presence in a specific conversation or globally
   RealtimeChannel subscribeToUserPresence({
     required String userId,
     required Function(String status, DateTime? lastSeen) onUpdate,
   }) {
     final channelName = 'user_presence:$userId';
-    
+
     if (_presenceChannels.containsKey(channelName)) {
       return _presenceChannels[channelName]!;
     }
@@ -57,7 +57,7 @@ class PresenceService {
   // Update current user's presence
   Future<void> updateUserPresence(String userId, String status) async {
     final channelName = 'user_presence:$userId';
-    
+
     RealtimeChannel channel;
     if (_presenceChannels.containsKey(channelName)) {
       channel = _presenceChannels[channelName]!;
@@ -66,10 +66,14 @@ class PresenceService {
           'status': status,
           'last_seen': DateTime.now().toIso8601String(),
         });
-      } catch (_) {}
+      } catch (e) {
+        debugPrint(
+          'PresenceService: Failed to track presence - ${e.toString()}',
+        );
+      }
       return;
     }
-    
+
     channel = _supabase.channel(channelName);
     _presenceChannels[channelName] = channel;
 

@@ -10,6 +10,9 @@ import 'package:animate_do/animate_do.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:gal/gal.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
+import 'package:oasis_v2/utils/haptic_utils.dart';
 
 class CreateStoryScreen extends StatefulWidget {
   const CreateStoryScreen({super.key});
@@ -465,21 +468,59 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }
 
   Widget _buildEmptyState() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
-      decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF1A1A1A), Color(0xFF000000)])),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft, 
+          end: Alignment.bottomRight, 
+          colors: isM3E 
+            ? [colorScheme.surfaceContainerHighest, colorScheme.surface]
+            : [const Color(0xFF1A1A1A), const Color(0xFF000000)]
+        )
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          ZoomIn(child: const Icon(Icons.auto_awesome_mosaic_rounded, size: 80, color: Colors.white24)),
+          ZoomIn(
+            child: Icon(
+              isM3E ? Icons.auto_awesome_mosaic_rounded : Icons.auto_awesome_mosaic_rounded, 
+              size: isM3E ? 100 : 80, 
+              color: isM3E ? colorScheme.primary.withValues(alpha: 0.3) : Colors.white24
+            )
+          ),
           const SizedBox(height: 32),
-          const Text('Create Story', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900)),
+          Text(
+            'Create Story', 
+            style: TextStyle(
+              color: isM3E ? colorScheme.onSurface : Colors.white, 
+              fontSize: isM3E ? 36 : 32, 
+              fontWeight: isM3E ? FontWeight.w800 : FontWeight.w900,
+              letterSpacing: isM3E ? -1.5 : null,
+            )
+          ),
           const SizedBox(height: 60),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildModernPickerItem(icon: Icons.camera_alt_rounded, label: 'Camera', color: Colors.blue, onTap: () => _pickMedia(ImageSource.camera)),
+              _buildModernPickerItem(
+                icon: Icons.camera_alt_rounded, 
+                label: 'Camera', 
+                color: isM3E ? colorScheme.primary : Colors.blue, 
+                onTap: () => _pickMedia(ImageSource.camera),
+                isM3E: isM3E,
+              ),
               const SizedBox(width: 40),
-              _buildModernPickerItem(icon: Icons.photo_library_rounded, label: 'Gallery', color: Colors.pink, onTap: () => _pickMedia(ImageSource.gallery)),
+              _buildModernPickerItem(
+                icon: Icons.photo_library_rounded, 
+                label: 'Gallery', 
+                color: isM3E ? colorScheme.tertiary : Colors.pink, 
+                onTap: () => _pickMedia(ImageSource.gallery),
+                isM3E: isM3E,
+              ),
             ],
           ),
         ],
@@ -711,28 +752,97 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     );
   }
 
-  Widget _buildModernPickerItem({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
-    return GestureDetector(onTap: onTap, child: Column(children: [
-      Container(width: 80, height: 80, decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle, border: Border.all(color: color.withValues(alpha: 0.3), width: 2)), child: Icon(icon, color: color, size: 32)),
-      const SizedBox(height: 12),
-      Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-    ]));
+  Widget _buildModernPickerItem({
+    required IconData icon, 
+    required String label, 
+    required Color color, 
+    required VoidCallback onTap,
+    bool isM3E = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap, 
+      child: Column(
+        children: [
+          Container(
+            width: isM3E ? 90 : 80, 
+            height: isM3E ? 90 : 80, 
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1), 
+              shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+              borderRadius: isM3E ? BorderRadius.circular(28) : null,
+              border: Border.all(color: color.withValues(alpha: 0.3), width: 2)
+            ), 
+            child: Icon(icon, color: color, size: isM3E ? 36 : 32)
+          ),
+          const SizedBox(height: 12),
+          Text(
+            label, 
+            style: TextStyle(
+              color: isM3E ? Theme.of(context).colorScheme.onSurface : Colors.white, 
+              fontWeight: isM3E ? FontWeight.bold : FontWeight.bold
+            )
+          ),
+        ]
+      )
+    );
   }
 
   Widget _buildBlurButton({required IconData icon, required VoidCallback onTap}) {
-    return GestureDetector(onTap: onTap, child: ClipRRect(borderRadius: BorderRadius.circular(20), child: BackdropFilter(filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10), child: Container(padding: const EdgeInsets.all(10), color: Colors.white10, child: Icon(icon, color: Colors.white, size: 24)))));
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+
+    return GestureDetector(
+      onTap: onTap, 
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(isM3E ? 16 : 20), 
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10), 
+          child: Container(
+            padding: const EdgeInsets.all(10), 
+            color: isM3E ? Colors.white.withValues(alpha: 0.2) : Colors.white10, 
+            child: Icon(icon, color: Colors.white, size: 24)
+          )
+        )
+      )
+    );
   }
 
   Widget _buildSideTool({required IconData icon, required String label, required VoidCallback onTap}) {
-    return GestureDetector(onTap: onTap, child: Column(children: [
-      _buildBlurButton(icon: icon, onTap: onTap),
-      const SizedBox(height: 4),
-      Text(label, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-    ]));
+    return GestureDetector(
+      onTap: onTap, 
+      child: Column(
+        children: [
+          _buildBlurButton(icon: icon, onTap: onTap),
+          const SizedBox(height: 4),
+          Text(label, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+        ]
+      )
+    );
   }
 
   Widget _buildCircleActionButton({required IconData icon, required VoidCallback onTap}) {
-    return GestureDetector(onTap: onTap, child: Container(padding: const EdgeInsets.all(16), decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: Icon(icon, color: Colors.black, size: 24)));
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+
+    return GestureDetector(
+      onTap: onTap, 
+      child: Container(
+        padding: const EdgeInsets.all(16), 
+        decoration: BoxDecoration(
+          color: Colors.white, 
+          shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+          borderRadius: isM3E ? BorderRadius.circular(24) : null,
+          boxShadow: isM3E ? [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ] : null,
+        ), 
+        child: Icon(icon, color: Colors.black, size: 24)
+      )
+    );
   }
 }
 

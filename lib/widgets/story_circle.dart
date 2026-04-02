@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis_v2/models/story_model.dart';
+import 'package:provider/provider.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
 
 class StoryCircle extends StatelessWidget {
   final StoryModel story;
@@ -11,6 +13,8 @@ class StoryCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
 
     return GestureDetector(
       onTap: onTap,
@@ -20,7 +24,8 @@ class StoryCircle extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+              borderRadius: isM3E ? BorderRadius.circular(24) : null,
               gradient:
                   !story.hasViewed
                       ? LinearGradient(
@@ -43,19 +48,30 @@ class StoryCircle extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
+                shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                borderRadius: isM3E ? BorderRadius.circular(21) : null,
                 color: theme.colorScheme.surface,
               ),
-              child: CircleAvatar(
-                radius: 32,
-                backgroundImage: CachedNetworkImageProvider(story.userAvatar),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                  borderRadius: isM3E ? BorderRadius.circular(18) : null,
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: CircleAvatar(
+                  radius: 32,
+                  backgroundImage: CachedNetworkImageProvider(story.userAvatar),
+                ),
               ),
             ),
           ),
           const SizedBox(height: 4),
           Text(
             story.username,
-            style: theme.textTheme.labelSmall,
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: isM3E ? FontWeight.bold : null,
+              letterSpacing: isM3E ? -0.2 : null,
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ],

@@ -7,7 +7,9 @@ import 'package:oasis_v2/services/stories_service.dart';
 import 'package:oasis_v2/services/messaging_service.dart';
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/widgets/stories/story_viewers_sheet.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
 import 'package:oasis_v2/utils/haptic_utils.dart';
+import 'package:provider/provider.dart';
 import 'dart:async';
 import 'dart:ui';
 
@@ -187,6 +189,8 @@ class _StoryViewScreenState extends State<StoryViewScreen>
   Widget build(BuildContext context) {
     final story = widget.stories[_currentIndex];
     final isOwner = _authService.currentUser?.id == story.userId;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -251,7 +255,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
                 return Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                    child: _buildProgressBar(entry.key),
+                    child: _buildProgressBar(entry.key, isM3E),
                   ),
                 );
               }).toList(),
@@ -265,9 +269,16 @@ class _StoryViewScreenState extends State<StoryViewScreen>
             right: 16,
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundImage: CachedNetworkImageProvider(story.userAvatar),
+                Container(
+                  decoration: BoxDecoration(
+                    shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                    borderRadius: isM3E ? BorderRadius.circular(12) : null,
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: CircleAvatar(
+                    radius: 18,
+                    backgroundImage: CachedNetworkImageProvider(story.userAvatar),
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -276,10 +287,11 @@ class _StoryViewScreenState extends State<StoryViewScreen>
                     children: [
                       Text(
                         story.username,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: isM3E ? FontWeight.w800 : FontWeight.bold,
                           fontSize: 14,
+                          letterSpacing: isM3E ? -0.5 : null,
                         ),
                       ),
                       Text(
@@ -313,7 +325,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
             right: 16,
             child: isOwner 
               ? _buildOwnerControls(story)
-              : _buildViewerControls(),
+              : _buildViewerControls(isM3E),
           ),
 
           // Story Caption
@@ -325,10 +337,11 @@ class _StoryViewScreenState extends State<StoryViewScreen>
               child: Text(
                 story.caption!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
-                  shadows: [
+                  fontWeight: isM3E ? FontWeight.bold : null,
+                  shadows: const [
                     Shadow(blurRadius: 10, color: Colors.black, offset: Offset(0, 2)),
                   ],
                 ),
@@ -352,16 +365,16 @@ class _StoryViewScreenState extends State<StoryViewScreen>
     );
   }
 
-  Widget _buildProgressBar(int index) {
+  Widget _buildProgressBar(int index, bool isM3E) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(2),
+      borderRadius: BorderRadius.circular(isM3E ? 4 : 2),
       child: Container(
-        height: 3,
+        height: isM3E ? 4 : 3,
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.3),
         ),
         child: index < _currentIndex
-            ? const Divider(color: Colors.white, thickness: 3, height: 3)
+            ? const Divider(color: Colors.white, thickness: 4, height: 4)
             : index == _currentIndex
                 ? AnimatedBuilder(
                     animation: _animController,
@@ -369,7 +382,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
                       return FractionallySizedBox(
                         alignment: Alignment.centerLeft,
                         widthFactor: _animController.value,
-                        child: const Divider(color: Colors.white, thickness: 3, height: 3),
+                        child: Divider(color: Colors.white, thickness: isM3E ? 4 : 3, height: isM3E ? 4 : 3),
                       );
                     },
                   )
@@ -417,15 +430,16 @@ class _StoryViewScreenState extends State<StoryViewScreen>
     );
   }
 
-  Widget _buildViewerControls() {
+  Widget _buildViewerControls(bool isM3E) {
     return Row(
       children: [
         Expanded(
           child: Container(
-            height: 48,
+            height: isM3E ? 56 : 48,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(isM3E ? 28 : 24),
               border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
+              color: isM3E ? Colors.white.withValues(alpha: 0.1) : null,
             ),
             child: TextField(
               controller: _replyController,
@@ -435,25 +449,25 @@ class _StoryViewScreenState extends State<StoryViewScreen>
               },
               onSubmitted: _sendReply,
               style: const TextStyle(color: Colors.white, fontSize: 14),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Send message...',
-                hintStyle: TextStyle(color: Colors.white70, fontSize: 14),
+                hintStyle: const TextStyle(color: Colors.white70, fontSize: 14),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: isM3E ? 14 : 10),
               ),
             ),
           ),
         ),
         const SizedBox(width: 12),
         IconButton(
-          icon: const Icon(Icons.favorite_border, color: Colors.white, size: 28),
+          icon: Icon(Icons.favorite_border, color: Colors.white, size: isM3E ? 32 : 28),
           onPressed: () {
             _storiesService.reactToStory(widget.stories[_currentIndex].id, '❤️');
             HapticUtils.lightImpact();
           },
         ),
         IconButton(
-          icon: const Icon(Icons.send_outlined, color: Colors.white, size: 28),
+          icon: Icon(Icons.send_outlined, color: Colors.white, size: isM3E ? 32 : 28),
           onPressed: () {
             // Share story
           },

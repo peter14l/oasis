@@ -99,9 +99,21 @@ class VaultService with ChangeNotifier {
     return storedPin == pin;
   }
 
+  /// Change the vault PIN
+  Future<bool> changePin(String currentPin, String newPin) async {
+    final storedPin = await _storage.read(key: _vaultPinKey);
+
+    if (storedPin != currentPin) {
+      return false;
+    }
+
+    await _storage.write(key: _vaultPinKey, value: newPin);
+    return true;
+  }
+
   void _unlockItem(String itemId) {
     _unlockedItemIds.add(itemId);
-    
+
     // Handle 5 mins interval
     final interval = _itemIntervals[itemId];
     if (interval == '5mins') {
@@ -110,7 +122,7 @@ class VaultService with ChangeNotifier {
         lockItem(itemId);
       });
     }
-    
+
     scheduleMicrotask(() => notifyListeners());
   }
 
@@ -140,7 +152,8 @@ class VaultService with ChangeNotifier {
 
   /// Lock items with a specific interval (e.g. 'app_close')
   void lockItemsWithInterval(String interval) {
-    final itemsToLock = _unlockedItemIds.where((id) => _itemIntervals[id] == interval).toList();
+    final itemsToLock =
+        _unlockedItemIds.where((id) => _itemIntervals[id] == interval).toList();
     for (final id in itemsToLock) {
       _unlockedItemIds.remove(id);
       _lockTimers[id]?.cancel();
@@ -153,7 +166,7 @@ class VaultService with ChangeNotifier {
   Future<void> setLockInterval(String itemId, String interval) async {
     _itemIntervals[itemId] = interval;
     await _saveIntervals();
-    
+
     // If interval changed to something other than 5mins, cancel existing timer
     if (interval != '5mins') {
       _lockTimers[itemId]?.cancel();
@@ -165,14 +178,19 @@ class VaultService with ChangeNotifier {
         lockItem(itemId);
       });
     }
-    
+
     scheduleMicrotask(() => notifyListeners());
   }
 
-  String getLockInterval(String itemId) => _itemIntervals[itemId] ?? 'app_close';
+  String getLockInterval(String itemId) =>
+      _itemIntervals[itemId] ?? 'app_close';
 
   /// Attempt to authenticate for a specific item
-  Future<bool> authenticate({required String itemId, String? pin, BuildContext? context}) async {
+  Future<bool> authenticate({
+    required String itemId,
+    String? pin,
+    BuildContext? context,
+  }) async {
     if (pin != null) {
       return unlockItemWithPin(itemId, pin);
     }
@@ -235,7 +253,10 @@ class VaultService with ChangeNotifier {
                   border: OutlineInputBorder(),
                 ),
                 onSubmitted: (_) async {
-                  final isValid = await unlockItemWithPin(itemId, controller.text);
+                  final isValid = await unlockItemWithPin(
+                    itemId,
+                    controller.text,
+                  );
                   if (context.mounted) {
                     Navigator.pop(context, isValid);
                   }
@@ -248,7 +269,10 @@ class VaultService with ChangeNotifier {
                 ),
                 FilledButton(
                   onPressed: () async {
-                    final isValid = await unlockItemWithPin(itemId, controller.text);
+                    final isValid = await unlockItemWithPin(
+                      itemId,
+                      controller.text,
+                    );
                     if (context.mounted) {
                       if (!isValid) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -292,7 +316,7 @@ class VaultService with ChangeNotifier {
     items.add(VaultItem(id: itemId, type: type, addedAt: DateTime.now()));
     await _saveVaultItems(items);
     _vaultItemIds.add(itemId);
-    
+
     // Default interval
     _itemIntervals[itemId] = 'app_close';
     await _saveIntervals();
@@ -313,7 +337,7 @@ class VaultService with ChangeNotifier {
     } catch (e) {
       debugPrint('Error syncing vault item: $e');
     }
-    
+
     scheduleMicrotask(() => notifyListeners());
   }
 
@@ -322,7 +346,7 @@ class VaultService with ChangeNotifier {
     final items = await _getVaultItems();
     items.removeWhere((i) => i.id == itemId);
     await _saveVaultItems(items);
-    
+
     _vaultItemIds.remove(itemId);
     _unlockedItemIds.remove(itemId);
     _itemIntervals.remove(itemId);
@@ -347,7 +371,7 @@ class VaultService with ChangeNotifier {
     } catch (e) {
       debugPrint('Error removing vault item: $e');
     }
-    
+
     scheduleMicrotask(() => notifyListeners());
   }
 

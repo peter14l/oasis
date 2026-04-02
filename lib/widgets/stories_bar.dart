@@ -5,6 +5,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis_v2/models/story_model.dart';
 import 'package:oasis_v2/screens/stories/create_story_screen.dart';
 import 'package:oasis_v2/services/auth_service.dart';
+import 'package:provider/provider.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
 
 class StoriesBar extends StatefulWidget {
   final List<StoryGroup> storyGroups;
@@ -32,6 +34,8 @@ class _StoriesBarState extends State<StoriesBar> {
     final hasOwnStories = widget.currentUserStories?.isNotEmpty ?? false;
     final hasUnviewedOwnStories =
         widget.currentUserStories?.any((s) => !s.hasViewed) ?? false;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
 
     return _AnimatedStoryScale(
       child: Column(
@@ -43,7 +47,8 @@ class _StoriesBarState extends State<StoriesBar> {
                 width: 70,
                 height: 70,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
+                  shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                  borderRadius: isM3E ? BorderRadius.circular(24) : null,
                   gradient:
                       hasOwnStories && hasUnviewedOwnStories
                           ? LinearGradient(
@@ -68,7 +73,8 @@ class _StoriesBarState extends State<StoriesBar> {
                 padding: const EdgeInsets.all(3),
                 child: Container(
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
+                    shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                    borderRadius: isM3E ? BorderRadius.circular(21) : null,
                     border: Border.all(
                       color: theme.scaffoldBackgroundColor,
                       width: hasOwnStories ? 3 : 0,
@@ -76,23 +82,28 @@ class _StoriesBarState extends State<StoriesBar> {
                   ),
                   child:
                       hasOwnStories && currentUser?.photoUrl != null
-                          ? ClipOval(
-                            child: CachedNetworkImage(
-                              imageUrl: currentUser!.photoUrl!,
-                              fit: BoxFit.cover,
-                              placeholder:
-                                  (context, url) =>
-                                      Container(color: Colors.grey.shade200),
-                              errorWidget:
-                                  (context, url, error) => Container(
-                                    color: Colors.grey.shade200,
-                                    child: const Icon(
-                                      Icons.person,
-                                      color: Colors.grey,
+                          ? Container(
+                              decoration: BoxDecoration(
+                                shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                                borderRadius: isM3E ? BorderRadius.circular(18) : null,
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: CachedNetworkImage(
+                                imageUrl: currentUser!.photoUrl!,
+                                fit: BoxFit.cover,
+                                placeholder:
+                                    (context, url) =>
+                                        Container(color: Colors.grey.shade200),
+                                errorWidget:
+                                    (context, url, error) => Container(
+                                      color: Colors.grey.shade200,
+                                      child: const Icon(
+                                        Icons.person,
+                                        color: Colors.grey,
+                                      ),
                                     ),
-                                  ),
-                            ),
-                          )
+                              ),
+                            )
                           : Center(
                             child: Icon(
                               Icons.add,
@@ -142,7 +153,9 @@ class _StoriesBarState extends State<StoriesBar> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: theme.textTheme.labelSmall,
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: isM3E ? FontWeight.bold : null,
+              ),
             ),
           ),
         ],
@@ -171,6 +184,9 @@ class _StoriesBarState extends State<StoriesBar> {
     ThemeData theme,
     StoryGroup group,
   ) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+
     return _AnimatedStoryScale(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -179,7 +195,8 @@ class _StoriesBarState extends State<StoriesBar> {
             width: 70,
             height: 70,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+              borderRadius: isM3E ? BorderRadius.circular(24) : null,
               gradient:
                   group.hasUnviewed
                       ? LinearGradient(
@@ -200,13 +217,19 @@ class _StoriesBarState extends State<StoriesBar> {
             padding: const EdgeInsets.all(3),
             child: Container(
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
+                shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                borderRadius: isM3E ? BorderRadius.circular(21) : null,
                 border: Border.all(
                   color: theme.scaffoldBackgroundColor,
                   width: 3,
                 ),
               ),
-              child: ClipOval(
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                  borderRadius: isM3E ? BorderRadius.circular(18) : null,
+                ),
+                clipBehavior: Clip.antiAlias,
                 child: CachedNetworkImage(
                   imageUrl: group.avatarUrl,
                   fit: BoxFit.cover,
@@ -232,7 +255,7 @@ class _StoriesBarState extends State<StoriesBar> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight:
-                    group.hasUnviewed ? FontWeight.w600 : FontWeight.normal,
+                    group.hasUnviewed || isM3E ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
           ),

@@ -1028,6 +1028,7 @@ class AppRouter {
                 GoRoute(
                   path: ':conversationId',
                   name: 'chat_nested',
+                  parentNavigatorKey: _rootNavigatorKey,
                   pageBuilder: (context, state) {
                     final conversationId =
                         state.pathParameters['conversationId']!;
@@ -1036,16 +1037,23 @@ class AppRouter {
                     final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
                     if (isDesktop) {
-                      // On Desktop, the DirectMessagesScreen handles the 3rd pane internally.
-                      // We return the same screen but the internal logic will now see the ID in the URL.
-                      return NoTransitionPage(
-                        child: messages.DirectMessagesScreen(
-                          initialConversationId: conversationId,
-                          initialConversationData: extra,
-                        ),
+                      // On Desktop, navigate to messages with the conversation selected
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (context.mounted) {
+                          context.go(
+                            '/messages',
+                            extra: {
+                              'initialConversationId': conversationId,
+                              ...?extra,
+                            },
+                          );
+                        }
+                      });
+                      return const NoTransitionPage(
+                        child: messages.DirectMessagesScreen(),
                       );
                     } else {
-                      // On Mobile/Android, we push the dedicated ChatScreen
+                      // On Mobile, push the dedicated ChatScreen with full height (no navbar)
                       return MaterialPage(
                         child: ChatScreen(
                           conversationId: conversationId,

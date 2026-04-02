@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class GlowingNote extends StatelessWidget {
@@ -97,7 +98,9 @@ class GlowingNote extends StatelessWidget {
       } else if (code.length == 8) {
         return Color(int.parse(code, radix: 16));
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('GlowingNote: Invalid hex color "$hex" - ${e.toString()}');
+    }
     return const Color(0xFF3B82F6); // Default blue
   }
 }

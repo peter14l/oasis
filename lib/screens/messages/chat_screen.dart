@@ -3510,8 +3510,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               : (_bubbleColorReceived ?? colorScheme.surfaceContainerHighest),
       borderRadius: borderRadius,
       border: Border.all(
-        color: Colors.white.withValues(alpha: 0.9),
-        width: 1.5,
+        color: Colors.white.withValues(alpha: 0.1),
+        width: 0.1,
       ),
       boxShadow: [
         BoxShadow(
@@ -3709,9 +3709,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 : (colorScheme.surface.withValues(alpha: 0.1)),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.8),
-          width: 1.5,
+          color: Colors.white.withValues(alpha: 0.1),
+          width: 0.1,
         ),
+
       ),
       child: InkWell(
         onTap: () {
@@ -3833,9 +3834,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 : (colorScheme.surface.withValues(alpha: 0.1)),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.8),
-          width: 1.5,
+          color: Colors.white.withValues(alpha: 0.1),
+          width: 0.1,
         ),
+
       ),
       child: InkWell(
         onTap: () {
@@ -3973,8 +3975,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 : colorScheme.surfaceContainerHighest,
         borderRadius: borderRadius,
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.8),
-          width: 1.5,
+          color: Colors.white.withValues(alpha: 0.1),
+          width: 0.1,
         ),
       ),
       child: Column(

@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/services/post_service.dart';
 import 'package:oasis_v2/services/ai_content_service.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
 import 'package:oasis_v2/providers/feed_provider.dart';
 import 'package:oasis_v2/utils/responsive_layout.dart';
 import 'package:oasis_v2/utils/haptic_utils.dart';
@@ -255,14 +256,25 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     required IconData icon,
     required String label,
     required VoidCallback onPressed,
+    bool isM3E = false,
   }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return FilledButton.tonalIcon(
       onPressed: onPressed,
-      icon: Icon(icon, size: 18),
-      label: Text(label, style: const TextStyle(fontSize: 14)),
+      icon: Icon(icon, size: isM3E ? 20 : 18),
+      label: Text(
+        label, 
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: isM3E ? FontWeight.bold : null,
+        )
+      ),
       style: FilledButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        padding: EdgeInsets.symmetric(horizontal: isM3E ? 20 : 16, vertical: isM3E ? 12 : 10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isM3E ? 16 : 12)),
+        backgroundColor: isM3E ? colorScheme.secondaryContainer.withValues(alpha: 0.7) : null,
       ),
     );
   }
@@ -272,6 +284,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
 
     final formContent = SingleChildScrollView(
         padding: EdgeInsets.all(isDesktop ? 32.0 : 16.0),
@@ -291,29 +306,39 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 return Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(16),
+                    color: isM3E 
+                      ? (disableTransparency ? colorScheme.surfaceContainer : colorScheme.surfaceContainer.withValues(alpha: 0.5))
+                      : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(isM3E ? 24 : 16),
+                    border: isM3E ? Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.2)) : null,
                   ),
                   child: Row(
                     children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: colorScheme.surfaceContainerHighest,
-                        backgroundImage:
-                            avatarUrl != null ? NetworkImage(avatarUrl) : null,
-                        child:
-                            avatarUrl == null
-                                ? Text(
-                                  displayName.isNotEmpty
-                                      ? displayName[0].toUpperCase()
-                                      : '?',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.primary,
-                                  ),
-                                )
-                                : null,
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: isM3E ? Border.all(color: colorScheme.primary.withValues(alpha: 0.2), width: 2) : null,
+                        ),
+                        padding: EdgeInsets.all(isM3E ? 2 : 0),
+                        child: CircleAvatar(
+                          radius: 24,
+                          backgroundColor: colorScheme.surfaceContainerHighest,
+                          backgroundImage:
+                              avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                          child:
+                              avatarUrl == null
+                                  ? Text(
+                                    displayName.isNotEmpty
+                                        ? displayName[0].toUpperCase()
+                                        : '?',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: isM3E ? FontWeight.w800 : FontWeight.bold,
+                                      color: colorScheme.primary,
+                                    ),
+                                  )
+                                  : null,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Column(
@@ -322,7 +347,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           Text(
                             displayName,
                             style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
+                              fontWeight: isM3E ? FontWeight.bold : FontWeight.w600,
+                              letterSpacing: isM3E ? -0.5 : null,
                             ),
                           ),
                           if (username.isNotEmpty)
@@ -330,6 +356,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                               username,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
+                                fontWeight: isM3E ? FontWeight.w500 : null,
                               ),
                             ),
                         ],
@@ -349,8 +376,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               minLines: 1,
               decoration: InputDecoration(
                 hintText: 'What\'s on your mind?',
-                hintStyle: theme.textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                hintStyle: (isM3E ? theme.textTheme.titleMedium : theme.textTheme.bodyLarge)?.copyWith(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  fontWeight: isM3E ? FontWeight.w500 : null,
                 ),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
@@ -358,7 +386,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   vertical: 12,
                 ),
               ),
-              style: theme.textTheme.bodyLarge,
+              style: (isM3E ? theme.textTheme.titleMedium : theme.textTheme.bodyLarge)?.copyWith(
+                height: 1.5,
+              ),
               textCapitalization: TextCapitalization.sentences,
             ),
 
@@ -371,20 +401,27 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   scrollDirection: Axis.horizontal,
                   itemCount: _selectedImages.length,
                   separatorBuilder:
-                      (context, index) => const SizedBox(width: 8),
+                      (context, index) => const SizedBox(width: 12),
                   itemBuilder: (context, index) {
                     final image = _selectedImages[index];
                     return Container(
                       width: 200,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(isM3E ? 24 : 16),
                         border: Border.all(
                           color: colorScheme.outlineVariant,
                           width: 1,
                         ),
+                        boxShadow: isM3E ? [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          )
+                        ] : null,
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(isM3E ? 24 : 16),
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
@@ -430,9 +467,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             // Mood selector
             Text(
               'How are you feeling?',
-              style: theme.textTheme.titleSmall?.copyWith(
+              style: (isM3E ? theme.textTheme.titleSmall : theme.textTheme.titleSmall)?.copyWith(
                 color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
+                fontWeight: isM3E ? FontWeight.bold : FontWeight.w500,
+                letterSpacing: isM3E ? 0.5 : null,
               ),
             ),
             const SizedBox(height: 12),
@@ -449,9 +487,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             // Add to post options
             Text(
               'Add to your post',
-              style: theme.textTheme.titleSmall?.copyWith(
+              style: (isM3E ? theme.textTheme.titleSmall : theme.textTheme.titleSmall)?.copyWith(
                 color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
+                fontWeight: isM3E ? FontWeight.bold : FontWeight.w500,
+                letterSpacing: isM3E ? 0.5 : null,
               ),
             ),
             const SizedBox(height: 12),
@@ -464,24 +503,28 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     icon: Icons.photo_library_outlined,
                     label: 'Photo',
                     onPressed: _pickImages,
+                    isM3E: isM3E,
                   ),
                   const SizedBox(width: 8),
                   _buildActionButton(
                     icon: Icons.poll_outlined,
                     label: 'Poll',
                     onPressed: _togglePollCreator,
+                    isM3E: isM3E,
                   ),
                   const SizedBox(width: 8),
                   _buildActionButton(
                     icon: Icons.auto_awesome,
                     label: 'AI Help',
                     onPressed: _generateAiSuggestions,
+                    isM3E: isM3E,
                   ),
                   const SizedBox(width: 8),
                   _buildActionButton(
                     icon: Icons.location_on_outlined,
                     label: _locationController.text.isNotEmpty ? 'Change Location' : 'Location',
                     onPressed: _pickLocation,
+                    isM3E: isM3E,
                   ),
                 ],
               ),
@@ -491,12 +534,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             if (_locationController.text.isNotEmpty) ...[
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
-                  color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(12),
+                  color: isM3E ? colorScheme.secondaryContainer : colorScheme.secondaryContainer.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(isM3E ? 20 : 12),
                   border: Border.all(
-                    color: colorScheme.secondary.withValues(alpha: 0.3),
+                    color: colorScheme.secondary.withValues(alpha: isM3E ? 0.5 : 0.3),
                   ),
                 ),
                 child: Row(
@@ -507,14 +550,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     Text(
                       _locationController.text,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.secondary,
-                        fontWeight: FontWeight.w500,
+                        color: colorScheme.onSecondaryContainer,
+                        fontWeight: isM3E ? FontWeight.bold : FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 8),
                     InkWell(
                       onTap: () => setState(() => _locationController.clear()),
-                      child: Icon(Icons.close, size: 16, color: colorScheme.secondary),
+                      child: Icon(Icons.close, size: 16, color: colorScheme.onSecondaryContainer),
                     ),
                   ],
                 ),
@@ -534,22 +577,25 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             if (_attachedPoll != null) ...[
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(12),
+                  color: isM3E ? colorScheme.primaryContainer : colorScheme.primaryContainer.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(isM3E ? 20 : 12),
                   border: Border.all(
-                    color: colorScheme.primary.withValues(alpha: 0.3),
+                    color: colorScheme.primary.withValues(alpha: isM3E ? 0.5 : 0.3),
                   ),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.poll, color: colorScheme.primary),
+                    Icon(Icons.poll, color: colorScheme.onPrimaryContainer),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         _attachedPoll!.question,
-                        style: theme.textTheme.bodyMedium,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: isM3E ? FontWeight.bold : null,
+                          color: colorScheme.onPrimaryContainer,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -567,15 +613,16 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             if (_showAiSuggestions) ...[
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      colorScheme.primaryContainer.withValues(alpha: 0.3),
-                      colorScheme.tertiaryContainer.withValues(alpha: 0.3),
+                      colorScheme.primaryContainer.withValues(alpha: isM3E ? 0.8 : 0.3),
+                      colorScheme.tertiaryContainer.withValues(alpha: isM3E ? 0.8 : 0.3),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(isM3E ? 32 : 16),
+                  border: isM3E ? Border.all(color: colorScheme.primary.withValues(alpha: 0.2)) : null,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -585,13 +632,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         Icon(
                           Icons.auto_awesome,
                           color: colorScheme.primary,
-                          size: 20,
+                          size: 22,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 12),
                         Text(
                           'AI Suggestions',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
+                          style: (isM3E ? theme.textTheme.titleMedium : theme.textTheme.titleSmall)?.copyWith(
+                            fontWeight: isM3E ? FontWeight.w800 : FontWeight.w600,
                           ),
                         ),
                         const Spacer(),
@@ -604,34 +651,40 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     ),
                     if (_isLoadingAi)
                       const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16),
+                        padding: EdgeInsets.symmetric(vertical: 24),
                         child: Center(child: CircularProgressIndicator()),
                       )
                     else ...[
                       if (_captionSuggestions.isNotEmpty) ...[
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         Text(
                           'Caption ideas:',
-                          style: theme.textTheme.labelMedium,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            fontWeight: isM3E ? FontWeight.bold : null,
+                            color: colorScheme.primary,
+                          ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         ...(_captionSuggestions.map(
                           (caption) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.only(bottom: 12),
                             child: InkWell(
                               onTap: () {
                                 _captionController.text = caption;
                                 HapticUtils.selectionClick();
                               },
                               child: Container(
-                                padding: const EdgeInsets.all(12),
+                                padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
                                   color: colorScheme.surface,
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(isM3E ? 16 : 8),
+                                  border: isM3E ? Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)) : null,
                                 ),
                                 child: Text(
                                   caption,
-                                  style: theme.textTheme.bodySmall,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    height: 1.4,
+                                  ),
                                 ),
                               ),
                             ),
@@ -640,16 +693,24 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       ],
                       if (_hashtagSuggestions.isNotEmpty) ...[
                         const SizedBox(height: 12),
-                        Text('Hashtags:', style: theme.textTheme.labelMedium),
-                        const SizedBox(height: 8),
+                        Text(
+                          'Hashtags:', 
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            fontWeight: isM3E ? FontWeight.bold : null,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
                         Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
+                          spacing: 10,
+                          runSpacing: 10,
                           children:
                               _hashtagSuggestions
                                   .map(
                                     (tag) => ActionChip(
                                       label: Text('#$tag'),
+                                      padding: isM3E ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8) : null,
+                                      shape: isM3E ? RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)) : null,
                                       onPressed: () {
                                         _captionController.text += ' #$tag';
                                         HapticUtils.lightImpact();
@@ -673,11 +734,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   onPressed: _isLoading ? null : _createPost,
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.all(16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isM3E ? 20 : 12)),
                   ),
                   child: _isLoading 
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Post to Feed', style: TextStyle(fontWeight: FontWeight.bold)),
+                    : Text('Post to Feed', style: TextStyle(fontWeight: isM3E ? FontWeight.w800 : FontWeight.bold)),
                 ),
               ),
             ],
@@ -693,7 +754,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             constraints: const BoxConstraints(maxWidth: 700),
             decoration: BoxDecoration(
               color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(isM3E ? 36 : 24),
               border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
               boxShadow: [
                 BoxShadow(
@@ -712,7 +773,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     children: [
                       Text(
                         'Create New Post',
-                        style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: isM3E ? FontWeight.w800 : FontWeight.bold,
+                          letterSpacing: isM3E ? -1 : null,
+                        ),
                       ),
                       const Spacer(),
                       IconButton(
@@ -735,50 +799,59 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       appBar: AppBar(
         title: Text(
           'Create Post',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
+          style: (isM3E ? theme.textTheme.headlineSmall : theme.textTheme.titleLarge)?.copyWith(
+            fontWeight: isM3E ? FontWeight.w800 : FontWeight.bold,
+            letterSpacing: isM3E ? -1 : null,
           ),
         ),
+        centerTitle: isM3E,
         elevation: 0,
-        scrolledUnderElevation: 1,
+        scrolledUnderElevation: isM3E ? 0 : 1,
+        backgroundColor: isM3E ? colorScheme.surface : null,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: FilledButton.tonal(
-              onPressed: _isLoading ? null : _createPost,
-              style: FilledButton.styleFrom(
-                backgroundColor:
-                    _isLoading
-                        ? colorScheme.primary.withValues(alpha: 0.1)
-                        : colorScheme.primary,
-                foregroundColor:
-                    _isLoading
-                        ? colorScheme.onSurface.withValues(alpha: 0.6)
-                        : colorScheme.onPrimary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            padding: const EdgeInsets.only(right: 12.0),
+            child: Center(
+              child: FilledButton(
+                onPressed: _isLoading ? null : _createPost,
+                style: FilledButton.styleFrom(
+                  backgroundColor:
+                      _isLoading
+                          ? colorScheme.primary.withValues(alpha: 0.1)
+                          : colorScheme.primary,
+                  foregroundColor:
+                      _isLoading
+                          ? colorScheme.onSurface.withValues(alpha: 0.6)
+                          : colorScheme.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
+                  elevation: isM3E ? 0 : null,
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 8,
-                ),
-              ),
-              child:
-                  _isLoading
-                      ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
+                child:
+                    _isLoading
+                        ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                        : Text(
+                          'Post',
+                          style: TextStyle(
+                            fontWeight: isM3E ? FontWeight.w800 : FontWeight.w600,
+                            letterSpacing: isM3E ? 0.5 : null,
                           ),
                         ),
-                      )
-                      : const Text(
-                        'Post',
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
+              ),
             ),
           ),
         ],

@@ -234,7 +234,7 @@ class _RipplesScreenState extends State<RipplesScreen> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(isM3E ? 48 : 24),
-                            child: _buildActiveLayout(ripplesService.currentLayout, ripples, isM3E),
+                            child: _buildActiveLayout(ripplesService.currentLayout, ripples, isM3E, Theme.of(context).colorScheme, disableTransparency),
                           ),
                         ),
                       ),
@@ -331,7 +331,7 @@ class _RipplesScreenState extends State<RipplesScreen> {
           backgroundColor: Colors.black,
           body: Stack(
             children: [
-              _buildActiveLayout(ripplesService.currentLayout, ripples, isM3E),
+              _buildActiveLayout(ripplesService.currentLayout, ripples, isM3E, Theme.of(context).colorScheme, disableTransparency),
               Positioned(
                 top: MediaQuery.of(context).padding.top + 10,
                 left: 16,
@@ -615,16 +615,16 @@ class _RipplesScreenState extends State<RipplesScreen> {
     );
   }
 
-  Widget _buildActiveLayout(RipplesLayoutType layout, List<dynamic> ripples, bool isM3E) {
+  Widget _buildActiveLayout(RipplesLayoutType layout, List<dynamic> ripples, bool isM3E, ColorScheme colorScheme, bool disableTransparency) {
     switch (layout) {
       case RipplesLayoutType.kineticCardStack:
-        return _buildKineticCardStack(ripples);
+        return _buildKineticCardStack(ripples, isM3E, colorScheme, disableTransparency);
       case RipplesLayoutType.choiceMosaic:
         return _buildChoiceMosaic(ripples, isM3E);
     }
   }
 
-  Widget _buildKineticCardStack(List<dynamic> ripples) {
+  Widget _buildKineticCardStack(List<dynamic> ripples, bool isM3E, ColorScheme colorScheme, bool disableTransparency) {
     return PageView.builder(
       controller: _pageController,
       scrollDirection: Axis.vertical,
@@ -639,12 +639,46 @@ class _RipplesScreenState extends State<RipplesScreen> {
               value = _pageController.page! - index;
             }
             final scale = 1.0 - (value.abs() * 0.2).clamp(0.0, 1.0);
+            
+            final videoPlayer = RippleVideoPlayer(
+              rippleId: ripples[index]['id'],
+              videoUrl: ripples[index]['video_url'],
+              isPlaying: _currentIndex == index,
+            );
+
+            if (!isM3E) {
+              return Transform.scale(
+                scale: scale,
+                child: videoPlayer,
+              );
+            }
+
+            // M3E Enclosed Card Style
             return Transform.scale(
               scale: scale,
-              child: RippleVideoPlayer(
-                rippleId: ripples[index]['id'],
-                videoUrl: ripples[index]['video_url'],
-                isPlaying: _currentIndex == index,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 110, 12, 100), // Space for top buttons and bottom pill
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: disableTransparency 
+                        ? colorScheme.surfaceContainerHigh 
+                        : colorScheme.surfaceContainerLow.withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(36),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.4),
+                        blurRadius: 30,
+                        offset: const Offset(0, 15),
+                      )
+                    ],
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: videoPlayer,
+                ),
               ),
             );
           },

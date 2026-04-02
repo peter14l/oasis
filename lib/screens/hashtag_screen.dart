@@ -3,6 +3,8 @@ import 'package:oasis_v2/models/hashtag.dart';
 import 'package:oasis_v2/models/post.dart';
 import 'package:oasis_v2/services/hashtag_service.dart';
 import 'package:oasis_v2/widgets/post_card.dart';
+import 'package:oasis_v2/widgets/comments_modal.dart';
+import 'package:oasis_v2/widgets/share_sheet.dart';
 
 class HashtagScreen extends StatefulWidget {
   final String tag;
@@ -99,6 +101,46 @@ class _HashtagScreenState extends State<HashtagScreen> {
       likes: data['likes_count'] as int? ?? 0,
       comments: data['comments_count'] as int? ?? 0,
       shares: data['shares_count'] as int? ?? 0,
+      isLiked: data['is_liked'] as bool? ?? false,
+      isBookmarked: data['is_bookmarked'] as bool? ?? false,
+    );
+  }
+
+  void _handleLike(Post post) {
+    final index = _posts.indexWhere((p) => p.id == post.id);
+    if (index == -1) return;
+
+    setState(() {
+      _posts[index] = post.copyWith(
+        isLiked: !post.isLiked,
+        likes: post.isLiked ? post.likes - 1 : post.likes + 1,
+      );
+    });
+
+    // TODO: Call post service like endpoint
+    // For now, just update local state (optimistic update)
+  }
+
+  void _handleComment(Post post) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => CommentsModal(postId: post.id),
+    );
+  }
+
+  void _handleShare(Post post) {
+    final shareText = post.content ?? '#${widget.tag}';
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => ShareSheet(
+            title: 'Share Post',
+            payload: shareText,
+            externalMessage: post.imageUrl,
+          ),
     );
   }
 
@@ -171,9 +213,9 @@ class _HashtagScreenState extends State<HashtagScreen> {
 
                         return PostCard(
                           post: _posts[index],
-                          onLike: () {}, // TODO: Implement
-                          onComment: () {}, // TODO: Implement
-                          onShare: () {}, // TODO: Implement
+                          onLike: () => _handleLike(_posts[index]),
+                          onComment: () => _handleComment(_posts[index]),
+                          onShare: () => _handleShare(_posts[index]),
                         );
                       }, childCount: _posts.length + 1),
                     ),

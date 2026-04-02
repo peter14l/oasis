@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CacheService {
@@ -48,6 +49,17 @@ class CacheService {
       return decoded.cast<Map<String, dynamic>>();
     } catch (e) {
       return [];
+    }
+  }
+
+  /// Clear all cached data
+  Future<void> clearAll() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_feedKey);
+      await prefs.remove(_storiesKey);
+    } catch (e) {
+      debugPrint('Error clearing cache: $e');
     }
   }
 }

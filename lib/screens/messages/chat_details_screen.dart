@@ -15,6 +15,7 @@ import 'package:oasis_v2/services/signal/signal_service.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
@@ -667,6 +668,8 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
 
     final canPop = Navigator.of(context).canPop();
 
@@ -1070,11 +1073,15 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     required double value,
     required Function(double) onChanged,
   }) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          Icon(icon, size: 24, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          Icon(icon, size: 24, color: colorScheme.onSurfaceVariant),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -1082,20 +1089,53 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                  style: TextStyle(
+                    fontWeight: isM3E ? FontWeight.bold : FontWeight.w500, 
+                    fontSize: 14,
+                    letterSpacing: isM3E ? -0.2 : null,
+                  ),
                 ),
-                Slider(
-                  value: value,
-                  onChanged: onChanged,
-                  min: 0.0,
-                  max: 1.0,
-                ),
+                isM3E 
+                  ? SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        trackHeight: 12,
+                        activeTrackColor: colorScheme.primary,
+                        inactiveTrackColor: colorScheme.surfaceContainerHighest,
+                        thumbColor: colorScheme.onPrimary,
+                        overlayColor: colorScheme.primary.withValues(alpha: 0.1),
+                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10, elevation: 2),
+                        trackShape: const RoundedRectSliderTrackShape(),
+                      ),
+                      child: Slider(
+                        value: value,
+                        onChanged: onChanged,
+                        min: 0.0,
+                        max: 1.0,
+                      ),
+                    )
+                  : Slider(
+                      value: value,
+                      onChanged: onChanged,
+                      min: 0.0,
+                      max: 1.0,
+                    ),
               ],
             ),
           ),
-          Text(
-            '${(value * 100).toInt()}%',
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: isM3E ? BoxDecoration(
+              color: colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(8),
+            ) : null,
+            child: Text(
+              '${(value * 100).toInt()}%',
+              style: TextStyle(
+                fontSize: 12, 
+                fontWeight: FontWeight.bold,
+                color: isM3E ? colorScheme.onPrimaryContainer : null,
+              ),
+            ),
           ),
         ],
       ),

@@ -293,13 +293,14 @@ class AuthService with ChangeNotifier {
   }
 
   // Sign in with Google
-  Future<app_models.AppUser> signInWithGoogle() async {
+  Future<app_models.AppUser> signInWithGoogle({bool forceSignIn = false}) async {
     try {
       String? idToken;
       String? accessToken;
 
       if (!kIsWeb && Platform.isWindows) {
         // Desktop Flow
+        // We might need to manually trigger sign-in with prompt=select_account if supported by the package
         final response = await _googleSignInDesktop.signIn();
         if (response == null) {
           throw AuthException('Google sign in was cancelled');
@@ -308,7 +309,15 @@ class AuthService with ChangeNotifier {
         accessToken = response.accessToken;
       } else {
         // Mobile/Web Flow
-        final googleUser = await _googleSignIn.signIn();
+        GoogleSignInAccount? googleUser;
+        
+        if (forceSignIn) {
+          await _googleSignIn.signOut(); // Ensure we don't auto-sign in
+          googleUser = await _googleSignIn.signIn();
+        } else {
+          googleUser = await _googleSignIn.signInSilently() ?? await _googleSignIn.signIn();
+        }
+
         if (googleUser == null) {
           throw AuthException('Google sign in was cancelled');
         }
