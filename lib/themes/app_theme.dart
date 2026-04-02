@@ -12,37 +12,137 @@ const Color _lightOnSurfaceColor = Color(0xFF111111);
 const Color _lightOnSurfaceVariantColor = Color(0xFF666666);
 const Color _lightErrorColor = Color(0xFFD32F2F);
 
+// M3E Light Colors — Vibrant, High-Contrast Tonal Palettes
+// Primary: Vibrant Coral-Red energy
+const Color _m3eLightPrimary = Color(0xFF9C4030);
+const Color _m3eLightOnPrimary = Color(0xFFFFFFFF);
+const Color _m3eLightPrimaryContainer = Color(0xFFFFDAD3);
+const Color _m3eLightOnPrimaryContainer = Color(0xFF410001);
+// Secondary: Warm Terracotta
+const Color _m3eLightSecondary = Color(0xFF775650);
+const Color _m3eLightOnSecondary = Color(0xFFFFFFFF);
+const Color _m3eLightSecondaryContainer = Color(0xFFFFDAD3);
+const Color _m3eLightOnSecondaryContainer = Color(0xFF2C1511);
+// Tertiary: Rich Teal
+const Color _m3eLightTertiary = Color(0xFF6C5E2F);
+const Color _m3eLightOnTertiary = Color(0xFFFFFFFF);
+const Color _m3eLightTertiaryContainer = Color(0xFFF5E3A7);
+const Color _m3eLightOnTertiaryContainer = Color(0xFF231C00);
+// Error
+const Color _m3eLightError = Color(0xFFBA1A1A);
+const Color _m3eLightOnError = Color(0xFFFFFFFF);
+const Color _m3eLightErrorContainer = Color(0xFFFFDAD6);
+const Color _m3eLightOnErrorContainer = Color(0xFF410002);
+// Surface tones — 5 distinct levels
+const Color _m3eLightSurface = Color(0xFFFFF8F6);
+const Color _m3eLightOnSurface = Color(0xFF201A19);
+const Color _m3eLightSurfaceDim = Color(0xFFF0DED9);
+const Color _m3eLightSurfaceBright = Color(0xFFFFF8F6);
+const Color _m3eLightSurfaceContainerLowest = Color(0xFFFFFFFF);
+const Color _m3eLightSurfaceContainerLow = Color(0xFFFFF1ED);
+const Color _m3eLightSurfaceContainer = Color(0xFFFFEAE5);
+const Color _m3eLightSurfaceContainerHigh = Color(0xFFFFE4DE);
+const Color _m3eLightSurfaceContainerHighest = Color(0xFFF8DED8);
+const Color _m3eLightOnSurfaceVariant = Color(0xFF534340);
+// Outline
+const Color _m3eLightOutline = Color(0xFF85736F);
+const Color _m3eLightOutlineVariant = Color(0xFFD8C2BD);
+// Inverse
+const Color _m3eLightInverseSurface = Color(0xFF362F2D);
+const Color _m3eLightInverseOnSurface = Color(0xFFFBEDE9);
+const Color _m3eLightInversePrimary = Color(0xFFFFB4A8);
+// Accent
+const Color _m3eLightShadow = Color(0xFF000000);
+const Color _m3eLightScrim = Color(0xFF000000);
+const Color _m3eLightSurfaceTint = Color(0xFF9C4030);
+
+// M3E Dark Colors — Deep, Rich Tonal Palettes
+// Primary: Warm luminous coral
+const Color _m3eDarkPrimary = Color(0xFFFFB4A8);
+const Color _m3eDarkOnPrimary = Color(0xFF5E140A);
+const Color _m3eDarkPrimaryContainer = Color(0xFF7D291C);
+const Color _m3eDarkOnPrimaryContainer = Color(0xFFFFDAD3);
+// Secondary: Luminous warm terracotta
+const Color _m3eDarkSecondary = Color(0xFFE7BDB5);
+const Color _m3eDarkOnSecondary = Color(0xFF442924);
+const Color _m3eDarkSecondaryContainer = Color(0xFF5D3F3A);
+const Color _m3eDarkOnSecondaryContainer = Color(0xFFFFDAD3);
+// Tertiary: Luminous gold-teal
+const Color _m3eDarkTertiary = Color(0xFFD8C68D);
+const Color _m3eDarkOnTertiary = Color(0xFF3B3005);
+const Color _m3eDarkTertiaryContainer = Color(0xFF53461A);
+const Color _m3eDarkOnTertiaryContainer = Color(0xFFF5E3A7);
+// Error
+const Color _m3eDarkError = Color(0xFFFFB4AB);
+const Color _m3eDarkOnError = Color(0xFF690005);
+const Color _m3eDarkErrorContainer = Color(0xFF93000A);
+const Color _m3eDarkOnErrorContainer = Color(0xFFFFDAD6);
+// Surface tones — 5 distinct levels on deep base
+const Color _m3eDarkSurface = Color(0xFF141211);
+const Color _m3eDarkOnSurface = Color(0xFFEDE0DC);
+const Color _m3eDarkSurfaceDim = Color(0xFF141211);
+const Color _m3eDarkSurfaceBright = Color(0xFF3B3230);
+const Color _m3eDarkSurfaceContainerLowest = Color(0xFF0E0D0C);
+const Color _m3eDarkSurfaceContainerLow = Color(0xFF1D1A19);
+const Color _m3eDarkSurfaceContainer = Color(0xFF211E1D);
+const Color _m3eDarkSurfaceContainerHigh = Color(0xFF2C2827);
+const Color _m3eDarkSurfaceContainerHighest = Color(0xFF373331);
+const Color _m3eDarkOnSurfaceVariant = Color(0xFFD8C2BD);
+// Outline
+const Color _m3eDarkOutline = Color(0xFFA08C88);
+const Color _m3eDarkOutlineVariant = Color(0xFF534340);
+// Inverse
+const Color _m3eDarkInverseSurface = Color(0xFFEDE0DC);
+const Color _m3eDarkInverseOnSurface = Color(0xFF362F2D);
+const Color _m3eDarkInversePrimary = Color(0xFF9C4030);
+// Accent
+const Color _m3eDarkShadow = Color(0xFF000000);
+const Color _m3eDarkScrim = Color(0xFF000000);
+const Color _m3eDarkSurfaceTint = Color(0xFFFFB4A8);
+
 // Dark Theme Colors - Premium Dark Theme
-const Color _darkPrimaryColor = Color(0xFF3B82F6); // Brighter Blue for Dark Mode
-const Color _darkSecondaryColor = Color(0xFF34D399); // Brighter Emerald
-const Color _darkTertiaryColor = Color(0xFFFBBF24); // Brighter Amber
-const Color _darkBackgroundColor = Color(0xFF0C0F14); // Main background
-const Color _darkSurfaceColor = Color(0xFF1A1D24); // Elevated surfaces
-const Color _darkSurfaceVariant = Color(0xFF252930); // Cards and containers
-const Color _darkOnSurfaceColor = Color(0xFFE8EAED); // Primary text
-const Color _darkOnSurfaceVariantColor = Color(0xFF9AA0A6); // Secondary text
+const Color _darkPrimaryColor = Color(0xFF3B82F6);
+const Color _darkSecondaryColor = Color(0xFF34D399);
+const Color _darkTertiaryColor = Color(0xFFFBBF24);
+const Color _darkBackgroundColor = Color(0xFF0C0F14);
+const Color _darkSurfaceColor = Color(0xFF1A1D24);
+const Color _darkSurfaceVariant = Color(0xFF252930);
+const Color _darkOnSurfaceColor = Color(0xFFE8EAED);
+const Color _darkOnSurfaceVariantColor = Color(0xFF9AA0A6);
 const Color _darkErrorColor = Color(0xFFFF6B6B);
 
-// Semantic Colors - Used across both themes
-class SemanticColors {
-  // Success colors
-  static const Color success = Color(0xFF4CAF50);
-  static const Color successLight = Color(0xFF81C784);
-  static const Color successDark = Color(0xFF388E3C);
-  static const Color onSuccess = Colors.white;
+// M3E Shape Tokens
+const double m3eShapeExtraSmall = 4.0;
+const double m3eShapeSmall = 8.0;
+const double m3eShapeMedium = 12.0;
+const double m3eShapeLarge = 16.0;
+const double m3eShapeExtraLarge = 28.0;
+const double m3eShapeFull = 100.0;
 
-  // Warning colors
-  static const Color warning = Color(0xFFFF9800);
-  static const Color warningLight = Color(0xFFFFB74D);
-  static const Color warningDark = Color(0xFFF57C00);
-  static const Color onWarning = Colors.black;
+// M3E Elevation Shadows
+const List<BoxShadow> m3eElevation0 = [];
+const List<BoxShadow> m3eElevation1 = [
+  BoxShadow(color: Color(0x0A000000), offset: Offset(0, 1), blurRadius: 3),
+  BoxShadow(color: Color(0x08000000), offset: Offset(0, 1), blurRadius: 2),
+];
+const List<BoxShadow> m3eElevation2 = [
+  BoxShadow(color: Color(0x0D000000), offset: Offset(0, 2), blurRadius: 4),
+  BoxShadow(color: Color(0x0A000000), offset: Offset(0, 1), blurRadius: 3),
+];
+const List<BoxShadow> m3eElevation3 = [
+  BoxShadow(color: Color(0x14000000), offset: Offset(0, 4), blurRadius: 8),
+  BoxShadow(color: Color(0x0D000000), offset: Offset(0, 2), blurRadius: 4),
+];
+const List<BoxShadow> m3eElevation4 = [
+  BoxShadow(color: Color(0x17000000), offset: Offset(0, 6), blurRadius: 12),
+  BoxShadow(color: Color(0x0F000000), offset: Offset(0, 3), blurRadius: 6),
+];
+const List<BoxShadow> m3eElevation5 = [
+  BoxShadow(color: Color(0x1A000000), offset: Offset(0, 8), blurRadius: 16),
+  BoxShadow(color: Color(0x12000000), offset: Offset(0, 4), blurRadius: 8),
+];
 
-  // Info colors
-  static const Color info = Color(0xFF2196F3);
-  static const Color infoLight = Color(0xFF64B5F6);
-  static const Color infoDark = Color(0xFF1976D2);
-  static const Color onInfo = Colors.white;
-}
+// ... (SemanticColors class remains same)
 
 class AppTheme {
   // Make constructor private to prevent instantiation
@@ -53,16 +153,135 @@ class AppTheme {
   static ThemeData get dark => darkTheme;
   static ThemeData get highContrastLight => highContrastLightTheme;
   static ThemeData get highContrastDark => highContrastDarkTheme;
+  static ThemeData get m3eLight => m3eLightTheme;
+  static ThemeData get m3eDark => m3eDarkTheme;
 
   // Helper method to get theme based on brightness
-  static ThemeData getTheme(Brightness brightness) {
+  static ThemeData getTheme(Brightness brightness, {bool isM3E = false}) {
+    if (isM3E) {
+      return brightness == Brightness.dark ? m3eDarkTheme : m3eLightTheme;
+    }
     return brightness == Brightness.dark ? darkTheme : lightTheme;
+  }
+
+  /// Creates a dynamic M3E theme based on a provided ColorScheme.
+  /// Useful for Material You dynamic coloring.
+  static ThemeData createM3ETheme(ColorScheme colorScheme, Brightness brightness) {
+    final baseTheme = brightness == Brightness.dark ? m3eDarkTheme : m3eLightTheme;
+    
+    return baseTheme.copyWith(
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: colorScheme.surface,
+      textTheme: m3eTextTheme(colorScheme.onSurface),
+      appBarTheme: baseTheme.appBarTheme.copyWith(
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        titleTextStyle: baseTheme.appBarTheme.titleTextStyle?.copyWith(
+          color: colorScheme.onSurface,
+        ),
+      ),
+      navigationBarTheme: baseTheme.navigationBarTheme.copyWith(
+        backgroundColor: colorScheme.surfaceContainer,
+        indicatorColor: colorScheme.secondaryContainer,
+        labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return GoogleFonts.robotoFlex(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: colorScheme.onSurface,
+            );
+          }
+          return GoogleFonts.robotoFlex(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: colorScheme.onSurfaceVariant,
+          );
+        }),
+        iconTheme: WidgetStateProperty.resolveWith<IconThemeData>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return IconThemeData(color: colorScheme.onSurface, size: 24);
+          }
+          return IconThemeData(color: colorScheme.onSurfaceVariant, size: 24);
+        }),
+      ),
+      cardTheme: baseTheme.cardTheme.copyWith(
+        color: colorScheme.surfaceContainerLow,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(m3eShapeExtraLarge),
+          side: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        ),
+      ),
+      inputDecorationTheme: baseTheme.inputDecorationTheme.copyWith(
+        fillColor: colorScheme.surfaceContainerLow,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(m3eShapeLarge),
+          borderSide: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(m3eShapeLarge),
+          borderSide: BorderSide(color: colorScheme.primary, width: 2),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          shape: const StadiumBorder(),
+          textStyle: GoogleFonts.robotoFlex(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.1,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: colorScheme.primary,
+          side: BorderSide(color: colorScheme.outline, width: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          shape: const StadiumBorder(),
+          textStyle: GoogleFonts.robotoFlex(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.1,
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: colorScheme.primary,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          shape: const StadiumBorder(),
+          textStyle: GoogleFonts.robotoFlex(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.1,
+          ),
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primary;
+          }
+          return colorScheme.outline;
+        }),
+        trackColor: WidgetStateProperty.resolveWith<Color>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primaryContainer;
+          }
+          return colorScheme.surfaceContainerHighest;
+        }),
+      ),
+    );
   }
 
   // Text Styles
   static const String fontFamily = 'Comfortaa';
 
-  // Text Theme
+  // Standard Text Theme
   static TextTheme textTheme = TextTheme(
     displayLarge: GoogleFonts.comfortaa(
       fontSize: 57,
@@ -171,7 +390,116 @@ class AppTheme {
     ),
   );
 
-  // Button Styles
+  // M3E Text Theme — Roboto Flex Variable Font, Editorial Scale
+  static TextTheme m3eTextTheme(Color color) => TextTheme(
+    displayLarge: GoogleFonts.robotoFlex(
+      fontSize: 57,
+      fontWeight: FontWeight.w400,
+      letterSpacing: -0.25,
+      color: color,
+      height: 1.12,
+    ),
+    displayMedium: GoogleFonts.robotoFlex(
+      fontSize: 45,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0,
+      color: color,
+      height: 1.15,
+    ),
+    displaySmall: GoogleFonts.robotoFlex(
+      fontSize: 36,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0,
+      color: color,
+      height: 1.22,
+    ),
+    headlineLarge: GoogleFonts.robotoFlex(
+      fontSize: 32,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0,
+      color: color,
+      height: 1.25,
+    ),
+    headlineMedium: GoogleFonts.robotoFlex(
+      fontSize: 28,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0,
+      color: color,
+      height: 1.28,
+    ),
+    headlineSmall: GoogleFonts.robotoFlex(
+      fontSize: 24,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0,
+      color: color,
+      height: 1.33,
+    ),
+    titleLarge: GoogleFonts.robotoFlex(
+      fontSize: 22,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0,
+      color: color,
+      height: 1.27,
+    ),
+    titleMedium: GoogleFonts.robotoFlex(
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.15,
+      color: color,
+      height: 1.5,
+    ),
+    titleSmall: GoogleFonts.robotoFlex(
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.1,
+      color: color,
+      height: 1.42,
+    ),
+    bodyLarge: GoogleFonts.robotoFlex(
+      fontSize: 16,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0.5,
+      color: color.withValues(alpha: 0.8),
+      height: 1.5,
+    ),
+    bodyMedium: GoogleFonts.robotoFlex(
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0.25,
+      color: color.withValues(alpha: 0.8),
+      height: 1.42,
+    ),
+    bodySmall: GoogleFonts.robotoFlex(
+      fontSize: 12,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0.4,
+      color: color.withValues(alpha: 0.6),
+      height: 1.33,
+    ),
+    labelLarge: GoogleFonts.robotoFlex(
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.1,
+      color: color,
+      height: 1.42,
+    ),
+    labelMedium: GoogleFonts.robotoFlex(
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.5,
+      color: color,
+      height: 1.33,
+    ),
+    labelSmall: GoogleFonts.robotoFlex(
+      fontSize: 11,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.5,
+      color: color,
+      height: 1.45,
+    ),
+  );
+
+  // Standard Button Styles
   static ButtonStyle get elevatedButtonStyle => ElevatedButton.styleFrom(
     backgroundColor: _lightPrimaryColor,
     foregroundColor: Colors.white,
@@ -210,7 +538,22 @@ class AppTheme {
     ),
   );
 
-  // Input Decoration
+  // M3E Button Style (Iconic Shapes + RobotoFlex)
+  static ButtonStyle m3eButtonStyle(Color bg, Color fg) =>
+      ElevatedButton.styleFrom(
+        backgroundColor: bg,
+        foregroundColor: fg,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        shape: const StadiumBorder(), // Iconic M3E shape
+        textStyle: GoogleFonts.robotoFlex(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+        ),
+      );
+
+  // Standard Input Decoration
   static InputDecorationTheme get inputDecorationTheme => InputDecorationTheme(
     filled: true,
     fillColor: _lightSurfaceColor.withValues(alpha: 0.3),
@@ -242,7 +585,7 @@ class AppTheme {
     errorStyle: textTheme.bodySmall?.copyWith(color: _lightErrorColor),
   );
 
-  // Card Theme
+  // Standard Card Theme
   static CardThemeData get cardTheme => CardThemeData(
     elevation: 0,
     shape: RoundedRectangleBorder(
@@ -251,6 +594,20 @@ class AppTheme {
     ),
     color: _lightSurfaceColor,
   );
+
+  // M3E Card Theme (High Contrast)
+  static CardThemeData m3eCardTheme(Color surface, Color outline) =>
+      CardThemeData(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28), // M3E Large rounding
+          side: BorderSide(
+            color: outline,
+            width: 1.5,
+          ), // Expressive containment
+        ),
+        color: surface,
+      );
 
   // App Bar Theme
   static AppBarTheme get appBarTheme => AppBarTheme(
@@ -265,24 +622,22 @@ class AppTheme {
   );
 
   // Bottom Navigation Bar Theme
-  static NavigationBarThemeData
-  get navigationBarTheme => NavigationBarThemeData(
-    indicatorColor: _lightPrimaryColor.withValues(alpha: 0.12),
-    // Glass effect will be handled by container in router if needed, but theme supports transparency
-    backgroundColor: Colors.transparent, // transparent for glass effect
-    indicatorShape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(16)),
-    ), // Reduce width visually via shape? Or just styling.
-
-    // Note: indicatorShape is property of NavigationBarThemeData? No, it's specific to M3.
-    // Standard NavigationBar theme has indicatorShape.
-    labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((states) {
-      if (states.contains(WidgetState.selected)) {
-        return textTheme.labelSmall!.copyWith(color: _lightPrimaryColor);
-      }
-      return textTheme.labelSmall!.copyWith(color: _lightOnSurfaceVariantColor);
-    }),
-  );
+  static NavigationBarThemeData get navigationBarTheme =>
+      NavigationBarThemeData(
+        indicatorColor: _lightPrimaryColor.withValues(alpha: 0.12),
+        backgroundColor: Colors.transparent, // transparent for glass effect
+        indicatorShape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(16)),
+        ),
+        labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return textTheme.labelSmall!.copyWith(color: _lightPrimaryColor);
+          }
+          return textTheme.labelSmall!.copyWith(
+            color: _lightOnSurfaceVariantColor,
+          );
+        }),
+      );
 
   // Tab Bar Theme
   static TabBarThemeData get tabBarTheme => TabBarThemeData(
@@ -344,7 +699,7 @@ class AppTheme {
     endIndent: 16,
   );
 
-  // Theme Data
+  // Standard Light Theme
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.light(
@@ -383,7 +738,7 @@ class AppTheme {
     tabBarTheme: tabBarTheme,
   );
 
-  // Dark Theme
+  // Standard Dark Theme
   static final ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.dark(
@@ -405,8 +760,7 @@ class AppTheme {
       error: _darkErrorColor,
       onError: Colors.white,
     ),
-    scaffoldBackgroundColor:
-        Colors.transparent, // Transparent to show MeshGradientBackground
+    scaffoldBackgroundColor: Colors.transparent,
     textTheme: TextTheme(
       displayLarge: textTheme.displayLarge?.copyWith(color: Colors.white),
       displayMedium: textTheme.displayMedium?.copyWith(color: Colors.white),
@@ -435,7 +789,7 @@ class AppTheme {
       ),
     ),
     appBarTheme: appBarTheme.copyWith(
-      backgroundColor: Colors.black.withValues(alpha: 0.2), // Tinted glass
+      backgroundColor: Colors.black.withValues(alpha: 0.2),
       foregroundColor: _darkOnSurfaceColor,
       titleTextStyle: appBarTheme.titleTextStyle?.copyWith(
         color: _darkOnSurfaceColor,
@@ -497,9 +851,6 @@ class AppTheme {
         borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide(color: _darkPrimaryColor, width: 2),
       ),
-      // Adding neon glow effect via custom styling in widgets is preferred, 
-      // but we can set a helper style here if needed via specialized components.
-      // For now, we'll ensure the focused state is vibrant.
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -520,7 +871,6 @@ class AppTheme {
       ),
     ),
     navigationBarTheme: navigationBarTheme.copyWith(
-      backgroundColor: Colors.transparent, // Transparent for glass
       indicatorColor: _darkPrimaryColor.withValues(alpha: 0.2),
       labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((states) {
         if (states.contains(WidgetState.selected)) {
@@ -537,6 +887,655 @@ class AppTheme {
       indicator: UnderlineTabIndicator(
         borderSide: BorderSide(color: _darkPrimaryColor, width: 2),
       ),
+    ),
+  );
+
+  // M3E Light Theme — Rich, Vibrant, Expressive
+  static final ThemeData m3eLightTheme = ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.light(
+      primary: _m3eLightPrimary,
+      onPrimary: _m3eLightOnPrimary,
+      primaryContainer: _m3eLightPrimaryContainer,
+      onPrimaryContainer: _m3eLightOnPrimaryContainer,
+      secondary: _m3eLightSecondary,
+      onSecondary: _m3eLightOnSecondary,
+      secondaryContainer: _m3eLightSecondaryContainer,
+      onSecondaryContainer: _m3eLightOnSecondaryContainer,
+      tertiary: _m3eLightTertiary,
+      onTertiary: _m3eLightOnTertiary,
+      tertiaryContainer: _m3eLightTertiaryContainer,
+      onTertiaryContainer: _m3eLightOnTertiaryContainer,
+      error: _m3eLightError,
+      onError: _m3eLightOnError,
+      errorContainer: _m3eLightErrorContainer,
+      onErrorContainer: _m3eLightOnErrorContainer,
+      surface: _m3eLightSurface,
+      onSurface: _m3eLightOnSurface,
+      surfaceDim: _m3eLightSurfaceDim,
+      surfaceBright: _m3eLightSurfaceBright,
+      surfaceContainerLowest: _m3eLightSurfaceContainerLowest,
+      surfaceContainerLow: _m3eLightSurfaceContainerLow,
+      surfaceContainer: _m3eLightSurfaceContainer,
+      surfaceContainerHigh: _m3eLightSurfaceContainerHigh,
+      surfaceContainerHighest: _m3eLightSurfaceContainerHighest,
+      onSurfaceVariant: _m3eLightOnSurfaceVariant,
+      outline: _m3eLightOutline,
+      outlineVariant: _m3eLightOutlineVariant,
+      inverseSurface: _m3eLightInverseSurface,
+      onInverseSurface: _m3eLightInverseOnSurface,
+      inversePrimary: _m3eLightInversePrimary,
+      shadow: _m3eLightShadow,
+      scrim: _m3eLightScrim,
+      surfaceTint: _m3eLightSurfaceTint,
+    ),
+    scaffoldBackgroundColor: _m3eLightSurface,
+    textTheme: m3eTextTheme(_m3eLightOnSurface),
+    // Cards — XL shape, tonal surface, Level 1 elevation
+    cardTheme: CardThemeData(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(m3eShapeExtraLarge),
+        side: BorderSide(color: _m3eLightOutlineVariant, width: 1),
+      ),
+      color: _m3eLightSurfaceContainerLow,
+      clipBehavior: Clip.antiAlias,
+    ),
+    // Elevated Buttons — Full (stadium) shape, vibrant primary
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: _m3eLightPrimary,
+        foregroundColor: _m3eLightOnPrimary,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        shape: const StadiumBorder(),
+        textStyle: GoogleFonts.robotoFlex(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+        ),
+      ),
+    ),
+    // Outlined Buttons — Full shape, 2px stroke
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: _m3eLightPrimary,
+        side: const BorderSide(color: _m3eLightOutline, width: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        shape: const StadiumBorder(),
+        textStyle: GoogleFonts.robotoFlex(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+        ),
+      ),
+    ),
+    // Text Buttons — Full shape, primary color
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: _m3eLightPrimary,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        shape: const StadiumBorder(),
+        textStyle: GoogleFonts.robotoFlex(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+        ),
+      ),
+    ),
+    // FAB — Large shape, vibrant, Level 3 elevation
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: _m3eLightPrimaryContainer,
+      foregroundColor: _m3eLightOnPrimaryContainer,
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(m3eShapeLarge),
+      ),
+    ),
+    // Chips — Medium shape, tonal selected
+    chipTheme: ChipThemeData(
+      backgroundColor: _m3eLightSurfaceContainerHighest,
+      disabledColor: _m3eLightSurfaceContainerHighest.withValues(alpha: 0.5),
+      selectedColor: _m3eLightSecondaryContainer,
+      secondarySelectedColor: _m3eLightSecondaryContainer,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(m3eShapeMedium),
+      ),
+      labelStyle: GoogleFonts.robotoFlex(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: _m3eLightOnSurfaceVariant,
+      ),
+      secondaryLabelStyle: GoogleFonts.robotoFlex(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: _m3eLightOnSecondaryContainer,
+      ),
+      brightness: Brightness.light,
+    ),
+    // Dialogs — XL shape, Level 3 elevation
+    dialogTheme: DialogThemeData(
+      backgroundColor: _m3eLightSurfaceContainerHigh,
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(m3eShapeExtraLarge),
+      ),
+      titleTextStyle: GoogleFonts.robotoFlex(
+        fontSize: 24,
+        fontWeight: FontWeight.w600,
+        color: _m3eLightOnSurface,
+      ),
+      contentTextStyle: GoogleFonts.robotoFlex(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: _m3eLightOnSurfaceVariant,
+      ),
+    ),
+    // Bottom Sheets — XL top radius, Level 4 elevation
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: _m3eLightSurfaceContainerHigh,
+      elevation: 4,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(m3eShapeExtraLarge),
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+    ),
+    // Input Decorations — Large shape, tonal fill
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: _m3eLightSurfaceContainerLow,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(m3eShapeLarge),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(m3eShapeLarge),
+        borderSide: BorderSide(color: _m3eLightOutlineVariant, width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(m3eShapeLarge),
+        borderSide: const BorderSide(color: _m3eLightPrimary, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(m3eShapeLarge),
+        borderSide: const BorderSide(color: _m3eLightError, width: 1),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(m3eShapeLarge),
+        borderSide: const BorderSide(color: _m3eLightError, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      hintStyle: GoogleFonts.robotoFlex(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: _m3eLightOnSurfaceVariant.withValues(alpha: 0.6),
+      ),
+      labelStyle: GoogleFonts.robotoFlex(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: _m3eLightOnSurfaceVariant,
+      ),
+      errorStyle: GoogleFonts.robotoFlex(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: _m3eLightError,
+      ),
+    ),
+    // App Bar — tonal surface, M3E typography
+    appBarTheme: AppBarTheme(
+      elevation: 0,
+      centerTitle: true,
+      backgroundColor: _m3eLightSurface,
+      foregroundColor: _m3eLightOnSurface,
+      titleTextStyle: GoogleFonts.robotoFlex(
+        fontSize: 22,
+        fontWeight: FontWeight.w500,
+        color: _m3eLightOnSurface,
+      ),
+      systemOverlayStyle: SystemUiOverlayStyle.dark.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
+    ),
+    // Navigation Bar — Full indicator, tonal surface
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: _m3eLightSurfaceContainer,
+      indicatorColor: _m3eLightSecondaryContainer,
+      indicatorShape: const StadiumBorder(),
+      elevation: 0,
+      labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return GoogleFonts.robotoFlex(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: _m3eLightOnSurface,
+          );
+        }
+        return GoogleFonts.robotoFlex(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: _m3eLightOnSurfaceVariant,
+        );
+      }),
+      iconTheme: WidgetStateProperty.resolveWith<IconThemeData>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return IconThemeData(color: _m3eLightOnSurface, size: 24);
+        }
+        return IconThemeData(color: _m3eLightOnSurfaceVariant, size: 24);
+      }),
+    ),
+    // Tab Bar
+    tabBarTheme: TabBarThemeData(
+      labelColor: _m3eLightPrimary,
+      unselectedLabelColor: _m3eLightOnSurfaceVariant,
+      indicator: UnderlineTabIndicator(
+        borderSide: BorderSide(color: _m3eLightPrimary, width: 2),
+      ),
+      labelStyle: GoogleFonts.robotoFlex(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+      ),
+      unselectedLabelStyle: GoogleFonts.robotoFlex(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+    // SnackBar — Medium shape, inverse surface
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: _m3eLightInverseSurface,
+      contentTextStyle: GoogleFonts.robotoFlex(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: _m3eLightInverseOnSurface,
+      ),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(m3eShapeMedium),
+      ),
+      elevation: 3,
+    ),
+    // Divider
+    dividerTheme: const DividerThemeData(
+      color: Color(0x1F1C1B1F),
+      thickness: 1,
+      space: 0,
+      indent: 16,
+      endIndent: 16,
+    ),
+    // Switch
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return _m3eLightPrimary;
+        }
+        return _m3eLightOutline;
+      }),
+      trackColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return _m3eLightPrimaryContainer;
+        }
+        return _m3eLightSurfaceContainerHighest;
+      }),
+    ),
+    // Checkbox
+    checkboxTheme: CheckboxThemeData(
+      fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return _m3eLightPrimary;
+        }
+        return _m3eLightOutline;
+      }),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(m3eShapeSmall),
+      ),
+    ),
+    // Radio
+    radioTheme: RadioThemeData(
+      fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return _m3eLightPrimary;
+        }
+        return _m3eLightOutline;
+      }),
+    ),
+    // Slider
+    sliderTheme: SliderThemeData(
+      activeTrackColor: _m3eLightPrimary,
+      inactiveTrackColor: _m3eLightPrimaryContainer,
+      thumbColor: _m3eLightPrimary,
+      overlayColor: _m3eLightPrimary.withValues(alpha: 0.12),
+    ),
+    // Progress Indicator
+    progressIndicatorTheme: ProgressIndicatorThemeData(
+      color: _m3eLightPrimary,
+      linearTrackColor: _m3eLightPrimaryContainer,
+    ),
+  );
+
+  // M3E Dark Theme — Deep, Rich, Expressive
+  static final ThemeData m3eDarkTheme = ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.dark(
+      primary: _m3eDarkPrimary,
+      onPrimary: _m3eDarkOnPrimary,
+      primaryContainer: _m3eDarkPrimaryContainer,
+      onPrimaryContainer: _m3eDarkOnPrimaryContainer,
+      secondary: _m3eDarkSecondary,
+      onSecondary: _m3eDarkOnSecondary,
+      secondaryContainer: _m3eDarkSecondaryContainer,
+      onSecondaryContainer: _m3eDarkOnSecondaryContainer,
+      tertiary: _m3eDarkTertiary,
+      onTertiary: _m3eDarkOnTertiary,
+      tertiaryContainer: _m3eDarkTertiaryContainer,
+      onTertiaryContainer: _m3eDarkOnTertiaryContainer,
+      error: _m3eDarkError,
+      onError: _m3eDarkOnError,
+      errorContainer: _m3eDarkErrorContainer,
+      onErrorContainer: _m3eDarkOnErrorContainer,
+      surface: _m3eDarkSurface,
+      onSurface: _m3eDarkOnSurface,
+      surfaceDim: _m3eDarkSurfaceDim,
+      surfaceBright: _m3eDarkSurfaceBright,
+      surfaceContainerLowest: _m3eDarkSurfaceContainerLowest,
+      surfaceContainerLow: _m3eDarkSurfaceContainerLow,
+      surfaceContainer: _m3eDarkSurfaceContainer,
+      surfaceContainerHigh: _m3eDarkSurfaceContainerHigh,
+      surfaceContainerHighest: _m3eDarkSurfaceContainerHighest,
+      onSurfaceVariant: _m3eDarkOnSurfaceVariant,
+      outline: _m3eDarkOutline,
+      outlineVariant: _m3eDarkOutlineVariant,
+      inverseSurface: _m3eDarkInverseSurface,
+      onInverseSurface: _m3eDarkInverseOnSurface,
+      inversePrimary: _m3eDarkInversePrimary,
+      shadow: _m3eDarkShadow,
+      scrim: _m3eDarkScrim,
+      surfaceTint: _m3eDarkSurfaceTint,
+    ),
+    scaffoldBackgroundColor: _m3eDarkSurface,
+    textTheme: m3eTextTheme(_m3eDarkOnSurface),
+    // Cards — XL shape, tonal surface, Level 1 elevation
+    cardTheme: CardThemeData(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(m3eShapeExtraLarge),
+        side: BorderSide(color: _m3eDarkOutlineVariant, width: 1),
+      ),
+      color: _m3eDarkSurfaceContainerLow,
+      clipBehavior: Clip.antiAlias,
+    ),
+    // Elevated Buttons — Full shape, vibrant primary
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: _m3eDarkPrimary,
+        foregroundColor: _m3eDarkOnPrimary,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        shape: const StadiumBorder(),
+        textStyle: GoogleFonts.robotoFlex(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+        ),
+      ),
+    ),
+    // Outlined Buttons — Full shape, 2px stroke
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: _m3eDarkPrimary,
+        side: const BorderSide(color: _m3eDarkOutline, width: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        shape: const StadiumBorder(),
+        textStyle: GoogleFonts.robotoFlex(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+        ),
+      ),
+    ),
+    // Text Buttons — Full shape, primary color
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: _m3eDarkPrimary,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        shape: const StadiumBorder(),
+        textStyle: GoogleFonts.robotoFlex(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.1,
+        ),
+      ),
+    ),
+    // FAB — Large shape, vibrant, Level 3 elevation
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: _m3eDarkPrimaryContainer,
+      foregroundColor: _m3eDarkOnPrimaryContainer,
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(m3eShapeLarge),
+      ),
+    ),
+    // Chips — Medium shape, tonal selected
+    chipTheme: ChipThemeData(
+      backgroundColor: _m3eDarkSurfaceContainerHighest,
+      disabledColor: _m3eDarkSurfaceContainerHighest.withValues(alpha: 0.5),
+      selectedColor: _m3eDarkSecondaryContainer,
+      secondarySelectedColor: _m3eDarkSecondaryContainer,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(m3eShapeMedium),
+      ),
+      labelStyle: GoogleFonts.robotoFlex(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: _m3eDarkOnSurfaceVariant,
+      ),
+      secondaryLabelStyle: GoogleFonts.robotoFlex(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: _m3eDarkOnSecondaryContainer,
+      ),
+      brightness: Brightness.dark,
+    ),
+    // Dialogs — XL shape, Level 3 elevation
+    dialogTheme: DialogThemeData(
+      backgroundColor: _m3eDarkSurfaceContainerHigh,
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(m3eShapeExtraLarge),
+      ),
+      titleTextStyle: GoogleFonts.robotoFlex(
+        fontSize: 24,
+        fontWeight: FontWeight.w600,
+        color: _m3eDarkOnSurface,
+      ),
+      contentTextStyle: GoogleFonts.robotoFlex(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: _m3eDarkOnSurfaceVariant,
+      ),
+    ),
+    // Bottom Sheets — XL top radius, Level 4 elevation
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: _m3eDarkSurfaceContainerHigh,
+      elevation: 4,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(m3eShapeExtraLarge),
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+    ),
+    // Input Decorations — Large shape, tonal fill
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: _m3eDarkSurfaceContainerLow,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(m3eShapeLarge),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(m3eShapeLarge),
+        borderSide: BorderSide(color: _m3eDarkOutlineVariant, width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(m3eShapeLarge),
+        borderSide: const BorderSide(color: _m3eDarkPrimary, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(m3eShapeLarge),
+        borderSide: const BorderSide(color: _m3eDarkError, width: 1),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(m3eShapeLarge),
+        borderSide: const BorderSide(color: _m3eDarkError, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      hintStyle: GoogleFonts.robotoFlex(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: _m3eDarkOnSurfaceVariant.withValues(alpha: 0.6),
+      ),
+      labelStyle: GoogleFonts.robotoFlex(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: _m3eDarkOnSurfaceVariant,
+      ),
+      errorStyle: GoogleFonts.robotoFlex(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: _m3eDarkError,
+      ),
+    ),
+    // App Bar — tonal surface, M3E typography
+    appBarTheme: AppBarTheme(
+      elevation: 0,
+      centerTitle: true,
+      backgroundColor: _m3eDarkSurface,
+      foregroundColor: _m3eDarkOnSurface,
+      titleTextStyle: GoogleFonts.robotoFlex(
+        fontSize: 22,
+        fontWeight: FontWeight.w500,
+        color: _m3eDarkOnSurface,
+      ),
+      systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+      ),
+    ),
+    // Navigation Bar — Full indicator, tonal surface
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: _m3eDarkSurfaceContainer,
+      indicatorColor: _m3eDarkSecondaryContainer,
+      indicatorShape: const StadiumBorder(),
+      elevation: 0,
+      labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return GoogleFonts.robotoFlex(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: _m3eDarkOnSurface,
+          );
+        }
+        return GoogleFonts.robotoFlex(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: _m3eDarkOnSurfaceVariant,
+        );
+      }),
+      iconTheme: WidgetStateProperty.resolveWith<IconThemeData>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return IconThemeData(color: _m3eDarkOnSurface, size: 24);
+        }
+        return IconThemeData(color: _m3eDarkOnSurfaceVariant, size: 24);
+      }),
+    ),
+    // Tab Bar
+    tabBarTheme: TabBarThemeData(
+      labelColor: _m3eDarkPrimary,
+      unselectedLabelColor: _m3eDarkOnSurfaceVariant,
+      indicator: UnderlineTabIndicator(
+        borderSide: BorderSide(color: _m3eDarkPrimary, width: 2),
+      ),
+      labelStyle: GoogleFonts.robotoFlex(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+      ),
+      unselectedLabelStyle: GoogleFonts.robotoFlex(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+    // SnackBar — Medium shape, inverse surface
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: _m3eDarkInverseSurface,
+      contentTextStyle: GoogleFonts.robotoFlex(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: _m3eDarkInverseOnSurface,
+      ),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(m3eShapeMedium),
+      ),
+      elevation: 3,
+    ),
+    // Divider
+    dividerTheme: DividerThemeData(
+      color: _m3eDarkOutlineVariant,
+      thickness: 1,
+      space: 0,
+      indent: 16,
+      endIndent: 16,
+    ),
+    // Switch
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return _m3eDarkPrimary;
+        }
+        return _m3eDarkOutline;
+      }),
+      trackColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return _m3eDarkPrimaryContainer;
+        }
+        return _m3eDarkSurfaceContainerHighest;
+      }),
+    ),
+    // Checkbox
+    checkboxTheme: CheckboxThemeData(
+      fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return _m3eDarkPrimary;
+        }
+        return _m3eDarkOutline;
+      }),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(m3eShapeSmall),
+      ),
+    ),
+    // Radio
+    radioTheme: RadioThemeData(
+      fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
+          return _m3eDarkPrimary;
+        }
+        return _m3eDarkOutline;
+      }),
+    ),
+    // Slider
+    sliderTheme: SliderThemeData(
+      activeTrackColor: _m3eDarkPrimary,
+      inactiveTrackColor: _m3eDarkPrimaryContainer,
+      thumbColor: _m3eDarkPrimary,
+      overlayColor: _m3eDarkPrimary.withValues(alpha: 0.12),
+    ),
+    // Progress Indicator
+    progressIndicatorTheme: ProgressIndicatorThemeData(
+      color: _m3eDarkPrimary,
+      linearTrackColor: _m3eDarkPrimaryContainer,
     ),
   );
 

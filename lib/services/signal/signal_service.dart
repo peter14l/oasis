@@ -346,8 +346,14 @@ class SignalService {
         // Proactive: Trigger a refresh and send a SYNC message to fix the other side
         forceRefreshBundle(senderId).then((_) {
           // Send a hidden empty message to force the remote side to rebuild their session
-          encryptMessage(senderId, 'PROTOCOL_SYNC').catchError((e) => debugPrint('[Signal] Sync send failed: $e'));
-        }).catchError((e) => debugPrint('[Signal] Recovery failed: $e'));
+          encryptMessage(senderId, 'PROTOCOL_SYNC').catchError((e) {
+            debugPrint('[Signal] Sync send failed: $e');
+            return Future<CiphertextMessage>.error(e);
+          });
+        }).catchError((e) {
+          debugPrint('[Signal] Recovery failed: $e');
+          return Future<void>.error(e);
+        });
         
         return '🔒 Optimizing secure connection...';
       } else if (errorStr.contains('No valid sessions') || errorStr.contains('InvalidMessageException')) {

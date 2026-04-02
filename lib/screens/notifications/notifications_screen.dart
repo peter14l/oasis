@@ -7,6 +7,7 @@ import 'package:oasis_v2/providers/notification_provider.dart';
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
 
 class NotificationsScreen extends StatefulWidget {
   final bool isPanel;
@@ -57,21 +58,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _clearAll() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear all notifications?'),
-        content: const Text('This action cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Clear all notifications?'),
+            content: const Text('This action cannot be undone.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Clear All'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Clear All'),
-          ),
-        ],
-      ),
     );
 
     if (confirmed == true) {
@@ -226,7 +228,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       onPressed: _clearAll,
                       icon: const Icon(Icons.delete_sweep_outlined, size: 18),
                       label: const Text('Clear all'),
-                      style: TextButton.styleFrom(foregroundColor: colorScheme.error),
+                      style: TextButton.styleFrom(
+                        foregroundColor: colorScheme.error,
+                      ),
                     ),
                   ],
                   const SizedBox(width: 12),
@@ -260,7 +264,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     // Mobile layout OR Panel layout (Simplified)
     return Scaffold(
-      backgroundColor: usePanelLayout ? colorScheme.surface : theme.scaffoldBackgroundColor,
+      backgroundColor:
+          usePanelLayout ? colorScheme.surface : theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: usePanelLayout ? colorScheme.surface : null,
         automaticallyImplyLeading: !usePanelLayout,
@@ -281,41 +286,51 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   setState(() => _showUnreadOnly = !_showUnreadOnly);
                 }
               },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'toggle_unread',
-                  child: Row(
-                    children: [
-                      Icon(_showUnreadOnly ? Icons.visibility : Icons.visibility_off, size: 20),
-                      const SizedBox(width: 12),
-                      Text(_showUnreadOnly ? 'Show All' : 'Unread Only'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'mark_read',
-                  child: Row(
-                    children: [
-                      Icon(Icons.done_all, size: 20),
-                      SizedBox(width: 12),
-                      Text('Mark all read'),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'clear_all',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete_sweep_outlined, 
-                           size: 20, 
-                           color: colorScheme.error),
-                      const SizedBox(width: 12),
-                      Text('Clear all', 
-                           style: TextStyle(color: colorScheme.error)),
-                    ],
-                  ),
-                ),
-              ],
+              itemBuilder:
+                  (context) => [
+                    PopupMenuItem(
+                      value: 'toggle_unread',
+                      child: Row(
+                        children: [
+                          Icon(
+                            _showUnreadOnly
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(_showUnreadOnly ? 'Show All' : 'Unread Only'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'mark_read',
+                      child: Row(
+                        children: [
+                          Icon(Icons.done_all, size: 20),
+                          SizedBox(width: 12),
+                          Text('Mark all read'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'clear_all',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete_sweep_outlined,
+                            size: 20,
+                            color: colorScheme.error,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Clear all',
+                            style: TextStyle(color: colorScheme.error),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
             ),
         ],
       ),
@@ -513,7 +528,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: grouped.length * 2, 
+      itemCount: grouped.length * 2,
       itemBuilder: (context, index) {
         if (index.isEven) {
           final groupIndex = index ~/ 2;
@@ -536,7 +551,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           return Column(
             children:
                 notifications.map((notification) {
-                  return _buildNotificationItem(notification, isDesktop && !usePanelLayout);
+                  return _buildNotificationItem(
+                    notification,
+                    isDesktop && !usePanelLayout,
+                  );
                 }).toList(),
           );
         }
@@ -652,40 +670,71 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget _buildNotificationItem(AppNotification notification, bool isDesktop) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isSelected = isDesktop && _selectedNotification?.id == notification.id;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+    final isSelected =
+        isDesktop && _selectedNotification?.id == notification.id;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: isM3E ? 8 : 12),
       color:
           notification.isRead
-              ? null
-              : colorScheme.primaryContainer.withValues(alpha: 0.3),
-      shape:
-          isSelected
-              ? RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: colorScheme.primary, width: 2),
-              )
-              : null,
+              ? (isM3E ? colorScheme.surfaceContainerLow : null)
+              : (isM3E
+                  ? colorScheme.secondaryContainer
+                  : colorScheme.primaryContainer.withValues(alpha: 0.3)),
+      elevation: isM3E ? 0 : null,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(isM3E ? 20 : 12),
+        side:
+            isSelected
+                ? BorderSide(color: colorScheme.primary, width: 2)
+                : isM3E
+                ? BorderSide(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  width: 1,
+                )
+                : BorderSide.none,
+      ),
       child: ListTile(
-        leading: CircleAvatar(
-          radius: 24,
-          backgroundImage:
-              notification.actorAvatar != null &&
-                      notification.actorAvatar!.isNotEmpty
-                  ? CachedNetworkImageProvider(notification.actorAvatar!)
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: isM3E ? 16 : 16,
+          vertical: isM3E ? 8 : 8,
+        ),
+        leading: Container(
+          padding: isM3E ? EdgeInsets.all(2) : EdgeInsets.zero,
+          decoration:
+              isM3E && !notification.isRead
+                  ? BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: colorScheme.primary, width: 2),
+                  )
                   : null,
-          child:
-              notification.actorAvatar == null ||
-                      notification.actorAvatar!.isEmpty
-                  ? Icon(notification.getNotificationIcon())
-                  : null,
+          child: CircleAvatar(
+            radius: isM3E ? 22 : 24,
+            backgroundImage:
+                notification.actorAvatar != null &&
+                        notification.actorAvatar!.isNotEmpty
+                    ? CachedNetworkImageProvider(notification.actorAvatar!)
+                    : null,
+            backgroundColor: isM3E ? colorScheme.tertiaryContainer : null,
+            child:
+                notification.actorAvatar == null ||
+                        notification.actorAvatar!.isEmpty
+                    ? Icon(
+                      notification.getNotificationIcon(),
+                      size: isM3E ? 20 : 24,
+                    )
+                    : null,
+          ),
         ),
         title: Text(
           notification.getNotificationText(),
           style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight:
-                notification.isRead ? FontWeight.normal : FontWeight.w600,
+                notification.isRead
+                    ? (isM3E ? FontWeight.w400 : FontWeight.normal)
+                    : (isM3E ? FontWeight.w600 : FontWeight.w600),
           ),
         ),
         subtitle: Text(
@@ -697,11 +746,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         trailing:
             !notification.isRead
                 ? Container(
-                  width: 8,
-                  height: 8,
+                  width: isM3E ? 10 : 8,
+                  height: isM3E ? 10 : 8,
                   decoration: BoxDecoration(
-                    color: colorScheme.primary,
+                    color: isM3E ? colorScheme.tertiary : colorScheme.primary,
                     shape: BoxShape.circle,
+                    boxShadow:
+                        isM3E
+                            ? [
+                              BoxShadow(
+                                color: colorScheme.tertiary.withValues(
+                                  alpha: 0.4,
+                                ),
+                                blurRadius: 6,
+                              ),
+                            ]
+                            : null,
                   ),
                 )
                 : null,

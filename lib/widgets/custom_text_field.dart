@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -53,10 +55,10 @@ class CustomTextField extends StatelessWidget {
     this.initialValue,
     this.label,
     this.enabled = true,
-    this.fillColor = const Color(0xFF282E39),
-    this.textColor = Colors.white,
-    this.hintColor = const Color(0xFF9DA6B9),
-    this.borderRadius = 12.0,
+    this.fillColor,
+    this.textColor,
+    this.hintColor,
+    this.borderRadius,
     this.contentPadding,
     this.prefixIconConstraints,
     this.suffixIconConstraints,
@@ -64,6 +66,15 @@ class CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
+    
+    final effectiveFillColor = fillColor ?? (isM3E ? colorScheme.primary.withValues(alpha: 0.05) : theme.inputDecorationTheme.fillColor);
+    final effectiveTextColor = textColor ?? colorScheme.onSurface;
+    final effectiveHintColor = hintColor ?? colorScheme.onSurfaceVariant.withValues(alpha: 0.6);
+    final effectiveRadius = borderRadius ?? (isM3E ? 24.0 : 16.0);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: TextFormField(
@@ -84,38 +95,44 @@ class CustomTextField extends StatelessWidget {
         onChanged: onChanged,
         initialValue: initialValue,
         enabled: enabled,
-        style: TextStyle(
-          color: textColor,
-          fontSize: 16,
-          height: 1.5,
+        style: theme.textTheme.bodyLarge?.copyWith(
+          color: effectiveTextColor,
         ),
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          hintStyle: TextStyle(
-            color: hintColor,
-            fontSize: 16,
-            height: 1.5,
+          hintStyle: theme.textTheme.bodyLarge?.copyWith(
+            color: effectiveHintColor,
           ),
-          labelStyle: TextStyle(
-            color: hintColor,
-            fontSize: 16,
-            height: 1.5,
+          labelStyle: theme.textTheme.bodyLarge?.copyWith(
+            color: effectiveHintColor,
           ),
           filled: true,
-          fillColor: fillColor,
+          fillColor: effectiveFillColor,
           prefixIcon: prefixIcon != null
               ? Icon(
                   prefixIcon,
-                  color: hintColor,
+                  color: effectiveHintColor,
                 )
               : null,
           prefixIconConstraints: prefixIconConstraints,
           suffixIcon: suffixIcon,
           suffixIconConstraints: suffixIconConstraints,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(borderRadius!), // Non-null assertion is safe here
-            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.circular(effectiveRadius),
+            borderSide: isM3E 
+              ? BorderSide(color: colorScheme.primary.withValues(alpha: 0.1))
+              : BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(effectiveRadius),
+            borderSide: isM3E 
+              ? BorderSide(color: colorScheme.primary.withValues(alpha: 0.1))
+              : BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(effectiveRadius),
+            borderSide: BorderSide(color: colorScheme.primary, width: 2),
           ),
           contentPadding: contentPadding ??
               const EdgeInsets.symmetric(

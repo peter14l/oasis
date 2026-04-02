@@ -1,249 +1,30 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'dart:async';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
-import 'package:oasis_v2/routes/app_router.dart';
-import 'package:oasis_v2/themes/app_theme.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/services/supabase_service.dart';
-import 'package:oasis_v2/providers/feed_provider.dart';
-import 'package:oasis_v2/providers/profile_provider.dart';
-import 'package:oasis_v2/providers/community_provider.dart';
-import 'package:oasis_v2/providers/user_settings_provider.dart';
-import 'package:oasis_v2/providers/typing_indicator_provider.dart';
-import 'package:oasis_v2/providers/notification_provider.dart';
-import 'package:oasis_v2/providers/presence_provider.dart';
-import 'package:oasis_v2/providers/capsule_provider.dart';
-import 'package:oasis_v2/providers/conversation_provider.dart';
-import 'package:oasis_v2/providers/canvas_provider.dart';
-import 'package:oasis_v2/providers/circle_provider.dart';
-import 'package:oasis_v2/services/vault_service.dart';
-import 'package:oasis_v2/services/screen_time_service.dart';
-import 'package:oasis_v2/services/wellness_service.dart';
-import 'package:oasis_v2/services/energy_meter_service.dart';
-import 'package:oasis_v2/services/subscription_service.dart';
-import 'package:oasis_v2/services/encryption_service.dart';
-import 'package:oasis_v2/services/signal/signal_service.dart';
-import 'package:oasis_v2/widgets/mesh_gradient_background.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:oasis_v2/firebase_options.dart';
-import 'package:oasis_v2/services/notification_manager.dart';
-import 'package:oasis_v2/services/call_service.dart';
-import 'package:oasis_v2/services/sharing_service.dart';
-import 'package:oasis_v2/services/ripples_service.dart';
-import 'package:oasis_v2/services/desktop_window_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:universal_io/io.dart';
 
-// Background message handler for FCM
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Initialize Firebase if not already initialized (required for background)
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  
-  // Show local notification if it's a data message
-  if (message.data.isNotEmpty) {
-    await NotificationManager.instance.initialize();
-    await NotificationManager.instance.showNotification(
-      title: message.notification?.title ?? message.data['title'] ?? 'New Notification',
-      body: message.notification?.body ?? message.data['body'] ?? '',
-      payload: message.data['payload'],
-    );
-  }
-  debugPrint('Handling a background message: ${message.messageId}');
-}
+import 'package:oasis_v2/routes/app_router.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
+import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/services/screen_time_service.dart';
+import 'package:oasis_v2/services/sharing_service.dart';
+import 'package:oasis_v2/services/vault_service.dart';
+import 'package:oasis_v2/providers/canvas_provider.dart';
+import 'package:oasis_v2/providers/circle_provider.dart';
+import 'package:oasis_v2/providers/conversation_provider.dart';
+import 'package:oasis_v2/providers/notification_provider.dart';
+import 'package:oasis_v2/providers/presence_provider.dart';
+import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/providers/user_settings_provider.dart';
+import 'package:oasis_v2/themes/app_theme.dart';
+import 'package:oasis_v2/widgets/mesh_gradient_background.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 
-// Theme Provider to manage theme mode
-class ThemeProvider with ChangeNotifier {
-  ThemeMode _themeMode = ThemeMode.dark;
-  bool _highContrast = false;
-  static const String _themeKey = 'theme_mode';
-  static const String _highContrastKey = 'high_contrast';
-
-  ThemeMode get themeMode => _themeMode;
-  bool get highContrast => _highContrast;
-
-  Future<void> loadTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    final themeIndex = prefs.getInt(_themeKey) ?? ThemeMode.system.index;
-    _themeMode = ThemeMode.values[themeIndex];
-    _highContrast = prefs.getBool(_highContrastKey) ?? false;
-    notifyListeners();
-  }
-
-  Future<void> setTheme(ThemeMode mode) async {
-    _themeMode = mode;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_themeKey, mode.index);
-    notifyListeners();
-  }
-
-  Future<void> setHighContrast(bool value) async {
-    _highContrast = value;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_highContrastKey, value);
-    notifyListeners();
-  }
-
-  void toggleTheme() {
-    _themeMode =
-        _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
-    setTheme(_themeMode);
-  }
-}
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Load environment variables
-  try {
-    await dotenv.load(fileName: ".env");
-    debugPrint('.env loaded successfully');
-  } catch (e) {
-    debugPrint('Could not load .env file: $e');
-  }
-  
-  SentryWidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Sentry
-  await SentryFlutter.init(
-    (options) {
-      options.dsn = const String.fromEnvironment('SENTRY_DSN');
-      options.tracesSampleRate = kDebugMode ? 1.0 : 0.05;
-      options.sendDefaultPii = false;
-    },
-    appRunner: () async {
-
-      // Initialize Firebase with options for Web support
-      try {
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
-        FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-        debugPrint('Firebase initialized successfully');
-      } catch (e) {
-        debugPrint('Firebase initialization failed: $e');
-      }
-
-      try {
-        // Initialize Supabase
-        await SupabaseService.initialize();
-        debugPrint('Supabase initialized successfully');
-
-        // Initialize AuthService and restore session
-        final authService = AuthService();
-        await authService.restoreSession();
-
-        // Initialize theme provider
-        final themeProvider = ThemeProvider();
-        await themeProvider.loadTheme();
-
-        // Initialize UserSettingsProvider
-        final userSettingsProvider = UserSettingsProvider();
-        await userSettingsProvider.loadSettings();
-
-        // Desktop Windows UI Enhancements
-        if (Platform.isWindows) {
-          await DesktopWindowService.instance.initialize();
-          await DesktopWindowService.instance.enableCloseToTray();
-          await DesktopWindowService.instance.setWindowEffect(
-            enabled: userSettingsProvider.micaEnabled,
-            effect: userSettingsProvider.windowEffect,
-          );
-        }
-
-        // Initialize ScreenTimeService
-        final screenTimeService = await ScreenTimeService.init();
-
-        // Initialize WellnessService
-        final wellnessService = await WellnessService.init();
-
-        // Initialize EnergyMeterService
-        final energyMeterService = await EnergyMeterService.init();
-
-        // Initialize Notification Manager
-        await NotificationManager.instance.initialize();
-
-        // Initialize encryption keys in the background for all users
-        unawaited(Future.wait([
-          EncryptionService().init(),
-          SignalService().init(),
-        ]).catchError((e) {
-          debugPrint('Encryption/Signal init failed: $e');
-          return [EncryptionStatus.error, false];
-        }));
-
-        // Initialize SubscriptionService
-        final subscriptionService = SubscriptionService();
-        await subscriptionService.init();
-
-        runApp(
-          SentryWidget(
-            child: MultiProvider(
-                providers: [
-                  ChangeNotifierProvider<ThemeProvider>.value(
-                    value: themeProvider,
-                  ),
-                  ChangeNotifierProvider<AuthService>.value(value: authService),
-                  ChangeNotifierProvider<UserSettingsProvider>.value(
-                    value: userSettingsProvider,
-                  ),
-                  ChangeNotifierProvider<ScreenTimeService>.value(
-                    value: screenTimeService,
-                  ),
-                  ChangeNotifierProvider<WellnessService>.value(
-                    value: wellnessService,
-                  ),
-                  ChangeNotifierProvider<EnergyMeterService>.value(
-                    value: energyMeterService,
-                  ),
-                  ChangeNotifierProvider<SubscriptionService>.value(
-                    value: subscriptionService,
-                  ),
-                  ChangeNotifierProvider(create: (_) => FeedProvider()),
-                  ChangeNotifierProvider(create: (_) => ProfileProvider()),
-                  ChangeNotifierProvider(create: (_) => CommunityProvider()),
-                  ChangeNotifierProvider(
-                    create: (_) => TypingIndicatorProvider(),
-                  ),
-                  ChangeNotifierProvider(create: (_) => PresenceProvider()),
-                  ChangeNotifierProxyProvider<PresenceProvider, ConversationProvider>(
-                    create: (_) => ConversationProvider(),
-                    update: (context, presenceProvider, conversationProvider) =>
-                        conversationProvider!..updatePresenceProvider(presenceProvider),
-                  ),
-                   ChangeNotifierProvider(create: (_) => NotificationProvider()),
-                  ChangeNotifierProvider(create: (_) => CallService()),
-                  ChangeNotifierProvider(create: (_) => CanvasProvider()),
-                  ChangeNotifierProvider(create: (_) => CircleProvider()),
-                  ChangeNotifierProvider(create: (_) => RipplesService()),
-                  ChangeNotifierProvider(create: (_) => CapsuleProvider()),
-                  ChangeNotifierProvider<VaultService>(
-                    create: (_) => VaultService(),
-                  ),
-                ],
-                child: const LifecycleManager(child: MyApp()),
-              ),
-            ),
-          );
-      } catch (e) {
-        debugPrint('Error initializing app: $e');
-        runApp(
-          MaterialApp(
-            home: Scaffold(
-              body: Center(child: Text('Failed to initialize app: $e')),
-            ),
-          ),
-        );
-      }
-    },
-  );
-}
+// ---------------------------------------------------------------------------
+// LifecycleManager — tracks app foreground/background for screen time & vault
+// ---------------------------------------------------------------------------
 
 class LifecycleManager extends StatefulWidget {
   final Widget child;
@@ -259,7 +40,6 @@ class _LifecycleManagerState extends State<LifecycleManager>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Start tracking when app starts
     if (mounted) {
       context.read<ScreenTimeService>().startTracking();
     }
@@ -290,6 +70,10 @@ class _LifecycleManagerState extends State<LifecycleManager>
   }
 }
 
+// ---------------------------------------------------------------------------
+// MyApp — root widget with auth-gated routing and platform-specific chrome
+// ---------------------------------------------------------------------------
+
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -298,11 +82,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // supabase_flutter v2 already handles the token extraction from the deep
-  // link internally via its own app_links listener.  We only need to react
-  // to the passwordRecovery auth event it fires after processing the link.
   StreamSubscription<AuthState>? _authSub;
-  bool _navigatingToReset = false; // one-shot guard
+  bool _navigatingToReset = false;
 
   @override
   void initState() {
@@ -318,7 +99,6 @@ class _MyAppState extends State<MyApp> {
         debugPrint(
           'passwordRecovery event received — navigating to /reset-password',
         );
-        // Defer until after the current frame so the router is mounted.
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Future.delayed(const Duration(milliseconds: 100), () {
             if (mounted) {
@@ -343,45 +123,64 @@ class _MyAppState extends State<MyApp> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final authService = Provider.of<AuthService>(context, listen: false);
 
-    return StreamBuilder<AuthState>(
-      stream: authService.authStateChanges,
-      builder: (context, snapshot) {
-        // passwordRecovery navigation is handled by _listenForPasswordRecovery
-        // above (via initState), not here, to avoid the race with the router.
+    return DynamicColorBuilder(
+      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+        ColorScheme? lightScheme;
+        ColorScheme? darkScheme;
 
-        return MaterialApp.router(
-          title: 'Morrow',
-          debugShowCheckedModeBanner: false,
-          theme:
-              themeProvider.highContrast
-                  ? AppTheme.highContrastLight
-                  : AppTheme.light,
-          darkTheme:
-              themeProvider.highContrast
-                  ? AppTheme.highContrastDark
-                  : AppTheme.dark,
-          themeMode: themeProvider.themeMode,
-          routerConfig: router,
-          builder: (context, child) {
-            // Apply text scaling factor
+        if (themeProvider.useMaterialYou && themeProvider.isM3EEnabled) {
+          lightScheme = lightDynamic;
+          darkScheme = darkDynamic;
+        }
+
+        final ThemeData theme =
+            themeProvider.highContrast
+                ? AppTheme.highContrastLight
+                : (themeProvider.isM3EEnabled
+                    ? (lightScheme != null
+                        ? AppTheme.createM3ETheme(lightScheme, Brightness.light)
+                        : AppTheme.m3eLight)
+                    : AppTheme.light);
+
+        final ThemeData darkTheme =
+            themeProvider.highContrast
+                ? AppTheme.highContrastDark
+                : (themeProvider.isM3EEnabled
+                    ? (darkScheme != null
+                        ? AppTheme.createM3ETheme(darkScheme, Brightness.dark)
+                        : AppTheme.m3eDark)
+                    : AppTheme.dark);
+
+        return StreamBuilder<AuthState>(
+          stream: authService.authStateChanges,
+          builder: (context, snapshot) {
+            return MaterialApp.router(
+              title: 'Morrow',
+              debugShowCheckedModeBanner: false,
+              theme: theme,
+              darkTheme: darkTheme,
+              themeMode: themeProvider.themeMode,
+              routerConfig: router,
+              builder: (context, child) {
             final mediaQuery = MediaQuery.of(context);
             final settingsProvider = Provider.of<UserSettingsProvider>(context);
             final scale = settingsProvider.fontSizeFactor;
 
-              // Initialize notifications and load profile with current user
-              if (snapshot.hasData && snapshot.data?.session != null) {
-                final userId = snapshot.data!.session!.user.id;
-                // Defer to next frame to avoid build-time state updates
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  context.read<NotificationProvider>().init(userId);
-                  context.read<PresenceProvider>().updateUserPresence(userId, 'online');
-                  context.read<ConversationProvider>().initialize(userId);
-                  context.read<ProfileProvider>().loadCurrentProfile(userId);
-                  context.read<CircleProvider>().loadCircles(userId);
-                  context.read<CanvasProvider>().loadCanvases(userId);
-                  SharingService().init(context);
-                });
-              } else {
+            if (snapshot.hasData && snapshot.data?.session != null) {
+              final userId = snapshot.data!.session!.user.id;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                context.read<NotificationProvider>().init(userId);
+                context.read<PresenceProvider>().updateUserPresence(
+                  userId,
+                  'online',
+                );
+                context.read<ConversationProvider>().initialize(userId);
+                context.read<ProfileProvider>().loadCurrentProfile(userId);
+                context.read<CircleProvider>().loadCircles(userId);
+                context.read<CanvasProvider>().loadCanvases(userId);
+                SharingService().init(context);
+              });
+            } else {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 context.read<NotificationProvider>().init(null);
               });
@@ -402,7 +201,9 @@ class _MyAppState extends State<MyApp> {
                       data: theme.copyWith(
                         colorScheme: theme.colorScheme.copyWith(
                           surface: Colors.black.withValues(alpha: 0.05),
-                          surfaceContainer: Colors.black.withValues(alpha: 0.02),
+                          surfaceContainer: Colors.black.withValues(
+                            alpha: 0.02,
+                          ),
                           onSurface: Colors.white,
                         ),
                         scaffoldBackgroundColor: Colors.transparent,
@@ -421,7 +222,8 @@ class _MyAppState extends State<MyApp> {
                   if (userSettings.meshEnabled) {
                     return MeshGradientBackground(child: childWidget);
                   } else {
-                    final isDark = themeProvider.themeMode == ThemeMode.dark ||
+                    final isDark =
+                        themeProvider.themeMode == ThemeMode.dark ||
                         (themeProvider.themeMode == ThemeMode.system &&
                             MediaQuery.platformBrightnessOf(context) ==
                                 Brightness.dark);
@@ -441,5 +243,43 @@ class _MyAppState extends State<MyApp> {
         );
       },
     );
+  },
+);
   }
+}
+
+// ---------------------------------------------------------------------------
+// main — thin entry point, delegates to AppInitializer
+// ---------------------------------------------------------------------------
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await AppInitializer.loadEnv();
+
+  await AppInitializer.runWithSentry(() async {
+    await AppInitializer.initFirebase();
+
+    try {
+      final services = await AppInitializer.initCore();
+
+      runApp(
+        SentryWidget(
+          child: AppInitializer.buildProviderTree(
+            services: services,
+            child: const LifecycleManager(child: MyApp()),
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error initializing app: $e');
+      runApp(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(child: Text('Failed to initialize app: $e')),
+          ),
+        ),
+      );
+    }
+  });
 }

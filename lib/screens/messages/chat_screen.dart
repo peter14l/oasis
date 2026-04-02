@@ -585,7 +585,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _initializeEncryption() async {
-    if (!EncryptionService.isEnabled) return;
+    if (!_encryptionService.isInitialized) return;
 
     if (!SignalService().isInitialized) {
       final success = await SignalService().init();
@@ -1217,7 +1217,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       return;
     }
 
-    if (EncryptionService.isEnabled && !_encryptionReady) {
+    if (_encryptionService.isInitialized && !_encryptionReady) {
       _showError('Encryption not ready. Please set up encryption first.');
       return;
     }
@@ -1277,7 +1277,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       String? signalSenderContent; // RSA encrypted copy for sender
       bool usedSignal = false;
 
-      if (EncryptionService.isEnabled) {
+      if (_encryptionService.isInitialized) {
         final recipientId = widget.otherUserId ?? _otherUserId;
         if (recipientId == null || recipientId.isEmpty) {
           throw Exception('Recipient ID is required for encryption');
@@ -1375,7 +1375,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       }
 
       // Always generate a fallback RSA encrypted copy for BOTH sender and recipient
-      if (EncryptionService.isEnabled && content.isNotEmpty) {
+      if (_encryptionService.isInitialized && content.isNotEmpty) {
         try {
           final recipientId = widget.otherUserId ?? _otherUserId;
           final List<String> publicKeys = [];
@@ -1926,8 +1926,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        
-        final bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+
+        final bool isKeyboardVisible =
+            MediaQuery.of(context).viewInsets.bottom > 0;
         if (isKeyboardVisible) {
           // If keyboard is up, just dismiss it
           FocusScope.of(context).unfocus();

@@ -11,6 +11,7 @@ import 'package:oasis_v2/models/user_profile.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:oasis_v2/widgets/wellness_badge.dart';
 import 'package:oasis_v2/widgets/account_switcher_sheet.dart';
+import 'package:oasis_v2/services/app_initializer.dart'; // For ThemeProvider
 import 'package:oasis_v2/utils/responsive_layout.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -123,6 +124,9 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
     final userId = _authService.currentUser?.id;
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
@@ -150,7 +154,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           body: CustomScrollView(
             controller: _scrollController,
             slivers: [
-              _buildModernAppBar(profile, theme, colorScheme, isDesktop),
+              _buildModernAppBar(profile, theme, colorScheme, isDesktop, isM3E, disableTransparency),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
@@ -162,23 +166,23 @@ class _ProfileScreenState extends State<ProfileScreen>
                   child: Column(
                     children: [
                       if (isDesktop)
-                        _buildDesktopProfileHeader(profile, theme, colorScheme, profileProvider, userId)
+                        _buildDesktopProfileHeader(profile, theme, colorScheme, profileProvider, userId, isM3E)
                       else
-                        _buildProfileHeader(profile, theme, colorScheme),
+                        _buildProfileHeader(profile, theme, colorScheme, isM3E),
                       
                       const SizedBox(height: 32),
                       
                       if (!isDesktop) ...[
-                        _buildStatsBar(profile, theme, colorScheme),
+                        _buildStatsBar(profile, theme, colorScheme, isM3E, disableTransparency),
                         const SizedBox(height: 24),
-                        _buildActionButtons(profile, profileProvider, theme, colorScheme, userId),
+                        _buildActionButtons(profile, profileProvider, theme, colorScheme, userId, isM3E),
                       ] else 
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
                               flex: 1,
-                              child: _buildDesktopInfoCard(profile, theme, colorScheme),
+                              child: _buildDesktopInfoCard(profile, theme, colorScheme, isM3E, disableTransparency),
                             ),
                           ],
                         ),
@@ -192,34 +196,18 @@ class _ProfileScreenState extends State<ProfileScreen>
                   PreferredSize(
                     preferredSize: const Size.fromHeight(64),
                     child: ClipRRect(
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Container(
-                          color: colorScheme.surface.withValues(alpha: 0.7),
-                          child: Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 800),
-                              child: TabBar(
-                                controller: _tabController,
-                                indicatorSize: TabBarIndicatorSize.label,
-                                dividerColor: Colors.transparent,
-                                labelColor: colorScheme.primary,
-                                unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.4),
-                                labelStyle: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
-                                indicator: UnderlineTabIndicator(
-                                  borderSide: BorderSide(width: 3, color: colorScheme.primary),
-                                  borderRadius: BorderRadius.circular(3),
-                                ),
-                                tabs: [
-                                  const Tab(child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.grid_view_rounded, size: 20), SizedBox(width: 8), Text('POSTS')])),
-                                  if (isOwnProfile)
-                                    const Tab(child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.bookmark_rounded, size: 20), SizedBox(width: 8), Text('SAVED')])),
-                                ],
-                              ),
+                      child: disableTransparency 
+                        ? Container(
+                            color: colorScheme.surface,
+                            child: _buildTabBar(colorScheme),
+                          )
+                        : BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                            child: Container(
+                              color: colorScheme.surface.withValues(alpha: 0.7),
+                              child: _buildTabBar(colorScheme),
                             ),
                           ),
-                        ),
-                      ),
                     ),
                   ),
                   colorScheme.surface,
@@ -229,8 +217,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildPostsTab(userId, isDesktop),
-                    if (isOwnProfile) _buildSavedTab(userId, isDesktop),
+                    _buildPostsTab(userId, isDesktop, isM3E),
+                    if (isOwnProfile) _buildSavedTab(userId, isDesktop, isM3E),
                   ],
                 ),
               ),
@@ -240,20 +228,26 @@ class _ProfileScreenState extends State<ProfileScreen>
         );
 
         if (isDesktop) {
+          final desktopBgColor = disableTransparency 
+              ? colorScheme.surface 
+              : colorScheme.surface.withValues(alpha: 0.4);
+          
           return Padding(
             padding: const EdgeInsets.all(12),
             child: Container(
               decoration: BoxDecoration(
-                color: colorScheme.surface.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(12),
+                color: desktopBgColor,
+                borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: profileContent,
-                ),
+                borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
+                child: disableTransparency 
+                  ? profileContent 
+                  : BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: profileContent,
+                    ),
               ),
             ),
           );
@@ -264,12 +258,38 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
+  Widget _buildTabBar(ColorScheme colorScheme) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: TabBar(
+          controller: _tabController,
+          indicatorSize: TabBarIndicatorSize.label,
+          dividerColor: Colors.transparent,
+          labelColor: colorScheme.primary,
+          unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.4),
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
+          indicator: UnderlineTabIndicator(
+            borderSide: BorderSide(width: 3, color: colorScheme.primary),
+            borderRadius: BorderRadius.circular(3),
+          ),
+          tabs: [
+            const Tab(child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.grid_view_rounded, size: 20), SizedBox(width: 8), Text('POSTS')])),
+            if (isOwnProfile)
+              const Tab(child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.bookmark_rounded, size: 20), SizedBox(width: 8), Text('SAVED')])),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildDesktopProfileHeader(
     UserProfile profile, 
     ThemeData theme, 
     ColorScheme colorScheme,
     ProfileProvider profileProvider,
     String? currentUserId,
+    bool isM3E,
   ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,20 +299,30 @@ class _ProfileScreenState extends State<ProfileScreen>
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
+                shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                borderRadius: isM3E ? BorderRadius.circular(32) : null,
                 gradient: LinearGradient(
                   colors: [colorScheme.primary, colorScheme.tertiary],
                 ),
               ),
-              child: CircleAvatar(
-                radius: 60,
-                backgroundColor: colorScheme.surface,
-                backgroundImage: profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
-                    ? CachedNetworkImageProvider(profile.avatarUrl!)
-                    : null,
-                child: profile.avatarUrl == null || profile.avatarUrl!.isEmpty
-                    ? Text(profile.username[0].toUpperCase(), style: const TextStyle(fontSize: 32))
-                    : null,
+              child: ClipRRect(
+                borderRadius: isM3E ? BorderRadius.circular(28) : BorderRadius.circular(60),
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  color: colorScheme.surface,
+                  child: profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: profile.avatarUrl!,
+                          fit: BoxFit.cover,
+                        )
+                      : Center(
+                          child: Text(
+                            profile.username[0].toUpperCase(), 
+                            style: TextStyle(fontSize: 32, color: colorScheme.primary)
+                          ),
+                        ),
+                ),
               ),
             ),
             if (profile.isPro)
@@ -303,7 +333,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.amber,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(isM3E ? 8 : 12),
                     border: Border.all(color: colorScheme.surface, width: 3),
                     boxShadow: [
                       BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 5)
@@ -337,7 +367,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ),
                   ),
                   const SizedBox(width: 16),
-                  _buildDesktopActionButtons(profile, profileProvider, theme, colorScheme, currentUserId),
+                  _buildDesktopActionButtons(profile, profileProvider, theme, colorScheme, currentUserId, isM3E),
                 ],
               ),
               const SizedBox(height: 16),
@@ -398,7 +428,9 @@ class _ProfileScreenState extends State<ProfileScreen>
     ThemeData theme,
     ColorScheme colorScheme,
     String? currentUserId,
+    bool isM3E,
   ) {
+    final radius = isM3E ? 16.0 : 10.0;
     if (isOwnProfile) {
       return Row(
         children: [
@@ -406,7 +438,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             onPressed: () => context.push('/edit-profile'),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
             ),
             child: const Text('Edit Profile', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
           ),
@@ -416,7 +448,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             icon: const Icon(Icons.settings_outlined, size: 18),
             style: IconButton.styleFrom(
               padding: const EdgeInsets.all(10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
             ),
           ),
         ],
@@ -439,7 +471,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             backgroundColor: profileProvider.isFollowing ? colorScheme.surfaceContainerHighest : colorScheme.primary,
             foregroundColor: profileProvider.isFollowing ? colorScheme.onSurface : colorScheme.onPrimary,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
           ),
           child: Text(profileProvider.isFollowing ? 'Following' : 'Follow', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
         ),
@@ -450,19 +482,21 @@ class _ProfileScreenState extends State<ProfileScreen>
             icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
             style: IconButton.styleFrom(
               padding: const EdgeInsets.all(10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
             ),
           ),
       ],
     );
   }
 
-  Widget _buildDesktopInfoCard(UserProfile profile, ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildDesktopInfoCard(UserProfile profile, ThemeData theme, ColorScheme colorScheme, bool isM3E, bool disableTransparency) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorScheme.onSurface.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
+        color: disableTransparency 
+            ? colorScheme.surfaceContainerLow 
+            : colorScheme.onSurface.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(isM3E ? 24 : 12),
         border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05)),
       ),
       child: Column(
@@ -490,7 +524,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildProfileHeader(UserProfile profile, ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildProfileHeader(UserProfile profile, ThemeData theme, ColorScheme colorScheme, bool isM3E) {
     return Row(
       children: [
         Stack(
@@ -498,20 +532,30 @@ class _ProfileScreenState extends State<ProfileScreen>
             Container(
               padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
+                shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                borderRadius: isM3E ? BorderRadius.circular(24) : null,
                 gradient: LinearGradient(
                   colors: [colorScheme.primary, colorScheme.tertiary],
                 ),
               ),
-              child: CircleAvatar(
-                radius: 45,
-                backgroundColor: colorScheme.surface,
-                backgroundImage: profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
-                    ? CachedNetworkImageProvider(profile.avatarUrl!)
-                    : null,
-                child: profile.avatarUrl == null || profile.avatarUrl!.isEmpty
-                    ? Text(profile.username[0].toUpperCase(), style: const TextStyle(fontSize: 24))
-                    : null,
+              child: ClipRRect(
+                borderRadius: isM3E ? BorderRadius.circular(21) : BorderRadius.circular(45),
+                child: Container(
+                  width: 90,
+                  height: 90,
+                  color: colorScheme.surface,
+                  child: profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: profile.avatarUrl!,
+                          fit: BoxFit.cover,
+                        )
+                      : Center(
+                          child: Text(
+                            profile.username[0].toUpperCase(), 
+                            style: const TextStyle(fontSize: 24)
+                          )
+                        ),
+                ),
               ),
             ),
             if (profile.isPro)
@@ -522,7 +566,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: colorScheme.primary,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(isM3E ? 8 : 12),
                     border: Border.all(color: colorScheme.surface, width: 2),
                   ),
                   child: const Text(
@@ -567,12 +611,14 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildStatsBar(UserProfile profile, ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildStatsBar(UserProfile profile, ThemeData theme, ColorScheme colorScheme, bool isM3E, bool disableTransparency) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
-        color: colorScheme.onSurface.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+        color: disableTransparency 
+            ? colorScheme.surfaceContainerHighest 
+            : colorScheme.onSurface.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(isM3E ? 24 : 12),
         border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05)),
       ),
       child: Row(
@@ -630,7 +676,9 @@ class _ProfileScreenState extends State<ProfileScreen>
     ThemeData theme,
     ColorScheme colorScheme,
     String? currentUserId,
+    bool isM3E,
   ) {
+    final radius = isM3E ? 24.0 : 18.0;
     return Row(
       children: [
         Expanded(
@@ -642,7 +690,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   style: FilledButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
                   ),
                 )
               : (profileProvider.isFollowing
@@ -657,7 +705,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
                       ),
                       child: const Text('Following'),
                     )
@@ -673,7 +721,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       style: FilledButton.styleFrom(
                         backgroundColor: colorScheme.primary,
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
                       ),
                       child: const Text('Follow'),
                     )),
@@ -685,7 +733,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             icon: const Icon(Icons.chat_bubble_outline_rounded),
             style: IconButton.styleFrom(
               padding: const EdgeInsets.all(16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
             ),
           ),
           const SizedBox(width: 12),
@@ -695,32 +743,32 @@ class _ProfileScreenState extends State<ProfileScreen>
           icon: const Icon(Icons.ios_share_rounded),
           style: IconButton.styleFrom(
             padding: const EdgeInsets.all(16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildPostsTab(String? userId, bool isDesktop) {
+  Widget _buildPostsTab(String? userId, bool isDesktop, bool isM3E) {
     return CustomScrollView(
       physics: const ClampingScrollPhysics(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.all(2),
-          sliver: _buildPostsGrid(_userPosts, userId, isDesktop),
+          sliver: _buildPostsGrid(_userPosts, userId, isDesktop, isM3E),
         ),
       ],
     );
   }
 
-  Widget _buildSavedTab(String? userId, bool isDesktop) {
+  Widget _buildSavedTab(String? userId, bool isDesktop, bool isM3E) {
     return CustomScrollView(
       physics: const ClampingScrollPhysics(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.all(2),
-          sliver: _buildPostsGrid(_savedPosts, userId, isDesktop),
+          sliver: _buildPostsGrid(_savedPosts, userId, isDesktop, isM3E),
         ),
       ],
     );
@@ -731,7 +779,13 @@ class _ProfileScreenState extends State<ProfileScreen>
     ThemeData theme,
     ColorScheme colorScheme,
     bool isDesktop,
+    bool isM3E,
+    bool disableTransparency,
   ) {
+    final appBarBgColor = disableTransparency 
+        ? theme.colorScheme.surface 
+        : theme.colorScheme.surface.withValues(alpha: 0.4);
+
     return SliverAppBar(
       pinned: true,
       floating: true,
@@ -740,33 +794,23 @@ class _ProfileScreenState extends State<ProfileScreen>
       centerTitle: !isDesktop,
       title: InkWell(
         onTap: isOwnProfile ? () => AccountSwitcherSheet.show(context) : null,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(isM3E ? 12 : 20),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: theme.colorScheme.surface.withValues(alpha: 0.4),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    profile.username,
-                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
-                  ),
-                  if (isOwnProfile) ...[
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      size: 18,
-                      color: colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                  ],
-                ],
+          borderRadius: BorderRadius.circular(isM3E ? 12 : 20),
+          child: disableTransparency 
+            ? Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                color: appBarBgColor,
+                child: _buildAppBarTitle(profile, colorScheme),
+              )
+            : BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  color: appBarBgColor,
+                  child: _buildAppBarTitle(profile, colorScheme),
+                ),
               ),
-            ),
-          ),
         ),
       ),
       actions: [
@@ -782,7 +826,27 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildPostsGrid(List<Post> posts, String? userId, bool isDesktop) {
+  Widget _buildAppBarTitle(UserProfile profile, ColorScheme colorScheme) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          profile.username,
+          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+        ),
+        if (isOwnProfile) ...[
+          const SizedBox(width: 4),
+          Icon(
+            Icons.keyboard_arrow_down_rounded,
+            size: 18,
+            color: colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPostsGrid(List<Post> posts, String? userId, bool isDesktop, bool isM3E) {
     if (_isLoadingPosts) {
       return const SliverFillRemaining(
         child: Center(child: CircularProgressIndicator()),
@@ -821,15 +885,17 @@ class _ProfileScreenState extends State<ProfileScreen>
       ),
       delegate: SliverChildBuilderDelegate((context, index) {
         final post = posts[index];
+        final borderRadius = isM3E ? BorderRadius.circular(16) : (isDesktop ? BorderRadius.circular(12) : BorderRadius.zero);
+        
         return GestureDetector(
           onTap: () => context.push('/post/${post.id}'),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.05),
-              borderRadius: isDesktop ? BorderRadius.circular(12) : BorderRadius.zero,
+              borderRadius: borderRadius,
             ),
             child: ClipRRect(
-              borderRadius: isDesktop ? BorderRadius.circular(12) : BorderRadius.zero,
+              borderRadius: borderRadius,
               child: post.imageUrl != null
                   ? Hero(
                       tag: 'post_${post.id}',

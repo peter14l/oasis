@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis_v2/models/circle.dart';
 
+import 'package:oasis_v2/services/app_initializer.dart'; // For ThemeProvider
+import 'package:provider/provider.dart';
+
 class CircleListCard extends StatelessWidget {
   final Circle circle;
   final VoidCallback onTap;
@@ -15,12 +18,14 @@ class CircleListCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(isM3E ? 28 : 20),
           color: theme.colorScheme.surface,
           border: Border.all(
             color: theme.colorScheme.outline.withValues(alpha: 0.12),
@@ -43,7 +48,8 @@ class CircleListCard extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
+                  shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                  borderRadius: isM3E ? BorderRadius.circular(16) : null,
                   color: theme.colorScheme.primary.withValues(alpha: 0.1),
                 ),
                 alignment: Alignment.center,
@@ -63,7 +69,8 @@ class CircleListCard extends StatelessWidget {
                     Text(
                       circle.name,
                       style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                        letterSpacing: isM3E ? -0.5 : 0,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -97,7 +104,7 @@ class CircleListCard extends StatelessWidget {
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(isM3E ? 8 : 12),
                     gradient: LinearGradient(
                       colors: [
                         const Color(0xFFFF6B35).withValues(alpha: 0.8),

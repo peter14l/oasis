@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis_v2/providers/canvas_provider.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
 import 'package:oasis_v2/providers/profile_provider.dart';
 import 'package:oasis_v2/models/oasis_canvas.dart';
 import 'package:oasis_v2/widgets/canvas/canvas_list_tile.dart';
@@ -34,6 +35,8 @@ class _CanvasListScreenState extends State<CanvasListScreen> {
     final colorScheme = theme.colorScheme;
     final provider = context.watch<CanvasProvider>();
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -59,8 +62,8 @@ class _CanvasListScreenState extends State<CanvasListScreen> {
                             style: (isDesktop 
                               ? theme.textTheme.headlineLarge 
                               : theme.textTheme.headlineMedium)?.copyWith(
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -1,
+                                fontWeight: isM3E ? FontWeight.w900 : FontWeight.w900,
+                                letterSpacing: isM3E ? -1.5 : -1,
                               ),
                           ),
                           const SizedBox(height: 4),
@@ -80,11 +83,14 @@ class _CanvasListScreenState extends State<CanvasListScreen> {
                       label: Text(isDesktop ? 'Create New Canvas' : 'New Canvas'),
                       style: FilledButton.styleFrom(
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(isM3E ? 12 : 14),
                         ),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
                           vertical: 10,
+                        ),
+                        textStyle: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: isM3E ? FontWeight.w900 : FontWeight.w600,
                         ),
                       ),
                     ),
@@ -102,6 +108,7 @@ class _CanvasListScreenState extends State<CanvasListScreen> {
             else if (provider.canvases.isEmpty)
               SliverFillRemaining(
                 child: _EmptyCanvasState(
+                  isM3E: isM3E,
                   onCreateTap: () => context.pushNamed('create_canvas'),
                 ),
               )
@@ -140,7 +147,8 @@ class _CanvasListScreenState extends State<CanvasListScreen> {
 
 class _EmptyCanvasState extends StatelessWidget {
   final VoidCallback onCreateTap;
-  const _EmptyCanvasState({required this.onCreateTap});
+  final bool isM3E;
+  const _EmptyCanvasState({required this.onCreateTap, this.isM3E = false});
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +161,8 @@ class _EmptyCanvasState extends StatelessWidget {
             width: 96,
             height: 96,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+              borderRadius: isM3E ? BorderRadius.circular(24) : null,
               color: theme.colorScheme.primary.withValues(alpha: 0.1),
             ),
             child: Icon(
@@ -166,7 +175,7 @@ class _EmptyCanvasState extends StatelessWidget {
           Text(
             'No canvases yet',
             style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
             ),
           ),
           const SizedBox(height: 8),
@@ -180,6 +189,11 @@ class _EmptyCanvasState extends StatelessWidget {
             onPressed: onCreateTap,
             icon: const Icon(FluentIcons.add_circle_24_regular, size: 18),
             label: const Text('Create a Canvas'),
+            style: FilledButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(isM3E ? 12 : 14),
+              ),
+            ),
           ),
         ],
       ),

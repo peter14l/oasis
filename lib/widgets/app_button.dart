@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
 
 class AppButton extends StatelessWidget {
+  // ... (previous fields remain)
   final String text;
   final VoidCallback? onPressed;
   final bool isLoading;
@@ -35,7 +38,8 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final buttonStyle = _getButtonStyle(theme);
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
+    final buttonStyle = _getButtonStyle(theme, isM3E);
     final buttonChild = _buildButtonChild(theme);
 
     final button = isOutlined
@@ -101,10 +105,13 @@ class AppButton extends StatelessWidget {
     return textWidget;
   }
 
-  ButtonStyle _getButtonStyle(ThemeData theme) {
+  ButtonStyle _getButtonStyle(ThemeData theme, bool isM3E) {
     final colorScheme = theme.colorScheme;
     final backgroundColor = this.backgroundColor ?? colorScheme.primary;
     final foregroundColor = textColor ?? (isOutlined ? colorScheme.primary : Colors.white);
+    final shape = isM3E ? const StadiumBorder() : RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(borderRadius),
+            );
 
     final baseStyle = isOutlined
         ? OutlinedButton.styleFrom(
@@ -112,30 +119,26 @@ class AppButton extends StatelessWidget {
             backgroundColor: Colors.transparent,
             side: BorderSide(
               color: disabled ? colorScheme.onSurface.withValues(alpha: 0.12) : colorScheme.primary,
-              width: 1.5,
+              width: isM3E ? 2.0 : 1.5,
             ),
             padding: padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(borderRadius),
-            ),
+            shape: shape,
           )
         : ElevatedButton.styleFrom(
             foregroundColor: foregroundColor,
             backgroundColor: disabled ? colorScheme.onSurface.withValues(alpha: 0.12) : backgroundColor,
             padding: padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(borderRadius),
-            ),
-            elevation: 0,
+            shape: shape,
+            elevation: isM3E ? 0 : 0, // M3E prefers flat but vibrant
           );
 
     return baseStyle.copyWith(
-      overlayColor: MaterialStateProperty.resolveWith<Color>(
+      overlayColor: WidgetStateProperty.resolveWith<Color>(
         (states) {
-          if (states.contains(MaterialState.pressed)) {
+          if (states.contains(WidgetState.pressed)) {
             return foregroundColor.withValues(alpha: 0.1);
           }
-          if (states.contains(MaterialState.hovered)) {
+          if (states.contains(WidgetState.hovered)) {
             return foregroundColor.withValues(alpha: 0.05);
           }
           return Colors.transparent;

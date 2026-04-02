@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis_v2/screens/circles/circles_list_screen.dart';
 import 'package:oasis_v2/screens/canvas/canvas_list_screen.dart';
@@ -31,8 +33,11 @@ class _SpacesScreenState extends State<SpacesScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
     final theme = Theme.of(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     Widget spacesContent = Column(
       children: [
@@ -41,7 +46,7 @@ class _SpacesScreenState extends State<SpacesScreen>
           bottom: false,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-            child: _SpacesTabBar(controller: _tabController),
+            child: _SpacesTabBar(controller: _tabController, isM3E: isM3E),
           ),
         ),
 
@@ -57,23 +62,32 @@ class _SpacesScreenState extends State<SpacesScreen>
     );
 
     if (isDesktop) {
+      final desktopBgColor = disableTransparency 
+          ? theme.colorScheme.surface 
+          : theme.colorScheme.surface.withValues(alpha: 0.4);
+
       return Padding(
         padding: const EdgeInsets.all(12),
         child: Container(
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(24),
+            color: desktopBgColor,
+            borderRadius: BorderRadius.circular(isM3E ? 32 : 24),
             border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Scaffold(
-                backgroundColor: Colors.transparent,
-                body: spacesContent,
-              ),
-            ),
+            borderRadius: BorderRadius.circular(isM3E ? 32 : 24),
+            child: disableTransparency 
+              ? Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: spacesContent,
+                )
+              : BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Scaffold(
+                    backgroundColor: Colors.transparent,
+                    body: spacesContent,
+                  ),
+                ),
           ),
         ),
       );
@@ -90,7 +104,8 @@ class _SpacesScreenState extends State<SpacesScreen>
 
 class _SpacesTabBar extends StatelessWidget {
   final TabController controller;
-  const _SpacesTabBar({required this.controller});
+  final bool isM3E;
+  const _SpacesTabBar({required this.controller, this.isM3E = false});
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +114,7 @@ class _SpacesTabBar extends StatelessWidget {
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(isM3E ? 12 : 16),
         color: theme.colorScheme.surface,
         border: Border.all(
           color: theme.colorScheme.outline.withValues(alpha: 0.12),
@@ -110,13 +125,14 @@ class _SpacesTabBar extends StatelessWidget {
         labelColor: theme.colorScheme.onPrimary,
         unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
         labelStyle: theme.textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.bold,
+          fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+          letterSpacing: isM3E ? -0.5 : 0,
         ),
         unselectedLabelStyle: theme.textTheme.titleSmall?.copyWith(
           fontWeight: FontWeight.normal,
         ),
         indicator: BoxDecoration(
-          borderRadius: BorderRadius.circular(13),
+          borderRadius: BorderRadius.circular(isM3E ? 10 : 13),
           color: theme.colorScheme.primary,
         ),
         indicatorSize: TabBarIndicatorSize.tab,

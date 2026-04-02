@@ -84,16 +84,16 @@ class ChatTheme {
       'theme_name': themeName,
       'background_color':
           backgroundColor != null
-              ? '#${backgroundColor!.value.toRadixString(16).substring(2)}'
+              ? '#${backgroundColor!.toARGB32().toRadixString(16).substring(2)}'
               : null,
       'background_image_url': backgroundImageUrl,
       'bubble_color':
           bubbleColor != null
-              ? '#${bubbleColor!.value.toRadixString(16).substring(2)}'
+              ? '#${bubbleColor!.toARGB32().toRadixString(16).substring(2)}'
               : null,
       'text_color':
           textColor != null
-              ? '#${textColor!.value.toRadixString(16).substring(2)}'
+              ? '#${textColor!.toARGB32().toRadixString(16).substring(2)}'
               : null,
     };
   }

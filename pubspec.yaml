@@ -23,8 +23,6 @@ dependencies:
   image_cropper: ^11.0.0
   shimmer: ^3.0.0
   flutter_animate: ^4.2.0
-  carousel_slider: ^4.2.1
-  like_button: ^2.0.5
   animate_do: ^3.3.4
   photo_view: ^0.15.0
   gal: ^2.3.0
@@ -37,12 +35,7 @@ dependencies:
   
   # Supabase
   supabase_flutter: ^2.3.4
-  gotrue: ^2.9.1
-  postgrest: ^2.4.1
   flutter_dotenv: ^5.1.0  # Keep for local dev flutter run (reads .env at runtime only)
-  realtime_client: ^2.4.1
-  storage_client: ^2.2.1
-  functions_client: ^2.2.1
   google_sign_in: ^6.1.6
   sign_in_with_apple: ^6.1.1
   
@@ -72,17 +65,17 @@ dependencies:
   google_sign_in_all_platforms: ^1.1.0
   
   # Form Validation
-  form_validator: ^2.0.0
-  
+  # form_validator: ^2.0.0  # unused - removed
+
   # Utils
   intl: ^0.19.0
   uuid: ^4.2.2
-  logger: ^2.0.2
+  # logger: ^2.0.2  # unused - removed
   crypto: ^3.0.3
 
   
   # Platform interface compatibility
-  plugin_platform_interface: ^2.1.8
+  # plugin_platform_interface: ^2.1.8  # unused - removed
 
   # Additional Media & Files
   file_picker: ^8.0.0
@@ -129,6 +122,7 @@ dependencies:
   receive_sharing_intent: ^1.8.1
   emoji_picker_flutter: ^4.4.0
   universal_io: ^2.3.1
+  dynamic_color: ^1.8.1
 
 dev_dependencies:
   msix: ^3.16.1

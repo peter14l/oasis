@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/main.dart'; // For ThemeProvider
+import 'package:oasis_v2/services/app_initializer.dart'; // For ThemeProvider
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/services/profile_service.dart';
 import 'package:oasis_v2/utils/responsive_layout.dart';
@@ -60,8 +60,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authService = Provider.of<AuthService>(context, listen: false);
       if (authService.currentUser != null) {
-        Provider.of<ProfileProvider>(context, listen: false)
-            .loadCurrentProfile(authService.currentUser!.id);
+        Provider.of<ProfileProvider>(
+          context,
+          listen: false,
+        ).loadCurrentProfile(authService.currentUser!.id);
       }
     });
   }
@@ -92,7 +94,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     // Sidebar
                     Container(
                       width: 280,
-                      color: colorScheme.surfaceContainer.withValues(alpha: 0.2),
+                      color: colorScheme.surfaceContainer.withValues(
+                        alpha: 0.2,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -119,17 +123,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 const SizedBox(width: 4),
                                 Text(
                                   'Settings',
-                                  style: theme.textTheme.headlineSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.onSurface,
-                                  ),
+                                  style: theme.textTheme.headlineSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.onSurface,
+                                      ),
                                 ),
                               ],
                             ),
                           ),
                           Expanded(
                             child: ListView(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
                               children: [
                                 _buildSidebarItem(
                                   icon: FluentIcons.person_24_regular,
@@ -151,7 +158,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                                 _buildSidebarItem(
                                   icon: FluentIcons.paint_brush_24_regular,
-                                  selectedIcon: FluentIcons.paint_brush_24_filled,
+                                  selectedIcon:
+                                      FluentIcons.paint_brush_24_filled,
                                   label: 'Appearance',
                                   category: SettingsCategory.appearance,
                                 ),
@@ -169,7 +177,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                                 _buildSidebarItem(
                                   icon: FluentIcons.question_circle_24_regular,
-                                  selectedIcon: FluentIcons.question_circle_24_filled,
+                                  selectedIcon:
+                                      FluentIcons.question_circle_24_filled,
                                   label: 'Support & About',
                                   category: SettingsCategory.support,
                                 ),
@@ -178,7 +187,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           Padding(
                             padding: const EdgeInsets.all(16),
-                            child: _buildSignOutButton(context, isDesktop: true),
+                            child: _buildSignOutButton(
+                              context,
+                              isDesktop: true,
+                            ),
                           ),
                         ],
                       ),
@@ -192,42 +204,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           children: [
                             // Content Header
                             Container(
-                              padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
+                              padding: const EdgeInsets.fromLTRB(
+                                24,
+                                32,
+                                24,
+                                16,
+                              ),
                               child: Row(
                                 children: [
                                   if (_selectedSubPage != null)
                                     IconButton(
                                       icon: const Icon(Icons.arrow_back),
-                                      onPressed: () => setState(() {
-                                        _selectedSubPage = null;
-                                        _subPageTitle = null;
-                                      }),
+                                      onPressed:
+                                          () => setState(() {
+                                            _selectedSubPage = null;
+                                            _subPageTitle = null;
+                                          }),
                                     ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    _selectedSubPage != null 
-                                      ? _subPageTitle ?? '' 
-                                      : _getCategoryTitle(_selectedCategory),
-                                    style: theme.textTheme.headlineSmall?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: colorScheme.onSurface,
-                                    ),
+                                    _selectedSubPage != null
+                                        ? _subPageTitle ?? ''
+                                        : _getCategoryTitle(_selectedCategory),
+                                    style: theme.textTheme.headlineSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.onSurface,
+                                        ),
                                   ),
                                 ],
                               ),
                             ),
                             Expanded(
-                              child: _selectedSubPage != null 
-                                ? _selectedSubPage! 
-                                : SingleChildScrollView(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                                  child: Center(
-                                    child: Container(
-                                      constraints: const BoxConstraints(maxWidth: 800),
-                                      child: _buildSelectedCategoryContent(context),
-                                    ),
-                                  ),
-                                ),
+                              child:
+                                  _selectedSubPage != null
+                                      ? _selectedSubPage!
+                                      : SingleChildScrollView(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 24,
+                                          vertical: 8,
+                                        ),
+                                        child: Center(
+                                          child: Container(
+                                            constraints: const BoxConstraints(
+                                              maxWidth: 800,
+                                            ),
+                                            child:
+                                                _buildSelectedCategoryContent(
+                                                  context,
+                                                ),
+                                          ),
+                                        ),
+                                      ),
                             ),
                           ],
                         ),
@@ -258,22 +286,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildProfileSection(context),
             const SizedBox(height: 24),
             _buildSectionHeader(context, 'General'),
-            _buildGeneralSection(context),
+            _buildGeneralSection(context, index: 0),
             const SizedBox(height: 24),
             _buildSectionHeader(context, 'Privacy & Security'),
-            _buildPrivacySection(context),
+            _buildPrivacySection(context, index: 1),
             const SizedBox(height: 24),
             _buildSectionHeader(context, 'Appearance'),
-            _buildAppearanceSection(context),
+            _buildAppearanceSection(context, index: 2),
             const SizedBox(height: 24),
             _buildSectionHeader(context, 'Data & Storage'),
-            _buildDataSection(context),
+            _buildDataSection(context, index: 3),
             const SizedBox(height: 24),
             _buildSectionHeader(context, 'Accessibility'),
-            _buildAccessibilitySection(context),
+            _buildAccessibilitySection(context, index: 4),
             const SizedBox(height: 24),
             _buildSectionHeader(context, 'Support & About'),
-            _buildSupportSection(context),
+            _buildSupportSection(context, index: 5),
             const SizedBox(height: 24),
             _buildSignOutButton(context),
             const SizedBox(height: 32),
@@ -291,9 +319,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _subPageTitle = title;
       });
     } else {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => page),
-      );
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => page));
     }
   }
 
@@ -312,18 +338,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => setState(() {
-            _selectedCategory = category;
-            _selectedSubPage = null;
-            _subPageTitle = null;
-          }),
+          onTap:
+              () => setState(() {
+                _selectedCategory = category;
+                _selectedSubPage = null;
+                _subPageTitle = null;
+              }),
           borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? colorScheme.primaryContainer.withValues(alpha: 0.3)
-                  : Colors.transparent,
+              color:
+                  isSelected
+                      ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+                      : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -340,7 +368,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Text(
                   label,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
                     color:
                         isSelected
                             ? colorScheme.primary
@@ -379,17 +408,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       case SettingsCategory.account:
         return _buildProfileSection(context);
       case SettingsCategory.general:
-        return _buildGeneralSection(context);
+        return _buildGeneralSection(context, index: 0);
       case SettingsCategory.privacy:
-        return _buildPrivacySection(context);
+        return _buildPrivacySection(context, index: 1);
       case SettingsCategory.appearance:
-        return _buildAppearanceSection(context);
+        return _buildAppearanceSection(context, index: 2);
       case SettingsCategory.data:
-        return _buildDataSection(context);
+        return _buildDataSection(context, index: 3);
       case SettingsCategory.accessibility:
-        return _buildAccessibilitySection(context);
+        return _buildAccessibilitySection(context, index: 4);
       case SettingsCategory.support:
-        return _buildSupportSection(context);
+        return _buildSupportSection(context, index: 5);
     }
   }
 
@@ -400,6 +429,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final user = authService.currentUser;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
 
     if (user == null) return const SizedBox.shrink();
 
@@ -412,33 +443,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  colorScheme.primaryContainer,
-                  colorScheme.secondaryContainer,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
+              gradient:
+                  isM3E
+                      ? LinearGradient(
+                        colors: [
+                          colorScheme.primaryContainer,
+                          colorScheme.tertiaryContainer,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                      : LinearGradient(
+                        colors: [
+                          colorScheme.primaryContainer,
+                          colorScheme.secondaryContainer,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+              borderRadius: BorderRadius.circular(isM3E ? 32 : 20),
+              border:
+                  isM3E
+                      ? Border.all(
+                        color: colorScheme.outlineVariant.withValues(
+                          alpha: 0.3,
+                        ),
+                        width: 1,
+                      )
+                      : null,
             ),
             child: Column(
               children: [
                 Row(
                   children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundImage:
-                          profile.avatarUrl != null
-                              ? CachedNetworkImageProvider(profile.avatarUrl!)
-                              : null,
-                      child:
-                          profile.avatarUrl == null
-                              ? Text(
-                                profile.username.substring(0, 1).toUpperCase(),
-                                style: theme.textTheme.headlineMedium,
+                    Container(
+                      padding: isM3E ? EdgeInsets.all(3) : EdgeInsets.zero,
+                      decoration:
+                          isM3E
+                              ? BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: colorScheme.onPrimaryContainer,
+                                  width: 2,
+                                ),
                               )
                               : null,
+                      child: CircleAvatar(
+                        radius: 40,
+                        backgroundImage:
+                            profile.avatarUrl != null
+                                ? CachedNetworkImageProvider(profile.avatarUrl!)
+                                : null,
+                        child:
+                            profile.avatarUrl == null
+                                ? Text(
+                                  profile.username
+                                      .substring(0, 1)
+                                      .toUpperCase(),
+                                  style: theme.textTheme.headlineMedium
+                                      ?.copyWith(
+                                        fontWeight:
+                                            isM3E ? FontWeight.w600 : null,
+                                      ),
+                                )
+                                : null,
+                      ),
                     ),
                     const SizedBox(width: 20),
                     Expanded(
@@ -491,7 +560,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     IconButton(
                       icon: const Icon(Icons.edit_outlined),
                       color: colorScheme.onPrimaryContainer,
-                      onPressed: () => _navigateToSubPage('Edit Profile', EditProfileScreen()),
+                      onPressed:
+                          () => _navigateToSubPage(
+                            'Edit Profile',
+                            EditProfileScreen(),
+                          ),
                     ),
                   ],
                 ),
@@ -540,14 +613,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildPremiumTile(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.amber.shade700, Colors.orange.shade900],
+          colors:
+              isM3E
+                  ? [Colors.amber.shade600, Colors.deepOrange.shade700]
+                  : [Colors.amber.shade700, Colors.orange.shade900],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(isM3E ? 28 : 16),
+        border:
+            isM3E
+                ? Border.all(
+                  color: Colors.amber.withValues(alpha: 0.3),
+                  width: 1,
+                )
+                : null,
       ),
       child: ListTile(
         leading: const Icon(
@@ -563,27 +649,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
           'Unlock premium features & go ad-free',
           style: TextStyle(color: Colors.white70),
         ),
-        trailing:
-            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+        trailing: const Icon(
+          Icons.arrow_forward_ios,
+          color: Colors.white,
+          size: 16,
+        ),
         onTap:
-            () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => OasisProScreen(),
-              ),
-            ),
+            () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (context) => OasisProScreen())),
       ),
     );
   }
 
-  Widget _buildGeneralSection(BuildContext context) {
-    return _buildSettingsGroup(context, [
+  Widget _buildGeneralSection(BuildContext context, {int index = 0}) {
+    return _buildSettingsGroup(context, index: index, [
       _buildSettingsTile(
         context,
         icon: Icons.timer_outlined,
         title: 'Screen Time & Wellness',
         subtitle: 'Track usage and manage wellbeing',
         iconColor: Theme.of(context).colorScheme.secondary,
-        onTap: () => _navigateToSubPage('Screen Time', const ScreenTimeScreen()),
+        onTap:
+            () => _navigateToSubPage('Screen Time', const ScreenTimeScreen()),
       ),
       _buildSettingsTile(
         context,
@@ -591,14 +679,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Digital Wellbeing',
         subtitle: 'Habits and usage limits',
         iconColor: Colors.green,
-        onTap: () => _navigateToSubPage('Digital Wellbeing', const DigitalWellbeingScreen()),
+        onTap:
+            () => _navigateToSubPage(
+              'Digital Wellbeing',
+              const DigitalWellbeingScreen(),
+            ),
       ),
     ]);
   }
 
-  Widget _buildPrivacySection(BuildContext context) {
+  Widget _buildPrivacySection(BuildContext context, {int index = 0}) {
     final colorScheme = Theme.of(context).colorScheme;
-    return _buildSettingsGroup(context, [
+    return _buildSettingsGroup(context, index: index, [
       _buildSettingsTile(
         context,
         icon: Icons.shield_outlined,
@@ -613,7 +705,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Encryption',
         subtitle: 'Manage End-to-End Encryption keys',
         iconColor: Colors.purple,
-        onTap: () => _navigateToSubPage('Encryption', const EncryptionSetupScreen()),
+        onTap:
+            () =>
+                _navigateToSubPage('Encryption', const EncryptionSetupScreen()),
       ),
       _buildSettingsTile(
         context,
@@ -621,7 +715,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Account Privacy',
         subtitle: 'Control who can see your content',
         iconColor: Colors.green,
-        onTap: () => _navigateToSubPage('Account Privacy', const AccountPrivacyScreen()),
+        onTap:
+            () => _navigateToSubPage(
+              'Account Privacy',
+              const AccountPrivacyScreen(),
+            ),
       ),
       _buildSettingsTile(
         context,
@@ -629,7 +727,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Blocked Accounts',
         subtitle: 'Manage blocked users',
         iconColor: Colors.red,
-        onTap: () => _navigateToSubPage('Blocked Accounts', const BlockedUsersScreen()),
+        onTap:
+            () => _navigateToSubPage(
+              'Blocked Accounts',
+              const BlockedUsersScreen(),
+            ),
       ),
       _buildSettingsTile(
         context,
@@ -637,7 +739,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Two-Factor Authentication',
         subtitle: 'Add extra security',
         iconColor: Colors.indigo,
-        onTap: () => _navigateToSubPage('Two-Factor Auth', const TwoFactorAuthScreen()),
+        onTap:
+            () => _navigateToSubPage(
+              'Two-Factor Auth',
+              const TwoFactorAuthScreen(),
+            ),
       ),
       _buildSettingsTile(
         context,
@@ -645,16 +751,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Download Your Data',
         subtitle: 'Request a copy of your data',
         iconColor: Colors.teal,
-        onTap: () => _navigateToSubPage('Download Data', const DownloadDataScreen()),
+        onTap:
+            () =>
+                _navigateToSubPage('Download Data', const DownloadDataScreen()),
       ),
     ]);
   }
 
-  Widget _buildAppearanceSection(BuildContext context) {
+  Widget _buildAppearanceSection(BuildContext context, {int index = 0}) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final userSettingsProvider = Provider.of<UserSettingsProvider>(context);
 
-    return _buildSettingsGroup(context, [
+    return _buildSettingsGroup(context, index: index, [
       _buildSettingsTile(
         context,
         icon: Icons.palette_outlined,
@@ -684,6 +792,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onChanged: (v) => userSettingsProvider.setMeshEnabled(v),
         ),
       ),
+      _buildSettingsTile(
+        context,
+        icon: Icons.rocket_launch_outlined,
+        title: 'M3 Expressive',
+        subtitle: 'Vibrant & high-contrast design.',
+        iconColor: Colors.pink,
+        trailing: Switch(
+          value: themeProvider.isM3EEnabled,
+          onChanged: (v) => themeProvider.setM3EEnabled(v),
+        ),
+      ),
+      if (themeProvider.isM3EEnabled)
+        _buildSettingsTile(
+          context,
+          icon: Icons.color_lens_outlined,
+          title: 'Dynamic Theme',
+          subtitle: 'Use system colors (Material You).',
+          iconColor: Colors.orange,
+          trailing: Switch(
+            value: themeProvider.useMaterialYou,
+            onChanged: (v) => themeProvider.setMaterialYou(v),
+          ),
+        ),
+      if (themeProvider.isM3EEnabled)
+        _buildSettingsTile(
+          context,
+          icon: Icons.layers_clear_outlined,
+          title: 'Disable Transparency',
+          subtitle: 'Use solid M3E containers instead of glass.',
+          iconColor: Colors.deepPurple,
+          trailing: Switch(
+            value: themeProvider.isM3ETransparencyDisabled,
+            onChanged: (v) => themeProvider.setM3ETransparencyDisabled(v),
+          ),
+        ),
       if (Platform.isWindows)
         _buildSettingsTile(
           context,
@@ -711,7 +854,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           iconColor: Colors.cyan,
           trailing: DropdownButton<String>(
             value: userSettingsProvider.windowEffect,
-            dropdownColor: themeProvider.themeMode == ThemeMode.dark ? Colors.grey[900] : Colors.white,
+            dropdownColor:
+                themeProvider.themeMode == ThemeMode.dark
+                    ? Colors.grey[900]
+                    : Colors.white,
             underline: const SizedBox(),
             items: const [
               DropdownMenuItem(value: 'mica', child: Text('Mica')),
@@ -731,16 +877,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ]);
   }
 
-  Widget _buildDataSection(BuildContext context) {
+  Widget _buildDataSection(BuildContext context, {int index = 0}) {
     final userSettingsProvider = Provider.of<UserSettingsProvider>(context);
-    return _buildSettingsGroup(context, [
+    return _buildSettingsGroup(context, index: index, [
       _buildSettingsTile(
         context,
         icon: Icons.storage_outlined,
         title: 'Storage Usage',
         subtitle: 'Manage app storage',
         iconColor: Colors.amber,
-        onTap: () => _navigateToSubPage('Storage Usage', const StorageUsageScreen()),
+        onTap:
+            () =>
+                _navigateToSubPage('Storage Usage', const StorageUsageScreen()),
       ),
       _buildSettingsTile(
         context,
@@ -767,9 +915,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ]);
   }
 
-  Widget _buildAccessibilitySection(BuildContext context) {
+  Widget _buildAccessibilitySection(BuildContext context, {int index = 0}) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    return _buildSettingsGroup(context, [
+    return _buildSettingsGroup(context, index: index, [
       _buildSettingsTile(
         context,
         icon: Icons.text_fields_outlined,
@@ -792,8 +940,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ]);
   }
 
-  Widget _buildSupportSection(BuildContext context) {
-    return _buildSettingsGroup(context, [
+  Widget _buildSupportSection(BuildContext context, {int index = 0}) {
+    return _buildSettingsGroup(context, index: index, [
       _buildSettingsTile(
         context,
         icon: Icons.feedback_outlined,
@@ -808,7 +956,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Help & Support',
         subtitle: 'Get help with Oasis',
         iconColor: Colors.green,
-        onTap: () => _navigateToSubPage('Help & Support', const HelpSupportScreen()),
+        onTap:
+            () =>
+                _navigateToSubPage('Help & Support', const HelpSupportScreen()),
       ),
       _buildSettingsTile(
         context,
@@ -885,10 +1035,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     if (isDesktop) {
-      return Material(
-        color: Colors.transparent,
-        child: button,
-      );
+      return Material(color: Colors.transparent, child: button);
     }
 
     return Container(
@@ -955,28 +1102,87 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSettingsGroup(BuildContext context, List<Widget> children) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildSettingsGroup(
+    BuildContext context,
+    List<Widget> children, {
+    int index = 0,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+
+    // M3E Expressive logic: Varying shapes and textures
+    BorderRadius borderRadius;
+    if (isM3E) {
+      // Rotate through different expressive shapes based on index
+      switch (index % 3) {
+        case 0:
+          borderRadius = BorderRadius.circular(32);
+          break;
+        case 1:
+          borderRadius = const BorderRadius.only(
+            topLeft: Radius.circular(48),
+            bottomRight: Radius.circular(48),
+            topRight: Radius.circular(12),
+            bottomLeft: Radius.circular(12),
+          );
+          break;
+        case 2:
+          borderRadius = BorderRadius.circular(16);
+          break;
+        default:
+          borderRadius = BorderRadius.circular(24);
+      }
+    } else {
+      borderRadius = BorderRadius.circular(16);
+    }
+
+    final bgColor =
+        isM3E
+            ? (disableTransparency
+                ? (index % 2 == 0
+                    ? colorScheme.surfaceContainerHigh
+                    : colorScheme.surfaceContainerLow)
+                : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3))
+            : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3);
+
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(16),
+        color: bgColor,
+        borderRadius: borderRadius,
         border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-          width: 1,
+          color: colorScheme.outlineVariant.withValues(
+            alpha: isM3E ? 0.3 : 0.5,
+          ),
+          width: isM3E ? 1.5 : 1,
         ),
+        boxShadow:
+            isM3E && disableTransparency
+                ? [
+                  BoxShadow(
+                    color: colorScheme.shadow.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+                : null,
       ),
-      child: Column(
-        children: List.generate(children.length * 2 - 1, (index) {
-          if (index.isOdd) {
-            return Divider(
-              height: 1,
-              indent: 56,
-              color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-            );
-          }
-          return children[index ~/ 2];
-        }),
+      child: ClipRRect(
+        borderRadius: borderRadius,
+        child: Column(
+          children: List.generate(children.length * 2 - 1, (idx) {
+            if (idx.isOdd) {
+              return Divider(
+                height: 1,
+                indent: 56,
+                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+              );
+            }
+            return children[idx ~/ 2];
+          }),
+        ),
       ),
     );
   }
@@ -993,21 +1199,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
-        padding: const EdgeInsets.all(8),
+        padding: EdgeInsets.all(isM3E ? 10 : 8),
         decoration: BoxDecoration(
-          color: (iconColor ?? colorScheme.primary).withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
+          color: (iconColor ?? colorScheme.primary).withValues(
+            alpha: isM3E ? 0.15 : 0.1,
+          ),
+          borderRadius: BorderRadius.circular(isM3E ? 16 : 10),
         ),
-        child: Icon(icon, color: iconColor ?? colorScheme.primary, size: 24),
+        child: Icon(
+          icon,
+          color: iconColor ?? colorScheme.primary,
+          size: isM3E ? 22 : 24,
+        ),
       ),
       title: Text(
         title,
         style: theme.textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w500,
+          fontWeight: isM3E ? FontWeight.w600 : FontWeight.w500,
           color: textColor,
         ),
       ),

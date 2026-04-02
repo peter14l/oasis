@@ -11,6 +11,7 @@ import 'package:oasis_v2/providers/profile_provider.dart';
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/models/message.dart';
 import 'package:oasis_v2/widgets/messages/share_to_dm_modal.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
 import 'package:oasis_v2/utils/haptic_utils.dart';
 
 class PostCard extends StatefulWidget {
@@ -43,6 +44,7 @@ class _PostCardState extends State<PostCard>
   late Animation<double> _likeAnimation;
   bool _isHovered = false;
   final GlobalKey _moreButtonKey = GlobalKey();
+  int _currentImageIndex = 0;
 
   @override
   void initState() {
@@ -53,22 +55,22 @@ class _PostCardState extends State<PostCard>
     );
     _likeAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.4).chain(
-          CurveTween(curve: Curves.easeOut),
-        ),
+        tween: Tween<double>(
+          begin: 1.0,
+          end: 1.4,
+        ).chain(CurveTween(curve: Curves.easeOut)),
         weight: 50,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.4, end: 1.0).chain(
-          CurveTween(curve: Curves.bounceOut),
-        ),
+        tween: Tween<double>(
+          begin: 1.4,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.bounceOut)),
         weight: 50,
       ),
     ]).animate(_likeAnimationController);
     _currentImageIndex = 0;
   }
-
-  int _currentImageIndex = 0;
 
   @override
   void dispose() {
@@ -78,9 +80,9 @@ class _PostCardState extends State<PostCard>
 
   void _handleLike({bool forceLike = false}) {
     HapticFeedback.lightImpact();
-    
+
     final wasLiked = widget.post.isLiked;
-    
+
     if (forceLike && wasLiked) {
       // Already liked, just show animation
       _likeAnimationController.forward().then((_) {
@@ -96,7 +98,7 @@ class _PostCardState extends State<PostCard>
         _likeAnimationController.reverse();
       });
     }
-    
+
     // Call onLike only if we are toggling OR if we want to ensure it's liked
     if (!forceLike || !wasLiked) {
       widget.onLike?.call();
@@ -109,14 +111,19 @@ class _PostCardState extends State<PostCard>
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     if (isDesktop) {
-      final RenderBox? button = _moreButtonKey.currentContext?.findRenderObject() as RenderBox?;
+      final RenderBox? button =
+          _moreButtonKey.currentContext?.findRenderObject() as RenderBox?;
       if (button == null) return;
-      
-      final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+
+      final RenderBox overlay =
+          Overlay.of(context).context.findRenderObject() as RenderBox;
       final RelativeRect position = RelativeRect.fromRect(
         Rect.fromPoints(
           button.localToGlobal(Offset.zero, ancestor: overlay),
-          button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+          button.localToGlobal(
+            button.size.bottomRight(Offset.zero),
+            ancestor: overlay,
+          ),
         ),
         Offset.zero & overlay.size,
       );
@@ -124,35 +131,60 @@ class _PostCardState extends State<PostCard>
       showMenu(
         context: context,
         position: position,
-        color: theme.brightness == Brightness.dark ? const Color(0xFF1A1D24) : Colors.white,
+        color:
+            theme.brightness == Brightness.dark
+                ? const Color(0xFF1A1D24)
+                : Colors.white,
         surfaceTintColor: Colors.transparent,
         elevation: 8,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+          side: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
         ),
         items: [
           if (widget.isOwnPost)
             PopupMenuItem(
               onTap: _confirmDelete,
-              child: _buildMenuRow(FluentIcons.delete_24_regular, 'Delete Post', colorScheme.error),
+              child: _buildMenuRow(
+                FluentIcons.delete_24_regular,
+                'Delete Post',
+                colorScheme.error,
+              ),
             )
           else
             PopupMenuItem(
               onTap: _showReportDialog,
-              child: _buildMenuRow(FluentIcons.flag_24_regular, 'Report Post', colorScheme.error),
+              child: _buildMenuRow(
+                FluentIcons.flag_24_regular,
+                'Report Post',
+                colorScheme.error,
+              ),
             ),
           PopupMenuItem(
             onTap: _copyPostLink,
-            child: _buildMenuRow(FluentIcons.link_24_regular, 'Copy Link', colorScheme.onSurface),
+            child: _buildMenuRow(
+              FluentIcons.link_24_regular,
+              'Copy Link',
+              colorScheme.onSurface,
+            ),
           ),
           PopupMenuItem(
             onTap: _shareToDM,
-            child: _buildMenuRow(FluentIcons.send_24_regular, 'Share to Message', colorScheme.onSurface),
+            child: _buildMenuRow(
+              FluentIcons.send_24_regular,
+              'Share to Message',
+              colorScheme.onSurface,
+            ),
           ),
           PopupMenuItem(
             onTap: () => widget.onShare?.call(),
-            child: _buildMenuRow(FluentIcons.share_24_regular, 'Share via...', colorScheme.onSurface),
+            child: _buildMenuRow(
+              FluentIcons.share_24_regular,
+              'Share via...',
+              colorScheme.onSurface,
+            ),
           ),
         ],
       );
@@ -162,107 +194,114 @@ class _PostCardState extends State<PostCard>
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => SafeArea(
-        child: Container(
-          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-          decoration: BoxDecoration(
-            color: colorScheme.surface.withValues(alpha: 0.98),
-            borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.1)),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(32),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 12, bottom: 8),
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: colorScheme.onSurface.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+      builder:
+          (context) => SafeArea(
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              decoration: BoxDecoration(
+                color: colorScheme.surface.withValues(alpha: 0.98),
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(
+                  color: colorScheme.onSurface.withValues(alpha: 0.1),
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(32),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(top: 12, bottom: 8),
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: colorScheme.onSurface.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      if (widget.isOwnPost) ...[
+                        _buildMoreTile(
+                          context,
+                          icon: FluentIcons.delete_24_regular,
+                          title: 'Delete Post',
+                          titleColor: colorScheme.error,
+                          onTap: () {
+                            Navigator.pop(context);
+                            _confirmDelete();
+                          },
+                        ),
+                      ] else ...[
+                        _buildMoreTile(
+                          context,
+                          icon: FluentIcons.flag_24_regular,
+                          title: 'Report Post',
+                          titleColor: colorScheme.error,
+                          onTap: () {
+                            Navigator.pop(context);
+                            _showReportDialog();
+                          },
+                        ),
+                      ],
+                      _buildMoreTile(
+                        context,
+                        icon: FluentIcons.link_24_regular,
+                        title: 'Copy Link',
+                        onTap: () {
+                          Navigator.pop(context);
+                          _copyPostLink();
+                        },
+                      ),
+                      _buildMoreTile(
+                        context,
+                        icon: FluentIcons.send_24_regular,
+                        title: 'Share to Message',
+                        onTap: () {
+                          Navigator.pop(context);
+                          _shareToDM();
+                        },
+                      ),
+                      _buildMoreTile(
+                        context,
+                        icon: FluentIcons.share_24_regular,
+                        title: 'Share via...',
+                        onTap: () {
+                          Navigator.pop(context);
+                          widget.onShare?.call();
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                   ),
-                  if (widget.isOwnPost) ...[
-                    _buildMoreTile(
-                      context,
-                      icon: FluentIcons.delete_24_regular,
-                      title: 'Delete Post',
-                      titleColor: colorScheme.error,
-                      onTap: () {
-                        Navigator.pop(context);
-                        _confirmDelete();
-                      },
-                    ),
-                  ] else ...[
-                    _buildMoreTile(
-                      context,
-                      icon: FluentIcons.flag_24_regular,
-                      title: 'Report Post',
-                      titleColor: colorScheme.error,
-                      onTap: () {
-                        Navigator.pop(context);
-                        _showReportDialog();
-                      },
-                    ),
-                  ],
-                  _buildMoreTile(
-                    context,
-                    icon: FluentIcons.link_24_regular,
-                    title: 'Copy Link',
-                    onTap: () {
-                      Navigator.pop(context);
-                      _copyPostLink();
-                    },
-                  ),
-                  _buildMoreTile(
-                    context,
-                    icon: FluentIcons.send_24_regular,
-                    title: 'Share to Message',
-                    onTap: () {
-                      Navigator.pop(context);
-                      _shareToDM();
-                    },
-                  ),
-                  _buildMoreTile(
-                    context,
-                    icon: FluentIcons.share_24_regular,
-                    title: 'Share via...',
-                    onTap: () {
-                      Navigator.pop(context);
-                      widget.onShare?.call();
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
     );
   }
 
   void _shareToDM() {
     showDialog(
       context: context,
-      builder: (context) => ShareToDirectMessageModal(
-        title: 'Share Post',
-        content: widget.post.content ?? 'Shared a post',
-        messageType: MessageType.post_share,
-        postId: widget.post.id,
-        mediaUrl: widget.post.mediaUrls.isNotEmpty ? widget.post.mediaUrls.first : widget.post.imageUrl,
-        shareData: {
-          'username': widget.post.username,
-          'user_avatar': widget.post.userAvatar,
-          'content': widget.post.content,
-          'media_urls': widget.post.mediaUrls,
-          'image_url': widget.post.imageUrl,
-        },
-      ),
+      builder:
+          (context) => ShareToDirectMessageModal(
+            title: 'Share Post',
+            content: widget.post.content ?? 'Shared a post',
+            messageType: MessageType.post_share,
+            postId: widget.post.id,
+            mediaUrl:
+                widget.post.mediaUrls.isNotEmpty
+                    ? widget.post.mediaUrls.first
+                    : widget.post.imageUrl,
+            shareData: {
+              'username': widget.post.username,
+              'user_avatar': widget.post.userAvatar,
+              'content': widget.post.content,
+              'media_urls': widget.post.mediaUrls,
+              'image_url': widget.post.imageUrl,
+            },
+          ),
     );
   }
 
@@ -405,14 +444,18 @@ class _PostCardState extends State<PostCard>
       imageUrl: url,
       fit: BoxFit.contain, // Properly fit the image in the container
       width: double.infinity,
-      placeholder: (context, url) => Container(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      ),
-      errorWidget: (context, url, error) => Container(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        child: const Center(child: Icon(Icons.error_outline)),
-      ),
+      placeholder:
+          (context, url) => Container(
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            child: const Center(
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+      errorWidget:
+          (context, url, error) => Container(
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            child: const Center(child: Icon(Icons.error_outline)),
+          ),
     );
   }
 
@@ -421,6 +464,395 @@ class _PostCardState extends State<PostCard>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+    final cardRadius = isM3E ? 28.0 : (isDesktop ? 16.0 : 24.0);
+
+    // M3E: Solid tonal surfaces instead of gradients
+    final cardDecoration = BoxDecoration(
+      gradient:
+          (isM3E && !disableTransparency)
+              ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  colorScheme.surfaceContainer.withValues(alpha: 0.8),
+                  colorScheme.surfaceContainerLow.withValues(alpha: 0.6),
+                ],
+              )
+              : null,
+      color:
+          isM3E
+              ? (disableTransparency
+                  ? colorScheme.surfaceContainerHigh
+                  : colorScheme.surfaceContainerLow)
+              : colorScheme.surface.withValues(alpha: 0.7),
+      borderRadius: BorderRadius.circular(cardRadius),
+      border:
+          isM3E
+              ? Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                width: 1,
+              )
+              : Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      boxShadow:
+          isM3E && disableTransparency
+              ? [
+                BoxShadow(
+                  color: colorScheme.shadow.withValues(alpha: 0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+              : null,
+    );
+
+    Widget cardContent = Container(
+      decoration: cardDecoration,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Padding(
+            padding: EdgeInsets.all(isDesktop ? 8 : 12),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => context.push('/profile/${widget.post.userId}'),
+                  child: Container(
+                    padding: EdgeInsets.all(isM3E ? 2 : 0),
+                    decoration: BoxDecoration(
+                      shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                      borderRadius: isM3E ? BorderRadius.circular(12) : null,
+                      border:
+                          isM3E
+                              ? Border.all(
+                                color: colorScheme.primary,
+                                width: 1.5,
+                              )
+                              : null,
+                    ),
+                    child: ClipRRect(
+                      borderRadius:
+                          isM3E
+                              ? BorderRadius.circular(10)
+                              : BorderRadius.circular(20),
+                      child: SizedBox(
+                        width: isDesktop ? 32 : 40,
+                        height: isDesktop ? 32 : 40,
+                        child:
+                            widget.post.userAvatar.isNotEmpty
+                                ? CachedNetworkImage(
+                                  imageUrl: widget.post.userAvatar,
+                                  fit: BoxFit.cover,
+                                )
+                                : Container(
+                                  color: colorScheme.surfaceContainerHighest,
+                                  child: Center(
+                                    child: Text(
+                                      widget.post.username[0].toUpperCase(),
+                                      style: TextStyle(
+                                        fontSize: isDesktop ? 10 : 14,
+                                        color: colorScheme.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => context.push('/profile/${widget.post.userId}'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              widget.post.username,
+                              style: (isDesktop
+                                      ? theme.textTheme.titleSmall
+                                      : theme.textTheme.titleMedium)
+                                  ?.copyWith(
+                                    fontWeight:
+                                        isM3E
+                                            ? FontWeight.w900
+                                            : FontWeight.w600,
+                                    letterSpacing: isM3E ? -0.5 : 0,
+                                  ),
+                            ),
+                            if (widget.post.isVerified) ...[
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.verified,
+                                size: isDesktop ? 14 : 16,
+                                color: colorScheme.primary,
+                              ),
+                            ],
+                            if (!widget.isOwnPost)
+                              Consumer<ProfileProvider>(
+                                builder: (context, profileProvider, child) {
+                                  final isFollowing = profileProvider.following
+                                      .any((p) => p.id == widget.post.userId);
+                                  if (isFollowing)
+                                    return const SizedBox.shrink();
+                                  return Padding(
+                                    padding: const EdgeInsets.only(left: 8.0),
+                                    child: InkWell(
+                                      onTap: () {
+                                        final currentUserId =
+                                            AuthService().currentUser?.id;
+                                        if (currentUserId != null) {
+                                          profileProvider.followUser(
+                                            followerId: currentUserId,
+                                            followingId: widget.post.userId,
+                                          );
+                                        }
+                                      },
+                                      child: Text(
+                                        'Follow',
+                                        style: (isDesktop
+                                                ? theme.textTheme.labelSmall
+                                                : theme.textTheme.labelMedium)
+                                            ?.copyWith(
+                                              color: colorScheme.primary,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
+                        Text(
+                          timeago.format(widget.post.timestamp),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontSize: isDesktop ? 10 : 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                IconButton(
+                  key: _moreButtonKey,
+                  icon: Icon(
+                    FluentIcons.more_vertical_24_regular,
+                    size: isDesktop ? 18 : 24,
+                  ),
+                  onPressed: _showMoreOptions,
+                  visualDensity:
+                      isDesktop
+                          ? VisualDensity.compact
+                          : VisualDensity.standard,
+                ),
+              ],
+            ),
+          ),
+
+          // Post Image(s)
+          if (widget.post.mediaUrls.isNotEmpty ||
+              (widget.post.imageUrl != null &&
+                  widget.post.imageUrl!.isNotEmpty)) ...[
+            Builder(
+              builder: (context) {
+                final images =
+                    widget.post.mediaUrls.isNotEmpty
+                        ? widget.post.mediaUrls
+                        : [widget.post.imageUrl!];
+
+                return Column(
+                  children: [
+                    GestureDetector(
+                      onDoubleTap: () => _handleLike(forceLike: true),
+                      child: AspectRatio(
+                        aspectRatio:
+                            isDesktop
+                                ? 1.2
+                                : 4 /
+                                    5, // Wider aspect ratio on desktop to make it look smaller vertically
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerHighest
+                                .withValues(alpha: 0.3),
+                          ),
+                          child:
+                              images.length > 1
+                                  ? PageView.builder(
+                                    itemCount: images.length,
+                                    itemBuilder: (context, index) {
+                                      return _buildImageItem(
+                                        images[index],
+                                        colorScheme,
+                                      );
+                                    },
+                                  )
+                                  : Hero(
+                                    tag: 'post_${widget.post.id}',
+                                    child: _buildImageItem(
+                                      images.first,
+                                      colorScheme,
+                                    ),
+                                  ),
+                        ),
+                      ),
+                    ),
+                    if (images.length > 1)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(images.length, (index) {
+                            return Container(
+                              width: 6,
+                              height: 6,
+                              margin: const EdgeInsets.symmetric(horizontal: 2),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: colorScheme.onSurface.withValues(
+                                  alpha: 0.2,
+                                ), // Simple dot for now
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ],
+
+          // Caption (if no image or before actions)
+          if (widget.post.content != null && widget.post.content!.isNotEmpty)
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                isDesktop ? 12 : 12,
+                16,
+                isDesktop ? 8 : 8,
+              ),
+              child: RichText(
+                text: TextSpan(
+                  style:
+                      isDesktop
+                          ? theme.textTheme.bodyMedium?.copyWith(
+                            fontSize: 15,
+                            height: 1.4,
+                          )
+                          : theme.textTheme.bodyMedium,
+                  children: [
+                    TextSpan(
+                      text: '${widget.post.username} ',
+                      style: TextStyle(
+                        fontWeight: isM3E ? FontWeight.w900 : FontWeight.w600,
+                        letterSpacing: isM3E ? -0.2 : 0,
+                      ),
+                    ),
+                    TextSpan(text: widget.post.content),
+                  ],
+                ),
+              ),
+            ),
+
+          Padding(
+            padding: EdgeInsets.only(
+              left: 12,
+              right: 12,
+              top: isDesktop ? 4 : 8,
+              bottom: isDesktop ? 12 : 20,
+            ),
+            child: Row(
+              children: [
+                ScaleTransition(
+                  scale: _likeAnimation,
+                  child: IconButton(
+                    key: const ValueKey('post_card_like_button'),
+                    icon: Icon(
+                      widget.post.isLiked
+                          ? FluentIcons.heart_24_filled
+                          : FluentIcons.heart_24_regular,
+                      color:
+                          widget.post.isLiked
+                              ? (isM3E ? colorScheme.tertiary : Colors.red)
+                              : null,
+                      size: isDesktop ? 24 : 32,
+                    ),
+                    onPressed: _handleLike,
+                    padding:
+                        isDesktop ? EdgeInsets.zero : const EdgeInsets.all(8),
+                    constraints: isDesktop ? const BoxConstraints() : null,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${widget.post.likes}',
+                  style: (isDesktop
+                          ? theme.textTheme.bodySmall
+                          : theme.textTheme.bodyMedium)
+                      ?.copyWith(fontWeight: isM3E ? FontWeight.w900 : null),
+                ),
+                const SizedBox(width: 16),
+                IconButton(
+                  key: const ValueKey('post_card_comment_button'),
+                  icon: Icon(
+                    FluentIcons.chat_24_regular,
+                    size: isDesktop ? 22 : 28,
+                  ),
+                  onPressed: widget.onComment,
+                  padding:
+                      isDesktop ? EdgeInsets.zero : const EdgeInsets.all(8),
+                  constraints: isDesktop ? const BoxConstraints() : null,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${widget.post.comments}',
+                  style: (isDesktop
+                          ? theme.textTheme.bodySmall
+                          : theme.textTheme.bodyMedium)
+                      ?.copyWith(fontWeight: isM3E ? FontWeight.w900 : null),
+                ),
+                const SizedBox(width: 16),
+                IconButton(
+                  key: const ValueKey('post_card_share_button'),
+                  icon: Icon(
+                    FluentIcons.share_24_regular,
+                    size: isDesktop ? 22 : 28,
+                  ),
+                  onPressed: widget.onShare,
+                  padding:
+                      isDesktop ? EdgeInsets.zero : const EdgeInsets.all(8),
+                  constraints: isDesktop ? const BoxConstraints() : null,
+                ),
+                const Spacer(),
+                IconButton(
+                  key: const ValueKey('post_card_bookmark_button'),
+                  icon: Icon(
+                    widget.post.isBookmarked
+                        ? FluentIcons.bookmark_24_filled
+                        : FluentIcons.bookmark_24_regular,
+                    color:
+                        widget.post.isBookmarked ? colorScheme.primary : null,
+                    size: isDesktop ? 22 : 28,
+                  ),
+                  onPressed: widget.onBookmark,
+                  padding:
+                      isDesktop ? EdgeInsets.zero : const EdgeInsets.all(8),
+                  constraints: isDesktop ? const BoxConstraints() : null,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -431,289 +863,22 @@ class _PostCardState extends State<PostCard>
         curve: Curves.easeOut,
         child: Padding(
           padding: EdgeInsets.only(
-            bottom: isDesktop ? 12 : 16, 
-            left: isDesktop ? 8 : 16, 
-            right: isDesktop ? 8 : 16
+            bottom: isDesktop ? 12 : 16,
+            left: isDesktop ? 8 : 16,
+            right: isDesktop ? 8 : 16,
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(isDesktop ? 16 : 24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      colorScheme.surface.withValues(alpha: 0.7),
-                      colorScheme.surface.withValues(alpha: 0.4),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(isDesktop ? 16 : 24),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                  // Header
-                  Padding(
-                    padding: EdgeInsets.all(isDesktop ? 8 : 12),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap:
-                              () => context.push('/profile/${widget.post.userId}'),
-                          child: CircleAvatar(
-                            radius: isDesktop ? 16 : 20,
-                            backgroundImage:
-                                widget.post.userAvatar.isNotEmpty
-                                    ? CachedNetworkImageProvider(
-                                      widget.post.userAvatar,
-                                    )
-                                    : null,
-                            child:
-                                widget.post.userAvatar.isEmpty
-                                    ? Text(widget.post.username[0].toUpperCase(), style: TextStyle(fontSize: isDesktop ? 10 : 14))
-                                    : null,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap:
-                                () =>
-                                    context.push('/profile/${widget.post.userId}'),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      widget.post.username,
-                                      style: (isDesktop ? theme.textTheme.titleSmall : theme.textTheme.titleMedium)?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    if (widget.post.isVerified) ...[
-                                      const SizedBox(width: 4),
-                                      Icon(
-                                        Icons.verified,
-                                        size: isDesktop ? 14 : 16,
-                                        color: colorScheme.primary,
-                                      ),
-                                    ],
-                                    if (!widget.isOwnPost)
-                                      Consumer<ProfileProvider>(
-                                        builder: (context, profileProvider, child) {
-                                          final isFollowing = profileProvider.following.any((p) => p.id == widget.post.userId);
-                                          if (isFollowing) return const SizedBox.shrink();
-                                          return Padding(
-                                            padding: const EdgeInsets.only(left: 8.0),
-                                            child: InkWell(
-                                              onTap: () {
-                                                final currentUserId = AuthService().currentUser?.id;
-                                                if (currentUserId != null) {
-                                                  profileProvider.followUser(
-                                                    followerId: currentUserId,
-                                                    followingId: widget.post.userId,
-                                                  );
-                                                }
-                                              },
-                                              child: Text(
-                                                'Follow',
-                                                style: (isDesktop ? theme.textTheme.labelSmall : theme.textTheme.labelMedium)?.copyWith(
-                                                  color: colorScheme.primary,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                  ],
-                                ),
-                                Text(
-                                  timeago.format(widget.post.timestamp),
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                    fontSize: isDesktop ? 10 : 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          key: _moreButtonKey,
-                          icon: Icon(FluentIcons.more_vertical_24_regular, size: isDesktop ? 18 : 24),
-                          onPressed: _showMoreOptions,
-                          visualDensity: isDesktop ? VisualDensity.compact : VisualDensity.standard,
-                        ),
-                      ],
+            borderRadius: BorderRadius.circular(cardRadius),
+            child:
+                disableTransparency
+                    ? cardContent
+                    : BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                      child: cardContent,
                     ),
-                  ),
-
-                  // Post Image(s)
-                  if (widget.post.mediaUrls.isNotEmpty ||
-                      (widget.post.imageUrl != null &&
-                          widget.post.imageUrl!.isNotEmpty)) ...[
-                    Builder(
-                      builder: (context) {
-                        final images =
-                            widget.post.mediaUrls.isNotEmpty
-                                ? widget.post.mediaUrls
-                                : [widget.post.imageUrl!];
-
-                        return Column(
-                          children: [
-                            GestureDetector(
-                              onDoubleTap: () => _handleLike(forceLike: true),
-                              child: AspectRatio(
-                                aspectRatio: isDesktop ? 1.2 : 4 / 5, // Wider aspect ratio on desktop to make it look smaller vertically
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                                  ),
-                                  child: images.length > 1
-                                      ? PageView.builder(
-                                          itemCount: images.length,
-                                          itemBuilder: (context, index) {
-                                            return _buildImageItem(images[index], colorScheme);
-                                          },
-                                        )
-                                      : Hero(
-                                          tag: 'post_${widget.post.id}',
-                                          child: _buildImageItem(images.first, colorScheme),
-                                        ),
-                                ),
-                              ),
-                            ),
-                            if (images.length > 1)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: List.generate(images.length, (index) {
-                                    return Container(
-                                      width: 6,
-                                      height: 6,
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: colorScheme.onSurface.withValues(
-                                          alpha: 0.2,
-                                        ), // Simple dot for now
-                                      ),
-                                    );
-                                  }),
-                                ),
-                              ),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
-
-                  // Caption (if no image or before actions)
-                  if (widget.post.content != null &&
-                      widget.post.content!.isNotEmpty)
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(16, isDesktop ? 12 : 12, 16, isDesktop ? 8 : 8),
-                      child: RichText(
-                        text: TextSpan(
-                          style: isDesktop 
-                            ? theme.textTheme.bodyMedium?.copyWith(fontSize: 15, height: 1.4) 
-                            : theme.textTheme.bodyMedium,
-                          children: [
-                            TextSpan(
-                              text: '${widget.post.username} ',
-                              style: const TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                            TextSpan(text: widget.post.content),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                  Padding(
-                    padding: EdgeInsets.only(
-                      left: 12,
-                      right: 12,
-                      top: isDesktop ? 4 : 8,
-                      bottom: isDesktop ? 12 : 20,
-                    ),
-                    child: Row(
-                      children: [
-                        ScaleTransition(
-                          scale: _likeAnimation,
-                          child: IconButton(
-                            key: const ValueKey('post_card_like_button'),
-                            icon: Icon(
-                              widget.post.isLiked
-                                  ? FluentIcons.heart_24_filled
-                                  : FluentIcons.heart_24_regular,
-                              color: widget.post.isLiked ? Colors.red : null,
-                              size: isDesktop ? 24 : 32,
-                            ),
-                            onPressed: _handleLike,
-                            padding: isDesktop ? EdgeInsets.zero : const EdgeInsets.all(8),
-                            constraints: isDesktop ? const BoxConstraints() : null,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${widget.post.likes}',
-                          style: isDesktop ? theme.textTheme.bodySmall : theme.textTheme.bodyMedium,
-                        ),
-                        const SizedBox(width: 16),
-                        IconButton(
-                          key: const ValueKey('post_card_comment_button'),
-                          icon: Icon(FluentIcons.chat_24_regular, size: isDesktop ? 22 : 28),
-                          onPressed: widget.onComment,
-                          padding: isDesktop ? EdgeInsets.zero : const EdgeInsets.all(8),
-                          constraints: isDesktop ? const BoxConstraints() : null,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${widget.post.comments}',
-                          style: isDesktop ? theme.textTheme.bodySmall : theme.textTheme.bodyMedium,
-                        ),
-                        const SizedBox(width: 16),
-                        IconButton(
-                          key: const ValueKey('post_card_share_button'),
-                          icon: Icon(FluentIcons.share_24_regular, size: isDesktop ? 22 : 28),
-                          onPressed: widget.onShare,
-                          padding: isDesktop ? EdgeInsets.zero : const EdgeInsets.all(8),
-                          constraints: isDesktop ? const BoxConstraints() : null,
-                        ),
-                        const Spacer(),
-                        IconButton(
-                          key: const ValueKey('post_card_bookmark_button'),
-                          icon: Icon(
-                            widget.post.isBookmarked
-                                ? FluentIcons.bookmark_24_filled
-                                : FluentIcons.bookmark_24_regular,
-                            color:
-                                widget.post.isBookmarked
-                                    ? colorScheme.primary
-                                    : null,
-                            size: isDesktop ? 22 : 28,
-                          ),
-                          onPressed: widget.onBookmark,
-                          padding: isDesktop ? EdgeInsets.zero : const EdgeInsets.all(8),
-                          constraints: isDesktop ? const BoxConstraints() : null,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

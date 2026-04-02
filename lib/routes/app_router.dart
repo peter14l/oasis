@@ -25,6 +25,7 @@ import 'package:oasis_v2/screens/messages/direct_messages_screen.dart'
 import 'package:oasis_v2/screens/messages/chat_screen.dart';
 import 'package:oasis_v2/screens/messages/new_message_screen.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
 import 'package:oasis_v2/screens/messages/active_call_screen.dart';
 import 'package:oasis_v2/models/call.dart';
 import 'package:oasis_v2/screens/notifications/notifications_screen.dart';
@@ -104,14 +105,14 @@ class _MainLayoutState extends State<MainLayout> {
   /// Routes that are locked when the collaboration kill-switch or focus mode is active.
   static const _restrictedRoutes = {'/feed', '/search'};
   bool _isRailExtended = false;
-  
+
   // Panel state for Desktop
   String? _activePanel; // 'search', 'notifications', or null
 
   int _getCurrentIndex() {
     final location = GoRouterState.of(context).uri.path;
     final screenTimeService = context.read<ScreenTimeService>();
-    
+
     if (location.startsWith('/feed')) {
       screenTimeService.setCurrentCategory('Feed');
       return 0;
@@ -120,7 +121,9 @@ class _MainLayoutState extends State<MainLayout> {
       screenTimeService.setCurrentCategory('Feed'); // Search is discovery
       return 1;
     }
-    if (location.startsWith('/spaces') || location.startsWith('/circles') || location.startsWith('/communities')) {
+    if (location.startsWith('/spaces') ||
+        location.startsWith('/circles') ||
+        location.startsWith('/communities')) {
       screenTimeService.setCurrentCategory('Communities');
       return 2;
     }
@@ -142,6 +145,10 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+    final disableTransparency =
+        isM3E && themeProvider.isM3ETransparencyDisabled;
     final currentIndex = _getCurrentIndex();
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
@@ -149,14 +156,20 @@ class _MainLayoutState extends State<MainLayout> {
       builder: (context, svc, wellness, userSettings, _) {
         final killSwitchActive = wellness.focusModeEnabled;
         final isMica = userSettings.micaEnabled && Platform.isWindows;
-        
-        final panelColor = isMica 
-            ? Colors.black.withValues(alpha: 0.1) 
-            : const Color(0xFF0C0F14).withValues(alpha: 0.8);
-            
-        final slidingPanelColor = isMica 
-            ? Colors.black.withValues(alpha: 0.8) 
-            : const Color(0xFF0C0F14);
+
+        final panelColor =
+            isMica
+                ? Colors.black.withValues(alpha: 0.1)
+                : (isM3E
+                    ? theme.colorScheme.surfaceContainer
+                    : const Color(0xFF0C0F14).withValues(alpha: 0.8));
+
+        final slidingPanelColor =
+            isMica
+                ? Colors.black.withValues(alpha: 0.8)
+                : (isM3E
+                    ? theme.colorScheme.surfaceContainerHigh
+                    : const Color(0xFF0C0F14));
 
         if (killSwitchActive) {
           final location = GoRouterState.of(context).uri.path;
@@ -180,10 +193,8 @@ class _MainLayoutState extends State<MainLayout> {
                   padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [
-                      SizedBox(width: (_isRailExtended ? 240 : 120) + 12), 
-                      Expanded(
-                        child: widget.child,
-                      ),
+                      SizedBox(width: (_isRailExtended ? 240 : 120) + 12),
+                      Expanded(child: widget.child),
                     ],
                   ),
                 ),
@@ -205,22 +216,57 @@ class _MainLayoutState extends State<MainLayout> {
                   child: Container(
                     width: _isRailExtended ? 240 : 120,
                     decoration: BoxDecoration(
-                      color: panelColor,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                      color:
+                          disableTransparency
+                              ? theme.colorScheme.surfaceContainer
+                              : panelColor,
+                      borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
+                      border: Border.all(
+                        color:
+                            isM3E
+                                ? theme.colorScheme.outlineVariant.withValues(
+                                  alpha: 0.3,
+                                )
+                                : Colors.white.withValues(alpha: 0.05),
+                        width: isM3E ? 1 : 1,
+                      ),
+                      boxShadow:
+                          isM3E && disableTransparency
+                              ? [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.15),
+                                  blurRadius: 16,
+                                  offset: const Offset(4, 0),
+                                ),
+                              ]
+                              : null,
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: BackdropFilter(
-                        filter: ui.ImageFilter.blur(sigmaX: isMica ? 0 : 10, sigmaY: isMica ? 0 : 10),
-                        child: _buildNavigationRail(
-                          context,
-                          currentIndex,
-                          theme,
-                          killSwitchActive: killSwitchActive,
-                          isMica: isMica,
-                        ),
-                      ),
+                      borderRadius: BorderRadius.circular(isM3E ? 24 : 12),
+                      child:
+                          disableTransparency
+                              ? _buildNavigationRail(
+                                context,
+                                currentIndex,
+                                theme,
+                                killSwitchActive: killSwitchActive,
+                                isMica: isMica,
+                                disableTransparency: disableTransparency,
+                              )
+                              : BackdropFilter(
+                                filter: ui.ImageFilter.blur(
+                                  sigmaX: isMica ? 0 : 10,
+                                  sigmaY: isMica ? 0 : 10,
+                                ),
+                                child: _buildNavigationRail(
+                                  context,
+                                  currentIndex,
+                                  theme,
+                                  killSwitchActive: killSwitchActive,
+                                  isMica: isMica,
+                                  disableTransparency: disableTransparency,
+                                ),
+                              ),
                     ),
                   ),
                 ),
@@ -233,8 +279,12 @@ class _MainLayoutState extends State<MainLayout> {
                     left: (_isRailExtended ? 240 : 120) + 24,
                     child: motion.Animate(
                       effects: [
-                        motion.MoveEffect(begin: const Offset(-50, 0), end: const Offset(0, 0), curve: Curves.easeOutCubic), 
-                        motion.FadeEffect()
+                        motion.MoveEffect(
+                          begin: const Offset(-50, 0),
+                          end: const Offset(0, 0),
+                          curve: Curves.easeOutCubic,
+                        ),
+                        motion.FadeEffect(),
                       ],
                       child: Container(
                         width: 450,
@@ -248,13 +298,16 @@ class _MainLayoutState extends State<MainLayout> {
                               offset: const Offset(20, 0),
                             ),
                           ],
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: _activePanel == 'search' 
-                            ? const SearchScreen(isPanel: true) 
-                            : const NotificationsScreen(isPanel: true),
+                          child:
+                              _activePanel == 'search'
+                                  ? const SearchScreen(isPanel: true)
+                                  : const NotificationsScreen(isPanel: true),
                         ),
                       ),
                     ),
@@ -309,6 +362,7 @@ class _MainLayoutState extends State<MainLayout> {
   }) {
     final isDesktop = ResponsiveLayout.isDesktop(context);
     if (isDesktop) return null;
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
 
     if (currentIndex == 2) {
       // Spaces tab — no FAB needed, circles/canvas have their own buttons
@@ -345,7 +399,10 @@ class _MainLayoutState extends State<MainLayout> {
                       ),
                       const SizedBox(height: 12),
                       ListTile(
-                        leading: const Icon(FluentIcons.video_24_regular, size: 28),
+                        leading: const Icon(
+                          FluentIcons.video_24_regular,
+                          size: 28,
+                        ),
                         title: const Text('New Ripple'),
                         subtitle: const Text('Share a short video ripple'),
                         onTap: () {
@@ -368,12 +425,15 @@ class _MainLayoutState extends State<MainLayout> {
                 ),
           );
         },
-        backgroundColor: theme.colorScheme.primary,
-        elevation: 2,
-        shape: const CircleBorder(),
+        backgroundColor: theme.colorScheme.primaryContainer,
+        foregroundColor: theme.colorScheme.onPrimaryContainer,
+        elevation: isM3E ? 3 : 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(isM3E ? 16 : 28),
+        ),
         child: Icon(
           Icons.add_rounded,
-          color: theme.colorScheme.onPrimary,
+          color: theme.colorScheme.onPrimaryContainer,
           size: 28,
         ),
       );
@@ -387,10 +447,73 @@ class _MainLayoutState extends State<MainLayout> {
     ThemeData theme, {
     required bool killSwitchActive,
   }) {
-    final conversationProvider = Provider.of<ConversationProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final disableTransparency =
+        themeProvider.isM3EEnabled && themeProvider.isM3ETransparencyDisabled;
+
     // Indices 0 (Feed) and 1 (Search) are restricted when kill-switch is on.
     Widget restrictedIcon(Widget icon) =>
         killSwitchActive ? Opacity(opacity: 0.3, child: icon) : icon;
+
+    final navBar = NavigationBarM3E(
+      backgroundColor:
+          disableTransparency
+              ? theme.colorScheme.surfaceContainer
+              : Colors.transparent,
+      elevation: disableTransparency ? 3 : 0,
+      selectedIndex: currentIndex,
+      onDestinationSelected:
+          (i) => _onDestinationSelected(i, killSwitchActive: killSwitchActive),
+      labelBehavior: NavBarM3ELabelBehavior.alwaysShow,
+      destinations: [
+        NavigationDestinationM3E(
+          icon: restrictedIcon(const Icon(FluentIcons.home_24_regular)),
+          selectedIcon: restrictedIcon(const Icon(FluentIcons.home_24_filled)),
+          label: 'Feed',
+        ),
+        NavigationDestinationM3E(
+          icon: restrictedIcon(const Icon(FluentIcons.search_24_regular)),
+          selectedIcon: restrictedIcon(
+            const Icon(FluentIcons.search_24_filled),
+          ),
+          label: 'Search',
+        ),
+        NavigationDestinationM3E(
+          icon: const Icon(FluentIcons.channel_24_regular),
+          selectedIcon: const Icon(FluentIcons.channel_24_filled),
+          label: 'Spaces',
+        ),
+        NavigationDestinationM3E(
+          icon: const UnreadMessagesBadge(
+            child: Icon(FluentIcons.chat_24_regular),
+          ),
+          selectedIcon: const UnreadMessagesBadge(
+            child: Icon(FluentIcons.chat_24_filled),
+          ),
+          label: 'Messages',
+        ),
+        NavigationDestinationM3E(
+          icon: const Icon(FluentIcons.alert_24_regular),
+          selectedIcon: const Icon(FluentIcons.alert_24_filled),
+          label: 'Alerts',
+        ),
+        NavigationDestinationM3E(
+          icon: GestureDetector(
+            onLongPress: () => AccountSwitcherSheet.show(context),
+            child: const Icon(FluentIcons.person_24_regular),
+          ),
+          selectedIcon: GestureDetector(
+            onLongPress: () => AccountSwitcherSheet.show(context),
+            child: const Icon(FluentIcons.person_24_filled),
+          ),
+          label: 'Profile',
+        ),
+      ],
+    );
+
+    if (disableTransparency) {
+      return navBar;
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -406,65 +529,7 @@ class _MainLayoutState extends State<MainLayout> {
       child: ClipRRect(
         child: BackdropFilter(
           filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: NavigationBarM3E(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            selectedIndex: currentIndex,
-            onDestinationSelected:
-                (i) => _onDestinationSelected(
-                  i,
-                  killSwitchActive: killSwitchActive,
-                ),
-            labelBehavior: NavBarM3ELabelBehavior.alwaysShow,
-            destinations: [
-              NavigationDestinationM3E(
-                icon: restrictedIcon(const Icon(FluentIcons.home_24_regular)),
-                selectedIcon: restrictedIcon(
-                  const Icon(FluentIcons.home_24_filled),
-                ),
-                label: 'Feed',
-              ),
-              NavigationDestinationM3E(
-                icon: restrictedIcon(
-                  const Icon(FluentIcons.search_24_regular),
-                ),
-                selectedIcon: restrictedIcon(
-                  const Icon(FluentIcons.search_24_filled),
-                ),
-                label: 'Search',
-              ),
-              NavigationDestinationM3E(
-                icon: const Icon(FluentIcons.channel_24_regular),
-                selectedIcon: const Icon(FluentIcons.channel_24_filled),
-                label: 'Spaces',
-              ),
-              NavigationDestinationM3E(
-                icon: const UnreadMessagesBadge(
-                  child: Icon(FluentIcons.chat_24_regular),
-                ),
-                selectedIcon: const UnreadMessagesBadge(
-                  child: Icon(FluentIcons.chat_24_filled),
-                ),
-                label: 'Messages',
-              ),
-              NavigationDestinationM3E(
-                icon: const Icon(FluentIcons.alert_24_regular),
-                selectedIcon: const Icon(FluentIcons.alert_24_filled),
-                label: 'Alerts',
-              ),
-              NavigationDestinationM3E(
-                icon: GestureDetector(
-                  onLongPress: () => AccountSwitcherSheet.show(context),
-                  child: const Icon(FluentIcons.person_24_regular),
-                ),
-                selectedIcon: GestureDetector(
-                  onLongPress: () => AccountSwitcherSheet.show(context),
-                  child: const Icon(FluentIcons.person_24_filled),
-                ),
-                label: 'Profile',
-              ),
-            ],
-          ),
+          child: navBar,
         ),
       ),
     );
@@ -476,6 +541,7 @@ class _MainLayoutState extends State<MainLayout> {
     ThemeData theme, {
     required bool killSwitchActive,
     bool isMica = false,
+    bool disableTransparency = false,
   }) {
     final colorScheme = theme.colorScheme;
 
@@ -487,8 +553,14 @@ class _MainLayoutState extends State<MainLayout> {
       selectedIndex: currentIndex,
       onDestinationSelected:
           (i) => _onDestinationSelected(i, killSwitchActive: killSwitchActive),
-      labelType: _isRailExtended ? NavigationRailLabelType.none : NavigationRailLabelType.all,
-      backgroundColor: isMica ? Colors.transparent : const Color(0xFF0C0F14),
+      labelType:
+          _isRailExtended
+              ? NavigationRailLabelType.none
+              : NavigationRailLabelType.all,
+      backgroundColor:
+          disableTransparency
+              ? theme.colorScheme.surface
+              : (isMica ? Colors.transparent : const Color(0xFF0C0F14)),
       leading: Column(
         children: [
           const SizedBox(height: 8),
@@ -506,7 +578,9 @@ class _MainLayoutState extends State<MainLayout> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: GestureDetector(
-                onTapDown: (details) => _showCreateMenu(context, details.globalPosition, theme),
+                onTapDown:
+                    (details) =>
+                        _showCreateMenu(context, details.globalPosition, theme),
                 child: IconButton.filled(
                   onPressed: () {}, // Handled by onTapDown for position
                   icon: const Icon(Icons.add_rounded),
@@ -531,7 +605,10 @@ class _MainLayoutState extends State<MainLayout> {
               child: CircleAvatar(
                 radius: 20,
                 backgroundColor: colorScheme.primaryContainer,
-                child: Icon(Icons.person, color: colorScheme.onPrimaryContainer),
+                child: Icon(
+                  Icons.person,
+                  color: colorScheme.onPrimaryContainer,
+                ),
               ),
             ),
           ),
@@ -592,7 +669,8 @@ class _MainLayoutState extends State<MainLayout> {
 
   Widget _buildDesktopCreateButton(BuildContext context, ThemeData theme) {
     return GestureDetector(
-      onTapDown: (details) => _showCreateMenu(context, details.globalPosition, theme),
+      onTapDown:
+          (details) => _showCreateMenu(context, details.globalPosition, theme),
       child: InkWell(
         onTap: () {}, // Handled by onTapDown
         borderRadius: BorderRadius.circular(12),
@@ -631,7 +709,8 @@ class _MainLayoutState extends State<MainLayout> {
 
   void _showCreateMenu(BuildContext context, Offset position, ThemeData theme) {
     final colorScheme = theme.colorScheme;
-    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
 
     showMenu(
       context: context,
@@ -641,12 +720,17 @@ class _MainLayoutState extends State<MainLayout> {
         overlay.size.width - position.dx,
         overlay.size.height - position.dy,
       ),
-      color: theme.brightness == Brightness.dark ? const Color(0xFF1A1D24) : Colors.white,
+      color:
+          theme.brightness == Brightness.dark
+              ? const Color(0xFF1A1D24)
+              : Colors.white,
       surfaceTintColor: Colors.transparent,
       elevation: 8,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       items: [
         PopupMenuItem(
@@ -658,7 +742,11 @@ class _MainLayoutState extends State<MainLayout> {
           },
           child: Row(
             children: [
-              Icon(Icons.post_add, size: 20, color: colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.post_add,
+                size: 20,
+                color: colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 12),
               const Text('New Post'),
             ],
@@ -672,7 +760,11 @@ class _MainLayoutState extends State<MainLayout> {
           },
           child: Row(
             children: [
-              Icon(FluentIcons.video_24_regular, size: 20, color: colorScheme.onSurfaceVariant),
+              Icon(
+                FluentIcons.video_24_regular,
+                size: 20,
+                color: colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 12),
               const Text('New Ripple'),
             ],
@@ -686,7 +778,11 @@ class _MainLayoutState extends State<MainLayout> {
           },
           child: Row(
             children: [
-              Icon(Icons.lock_clock, size: 20, color: colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.lock_clock,
+                size: 20,
+                color: colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 12),
               const Text('Time Capsule'),
             ],
@@ -703,15 +799,18 @@ class _MainLayoutState extends State<MainLayout> {
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
     if (isDesktop) {
-      if (index == 1) { // Search
+      if (index == 1) {
+        // Search
         setState(() {
           _activePanel = _activePanel == 'search' ? null : 'search';
         });
         return;
       }
-      if (index == 4) { // Notifications
+      if (index == 4) {
+        // Notifications
         setState(() {
-          _activePanel = _activePanel == 'notifications' ? null : 'notifications';
+          _activePanel =
+              _activePanel == 'notifications' ? null : 'notifications';
         });
         return;
       }
@@ -765,7 +864,7 @@ class AppRouter {
   }
 
   static GoRouter? _router;
-  
+
   static GoRouter get router {
     _router ??= GoRouter(
       navigatorKey: _rootNavigatorKey,
@@ -773,548 +872,558 @@ class AppRouter {
       refreshListenable: AuthService(),
       debugLogDiagnostics: true,
       redirect: (context, state) async {
-      // Password-reset screen is always reachable once Supabase sets the
-      // recovery session — never redirect away from it automatically.
-      if (state.uri.path == '/reset-password') return null;
+        // Password-reset screen is always reachable once Supabase sets the
+        // recovery session — never redirect away from it automatically.
+        if (state.uri.path == '/reset-password') return null;
 
-      // Check onboarding status
-      final hasSeenOnboarding = await OnboardingScreen.hasSeenOnboarding();
-      if (!hasSeenOnboarding && state.uri.path != '/onboarding') {
-        return '/onboarding';
-      }
-
-      final authService = Provider.of<AuthService>(context, listen: false);
-      final isLoggedIn = authService.currentUser != null;
-
-      // Unauthenticated users trying to reach a protected route → login
-      if (!isLoggedIn && !_isPublicRoute(state.uri.path) && state.uri.path != '/onboarding') {
-        return '/login';
-      }
-
-      // Authenticated users trying to reach login/register → feed
-      if (isLoggedIn && _isLoginOnlyRoute(state.uri.path)) {
-        // Allow if specifically adding a new account
-        if (state.uri.queryParameters['add_account'] == 'true') {
-          return null;
+        // Check onboarding status
+        final hasSeenOnboarding = await OnboardingScreen.hasSeenOnboarding();
+        if (!hasSeenOnboarding && state.uri.path != '/onboarding') {
+          return '/onboarding';
         }
-        return '/feed';
-      }
 
-      return null;
-    },
-    routes: [
-      // Auth Routes
-      GoRoute(
-        path: '/login',
-        name: 'login',
-        pageBuilder:
-            (context, state) => MaterialPage(
-              key: state.pageKey,
-              child: const login_screen.LoginScreen(),
-            ),
-      ),
-      GoRoute(
-        path: '/register',
-        name: 'register',
-        pageBuilder:
-            (context, state) =>
-                MaterialPage(key: state.pageKey, child: const RegisterScreen()),
-      ),
-      GoRoute(
-        path: '/reset-password',
-        name: 'reset_password',
-        pageBuilder:
-            (context, state) => MaterialPage(
-              key: state.pageKey,
-              child: const ResetPasswordScreen(),
-            ),
-      ),
+        final authService = Provider.of<AuthService>(context, listen: false);
+        final isLoggedIn = authService.currentUser != null;
 
-      // Main App Shell (Tab Navigation)
-      ShellRoute(
-        navigatorKey: _shellNavigatorKey,
-        builder: (context, state, child) => MainLayout(child: child),
-        routes: [
-          // Feed Screen
-          GoRoute(
-            path: '/feed',
-            name: 'feed',
-            pageBuilder:
-                (context, state) => const NoTransitionPage(child: FeedScreen()),
-          ),
+        // Unauthenticated users trying to reach a protected route → login
+        if (!isLoggedIn &&
+            !_isPublicRoute(state.uri.path) &&
+            state.uri.path != '/onboarding') {
+          return '/login';
+        }
 
-          // Search Screen
-          GoRoute(
-            path: '/search',
-            name: 'search',
-            pageBuilder:
-                (context, state) =>
-                    const NoTransitionPage(child: SearchScreen()),
-          ),
+        // Authenticated users trying to reach login/register → feed
+        if (isLoggedIn && _isLoginOnlyRoute(state.uri.path)) {
+          // Allow if specifically adding a new account
+          if (state.uri.queryParameters['add_account'] == 'true') {
+            return null;
+          }
+          return '/feed';
+        }
 
-          // Communities Screen
-          GoRoute(
-            path: '/spaces',
-            name: 'spaces',
-            pageBuilder:
-                (context, state) =>
-                    const NoTransitionPage(child: SpacesScreen()),
-            routes: [
-              GoRoute(
-                path: 'circles/create',
-                name: 'create_circle',
-                parentNavigatorKey: _rootNavigatorKey,
-                pageBuilder: (context, state) => const MaterialPage(
-                  fullscreenDialog: true,
-                  child: CreateCircleScreen(),
-                ),
+        return null;
+      },
+      routes: [
+        // Auth Routes
+        GoRoute(
+          path: '/login',
+          name: 'login',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const login_screen.LoginScreen(),
               ),
-              GoRoute(
-                path: 'canvas/create',
-                name: 'create_canvas',
-                parentNavigatorKey: _rootNavigatorKey,
-                pageBuilder: (context, state) => const MaterialPage(
-                  fullscreenDialog: true,
-                  child: CreateCanvasScreen(),
-                ),
+        ),
+        GoRoute(
+          path: '/register',
+          name: 'register',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const RegisterScreen(),
               ),
-              GoRoute(
-                path: 'circles/:circleId',
-                name: 'circle_detail',
-                parentNavigatorKey: _rootNavigatorKey,
-                builder: (context, state) {
-                  final id = state.pathParameters['circleId']!;
-                  return CircleDetailScreen(circleId: id);
-                },
-                routes: [
-                  GoRoute(
-                    path: 'add-commitment',
-                    name: 'create_commitment',
-                    parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) {
-                      final id = state.pathParameters['circleId']!;
-                      return CreateCommitmentScreen(circleId: id);
-                    },
+        ),
+        GoRoute(
+          path: '/reset-password',
+          name: 'reset_password',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const ResetPasswordScreen(),
+              ),
+        ),
+
+        // Main App Shell (Tab Navigation)
+        ShellRoute(
+          navigatorKey: _shellNavigatorKey,
+          builder: (context, state, child) => MainLayout(child: child),
+          routes: [
+            // Feed Screen
+            GoRoute(
+              path: '/feed',
+              name: 'feed',
+              pageBuilder:
+                  (context, state) =>
+                      const NoTransitionPage(child: FeedScreen()),
+            ),
+
+            // Search Screen
+            GoRoute(
+              path: '/search',
+              name: 'search',
+              pageBuilder:
+                  (context, state) =>
+                      const NoTransitionPage(child: SearchScreen()),
+            ),
+
+            // Communities Screen
+            GoRoute(
+              path: '/spaces',
+              name: 'spaces',
+              pageBuilder:
+                  (context, state) =>
+                      const NoTransitionPage(child: SpacesScreen()),
+              routes: [
+                GoRoute(
+                  path: 'circles/create',
+                  name: 'create_circle',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  pageBuilder:
+                      (context, state) => const MaterialPage(
+                        fullscreenDialog: true,
+                        child: CreateCircleScreen(),
+                      ),
+                ),
+                GoRoute(
+                  path: 'canvas/create',
+                  name: 'create_canvas',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  pageBuilder:
+                      (context, state) => const MaterialPage(
+                        fullscreenDialog: true,
+                        child: CreateCanvasScreen(),
+                      ),
+                ),
+                GoRoute(
+                  path: 'circles/:circleId',
+                  name: 'circle_detail',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) {
+                    final id = state.pathParameters['circleId']!;
+                    return CircleDetailScreen(circleId: id);
+                  },
+                  routes: [
+                    GoRoute(
+                      path: 'add-commitment',
+                      name: 'create_commitment',
+                      parentNavigatorKey: _rootNavigatorKey,
+                      builder: (context, state) {
+                        final id = state.pathParameters['circleId']!;
+                        return CreateCommitmentScreen(circleId: id);
+                      },
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: 'canvas/:canvasId',
+                  name: 'canvas_detail',
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) {
+                    final id = state.pathParameters['canvasId']!;
+                    return TimelineCanvasScreen(canvasId: id);
+                  },
+                ),
+              ],
+            ),
+
+            // Direct Messages Screen
+            GoRoute(
+              path: '/messages',
+              name: 'messages',
+              pageBuilder:
+                  (context, state) => const NoTransitionPage(
+                    child: messages.DirectMessagesScreen(),
                   ),
-                ],
-              ),
-              GoRoute(
-                path: 'canvas/:canvasId',
-                name: 'canvas_detail',
-                parentNavigatorKey: _rootNavigatorKey,
-                builder: (context, state) {
-                  final id = state.pathParameters['canvasId']!;
-                  return TimelineCanvasScreen(canvasId: id);
-                },
-              ),
-            ],
-          ),
+              routes: [
+                GoRoute(
+                  path: ':conversationId',
+                  name: 'chat_nested',
+                  pageBuilder: (context, state) {
+                    final conversationId =
+                        state.pathParameters['conversationId']!;
+                    final extra = state.extra as Map<String, dynamic>?;
 
-          // Direct Messages Screen
-          GoRoute(
-            path: '/messages',
-            name: 'messages',
-            pageBuilder:
-                (context, state) => const NoTransitionPage(
-                  child: messages.DirectMessagesScreen(),
+                    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+
+                    if (isDesktop) {
+                      // On Desktop, the DirectMessagesScreen handles the 3rd pane internally.
+                      // We return the same screen but the internal logic will now see the ID in the URL.
+                      return NoTransitionPage(
+                        child: messages.DirectMessagesScreen(
+                          initialConversationId: conversationId,
+                          initialConversationData: extra,
+                        ),
+                      );
+                    } else {
+                      // On Mobile/Android, we push the dedicated ChatScreen
+                      return MaterialPage(
+                        child: ChatScreen(
+                          conversationId: conversationId,
+                          otherUserName: extra?['otherUserName'],
+                          otherUserAvatar: extra?['otherUserAvatar'],
+                          otherUserId: extra?['otherUserId'],
+                        ),
+                      );
+                    }
+                  },
                 ),
-            routes: [
-              GoRoute(
-                path: ':conversationId',
-                name: 'chat_nested',
-                pageBuilder: (context, state) {
-                  final conversationId = state.pathParameters['conversationId']!;
-                  final extra = state.extra as Map<String, dynamic>?;
-                  
-                  final isDesktop = MediaQuery.of(context).size.width >= 1000;
+              ],
+            ),
 
-                  if (isDesktop) {
-                    // On Desktop, the DirectMessagesScreen handles the 3rd pane internally.
-                    // We return the same screen but the internal logic will now see the ID in the URL.
-                    return NoTransitionPage(
-                      child: messages.DirectMessagesScreen(
-                        initialConversationId: conversationId,
-                        initialConversationData: extra,
-                      ),
-                    );
-                  } else {
-                    // On Mobile/Android, we push the dedicated ChatScreen
-                    return MaterialPage(
-                      child: ChatScreen(
-                        conversationId: conversationId,
-                        otherUserName: extra?['otherUserName'],
-                        otherUserAvatar: extra?['otherUserAvatar'],
-                        otherUserId: extra?['otherUserId'],
-                      ),
-                    );
-                  }
-                },
+            // Notifications Screen
+            GoRoute(
+              path: '/notifications',
+              name: 'notifications',
+              pageBuilder:
+                  (context, state) =>
+                      const NoTransitionPage(child: NotificationsScreen()),
+            ),
+
+            // Profile Screen
+            GoRoute(
+              path: '/profile',
+              name: 'profile',
+              pageBuilder:
+                  (context, state) =>
+                      const NoTransitionPage(child: ProfileScreen()),
+            ),
+          ],
+        ),
+
+        // Ripples Screen (Full screen, no bottom nav)
+        GoRoute(
+          path: '/ripples',
+          name: 'ripples',
+          pageBuilder:
+              (context, state) => const MaterialPage(
+                key: ValueKey('ripples_screen'),
+                fullscreenDialog: true,
+                child: RipplesScreen(),
               ),
-            ],
-          ),
-
-          // Notifications Screen
-          GoRoute(
-            path: '/notifications',
-            name: 'notifications',
-            pageBuilder:
-                (context, state) =>
-                    const NoTransitionPage(child: NotificationsScreen()),
-          ),
-
-          // Profile Screen
-          GoRoute(
-            path: '/profile',
-            name: 'profile',
-            pageBuilder:
-                (context, state) =>
-                    const NoTransitionPage(child: ProfileScreen()),
-          ),
-        ],
-      ),
-
-      // Ripples Screen (Full screen, no bottom nav)
-      GoRoute(
-        path: '/ripples',
-        name: 'ripples',
-        pageBuilder: (context, state) => const MaterialPage(
-          key: ValueKey('ripples_screen'),
-          fullscreenDialog: true,
-          child: RipplesScreen(),
         ),
-      ),
 
-      // Create Ripple Screen
-      GoRoute(
-        path: '/create-ripple',
-        name: 'create_ripple',
-        parentNavigatorKey: _rootNavigatorKey,
-        pageBuilder: (context, state) {
-          return MaterialPage(
-            key: state.pageKey,
-            fullscreenDialog: true,
-            child: const CreateRippleScreen(),
-          );
-        },
-      ),
-
-      // Oasis Pro Screen
-      GoRoute(
-        path: '/oasis-pro',
-        name: 'oasis_pro',
-        parentNavigatorKey: _rootNavigatorKey,
-        pageBuilder: (context, state) {
-          return MaterialPage(
-            key: state.pageKey,
-            fullscreenDialog: true,
-            child: const OasisProScreen(),
-          );
-        },
-      ),
-
-      // Integrated Call Screen
-      GoRoute(
-        path: '/call/:callId',
-        name: 'active_call',
-        pageBuilder: (context, state) {
-          final call = state.extra as Call;
-          return MaterialPage(
-            key: state.pageKey,
-            fullscreenDialog: true,
-            child: ActiveCallScreen(call: call),
-          );
-        },
-      ),
-
-      // Create Post Modal
-      GoRoute(
-        path: '/create-post',
-        name: 'create_post',
-        pageBuilder: (context, state) {
-          final communityId = state.extra as String?;
-          return MaterialPage(
-            key: state.pageKey,
-            fullscreenDialog: true,
-            child: CreatePostScreen(communityId: communityId),
-          );
-        },
-      ),
-
-      // Create Time Capsule Modal
-      GoRoute(
-        path: '/create-capsule',
-        name: 'create_capsule',
-        pageBuilder: (context, state) {
-          return MaterialPage(
-            key: state.pageKey,
-            fullscreenDialog: true,
-            child: const CreateCapsuleScreen(),
-          );
-        },
-      ),
-
-      // View Time Capsule (Deep Link)
-      GoRoute(
-        path: '/capsule/:capsuleId',
-        name: 'view_capsule',
-        builder: (context, state) {
-          final id = state.pathParameters['capsuleId']!;
-          return CapsuleViewScreen(capsuleId: id);
-        },
-      ),
-
-      // Join Circle (Deep Link)
-      GoRoute(
-        path: '/circle/join/:circleId',
-        name: 'join_circle',
-        builder: (context, state) {
-          final id = state.pathParameters['circleId']!;
-          return CircleJoinScreen(circleId: id);
-        },
-      ),
-
-      // Create Story Screen
-      GoRoute(
-        path: '/stories/create',
-        name: 'create_story',
-        parentNavigatorKey: _rootNavigatorKey,
-        pageBuilder: (context, state) {
-          return MaterialPage(
-            key: state.pageKey,
-            fullscreenDialog: true,
-            child: const CreateStoryScreen(),
-          );
-        },
-      ),
-
-      // Post Details Screen (Feed View)
-      GoRoute(
-        path: '/post/:postId',
-        name: 'post_details',
-        pageBuilder: (context, state) {
-          final postId = state.pathParameters['postId']!;
-          return MaterialPage(
-            key: state.pageKey,
-            child: PostDetailsScreen(postId: postId),
-          );
-        },
-      ),
-
-      // Comments Screen
-      GoRoute(
-        path: '/post/:postId/comments',
-        name: 'comments',
-        pageBuilder: (context, state) {
-          final postId = state.pathParameters['postId']!;
-          return MaterialPage(
-            key: state.pageKey,
-            child: CommentsScreen(postId: postId),
-          );
-        },
-      ),
-
-      // Edit Profile Screen
-      GoRoute(
-        path: '/edit-profile',
-        name: 'edit_profile',
-        pageBuilder:
-            (context, state) => MaterialPage(
+        // Create Ripple Screen
+        GoRoute(
+          path: '/create-ripple',
+          name: 'create_ripple',
+          parentNavigatorKey: _rootNavigatorKey,
+          pageBuilder: (context, state) {
+            return MaterialPage(
               key: state.pageKey,
-              child: const EditProfileScreen(),
-            ),
-      ),
-
-      // Settings Screen
-      GoRoute(
-        path: '/settings',
-        name: 'settings',
-        pageBuilder:
-            (context, state) =>
-                MaterialPage(key: state.pageKey, child: const SettingsScreen()),
-      ),
-
-      // Subscription Screen
-      GoRoute(
-        path: '/subscription',
-        name: 'subscription',
-        pageBuilder:
-            (context, state) => MaterialPage(
-              key: state.pageKey,
-              child: const SubscriptionScreen(),
-            ),
-      ),
-      GoRoute(
-        path: '/settings/account-privacy',
-        name: 'account_privacy',
-        pageBuilder:
-            (context, state) => MaterialPage(
-              key: state.pageKey,
-              child: const AccountPrivacyScreen(),
-            ),
-      ),
-      GoRoute(
-        path: '/settings/blocked-users',
-        name: 'blocked_users',
-        pageBuilder:
-            (context, state) => MaterialPage(
-              key: state.pageKey,
-              child: const BlockedUsersScreen(),
-            ),
-      ),
-      GoRoute(
-        path: '/settings/two-factor-auth',
-        name: 'two_factor_auth',
-        pageBuilder:
-            (context, state) => MaterialPage(
-              key: state.pageKey,
-              child: const TwoFactorAuthScreen(),
-            ),
-      ),
-      GoRoute(
-        path: '/settings/download-data',
-        name: 'download_data',
-        pageBuilder:
-            (context, state) => MaterialPage(
-              key: state.pageKey,
-              child: const DownloadDataScreen(),
-            ),
-      ),
-      GoRoute(
-        path: '/settings/storage-usage',
-        name: 'storage_usage',
-        pageBuilder:
-            (context, state) => MaterialPage(
-              key: state.pageKey,
-              child: const StorageUsageScreen(),
-            ),
-      ),
-      GoRoute(
-        path: '/settings/font-size',
-        name: 'font_size',
-        pageBuilder:
-            (context, state) => MaterialPage(
-              key: state.pageKey,
-              child: const FontSizeScreen(),
-            ),
-      ),
-      GoRoute(
-        path: '/settings/help-support',
-        name: 'help_support',
-        pageBuilder:
-            (context, state) => MaterialPage(
-              key: state.pageKey,
-              child: const HelpSupportScreen(),
-            ),
-      ),
-
-      // Story View Screen
-      GoRoute(
-        path: '/story/:storyId',
-        name: 'story_view',
-        pageBuilder: (context, state) {
-          final storyId = state.pathParameters['storyId']!;
-          final stories = state.extra as List<StoryModel>;
-          return CustomTransitionPage(
-            key: state.pageKey,
-            child: StoryViewScreen(initialStoryId: storyId, stories: stories),
-            transitionsBuilder: (
-              context,
-              animation,
-              secondaryAnimation,
-              child,
-            ) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-          );
-        },
-      ),
-
-      GoRoute(
-        path: '/wellness-stats',
-        name: 'wellness_stats',
-        pageBuilder: (context, state) => const MaterialPage(
-          child: WellnessStatsScreen(),
+              fullscreenDialog: true,
+              child: const CreateRippleScreen(),
+            );
+          },
         ),
-      ),
-      // User Profile Screen (for viewing others)
-      GoRoute(
-        path: '/profile/:userId',
-        name: 'user_profile',
-        pageBuilder: (context, state) {
-          final userId = state.pathParameters['userId']!;
-          return MaterialPage(
-            key: state.pageKey,
-            child: ProfileScreen(userId: userId),
-          );
-        },
-      ),
 
-      // Followers/Following Screen
-      GoRoute(
-        path: '/profile/:userId/followers',
-        name: 'followers',
-        pageBuilder: (context, state) {
-          final userId = state.pathParameters['userId']!;
-          return MaterialPage(
-            key: state.pageKey,
-            child: FollowersScreen(userId: userId, initialTab: 0),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/profile/:userId/following',
-        name: 'following',
-        pageBuilder: (context, state) {
-          final userId = state.pathParameters['userId']!;
-          return MaterialPage(
-            key: state.pageKey,
-            child: FollowersScreen(userId: userId, initialTab: 1),
-          );
-        },
-      ),      // New Message Screen
-      GoRoute(
-        path: '/new-message',
-        name: 'new_message',
-        pageBuilder:
-            (context, state) => MaterialPage(
+        // Oasis Pro Screen
+        GoRoute(
+          path: '/oasis-pro',
+          name: 'oasis_pro',
+          parentNavigatorKey: _rootNavigatorKey,
+          pageBuilder: (context, state) {
+            return MaterialPage(
               key: state.pageKey,
-              child: const NewMessageScreen(),
-            ),
-      ),
+              fullscreenDialog: true,
+              child: const OasisProScreen(),
+            );
+          },
+        ),
 
+        // Integrated Call Screen
+        GoRoute(
+          path: '/call/:callId',
+          name: 'active_call',
+          pageBuilder: (context, state) {
+            final call = state.extra as Call;
+            return MaterialPage(
+              key: state.pageKey,
+              fullscreenDialog: true,
+              child: ActiveCallScreen(call: call),
+            );
+          },
+        ),
 
-      // Legal Screens
-      GoRoute(
-        path: '/privacy-policy',
-        name: 'privacy_policy',
-        pageBuilder:
-            (context, state) => MaterialPage(
+        // Create Post Modal
+        GoRoute(
+          path: '/create-post',
+          name: 'create_post',
+          pageBuilder: (context, state) {
+            final communityId = state.extra as String?;
+            return MaterialPage(
               key: state.pageKey,
-              child: const PrivacyPolicyScreen(),
-            ),
-      ),
-      GoRoute(
-        path: '/terms-of-service',
-        name: 'terms_of_service',
-        pageBuilder:
-            (context, state) => MaterialPage(
-              key: state.pageKey,
-              child: const TermsOfServiceScreen(),
-            ),
-      ),
+              fullscreenDialog: true,
+              child: CreatePostScreen(communityId: communityId),
+            );
+          },
+        ),
 
-      // Onboarding Screen
-      GoRoute(
-        path: '/onboarding',
-        name: 'onboarding',
-        pageBuilder:
-            (context, state) => MaterialPage(
+        // Create Time Capsule Modal
+        GoRoute(
+          path: '/create-capsule',
+          name: 'create_capsule',
+          pageBuilder: (context, state) {
+            return MaterialPage(
               key: state.pageKey,
-              child: const OnboardingScreen(),
-            ),
-      ),
-    ],
-  );
-  return _router!;
- }
+              fullscreenDialog: true,
+              child: const CreateCapsuleScreen(),
+            );
+          },
+        ),
+
+        // View Time Capsule (Deep Link)
+        GoRoute(
+          path: '/capsule/:capsuleId',
+          name: 'view_capsule',
+          builder: (context, state) {
+            final id = state.pathParameters['capsuleId']!;
+            return CapsuleViewScreen(capsuleId: id);
+          },
+        ),
+
+        // Join Circle (Deep Link)
+        GoRoute(
+          path: '/circle/join/:circleId',
+          name: 'join_circle',
+          builder: (context, state) {
+            final id = state.pathParameters['circleId']!;
+            return CircleJoinScreen(circleId: id);
+          },
+        ),
+
+        // Create Story Screen
+        GoRoute(
+          path: '/stories/create',
+          name: 'create_story',
+          parentNavigatorKey: _rootNavigatorKey,
+          pageBuilder: (context, state) {
+            return MaterialPage(
+              key: state.pageKey,
+              fullscreenDialog: true,
+              child: const CreateStoryScreen(),
+            );
+          },
+        ),
+
+        // Post Details Screen (Feed View)
+        GoRoute(
+          path: '/post/:postId',
+          name: 'post_details',
+          pageBuilder: (context, state) {
+            final postId = state.pathParameters['postId']!;
+            return MaterialPage(
+              key: state.pageKey,
+              child: PostDetailsScreen(postId: postId),
+            );
+          },
+        ),
+
+        // Comments Screen
+        GoRoute(
+          path: '/post/:postId/comments',
+          name: 'comments',
+          pageBuilder: (context, state) {
+            final postId = state.pathParameters['postId']!;
+            return MaterialPage(
+              key: state.pageKey,
+              child: CommentsScreen(postId: postId),
+            );
+          },
+        ),
+
+        // Edit Profile Screen
+        GoRoute(
+          path: '/edit-profile',
+          name: 'edit_profile',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const EditProfileScreen(),
+              ),
+        ),
+
+        // Settings Screen
+        GoRoute(
+          path: '/settings',
+          name: 'settings',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const SettingsScreen(),
+              ),
+        ),
+
+        // Subscription Screen
+        GoRoute(
+          path: '/subscription',
+          name: 'subscription',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const SubscriptionScreen(),
+              ),
+        ),
+        GoRoute(
+          path: '/settings/account-privacy',
+          name: 'account_privacy',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const AccountPrivacyScreen(),
+              ),
+        ),
+        GoRoute(
+          path: '/settings/blocked-users',
+          name: 'blocked_users',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const BlockedUsersScreen(),
+              ),
+        ),
+        GoRoute(
+          path: '/settings/two-factor-auth',
+          name: 'two_factor_auth',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const TwoFactorAuthScreen(),
+              ),
+        ),
+        GoRoute(
+          path: '/settings/download-data',
+          name: 'download_data',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const DownloadDataScreen(),
+              ),
+        ),
+        GoRoute(
+          path: '/settings/storage-usage',
+          name: 'storage_usage',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const StorageUsageScreen(),
+              ),
+        ),
+        GoRoute(
+          path: '/settings/font-size',
+          name: 'font_size',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const FontSizeScreen(),
+              ),
+        ),
+        GoRoute(
+          path: '/settings/help-support',
+          name: 'help_support',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const HelpSupportScreen(),
+              ),
+        ),
+
+        // Story View Screen
+        GoRoute(
+          path: '/story/:storyId',
+          name: 'story_view',
+          pageBuilder: (context, state) {
+            final storyId = state.pathParameters['storyId']!;
+            final stories = state.extra as List<StoryModel>;
+            return CustomTransitionPage(
+              key: state.pageKey,
+              child: StoryViewScreen(initialStoryId: storyId, stories: stories),
+              transitionsBuilder: (
+                context,
+                animation,
+                secondaryAnimation,
+                child,
+              ) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+            );
+          },
+        ),
+
+        GoRoute(
+          path: '/wellness-stats',
+          name: 'wellness_stats',
+          pageBuilder:
+              (context, state) =>
+                  const MaterialPage(child: WellnessStatsScreen()),
+        ),
+        // User Profile Screen (for viewing others)
+        GoRoute(
+          path: '/profile/:userId',
+          name: 'user_profile',
+          pageBuilder: (context, state) {
+            final userId = state.pathParameters['userId']!;
+            return MaterialPage(
+              key: state.pageKey,
+              child: ProfileScreen(userId: userId),
+            );
+          },
+        ),
+
+        // Followers/Following Screen
+        GoRoute(
+          path: '/profile/:userId/followers',
+          name: 'followers',
+          pageBuilder: (context, state) {
+            final userId = state.pathParameters['userId']!;
+            return MaterialPage(
+              key: state.pageKey,
+              child: FollowersScreen(userId: userId, initialTab: 0),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/profile/:userId/following',
+          name: 'following',
+          pageBuilder: (context, state) {
+            final userId = state.pathParameters['userId']!;
+            return MaterialPage(
+              key: state.pageKey,
+              child: FollowersScreen(userId: userId, initialTab: 1),
+            );
+          },
+        ), // New Message Screen
+        GoRoute(
+          path: '/new-message',
+          name: 'new_message',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const NewMessageScreen(),
+              ),
+        ),
+
+        // Legal Screens
+        GoRoute(
+          path: '/privacy-policy',
+          name: 'privacy_policy',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const PrivacyPolicyScreen(),
+              ),
+        ),
+        GoRoute(
+          path: '/terms-of-service',
+          name: 'terms_of_service',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const TermsOfServiceScreen(),
+              ),
+        ),
+
+        // Onboarding Screen
+        GoRoute(
+          path: '/onboarding',
+          name: 'onboarding',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const OnboardingScreen(),
+              ),
+        ),
+      ],
+    );
+    return _router!;
+  }
 }

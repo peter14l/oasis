@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis_v2/providers/circle_provider.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
 import 'package:oasis_v2/providers/profile_provider.dart';
 import 'package:oasis_v2/models/circle.dart';
 import 'package:oasis_v2/widgets/circles/circle_list_card.dart';
@@ -35,6 +36,8 @@ class _CirclesListScreenState extends State<CirclesListScreen> {
     final colorScheme = theme.colorScheme;
     final circles = context.watch<CircleProvider>();
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -61,8 +64,8 @@ class _CirclesListScreenState extends State<CirclesListScreen> {
                             style: (isDesktop 
                               ? theme.textTheme.headlineLarge 
                               : theme.textTheme.headlineMedium)?.copyWith(
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -1,
+                                fontWeight: isM3E ? FontWeight.w900 : FontWeight.w900,
+                                letterSpacing: isM3E ? -1.5 : -1,
                               ),
                           ),
                           const SizedBox(height: 4),
@@ -79,6 +82,7 @@ class _CirclesListScreenState extends State<CirclesListScreen> {
                     _PrimaryButton(
                       label: isDesktop ? 'Create New Circle' : 'New Circle',
                       icon: FluentIcons.add_circle_24_regular,
+                      isM3E: isM3E,
                       onTap: () => context.pushNamed('create_circle'),
                     ),
                   ],
@@ -96,6 +100,7 @@ class _CirclesListScreenState extends State<CirclesListScreen> {
             else if (circles.circles.isEmpty)
               SliverFillRemaining(
                 child: _EmptyCirclesState(
+                  isM3E: isM3E,
                   onCreateTap: () => context.pushNamed('create_circle'),
                 ),
               )
@@ -157,10 +162,12 @@ class _PrimaryButton extends StatelessWidget {
   final String label;
   final IconData icon;
   final VoidCallback onTap;
+  final bool isM3E;
   const _PrimaryButton({
     required this.label,
     required this.icon,
     required this.onTap,
+    this.isM3E = false,
   });
 
   @override
@@ -174,9 +181,9 @@ class _PrimaryButton extends StatelessWidget {
         backgroundColor: theme.colorScheme.primary,
         foregroundColor: theme.colorScheme.onPrimary,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isM3E ? 12 : 14)),
         textStyle: theme.textTheme.labelLarge?.copyWith(
-          fontWeight: FontWeight.w600,
+          fontWeight: isM3E ? FontWeight.w900 : FontWeight.w600,
         ),
       ),
     );
@@ -185,7 +192,8 @@ class _PrimaryButton extends StatelessWidget {
 
 class _EmptyCirclesState extends StatelessWidget {
   final VoidCallback onCreateTap;
-  const _EmptyCirclesState({required this.onCreateTap});
+  final bool isM3E;
+  const _EmptyCirclesState({required this.onCreateTap, this.isM3E = false});
 
   @override
   Widget build(BuildContext context) {
@@ -198,7 +206,8 @@ class _EmptyCirclesState extends StatelessWidget {
             width: 96,
             height: 96,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+              borderRadius: isM3E ? BorderRadius.circular(24) : null,
               color: theme.colorScheme.primary.withValues(alpha: 0.12),
             ),
             child: Icon(
@@ -211,7 +220,7 @@ class _EmptyCirclesState extends StatelessWidget {
           Text(
             'No circles yet',
             style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
             ),
           ),
           const SizedBox(height: 8),
@@ -221,10 +230,11 @@ class _EmptyCirclesState extends StatelessWidget {
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: onCreateTap,
-            icon: const Icon(FluentIcons.add_circle_24_regular, size: 18),
-            label: const Text('Create a Circle'),
+          _PrimaryButton(
+            onTap: onCreateTap,
+            icon: FluentIcons.add_circle_24_regular,
+            label: 'Create a Circle',
+            isM3E: isM3E,
           ),
         ],
       ),

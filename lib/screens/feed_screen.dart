@@ -25,6 +25,7 @@ import 'package:oasis_v2/services/screen_time_service.dart';
 import 'package:oasis_v2/providers/user_settings_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
+import 'package:oasis_v2/services/app_initializer.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -330,6 +331,9 @@ class _FeedScreenState extends State<FeedScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
     if (_currentLayout == FeedLayoutType.zenCarousel) {
@@ -361,7 +365,7 @@ class _FeedScreenState extends State<FeedScreen>
               toolbarHeight: 70,
               automaticallyImplyLeading: false,
               centerTitle: true,
-              title: _buildMobileHeader(colorScheme),
+              title: _buildMobileHeader(colorScheme, isM3E),
               actions: [
                 FeedLayoutSwitcher(
                   currentLayout: _currentLayout,
@@ -495,28 +499,45 @@ class _FeedScreenState extends State<FeedScreen>
                     Expanded(
                       child: Container(
                         decoration: BoxDecoration(
-                          color: colorScheme.surface.withValues(alpha: 0.4),
-                          borderRadius: BorderRadius.circular(12),
+                          color:
+                              disableTransparency
+                                  ? colorScheme.surfaceContainer
+                                  : colorScheme.surface.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
+                          border:
+                              isM3E
+                                  ? Border.all(
+                                    color: colorScheme.outlineVariant
+                                        .withValues(alpha: 0.3),
+                                    width: 1,
+                                  )
+                                  : null,
                         ),
                         child: Column(
                           children: [
-                            _buildDesktopHeader(colorScheme),
+                            _buildDesktopHeader(colorScheme, isM3E),
                             const Divider(height: 1, thickness: 0.5),
                             Expanded(
                               child: ClipRRect(
-                                borderRadius: const BorderRadius.vertical(
-                                  bottom: Radius.circular(12),
+                                borderRadius: BorderRadius.vertical(
+                                  bottom: Radius.circular(isM3E ? 28 : 12),
                                 ),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(
-                                    sigmaX: 10,
-                                    sigmaY: 10,
-                                  ),
-                                  child: MaxWidthContainer(
-                                    maxWidth: 600,
-                                    child: feedContent,
-                                  ),
-                                ),
+                                child:
+                                    disableTransparency
+                                        ? MaxWidthContainer(
+                                          maxWidth: 600,
+                                          child: feedContent,
+                                        )
+                                        : BackdropFilter(
+                                          filter: ImageFilter.blur(
+                                            sigmaX: 10,
+                                            sigmaY: 10,
+                                          ),
+                                          child: MaxWidthContainer(
+                                            maxWidth: 600,
+                                            child: feedContent,
+                                          ),
+                                        ),
                               ),
                             ),
                           ],
@@ -525,8 +546,8 @@ class _FeedScreenState extends State<FeedScreen>
                     ),
                     const SizedBox(width: 12),
                     _showCommentPane && _selectedPostId != null
-                        ? _buildDesktopCommentPane(theme, colorScheme)
-                        : _buildDesktopSidebar(theme, colorScheme),
+                        ? _buildDesktopCommentPane(theme, colorScheme, isM3E)
+                        : _buildDesktopSidebar(theme, colorScheme, isM3E),
                   ],
                 ),
               )
@@ -553,16 +574,29 @@ class _FeedScreenState extends State<FeedScreen>
     );
   }
 
-  Widget _buildDesktopCommentPane(ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildDesktopCommentPane(
+    ThemeData theme,
+    ColorScheme colorScheme, [
+    bool isM3E = false,
+  ]) {
     return Container(
       width: 450,
       decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        color:
+            isM3E
+                ? colorScheme.surfaceContainer
+                : colorScheme.surface.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
+        border:
+            isM3E
+                ? Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  width: 1,
+                )
+                : Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Column(
@@ -603,18 +637,18 @@ class _FeedScreenState extends State<FeedScreen>
     );
   }
 
-  Widget _buildMobileHeader(ColorScheme colorScheme) {
+  Widget _buildMobileHeader(ColorScheme colorScheme, [bool isM3E = false]) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildTabSwitcher(colorScheme),
+        _buildTabSwitcher(colorScheme, isM3E),
         const SizedBox(width: 16),
-        _buildRipplesButton(colorScheme),
+        _buildRipplesButton(colorScheme, isM3E),
       ],
     );
   }
 
-  Widget _buildDesktopHeader(ColorScheme colorScheme) {
+  Widget _buildDesktopHeader(ColorScheme colorScheme, [bool isM3E = false]) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       height: 80,
@@ -623,7 +657,7 @@ class _FeedScreenState extends State<FeedScreen>
           Text(
             'Feed',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: isM3E ? FontWeight.w600 : FontWeight.bold,
               color: colorScheme.onSurface,
             ),
           ),
@@ -642,43 +676,61 @@ class _FeedScreenState extends State<FeedScreen>
     );
   }
 
-  Widget _buildTabSwitcher(ColorScheme colorScheme) {
+  Widget _buildTabSwitcher(ColorScheme colorScheme, [bool isM3E = false]) {
     return PopupMenuButton<int>(
       onSelected: (index) => _tabController.animateTo(index),
       offset: const Offset(0, 45),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(isM3E ? 16 : 20),
+      ),
       itemBuilder:
           (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 0,
               child: Text(
                 'FOLLOWING',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontWeight: isM3E ? FontWeight.w600 : FontWeight.bold,
+                ),
               ),
             ),
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 1,
               child: Text(
                 'EXPLORE',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontWeight: isM3E ? FontWeight.w600 : FontWeight.bold,
+                ),
               ),
             ),
           ],
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: colorScheme.surface.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(32),
-          border: Border.all(
-            color: colorScheme.onSurface.withValues(alpha: 0.1),
-          ),
+          color:
+              isM3E
+                  ? colorScheme.surfaceContainer
+                  : colorScheme.surface.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(isM3E ? 20 : 32),
+          border:
+              isM3E
+                  ? Border.all(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                    width: 1,
+                  )
+                  : Border.all(
+                    color: colorScheme.onSurface.withValues(alpha: 0.1),
+                  ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               _tabController.index == 0 ? 'FOLLOWING' : 'EXPLORE',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              style: TextStyle(
+                fontWeight: isM3E ? FontWeight.w600 : FontWeight.bold,
+                fontSize: 14,
+              ),
             ),
             const SizedBox(width: 6),
             const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
@@ -688,28 +740,47 @@ class _FeedScreenState extends State<FeedScreen>
     );
   }
 
-  Widget _buildRipplesButton(ColorScheme colorScheme) {
+  Widget _buildRipplesButton(ColorScheme colorScheme, [bool isM3E = false]) {
     return GestureDetector(
       onTap: () => _handleRipplesTap(context),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: colorScheme.secondary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(32),
-          border: Border.all(
-            color: colorScheme.secondary.withValues(alpha: 0.2),
-          ),
+          color:
+              isM3E
+                  ? colorScheme.tertiaryContainer
+                  : colorScheme.secondary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(isM3E ? 20 : 32),
+          border:
+              isM3E
+                  ? Border.all(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                    width: 1,
+                  )
+                  : Border.all(
+                    color: colorScheme.secondary.withValues(alpha: 0.2),
+                  ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.waves_rounded, size: 18, color: colorScheme.secondary),
+            Icon(
+              Icons.waves_rounded,
+              size: 18,
+              color:
+                  isM3E
+                      ? colorScheme.onTertiaryContainer
+                      : colorScheme.secondary,
+            ),
             const SizedBox(width: 8),
             Text(
               'Ripples',
               style: TextStyle(
-                color: colorScheme.secondary,
-                fontWeight: FontWeight.bold,
+                color:
+                    isM3E
+                        ? colorScheme.onTertiaryContainer
+                        : colorScheme.secondary,
+                fontWeight: isM3E ? FontWeight.w600 : FontWeight.bold,
                 fontSize: 14,
               ),
             ),
@@ -719,15 +790,29 @@ class _FeedScreenState extends State<FeedScreen>
     );
   }
 
-  Widget _buildDesktopSidebar(ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildDesktopSidebar(
+    ThemeData theme,
+    ColorScheme colorScheme, [
+    bool isM3E = false,
+  ]) {
     return Container(
       width: 400,
       decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(12),
+        color:
+            isM3E
+                ? colorScheme.surfaceContainer
+                : colorScheme.surface.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
+        border:
+            isM3E
+                ? Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  width: 1,
+                )
+                : null,
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: ListView(
