@@ -172,21 +172,23 @@ class _ShareToDirectMessageModalState extends State<ShareToDirectMessageModal> {
       );
     }
 
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.7,
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(
-          color: colorScheme.onSurface.withValues(alpha: 0.1),
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: BoxDecoration(
+          color: colorScheme.surface.withValues(alpha: 0.85),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          border: Border.all(
+            color: colorScheme.onSurface.withValues(alpha: 0.1),
+          ),
         ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(32),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-          child: modalContent,
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+            child: modalContent,
+          ),
         ),
       ),
     );

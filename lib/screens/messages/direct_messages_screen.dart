@@ -46,8 +46,9 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
   final TextEditingController _searchController = TextEditingController();
   double _scrollVelocity = 0;
   double _lastScrollOffset = 0;
-  final bool _useMockData = true;
+  bool _useMockData = true;
   String _searchQuery = '';
+  final List<String> _pinnedMockIds = [];
 
   final Map<String, int> _conversationSizes = {};
   Conversation? _previewConversation;
@@ -157,6 +158,22 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
     _saveConversationSizes();
   }
 
+  void _togglePin(String id) {
+    if (!mounted) return;
+    HapticFeedback.mediumImpact();
+    if (id.startsWith('mock_')) {
+      setState(() {
+        if (_pinnedMockIds.contains(id)) {
+          _pinnedMockIds.remove(id);
+        } else {
+          _pinnedMockIds.add(id);
+        }
+      });
+    } else {
+      context.read<ConversationProvider>().togglePin(id);
+    }
+  }
+
   void _handleLongPressBubble(Conversation conversation, Offset position) {
     _showContextMenu(context, position, conversation);
   }
@@ -186,17 +203,32 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
         ),
         PopupMenuItem(
           onTap: () {
-            context.read<ConversationProvider>().togglePin(conversation.id);
+            if (conversation.id.startsWith('mock_')) {
+              setState(() {
+                if (_pinnedMockIds.contains(conversation.id)) {
+                  _pinnedMockIds.remove(conversation.id);
+                } else {
+                  _pinnedMockIds.add(conversation.id);
+                }
+              });
+              HapticFeedback.mediumImpact();
+            } else {
+              context.read<ConversationProvider>().togglePin(conversation.id);
+            }
           },
           child: Row(
             children: [
               Icon(
-                conversation.isPinned ? FluentIcons.pin_off_24_regular : FluentIcons.pin_24_regular, 
-                size: 20, 
-                color: conversation.isPinned ? Colors.redAccent : colorScheme.onSurfaceVariant
+                (conversation.id.startsWith('mock_') ? _pinnedMockIds.contains(conversation.id) : conversation.isPinned)
+                    ? FluentIcons.pin_off_24_regular
+                    : FluentIcons.pin_24_regular,
+                size: 20,
+                color: (conversation.id.startsWith('mock_') ? _pinnedMockIds.contains(conversation.id) : conversation.isPinned)
+                    ? Colors.redAccent
+                    : colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: 12),
-              Text(conversation.isPinned ? 'Unfavorite' : 'Add to Favorites'),
+              Text((conversation.id.startsWith('mock_') ? _pinnedMockIds.contains(conversation.id) : conversation.isPinned) ? 'Unfavorite' : 'Add to Favorites'),
             ],
           ),
         ),
@@ -512,6 +544,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
                       isSelected: (c) => isDesktop && _selectedConversation?.id == c.id,
                       conversationSizes: _conversationSizes,
                       onToggleSize: _toggleSize,
+                      onTogglePin: _togglePin,
                     ),
                   ),
                 ),
@@ -556,12 +589,21 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
 
   List<Conversation> _generateMockConversations() {
     final names = ['Alex Rivera', 'Sarah Chen', 'Jordan Smith', 'Mila Kunis', 'David Bowie', 'Elena Gilbert', 'Marcus Aurelius', 'Luna Lovegood', 'Peter Parker', 'Tony Stark', 'Wanda Maximoff', 'Steve Rogers', 'Natasha Romanoff', 'Bruce Banner', 'Diana Prince', 'Arthur Curry', 'Barry Allen', 'Victor Stone', 'Hal Jordan', 'Oliver Queen'];
+    
+    // Default some to pinned if none are set yet (first run experience)
+    if (_pinnedMockIds.isEmpty && _searchQuery.isEmpty) {
+      for (int i = 0; i < 6; i++) {
+        _pinnedMockIds.add('mock_$i');
+      }
+    }
+
     return List.generate(names.length, (index) {
+      final id = 'mock_$index';
       int unread = 0;
       List<String> mockMessages = [];
       if (index == 0) { unread = 3; mockMessages = ["Hey!", "The bubbles look amazing 🫧", "Can't wait to test!"]; }
       else if (index == 12) { unread = 5; mockMessages = ["Wait, stealth preview?", "Cool", "Privacy game changer", "Coffee?", "Bubble tea!"]; }
-      return Conversation(id: 'mock_$index', otherUserId: 'user_$index', otherUserName: names[index], otherUserAvatar: '', lastMessage: mockMessages.isNotEmpty ? mockMessages.last : 'Hello!', lastMessageTime: DateTime.now().subtract(Duration(minutes: index * 15)), unreadCount: unread, isPinned: index < 6, recentMessages: mockMessages);
+      return Conversation(id: id, otherUserId: 'user_$index', otherUserName: names[index], otherUserAvatar: '', lastMessage: mockMessages.isNotEmpty ? mockMessages.last : 'Hello!', lastMessageTime: DateTime.now().subtract(Duration(minutes: index * 15)), unreadCount: unread, isPinned: _pinnedMockIds.contains(id), recentMessages: mockMessages);
     });
   }
 
@@ -594,7 +636,8 @@ class _BentoPinnedGrid extends StatelessWidget {
   final bool Function(Conversation) isSelected;
   final Map<String, int> conversationSizes;
   final Function(String) onToggleSize;
-  const _BentoPinnedGrid({required this.conversations, required this.onTap, required this.isSelected, required this.conversationSizes, required this.onToggleSize});
+  final Function(String) onTogglePin;
+  const _BentoPinnedGrid({required this.conversations, required this.onTap, required this.isSelected, required this.conversationSizes, required this.onToggleSize, required this.onTogglePin});
   @override
   Widget build(BuildContext context) {
     return StaggeredGrid.count(
@@ -611,6 +654,7 @@ class _BentoPinnedGrid extends StatelessWidget {
             conversation: conversation, 
             onTap: () => onTap(conversation), 
             onLongPress: () => onToggleSize(conversation.id), 
+            onTogglePin: () => onTogglePin(conversation.id),
             selected: isSelected(conversation), 
             isLarge: mainAxis > 1, 
             isWide: crossAxis > 2
@@ -625,10 +669,11 @@ class _BentoItem extends StatelessWidget {
   final Conversation conversation;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
+  final VoidCallback onTogglePin;
   final bool selected;
   final bool isLarge;
   final bool isWide;
-  const _BentoItem({super.key, required this.conversation, required this.onTap, required this.onLongPress, required this.selected, required this.isLarge, this.isWide = false});
+  const _BentoItem({super.key, required this.conversation, required this.onTap, required this.onLongPress, required this.onTogglePin, required this.selected, required this.isLarge, this.isWide = false});
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -661,10 +706,12 @@ class _BentoItem extends StatelessWidget {
           ),
         ),
       ),
-    ).animate().scale(delay: 100.ms, duration: 200.ms);
+    ).animate().scale(delay: 100.ms, duration: 400.ms, curve: Curves.easeOutBack).fadeIn();
   }
 
   void _showBentoMenu(BuildContext context, Offset position) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     showMenu(
       context: context,
       position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx, position.dy),
@@ -681,14 +728,12 @@ class _BentoItem extends StatelessWidget {
           ),
         ),
         PopupMenuItem(
-          onTap: () {
-            context.read<ConversationProvider>().togglePin(conversation.id);
-          },
-          child: const Row(
+          onTap: onTogglePin,
+          child: Row(
             children: [
-              Icon(Icons.push_pin_rounded, size: 20, color: Colors.redAccent),
-              SizedBox(width: 12),
-              Text('Unfavorite'),
+              Icon(conversation.isPinned ? Icons.push_pin_outlined : Icons.push_pin_rounded, size: 20, color: Colors.redAccent),
+              const SizedBox(width: 12),
+              Text(conversation.isPinned ? 'Unfavorite' : 'Add to Favorites'),
             ],
           ),
         ),

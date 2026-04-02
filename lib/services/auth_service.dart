@@ -159,7 +159,7 @@ class AuthService with ChangeNotifier {
   static all_platforms.GoogleSignIn _googleSignInDesktop = all_platforms.GoogleSignIn(
     params: all_platforms.GoogleSignInParams(
       clientId: _googleWebClientId,
-      clientSecret: _googleWebClientSecret,
+      // clientSecret removed for public PKCE
       redirectPort: 3000,
       scopes: ['email', 'profile', 'openid'],
     ),

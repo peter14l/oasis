@@ -2,13 +2,13 @@ import 'package:universal_io/io.dart';
 import 'dart:ui';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:record/record.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,7 +42,6 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:any_link_preview/any_link_preview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:oasis_v2/services/call_service.dart';
 import 'package:oasis_v2/screens/messages/incoming_call_overlay.dart';
 import 'package:oasis_v2/models/call.dart';
 import 'package:oasis_v2/widgets/messages/forward_message_modal.dart';
@@ -83,13 +82,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final AuthService _authService = AuthService();
   final MediaDownloadService _mediaDownloadService = MediaDownloadService();
   final EncryptionService _encryptionService = EncryptionService();
-  late final CallService _callService;
   final TextEditingController _messageController = TextEditingController();
   final ValueNotifier<String> _textNotifier = ValueNotifier<String>('');
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _imagePicker = ImagePicker();
   final AudioRecorder _audioRecorder = AudioRecorder();
-  final AudioPlayer _durationPlayer = AudioPlayer();
   final FocusNode _focusNode = FocusNode();
   late VaultService _vaultService;
 
@@ -146,11 +143,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _callService = context.read<CallService>();
-    
+
     _messageController.addListener(() {
       _textNotifier.value = _messageController.text;
-      
+
       // Update typing status
       final userId = _authService.currentUser?.id;
       if (userId != null && _messageController.text.isNotEmpty) {
@@ -169,7 +165,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _subscribeToMessages();
     _subscribeToReadReceipts();
     _subscribeToBackgroundChanges();
-    // Delay marking as read slightly so user can actually SEE the messages 
+    // Delay marking as read slightly so user can actually SEE the messages
     // before they vanish (if they are ephemeral)
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) _markAsRead();
@@ -202,7 +198,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void didUpdateWidget(ChatScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.bgOpacity != oldWidget.bgOpacity || 
+    if (widget.bgOpacity != oldWidget.bgOpacity ||
         widget.bgBrightness != oldWidget.bgBrightness) {
       _loadPersistedSettings(silent: true);
     }
@@ -213,7 +209,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       final now = DateTime.now();
       // On desktop, rapid window switching shouldn't trigger full reloads
-      if (_lastResumeTime != null && 
+      if (_lastResumeTime != null &&
           now.difference(_lastResumeTime!).inSeconds < 5) {
         return;
       }
@@ -232,7 +228,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _messagingService.unsubscribeFromMessages(_messageChannel!);
     }
     _subscribeToMessages();
-    
+
     if (_readReceiptChannel != null) {
       SupabaseService().client.removeChannel(_readReceiptChannel!);
     }
@@ -250,17 +246,18 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       final prefs = await SharedPreferences.getInstance();
       final String cacheKey = 'chat_messages_${widget.conversationId}';
       final String? cachedData = prefs.getString(cacheKey);
-      
+
       if (cachedData != null && _messages.isEmpty) {
         final List<dynamic> decoded = jsonDecode(cachedData);
-        final List<Message> cachedMessages = decoded.map((json) => Message.fromJson(json)).toList();
-        
+        final List<Message> cachedMessages =
+            decoded.map((json) => Message.fromJson(json)).toList();
+
         // Filter out expired ephemeral messages from cache
         final filtered = MessagingService.filterExpiredMessages(
           cachedMessages,
           sessionStart: _sessionStartTime,
         );
-        
+
         if (mounted && filtered.isNotEmpty) {
           setState(() {
             _messages = filtered;
@@ -278,13 +275,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String cacheKey = 'chat_messages_${widget.conversationId}';
-      
-      // Don't cache ephemeral messages that have already been read 
+
+      // Don't cache ephemeral messages that have already been read
       // or are about to vanish to avoid logic issues on reload
-      final toCache = _messages.where((m) => !m.isEphemeral || m.readAt == null).take(50).toList();
-      
+      final toCache =
+          _messages
+              .where((m) => !m.isEphemeral || m.readAt == null)
+              .take(50)
+              .toList();
+
       if (toCache.isNotEmpty) {
-        final String encoded = jsonEncode(toCache.map((m) => m.toJson()).toList());
+        final String encoded = jsonEncode(
+          toCache.map((m) => m.toJson()).toList(),
+        );
         await prefs.setString(cacheKey, encoded);
       }
     } catch (e) {
@@ -322,7 +325,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _vaultService = Provider.of<VaultService>(context, listen: false);
-    _typingIndicatorProvider = Provider.of<TypingIndicatorProvider>(context, listen: false);
+    _typingIndicatorProvider = Provider.of<TypingIndicatorProvider>(
+      context,
+      listen: false,
+    );
     _presenceProvider = Provider.of<PresenceProvider>(context, listen: false);
   }
 
@@ -345,7 +351,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _publicKeyCache.clear();
 
     // Clean up Instagram-style vanish mode messages when closing chat
-    _messagingService.cleanupVanishModeMessages(widget.conversationId);
+    // _messagingService.cleanupVanishModeMessages(widget.conversationId);
 
     // Clean up Realtime subscriptions
     if (_messageChannel != null) {
@@ -363,7 +369,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _callsSubscription?.cancel();
 
     // Unsubscribe from typing status
-    _typingIndicatorProvider?.unsubscribeFromTypingStatus(widget.conversationId);
+    _typingIndicatorProvider?.unsubscribeFromTypingStatus(
+      widget.conversationId,
+    );
 
     // Unsubscribe from presence
     final otherId = widget.otherUserId ?? _otherUserId;
@@ -377,9 +385,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
 
     // Ensure screen protection is disabled when leaving
+    /*
     if (_isWhisperMode > 0) {
       _disableScreenProtection();
     }
+    */
 
     super.dispose();
   }
@@ -407,21 +417,24 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void _insertSystemMessage(String content) {
     if (!mounted) return;
     setState(() {
-      _messages.add(Message(
-        id: 'system_${DateTime.now().millisecondsSinceEpoch}',
-        conversationId: widget.conversationId,
-        senderId: 'system',
-        senderName: 'System',
-        senderAvatar: '',
-        content: content,
-        timestamp: DateTime.now(),
-        messageType: MessageType.system,
-        isRead: true,
-      ));
+      _messages.add(
+        Message(
+          id: 'system_${DateTime.now().millisecondsSinceEpoch}',
+          conversationId: widget.conversationId,
+          senderId: 'system',
+          senderName: 'System',
+          senderAvatar: '',
+          content: content,
+          timestamp: DateTime.now(),
+          messageType: MessageType.system,
+          isRead: true,
+        ),
+      );
     });
   }
 
   void _subscribeToConversationUpdates() {
+    /*
     _conversationChannel = _messagingService.subscribeToConversation(
       conversationId: widget.conversationId,
       onUpdate: (int whisperMode) {
@@ -454,6 +467,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         }
       },
     );
+    */
   }
 
   Future<void> _fetchConversationDetails() async {
@@ -465,7 +479,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         setState(() {
           _otherUserName = details.otherUserName;
           _otherUserId = details.otherUserId;
-          _isWhisperMode = details.whisperMode;
+          _isWhisperMode = 0; // Forced to 0 to disable Whisper Mode
           _ephemeralDuration = details.whisperMode == 1 ? 0 : 86400;
         });
 
@@ -537,8 +551,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     setState(() {
       _backgroundUrl = bgUrl;
-      _bgOpacity = widget.bgOpacity ?? (prefs.getDouble('chat_bg_opacity_${widget.conversationId}') ?? 1.0);
-      _bgBrightness = widget.bgBrightness ?? (prefs.getDouble('chat_bg_brightness_${widget.conversationId}') ?? 0.7);
+      _bgOpacity =
+          widget.bgOpacity ??
+          (prefs.getDouble('chat_bg_opacity_${widget.conversationId}') ?? 1.0);
+      _bgBrightness =
+          widget.bgBrightness ??
+          (prefs.getDouble('chat_bg_brightness_${widget.conversationId}') ??
+              0.7);
     });
 
     if (_backgroundUrl != null) {
@@ -613,7 +632,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     // 1. Decrypt main content
     if (message.signalMessageType != null) {
       try {
-        final isSender = currentUserId != null &&
+        final isSender =
+            currentUserId != null &&
             message.senderId.toLowerCase() == currentUserId.toLowerCase();
 
         if (isSender &&
@@ -682,7 +702,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         String? decryptedReply;
         try {
           if (replySignalType != null) {
-            final isSender = currentUserId != null &&
+            final isSender =
+                currentUserId != null &&
                 replySenderId.toLowerCase() == currentUserId.toLowerCase();
 
             if (isSender &&
@@ -725,13 +746,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               replyToContent: decryptedReply,
             );
           } else {
-            debugPrint('Reply decryption resulted in placeholder or null for msg ${message.id}');
+            debugPrint(
+              'Reply decryption resulted in placeholder or null for msg ${message.id}',
+            );
           }
         } catch (e) {
-          debugPrint('Failed to decrypt reply context for msg ${message.id}: $e');
+          debugPrint(
+            'Failed to decrypt reply context for msg ${message.id}: $e',
+          );
         }
       } else {
-        debugPrint('Missing sender_id or content in replyToData for msg ${message.id}');
+        debugPrint(
+          'Missing sender_id or content in replyToData for msg ${message.id}',
+        );
       }
     }
 
@@ -757,7 +784,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         final decrypted = await _decryptSingleMessage(message);
         decryptedMessages.add(decrypted);
       }
-      
+
       if (mounted) {
         setState(() {
           _messages = MessagingService.filterExpiredMessages(
@@ -788,12 +815,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         final decryptedMessage = await _decryptSingleMessage(message);
 
         // Apply client-side filtering for new messages
-        final filtered = MessagingService.filterExpiredMessages(
-          [decryptedMessage],
-          sessionStart: _sessionStartTime,
-        );
+        final filtered = MessagingService.filterExpiredMessages([
+          decryptedMessage,
+        ], sessionStart: _sessionStartTime);
         if (filtered.isEmpty) {
-          debugPrint('Whisper Mode: New message ${decryptedMessage.id} filtered out immediately');
+          debugPrint(
+            'Whisper Mode: New message ${decryptedMessage.id} filtered out immediately',
+          );
           return;
         }
 
@@ -801,7 +829,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           if (!mounted) return;
           setState(() {
             // Avoid duplicates (especially from optimistic updates if implemented)
-            final index = _messages.indexWhere((m) => m.id == decryptedMessage.id);
+            final index = _messages.indexWhere(
+              (m) => m.id == decryptedMessage.id,
+            );
             if (index == -1) {
               _messages.add(decryptedMessage);
             } else {
@@ -844,11 +874,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             if (index >= 0) {
               final senderId = _messages[index].senderId;
               final isMe = _authService.currentUser?.id == senderId;
-              
+
               // Only consider it "read" for vanish logic if the person reading is NOT the sender
               if (userId != senderId) {
                 DateTime? currentAnyReadAt = _messages[index].anyReadAt;
-                if (currentAnyReadAt == null || readAt.isBefore(currentAnyReadAt)) {
+                if (currentAnyReadAt == null ||
+                    readAt.isBefore(currentAnyReadAt)) {
                   currentAnyReadAt = readAt;
                 }
 
@@ -856,10 +887,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   anyReadAt: currentAnyReadAt,
                   isRead: isMe ? true : _messages[index].isRead,
                 );
-                
+
                 // NEW: Instant Vanish - if Whisper Mode and receiver read it, immediately remove from screen for both users
-                if (_messages[index].isEphemeral && _messages[index].ephemeralDuration == 0) {
-                  debugPrint('Whisper Mode: Instant vanish triggered for message $messageId');
+                if (_messages[index].isEphemeral &&
+                    _messages[index].ephemeralDuration == 0) {
+                  debugPrint(
+                    'Whisper Mode: Instant vanish triggered for message $messageId',
+                  );
                   _messages.removeAt(index);
                   return; // Don't do further processing on this removed item
                 }
@@ -882,12 +916,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Future<void> _markAsRead() async {
     final userId = _authService.currentUser?.id;
     if (userId == null) return;
-    
+
     // Find explicitly unread messages from the other user
-    final unreadMessageIds = _messages
-        .where((m) => m.senderId != userId && !m.isRead)
-        .map((m) => m.id)
-        .toList();
+    final unreadMessageIds =
+        _messages
+            .where((m) => m.senderId != userId && !m.isRead)
+            .map((m) => m.id)
+            .toList();
 
     if (unreadMessageIds.isEmpty) return;
 
@@ -917,7 +952,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Future<String?> _getInitialDirectory() async {
     if (Platform.isWindows) {
       try {
-        final dir = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
+        final dir =
+            await getDownloadsDirectory() ??
+            await getApplicationDocumentsDirectory();
         return dir.path;
       } catch (_) {}
     }
@@ -997,7 +1034,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       );
       if (result != null && result.files.single.path != null) {
         File audioFile = File(result.files.single.path!);
-        
+
         final sizeInBytes = await audioFile.length();
         final sizeInMb = sizeInBytes / (1024 * 1024);
 
@@ -1089,7 +1126,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             onPressed: () => Navigator.pop(context),
                             icon: const Icon(Icons.close_rounded, size: 20),
                             style: IconButton.styleFrom(
-                              backgroundColor: colorScheme.onSurface.withValues(alpha: 0.05),
+                              backgroundColor: colorScheme.onSurface.withValues(
+                                alpha: 0.05,
+                              ),
                             ),
                           ),
                         ],
@@ -1106,7 +1145,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             icon: Icons.image_rounded,
                             label: 'Photo',
                             iconColor: const Color(0xFF3D8BFF),
-                            bgColor: const Color(0xFF3D8BFF).withValues(alpha: 0.1),
+                            bgColor: const Color(
+                              0xFF3D8BFF,
+                            ).withValues(alpha: 0.1),
                             onTap: () {
                               Navigator.pop(context);
                               _pickImage();
@@ -1116,7 +1157,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             icon: Icons.videocam_rounded,
                             label: 'Video',
                             iconColor: const Color(0xFFFF6B6B),
-                            bgColor: const Color(0xFFFF6B6B).withValues(alpha: 0.1),
+                            bgColor: const Color(
+                              0xFFFF6B6B,
+                            ).withValues(alpha: 0.1),
                             onTap: () {
                               Navigator.pop(context);
                               _pickVideo();
@@ -1126,7 +1169,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             icon: Icons.insert_drive_file_rounded,
                             label: 'File',
                             iconColor: const Color(0xFF51CF66),
-                            bgColor: const Color(0xFF51CF66).withValues(alpha: 0.1),
+                            bgColor: const Color(
+                              0xFF51CF66,
+                            ).withValues(alpha: 0.1),
                             onTap: () {
                               Navigator.pop(context);
                               _pickFile();
@@ -1136,7 +1181,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             icon: Icons.audio_file_rounded,
                             label: 'Audio',
                             iconColor: const Color(0xFFFFD43B),
-                            bgColor: const Color(0xFFFFD43B).withValues(alpha: 0.1),
+                            bgColor: const Color(
+                              0xFFFFD43B,
+                            ).withValues(alpha: 0.1),
                             onTap: () {
                               Navigator.pop(context);
                               _pickAudio();
@@ -1183,7 +1230,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     // Optimistic UI for text-only messages
     Message? optimisticMessage;
-    if (content.isNotEmpty && imageFile == null && videoFile == null && audioFile == null && docFile == null) {
+    if (content.isNotEmpty &&
+        imageFile == null &&
+        videoFile == null &&
+        audioFile == null &&
+        docFile == null) {
       optimisticMessage = Message(
         id: 'optimistic_${DateTime.now().millisecondsSinceEpoch}',
         conversationId: widget.conversationId,
@@ -1197,7 +1248,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         isEphemeral: _isWhisperMode > 0,
         ephemeralDuration: _ephemeralDuration,
       );
-      
+
       setState(() {
         _messages.add(optimisticMessage!);
       });
@@ -1210,7 +1261,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _selectedAudio = null;
       _selectedFile = null;
       // ONLY show loading for media, text should be instant
-      if (imageFile != null || videoFile != null || audioFile != null || docFile != null) {
+      if (imageFile != null ||
+          videoFile != null ||
+          audioFile != null ||
+          docFile != null) {
         _isSending = true;
       }
     });
@@ -1246,7 +1300,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         if (!usedSignal) {
           // Check cache for public key first
           String? recipientPublicKey = _publicKeyCache[recipientId];
-          
+
           if (recipientPublicKey == null) {
             final recipientProfile =
                 await Supabase.instance.client
@@ -1422,12 +1476,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (mounted) {
         final conversationProvider = context.read<ConversationProvider>();
         conversationProvider.onMessageSent(
-          widget.conversationId, 
+          widget.conversationId,
           content,
           messageType.name,
         );
         Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) conversationProvider.refreshConversation(widget.conversationId);
+          if (mounted)
+            conversationProvider.refreshConversation(widget.conversationId);
         });
       }
       _saveMessagesToCache();
@@ -1445,7 +1500,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _focusNode.requestFocus();
       }
     }
-
   }
 
   Future<void> _unsendMessage(Message message) async {
@@ -1535,7 +1589,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void _showSearchModal() {
     // Search is handled in ChatDetailsScreen for now or we can implement a local one
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Search is being perfected and will be available soon!')),
+      const SnackBar(
+        content: Text('Search is being perfected and will be available soon!'),
+      ),
     );
   }
 
@@ -1809,8 +1865,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void _toggleWhisperMode() {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final int oldMode = _isWhisperMode;
-    
-    // Cycle logic: 
+
+    // Cycle logic:
     // If OFF -> Toggle to Last Active (Instant or 24h)
     // If ON -> Toggle to OFF
     // To change BETWEEN Instant and 24h, user can use the "Change" button in the info message
@@ -1820,7 +1876,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     } else {
       newMode = 0;
     }
-    
+
     setState(() {
       _isWhisperMode = newMode;
       _ephemeralDuration = newMode == 1 ? 0 : 86400;
@@ -1851,9 +1907,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          newMode > 0
-              ? '✨ Whisper Mode enabled.'
-              : 'Whisper Mode disabled.',
+          newMode > 0 ? '✨ Whisper Mode enabled.' : 'Whisper Mode disabled.',
         ),
         backgroundColor: newMode > 0 ? colorScheme.secondary : Colors.green,
         duration: const Duration(seconds: 3),
@@ -1868,306 +1922,405 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final userId = _authService.currentUser?.id;
     final isDesktop = MediaQuery.of(context).size.width >= 1200;
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: Colors.transparent,
-        flexibleSpace: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              color: _backgroundUrl != null
-                  ? (_bubbleColorSent?.withValues(alpha: 0.1) ?? colorScheme.primary.withValues(alpha: 0.1))
-                  : colorScheme.surface.withValues(alpha: 0.7),
-            ),
-          ),
-        ),
-        automaticallyImplyLeading: !isDesktop,
-        titleSpacing: isDesktop ? 24 : 0,
-        title: InkWell(
-          onTap: isDesktop ? null : _openChatDetails, // Disable navigation on Desktop
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: isDesktop ? 18 : 16,
-                      backgroundColor: colorScheme.primaryContainer,
-                      backgroundImage: (widget.otherUserAvatar ?? '').isNotEmpty
-                          ? CachedNetworkImageProvider(widget.otherUserAvatar!)
-                          : null,
-                      child: (widget.otherUserAvatar ?? '').isEmpty
-                          ? Text(
-                              (widget.otherUserName ?? _otherUserName ?? 'U').isNotEmpty
-                                  ? (widget.otherUserName ?? _otherUserName ?? 'U')[0].toUpperCase()
-                                  : '',
-                              style: TextStyle(color: colorScheme.onPrimaryContainer, fontSize: 14),
-                            )
-                          : null,
-                    ),
-                    Consumer<PresenceProvider>(
-                      builder: (context, presenceProvider, child) {
-                        final otherId = widget.otherUserId ?? _otherUserId;
-                        final isOnline = otherId != null && presenceProvider.isUserOnline(otherId);
-                        return Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: Container(
-                            width: 10,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: isOnline ? Colors.green : Colors.grey,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: colorScheme.surface, width: 1.5),
-                            ),
-                          ),
-                        );
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        
+        final bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+        if (isKeyboardVisible) {
+          // If keyboard is up, just dismiss it
+          FocusScope.of(context).unfocus();
+        } else {
+          // If keyboard is down, allow navigation back
+          if (context.mounted) {
+            context.pop();
+          }
+        }
+      },
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.translucent,
+        child: Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            backgroundColor: Colors.transparent,
+            // Use custom leading to handle back press properly on mobile
+            leading:
+                !isDesktop
+                    ? IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () {
+                        final keyboardHeight =
+                            MediaQuery.of(context).viewInsets.bottom;
+                        if (keyboardHeight > 0) {
+                          // Dismiss keyboard only
+                          FocusScope.of(context).unfocus();
+                        } else {
+                          // Allow navigation - use GoRouter's context.pop()
+                          if (context.mounted) {
+                            context.pop();
+                          }
+                        }
                       },
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      widget.otherUserName ?? _otherUserName ?? 'Unknown',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontSize: isDesktop ? 15 : 14,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                    Consumer<PresenceProvider>(
-                      builder: (context, presenceProvider, child) {
-                        final otherId = widget.otherUserId ?? _otherUserId;
-                        final presence = otherId != null ? presenceProvider.getUserPresence(otherId) : null;
-                        final bool isOnline = presence?.status == 'online';
-                        
-                        return Row(
-                          children: [
-                            if (_encryptionReady || _encryptionService.isInitialized) ...[
-                              Icon(
-                                FluentIcons.lock_closed_12_filled,
-                                size: 10,
-                                color: colorScheme.primary.withValues(alpha: 0.7),
-                              ),
-                              const SizedBox(width: 4),
-                            ],
-                            Text(
-                              isOnline ? 'Online' : (presence?.lastSeen != null ? 'Last seen ${_formatSeenTime(presence!.lastSeen!)}' : 'Offline'),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: isOnline ? Colors.green.withValues(alpha: 0.8) : colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          if (isDesktop) ...[
-            _buildDesktopAction(
-              icon: FluentIcons.call_24_regular,
-              tooltip: 'Voice call',
-              onTap: () {}, // _initiateCall(CallType.voice)
-            ),
-            _buildDesktopAction(
-              icon: FluentIcons.video_24_regular,
-              tooltip: 'Video call',
-              onTap: () {}, // _initiateCall(CallType.video)
-            ),
-            const VerticalDivider(width: 32, indent: 16, endIndent: 16, thickness: 1),
-            _buildDesktopAction(
-              icon: FluentIcons.search_24_regular,
-              tooltip: 'Search in chat',
-              onTap: () => _showSearchModal(),
-            ),
-            _buildDesktopAction(
-              icon: widget.isDetailsOpen ? FluentIcons.info_24_filled : FluentIcons.info_24_regular,
-              tooltip: 'Chat details',
-              onTap: widget.onDetailsToggle ?? _openChatDetails,
-            ),
-            const SizedBox(width: 12),
-          ] else
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                if (value == 'details') {
-                  _openChatDetails();
-                } else if (value == 'theme') {
-                  showModalBottomSheet(
-                    context: context,
-                    useRootNavigator: true,
-                    builder:
-                        (context) => SafeArea(
-                          child: ChatThemeSelector(
-                            selectedPreset: ChatThemePreset.values.firstWhere(
-                              (p) =>
-                                  p.name.toLowerCase() ==
-                                  _activeTheme?.themeName.toLowerCase(),
-                              orElse: () => ChatThemePreset.defaultTheme,
-                            ),
-                            onPresetSelected: (preset) {
-                              _handleThemeChange(
-                                ChatTheme.fromPreset(
-                                  preset,
-                                  'theme_${DateTime.now().millisecondsSinceEpoch}',
-                                  widget.conversationId,
-                                  _authService.currentUser?.id ?? '',
-                                ),
-                              );
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ),
-                  );
-                }
-              },
-              itemBuilder:
-                  (context) => [
-                    const PopupMenuItem(
-                      value: 'details',
-                      child: Row(
-                        children: [
-                          Icon(Icons.info_outline),
-                          SizedBox(width: 12),
-                          Text('Details'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'theme',
-                      child: Row(
-                        children: [
-                          Icon(Icons.palette_outlined),
-                          SizedBox(width: 12),
-                          Text('Chat Theme'),
-                        ],
-                      ),
-                    ),
-                  ],
-            ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: Stack(
-        children: [
-          // Background Image
-          if (_backgroundUrl != null)
-            Positioned.fill(
-              child: Opacity(
-                opacity: _bgOpacity,
-                child: CachedNetworkImage(
-                  imageUrl: _backgroundUrl!,
-                  fit: BoxFit.cover,
-                  color: Colors.black.withValues(alpha: 1.0 - _bgBrightness),
-                  colorBlendMode: BlendMode.darken,
+                    )
+                    : null,
+            leadingWidth: !isDesktop ? 56 : 0,
+            flexibleSpace: ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Container(
+                  color:
+                      _backgroundUrl != null
+                          ? (_bubbleColorSent?.withValues(alpha: 0.1) ??
+                              colorScheme.primary.withValues(alpha: 0.1))
+                          : colorScheme.surface.withValues(alpha: 0.7),
                 ),
               ),
             ),
-
-          // Main Content
-          Column(
-            children: [
-              // Messages List
-              Expanded(
-                child:
-                    _isLoading
-                        ? ListView.builder(
-                          reverse: true,
-                          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                          padding: EdgeInsets.only(
-                            top:
-                                MediaQuery.of(context).padding.top +
-                                        kToolbarHeight +
-                                        16,
-                            bottom: 16,
-                            left: 16,
-                            right: 16,
-                          ),
-                          itemCount: 8,
-                          itemBuilder: (context, index) {
-                            final isMe = index % 2 == 0;
-                            return Align(
-                              alignment:
-                                  isMe
-                                      ? Alignment.centerRight
-                                      : Alignment.centerLeft,
+            automaticallyImplyLeading: !isDesktop,
+            titleSpacing: isDesktop ? 24 : 0,
+            title: InkWell(
+              onTap:
+                  isDesktop
+                      ? null
+                      : _openChatDetails, // Disable navigation on Desktop
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: isDesktop ? 18 : 16,
+                          backgroundColor: colorScheme.primaryContainer,
+                          backgroundImage:
+                              (widget.otherUserAvatar ?? '').isNotEmpty
+                                  ? CachedNetworkImageProvider(
+                                    widget.otherUserAvatar!,
+                                  )
+                                  : null,
+                          child:
+                              (widget.otherUserAvatar ?? '').isEmpty
+                                  ? Text(
+                                    (widget.otherUserName ??
+                                                _otherUserName ??
+                                                'U')
+                                            .isNotEmpty
+                                        ? (widget.otherUserName ??
+                                                _otherUserName ??
+                                                'U')[0]
+                                            .toUpperCase()
+                                        : '',
+                                    style: TextStyle(
+                                      color: colorScheme.onPrimaryContainer,
+                                      fontSize: 14,
+                                    ),
+                                  )
+                                  : null,
+                        ),
+                        Consumer<PresenceProvider>(
+                          builder: (context, presenceProvider, child) {
+                            final otherId = widget.otherUserId ?? _otherUserId;
+                            final isOnline =
+                                otherId != null &&
+                                presenceProvider.isUserOnline(otherId);
+                            return Positioned(
+                              right: 0,
+                              bottom: 0,
                               child: Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                child: SkeletonContainer.rounded(
-                                  width: 150 + (index % 3) * 50.0,
-                                  height: 40 + (index % 2) * 20.0,
-                                  borderRadius: BorderRadius.circular(
-                                    16,
-                                  ).copyWith(
-                                    bottomRight:
-                                        isMe ? const Radius.circular(4) : null,
-                                    bottomLeft:
-                                        !isMe ? const Radius.circular(4) : null,
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: isOnline ? Colors.green : Colors.grey,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: colorScheme.surface,
+                                    width: 1.5,
                                   ),
                                 ),
                               ),
                             );
                           },
-                        )
-                        : _messages.isEmpty
-                        ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          widget.otherUserName ?? _otherUserName ?? 'Unknown',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontSize: isDesktop ? 15 : 14,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                        Consumer<PresenceProvider>(
+                          builder: (context, presenceProvider, child) {
+                            final otherId = widget.otherUserId ?? _otherUserId;
+                            final presence =
+                                otherId != null
+                                    ? presenceProvider.getUserPresence(otherId)
+                                    : null;
+                            final bool isOnline = presence?.status == 'online';
+
+                            return Row(
+                              children: [
+                                if (_encryptionReady ||
+                                    _encryptionService.isInitialized) ...[
+                                  Icon(
+                                    FluentIcons.lock_closed_12_filled,
+                                    size: 10,
+                                    color: colorScheme.primary.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                ],
+                                Text(
+                                  isOnline
+                                      ? 'Online'
+                                      : (presence?.lastSeen != null
+                                          ? 'Last seen ${_formatSeenTime(presence!.lastSeen!)}'
+                                          : 'Offline'),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color:
+                                        isOnline
+                                            ? Colors.green.withValues(
+                                              alpha: 0.8,
+                                            )
+                                            : colorScheme.onSurfaceVariant
+                                                .withValues(alpha: 0.7),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              if (isDesktop) ...[
+                _buildDesktopAction(
+                  icon: FluentIcons.call_24_regular,
+                  tooltip: 'Voice call',
+                  onTap: () {}, // _initiateCall(CallType.voice)
+                ),
+                _buildDesktopAction(
+                  icon: FluentIcons.video_24_regular,
+                  tooltip: 'Video call',
+                  onTap: () {}, // _initiateCall(CallType.video)
+                ),
+                const VerticalDivider(
+                  width: 32,
+                  indent: 16,
+                  endIndent: 16,
+                  thickness: 1,
+                ),
+                _buildDesktopAction(
+                  icon: FluentIcons.search_24_regular,
+                  tooltip: 'Search in chat',
+                  onTap: () => _showSearchModal(),
+                ),
+                _buildDesktopAction(
+                  icon:
+                      widget.isDetailsOpen
+                          ? FluentIcons.info_24_filled
+                          : FluentIcons.info_24_regular,
+                  tooltip: 'Chat details',
+                  onTap: widget.onDetailsToggle ?? _openChatDetails,
+                ),
+                const SizedBox(width: 12),
+              ] else
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'details') {
+                      _openChatDetails();
+                    } else if (value == 'theme') {
+                      showModalBottomSheet(
+                        context: context,
+                        useRootNavigator: true,
+                        builder:
+                            (context) => SafeArea(
+                              child: ChatThemeSelector(
+                                selectedPreset: ChatThemePreset.values
+                                    .firstWhere(
+                                      (p) =>
+                                          p.name.toLowerCase() ==
+                                          _activeTheme?.themeName.toLowerCase(),
+                                      orElse:
+                                          () => ChatThemePreset.defaultTheme,
+                                    ),
+                                onPresetSelected: (preset) {
+                                  _handleThemeChange(
+                                    ChatTheme.fromPreset(
+                                      preset,
+                                      'theme_${DateTime.now().millisecondsSinceEpoch}',
+                                      widget.conversationId,
+                                      _authService.currentUser?.id ?? '',
+                                    ),
+                                  );
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ),
+                      );
+                    }
+                  },
+                  itemBuilder:
+                      (context) => [
+                        const PopupMenuItem(
+                          value: 'details',
+                          child: Row(
                             children: [
-                              Icon(
-                                Icons.chat_bubble_outline,
-                                size: 64,
-                                color: colorScheme.onSurfaceVariant.withValues(alpha: 
-                                  0.6,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No messages yet',
-                                style: theme.textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Start the conversation!',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
+                              Icon(Icons.info_outline),
+                              SizedBox(width: 12),
+                              Text('Details'),
                             ],
                           ),
-                        )
-                        : ListView.builder(
-                          reverse: true,
-                          controller: _scrollController,
-                          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                          padding: EdgeInsets.only(
-                            top:
-                                MediaQuery.of(context).padding.top +
-                                        kToolbarHeight +
-                                        16,
-                            bottom: 16,
-                            left: 16,
-                            right: 16,
+                        ),
+                        const PopupMenuItem(
+                          value: 'theme',
+                          child: Row(
+                            children: [
+                              Icon(Icons.palette_outlined),
+                              SizedBox(width: 12),
+                              Text('Chat Theme'),
+                            ],
                           ),
-                          itemCount: _messages.length + 1, // Add 1 for the Whisper Mode info message
-                          itemBuilder: (context, index) {
-                            if (index == _messages.length) {
+                        ),
+                      ],
+                ),
+              const SizedBox(width: 8),
+            ],
+          ),
+          body: Stack(
+            children: [
+              // Background Image
+              if (_backgroundUrl != null)
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: _bgOpacity,
+                    child: CachedNetworkImage(
+                      imageUrl: _backgroundUrl!,
+                      fit: BoxFit.cover,
+                      color: Colors.black.withValues(
+                        alpha: 1.0 - _bgBrightness,
+                      ),
+                      colorBlendMode: BlendMode.darken,
+                    ),
+                  ),
+                ),
+
+              // Main Content
+              Column(
+                children: [
+                  // Messages List
+                  Expanded(
+                    child:
+                        _isLoading
+                            ? ListView.builder(
+                              reverse: true,
+                              keyboardDismissBehavior:
+                                  ScrollViewKeyboardDismissBehavior.onDrag,
+                              padding: EdgeInsets.only(
+                                top:
+                                    MediaQuery.of(context).padding.top +
+                                    kToolbarHeight +
+                                    16,
+                                bottom: 16,
+                                left: 16,
+                                right: 16,
+                              ),
+                              itemCount: 8,
+                              itemBuilder: (context, index) {
+                                final isMe = index % 2 == 0;
+                                return Align(
+                                  alignment:
+                                      isMe
+                                          ? Alignment.centerRight
+                                          : Alignment.centerLeft,
+                                  child: Container(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    child: SkeletonContainer.rounded(
+                                      width: 150 + (index % 3) * 50.0,
+                                      height: 40 + (index % 2) * 20.0,
+                                      borderRadius: BorderRadius.circular(
+                                        16,
+                                      ).copyWith(
+                                        bottomRight:
+                                            isMe
+                                                ? const Radius.circular(4)
+                                                : null,
+                                        bottomLeft:
+                                            !isMe
+                                                ? const Radius.circular(4)
+                                                : null,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                            : _messages.isEmpty
+                            ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.chat_bubble_outline,
+                                    size: 64,
+                                    color: colorScheme.onSurfaceVariant
+                                        .withValues(alpha: 0.6),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'No messages yet',
+                                    style: theme.textTheme.titleMedium,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Start the conversation!',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                            : ListView.builder(
+                              reverse: true,
+                              controller: _scrollController,
+                              keyboardDismissBehavior:
+                                  ScrollViewKeyboardDismissBehavior.onDrag,
+                              padding: EdgeInsets.only(
+                                top:
+                                    MediaQuery.of(context).padding.top +
+                                    kToolbarHeight +
+                                    16,
+                                bottom: 16,
+                                left: 16,
+                                right: 16,
+                              ),
+                              itemCount:
+                                  _messages.length +
+                                  1, // Add 1 for the Whisper Mode info message
+                              itemBuilder: (context, index) {
+                                if (index == _messages.length) {
+                                  /* 
                               // Display Whisper Mode info message at the top of the history or wherever appropriate.
                               // For now, let's show it only if Whisper Mode is ON.
                               if (_isWhisperMode == 0) return const SizedBox.shrink();
@@ -2198,414 +2351,524 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                   ],
                                 ),
                               );
-                            }
+                              */
+                                  return const SizedBox.shrink();
+                                }
 
-                            final message =
-                                _messages[_messages.length - 1 - index];
-                            final isMe = message.senderId == userId;
-                            
-                            switch (message.messageType) {
-                              case MessageType.ripple:
-                                return _buildRippleBubble(message, isMe);
-                              case MessageType.post_share:
-                                return _buildPostShareBubble(message, isMe);
-                              case MessageType.story_reply:
-                                return _buildStoryReplyBubble(message, isMe);
-                              case MessageType.system:
-                                return _buildSystemMessage(message);
-                              default:
-                                return _buildMessageBubble(message, isMe);
-                            }
-                          },
-                        ),
-              ),
+                                final message =
+                                    _messages[_messages.length - 1 - index];
+                                final isMe = message.senderId == userId;
 
-              // Reply Preview
-              if (_replyMessage != null) _buildReplyPreview(),
-
-              // Previews (Image/File)
-              if (_selectedImage != null) _buildImagePreview(),
-              if (_selectedFile != null) _buildFilePreview(),
-              if (_selectedAudio != null) _buildAudioPreview(),
-              if (_selectedVideo != null)
-                _buildVideoPreview(),
-              // Smart Replies
-              if (_showingSmartReplies)
-                SmartReplyBar(
-                  suggestions: _smartReplies,
-                  onSuggestionTap: (reply) {
-                    _messageController.text = reply;
-                    _sendMessage();
-                    setState(() {
-                      _showingSmartReplies = false;
-                      _smartReplies = [];
-                    });
-                  },
-                ),
-
-              // Message Input
-              Container(
-                padding: const EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  bottom: 16,
-                  top: 8,
-                ),
-                decoration: const BoxDecoration(color: Colors.transparent),
-                child: SafeArea(
-                  top: false,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Typing Indicator
-                      Consumer<TypingIndicatorProvider>(
-                        builder: (context, provider, child) {
-                          if (provider.isUserTyping(widget.conversationId)) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8, left: 8),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: TypingIndicatorWidget(
-                                  username: widget.otherUserName ?? _otherUserName ?? 'Someone',
-                                ),
-                              ),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        },
-                      ),
-                      // ── Whisper Mode pull-up trigger ──
-                      GestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        onVerticalDragStart: (_) {
-                          setState(() {
-                            _whisperDragProgress = 0.0;
-                            _whisperDragOffset = 0.0;
-                            _whisperTriggered = false;
-                          });
-                        },
-                        onVerticalDragUpdate: (details) {
-                          final rawDelta = -details.delta.dy;
-                          if (rawDelta <= 0 && _whisperDragOffset == 0) return;
-                          setState(() {
-                            _whisperDragOffset = (_whisperDragOffset + rawDelta)
-                                .clamp(0.0, _whisperDragThreshold);
-                            _whisperDragProgress =
-                                _whisperDragOffset / _whisperDragThreshold;
-                          });
-                          if (_whisperDragProgress >= 1.0 &&
-                              !_whisperTriggered) {
-                            _whisperTriggered = true;
-                            HapticUtils.heavyImpact();
-                            _toggleWhisperMode();
-                          }
-                        },
-                        onVerticalDragEnd: (_) {
-                          setState(() {
-                            _whisperDragProgress = 0.0;
-                            _whisperDragOffset = 0.0;
-                            _whisperTriggered = false;
-                          });
-                        },
-                        onVerticalDragCancel: () {
-                          setState(() {
-                            _whisperDragProgress = 0.0;
-                            _whisperDragOffset = 0.0;
-                            _whisperTriggered = false;
-                          });
-                        },
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // ── Circular progress ring (visible while dragging) ──
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 80),
-                              height: _whisperDragProgress > 0 ? 52 : 0,
-                              child:
-                                  _whisperDragProgress > 0
-                                      ? Center(
-                                        child: Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            Container(
-                                              width: 40,
-                                              height: 40,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: colorScheme.secondary
-                                                    .withValues(alpha: 0.08),
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              width: 40,
-                                              height: 40,
-                                              child: CircularProgressIndicator(
-                                                value: _whisperDragProgress,
-                                                strokeWidth: 3,
-                                                backgroundColor: colorScheme
-                                                    .secondary
-                                                    .withValues(alpha: 0.15),
-                                                valueColor: AlwaysStoppedAnimation<
-                                                  Color
-                                                >(
-                                                  _whisperDragProgress >= 1.0
-                                                      ? colorScheme.secondary
-                                                      : colorScheme.secondary
-                                                          .withValues(alpha: 
-                                                            0.4 +
-                                                                _whisperDragProgress *
-                                                                    0.6,
-                                                          ),
-                                                ),
-                                              ),
-                                            ),
-                                            Icon(
-                                              _whisperDragProgress >= 1.0
-                                                  ? Icons.auto_delete
-                                                  : Icons.arrow_upward_rounded,
-                                              size: 18,
-                                              color: colorScheme.secondary
-                                                  .withValues(alpha: 
-                                                    0.5 +
-                                                        _whisperDragProgress *
-                                                            0.5,
-                                                  ),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                      : const SizedBox.shrink(),
+                                switch (message.messageType) {
+                                  case MessageType.ripple:
+                                    return _buildRippleBubble(message, isMe);
+                                  case MessageType.post_share:
+                                    return _buildPostShareBubble(message, isMe);
+                                  case MessageType.story_reply:
+                                    return _buildStoryReplyBubble(
+                                      message,
+                                      isMe,
+                                    );
+                                  case MessageType.system:
+                                    return _buildSystemMessage(message);
+                                  default:
+                                    return _buildMessageBubble(message, isMe);
+                                }
+                              },
                             ),
-                            // ── Message input row (lifts slightly while dragging) ──
-                            Transform.translate(
-                              offset: Offset(0, -_whisperDragOffset * 0.3),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(32),
-                                child: Stack(
-                                  children: [
-                                    Positioned.fill(
-                                      child: BackdropFilter(
-                                        filter: ImageFilter.blur(
-                                          sigmaX: 10,
-                                          sigmaY: 10,
-                                        ),
-                                        child: const SizedBox.shrink(),
-                                      ),
+                  ),
+
+                  // Reply Preview
+                  if (_replyMessage != null) _buildReplyPreview(),
+
+                  // Previews (Image/File)
+                  if (_selectedImage != null) _buildImagePreview(),
+                  if (_selectedFile != null) _buildFilePreview(),
+                  if (_selectedAudio != null) _buildAudioPreview(),
+                  if (_selectedVideo != null) _buildVideoPreview(),
+                  // Smart Replies
+                  if (_showingSmartReplies)
+                    SmartReplyBar(
+                      suggestions: _smartReplies,
+                      onSuggestionTap: (reply) {
+                        _messageController.text = reply;
+                        _sendMessage();
+                        setState(() {
+                          _showingSmartReplies = false;
+                          _smartReplies = [];
+                        });
+                      },
+                    ),
+
+                  // Message Input
+                  Container(
+                    padding: const EdgeInsets.only(
+                      left: 16,
+                      right: 16,
+                      bottom: 16,
+                      top: 8,
+                    ),
+                    decoration: const BoxDecoration(color: Colors.transparent),
+                    child: SafeArea(
+                      top: false,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Typing Indicator
+                          Consumer<TypingIndicatorProvider>(
+                            builder: (context, provider, child) {
+                              if (provider.isUserTyping(
+                                widget.conversationId,
+                              )) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(
+                                    bottom: 8,
+                                    left: 8,
+                                  ),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: TypingIndicatorWidget(
+                                      username:
+                                          widget.otherUserName ??
+                                          _otherUserName ??
+                                          'Someone',
                                     ),
-                                    _buildInputDecoration(
-                                      child: Row(
-                                        children: [
-                                          IconButton(
-                                            onPressed: _showAttachmentOptions,
-                                            icon: Icon(
-                                              Icons.add_circle_outline,
-                                              color: colorScheme.primary,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: _isRecording
-                                                ? Row(
-                                                  children: [
-                                                    const SizedBox(width: 12),
-                                                    const _RecordingDot(),
-                                                    const SizedBox(width: 8),
-                                                    Text(
-                                                      'Recording...',
-                                                      style: TextStyle(
-                                                        color: _backgroundUrl != null ? Colors.white : Colors.red[700],
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 14,
-                                                      ),
-                                                    ),
-                                                    const Spacer(),
-                                                    Text(
-                                                      _formatDuration(Duration(seconds: _recordDuration)),
-                                                      style: TextStyle(
-                                                        color: _backgroundUrl != null ? Colors.white70 : Colors.red[700],
-                                                        fontFeatures: const [FontFeature.tabularFigures()],
-                                                        fontWeight: FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 12),
-                                                  ],
-                                                )
-                                                : CallbackShortcuts(
-                                              bindings: {
-                                                const SingleActivator(
-                                                  LogicalKeyboardKey.enter,
-                                                  includeRepeats: false,
-                                                ): () {
-                                                  final keys =
-                                                      ServicesBinding
-                                                          .instance
-                                                          .keyboard
-                                                          .logicalKeysPressed;
-                                                  if (keys.contains(
-                                                        LogicalKeyboardKey
-                                                            .shiftLeft,
-                                                      ) ||
-                                                      keys.contains(
-                                                        LogicalKeyboardKey
-                                                            .shiftRight,
-                                                      )) {
-                                                    return;
-                                                  }
-                                                  if (_messageController.text
-                                                      .trim()
-                                                      .isNotEmpty) {
-                                                    _sendMessage();
-                                                  }
-                                                },
-                                              },
-                                              child: TextField(
-                                                controller: _messageController,
-                                                focusNode: _focusNode,
-                                                onChanged: (val) {                                                  // Optimized: Only send typing indicator to DB, no full screen rebuild
-                                                  final userId = _authService.currentUser?.id;
-                                                  if (userId != null && val.isNotEmpty) {
-                                                    context.read<TypingIndicatorProvider>().setTyping(
-                                                      widget.conversationId,
-                                                      userId,
-                                                      true,
-                                                    );
-                                                  }
-                                                },
-                                                style: TextStyle(
-                                                  color:
-                                                      _backgroundUrl != null
-                                                          ? (_textColorSent ??
-                                                              Colors.white)
-                                                          : colorScheme
-                                                              .onSurface,
-                                                ),
-                                                decoration: InputDecoration(
-                                                  hintText: _isWhisperMode > 0 ? 'Disappearing message...' : 'Type a message...',
-                                                  hintStyle: TextStyle(
-                                                    color: (_backgroundUrl !=
-                                                                null
-                                                            ? (_textColorSent ??
-                                                                Colors.white)
-                                                            : colorScheme
-                                                                .onSurface)
-                                                        .withValues(alpha: 0.5),
+                                  ),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                          // ── Whisper Mode pull-up trigger ──
+                          GestureDetector(
+                            behavior: HitTestBehavior.translucent,
+                            onVerticalDragStart: (_) {
+                              setState(() {
+                                _whisperDragProgress = 0.0;
+                                _whisperDragOffset = 0.0;
+                                _whisperTriggered = false;
+                              });
+                            },
+                            onVerticalDragUpdate: (details) {
+                              final rawDelta = -details.delta.dy;
+                              if (rawDelta <= 0 && _whisperDragOffset == 0)
+                                return;
+                              setState(() {
+                                _whisperDragOffset = (_whisperDragOffset +
+                                        rawDelta)
+                                    .clamp(0.0, _whisperDragThreshold);
+                                _whisperDragProgress =
+                                    _whisperDragOffset / _whisperDragThreshold;
+                              });
+                              if (_whisperDragProgress >= 1.0 &&
+                                  !_whisperTriggered) {
+                                _whisperTriggered = true;
+                                HapticUtils.heavyImpact();
+                                _toggleWhisperMode();
+                              }
+                            },
+                            onVerticalDragEnd: (_) {
+                              setState(() {
+                                _whisperDragProgress = 0.0;
+                                _whisperDragOffset = 0.0;
+                                _whisperTriggered = false;
+                              });
+                            },
+                            onVerticalDragCancel: () {
+                              setState(() {
+                                _whisperDragProgress = 0.0;
+                                _whisperDragOffset = 0.0;
+                                _whisperTriggered = false;
+                              });
+                            },
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // ── Circular progress ring (visible while dragging) ──
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 80),
+                                  height: _whisperDragProgress > 0 ? 52 : 0,
+                                  child:
+                                      _whisperDragProgress > 0
+                                          ? Center(
+                                            child: Stack(
+                                              alignment: Alignment.center,
+                                              children: [
+                                                Container(
+                                                  width: 40,
+                                                  height: 40,
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: colorScheme.secondary
+                                                        .withValues(
+                                                          alpha: 0.08,
+                                                        ),
                                                   ),
-                                                  border: InputBorder.none,
-                                                  enabledBorder:
-                                                      InputBorder.none,
-                                                  focusedBorder:
-                                                      InputBorder.none,
-                                                  errorBorder: InputBorder.none,
-                                                  focusedErrorBorder:
-                                                      InputBorder.none,
-                                                  filled: false,
-                                                  contentPadding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 8,
-                                                        vertical: 10,
+                                                ),
+                                                SizedBox(
+                                                  width: 40,
+                                                  height: 40,
+                                                  child: CircularProgressIndicator(
+                                                    value: _whisperDragProgress,
+                                                    strokeWidth: 3,
+                                                    backgroundColor: colorScheme
+                                                        .secondary
+                                                        .withValues(
+                                                          alpha: 0.15,
+                                                        ),
+                                                    valueColor:
+                                                        AlwaysStoppedAnimation<
+                                                          Color
+                                                        >(
+                                                          _whisperDragProgress >=
+                                                                  1.0
+                                                              ? colorScheme
+                                                                  .secondary
+                                                              : colorScheme
+                                                                  .secondary
+                                                                  .withValues(
+                                                                    alpha:
+                                                                        0.4 +
+                                                                        _whisperDragProgress *
+                                                                            0.6,
+                                                                  ),
+                                                        ),
+                                                  ),
+                                                ),
+                                                Icon(
+                                                  _whisperDragProgress >= 1.0
+                                                      ? Icons.auto_delete
+                                                      : Icons
+                                                          .arrow_upward_rounded,
+                                                  size: 18,
+                                                  color: colorScheme.secondary
+                                                      .withValues(
+                                                        alpha:
+                                                            0.5 +
+                                                            _whisperDragProgress *
+                                                                0.5,
                                                       ),
                                                 ),
-                                                minLines: 1,
-                                                maxLines: 4,
-                                                textCapitalization:
-                                                    TextCapitalization
-                                                        .sentences,
-                                                onSubmitted: (_) {
-                                                  if (_messageController.text
-                                                      .trim()
-                                                      .isNotEmpty) {
-                                                    _sendMessage();
-                                                  }
-                                                },
-                                              ),
+                                              ],
                                             ),
+                                          )
+                                          : const SizedBox.shrink(),
+                                ),
+                                // ── Message input row (lifts slightly while dragging) ──
+                                Transform.translate(
+                                  offset: Offset(0, -_whisperDragOffset * 0.3),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(32),
+                                    child: Stack(
+                                      children: [
+                                        Positioned.fill(
+                                          child: BackdropFilter(
+                                            filter: ImageFilter.blur(
+                                              sigmaX: 10,
+                                              sigmaY: 10,
+                                            ),
+                                            child: const SizedBox.shrink(),
                                           ),
-                                          const SizedBox(width: 8),
-                                          ValueListenableBuilder<String>(
-                                            valueListenable: _textNotifier,
-                                            builder: (context, text, child) {
-                                              final bool isEmpty = text.trim().isEmpty && 
-                                                                  _selectedImage == null && 
-                                                                  _selectedVideo == null && 
-                                                                  _selectedAudio == null && 
-                                                                  _selectedFile == null;
-                                              return Container(
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      _isSending
-                                                          ? colorScheme.onSurface
-                                                              .withValues(
-                                                                alpha: 0.12,
-                                                              )
-                                                          : (_isRecording ? Colors.red : colorScheme.primary),
-                                                  shape: BoxShape.circle,
+                                        ),
+                                        _buildInputDecoration(
+                                          child: Row(
+                                            children: [
+                                              IconButton(
+                                                onPressed:
+                                                    _showAttachmentOptions,
+                                                icon: Icon(
+                                                  Icons.add_circle_outline,
+                                                  color: colorScheme.primary,
                                                 ),
-                                                child: IconButton(
-                                                  onPressed:
-                                                      _isSending
-                                                          ? null
-                                                          : (isEmpty ? _toggleRecording : _sendMessage),
-                                                  icon:
-                                                      _isSending
-                                                          ? const SizedBox(
-                                                            width: 20,
-                                                            height: 20,
-                                                            child:
-                                                                CircularProgressIndicator(
-                                                                  strokeWidth: 2,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child:
+                                                    _isRecording
+                                                        ? Row(
+                                                          children: [
+                                                            const SizedBox(
+                                                              width: 12,
+                                                            ),
+                                                            const _RecordingDot(),
+                                                            const SizedBox(
+                                                              width: 8,
+                                                            ),
+                                                            Text(
+                                                              'Recording...',
+                                                              style: TextStyle(
+                                                                color:
+                                                                    _backgroundUrl !=
+                                                                            null
+                                                                        ? Colors
+                                                                            .white
+                                                                        : Colors
+                                                                            .red[700],
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontSize: 14,
+                                                              ),
+                                                            ),
+                                                            const Spacer(),
+                                                            Text(
+                                                              _formatDuration(
+                                                                Duration(
+                                                                  seconds:
+                                                                      _recordDuration,
+                                                                ),
+                                                              ),
+                                                              style: TextStyle(
+                                                                color:
+                                                                    _backgroundUrl !=
+                                                                            null
+                                                                        ? Colors
+                                                                            .white70
+                                                                        : Colors
+                                                                            .red[700],
+                                                                fontFeatures:
+                                                                    const [
+                                                                      FontFeature.tabularFigures(),
+                                                                    ],
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w500,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                              width: 12,
+                                                            ),
+                                                          ],
+                                                        )
+                                                        : CallbackShortcuts(
+                                                          bindings: {
+                                                            const SingleActivator(
+                                                              LogicalKeyboardKey
+                                                                  .enter,
+                                                              includeRepeats:
+                                                                  false,
+                                                            ): () {
+                                                              final keys =
+                                                                  ServicesBinding
+                                                                      .instance
+                                                                      .keyboard
+                                                                      .logicalKeysPressed;
+                                                              if (keys.contains(
+                                                                    LogicalKeyboardKey
+                                                                        .shiftLeft,
+                                                                  ) ||
+                                                                  keys.contains(
+                                                                    LogicalKeyboardKey
+                                                                        .shiftRight,
+                                                                  )) {
+                                                                return;
+                                                              }
+                                                              if (_messageController
+                                                                  .text
+                                                                  .trim()
+                                                                  .isNotEmpty) {
+                                                                _sendMessage();
+                                                              }
+                                                            },
+                                                          },
+                                                          child: TextField(
+                                                            controller:
+                                                                _messageController,
+                                                            focusNode:
+                                                                _focusNode,
+                                                            onChanged: (val) {
+                                                              // Optimized: Only send typing indicator to DB, no full screen rebuild
+                                                              final userId =
+                                                                  _authService
+                                                                      .currentUser
+                                                                      ?.id;
+                                                              if (userId !=
+                                                                      null &&
+                                                                  val.isNotEmpty) {
+                                                                context
+                                                                    .read<
+                                                                      TypingIndicatorProvider
+                                                                    >()
+                                                                    .setTyping(
+                                                                      widget
+                                                                          .conversationId,
+                                                                      userId,
+                                                                      true,
+                                                                    );
+                                                              }
+                                                            },
+                                                            style: TextStyle(
+                                                              color:
+                                                                  _backgroundUrl !=
+                                                                          null
+                                                                      ? (_textColorSent ??
+                                                                          Colors
+                                                                              .white)
+                                                                      : colorScheme
+                                                                          .onSurface,
+                                                            ),
+                                                            decoration: InputDecoration(
+                                                              hintText:
+                                                                  _isWhisperMode >
+                                                                          0
+                                                                      ? 'Disappearing message...'
+                                                                      : 'Type a message...',
+                                                              hintStyle: TextStyle(
+                                                                color: (_backgroundUrl !=
+                                                                            null
+                                                                        ? (_textColorSent ??
+                                                                            Colors.white)
+                                                                        : colorScheme
+                                                                            .onSurface)
+                                                                    .withValues(
+                                                                      alpha:
+                                                                          0.5,
+                                                                    ),
+                                                              ),
+                                                              border:
+                                                                  InputBorder
+                                                                      .none,
+                                                              enabledBorder:
+                                                                  InputBorder
+                                                                      .none,
+                                                              focusedBorder:
+                                                                  InputBorder
+                                                                      .none,
+                                                              errorBorder:
+                                                                  InputBorder
+                                                                      .none,
+                                                              focusedErrorBorder:
+                                                                  InputBorder
+                                                                      .none,
+                                                              filled: false,
+                                                              contentPadding:
+                                                                  const EdgeInsets.symmetric(
+                                                                    horizontal:
+                                                                        8,
+                                                                    vertical:
+                                                                        10,
+                                                                  ),
+                                                            ),
+                                                            minLines: 1,
+                                                            maxLines: 4,
+                                                            textCapitalization:
+                                                                TextCapitalization
+                                                                    .sentences,
+                                                            onSubmitted: (_) {
+                                                              if (_messageController
+                                                                  .text
+                                                                  .trim()
+                                                                  .isNotEmpty) {
+                                                                _sendMessage();
+                                                              }
+                                                            },
+                                                          ),
+                                                        ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              ValueListenableBuilder<String>(
+                                                valueListenable: _textNotifier,
+                                                builder: (
+                                                  context,
+                                                  text,
+                                                  child,
+                                                ) {
+                                                  final bool isEmpty =
+                                                      text.trim().isEmpty &&
+                                                      _selectedImage == null &&
+                                                      _selectedVideo == null &&
+                                                      _selectedAudio == null &&
+                                                      _selectedFile == null;
+                                                  return Container(
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          _isSending
+                                                              ? colorScheme
+                                                                  .onSurface
+                                                                  .withValues(
+                                                                    alpha: 0.12,
+                                                                  )
+                                                              : (_isRecording
+                                                                  ? Colors.red
+                                                                  : colorScheme
+                                                                      .primary),
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                    child: IconButton(
+                                                      onPressed:
+                                                          _isSending
+                                                              ? null
+                                                              : (isEmpty
+                                                                  ? _toggleRecording
+                                                                  : _sendMessage),
+                                                      icon:
+                                                          _isSending
+                                                              ? const SizedBox(
+                                                                width: 20,
+                                                                height: 20,
+                                                                child: CircularProgressIndicator(
+                                                                  strokeWidth:
+                                                                      2,
                                                                   color:
                                                                       Colors
                                                                           .white,
                                                                 ),
-                                                          )
-                                                          : Icon(
-                                                            isEmpty
-                                                                ? (_isRecording ? Icons.stop_rounded : Icons.mic)
-                                                                : Icons
-                                                                    .send_rounded,
-                                                            color: Colors.white,
-                                                          ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ],
-                                      ), // Row
-                                    ), // _buildInputDecoration
-                                  ],
-                                ), // Stack
-                              ), // ClipRRect
-                            ), // Transform.translate
-                          ],
-                        ), // Column (GestureDetector child)
-                      ), // GestureDetector
-                      // Dynamic hint — hidden while actively dragging
-                      if (_whisperDragProgress == 0)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            _isWhisperMode > 0
-                                ? '👻  Whisper on — pull up to disable'
-                                : 'Pull up to enable Whisper Mode',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color:
-                                  _isWhisperMode > 0
-                                      ? colorScheme.secondary.withValues(
-                                        alpha: 0.8,
-                                      )
-                                      : colorScheme.onSurfaceVariant
-                                          .withValues(alpha: 0.5),
-                              fontSize: 10,
-                            ),
+                                                              )
+                                                              : Icon(
+                                                                isEmpty
+                                                                    ? (_isRecording
+                                                                        ? Icons
+                                                                            .stop_rounded
+                                                                        : Icons
+                                                                            .mic)
+                                                                    : Icons
+                                                                        .send_rounded,
+                                                                color:
+                                                                    Colors
+                                                                        .white,
+                                                              ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ],
+                                          ), // Row
+                                        ), // _buildInputDecoration
+                                      ],
+                                    ), // Stack
+                                  ), // ClipRRect
+                                ), // Transform.translate
+                              ],
+                            ), // Column (GestureDetector child)
                           ),
-                        ),
-                    ],
+                          if (_whisperDragProgress == 0)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                _isWhisperMode > 0
+                                    ? '👻  Whisper on — pull up to disable'
+                                    : 'Pull up to enable Whisper Mode',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color:
+                                      _isWhisperMode > 0
+                                          ? colorScheme.secondary.withValues(
+                                            alpha: 0.8,
+                                          )
+                                          : colorScheme.onSurfaceVariant
+                                              .withValues(alpha: 0.5),
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -2620,9 +2883,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       decoration: BoxDecoration(
         color: colorScheme.surface.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.primary.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.2)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -2716,9 +2977,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildMediaViewModeSelector() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -2831,10 +3089,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.audio_file_rounded,
-            color: colorScheme.primary,
-          ),
+          Icon(Icons.audio_file_rounded, color: colorScheme.primary),
           const SizedBox(width: 8),
           const Expanded(
             child: Text(
@@ -2855,6 +3110,31 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
+  Widget _buildSystemMessage(Message message) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          message.content,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMessageBubble(Message message, bool isMe) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -2863,58 +3143,63 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     Widget content;
 
     // Check if media is restricted and viewed
-    final isRestricted = message.mediaViewMode == 'once' || message.mediaViewMode == 'twice';
+    final isRestricted =
+        message.mediaViewMode == 'once' || message.mediaViewMode == 'twice';
     final viewLimit = message.mediaViewMode == 'once' ? 1 : 2;
     final isViewed = isRestricted && message.currentUserViewCount >= viewLimit;
 
     if (message.messageType == MessageType.image && message.mediaUrl != null) {
       if (isRestricted) {
         content = GestureDetector(
-          onTap: isViewed
-              ? null
-              : () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder:
-                          (context) => ImagePreviewScreen(
-                            imageUrl: message.mediaUrl!,
-                            caption:
-                                _isDisplayableCaption(message.content)
-                                    ? message.content
-                                    : null,
-                            messageId: message.id,
-                            mediaViewMode: message.mediaViewMode,
-                          ),
-                    ),
-                  );
-                  _loadMessages(); // Refresh to update view counts
-                },
+          onTap:
+              isViewed
+                  ? null
+                  : () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder:
+                            (context) => ImagePreviewScreen(
+                              imageUrl: message.mediaUrl!,
+                              caption:
+                                  _isDisplayableCaption(message.content)
+                                      ? message.content
+                                      : null,
+                              messageId: message.id,
+                              mediaViewMode: message.mediaViewMode,
+                            ),
+                      ),
+                    );
+                    _loadMessages(); // Refresh to update view counts
+                  },
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: isMe
-                      ? Colors.white.withValues(alpha: 0.2)
-                      : colorScheme.primary.withValues(alpha: 0.1),
+                  color:
+                      isMe
+                          ? Colors.white.withValues(alpha: 0.2)
+                          : colorScheme.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.camera_alt_rounded,
                   size: 20,
-                  color: isViewed
-                      ? (isMe ? Colors.white54 : Colors.grey)
-                      : (isMe ? Colors.white : colorScheme.primary),
+                  color:
+                      isViewed
+                          ? (isMe ? Colors.white54 : Colors.grey)
+                          : (isMe ? Colors.white : colorScheme.primary),
                 ),
               ),
               const SizedBox(width: 12),
               Text(
                 isViewed ? 'Opened' : 'Photo',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: isViewed
-                      ? (isMe ? Colors.white54 : Colors.grey)
-                      : (isMe ? Colors.white : colorScheme.onSurface),
+                  color:
+                      isViewed
+                          ? (isMe ? Colors.white54 : Colors.grey)
+                          : (isMe ? Colors.white : colorScheme.onSurface),
                   fontWeight: isViewed ? FontWeight.normal : FontWeight.w600,
                 ),
               ),
@@ -2957,7 +3242,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           width: 150,
                           child: Center(child: CircularProgressIndicator()),
                         ),
-                    errorWidget: (context, url, error) => const Icon(Icons.error),
+                    errorWidget:
+                        (context, url, error) => const Icon(Icons.error),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -2979,55 +3265,60 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           ],
         );
       }
-    } else if (message.messageType == MessageType.document && (message.mediaUrl?.contains('videos') ?? false)) {
-       if (isRestricted) {
+    } else if (message.messageType == MessageType.document &&
+        (message.mediaUrl?.contains('videos') ?? false)) {
+      if (isRestricted) {
         content = GestureDetector(
-          onTap: isViewed
-              ? null
-              : () async {
-                  // Video viewer would go here, using image preview for now
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder:
-                          (context) => ImagePreviewScreen(
-                            imageUrl: message.mediaUrl!,
-                            caption:
-                                _isDisplayableCaption(message.content)
-                                    ? message.content
-                                    : null,
-                            messageId: message.id,
-                            mediaViewMode: message.mediaViewMode,
-                          ),
-                    ),
-                  );
-                  _loadMessages();
-                },
+          onTap:
+              isViewed
+                  ? null
+                  : () async {
+                    // Video viewer would go here, using image preview for now
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder:
+                            (context) => ImagePreviewScreen(
+                              imageUrl: message.mediaUrl!,
+                              caption:
+                                  _isDisplayableCaption(message.content)
+                                      ? message.content
+                                      : null,
+                              messageId: message.id,
+                              mediaViewMode: message.mediaViewMode,
+                            ),
+                      ),
+                    );
+                    _loadMessages();
+                  },
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: isMe
-                      ? Colors.white.withValues(alpha: 0.2)
-                      : colorScheme.primary.withValues(alpha: 0.1),
+                  color:
+                      isMe
+                          ? Colors.white.withValues(alpha: 0.2)
+                          : colorScheme.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.videocam_rounded,
                   size: 20,
-                  color: isViewed
-                      ? (isMe ? Colors.white54 : Colors.grey)
-                      : (isMe ? Colors.white : colorScheme.primary),
+                  color:
+                      isViewed
+                          ? (isMe ? Colors.white54 : Colors.grey)
+                          : (isMe ? Colors.white : colorScheme.primary),
                 ),
               ),
               const SizedBox(width: 12),
               Text(
                 isViewed ? 'Opened' : 'Video',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: isViewed
-                      ? (isMe ? Colors.white54 : Colors.grey)
-                      : (isMe ? Colors.white : colorScheme.onSurface),
+                  color:
+                      isViewed
+                          ? (isMe ? Colors.white54 : Colors.grey)
+                          : (isMe ? Colors.white : colorScheme.onSurface),
                   fontWeight: isViewed ? FontWeight.normal : FontWeight.w600,
                 ),
               ),
@@ -3188,7 +3479,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 backgroundColor:
                     isMe
                         ? colorScheme.primaryContainer.withValues(alpha: 0.5)
-                        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                        : colorScheme.surfaceContainerHighest.withValues(
+                          alpha: 0.5,
+                        ),
                 borderRadius: 12,
                 removeElevation: true,
                 onTap: () async {
@@ -3213,12 +3506,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       color:
           isMe
               ? (_bubbleColorSent ?? colorScheme.primary)
-              : (_bubbleColorReceived ??
-                  colorScheme.surfaceContainerHighest),
+              : (_bubbleColorReceived ?? colorScheme.surfaceContainerHighest),
       borderRadius: borderRadius,
-      border: (isMe && !message.isEphemeral) 
-        ? Border.all(color: Colors.white.withValues(alpha: 0.7), width: 0.8) 
-        : null,
+      border: Border.all(
+        color: Colors.white.withValues(alpha: 0.9),
+        width: 1.5,
+      ),
       boxShadow: [
         BoxShadow(
           color: Colors.black.withValues(alpha: 0.1),
@@ -3272,9 +3565,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: isMe 
-                                  ? Colors.white.withValues(alpha: 0.7) 
-                                  : colorScheme.onSurface.withValues(alpha: 0.6),
+                              color:
+                                  isMe
+                                      ? Colors.white.withValues(alpha: 0.7)
+                                      : colorScheme.onSurface.withValues(
+                                        alpha: 0.6,
+                                      ),
                               fontSize: 11,
                             ),
                           ),
@@ -3295,7 +3591,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   Icons.done_all,
                   size: 14,
                   color:
-                      message.isRead ? Colors.blue : Colors.black, // Solid Black
+                      message.isRead
+                          ? Colors.blue
+                          : Colors.black, // Solid Black
                 ),
               ),
             ),
@@ -3304,10 +3602,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               message.readAt != null &&
               _messages.indexOf(message) ==
                   _messages.lastIndexWhere(
-                    (m) =>
-                        m.senderId == userId &&
-                        m.isRead &&
-                        m.readAt != null,
+                    (m) => m.senderId == userId && m.isRead && m.readAt != null,
                   ))
             Padding(
               padding: const EdgeInsets.only(top: 2),
@@ -3318,8 +3613,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   style: theme.textTheme.labelSmall?.copyWith(
                     fontSize: 9,
                     fontStyle: FontStyle.italic,
-                    color: (_textColorSent ?? colorScheme.onPrimary)
-                        .withValues(alpha: 0.8),
+                    color: (_textColorSent ?? colorScheme.onPrimary).withValues(
+                      alpha: 0.8,
+                    ),
                   ),
                 ),
               ),
@@ -3328,16 +3624,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
     );
 
-    if (message.isEphemeral) {
-      bubble = DottedBorder(
-        borderRadius: borderRadius,
-        color: isMe ? Colors.white.withValues(alpha: 0.6) : colorScheme.primary.withValues(alpha: 0.6),
-        strokeWidth: 1.5,
-        gap: 4,
-        dash: 4,
-        child: bubble,
-      );
-    }
+    // Dotted border removed — Whisper Mode is force-disabled (_isWhisperMode = 0)
 
     return SwipeableMessage(
       onSwipeReply: () {
@@ -3368,9 +3655,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                IntrinsicWidth(
-                  child: bubble,
-                ),
+                IntrinsicWidth(child: bubble),
                 if (message.reactions.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
@@ -3381,11 +3666,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           context: context,
                           backgroundColor: Colors.transparent,
                           useRootNavigator: true,
-                          builder: (context) => SafeArea(
-                            child: MessageReactionsSheet(
-                              reactions: _groupReactions(message.reactions),
-                            ),
-                          ),
+                          builder:
+                              (context) => SafeArea(
+                                child: MessageReactionsSheet(
+                                  reactions: _groupReactions(message.reactions),
+                                ),
+                              ),
                         );
                       },
                     ),
@@ -3407,7 +3693,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final shareData = message.shareData;
-    
+
     final username = shareData?['username'] ?? 'User';
     final userAvatar = shareData?['user_avatar'];
     final postContent = shareData?['content'] ?? message.content;
@@ -3416,9 +3702,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     Widget card = Container(
       constraints: const BoxConstraints(maxWidth: 280),
       decoration: BoxDecoration(
-        color: isMe ? (colorScheme.primary.withValues(alpha: 0.15)) : (colorScheme.surface.withValues(alpha: 0.1)),
+        color:
+            isMe
+                ? (colorScheme.primary.withValues(alpha: 0.15))
+                : (colorScheme.surface.withValues(alpha: 0.1)),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.8),
+          width: 1.5,
+        ),
       ),
       child: InkWell(
         onTap: () {
@@ -3437,15 +3729,25 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 children: [
                   CircleAvatar(
                     radius: 12,
-                    backgroundImage: (userAvatar != null && userAvatar.isNotEmpty) 
-                      ? NetworkImage(userAvatar) 
-                      : null,
-                    child: (userAvatar == null || userAvatar.isEmpty) 
-                      ? Text(username[0].toUpperCase(), style: const TextStyle(fontSize: 8)) 
-                      : null,
+                    backgroundImage:
+                        (userAvatar != null && userAvatar.isNotEmpty)
+                            ? NetworkImage(userAvatar)
+                            : null,
+                    child:
+                        (userAvatar == null || userAvatar.isEmpty)
+                            ? Text(
+                              username[0].toUpperCase(),
+                              style: const TextStyle(fontSize: 8),
+                            )
+                            : null,
                   ),
                   const SizedBox(width: 8),
-                  Text(username, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    username,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -3453,7 +3755,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               AspectRatio(
                 aspectRatio: 1,
                 child: ClipRRect(
-                  child: CachedNetworkImage(imageUrl: mediaUrl, fit: BoxFit.cover),
+                  child: CachedNetworkImage(
+                    imageUrl: mediaUrl,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
             Padding(
@@ -3463,15 +3768,25 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.grid_view_rounded, size: 14, color: colorScheme.primary),
+                      Icon(
+                        Icons.grid_view_rounded,
+                        size: 14,
+                        color: colorScheme.primary,
+                      ),
                       const SizedBox(width: 8),
-                      Text('Post shared', style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold)),
+                      Text(
+                        'Post shared',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                   if (postContent.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
-                      postContent, 
+                      postContent,
                       style: theme.textTheme.bodyMedium,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -3511,14 +3826,23 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     Widget card = Container(
       constraints: const BoxConstraints(maxWidth: 280),
       decoration: BoxDecoration(
-        color: isMe ? (colorScheme.primary.withValues(alpha: 0.15)) : (colorScheme.surface.withValues(alpha: 0.1)),
+        color:
+            isMe
+                ? (colorScheme.primary.withValues(alpha: 0.15))
+                : (colorScheme.surface.withValues(alpha: 0.1)),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.8),
+          width: 1.5,
+        ),
       ),
       child: InkWell(
         onTap: () {
           if (message.rippleId != null) {
-            context.push('/ripples', extra: {'initialRippleId': message.rippleId});
+            context.push(
+              '/ripples',
+              extra: {'initialRippleId': message.rippleId},
+            );
           }
         },
         borderRadius: BorderRadius.circular(20),
@@ -3534,20 +3858,30 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   children: [
                     CircleAvatar(
                       radius: 12,
-                      backgroundImage: (userAvatar != null && userAvatar.isNotEmpty) 
-                        ? NetworkImage(userAvatar) 
-                        : null,
-                      child: (userAvatar == null || userAvatar.isEmpty) 
-                        ? Text(username[0].toUpperCase(), style: const TextStyle(fontSize: 8)) 
-                        : null,
+                      backgroundImage:
+                          (userAvatar != null && userAvatar.isNotEmpty)
+                              ? NetworkImage(userAvatar)
+                              : null,
+                      child:
+                          (userAvatar == null || userAvatar.isEmpty)
+                              ? Text(
+                                username[0].toUpperCase(),
+                                style: const TextStyle(fontSize: 8),
+                              )
+                              : null,
                     ),
                     const SizedBox(width: 8),
-                    Text(username, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    Text(
+                      username,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ),
               AspectRatio(
-                aspectRatio: 9/16,
+                aspectRatio: 9 / 16,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -3555,7 +3889,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       CachedNetworkImage(imageUrl: mediaUrl, fit: BoxFit.cover)
                     else
                       Container(color: Colors.grey.withValues(alpha: 0.2)),
-                    const Center(child: Icon(Icons.play_circle_outline, color: Colors.white, size: 48)),
+                    const Center(
+                      child: Icon(
+                        Icons.play_circle_outline,
+                        color: Colors.white,
+                        size: 48,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -3566,14 +3906,29 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.waves_rounded, size: 14, color: colorScheme.secondary),
+                        Icon(
+                          Icons.waves_rounded,
+                          size: 14,
+                          color: colorScheme.secondary,
+                        ),
                         const SizedBox(width: 8),
-                        Text('Ripple shared', style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.secondary, fontWeight: FontWeight.bold)),
+                        Text(
+                          'Ripple shared',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.secondary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
                     ),
                     if (caption.isNotEmpty) ...[
                       const SizedBox(height: 4),
-                      Text(caption, style: theme.textTheme.bodyMedium, maxLines: 2, overflow: TextOverflow.ellipsis),
+                      Text(
+                        caption,
+                        style: theme.textTheme.bodyMedium,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
                   ],
                 ),
@@ -3611,12 +3966,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     Widget card = Container(
       constraints: const BoxConstraints(maxWidth: 260),
       decoration: BoxDecoration(
-        color: isMe
-            ? colorScheme.primary.withValues(alpha: 0.12)
-            : colorScheme.surfaceContainerHighest,
+        color:
+            isMe
+                ? colorScheme.primary.withValues(alpha: 0.12)
+                : colorScheme.surfaceContainerHighest,
         borderRadius: borderRadius,
         border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+          color: Colors.white.withValues(alpha: 0.8),
+          width: 1.5,
         ),
       ),
       child: Column(
@@ -3640,8 +3997,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     color: Colors.black.withValues(alpha: 0.3),
                     colorBlendMode: BlendMode.darken,
                   ),
-                  Icon(Icons.auto_stories_rounded,
-                      color: Colors.white.withValues(alpha: 0.9), size: 36),
+                  Icon(
+                    Icons.auto_stories_rounded,
+                    color: Colors.white.withValues(alpha: 0.9),
+                    size: 36,
+                  ),
                 ],
               ),
             ),
@@ -3652,9 +4012,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.auto_stories_rounded,
-                        size: 14,
-                        color: colorScheme.onSurfaceVariant),
+                    Icon(
+                      Icons.auto_stories_rounded,
+                      size: 14,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       'Replied to a story',
@@ -3671,8 +4033,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     message.content,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: colorScheme.onSurface),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurface,
+                    ),
                   ),
                 ],
                 const SizedBox(height: 4),
@@ -3711,7 +4074,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     return '$h:$m';
   }
 
-  void _showMessageOptions(BuildContext context, Message message, [Offset? position]) {
+  void _showMessageOptions(
+    BuildContext context,
+    Message message, [
+    Offset? position,
+  ]) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final userId = _authService.currentUser?.id;
@@ -3723,10 +4090,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     if (isDesktop && position != null) {
       showMenu(
         context: context,
-        position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx, position.dy),
+        position: RelativeRect.fromLTRB(
+          position.dx,
+          position.dy,
+          position.dx,
+          position.dy,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+          side: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
         ),
         elevation: 8,
         items: <PopupMenuEntry>[
@@ -3750,9 +4124,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 backgroundColor: Colors.transparent,
                 isScrollControlled: true,
                 useRootNavigator: true,
-                builder: (context) => SafeArea(
-                  child: ForwardMessageModal(message: message),
-                ),
+                builder:
+                    (context) =>
+                        SafeArea(child: ForwardMessageModal(message: message)),
               );
             },
             child: const Row(
@@ -3763,7 +4137,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               ],
             ),
           ),
-          if (message.messageType == MessageType.text && message.content != '🔒 Message encrypted')
+          if (message.messageType == MessageType.text &&
+              message.content != '🔒 Message encrypted')
             PopupMenuItem(
               onTap: () {
                 Clipboard.setData(ClipboardData(text: message.content));
@@ -3785,7 +4160,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               onTap: () => _unsendMessage(message),
               child: Row(
                 children: [
-                  Icon(FluentIcons.delete_24_regular, size: 20, color: colorScheme.error),
+                  Icon(
+                    FluentIcons.delete_24_regular,
+                    size: 20,
+                    color: colorScheme.error,
+                  ),
                   const SizedBox(width: 12),
                   Text('Unsend', style: TextStyle(color: colorScheme.error)),
                 ],
@@ -3831,7 +4210,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         width: 36,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.15),
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.15,
+                          ),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -3871,22 +4252,28 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             backgroundColor: Colors.transparent,
                             isScrollControlled: true,
                             useRootNavigator: true,
-                            builder: (context) => SafeArea(
-                              child: ForwardMessageModal(message: message),
-                            ),
+                            builder:
+                                (context) => SafeArea(
+                                  child: ForwardMessageModal(message: message),
+                                ),
                           );
                         },
                       ),
-                      if (message.messageType == MessageType.text && message.content != '🔒 Message encrypted')
+                      if (message.messageType == MessageType.text &&
+                          message.content != '🔒 Message encrypted')
                         _buildModalAction(
                           context,
                           icon: Icons.copy_rounded,
                           label: 'Copy Text',
                           onTap: () {
-                            Clipboard.setData(ClipboardData(text: message.content));
+                            Clipboard.setData(
+                              ClipboardData(text: message.content),
+                            );
                             Navigator.pop(context);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Copied to clipboard')),
+                              const SnackBar(
+                                content: Text('Copied to clipboard'),
+                              ),
                             );
                           },
                         ),
@@ -3992,10 +4379,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final borderRadius = BorderRadius.circular(32);
 
     final decoration = BoxDecoration(
-      color: _backgroundUrl != null
-          ? (_bubbleColorSent?.withValues(alpha: 0.15) ??
-              colorScheme.primary.withValues(alpha: 0.15))
-          : colorScheme.surface.withValues(alpha: 0.5),
+      color:
+          _backgroundUrl != null
+              ? (_bubbleColorSent?.withValues(alpha: 0.15) ??
+                  colorScheme.primary.withValues(alpha: 0.15))
+              : colorScheme.surface.withValues(alpha: 0.5),
       borderRadius: borderRadius,
       border: Border.all(
         color: Colors.white.withValues(alpha: 0.2),
@@ -4054,7 +4442,10 @@ class _ViewModeButton extends StatelessWidget {
           color: isActive ? colorScheme.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isActive ? colorScheme.primary : colorScheme.outline.withValues(alpha: 0.3),
+            color:
+                isActive
+                    ? colorScheme.primary
+                    : colorScheme.outline.withValues(alpha: 0.3),
           ),
         ),
         child: Row(
@@ -4063,13 +4454,19 @@ class _ViewModeButton extends StatelessWidget {
             Icon(
               icon,
               size: 16,
-              color: isActive ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+              color:
+                  isActive
+                      ? colorScheme.onPrimary
+                      : colorScheme.onSurfaceVariant,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: theme.textTheme.labelSmall?.copyWith(
-                color: isActive ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                color:
+                    isActive
+                        ? colorScheme.onPrimary
+                        : colorScheme.onSurfaceVariant,
                 fontWeight: isActive ? FontWeight.bold : null,
               ),
             ),

@@ -20,10 +20,10 @@ void main() {
 
     testWidgets('DottedBorder applies borderRadius', (WidgetTester tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
+        MaterialApp(
           home: Scaffold(
             body: DottedBorder(
-              borderRadius: Radius.circular(10),
+              borderRadius: BorderRadius.circular(10),
               child: SizedBox(width: 100, height: 100),
             ),
           ),
@@ -37,7 +37,7 @@ void main() {
         ),
       );
       final painter = dottedBorder.painter as DottedBorderPainter;
-      expect(painter.borderRadius, const Radius.circular(10));
+      expect(painter.borderRadius, BorderRadius.circular(10));
     });
   });
 }

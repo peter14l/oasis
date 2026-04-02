@@ -10,9 +10,10 @@ class FeedProvider with ChangeNotifier {
   final CacheService _cacheService =
       CacheService(); // Added CacheService instance
 
-  FeedProvider({FeedService? feedService}) : _feedService = feedService ?? FeedService() {
+  FeedProvider({FeedService? feedService})
+    : _feedService = feedService ?? FeedService() {
     // Clear cache once to ensure new schema (avatar_url) is loaded
-    _cacheService.saveFeed([]); 
+    _cacheService.saveFeed([]);
     _loadFromCache();
   }
 
@@ -92,7 +93,7 @@ class FeedProvider with ChangeNotifier {
       if (_currentFeedType == FeedType.forYou) {
         // Fetch if refresh is requested OR if we have no posts (e.g. cache was cleared)
         final effectiveRefresh = refresh || _forYouPosts.isEmpty;
-        
+
         newPosts = await _feedService.getFeedPosts(
           userId: userId,
           limit: _pageSize,
@@ -189,11 +190,16 @@ class FeedProvider with ChangeNotifier {
       _updatePostLikeStatus(postId, true);
       notifyListeners();
 
+      // Save to cache immediately so like persists across rebuilds
+      _cacheService.saveFeed(_forYouPosts.map((e) => e.toJson()).toList());
+
       await _feedService.likePost(userId: userId, postId: postId);
     } catch (e) {
       // Revert on error
       _updatePostLikeStatus(postId, false);
       notifyListeners();
+      // Revert cache as well
+      _cacheService.saveFeed(_forYouPosts.map((e) => e.toJson()).toList());
       debugPrint('Error liking post: $e');
       rethrow;
     }
@@ -209,11 +215,16 @@ class FeedProvider with ChangeNotifier {
       _updatePostLikeStatus(postId, false);
       notifyListeners();
 
+      // Save to cache immediately so unlike persists across rebuilds
+      _cacheService.saveFeed(_forYouPosts.map((e) => e.toJson()).toList());
+
       await _feedService.unlikePost(userId: userId, postId: postId);
     } catch (e) {
       // Revert on error
       _updatePostLikeStatus(postId, true);
       notifyListeners();
+      // Revert cache as well
+      _cacheService.saveFeed(_forYouPosts.map((e) => e.toJson()).toList());
       debugPrint('Error unliking post: $e');
       rethrow;
     }
@@ -296,10 +307,7 @@ class FeedProvider with ChangeNotifier {
           int newLikes = isLiked ? post.likes + 1 : post.likes - 1;
           if (newLikes < 0) newLikes = 0;
 
-          posts[i] = post.copyWith(
-            isLiked: isLiked,
-            likes: newLikes,
-          );
+          posts[i] = post.copyWith(isLiked: isLiked, likes: newLikes);
           break;
         }
       }

@@ -33,7 +33,8 @@ class FeedScreen extends StatefulWidget {
   State<FeedScreen> createState() => _FeedScreenState();
 }
 
-class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateMixin {
+class _FeedScreenState extends State<FeedScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ScrollController _scrollController = ScrollController();
   final StoriesService _storiesService = StoriesService();
@@ -45,7 +46,7 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
   bool _showWellbeingNudge = false;
   bool _isStoriesLoading = true;
   bool _showRipplesOverlay = false;
-  
+
   // Desktop Comment Pane State
   String? _selectedPostId;
   bool _showCommentPane = false;
@@ -108,7 +109,8 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
         setState(() => _isScrolled = false);
       }
 
-      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
         final userId = _authService.currentUser?.id;
         if (userId != null) {
           final feedProvider = context.read<FeedProvider>();
@@ -144,7 +146,7 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
   void _loadFeed() {
     final userId = _authService.currentUser?.id;
     if (userId == null) return;
-    
+
     final provider = context.read<FeedProvider>();
     if (_tabController.index == 0) {
       provider.switchFeedType(FeedType.following, userId: userId);
@@ -186,7 +188,9 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
       final diff = end != null ? end.difference(DateTime.now()).inMinutes : 30;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Ripples is locked for $diff more minutes to maintain well-being.'),
+          content: Text(
+            'Ripples is locked for $diff more minutes to maintain well-being.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -198,109 +202,127 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 20,
-                offset: const Offset(0, -5),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 24),
-                decoration: BoxDecoration(
-                  color: colorScheme.onSurface.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(2),
+      builder:
+          (context) => Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(32),
                 ),
-              ),
-              Icon(
-                Icons.waves_rounded,
-                size: 48,
-                color: colorScheme.primary,
-              ).animate(onPlay: (controller) => controller.repeat(reverse: true))
-               .scale(duration: 1.seconds, curve: Curves.easeInOut),
-              const SizedBox(height: 24),
-              Text(
-                'Enter Ripples',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Set your intentional focus duration',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 32),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, -5),
                   ),
-                ),
-                child: TextField(
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  autofocus: true,
-                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900),
-                  decoration: InputDecoration(
-                    hintText: '00',
-                    suffixText: 'min',
-                    suffixStyle: theme.textTheme.titleMedium?.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      color: colorScheme.onSurface.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  onSubmitted: (val) {
-                    final mins = int.tryParse(val);
-                    if (mins != null && mins > 0) {
-                      service.startSession(Duration(minutes: mins));
-                      Navigator.pop(context);
-                      if (ResponsiveLayout.isDesktop(context)) {
-                        setState(() => _showRipplesOverlay = true);
-                      } else {
-                        context.push('/ripples');
-                      }
-                    }
-                  },
-                ),
+                  Icon(
+                        Icons.waves_rounded,
+                        size: 48,
+                        color: colorScheme.primary,
+                      )
+                      .animate(
+                        onPlay:
+                            (controller) => controller.repeat(reverse: true),
+                      )
+                      .scale(duration: 1.seconds, curve: Curves.easeInOut),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Enter Ripples',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Set your intentional focus duration',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.3,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: colorScheme.outlineVariant.withValues(
+                          alpha: 0.5,
+                        ),
+                      ),
+                    ),
+                    child: TextField(
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      autofocus: true,
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: '00',
+                        suffixText: 'min',
+                        suffixStyle: theme.textTheme.titleMedium?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                        ),
+                      ),
+                      onSubmitted: (val) {
+                        final mins = int.tryParse(val);
+                        if (mins != null && mins > 0) {
+                          service.startSession(Duration(minutes: mins));
+                          Navigator.pop(context);
+                          if (ResponsiveLayout.isDesktop(context)) {
+                            setState(() => _showRipplesOverlay = true);
+                          } else {
+                            context.push('/ripples');
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Ripples limits distractions to help you stay present.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.7,
+                      ),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
               ),
-              const SizedBox(height: 24),
-              Text(
-                'Ripples limits distractions to help you stay present.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 
@@ -332,7 +354,10 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
               floating: true,
               snap: true,
               elevation: 0,
-              backgroundColor: _isScrolled ? Colors.black.withValues(alpha: 0.8) : Colors.transparent,
+              backgroundColor:
+                  _isScrolled
+                      ? Colors.black.withValues(alpha: 0.8)
+                      : Colors.transparent,
               toolbarHeight: 70,
               automaticallyImplyLeading: false,
               centerTitle: true,
@@ -340,7 +365,8 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
               actions: [
                 FeedLayoutSwitcher(
                   currentLayout: _currentLayout,
-                  onLayoutChanged: (layout) => setState(() => _currentLayout = layout),
+                  onLayoutChanged:
+                      (layout) => setState(() => _currentLayout = layout),
                 ),
                 const SizedBox(width: 16),
               ],
@@ -366,63 +392,88 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
             builder: (context, provider, _) {
               final posts = provider.posts;
               if (provider.isLoading && posts.isEmpty) {
-                return const SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
+                return const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                );
               }
               if (posts.isEmpty) {
-                return const SliverFillRemaining(child: Center(child: Text('No posts found.')));
+                return const SliverFillRemaining(
+                  child: Center(child: Text('No posts found.')),
+                );
               }
               return SliverPadding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isDesktop ? 20 : 0,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: isDesktop ? 20 : 0),
                 sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final post = posts[index];
-                      return PostCard(
-                        post: post,
-                        onLike: () {
-                          final userId = _authService.currentUser?.id;
-                          if (userId == null) return;
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final post = posts[index];
+                    return PostCard(
+                      post: post,
+                      onLike: () async {
+                        final userId = _authService.currentUser?.id;
+                        if (userId == null) return;
 
-                          if (post.isLiked) {
-                            provider.unlikePost(userId: userId, postId: post.id);
-                          } else {
-                            provider.likePost(userId: userId, postId: post.id);
+                        if (post.isLiked) {
+                          provider.unlikePost(userId: userId, postId: post.id);
+                        } else {
+                          try {
+                            await provider.likePost(
+                              userId: userId,
+                              postId: post.id,
+                            );
+                          } catch (e) {
+                            // Show error snackbar if liking fails
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Failed to like post: ${e.toString()}',
+                                  ),
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.error,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
                           }
-                        },
-                        onComment: () {
-                          if (isDesktop) {
-                            setState(() {
-                              if (_selectedPostId == post.id) {
-                                _showCommentPane = !_showCommentPane;
-                              } else {
-                                _selectedPostId = post.id;
-                                _showCommentPane = true;
-                              }
-                            });
-                          } else {
-                            context.push('/post/${post.id}/comments');
-                          }
-                        },
-                        onBookmark: () {
-                          final userId = _authService.currentUser?.id;
-                          if (userId == null) return;
+                        }
+                      },
+                      onComment: () {
+                        if (isDesktop) {
+                          setState(() {
+                            if (_selectedPostId == post.id) {
+                              _showCommentPane = !_showCommentPane;
+                            } else {
+                              _selectedPostId = post.id;
+                              _showCommentPane = true;
+                            }
+                          });
+                        } else {
+                          context.push('/post/${post.id}/comments');
+                        }
+                      },
+                      onBookmark: () {
+                        final userId = _authService.currentUser?.id;
+                        if (userId == null) return;
 
-                          if (post.isBookmarked) {
-                            provider.unbookmarkPost(userId: userId, postId: post.id);
-                          } else {
-                            provider.bookmarkPost(userId: userId, postId: post.id);
-                          }
-                        },
-                        onShare: () {
-                          final deepLink = 'https://oasis-web-red.vercel.app/post/${post.id}';
-                          Share.share('Check out this post on Morrow! $deepLink');
-                        },
-                      );
-                    },
-                    childCount: posts.length,
-                  ),
+                        if (post.isBookmarked) {
+                          provider.unbookmarkPost(
+                            userId: userId,
+                            postId: post.id,
+                          );
+                        } else {
+                          provider.bookmarkPost(
+                            userId: userId,
+                            postId: post.id,
+                          );
+                        }
+                      },
+                      onShare: () {
+                        final deepLink =
+                            'https://oasis-web-red.vercel.app/post/${post.id}';
+                        Share.share('Check out this post on Morrow! $deepLink');
+                      },
+                    );
+                  }, childCount: posts.length),
                 ),
               );
             },
@@ -438,44 +489,54 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
         children: [
           isDesktop
               ? Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.surface.withValues(alpha: 0.4),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            children: [
-                              _buildDesktopHeader(colorScheme),
-                              const Divider(height: 1, thickness: 0.5),
-                              Expanded(
-                                child: ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
-                                  child: BackdropFilter(
-                                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                                    child: MaxWidthContainer(
-                                      maxWidth: 600,
-                                      child: feedContent,
-                                    ),
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildDesktopHeader(colorScheme),
+                            const Divider(height: 1, thickness: 0.5),
+                            Expanded(
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  bottom: Radius.circular(12),
+                                ),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(
+                                    sigmaX: 10,
+                                    sigmaY: 10,
+                                  ),
+                                  child: MaxWidthContainer(
+                                    maxWidth: 600,
+                                    child: feedContent,
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      _showCommentPane && _selectedPostId != null
-                          ? _buildDesktopCommentPane(theme, colorScheme)
-                          : _buildDesktopSidebar(theme, colorScheme),
-                    ],
-                  ),
-                )
-              : (ResponsiveLayout.isMobile(context) ? feedContent : MaxWidthContainer(maxWidth: ResponsiveLayout.maxFeedWidth, child: feedContent)),
-          
+                    ),
+                    const SizedBox(width: 12),
+                    _showCommentPane && _selectedPostId != null
+                        ? _buildDesktopCommentPane(theme, colorScheme)
+                        : _buildDesktopSidebar(theme, colorScheme),
+                  ],
+                ),
+              )
+              : (ResponsiveLayout.isMobile(context)
+                  ? feedContent
+                  : MaxWidthContainer(
+                    maxWidth: ResponsiveLayout.maxFeedWidth,
+                    child: feedContent,
+                  )),
+
           if (_showRipplesOverlay && isDesktop)
             Positioned.fill(
               child: motion.Animate(
@@ -507,13 +568,18 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
           child: Column(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 height: 80,
                 child: Row(
                   children: [
                     Text(
                       'Comments',
-                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const Spacer(),
                     IconButton(
@@ -568,7 +634,8 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
           const SizedBox(width: 24),
           FeedLayoutSwitcher(
             currentLayout: _currentLayout,
-            onLayoutChanged: (layout) => setState(() => _currentLayout = layout),
+            onLayoutChanged:
+                (layout) => setState(() => _currentLayout = layout),
           ),
         ],
       ),
@@ -580,16 +647,31 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
       onSelected: (index) => _tabController.animateTo(index),
       offset: const Offset(0, 45),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      itemBuilder: (context) => [
-        const PopupMenuItem(value: 0, child: Text('FOLLOWING', style: TextStyle(fontWeight: FontWeight.bold))),
-        const PopupMenuItem(value: 1, child: Text('EXPLORE', style: TextStyle(fontWeight: FontWeight.bold))),
-      ],
+      itemBuilder:
+          (context) => [
+            const PopupMenuItem(
+              value: 0,
+              child: Text(
+                'FOLLOWING',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            const PopupMenuItem(
+              value: 1,
+              child: Text(
+                'EXPLORE',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: colorScheme.surface.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.1)),
+          border: Border.all(
+            color: colorScheme.onSurface.withValues(alpha: 0.1),
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -614,14 +696,23 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
         decoration: BoxDecoration(
           color: colorScheme.secondary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: colorScheme.secondary.withValues(alpha: 0.2)),
+          border: Border.all(
+            color: colorScheme.secondary.withValues(alpha: 0.2),
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.waves_rounded, size: 18, color: colorScheme.secondary),
             const SizedBox(width: 8),
-            Text('Ripples', style: TextStyle(color: colorScheme.secondary, fontWeight: FontWeight.bold, fontSize: 14)),
+            Text(
+              'Ripples',
+              style: TextStyle(
+                color: colorScheme.secondary,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
           ],
         ),
       ),
@@ -646,7 +737,14 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
                 children: [
                   Icon(Icons.trending_up, size: 20, color: colorScheme.primary),
                   const SizedBox(width: 12),
-                  Text('TRENDING', style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 2, color: colorScheme.primary)),
+                  Text(
+                    'TRENDING',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2,
+                      color: colorScheme.primary,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -657,9 +755,20 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
               const SizedBox(height: 48),
               Row(
                 children: [
-                  Icon(Icons.person_add_outlined, size: 20, color: colorScheme.primary),
+                  Icon(
+                    Icons.person_add_outlined,
+                    size: 20,
+                    color: colorScheme.primary,
+                  ),
                   const SizedBox(width: 12),
-                  Text('SUGGESTED', style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 2, color: colorScheme.primary)),
+                  Text(
+                    'SUGGESTED',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2,
+                      color: colorScheme.primary,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -680,8 +789,17 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(tag, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-          Text(count, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
+          Text(
+            tag,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+          Text(
+            count,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 12,
+            ),
+          ),
         ],
       ),
     );
@@ -694,7 +812,9 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.1),
             child: Text(name[0], style: const TextStyle(fontSize: 12)),
           ),
           const SizedBox(width: 12),
@@ -702,8 +822,20 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                Text(handle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11)),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  handle,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 11,
+                  ),
+                ),
               ],
             ),
           ),
@@ -736,7 +868,9 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                  border: Border.all(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -747,18 +881,26 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
                         color: Colors.amber.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.spa_rounded, color: Colors.amber, size: 40),
+                      child: const Icon(
+                        Icons.spa_rounded,
+                        color: Colors.amber,
+                        size: 40,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     Text(
                       'Time for a breather?',
-                      style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 12),
                     Text(
                       'You\'ve been on Oasis for ${settings.dailyLimitMinutes} minutes today.',
-                      style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
@@ -774,8 +916,12 @@ class _FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateM
                     ),
                     const SizedBox(height: 12),
                     TextButton(
-                      onPressed: () => setState(() => _showWellbeingNudge = false),
-                      child: const Text('Stay for 5 more minutes', style: TextStyle(color: Colors.white54)),
+                      onPressed:
+                          () => setState(() => _showWellbeingNudge = false),
+                      child: const Text(
+                        'Stay for 5 more minutes',
+                        style: TextStyle(color: Colors.white54),
+                      ),
                     ),
                   ],
                 ),

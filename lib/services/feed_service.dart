@@ -26,16 +26,14 @@ class FeedService {
 
       final List<dynamic> data = response as List<dynamic>;
       final posts =
-          data
-              .map((json) {
-                final map = Map<String, dynamic>.from(json as Map);
-                // Ensure field names match what Post.fromJson expects if RPC returns different names
-                if (map['comments_count'] == null && map['comments'] != null) {
-                  map['comments_count'] = map['comments'];
-                }
-                return Post.fromJson(map);
-              })
-              .toList();
+          data.map((json) {
+            final map = Map<String, dynamic>.from(json as Map);
+            // Ensure field names match what Post.fromJson expects if RPC returns different names
+            if (map['comments_count'] == null && map['comments'] != null) {
+              map['comments_count'] = map['comments'];
+            }
+            return Post.fromJson(map);
+          }).toList();
 
       final user = _supabase.auth.currentUser;
       final isPro = user?.userMetadata?['is_pro'] == true;
@@ -86,16 +84,14 @@ class FeedService {
 
       final List<dynamic> data = response as List<dynamic>;
       final posts =
-          data
-              .map((json) {
-                final map = Map<String, dynamic>.from(json as Map);
-                // Ensure field names match what Post.fromJson expects if RPC returns different names
-                if (map['comments_count'] == null && map['comments'] != null) {
-                  map['comments_count'] = map['comments'];
-                }
-                return Post.fromJson(map);
-              })
-              .toList();
+          data.map((json) {
+            final map = Map<String, dynamic>.from(json as Map);
+            // Ensure field names match what Post.fromJson expects if RPC returns different names
+            if (map['comments_count'] == null && map['comments'] != null) {
+              map['comments_count'] = map['comments'];
+            }
+            return Post.fromJson(map);
+          }).toList();
 
       final user = _supabase.auth.currentUser;
       final isPro = user?.userMetadata?['is_pro'] == true;
@@ -135,6 +131,26 @@ class FeedService {
     required String postId,
   }) async {
     try {
+      // Check if like already exists to avoid duplicate key errors
+      // Note: This SELECT may fail due to missing RLS SELECT policy - handle gracefully
+      try {
+        final existingLike =
+            await _supabase
+                .from(SupabaseConfig.likesTable)
+                .select('id')
+                .eq('user_id', userId)
+                .eq('post_id', postId)
+                .maybeSingle();
+
+        if (existingLike != null) {
+          debugPrint('Post already liked by this user');
+          return;
+        }
+      } catch (e) {
+        // RLS policy might block SELECT - still try to insert
+        debugPrint('Could not check existing like (RLS or DB error): $e');
+      }
+
       await _supabase.from(SupabaseConfig.likesTable).insert({
         'user_id': userId,
         'post_id': postId,
@@ -163,6 +179,24 @@ class FeedService {
         // Don't fail the like if notification fails
         debugPrint('Error triggering like notification: $e');
       }
+    } on PostgrestException catch (e) {
+      // Handle specific Supabase errors more gracefully
+      final errorMsg = e.message.toLowerCase();
+      if (errorMsg.contains('relation') &&
+          errorMsg.contains('does not exist')) {
+        debugPrint(
+          'Database table not found. The likes table may need to be created via migration.',
+        );
+        rethrow;
+      }
+      // Handle RLS policy violations
+      if (errorMsg.contains('row-level security') ||
+          errorMsg.contains('policy')) {
+        debugPrint('RLS policy error when liking post: $e');
+        rethrow;
+      }
+      debugPrint('Error liking post (PostgrestException): $e');
+      rethrow;
     } catch (e) {
       debugPrint('Error liking post: $e');
       rethrow;

@@ -167,7 +167,7 @@ flutter:
 
   # Assets including .env file
   assets:
-    - .env
+    # .env intentionally omitted - injected at build time
     - assets/images/
     - assets/svgs/
     - assets/audio/

@@ -169,6 +169,7 @@ class MessagingService {
 
   /// Clean up expired ephemeral messages
   Future<void> cleanupVanishModeMessages(String conversationId) async {
+    /*
     try {
       await _supabase.rpc(
         'cleanup_vanish_mode_messages',
@@ -177,6 +178,7 @@ class MessagingService {
     } catch (e) {
       debugPrint('Error cleaning up expired messages: $e');
     }
+    */
   }
 
   /// Get messages for a conversation
@@ -191,12 +193,14 @@ class MessagingService {
       if (userId == null) throw Exception('Not authenticated');
 
       // Lazy cleanup of read vanish mode messages
+      /*
       _supabase
           .rpc(
             'cleanup_vanish_mode_messages',
             params: {'p_conversation_id': conversationId},
           )
           .catchError((e) => debugPrint('Vanish mode cleanup error: $e'));
+      */
 
       // Fetch cleared_at timestamp for this user in this conversation
       final participantResponse =
@@ -380,6 +384,9 @@ class MessagingService {
   }) {
     if (messages.isEmpty) return [];
 
+    // Whisper Mode Disabled: Return all messages
+    return messages;
+    /*
     final now = DateTime.now().toUtc();
 
     return messages.where((message) {
@@ -416,6 +423,7 @@ class MessagingService {
       // Timed Vanish (e.g. 24h)
       return !isExpired;
     }).toList();
+    */
   }
 
   /// Send a message
@@ -1217,6 +1225,7 @@ class MessagingService {
 
   /// Toggle Whisper Mode for a conversation
   Future<void> toggleWhisperMode(String conversationId, int mode) async {
+    /*
     try {
       await _supabase
           .from(SupabaseConfig.conversationsTable)
@@ -1226,6 +1235,7 @@ class MessagingService {
       debugPrint('Error toggling whisper mode: $e');
       rethrow;
     }
+    */
   }
 
   /// Toggle Mute for a conversation

@@ -467,6 +467,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   }
 
   Future<void> _toggleWhisperMode() async {
+    /*
     final int nextMode = (_whisperMode + 1) % 3;
     
     try {
@@ -504,6 +505,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     }
+    */
   }
 
   Future<void> _updateBgOpacity(double value) async {
@@ -851,6 +853,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                         ),
                       ),
                     const Divider(indent: 56),
+                    /*
                     _buildActionTile(
                       icon: _whisperMode > 0 ? FluentIcons.delete_dismiss_24_filled : FluentIcons.delete_dismiss_24_regular,
                       title: 'Whisper Mode',
@@ -875,6 +878,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                       ),
                       onTap: _toggleWhisperMode,
                     ),
+                    */
                   ],
                 ),
               ),

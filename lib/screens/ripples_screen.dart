@@ -394,44 +394,120 @@ class _RipplesScreenState extends State<RipplesScreen> {
               
               // Bottom Pill for Mobile
               Positioned(
-                bottom: MediaQuery.of(context).padding.bottom + 24,
-                left: 24,
-                right: 24,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(32),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(32),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildMobileAction(
-                            icon: currentRipple['is_liked'] == true ? FluentIcons.heart_24_filled : FluentIcons.heart_24_regular,
-                            color: currentRipple['is_liked'] == true ? Colors.redAccent : Colors.white,
-                            onTap: () => _toggleLikeInBuild(currentRipple),
-                          ),
-                          _buildMobileAction(
-                            icon: FluentIcons.comment_24_regular,
-                            color: Colors.white,
-                            onTap: () => _showMobileComments(context, currentRipple['id']),
-                          ),
-                          _buildMobileAction(
-                            icon: currentRipple['is_saved'] == true ? FluentIcons.bookmark_24_filled : FluentIcons.bookmark_24_regular,
-                            color: currentRipple['is_saved'] == true ? Colors.blueAccent : Colors.white,
-                            onTap: () => _toggleSaveInBuild(currentRipple),
-                          ),
-                          _buildMobileAction(
-                            icon: FluentIcons.send_24_regular,
-                            color: Colors.white,
-                            onTap: () => _shareToDM(currentRipple),
-                          ),
-                        ],
+                bottom: MediaQuery.of(context).padding.bottom + 20,
+                left: 16,
+                right: 16,
+                child: motion.Animate(
+                  effects: [
+                    motion.FadeEffect(duration: 400.ms),
+                    motion.MoveEffect(begin: const Offset(0, 20), curve: Curves.easeOutQuad),
+                  ],
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(32),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(32),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            // Creator Info Section
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        colors: [Colors.blueAccent, Colors.purpleAccent.withValues(alpha: 0.5)],
+                                      ),
+                                    ),
+                                    child: CircleAvatar(
+                                      radius: 18,
+                                      backgroundColor: Colors.black,
+                                      backgroundImage: currentRipple['profiles']?['avatar_url'] != null 
+                                        ? NetworkImage(currentRipple['profiles']['avatar_url']) 
+                                        : null,
+                                      child: currentRipple['profiles']?['avatar_url'] == null
+                                        ? Text(
+                                            (currentRipple['profiles']?['username'] as String? ?? 'U')[0].toUpperCase(),
+                                            style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold),
+                                          )
+                                        : null,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Flexible(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          currentRipple['profiles']?['username'] ?? 'User',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 14,
+                                            letterSpacing: -0.2,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const Text(
+                                          'Original Ripple',
+                                          style: TextStyle(
+                                            color: Colors.white60,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            
+                            // Actions Section
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildMobileAction(
+                                  icon: currentRipple['is_liked'] == true ? FluentIcons.heart_24_filled : FluentIcons.heart_24_regular,
+                                  color: currentRipple['is_liked'] == true ? Colors.redAccent : Colors.white,
+                                  onTap: () => _toggleLikeInBuild(currentRipple),
+                                ),
+                                _buildMobileAction(
+                                  icon: FluentIcons.comment_24_regular,
+                                  color: Colors.white,
+                                  onTap: () => _showMobileComments(context, currentRipple['id']),
+                                ),
+                                _buildMobileAction(
+                                  icon: currentRipple['is_saved'] == true ? FluentIcons.bookmark_24_filled : FluentIcons.bookmark_24_regular,
+                                  color: currentRipple['is_saved'] == true ? Colors.blueAccent : Colors.white,
+                                  onTap: () => _toggleSaveInBuild(currentRipple),
+                                ),
+                                _buildMobileAction(
+                                  icon: FluentIcons.send_24_regular,
+                                  color: Colors.white,
+                                  onTap: () => _shareToDM(currentRipple),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -597,8 +673,10 @@ class _RipplesScreenState extends State<RipplesScreen> {
   }
 
   void _shareToDM(Map<String, dynamic> ripple) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) => ShareToDirectMessageModal(
         title: 'Share Ripple',
         content: ripple['caption'] ?? 'Shared a ripple',
