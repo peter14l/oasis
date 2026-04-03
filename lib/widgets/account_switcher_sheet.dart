@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:oasis_v2/services/app_initializer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/services/session_registry_service.dart';
 import 'package:go_router/go_router.dart';
 
 class AccountSwitcherSheet extends StatelessWidget {

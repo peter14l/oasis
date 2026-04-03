@@ -168,7 +168,13 @@ class NotificationService {
             }
           },
         )
-        .subscribe();
+        .subscribe((status, [error]) {
+          if (status == RealtimeSubscribeStatus.channelError) {
+            debugPrint('[NotificationService] Subscription error for user $userId: $error');
+          } else {
+            debugPrint('[NotificationService] Subscription status for user $userId: $status');
+          }
+        });
 
     return channel;
   }

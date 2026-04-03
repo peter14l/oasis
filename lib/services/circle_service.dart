@@ -350,7 +350,11 @@ class CircleService {
             if (!controller.isClosed) controller.add(items);
           },
         )
-        .subscribe();
+        .subscribe((status, [error]) {
+      if (status == RealtimeSubscribeStatus.channelError) {
+        debugPrint('CircleService: subscribeToCommitments error: $error');
+      }
+    });
 
     controller.onCancel = () {
       _supabase.removeChannel(channel);

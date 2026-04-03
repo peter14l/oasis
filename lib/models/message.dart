@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:oasis_v2/models/message_reaction.dart';
 
-enum MessageType { text, image, document, voice, poll, location, ripple, story_reply, post_share, system }
+enum MessageType { text, image, document, voice, poll, location, ripple, storyReply, postShare, system }
 
 class Message {
   final String id;
@@ -117,7 +117,7 @@ class Message {
           json['file_url'].toString().isNotEmpty) {
         type = MessageType.document;
       } else if (json['post_id'] != null) {
-        type = MessageType.post_share;
+        type = MessageType.postShare;
       } else if (json['ripple_id'] != null) {
         type = MessageType.ripple;
       }

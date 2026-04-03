@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:oasis_v2/models/hashtag.dart';
 import 'package:oasis_v2/models/post.dart';
 import 'package:oasis_v2/services/hashtag_service.dart';
+import 'package:oasis_v2/services/post_service.dart';
+import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/widgets/post_card.dart';
 import 'package:oasis_v2/widgets/comments_modal.dart';
 import 'package:oasis_v2/widgets/share_sheet.dart';
@@ -17,6 +19,8 @@ class HashtagScreen extends StatefulWidget {
 
 class _HashtagScreenState extends State<HashtagScreen> {
   final _hashtagService = HashtagService();
+  final _postService = PostService();
+  final _authService = AuthService();
   Hashtag? _hashtag;
   List<Post> _posts = [];
   bool _isLoading = true;
@@ -106,19 +110,41 @@ class _HashtagScreenState extends State<HashtagScreen> {
     );
   }
 
-  void _handleLike(Post post) {
+  void _handleLike(Post post) async {
     final index = _posts.indexWhere((p) => p.id == post.id);
     if (index == -1) return;
 
+    final userId = _authService.currentUser?.id;
+    if (userId == null) return;
+
+    final wasLiked = post.isLiked;
+
+    // Optimistic UI update
     setState(() {
       _posts[index] = post.copyWith(
-        isLiked: !post.isLiked,
-        likes: post.isLiked ? post.likes - 1 : post.likes + 1,
+        isLiked: !wasLiked,
+        likes: wasLiked ? post.likes - 1 : post.likes + 1,
       );
     });
 
-    // TODO: Call post service like endpoint
-    // For now, just update local state (optimistic update)
+    try {
+      if (wasLiked) {
+        await _postService.unlikePost(post.id, userId);
+      } else {
+        await _postService.likePost(postId: post.id, userId: userId);
+      }
+    } catch (e) {
+      debugPrint('Error liking/unliking post: $e');
+      // Revert on error
+      if (mounted) {
+        setState(() {
+          _posts[index] = post;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update like. Please try again.')),
+        );
+      }
+    }
   }
 
   void _handleComment(Post post) {

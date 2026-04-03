@@ -262,7 +262,22 @@ class PersistentSignalStore implements SignalProtocolStore {
 
   @override
   Future<PreKeyRecord> loadPreKey(int preKeyId) async {
-    return _inMemoryStore.loadPreKey(preKeyId);
+    try {
+      return await _inMemoryStore.loadPreKey(preKeyId);
+    } catch (e) {
+      // If not in memory, try to load from storage
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId != null) {
+        final key = '${_preKeysKeyPrefix(userId)}$preKeyId';
+        final data = _prefs.getString(key);
+        if (data != null) {
+          final record = PreKeyRecord.fromBuffer(base64Decode(data));
+          await _inMemoryStore.storePreKey(preKeyId, record);
+          return record;
+        }
+      }
+      rethrow;
+    }
   }
 
   @override
@@ -276,7 +291,12 @@ class PersistentSignalStore implements SignalProtocolStore {
 
   @override
   Future<bool> containsPreKey(int preKeyId) async {
-    return _inMemoryStore.containsPreKey(preKeyId);
+    final inMemory = await _inMemoryStore.containsPreKey(preKeyId);
+    if (inMemory) return true;
+
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return false;
+    return _prefs.containsKey('${_preKeysKeyPrefix(userId)}$preKeyId');
   }
 
   @override
@@ -292,7 +312,21 @@ class PersistentSignalStore implements SignalProtocolStore {
 
   @override
   Future<SignedPreKeyRecord> loadSignedPreKey(int signedPreKeyId) async {
-    return _inMemoryStore.loadSignedPreKey(signedPreKeyId);
+    try {
+      return await _inMemoryStore.loadSignedPreKey(signedPreKeyId);
+    } catch (e) {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId != null) {
+        final key = '${_signedPreKeyKeyPrefix(userId)}$signedPreKeyId';
+        final data = _prefs.getString(key);
+        if (data != null) {
+          final record = SignedPreKeyRecord.fromSerialized(base64Decode(data));
+          await _inMemoryStore.storeSignedPreKey(signedPreKeyId, record);
+          return record;
+        }
+      }
+      rethrow;
+    }
   }
 
   @override
@@ -311,7 +345,12 @@ class PersistentSignalStore implements SignalProtocolStore {
 
   @override
   Future<bool> containsSignedPreKey(int signedPreKeyId) async {
-    return _inMemoryStore.containsSignedPreKey(signedPreKeyId);
+    final inMemory = await _inMemoryStore.containsSignedPreKey(signedPreKeyId);
+    if (inMemory) return true;
+
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return false;
+    return _prefs.containsKey('${_signedPreKeyKeyPrefix(userId)}$signedPreKeyId');
   }
 
   @override

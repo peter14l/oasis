@@ -37,8 +37,8 @@ class NotificationManager {
 
   /// Initialize the notification manager
   Future<bool> initialize() async {
-    if (_isInitialized) return true;
-
+    // If already initialized, we still want to ensure channels are created 
+    // especially if called from a background isolate
     try {
       if (_isDesktop) {
         if (Platform.isWindows) {
@@ -58,13 +58,17 @@ class NotificationManager {
         );
         return true;
       } else if (_isMobile) {
-        _isInitialized = true;
         await _initLocalNotifications();
+        // FCM initialization usually happens in the main isolate, 
+        // but the background handler needs local notifications setup.
+        if (kDebugMode) debugPrint('NotificationManager: Mobile local notifications initialized');
+        
+        // Only init FCM if we are in the main isolate (where Firebase.initializeApp was likely called without options)
+        // or if we explicitly want to (the background handler initializes Firebase itself)
         await _initFCM();
+        
+        _isInitialized = true;
         return true;
-      } else if (kIsWeb) {
-        debugPrint('NotificationManager: Web notifications not supported');
-        return false;
       }
 
       return false;
@@ -88,6 +92,7 @@ class NotificationManager {
     required String body,
     String? payload,
     String? senderAvatar,
+    String? messageType,
   }) async {
     if (!_isInitialized) {
       debugPrint('NotificationManager: Not initialized');
@@ -99,17 +104,22 @@ class NotificationManager {
       return;
     }
 
+    String finalBody = body;
+    if (messageType == 'image' || messageType == 'Photo') {
+      finalBody = '📷 Photo';
+    }
+
     try {
       if (_isDesktop) {
         await _showDesktopNotification(
           title: title,
-          body: body,
+          body: finalBody,
           senderAvatar: senderAvatar,
         );
       } else if (_isMobile) {
         await _showMobileNotification(
           title: title,
-          body: body,
+          body: finalBody,
           payload: payload,
           senderAvatar: senderAvatar,
         );
@@ -216,6 +226,9 @@ class NotificationManager {
       importance: Importance.max,
       priority: Priority.high,
       showWhen: true,
+      fullScreenIntent: true,
+      category: AndroidNotificationCategory.message,
+      visibility: NotificationVisibility.public,
     );
 
     darwinDetails ??= const DarwinNotificationDetails(
@@ -318,6 +331,7 @@ class NotificationManager {
           title: message.notification!.title ?? 'New Notification',
           body: message.notification!.body ?? '',
           payload: jsonEncode(message.data),
+          messageType: message.data['message_type'] ?? message.data['type'],
         );
       }
     });

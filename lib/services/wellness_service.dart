@@ -93,6 +93,39 @@ class WellnessService extends ChangeNotifier {
     _startWindDownMonitor();
   }
 
+  /// App lifecycle handling to save battery
+  void onPaused() {
+    _windDownTimer?.cancel();
+    _windDownTimer = null;
+    // Also pause focus timer if active
+    if (_focusTimer != null) {
+      _focusTimer?.cancel();
+      _focusTimer = null;
+    }
+    debugPrint('Wellness: Timers paused (background)');
+  }
+
+  void onResumed() {
+    _startWindDownMonitor();
+    // Restart focus timer if it was active
+    if (_focusModeEnabled && _focusStartTime != null && _focusRemainingSeconds > 0) {
+      _resumeFocusTimer();
+    }
+    debugPrint('Wellness: Wind-down monitor resumed');
+  }
+
+  void _resumeFocusTimer() {
+    _focusTimer?.cancel();
+    _focusTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_focusRemainingSeconds > 0) {
+        _focusRemainingSeconds--;
+        if (_focusRemainingSeconds % 60 == 0) notifyListeners();
+      } else {
+        _stopFocusSession(manual: false);
+      }
+    });
+  }
+
   static Future<WellnessService> init() async {
     final prefs = await SharedPreferences.getInstance();
     return WellnessService(prefs);

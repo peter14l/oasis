@@ -9,12 +9,12 @@ class EnergyMeterState {
   final DateTime dayStart;
 
   // Constants for energy mechanics
-  static const double MAX_ENERGY = 100.0;
-  static const double EXPANSION_COST = 15.0;
-  static const double VIEW_COST = 2.0;
-  static const double LIKE_COST = 1.0;
-  static const double RECOVERY_RATE = 5.0; // per minute
-  static const double LOW_ENERGY_THRESHOLD = 10.0;
+  static const double maxEnergy = 100.0;
+  static const double expansionCost = 15.0;
+  static const double viewCost = 2.0;
+  static const double likeCost = 1.0;
+  static const double recoveryRate = 5.0; // per minute
+  static const double lowEnergyThreshold = 10.0;
 
   const EnergyMeterState({
     required this.currentEnergy,
@@ -27,7 +27,7 @@ class EnergyMeterState {
   factory EnergyMeterState.initial() {
     final now = DateTime.now();
     return EnergyMeterState(
-      currentEnergy: MAX_ENERGY,
+      currentEnergy: maxEnergy,
       lastInteraction: now,
       interactionsToday: 0,
       dayStart: DateTime(now.year, now.month, now.day),
@@ -38,8 +38,8 @@ class EnergyMeterState {
   EnergyMeterState withRecovery() {
     final now = DateTime.now();
     final minutesElapsed = now.difference(lastInteraction).inMinutes;
-    final recoveredEnergy = (currentEnergy + (minutesElapsed * RECOVERY_RATE))
-        .clamp(0.0, MAX_ENERGY);
+    final recoveredEnergy = (currentEnergy + (minutesElapsed * recoveryRate))
+        .clamp(0.0, maxEnergy);
 
     // Reset daily counter if it's a new day
     final isNewDay =
@@ -59,7 +59,7 @@ class EnergyMeterState {
   EnergyMeterState deductEnergy(double cost) {
     final now = DateTime.now();
     return EnergyMeterState(
-      currentEnergy: (currentEnergy - cost).clamp(0.0, MAX_ENERGY),
+      currentEnergy: (currentEnergy - cost).clamp(0.0, maxEnergy),
       lastInteraction: now,
       interactionsToday: interactionsToday + 1,
       dayStart: dayStart,
@@ -67,10 +67,10 @@ class EnergyMeterState {
   }
 
   /// Check if energy is critically low
-  bool get isLowEnergy => currentEnergy < LOW_ENERGY_THRESHOLD;
+  bool get isLowEnergy => currentEnergy < lowEnergyThreshold;
 
   /// Get energy percentage (0.0 - 1.0)
-  double get energyPercentage => currentEnergy / MAX_ENERGY;
+  double get energyPercentage => currentEnergy / maxEnergy;
 
   /// Get color representing current energy level
   Color get energyColor {
@@ -78,7 +78,7 @@ class EnergyMeterState {
       return Colors.green;
     } else if (currentEnergy >= 40) {
       return Colors.yellow;
-    } else if (currentEnergy >= LOW_ENERGY_THRESHOLD) {
+    } else if (currentEnergy >= lowEnergyThreshold) {
       return Colors.orange;
     } else {
       return Colors.red;
@@ -98,7 +98,7 @@ class EnergyMeterState {
   /// Create from JSON
   factory EnergyMeterState.fromJson(Map<String, dynamic> json) {
     return EnergyMeterState(
-      currentEnergy: (json['currentEnergy'] as num?)?.toDouble() ?? MAX_ENERGY,
+      currentEnergy: (json['currentEnergy'] as num?)?.toDouble() ?? maxEnergy,
       lastInteraction:
           json['lastInteraction'] != null
               ? DateTime.parse(json['lastInteraction'] as String)

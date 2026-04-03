@@ -12,7 +12,6 @@ import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/models/message.dart';
 import 'package:oasis_v2/widgets/messages/share_to_dm_modal.dart';
 import 'package:oasis_v2/services/app_initializer.dart';
-import 'package:oasis_v2/utils/haptic_utils.dart';
 
 class PostCard extends StatefulWidget {
   final Post post;
@@ -44,7 +43,6 @@ class _PostCardState extends State<PostCard>
   late Animation<double> _likeAnimation;
   bool _isHovered = false;
   final GlobalKey _moreButtonKey = GlobalKey();
-  int _currentImageIndex = 0;
 
   @override
   void initState() {
@@ -69,7 +67,6 @@ class _PostCardState extends State<PostCard>
         weight: 50,
       ),
     ]).animate(_likeAnimationController);
-    _currentImageIndex = 0;
   }
 
   @override
@@ -288,7 +285,7 @@ class _PostCardState extends State<PostCard>
           (context) => ShareToDirectMessageModal(
             title: 'Share Post',
             content: widget.post.content ?? 'Shared a post',
-            messageType: MessageType.post_share,
+            messageType: MessageType.postShare,
             postId: widget.post.id,
             mediaUrl:
                 widget.post.mediaUrls.isNotEmpty

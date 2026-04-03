@@ -35,7 +35,7 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   final ScrollController _scrollController = ScrollController();
   final StoriesService _storiesService = StoriesService();
@@ -57,6 +57,7 @@ class _FeedScreenState extends State<FeedScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleTabSelection);
     _scrollController.addListener(_onScroll);
@@ -82,13 +83,24 @@ class _FeedScreenState extends State<FeedScreen>
     });
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _wellbeingTimer?.cancel();
+      _wellbeingTimer = null;
+      debugPrint('FeedScreen: Wellbeing polling paused (background)');
+    } else if (state == AppLifecycleState.resumed) {
+      _startWellbeingPolling();
+      debugPrint('FeedScreen: Wellbeing polling resumed');
+    }
+  }
+
   Future<void> _checkWellbeingLimit() async {
     final settings = context.read<UserSettingsProvider>();
     if (settings.dailyLimitMinutes <= 0) return;
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final screenTimeService = ScreenTimeService(prefs);
+      final screenTimeService = context.read<ScreenTimeService>();
       final todayUsage = await screenTimeService.getTodayTotalUsage();
       final usageMinutes = todayUsage.inMinutes;
 
@@ -131,6 +143,7 @@ class _FeedScreenState extends State<FeedScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     _scrollController.dispose();
     _wellbeingTimer?.cancel();

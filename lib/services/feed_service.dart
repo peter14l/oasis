@@ -321,6 +321,10 @@ class FeedService {
             // Note: This won't have user info, you'd need to join or fetch separately
             return Post.fromJson(json);
           }).toList();
+        })
+        .handleError((error) {
+          debugPrint('[FeedService] Watch feed posts error: $error');
+          return <Post>[]; // Return empty list on error to keep the app functional
         });
   }
 

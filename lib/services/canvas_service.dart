@@ -380,7 +380,11 @@ class CanvasService {
           
           controller.add(mappedState);
         })
-        .subscribe();
+        .subscribe((status, [error]) {
+          if (status == RealtimeSubscribeStatus.channelError) {
+            debugPrint('[CanvasService] Presence subscription error: $error');
+          }
+        });
 
     controller.onCancel = () {
       _supabase.removeChannel(channel);
@@ -436,7 +440,11 @@ class CanvasService {
             controller.add(items);
           },
         )
-        .subscribe();
+        .subscribe((status, [error]) {
+          if (status == RealtimeSubscribeStatus.channelError) {
+            debugPrint('[CanvasService] Canvas items subscription error: $error');
+          }
+        });
 
     // Cleanup on cancel
     controller.onCancel = () {

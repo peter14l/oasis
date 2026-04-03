@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oasis_v2/services/wellness_service.dart';
 import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/models/user_model.dart';
 
 class WellnessBadge extends StatelessWidget {
   const WellnessBadge({super.key});

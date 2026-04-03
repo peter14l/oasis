@@ -528,7 +528,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       try {
         final dir = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
         return dir.path;
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('Error getting initial directory: $e');
+      }
     }
     return null;
   }

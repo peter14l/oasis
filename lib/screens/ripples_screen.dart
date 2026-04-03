@@ -24,15 +24,17 @@ class RipplesScreen extends StatefulWidget {
   State<RipplesScreen> createState() => _RipplesScreenState();
 }
 
-class _RipplesScreenState extends State<RipplesScreen> {
+class _RipplesScreenState extends State<RipplesScreen> with WidgetsBindingObserver {
   final PageController _pageController = PageController();
   StreamSubscription? _sessionSub;
   int _currentIndex = 0;
   DateTime? _sessionStartTime;
+  bool _isPlayingGlobal = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _sessionStartTime = DateTime.now();
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -779,14 +781,16 @@ class RippleVideoPlayer extends StatefulWidget {
   State<RippleVideoPlayer> createState() => _RippleVideoPlayerState();
 }
 
-class _RippleVideoPlayerState extends State<RippleVideoPlayer> {
+class _RippleVideoPlayerState extends State<RippleVideoPlayer> with WidgetsBindingObserver {
   late VideoPlayerController _controller;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl))
       ..initialize().then((_) {
+        if (!mounted) return;
         setState(() {});
         if (widget.isPlaying) _controller.play();
       })
@@ -804,7 +808,19 @@ class _RippleVideoPlayerState extends State<RippleVideoPlayer> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _controller.pause();
+    } else if (state == AppLifecycleState.resumed) {
+      if (widget.isPlaying) {
+        _controller.play();
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }

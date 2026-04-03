@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis_v2/models/commitment.dart';
-
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:oasis_v2/models/commitment.dart';
 import 'package:oasis_v2/utils/haptic_utils.dart';
 
 class CommitmentCard extends StatefulWidget {

@@ -1,8 +1,5 @@
-import 'dart:ffi';
-import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
 import 'package:universal_io/io.dart';
-import 'package:win32/win32.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:tray_manager/tray_manager.dart';

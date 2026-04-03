@@ -37,7 +37,7 @@ class DirectMessagesScreen extends StatefulWidget {
   State<DirectMessagesScreen> createState() => _DirectMessagesScreenState();
 }
 
-class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
+class _DirectMessagesScreenState extends State<DirectMessagesScreen> with WidgetsBindingObserver {
   Conversation? _selectedConversation;
   bool _showDetails = false;
   double _bgOpacity = 1.0;
@@ -58,16 +58,34 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadConversationSizes();
-    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      if (mounted) setState(() {});
-    });
+    _startRefreshTimer();
     _scrollController.addListener(_onScroll);
 
     if (widget.initialConversationId != null) {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => _setInitialConversation(),
       );
+    }
+  }
+
+  void _startRefreshTimer() {
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _refreshTimer?.cancel();
+      _refreshTimer = null;
+      debugPrint('DirectMessages: Refresh timer paused (background)');
+    } else if (state == AppLifecycleState.resumed) {
+      _startRefreshTimer();
+      debugPrint('DirectMessages: Refresh timer resumed');
     }
   }
 

@@ -148,7 +148,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
         conversationId: conversationId,
         senderId: currentUserId,
         content: text,
-        messageType: MessageType.story_reply,
+        messageType: MessageType.storyReply,
         storyId: story.id,
       );
 

@@ -134,6 +134,8 @@ class CallService extends ChangeNotifier {
           if (updatedCall.status == CallStatus.ended) {
             _handleCallEnd();
           }
+        }, onError: (error) {
+          debugPrint('[CallService] Signaling stream error (calls): $error');
         });
 
     // Handle ICE candidates
@@ -150,9 +152,11 @@ class CallService extends ChangeNotifier {
                 item['sdpMid'],
                 item['sdpMLineIndex'],
               );
-              await _peerConnection?.addCandidate(candidate);
+              await _peerConnection!.addCandidate(candidate);
             }
           }
+        }, onError: (error) {
+          debugPrint('[CallService] Signaling stream error (ICE): $error');
         });
   }
 

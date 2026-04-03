@@ -222,7 +222,7 @@ CREATE TABLE IF NOT EXISTS public.notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     actor_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
-    type TEXT NOT NULL CHECK (type IN ('like', 'comment', 'follow', 'mention', 'community_invite', 'post_share')),
+    type TEXT NOT NULL CHECK (type IN ('like', 'comment', 'follow', 'mention', 'community_invite', 'postShare')),
     post_id UUID REFERENCES public.posts(id) ON DELETE CASCADE,
     comment_id UUID REFERENCES public.comments(id) ON DELETE CASCADE,
     community_id UUID REFERENCES public.communities(id) ON DELETE CASCADE,

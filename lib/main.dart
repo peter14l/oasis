@@ -8,9 +8,12 @@ import 'package:universal_io/io.dart';
 import 'package:oasis_v2/routes/app_router.dart';
 import 'package:oasis_v2/services/app_initializer.dart';
 import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/services/energy_meter_service.dart';
+import 'package:oasis_v2/services/ripples_service.dart';
 import 'package:oasis_v2/services/screen_time_service.dart';
 import 'package:oasis_v2/services/sharing_service.dart';
 import 'package:oasis_v2/services/vault_service.dart';
+import 'package:oasis_v2/services/wellness_service.dart';
 import 'package:oasis_v2/providers/canvas_provider.dart';
 import 'package:oasis_v2/providers/circle_provider.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
@@ -54,13 +57,39 @@ class _LifecycleManagerState extends State<LifecycleManager>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!mounted) return;
-    final service = context.read<ScreenTimeService>();
+    
+    final screenTime = context.read<ScreenTimeService>();
+    final energyMeter = context.read<EnergyMeterService>();
+    final wellness = context.read<WellnessService>();
+    final ripples = context.read<RipplesService>();
+    final presence = context.read<PresenceProvider>();
+    final auth = context.read<AuthService>();
+    
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
-      service.stopTracking();
+      screenTime.stopTracking();
+      energyMeter.onPaused();
+      wellness.onPaused();
+      ripples.onPaused();
+      
       context.read<VaultService>().lockItemsWithInterval('app_close');
+      
+      // Update presence to offline when backgrounded
+      final userId = auth.currentUser?.id;
+      if (userId != null) {
+        presence.updateUserPresence(userId, 'offline');
+      }
     } else if (state == AppLifecycleState.resumed) {
-      service.startTracking();
+      screenTime.startTracking();
+      energyMeter.onResumed();
+      wellness.onResumed();
+      ripples.onResumed();
+      
+      // Update presence to online when resumed
+      final userId = auth.currentUser?.id;
+      if (userId != null) {
+        presence.updateUserPresence(userId, 'online');
+      }
     }
   }
 

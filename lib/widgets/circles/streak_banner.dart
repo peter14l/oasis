@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class StreakBanner extends StatelessWidget {
   final int streakCount;
@@ -7,7 +6,6 @@ class StreakBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     if (streakCount == 0) return const SizedBox.shrink();
 
     return Container(

@@ -8,7 +8,6 @@ import 'package:oasis_v2/services/messaging_service.dart';
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:oasis_v2/config/feature_flags.dart';
 
@@ -18,7 +17,6 @@ class SharingService {
   SharingService._internal();
 
   StreamSubscription? _intentDataStreamSubscription;
-  final MessagingService _messagingService = MessagingService();
   final AuthService _authService = AuthService();
 
   void init(BuildContext context) {

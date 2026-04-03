@@ -1,4 +1,5 @@
 import 'dart:async' show unawaited;
+import 'dart:convert';
 import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -142,21 +143,35 @@ class AppInitializer {
   static Future<void> firebaseMessagingBackgroundHandler(
     RemoteMessage message,
   ) async {
+    // Ensure Firebase is initialized for the background isolate
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    if (message.data.isNotEmpty) {
+    
+    debugPrint('Handling a background message: ${message.messageId}');
+
+    // If it's a data-only message or contains data we need to show
+    if (message.data.isNotEmpty || message.notification != null) {
       await NotificationManager.instance.initialize();
+      
+      final String title = message.notification?.title ?? 
+                          message.data['title'] ?? 
+                          'New Notification';
+      final String body = message.notification?.body ?? 
+                         message.data['body'] ?? 
+                         '';
+      
+      // For background, we often want the full data as payload for deep linking
+      final String? payload = message.data.isNotEmpty ? jsonEncode(message.data) : null;
+
       await NotificationManager.instance.showNotification(
-        title:
-            message.notification?.title ??
-            message.data['title'] ??
-            'New Notification',
-        body: message.notification?.body ?? message.data['body'] ?? '',
-        payload: message.data['payload'],
+        title: title,
+        body: body,
+        payload: payload,
+        senderAvatar: message.data['sender_avatar'],
+        messageType: message.data['message_type'] ?? message.data['type'],
       );
     }
-    debugPrint('Handling a background message: ${message.messageId}');
   }
 
   /// Step 1 — Load .env (best-effort, never fatal).

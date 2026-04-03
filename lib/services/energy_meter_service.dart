@@ -64,6 +64,20 @@ class EnergyMeterService extends ChangeNotifier {
     );
   }
 
+  /// App lifecycle handling to save battery
+  void onPaused() {
+    _recoveryTimer?.cancel();
+    _recoveryTimer = null;
+    debugPrint('EnergyMeter: Recovery timer paused (background)');
+  }
+
+  void onResumed() {
+    // Re-load state to apply catch-up recovery for time spent in background
+    _loadState();
+    _startRecoveryTimer();
+    debugPrint('EnergyMeter: Recovery timer resumed (foreground)');
+  }
+
   /// Apply passive recovery
   void _applyRecovery() {
     _state = _state.withRecovery();
@@ -77,16 +91,16 @@ class EnergyMeterService extends ChangeNotifier {
 
     switch (type) {
       case InteractionType.expand:
-        cost = EnergyMeterState.EXPANSION_COST;
+        cost = EnergyMeterState.expansionCost;
         break;
       case InteractionType.view:
-        cost = EnergyMeterState.VIEW_COST;
+        cost = EnergyMeterState.viewCost;
         break;
       case InteractionType.like:
       case InteractionType.comment:
       case InteractionType.share:
       case InteractionType.bookmark:
-        cost = EnergyMeterState.LIKE_COST;
+        cost = EnergyMeterState.likeCost;
         break;
     }
 

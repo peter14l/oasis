@@ -156,12 +156,10 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
-      colorScheme: const ColorScheme.light(
+      colorScheme: ColorScheme.light(
         primary: LightColors.primary,
-        background: LightColors.background,
-        surface: LightColors.surface,
-        onBackground: LightColors.onBackground,
-        onSurface: LightColors.onSurface,
+        surface: LightColors.background, // background -> surface
+        onSurface: LightColors.onBackground, // onBackground -> onSurface
         error: LightColors.error,
       ),
       textTheme: textTheme,
@@ -208,12 +206,10 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
-      colorScheme: const ColorScheme.dark(
+      colorScheme: ColorScheme.dark(
         primary: DarkColors.primary,
-        background: DarkColors.background,
-        surface: DarkColors.surface,
-        onBackground: DarkColors.onBackground,
-        onSurface: DarkColors.onSurface,
+        surface: DarkColors.background, // background -> surface
+        onSurface: DarkColors.onBackground, // onBackground -> onSurface
         error: DarkColors.error,
       ),
       textTheme: textTheme,

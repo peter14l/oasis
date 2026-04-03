@@ -95,7 +95,11 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
           _triggerLocalPulse(Offset(x, y));
         }
       },
-    ).subscribe();
+    ).subscribe((status, [error]) {
+      if (status == RealtimeSubscribeStatus.channelError) {
+        debugPrint('[TimelineCanvasScreen] Pulse subscription error: $error');
+      }
+    });
   }
 
   void _triggerLocalPulse(Offset position) {

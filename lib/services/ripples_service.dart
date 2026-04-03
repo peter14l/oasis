@@ -42,7 +42,25 @@ class RipplesService extends ChangeNotifier {
   Stream<void> get onSessionEnd => _sessionEndController.stream;
 
   RipplesService({SupabaseClient? supabase}) : _supabase = supabase ?? SupabaseService().client {
+    _startLockoutTimer();
+  }
+
+  void _startLockoutTimer() {
+    _lockoutCheckTimer?.cancel();
     _lockoutCheckTimer = Timer.periodic(const Duration(minutes: 1), (_) => checkLockout());
+  }
+
+  /// App lifecycle handling to save battery
+  void onPaused() {
+    _lockoutCheckTimer?.cancel();
+    _lockoutCheckTimer = null;
+    debugPrint('Ripples: Lockout check timer paused (background)');
+  }
+
+  void onResumed() {
+    checkLockout();
+    _startLockoutTimer();
+    debugPrint('Ripples: Lockout check timer resumed');
   }
 
   String _getUserKey(String baseKey) => _currentUserId != null ? '${baseKey}_${_currentUserId}' : baseKey;

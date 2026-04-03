@@ -401,7 +401,11 @@ class CommentService {
             onCommentDeleted(commentId);
           },
         )
-        .subscribe();
+        .subscribe((status, [error]) {
+      if (status == RealtimeSubscribeStatus.channelError) {
+        debugPrint('CommentService: subscribeToPostComments error: $error');
+      }
+    });
 
     return channel;
   }

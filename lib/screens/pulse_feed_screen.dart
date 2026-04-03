@@ -29,7 +29,7 @@ class PulseFeedScreen extends StatefulWidget {
 }
 
 class _PulseFeedScreenState extends State<PulseFeedScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   final TransformationController _transformationController =
       TransformationController();
   late AnimationController _backgroundController;
@@ -47,6 +47,7 @@ class _PulseFeedScreenState extends State<PulseFeedScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeGyroscope();
     _transformationController.addListener(_onTransformChanged);
 
@@ -57,7 +58,21 @@ class _PulseFeedScreenState extends State<PulseFeedScreen>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _gyroscopeSubscription?.pause();
+      _backgroundController.stop();
+      debugPrint('PulseFeed: Gyroscope and animation paused (background)');
+    } else if (state == AppLifecycleState.resumed) {
+      _gyroscopeSubscription?.resume();
+      _backgroundController.repeat();
+      debugPrint('PulseFeed: Gyroscope and animation resumed');
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _gyroscopeSubscription?.cancel();
     _transformationController.dispose();
     _backgroundController.dispose();

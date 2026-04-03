@@ -48,7 +48,11 @@ class PresenceService {
       }
 
       onUpdate(isOnline ? 'online' : 'offline', latestSeen);
-    }).subscribe();
+    }).subscribe((status, [error]) {
+      if (status == RealtimeSubscribeStatus.channelError) {
+        debugPrint('PresenceService: subscribeToUserPresence error: $error');
+      }
+    });
 
     _presenceChannels[channelName] = channel;
     return channel;
@@ -78,6 +82,9 @@ class PresenceService {
     _presenceChannels[channelName] = channel;
 
     await channel.subscribe((subscribeStatus, [error]) async {
+      if (subscribeStatus == RealtimeSubscribeStatus.channelError) {
+        debugPrint('PresenceService: updateUserPresence error: $error');
+      }
       if (subscribeStatus == RealtimeSubscribeStatus.subscribed) {
         await channel.track({
           'status': status,

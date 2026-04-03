@@ -89,11 +89,14 @@ class ScreenTimeService extends ChangeNotifier {
   void startTracking() {
     _sessionStartTime = DateTime.now();
     _startWellbeingTicker();
+    _startAutoSave();
     debugPrint('ScreenTime: Session started at $_sessionStartTime');
   }
 
   Future<void> stopTracking() async {
     _stopWellbeingTicker();
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = null;
     if (_sessionStartTime == null) return;
 
     final endTime = DateTime.now();
