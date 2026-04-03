@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:oasis_v2/models/hashtag.dart';
-import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/core/network/supabase_client.dart';
 
 class HashtagService {
   final _supabase = SupabaseService().client;

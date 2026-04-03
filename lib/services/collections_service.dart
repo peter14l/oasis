@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:oasis_v2/models/collection.dart';
 import 'package:oasis_v2/models/post.dart';
-import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/core/network/supabase_client.dart';
 
 class CollectionsService {
   final _supabase = SupabaseService().client;

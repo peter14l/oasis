@@ -6,7 +6,7 @@ import 'package:oasis_v2/models/post.dart';
 import 'package:oasis_v2/services/search_service.dart';
 import 'package:oasis_v2/widgets/post_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/core/utils/responsive_layout.dart';
 
 import 'package:oasis_v2/services/app_initializer.dart'; // For ThemeProvider
 import 'package:provider/provider.dart';

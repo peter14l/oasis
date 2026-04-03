@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:oasis_v2/services/app_initializer.dart'; // For ThemeProvider
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/services/profile_service.dart';
-import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/core/utils/responsive_layout.dart';
 import 'package:oasis_v2/screens/settings/screen_time_screen.dart';
 import 'package:oasis_v2/screens/settings/vault_settings_screen.dart';
 import 'package:oasis_v2/screens/settings/subscription_screen.dart';

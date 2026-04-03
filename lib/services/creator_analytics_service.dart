@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/core/network/supabase_client.dart';
 
 /// Creator Tools Suite - Analytics service for creators
 class CreatorAnalyticsService {

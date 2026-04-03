@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:oasis_v2/models/circle.dart';
 import 'package:oasis_v2/models/commitment.dart';
-import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 

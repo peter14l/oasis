@@ -2,8 +2,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:oasis_v2/services/screen_time_service.dart';
 import 'package:oasis_v2/services/wellness_service.dart';
-import 'package:oasis_v2/utils/responsive_layout.dart';
-import 'package:oasis_v2/utils/haptic_utils.dart';
+import 'package:oasis_v2/core/utils/responsive_layout.dart';
+import 'package:oasis_v2/core/utils/haptic_utils.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
 

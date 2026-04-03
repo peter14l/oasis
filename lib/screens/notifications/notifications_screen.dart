@@ -6,7 +6,7 @@ import 'package:oasis_v2/models/notification.dart';
 import 'package:oasis_v2/providers/notification_provider.dart';
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/core/utils/responsive_layout.dart';
 import 'package:oasis_v2/services/app_initializer.dart';
 
 class NotificationsScreen extends StatefulWidget {

@@ -1,8 +1,8 @@
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/config/supabase_config.dart';
+import 'package:oasis_v2/core/config/supabase_config.dart';
 import 'package:oasis_v2/models/post.dart';
-import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:oasis_v2/services/notification_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';

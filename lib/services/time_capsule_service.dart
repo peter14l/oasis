@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/config/supabase_config.dart';
+import 'package:oasis_v2/core/config/supabase_config.dart';
 import 'package:oasis_v2/models/time_capsule.dart';
-import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:uuid/uuid.dart';
 
 class TimeCapsuleService {

@@ -19,7 +19,7 @@ import 'package:oasis_v2/screens/ripples_screen.dart';
 import 'package:oasis_v2/screens/zen_feed_screen.dart';
 import 'package:oasis_v2/screens/pulse_feed_screen.dart';
 import 'package:oasis_v2/widgets/comments_modal.dart';
-import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/core/utils/responsive_layout.dart';
 import 'package:oasis_v2/services/ripples_service.dart';
 import 'package:oasis_v2/services/screen_time_service.dart';
 import 'package:oasis_v2/providers/user_settings_provider.dart';

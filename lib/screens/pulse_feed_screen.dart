@@ -8,7 +8,7 @@ import 'package:oasis_v2/models/pulse_node_position.dart';
 import 'package:oasis_v2/models/feed_layout_strategy.dart';
 import 'package:oasis_v2/providers/feed_provider.dart';
 import 'package:oasis_v2/services/energy_meter_service.dart';
-import 'package:oasis_v2/utils/map_positioner.dart';
+import 'package:oasis_v2/core/utils/map_positioner.dart';
 import 'package:oasis_v2/widgets/pulse_node_widget.dart';
 import 'package:oasis_v2/widgets/energy_meter_widget.dart';
 import 'package:oasis_v2/widgets/feed_layout_switcher.dart';

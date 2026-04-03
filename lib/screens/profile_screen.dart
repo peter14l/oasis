@@ -12,7 +12,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:oasis_v2/widgets/wellness_badge.dart';
 import 'package:oasis_v2/widgets/account_switcher_sheet.dart';
 import 'package:oasis_v2/services/app_initializer.dart'; // For ThemeProvider
-import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/core/utils/responsive_layout.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userId;

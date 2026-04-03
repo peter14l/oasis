@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:oasis_v2/services/stories_service.dart';
-import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/core/utils/responsive_layout.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class StoryViewersSheet extends StatefulWidget {

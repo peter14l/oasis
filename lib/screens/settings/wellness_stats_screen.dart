@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:oasis_v2/services/wellness_service.dart';
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/models/user_model.dart';
-import 'package:oasis_v2/utils/haptic_utils.dart';
+import 'package:oasis_v2/core/utils/haptic_utils.dart';
 import 'dart:ui';
 
 class WellnessStatsScreen extends StatelessWidget {

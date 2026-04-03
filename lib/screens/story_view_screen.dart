@@ -8,7 +8,7 @@ import 'package:oasis_v2/services/messaging_service.dart';
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/widgets/stories/story_viewers_sheet.dart';
 import 'package:oasis_v2/services/app_initializer.dart';
-import 'package:oasis_v2/utils/haptic_utils.dart';
+import 'package:oasis_v2/core/utils/haptic_utils.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'dart:ui';

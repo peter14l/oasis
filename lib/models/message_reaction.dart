@@ -40,12 +40,15 @@ class MessageReactionModel {
 
   factory MessageReactionModel.fromJson(Map<String, dynamic> json) {
     return MessageReactionModel(
-      id: json['id'] as String,
-      messageId: json['message_id'] as String,
-      userId: json['user_id'] as String,
-      username: json['username'] ?? 'Unknown',
+      id: json['id'] as String? ?? '',
+      messageId: json['message_id'] as String? ?? '',
+      userId: json['user_id'] as String? ?? '',
+      username: json['username'] as String? ?? 'Unknown',
       reaction: json['emoji'] as String? ?? json['reaction'] as String? ?? '',
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt:
+          json['created_at'] != null
+              ? DateTime.parse(json['created_at'] as String)
+              : DateTime.now(),
     );
   }
 

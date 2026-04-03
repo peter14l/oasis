@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis_v2/models/message.dart';
 import 'package:oasis_v2/models/conversation.dart';
 import 'package:oasis_v2/models/message_reaction.dart';
-import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:oasis_v2/services/notification_service.dart';
 import 'package:oasis_v2/services/conversation_service.dart';
 import 'package:oasis_v2/services/chat_messaging_service.dart';

@@ -9,7 +9,7 @@ import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:provider/provider.dart';
 
-import 'package:oasis_v2/config/feature_flags.dart';
+import 'package:oasis_v2/core/config/feature_flags.dart';
 
 class SharingService {
   static final SharingService _instance = SharingService._internal();

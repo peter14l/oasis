@@ -6,7 +6,7 @@ import 'package:oasis_v2/models/post.dart';
 import 'package:oasis_v2/models/feed_layout_strategy.dart';
 import 'package:oasis_v2/providers/feed_provider.dart';
 import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/utils/friction_scroll_physics.dart';
+import 'package:oasis_v2/core/utils/friction_scroll_physics.dart';
 import 'package:oasis_v2/widgets/animations/micro_animations.dart';
 import 'package:oasis_v2/services/app_initializer.dart';
 import 'package:oasis_v2/widgets/zen_breath_widget.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DownloadDataScreen extends StatefulWidget {

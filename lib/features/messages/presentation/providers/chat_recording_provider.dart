@@ -5,7 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:oasis_v2/models/message.dart';
 import 'package:oasis_v2/services/messaging_service.dart';
-import 'package:oasis_v2/utils/haptic_utils.dart';
+import 'package:oasis_v2/core/utils/haptic_utils.dart';
 
 /// Provider handling all voice recording logic.
 /// Extracted from _ChatScreenState recording methods in chat_screen.dart.

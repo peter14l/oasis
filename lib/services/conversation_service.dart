@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis_v2/models/conversation.dart';
-import 'package:oasis_v2/config/supabase_config.dart';
-import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/core/config/supabase_config.dart';
+import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:oasis_v2/services/chat_decryption_service.dart';
 
 /// Service for managing chat conversations and threads.

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:oasis_v2/providers/community_provider.dart';
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/models/community.dart';
-import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/core/utils/responsive_layout.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class CommunitiesScreen extends StatefulWidget {

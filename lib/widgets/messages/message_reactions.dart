@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:oasis_v2/models/message_reaction.dart';
-import 'package:oasis_v2/utils/haptic_utils.dart';
+import 'package:oasis_v2/core/utils/haptic_utils.dart';
 
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/foundation.dart'; // For defaultTargetPlatform

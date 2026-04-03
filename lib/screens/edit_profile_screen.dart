@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis_v2/providers/profile_provider.dart';
 import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/core/utils/responsive_layout.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});

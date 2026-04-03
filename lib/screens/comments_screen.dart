@@ -5,7 +5,7 @@ import 'package:oasis_v2/services/comment_service.dart';
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/core/utils/responsive_layout.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';

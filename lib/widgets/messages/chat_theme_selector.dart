@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:oasis_v2/models/chat_theme.dart';
-import 'package:oasis_v2/utils/haptic_utils.dart';
+import 'package:oasis_v2/core/utils/haptic_utils.dart';
 
 /// Widget for selecting chat theme
 class ChatThemeSelector extends StatelessWidget {

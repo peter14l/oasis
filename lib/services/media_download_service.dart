@@ -5,9 +5,9 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:gal/gal.dart';
-import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/core/network/supabase_client.dart';
 
-import 'package:oasis_v2/config/feature_flags.dart';
+import 'package:oasis_v2/core/config/feature_flags.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MediaDownloadService {

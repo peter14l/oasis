@@ -61,7 +61,7 @@ import '../screens/stories/create_story_screen.dart';
 import '../screens/ripples_screen.dart';
 import '../screens/create_ripple_screen.dart';
 import '../screens/oasis_pro_screen.dart';
-import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/core/utils/responsive_layout.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 
 import 'package:oasis_v2/screens/settings/wellness_stats_screen.dart';

@@ -5,10 +5,10 @@ import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oasis_v2/services/ripples_service.dart';
-import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:oasis_v2/widgets/share_sheet.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:oasis_v2/utils/responsive_layout.dart';
+import 'package:oasis_v2/core/utils/responsive_layout.dart';
 import 'package:oasis_v2/widgets/messages/share_to_dm_modal.dart';
 import 'package:oasis_v2/models/message.dart';
 import 'package:oasis_v2/services/app_initializer.dart'; // For ThemeProvider

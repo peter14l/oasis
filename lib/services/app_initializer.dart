@@ -20,7 +20,7 @@ import 'package:oasis_v2/services/ripples_service.dart';
 import 'package:oasis_v2/services/screen_time_service.dart';
 import 'package:oasis_v2/services/signal/signal_service.dart';
 import 'package:oasis_v2/services/subscription_service.dart';
-import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:oasis_v2/services/vault_service.dart';
 import 'package:oasis_v2/services/wellness_service.dart';
 import 'package:oasis_v2/providers/canvas_provider.dart';

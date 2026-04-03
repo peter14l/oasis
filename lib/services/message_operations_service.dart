@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis_v2/config/supabase_config.dart';
-import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/core/config/supabase_config.dart';
+import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:oasis_v2/services/chat_media_service.dart';
 import 'package:oasis_v2/models/message_reaction.dart';
 
@@ -128,10 +128,10 @@ class MessageOperationsService {
                     ? payload.newRecord
                     : payload.oldRecord;
             if (data.isNotEmpty) {
-              onTypingUpdate(
-                data['user_id'] as String,
-                data['is_typing'] as bool? ?? false,
-              );
+              final userId = data['user_id'] as String?;
+              if (userId != null) {
+                onTypingUpdate(userId, data['is_typing'] as bool? ?? false);
+              }
             }
           },
         )
@@ -229,12 +229,19 @@ class MessageOperationsService {
           table: SupabaseConfig.messageReadReceiptsTable,
           callback: (payload) {
             try {
-              final data = payload.newRecord;
-              onUpdate(
-                data['message_id'] as String,
-                data['user_id'] as String,
-                DateTime.parse(data['read_at'] as String),
-              );
+              final data =
+                  payload.newRecord.isNotEmpty
+                      ? payload.newRecord
+                      : payload.oldRecord;
+              if (data.isNotEmpty) {
+                final messageId = data['message_id'] as String?;
+                final userId = data['user_id'] as String?;
+                final readAt = data['read_at'] as String?;
+
+                if (messageId != null && userId != null && readAt != null) {
+                  onUpdate(messageId, userId, DateTime.parse(readAt));
+                }
+              }
             } catch (e) {
               debugPrint('[MessageOps] Read receipt processing error: $e');
             }
@@ -269,9 +276,11 @@ class MessageOperationsService {
                       ? payload.newRecord
                       : payload.oldRecord;
               if (data.isNotEmpty) {
-                final messageId = data['message_id'] as String;
-                // Fetch all reactions for this message to get the full current state
-                _fetchReactionsForMessage(messageId, onUpdate);
+                final messageId = data['message_id'] as String?;
+                if (messageId != null) {
+                  // Fetch all reactions for this message to get the full current state
+                  _fetchReactionsForMessage(messageId, onUpdate);
+                }
               }
             } catch (e) {
               debugPrint('[MessageOps] Reaction processing error: $e');
@@ -301,13 +310,18 @@ class MessageOperationsService {
       final reactionModels =
           reactions.map((r) {
             final profile = r['profiles'] as Map<String, dynamic>?;
+            final createdAtStr = r['created_at'] as String?;
+
             return MessageReactionModel(
-              id: r['id'] as String,
-              messageId: r['message_id'] as String,
-              userId: r['user_id'] as String,
+              id: r['id'] as String? ?? '',
+              messageId: r['message_id'] as String? ?? '',
+              userId: r['user_id'] as String? ?? '',
               username: profile?['username'] ?? 'Unknown',
               reaction: r['emoji'] as String? ?? r['reaction'] as String? ?? '',
-              createdAt: DateTime.parse(r['created_at'] as String),
+              createdAt:
+                  createdAtStr != null
+                      ? DateTime.parse(createdAtStr)
+                      : DateTime.now(),
             );
           }).toList();
 

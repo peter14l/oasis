@@ -12,7 +12,7 @@ import 'package:oasis_v2/models/message_reaction.dart';
 import 'package:oasis_v2/models/chat_theme.dart';
 import 'package:oasis_v2/services/messaging_service.dart';
 import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:oasis_v2/services/encryption_service.dart';
 import 'package:oasis_v2/services/signal/signal_service.dart';
 import 'package:oasis_v2/services/smart_reply_service.dart';
