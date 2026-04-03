@@ -1,0 +1,118 @@
+import 'package:flutter/material.dart';
+
+/// Common BuildContext extensions for quick access to theme, sizing, and navigation.
+extension ContextX on BuildContext {
+  /// Get the current ThemeData.
+  ThemeData get theme => Theme.of(this);
+
+  /// Get the current ColorScheme.
+  ColorScheme get colorScheme => theme.colorScheme;
+
+  /// Get the current TextTheme.
+  TextTheme get textTheme => theme.textTheme;
+
+  /// Get the current MediaQueryData.
+  MediaQueryData get mediaQuery => MediaQuery.of(this);
+
+  /// Get the screen size.
+  Size get screenSize => mediaQuery.size;
+
+  /// Get the screen width.
+  double get screenWidth => screenSize.width;
+
+  /// Get the screen height.
+  double get screenHeight => screenSize.height;
+
+  /// Get the text scale factor.
+  double get textScaleFactor => mediaQuery.textScaler.scale(1.0);
+
+  /// Check if current screen is small (mobile).
+  bool get isSmallScreen => screenWidth < 600;
+
+  /// Check if current screen is tablet-sized.
+  bool get isTabletScreen => screenWidth >= 600 && screenWidth < 1200;
+
+  /// Check if current screen is desktop-sized.
+  bool get isDesktopScreen => screenWidth >= 1200;
+
+  /// Get the safe area padding.
+  EdgeInsets get safePadding => mediaQuery.padding;
+
+  /// Get the view insets (keyboard height).
+  EdgeInsets get viewInsets => mediaQuery.viewInsets;
+
+  /// Show a SnackBar with the given message.
+  void showSnackBar(
+    String message, {
+    Duration duration = const Duration(seconds: 3),
+    SnackBarAction? action,
+    Color? backgroundColor,
+  }) {
+    ScaffoldMessenger.of(this).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: duration,
+        action: action,
+        backgroundColor: backgroundColor,
+      ),
+    );
+  }
+
+  /// Show an error SnackBar.
+  void showErrorSnackBar(String message) {
+    showSnackBar(message, backgroundColor: colorScheme.error);
+  }
+
+  /// Show a success SnackBar.
+  void showSuccessSnackBar(String message) {
+    showSnackBar(message, backgroundColor: Colors.green);
+  }
+
+  /// Show a modal bottom sheet.
+  Future<T?> showAppBottomSheet<T>({
+    required WidgetBuilder builder,
+    bool isScrollControlled = true,
+    Color? backgroundColor,
+    double? maxHeight,
+  }) {
+    return showModalBottomSheet<T>(
+      context: this,
+      isScrollControlled: isScrollControlled,
+      backgroundColor: backgroundColor ?? theme.scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      constraints:
+          maxHeight != null ? BoxConstraints(maxHeight: maxHeight) : null,
+      builder: builder,
+    );
+  }
+
+  /// Show a dialog.
+  Future<T?> showAppDialog<T>({
+    required WidgetBuilder builder,
+    bool barrierDismissible = true,
+  }) {
+    return showDialog<T>(
+      context: this,
+      barrierDismissible: barrierDismissible,
+      builder: builder,
+    );
+  }
+
+  /// Push a named route.
+  Future<T?> pushNamed<T extends Object?>(
+    String routeName, {
+    Object? arguments,
+  }) {
+    return Navigator.of(this).pushNamed<T>(routeName, arguments: arguments);
+  }
+
+  /// Pop the current route.
+  void pop<T extends Object?>([T? result]) {
+    Navigator.of(this).pop<T>(result);
+  }
+
+  /// Check if the current route can be popped.
+  bool get canPop => Navigator.of(this).canPop();
+}
