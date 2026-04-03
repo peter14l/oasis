@@ -1979,338 +1979,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   ),
                 ),
 
-              // Floating Header - 3 containers
-              Positioned(
-                top: MediaQuery.of(context).padding.top + 12,
-                left: 16,
-                right: 16,
-                child: Row(
-                  children: [
-                    // Left circular container - Back button (mobile only)
-                    if (!isDesktop)
-                      _buildFloatingContainer(
-                        isCircular: true,
-                        child: IconButton(
-                          icon: const Icon(Icons.arrow_back, size: 20),
-                          onPressed: () {
-                            final keyboardHeight =
-                                MediaQuery.of(context).viewInsets.bottom;
-                            if (keyboardHeight > 0) {
-                              FocusScope.of(context).unfocus();
-                            } else {
-                              if (context.mounted) {
-                                context.pop();
-                              }
-                            }
-                          },
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                        ),
-                      ),
-                    if (!isDesktop) const SizedBox(width: 8),
-
-                    // Middle rounded-rect container - Avatar, name, status
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: isDesktop ? null : _openChatDetails,
-                        child: _buildFloatingContainer(
-                          isCircular: false,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            child: Row(
-                              children: [
-                                Stack(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: isDesktop ? 18 : 16,
-                                      backgroundColor:
-                                          colorScheme.primaryContainer,
-                                      backgroundImage:
-                                          (widget.otherUserAvatar ?? '')
-                                                  .isNotEmpty
-                                              ? CachedNetworkImageProvider(
-                                                widget.otherUserAvatar!,
-                                              )
-                                              : null,
-                                      child:
-                                          (widget.otherUserAvatar ?? '').isEmpty
-                                              ? Text(
-                                                (widget.otherUserName ??
-                                                            _otherUserName ??
-                                                            'U')
-                                                        .isNotEmpty
-                                                    ? (widget.otherUserName ??
-                                                            _otherUserName ??
-                                                            'U')[0]
-                                                        .toUpperCase()
-                                                    : '',
-                                                style: TextStyle(
-                                                  color:
-                                                      colorScheme
-                                                          .onPrimaryContainer,
-                                                  fontSize: 14,
-                                                ),
-                                              )
-                                              : null,
-                                    ),
-                                    Consumer<PresenceProvider>(
-                                      builder: (
-                                        context,
-                                        presenceProvider,
-                                        child,
-                                      ) {
-                                        final otherId =
-                                            widget.otherUserId ?? _otherUserId;
-                                        final isOnline =
-                                            otherId != null &&
-                                            presenceProvider.isUserOnline(
-                                              otherId,
-                                            );
-                                        return Positioned(
-                                          right: 0,
-                                          bottom: 0,
-                                          child: Container(
-                                            width: 10,
-                                            height: 10,
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  isOnline
-                                                      ? Colors.green
-                                                      : Colors.grey,
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                color: colorScheme.surface,
-                                                width: 1.5,
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        widget.otherUserName ??
-                                            _otherUserName ??
-                                            'Unknown',
-                                        style: theme.textTheme.titleMedium
-                                            ?.copyWith(
-                                              fontSize: isDesktop ? 15 : 14,
-                                              fontWeight: FontWeight.bold,
-                                              letterSpacing: -0.2,
-                                            ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      Consumer<PresenceProvider>(
-                                        builder: (
-                                          context,
-                                          presenceProvider,
-                                          child,
-                                        ) {
-                                          final otherId =
-                                              widget.otherUserId ??
-                                              _otherUserId;
-                                          final presence =
-                                              otherId != null
-                                                  ? presenceProvider
-                                                      .getUserPresence(otherId)
-                                                  : null;
-                                          final bool isOnline =
-                                              presence?.status == 'online';
-
-                                          return Row(
-                                            children: [
-                                              if (_encryptionReady ||
-                                                  _encryptionService
-                                                      .isInitialized) ...[
-                                                Icon(
-                                                  FluentIcons
-                                                      .lock_closed_12_filled,
-                                                  size: 10,
-                                                  color: colorScheme.primary
-                                                      .withValues(alpha: 0.7),
-                                                ),
-                                                const SizedBox(width: 4),
-                                              ],
-                                              Text(
-                                                isOnline
-                                                    ? 'Online'
-                                                    : (presence?.lastSeen !=
-                                                            null
-                                                        ? 'Last seen ${_formatSeenTime(presence!.lastSeen!)}'
-                                                        : 'Offline'),
-                                                style: theme.textTheme.bodySmall
-                                                    ?.copyWith(
-                                                      color:
-                                                          isOnline
-                                                              ? Colors.green
-                                                                  .withValues(
-                                                                    alpha: 0.8,
-                                                                  )
-                                                              : colorScheme
-                                                                  .onSurfaceVariant
-                                                                  .withValues(
-                                                                    alpha: 0.7,
-                                                                  ),
-                                                      fontSize: 10,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 8),
-
-                    // Right circular container - Actions
-                    _buildFloatingContainer(
-                      isCircular: true,
-                      child:
-                          isDesktop
-                              ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      FluentIcons.call_24_regular,
-                                      size: 20,
-                                    ),
-                                    onPressed: () {},
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  IconButton(
-                                    icon: const Icon(
-                                      FluentIcons.video_24_regular,
-                                      size: 20,
-                                    ),
-                                    onPressed: () {},
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  IconButton(
-                                    icon: const Icon(
-                                      FluentIcons.search_24_regular,
-                                      size: 20,
-                                    ),
-                                    onPressed: () => _showSearchModal(),
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  IconButton(
-                                    icon: Icon(
-                                      widget.isDetailsOpen
-                                          ? FluentIcons.info_24_filled
-                                          : FluentIcons.info_24_regular,
-                                      size: 20,
-                                    ),
-                                    onPressed:
-                                        widget.onDetailsToggle ??
-                                        _openChatDetails,
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                  ),
-                                ],
-                              )
-                              : PopupMenuButton<String>(
-                                onSelected: (value) {
-                                  if (value == 'details') {
-                                    _openChatDetails();
-                                  } else if (value == 'theme') {
-                                    showModalBottomSheet(
-                                      context: context,
-                                      useRootNavigator: true,
-                                      builder:
-                                          (context) => SafeArea(
-                                            child: ChatThemeSelector(
-                                              selectedPreset: ChatThemePreset
-                                                  .values
-                                                  .firstWhere(
-                                                    (p) =>
-                                                        p.name.toLowerCase() ==
-                                                        _activeTheme?.themeName
-                                                            .toLowerCase(),
-                                                    orElse:
-                                                        () =>
-                                                            ChatThemePreset
-                                                                .defaultTheme,
-                                                  ),
-                                              onPresetSelected: (preset) {
-                                                _handleThemeChange(
-                                                  ChatTheme.fromPreset(
-                                                    preset,
-                                                    'theme_${DateTime.now().millisecondsSinceEpoch}',
-                                                    widget.conversationId,
-                                                    _authService
-                                                            .currentUser
-                                                            ?.id ??
-                                                        '',
-                                                  ),
-                                                );
-                                                Navigator.pop(context);
-                                              },
-                                            ),
-                                          ),
-                                    );
-                                  }
-                                },
-                                icon: const Icon(Icons.more_vert, size: 20),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                itemBuilder:
-                                    (context) => [
-                                      const PopupMenuItem(
-                                        value: 'details',
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.info_outline),
-                                            SizedBox(width: 12),
-                                            Text('Details'),
-                                          ],
-                                        ),
-                                      ),
-                                      const PopupMenuItem(
-                                        value: 'theme',
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.palette_outlined),
-                                            SizedBox(width: 12),
-                                            Text('Chat Theme'),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                              ),
-                    ),
-                  ],
-                ),
-              ),
-
               // Main Content
               Column(
                 children: [
@@ -2948,6 +2616,339 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     ),
                   ),
                 ],
+              ),
+
+              // Floating Header - 3 containers (on top for hit testing)
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 12,
+                left: 16,
+                right: 16,
+                child: Row(
+                  children: [
+                    // Left circular container - Back button (mobile only)
+                    if (!isDesktop)
+                      _buildFloatingContainer(
+                        isCircular: true,
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back, size: 20),
+                          onPressed: () {
+                            final keyboardHeight =
+                                MediaQuery.of(context).viewInsets.bottom;
+                            if (keyboardHeight > 0) {
+                              FocusScope.of(context).unfocus();
+                            } else {
+                              if (context.mounted) {
+                                context.pop();
+                              }
+                            }
+                          },
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ),
+                    if (!isDesktop) const SizedBox(width: 8),
+
+                    // Middle rounded-rect container - Avatar, name, status
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: isDesktop ? null : _openChatDetails,
+                        behavior: HitTestBehavior.opaque,
+                        child: _buildFloatingContainer(
+                          isCircular: false,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            child: Row(
+                              children: [
+                                Stack(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: isDesktop ? 18 : 16,
+                                      backgroundColor:
+                                          colorScheme.primaryContainer,
+                                      backgroundImage:
+                                          (widget.otherUserAvatar ?? '')
+                                                  .isNotEmpty
+                                              ? CachedNetworkImageProvider(
+                                                widget.otherUserAvatar!,
+                                              )
+                                              : null,
+                                      child:
+                                          (widget.otherUserAvatar ?? '').isEmpty
+                                              ? Text(
+                                                (widget.otherUserName ??
+                                                            _otherUserName ??
+                                                            'U')
+                                                        .isNotEmpty
+                                                    ? (widget.otherUserName ??
+                                                            _otherUserName ??
+                                                            'U')[0]
+                                                        .toUpperCase()
+                                                    : '',
+                                                style: TextStyle(
+                                                  color:
+                                                      colorScheme
+                                                          .onPrimaryContainer,
+                                                  fontSize: 14,
+                                                ),
+                                              )
+                                              : null,
+                                    ),
+                                    Consumer<PresenceProvider>(
+                                      builder: (
+                                        context,
+                                        presenceProvider,
+                                        child,
+                                      ) {
+                                        final otherId =
+                                            widget.otherUserId ?? _otherUserId;
+                                        final isOnline =
+                                            otherId != null &&
+                                            presenceProvider.isUserOnline(
+                                              otherId,
+                                            );
+                                        return Positioned(
+                                          right: 0,
+                                          bottom: 0,
+                                          child: Container(
+                                            width: 10,
+                                            height: 10,
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  isOnline
+                                                      ? Colors.green
+                                                      : Colors.grey,
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: colorScheme.surface,
+                                                width: 1.5,
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        widget.otherUserName ??
+                                            _otherUserName ??
+                                            'Unknown',
+                                        style: theme.textTheme.titleMedium
+                                            ?.copyWith(
+                                              fontSize: isDesktop ? 15 : 14,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: -0.2,
+                                            ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Consumer<PresenceProvider>(
+                                        builder: (
+                                          context,
+                                          presenceProvider,
+                                          child,
+                                        ) {
+                                          final otherId =
+                                              widget.otherUserId ??
+                                              _otherUserId;
+                                          final presence =
+                                              otherId != null
+                                                  ? presenceProvider
+                                                      .getUserPresence(otherId)
+                                                  : null;
+                                          final bool isOnline =
+                                              presence?.status == 'online';
+
+                                          return Row(
+                                            children: [
+                                              if (_encryptionReady ||
+                                                  _encryptionService
+                                                      .isInitialized) ...[
+                                                Icon(
+                                                  FluentIcons
+                                                      .lock_closed_12_filled,
+                                                  size: 10,
+                                                  color: colorScheme.primary
+                                                      .withValues(alpha: 0.7),
+                                                ),
+                                                const SizedBox(width: 4),
+                                              ],
+                                              Text(
+                                                isOnline
+                                                    ? 'Online'
+                                                    : (presence?.lastSeen !=
+                                                            null
+                                                        ? 'Last seen ${_formatSeenTime(presence!.lastSeen!)}'
+                                                        : 'Offline'),
+                                                style: theme.textTheme.bodySmall
+                                                    ?.copyWith(
+                                                      color:
+                                                          isOnline
+                                                              ? Colors.green
+                                                                  .withValues(
+                                                                    alpha: 0.8,
+                                                                  )
+                                                              : colorScheme
+                                                                  .onSurfaceVariant
+                                                                  .withValues(
+                                                                    alpha: 0.7,
+                                                                  ),
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    // Right circular container - Actions
+                    _buildFloatingContainer(
+                      isCircular: true,
+                      child:
+                          isDesktop
+                              ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      FluentIcons.call_24_regular,
+                                      size: 20,
+                                    ),
+                                    onPressed: () {},
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  IconButton(
+                                    icon: const Icon(
+                                      FluentIcons.video_24_regular,
+                                      size: 20,
+                                    ),
+                                    onPressed: () {},
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  IconButton(
+                                    icon: const Icon(
+                                      FluentIcons.search_24_regular,
+                                      size: 20,
+                                    ),
+                                    onPressed: () => _showSearchModal(),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  IconButton(
+                                    icon: Icon(
+                                      widget.isDetailsOpen
+                                          ? FluentIcons.info_24_filled
+                                          : FluentIcons.info_24_regular,
+                                      size: 20,
+                                    ),
+                                    onPressed:
+                                        widget.onDetailsToggle ??
+                                        _openChatDetails,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                ],
+                              )
+                              : PopupMenuButton<String>(
+                                onSelected: (value) {
+                                  if (value == 'details') {
+                                    _openChatDetails();
+                                  } else if (value == 'theme') {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      useRootNavigator: true,
+                                      builder:
+                                          (context) => SafeArea(
+                                            child: ChatThemeSelector(
+                                              selectedPreset: ChatThemePreset
+                                                  .values
+                                                  .firstWhere(
+                                                    (p) =>
+                                                        p.name.toLowerCase() ==
+                                                        _activeTheme?.themeName
+                                                            .toLowerCase(),
+                                                    orElse:
+                                                        () =>
+                                                            ChatThemePreset
+                                                                .defaultTheme,
+                                                  ),
+                                              onPresetSelected: (preset) {
+                                                _handleThemeChange(
+                                                  ChatTheme.fromPreset(
+                                                    preset,
+                                                    'theme_${DateTime.now().millisecondsSinceEpoch}',
+                                                    widget.conversationId,
+                                                    _authService
+                                                            .currentUser
+                                                            ?.id ??
+                                                        '',
+                                                  ),
+                                                );
+                                                Navigator.pop(context);
+                                              },
+                                            ),
+                                          ),
+                                    );
+                                  }
+                                },
+                                icon: const Icon(Icons.more_vert, size: 20),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                itemBuilder:
+                                    (context) => [
+                                      const PopupMenuItem(
+                                        value: 'details',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.info_outline),
+                                            SizedBox(width: 12),
+                                            Text('Details'),
+                                          ],
+                                        ),
+                                      ),
+                                      const PopupMenuItem(
+                                        value: 'theme',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.palette_outlined),
+                                            SizedBox(width: 12),
+                                            Text('Chat Theme'),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                              ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
