@@ -4,10 +4,12 @@
 
 **Primary Target:** `lib/screens/messages/chat_screen.dart` (4,571 lines)
 
-**Goal:** Break down the monolithic `chat_screen.dart` into a Feature-First architecture under `lib/features/messages/`, using Riverpod for state management. Each extracted module should be under 200 lines.
+**Goal:** Break down the monolithic `chat_screen.dart` into a Feature-First architecture under `lib/features/messages/`, using Provider (ChangeNotifier) for state management. Each extracted module should be under 200 lines.
 
 **Current Architecture:** Layer-based (`screens/`, `services/`, `widgets/`, `providers/`, `models/`)
 **Target Architecture:** Feature-First (`lib/features/messages/{presentation, domain, data}`)
+
+**State Management:** Provider (ChangeNotifier) — matching existing patterns in `lib/providers/conversation_provider.dart`, `lib/providers/presence_provider.dart`, etc. No new dependencies needed.
 
 ---
 
@@ -53,13 +55,13 @@ lib/features/messages/
 │   │       ├── attachment_option_card.dart
 │   │       ├── recording_dot.dart
 │   │       └── smart_reply_bar.dart
-│   ├── controllers/
-│   │   ├── chat_state.dart               # ChatState data class
-│   │   ├── chat_controller.dart          # ChatController (Riverpod AsyncNotifier)
-│   │   ├── chat_encryption_controller.dart
-│   │   ├── chat_recording_controller.dart
-│   │   ├── chat_reactions_controller.dart
-│   │   └── chat_settings_controller.dart
+│   ├── providers/
+│   │   ├── chat_state.dart               # ChatState data class (plain copyWith)
+│   │   ├── chat_provider.dart            # ChatProvider extends ChangeNotifier
+│   │   ├── chat_encryption_provider.dart # ChatEncryptionProvider extends ChangeNotifier
+│   │   ├── chat_recording_provider.dart  # ChatRecordingProvider extends ChangeNotifier
+│   │   ├── chat_reactions_provider.dart  # ChatReactionsProvider extends ChangeNotifier
+│   │   └── chat_settings_provider.dart   # ChatSettingsProvider extends ChangeNotifier
 │   └── mixins/
 │       └── chat_scroll_mixin.dart
 ├── domain/
@@ -80,73 +82,203 @@ lib/features/messages/
 
 ### Phase 1: Foundation — Create Feature Structure + State Layer
 
-**Goal:** Set up the new `lib/features/messages/` directory and create the Riverpod state layer.
+**Goal:** Set up the new `lib/features/messages/` directory and create the Provider state layer using ChangeNotifier, matching existing patterns in `lib/providers/`.
 
 #### Task 1.1: Create Directory Structure
 - Create all directories listed in the target structure above.
 - Create barrel files (`index.dart`) for each subdirectory for clean imports.
 
 #### Task 1.2: Create `ChatState` Data Class
-**File:** `lib/features/messages/presentation/controllers/chat_state.dart`
+**File:** `lib/features/messages/presentation/providers/chat_state.dart`
 
-Extract all state variables from `_ChatScreenState` into an immutable `ChatState`:
+Extract all state variables from `_ChatScreenState` into an immutable `ChatState` using a plain class with `copyWith` (no codegen):
 
 ```dart
-@freezed
-class ChatState with _$ChatState {
-  const factory ChatState({
-    required List<Message> messages,
-    required bool isLoading,
-    required bool isSending,
-    required bool isRecording,
-    required int recordDuration,
+class ChatState {
+  final List<Message> messages;
+  final bool isLoading;
+  final bool isSending;
+  final bool isRecording;
+  final int recordDuration;
+  final Message? replyMessage;
+  final List<String> smartReplies;
+  final bool showingSmartReplies;
+  final ChatTheme? activeTheme;
+  final int whisperMode;
+  final int lastActiveWhisperMode;
+  final int ephemeralDuration;
+  final String? backgroundUrl;
+  final double bgOpacity;
+  final double bgBrightness;
+  final String mediaViewMode;
+  final Color? bubbleColorSent;
+  final Color? bubbleColorReceived;
+  final Color? textColorSent;
+  final Color? textColorReceived;
+  final bool encryptionReady;
+  final XFile? selectedImage;
+  final File? selectedVideo;
+  final File? selectedAudio;
+  final PlatformFile? selectedFile;
+  final double whisperDragProgress;
+  final double whisperDragOffset;
+  final bool whisperTriggered;
+  final String? otherUserName;
+  final String? otherUserId;
+
+  const ChatState({
+    this.messages = const [],
+    this.isLoading = false,
+    this.isSending = false,
+    this.isRecording = false,
+    this.recordDuration = 0,
+    this.replyMessage,
+    this.smartReplies = const [],
+    this.showingSmartReplies = false,
+    this.activeTheme,
+    this.whisperMode = 0,
+    this.lastActiveWhisperMode = 1,
+    this.ephemeralDuration = 86400,
+    this.backgroundUrl,
+    this.bgOpacity = 1.0,
+    this.bgBrightness = 0.7,
+    this.mediaViewMode = 'unlimited',
+    this.bubbleColorSent,
+    this.bubbleColorReceived,
+    this.textColorSent,
+    this.textColorReceived,
+    this.encryptionReady = false,
+    this.selectedImage,
+    this.selectedVideo,
+    this.selectedAudio,
+    this.selectedFile,
+    this.whisperDragProgress = 0.0,
+    this.whisperDragOffset = 0.0,
+    this.whisperTriggered = false,
+    this.otherUserName,
+    this.otherUserId,
+  });
+
+  ChatState copyWith({
+    List<Message>? messages,
+    bool? isLoading,
+    bool? isSending,
+    bool? isRecording,
+    int? recordDuration,
     Message? replyMessage,
-    List<String> smartReplies,
-    required bool showingSmartReplies,
+    List<String>? smartReplies,
+    bool? showingSmartReplies,
     ChatTheme? activeTheme,
-    required int whisperMode,
-    required int lastActiveWhisperMode,
-    required int ephemeralDuration,
+    int? whisperMode,
+    int? lastActiveWhisperMode,
+    int? ephemeralDuration,
     String? backgroundUrl,
-    required double bgOpacity,
-    required double bgBrightness,
-    required String mediaViewMode,
+    double? bgOpacity,
+    double? bgBrightness,
+    String? mediaViewMode,
     Color? bubbleColorSent,
     Color? bubbleColorReceived,
     Color? textColorSent,
     Color? textColorReceived,
-    required bool encryptionReady,
+    bool? encryptionReady,
     XFile? selectedImage,
     File? selectedVideo,
     File? selectedAudio,
     PlatformFile? selectedFile,
-    required double whisperDragProgress,
-    required double whisperDragOffset,
-    required bool whisperTriggered,
+    double? whisperDragProgress,
+    double? whisperDragOffset,
+    bool? whisperTriggered,
     String? otherUserName,
     String? otherUserId,
-  }) = _ChatState;
+  }) {
+    return ChatState(
+      messages: messages ?? this.messages,
+      isLoading: isLoading ?? this.isLoading,
+      isSending: isSending ?? this.isSending,
+      isRecording: isRecording ?? this.isRecording,
+      recordDuration: recordDuration ?? this.recordDuration,
+      replyMessage: replyMessage ?? this.replyMessage,
+      smartReplies: smartReplies ?? this.smartReplies,
+      showingSmartReplies: showingSmartReplies ?? this.showingSmartReplies,
+      activeTheme: activeTheme ?? this.activeTheme,
+      whisperMode: whisperMode ?? this.whisperMode,
+      lastActiveWhisperMode: lastActiveWhisperMode ?? this.lastActiveWhisperMode,
+      ephemeralDuration: ephemeralDuration ?? this.ephemeralDuration,
+      backgroundUrl: backgroundUrl ?? this.backgroundUrl,
+      bgOpacity: bgOpacity ?? this.bgOpacity,
+      bgBrightness: bgBrightness ?? this.bgBrightness,
+      mediaViewMode: mediaViewMode ?? this.mediaViewMode,
+      bubbleColorSent: bubbleColorSent ?? this.bubbleColorSent,
+      bubbleColorReceived: bubbleColorReceived ?? this.bubbleColorReceived,
+      textColorSent: textColorSent ?? this.textColorSent,
+      textColorReceived: textColorReceived ?? this.textColorReceived,
+      encryptionReady: encryptionReady ?? this.encryptionReady,
+      selectedImage: selectedImage ?? this.selectedImage,
+      selectedVideo: selectedVideo ?? this.selectedVideo,
+      selectedAudio: selectedAudio ?? this.selectedAudio,
+      selectedFile: selectedFile ?? this.selectedFile,
+      whisperDragProgress: whisperDragProgress ?? this.whisperDragProgress,
+      whisperDragOffset: whisperDragOffset ?? this.whisperDragOffset,
+      whisperTriggered: whisperTriggered ?? this.whisperTriggered,
+      otherUserName: otherUserName ?? this.otherUserName,
+      otherUserId: otherUserId ?? this.otherUserId,
+    );
+  }
 }
 ```
 
-#### Task 1.3: Create `ChatController` (Riverpod AsyncNotifier)
-**File:** `lib/features/messages/presentation/controllers/chat_controller.dart`
+#### Task 1.3: Create `ChatProvider` (ChangeNotifier)
+**File:** `lib/features/messages/presentation/providers/chat_provider.dart`
 
-Migrate the following methods from `_ChatScreenState` into the controller:
+Follow the existing pattern from `lib/providers/conversation_provider.dart`:
+
+```dart
+class ChatProvider with ChangeNotifier {
+  final String conversationId;
+  final String? otherUserId;
+  ChatState _state = const ChatState();
+  ChatState get state => _state;
+
+  ChatProvider({required this.conversationId, this.otherUserId});
+
+  void _setState(ChatState Function(ChatState) update) {
+    _state = update(_state);
+    notifyListeners();
+  }
+}
+```
+
+Migrate the following methods from `_ChatScreenState` into the provider:
 - `loadMessages()` (from `_loadMessages`)
-- `subscribeToMessages()` → handled via stream in controller
+- `subscribeToMessages()` → handled via stream subscription stored in provider
 - `subscribeToReadReceipts()`
 - `markAsRead()`
 - `sendMessage()` — split into sub-methods for clarity
 - `unsendMessage()`
-- `scrollToBottom()`
+- `scrollToBottom()` — use a VoidCallback passed from UI or a scroll controller reference
 - `fetchConversationDetails()`
 - `loadSmartReplies()`
 
-The controller should accept `conversationId` and `otherUserId` as constructor parameters.
+The provider accepts `conversationId` and `otherUserId` as constructor parameters. Use `_setState()` helper for all state mutations (pattern: `_setState((s) => s.copyWith(...))`).
 
-#### Task 1.4: Create `ChatEncryptionController`
-**File:** `lib/features/messages/presentation/controllers/chat_encryption_controller.dart`
+Override `dispose()` to clean up all RealtimeChannel subscriptions and stream subscriptions.
+
+#### Task 1.4: Create `ChatEncryptionProvider`
+**File:** `lib/features/messages/presentation/providers/chat_encryption_provider.dart`
+
+```dart
+class ChatEncryptionProvider with ChangeNotifier {
+  bool _encryptionReady = false;
+  bool get encryptionReady => _encryptionReady;
+  
+  // Extracted methods:
+  Future<void> initializeEncryption(BuildContext context);
+  Future<Message> decryptSingleMessage(Message message);
+  Future<void> enableScreenProtection();
+  Future<void> disableScreenProtection();
+  Future<void> extractColorsFromBackground(String? backgroundUrl, Function(Color?, Color?, Color?, Color?) onColorsExtracted);
+}
+```
 
 Extract:
 - `_initializeEncryption()`
@@ -154,8 +286,24 @@ Extract:
 - `_enableScreenProtection()` / `_disableScreenProtection()`
 - `_extractColorsFromBackground()`
 
-#### Task 1.5: Create `ChatRecordingController`
-**File:** `lib/features/messages/presentation/controllers/chat_recording_controller.dart`
+#### Task 1.5: Create `ChatRecordingProvider`
+**File:** `lib/features/messages/presentation/providers/chat_recording_provider.dart`
+
+```dart
+class ChatRecordingProvider with ChangeNotifier {
+  bool _isRecording = false;
+  int _recordDuration = 0;
+  bool get isRecording => _isRecording;
+  int get recordDuration => _recordDuration;
+  
+  // Extracted methods:
+  Future<void> toggleRecording();
+  Future<void> startRecording();
+  Future<void> stopRecording();
+  Future<void> sendAudioMessage(String audioPath, int duration);
+  String formatDuration(Duration duration);
+}
+```
 
 Extract:
 - `_toggleRecording()`
@@ -164,15 +312,37 @@ Extract:
 - `_sendAudioMessage()`
 - `_formatDuration()`
 
-#### Task 1.6: Create `ChatReactionsController`
-**File:** `lib/features/messages/presentation/controllers/chat_reactions_controller.dart`
+#### Task 1.6: Create `ChatReactionsProvider`
+**File:** `lib/features/messages/presentation/providers/chat_reactions_provider.dart`
+
+```dart
+class ChatReactionsProvider with ChangeNotifier {
+  List<GroupedReaction> groupReactions(List<MessageReactionModel> reactions, String? currentUserId);
+  Future<void> onReactionSelected(Message message, String reaction, String? currentUserId, Function(List<Message>) onMessagesUpdated);
+}
+```
 
 Extract:
 - `_groupReactions()`
 - `_onReactionSelected()`
 
-#### Task 1.7: Create `ChatSettingsController`
-**File:** `lib/features/messages/presentation/controllers/chat_settings_controller.dart`
+#### Task 1.7: Create `ChatSettingsProvider`
+**File:** `lib/features/messages/presentation/providers/chat_settings_provider.dart`
+
+```dart
+class ChatSettingsProvider with ChangeNotifier {
+  final String conversationId;
+  ChatSettingsProvider({required this.conversationId});
+  
+  // Extracted methods:
+  Future<void> loadPersistedSettings();
+  Future<void> savePersistedSettings();
+  void toggleWhisperMode(BuildContext context, Function(int, int) onModeChanged);
+  void handleThemeChange(ChatTheme theme);
+  Future<void> loadCachedMessages(String conversationId, DateTime sessionStart, Function(List<Message>) onMessagesLoaded);
+  Future<void> saveMessagesToCache(List<Message> messages);
+}
+```
 
 Extract:
 - `_loadPersistedSettings()`
@@ -280,7 +450,7 @@ Extract:
 
 ### Phase 3: Extract Media & File Picking Logic
 
-**Goal:** Move all media picking and file handling into dedicated services or controller methods.
+**Goal:** Move all media picking and file handling into dedicated services or provider methods.
 
 #### Task 3.1: Create `ChatMediaPicker` Service
 **File:** `lib/features/messages/data/datasources/chat_media_picker.dart`
@@ -295,22 +465,37 @@ Extract:
 
 This can be a simple class with methods that return `Future<XFile?>`, `Future<File?>`, etc.
 
-#### Task 3.2: Integrate Media Picker into Controller
-- Wire the `ChatMediaPicker` into `ChatController` so that `sendMessage()` can receive pre-picked media.
+#### Task 3.2: Integrate Media Picker into Provider
+- Wire the `ChatMediaPicker` into `ChatProvider` so that `sendMessage()` can receive pre-picked media.
 
 ---
 
 ### Phase 4: Rebuild the Thin ChatScreen
 
-**Goal:** Rewrite `chat_screen.dart` as a thin orchestrator that composes the extracted widgets and connects to Riverpod providers.
+**Goal:** Rewrite `chat_screen.dart` as a thin orchestrator that composes the extracted widgets and connects to Provider via `ChangeNotifierProvider`.
 
 #### Task 4.1: Rewrite `ChatScreen` Widget
 **File:** `lib/features/messages/presentation/screens/chat_screen.dart`
 
 The new screen should:
 1. Accept the same constructor parameters (`conversationId`, `otherUserName`, etc.)
-2. Use `ChatController` via Riverpod (`ref.watch` / `ref.read`)
-3. Compose extracted widgets:
+2. Wrap body in `ChangeNotifierProvider` creating `ChatProvider`:
+   ```dart
+   ChangeNotifierProvider(
+     create: (_) => ChatProvider(
+       conversationId: widget.conversationId,
+       otherUserId: widget.otherUserId,
+     ),
+     child: Consumer<ChatProvider>(
+       builder: (context, chatProvider, child) {
+         final state = chatProvider.state;
+         // compose widgets using state
+       },
+     ),
+   )
+   ```
+3. Access state via `context.watch<ChatProvider>().state` or `context.read<ChatProvider>()` for mutations.
+4. Compose extracted widgets:
    ```dart
    Scaffold(
      extendBodyBehindAppBar: true,
@@ -321,10 +506,10 @@ The new screen should:
          Column(
            children: [
              Expanded(child: ChatMessageList(...)),
-             if (replyMessage != null) ReplyPreview(...),
-             if (selectedImage != null) ImagePreview(...),
+             if (state.replyMessage != null) ReplyPreview(...),
+             if (state.selectedImage != null) ImagePreview(...),
              // ... other previews
-             if (showingSmartReplies) SmartReplyBar(...),
+             if (state.showingSmartReplies) SmartReplyBar(...),
              ChatInputArea(...),
            ],
          ),
@@ -332,8 +517,8 @@ The new screen should:
      ),
    )
    ```
-4. Handle `PopScope` keyboard/back behavior.
-5. Handle `GestureDetector` for unfocusing keyboard.
+5. Handle `PopScope` keyboard/back behavior.
+6. Handle `GestureDetector` for unfocusing keyboard.
 
 **Target size:** ~100-150 lines.
 
@@ -411,6 +596,7 @@ Verify each of these scenarios works identically to before:
 - **Incremental commits:** Commit after each phase. Each commit should compile.
 - **Rollback plan:** The old `chat_screen.dart` remains untouched until Phase 5.3.
 - **No behavior changes:** The refactoring is purely structural. Zero UI/UX changes.
+- **No new dependencies:** Uses existing `provider: ^6.1.1` — no `pub get` changes needed.
 
 ---
 
@@ -419,11 +605,11 @@ Verify each of these scenarios works identically to before:
 | File | Current Lines | Target Lines |
 |------|--------------|--------------|
 | `chat_screen.dart` (orchestrator) | 4,571 | ~120 |
-| `chat_controller.dart` | — | ~250 |
-| `chat_encryption_controller.dart` | — | ~150 |
-| `chat_recording_controller.dart` | — | ~80 |
-| `chat_reactions_controller.dart` | — | ~80 |
-| `chat_settings_controller.dart` | — | ~120 |
+| `chat_provider.dart` | — | ~250 |
+| `chat_encryption_provider.dart` | — | ~150 |
+| `chat_recording_provider.dart` | — | ~80 |
+| `chat_reactions_provider.dart` | — | ~80 |
+| `chat_settings_provider.dart` | — | ~120 |
 | `chat_app_bar.dart` | — | ~150 |
 | `chat_message_list.dart` | — | ~120 |
 | `chat_input_area.dart` | — | ~200 |
@@ -441,13 +627,11 @@ Verify each of these scenarios works identically to before:
 
 ## Dependencies
 
-### New Packages (if not already present)
-- `riverpod` / `flutter_riverpod` — State management
-- `freezed` + `freezed_annotation` — Immutable state classes (optional, can use plain classes)
-- `riverpod_generator` — Code generation for providers (optional)
+### New Packages
+- **None** — uses existing `provider: ^6.1.1` already in `pubspec.yaml`
 
 ### Existing Packages Used
-- `provider` — Currently used, will coexist during migration
+- `provider` — State management (ChangeNotifier pattern)
 - `supabase_flutter` — Realtime subscriptions
 - `shared_preferences` — Local caching
 - `cached_network_image` — Image loading

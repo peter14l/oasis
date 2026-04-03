@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis_v2/models/message.dart';
 import 'package:oasis_v2/models/conversation.dart';
+import 'package:oasis_v2/models/message_reaction.dart';
 import 'package:oasis_v2/services/supabase_service.dart';
 import 'package:oasis_v2/services/notification_service.dart';
 import 'package:oasis_v2/services/conversation_service.dart';
@@ -11,19 +12,19 @@ import 'package:oasis_v2/services/message_operations_service.dart';
 import 'package:oasis_v2/services/moderation_service.dart';
 
 /// Facade service for all messaging and chat-related operations.
-/// 
+///
 /// This service orchestrates several specialized sub-services:
 /// - [ConversationService]: Thread management.
 /// - [ChatMessagingService]: Message transport.
 /// - [ChatMediaService]: Attachment handling.
 /// - [MessageOperationsService]: Auxiliary tasks (delete, typing, receipts).
 /// - [ModerationService]: User blocking and reporting.
-/// 
-/// It maintains a unified public API while ensuring separation of concerns 
+///
+/// It maintains a unified public API while ensuring separation of concerns
 /// and modularity.
 class MessagingService extends ChangeNotifier {
   final SupabaseClient _supabase;
-  
+
   late final ConversationService _conversationService;
   late final ChatMessagingService _chatMessagingService;
   late final ChatMediaService _chatMediaService;
@@ -39,10 +40,13 @@ class MessagingService extends ChangeNotifier {
     MessageOperationsService? messageOpsService,
     ModerationService? moderationService,
   }) : _supabase = client ?? SupabaseService().client {
-    _conversationService = conversationService ?? ConversationService(client: _supabase);
-    _chatMessagingService = chatMessagingService ?? ChatMessagingService(client: _supabase);
+    _conversationService =
+        conversationService ?? ConversationService(client: _supabase);
+    _chatMessagingService =
+        chatMessagingService ?? ChatMessagingService(client: _supabase);
     _chatMediaService = chatMediaService ?? ChatMediaService(client: _supabase);
-    _messageOpsService = messageOpsService ?? MessageOperationsService(client: _supabase);
+    _messageOpsService =
+        messageOpsService ?? MessageOperationsService(client: _supabase);
     _moderationService = moderationService ?? ModerationService();
   }
 
@@ -53,27 +57,43 @@ class MessagingService extends ChangeNotifier {
     required String userId,
     int limit = 50,
     int offset = 0,
-  }) => _conversationService.getConversations(userId: userId, limit: limit, offset: offset);
+  }) => _conversationService.getConversations(
+    userId: userId,
+    limit: limit,
+    offset: offset,
+  );
 
   /// Retrieves details for a specific conversation.
-  Future<Conversation> getConversationDetails(String conversationId) => 
+  Future<Conversation> getConversationDetails(String conversationId) =>
       _conversationService.getConversationDetails(conversationId);
 
   /// Initiates or retrieves a direct message conversation between two users.
   Future<String> getOrCreateConversation({
     required String user1Id,
     required String user2Id,
-  }) => _conversationService.getOrCreateConversation(user1Id: user1Id, user2Id: user2Id);
+  }) => _conversationService.getOrCreateConversation(
+    user1Id: user1Id,
+    user2Id: user2Id,
+  );
 
   /// Subscribes to thread-level updates for a user.
   RealtimeChannel subscribeToConversations({
     required String userId,
     required Function(String conversationId) onUpdate,
-  }) => _conversationService.subscribeToConversations(userId: userId, onUpdate: onUpdate);
+  }) => _conversationService.subscribeToConversations(
+    userId: userId,
+    onUpdate: onUpdate,
+  );
 
   /// Updates the background/theme for a conversation.
-  Future<void> updateChatBackground(String conversationId, String? backgroundUrl) async {
-    await _conversationService.updateChatBackground(conversationId, backgroundUrl);
+  Future<void> updateChatBackground(
+    String conversationId,
+    String? backgroundUrl,
+  ) async {
+    await _conversationService.updateChatBackground(
+      conversationId,
+      backgroundUrl,
+    );
     notifyListeners();
   }
 
@@ -89,7 +109,7 @@ class MessagingService extends ChangeNotifier {
   );
 
   /// Toggles mute for a conversation.
-  Future<void> toggleMute(String conversationId, bool mute) => 
+  Future<void> toggleMute(String conversationId, bool mute) =>
       _conversationService.toggleMute(conversationId, mute);
 
   // --- Messages ---
@@ -155,8 +175,10 @@ class MessagingService extends ChangeNotifier {
   );
 
   /// Records a read receipt for a specific message.
-  Future<void> markAsRead({required String messageId, required String userId}) => 
-      _chatMessagingService.markAsRead(messageId: messageId, userId: userId);
+  Future<void> markAsRead({
+    required String messageId,
+    required String userId,
+  }) => _chatMessagingService.markAsRead(messageId: messageId, userId: userId);
 
   /// Listens for incoming messages in a conversation.
   RealtimeChannel subscribeToMessages({
@@ -187,23 +209,32 @@ class MessagingService extends ChangeNotifier {
   // --- Operations ---
 
   /// Permanently removes a message for everyone.
-  Future<void> deleteMessage(String messageId) => _messageOpsService.deleteMessage(messageId);
+  Future<void> deleteMessage(String messageId) =>
+      _messageOpsService.deleteMessage(messageId);
 
   /// Clears chat history for the current user only.
-  Future<void> clearChatForMe(String conversationId) => _messageOpsService.clearChatForMe(conversationId);
+  Future<void> clearChatForMe(String conversationId) =>
+      _messageOpsService.clearChatForMe(conversationId);
 
   /// Clears chat history for all participants (Admins/System).
-  Future<void> clearConversationMessages(String conversationId) => _messageOpsService.clearConversationMessages(conversationId);
+  Future<void> clearConversationMessages(String conversationId) =>
+      _messageOpsService.clearConversationMessages(conversationId);
 
   /// Broadcasts typing status to other participants.
-  Future<void> updateTypingStatus(String conversationId, String userId, bool isTyping) => 
-      _messageOpsService.updateTypingStatus(conversationId, userId, isTyping);
+  Future<void> updateTypingStatus(
+    String conversationId,
+    String userId,
+    bool isTyping,
+  ) => _messageOpsService.updateTypingStatus(conversationId, userId, isTyping);
 
   /// Subscribes to typing status in a conversation.
   RealtimeChannel subscribeToTypingStatus({
     required String conversationId,
     required Function(String userId, bool isTyping) onTypingUpdate,
-  }) => _messageOpsService.subscribeToTypingStatus(conversationId: conversationId, onTypingUpdate: onTypingUpdate);
+  }) => _messageOpsService.subscribeToTypingStatus(
+    conversationId: conversationId,
+    onTypingUpdate: onTypingUpdate,
+  );
 
   /// Unsubscribes from typing status.
   Future<void> unsubscribeFromTypingStatus(RealtimeChannel channel) async {
@@ -211,19 +242,23 @@ class MessagingService extends ChangeNotifier {
   }
 
   /// Marks a conversation as read.
-  Future<void> markConversationAsRead(String conversationId, String userId) => 
+  Future<void> markConversationAsRead(String conversationId, String userId) =>
       _messageOpsService.markConversationAsRead(conversationId, userId);
 
   /// Marks messages as read (batch).
-  Future<void> markMessagesAsRead(String conversationId, List<String> messageIds, String userId) => 
+  Future<void> markMessagesAsRead(
+    String conversationId,
+    List<String> messageIds,
+    String userId,
+  ) =>
       _messageOpsService.markMessagesAsRead(conversationId, messageIds, userId);
 
   /// Toggles whisper mode.
-  Future<void> toggleWhisperMode(String conversationId, int whisperMode) => 
+  Future<void> toggleWhisperMode(String conversationId, int whisperMode) =>
       _messageOpsService.toggleWhisperMode(conversationId, whisperMode);
 
   /// Increments media view count.
-  Future<void> incrementMediaViewCount(String messageId) => 
+  Future<void> incrementMediaViewCount(String messageId) =>
       _messageOpsService.incrementMediaViewCount(messageId);
 
   // --- Moderation ---
@@ -232,22 +267,41 @@ class MessagingService extends ChangeNotifier {
   Future<bool> blockUser(String userId) => _moderationService.blockUser(userId);
 
   /// Unblocks a user.
-  Future<bool> unblockUser(String userId) => _moderationService.unblockUser(userId);
+  Future<bool> unblockUser(String userId) =>
+      _moderationService.unblockUser(userId);
 
   /// Checks if a user is blocked.
-  Future<bool> isUserBlocked(String userId) => _moderationService.isUserBlocked(userId);
+  Future<bool> isUserBlocked(String userId) =>
+      _moderationService.isUserBlocked(userId);
 
   /// Listens for read receipts in a conversation.
   RealtimeChannel subscribeToReadReceipts({
     required String conversationId,
-    required Function(String messageId, String userId, DateTime readAt) onUpdate,
-  }) => _messageOpsService.subscribeToReadReceipts(conversationId: conversationId, onUpdate: onUpdate);
+    required Function(String messageId, String userId, DateTime readAt)
+    onUpdate,
+  }) => _messageOpsService.subscribeToReadReceipts(
+    conversationId: conversationId,
+    onUpdate: onUpdate,
+  );
+
+  /// Listens for reaction changes in a conversation.
+  RealtimeChannel subscribeToReactions({
+    required String conversationId,
+    required Function(String messageId, List<MessageReactionModel> reactions)
+    onUpdate,
+  }) => _messageOpsService.subscribeToReactions(
+    conversationId: conversationId,
+    onUpdate: onUpdate,
+  );
 
   /// Listens for changes to conversation metadata (e.g. whisper mode).
   RealtimeChannel subscribeToConversation({
     required String conversationId,
     required Function(int whisperMode) onUpdate,
-  }) => _messageOpsService.subscribeToConversationDetails(conversationId: conversationId, onUpdate: onUpdate);
+  }) => _messageOpsService.subscribeToConversationDetails(
+    conversationId: conversationId,
+    onUpdate: onUpdate,
+  );
 
   /// Closes a realtime subscription channel.
   Future<void> unsubscribeFromMessages(RealtimeChannel channel) async {
@@ -255,9 +309,11 @@ class MessagingService extends ChangeNotifier {
   }
 
   /// Utility to filter messages based on expiry (placeholder).
-  static List<Message> filterExpiredMessages(List<Message> messages, {DateTime? sessionStart}) {
+  static List<Message> filterExpiredMessages(
+    List<Message> messages, {
+    DateTime? sessionStart,
+  }) {
     // Currently returns all as per the original "disabled" logic in filterExpiredMessages.
     return messages;
   }
 }
-

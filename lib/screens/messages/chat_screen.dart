@@ -114,6 +114,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   RealtimeChannel? _backgroundChannel;
   RealtimeChannel? _readReceiptChannel;
   RealtimeChannel? _conversationChannel;
+  RealtimeChannel? _reactionsChannel;
   StreamSubscription<List<Map<String, dynamic>>>? _callsSubscription;
   XFile? _selectedImage;
   File? _selectedVideo;
@@ -164,6 +165,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _loadMessages();
     _subscribeToMessages();
     _subscribeToReadReceipts();
+    _subscribeToReactions();
     _subscribeToBackgroundChanges();
     // Delay marking as read slightly so user can actually SEE the messages
     // before they vanish (if they are ephemeral)
@@ -238,6 +240,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       SupabaseService().client.removeChannel(_conversationChannel!);
     }
     _subscribeToConversationUpdates();
+
+    if (_reactionsChannel != null) {
+      SupabaseService().client.removeChannel(_reactionsChannel!);
+    }
+    _subscribeToReactions();
   }
 
   /// Load messages from SharedPreferences cache
@@ -365,6 +372,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
     if (_conversationChannel != null) {
       SupabaseService().client.removeChannel(_conversationChannel!);
+    }
+    if (_reactionsChannel != null) {
+      SupabaseService().client.removeChannel(_reactionsChannel!);
     }
     _callsSubscription?.cancel();
 
@@ -906,6 +916,26 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                   isRead: !isMe ? true : _messages[index].isRead,
                 );
               }
+            }
+          });
+        });
+      },
+    );
+  }
+
+  void _subscribeToReactions() {
+    _reactionsChannel = _messagingService.subscribeToReactions(
+      conversationId: widget.conversationId,
+      onUpdate: (messageId, reactions) {
+        if (!mounted) return;
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          setState(() {
+            final index = _messages.indexWhere((m) => m.id == messageId);
+            if (index >= 0) {
+              _messages[index] = _messages[index].copyWith(
+                reactions: reactions,
+              );
             }
           });
         });
