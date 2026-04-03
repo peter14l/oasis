@@ -10,7 +10,8 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:universal_io/io.dart';
 
 import 'package:oasis_v2/firebase_options.dart';
-import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/features/auth/presentation/providers/auth_provider.dart';
+import 'package:oasis_v2/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:oasis_v2/services/call_service.dart';
 import 'package:oasis_v2/services/desktop_window_service.dart';
 import 'package:oasis_v2/services/energy_meter_service.dart';
@@ -25,13 +26,18 @@ import 'package:oasis_v2/services/vault_service.dart';
 import 'package:oasis_v2/services/wellness_service.dart';
 import 'package:oasis_v2/providers/canvas_provider.dart';
 import 'package:oasis_v2/providers/capsule_provider.dart';
-import 'package:oasis_v2/providers/circle_provider.dart';
+import 'package:oasis_v2/features/circles/presentation/providers/circle_provider.dart';
+import 'package:oasis_v2/features/circles/data/repositories/circle_repository_impl.dart';
 import 'package:oasis_v2/providers/community_provider.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:oasis_v2/features/feed/presentation/providers/feed_provider.dart';
+import 'package:oasis_v2/features/feed/data/repositories/feed_repository_impl.dart';
+import 'package:oasis_v2/features/feed/data/repositories/post_repository_impl.dart';
+import 'package:oasis_v2/features/feed/data/repositories/comment_repository_impl.dart';
 import 'package:oasis_v2/providers/notification_provider.dart';
 import 'package:oasis_v2/providers/presence_provider.dart';
-import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis_v2/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:oasis_v2/providers/typing_indicator_provider.dart';
 import 'package:oasis_v2/providers/user_settings_provider.dart';
 import 'package:oasis_v2/themes/app_theme.dart';
@@ -119,7 +125,7 @@ class ThemeProvider with ChangeNotifier {
 /// Holds every service/provider instance needed by the widget tree.
 class InitializedServices {
   final ThemeProvider themeProvider;
-  final AuthService authService;
+  final AuthProvider authProvider;
   final UserSettingsProvider userSettingsProvider;
   final ScreenTimeService screenTimeService;
   final WellnessService wellnessService;
@@ -128,7 +134,7 @@ class InitializedServices {
 
   const InitializedServices({
     required this.themeProvider,
-    required this.authService,
+    required this.authProvider,
     required this.userSettingsProvider,
     required this.screenTimeService,
     required this.wellnessService,
@@ -147,22 +153,23 @@ class AppInitializer {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    
+
     debugPrint('Handling a background message: ${message.messageId}');
 
     // If it's a data-only message or contains data we need to show
     if (message.data.isNotEmpty || message.notification != null) {
       await NotificationManager.instance.initialize();
-      
-      final String title = message.notification?.title ?? 
-                          message.data['title'] ?? 
-                          'New Notification';
-      final String body = message.notification?.body ?? 
-                         message.data['body'] ?? 
-                         '';
-      
+
+      final String title =
+          message.notification?.title ??
+          message.data['title'] ??
+          'New Notification';
+      final String body =
+          message.notification?.body ?? message.data['body'] ?? '';
+
       // For background, we often want the full data as payload for deep linking
-      final String? payload = message.data.isNotEmpty ? jsonEncode(message.data) : null;
+      final String? payload =
+          message.data.isNotEmpty ? jsonEncode(message.data) : null;
 
       await NotificationManager.instance.showNotification(
         title: title,
@@ -215,8 +222,8 @@ class AppInitializer {
     debugPrint('Supabase initialized successfully');
 
     // Auth
-    final authService = AuthService();
-    await authService.restoreSession();
+    final authProvider = AuthProvider(repository: AuthRepositoryImpl());
+    await authProvider.restoreSession();
 
     // Theme
     final themeProvider = ThemeProvider();
@@ -261,7 +268,7 @@ class AppInitializer {
 
     return InitializedServices(
       themeProvider: themeProvider,
-      authService: authService,
+      authProvider: authProvider,
       userSettingsProvider: userSettingsProvider,
       screenTimeService: screenTimeService,
       wellnessService: wellnessService,
@@ -280,7 +287,9 @@ class AppInitializer {
         ChangeNotifierProvider<ThemeProvider>.value(
           value: services.themeProvider,
         ),
-        ChangeNotifierProvider<AuthService>.value(value: services.authService),
+        ChangeNotifierProvider<AuthProvider>.value(
+          value: services.authProvider,
+        ),
         ChangeNotifierProvider<UserSettingsProvider>.value(
           value: services.userSettingsProvider,
         ),
@@ -296,8 +305,21 @@ class AppInitializer {
         ChangeNotifierProvider<SubscriptionService>.value(
           value: services.subscriptionService,
         ),
-        ChangeNotifierProvider(create: (_) => FeedProvider()),
-        ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(
+          create:
+              (_) => FeedProvider(
+                feedRepository: FeedRepositoryImpl(),
+                postRepository: PostRepositoryImpl(),
+                commentRepository: CommentRepositoryImpl(),
+              ),
+        ),
+        ChangeNotifierProvider(
+          create:
+              (_) => ProfileProvider(
+                profileRepository: ProfileRepositoryImpl(),
+                postRepository: PostRepositoryImpl(),
+              ),
+        ),
         ChangeNotifierProvider(create: (_) => CommunityProvider()),
         ChangeNotifierProvider(create: (_) => TypingIndicatorProvider()),
         ChangeNotifierProvider(create: (_) => PresenceProvider()),
@@ -311,7 +333,9 @@ class AppInitializer {
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => CallService()),
         ChangeNotifierProvider(create: (_) => CanvasProvider()),
-        ChangeNotifierProvider(create: (_) => CircleProvider()),
+        ChangeNotifierProvider(
+          create: (_) => CircleProvider(repository: CircleRepositoryImpl()),
+        ),
         ChangeNotifierProvider(create: (_) => RipplesService()),
         ChangeNotifierProvider(create: (_) => CapsuleProvider()),
         ChangeNotifierProvider<VaultService>(create: (_) => VaultService()),

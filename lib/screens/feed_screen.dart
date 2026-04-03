@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oasis_v2/features/feed/presentation/providers/feed_provider.dart';
-import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/services/stories_service.dart';
 import 'package:oasis_v2/widgets/post_card.dart';

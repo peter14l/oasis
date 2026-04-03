@@ -3,7 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis_v2/models/canvas_item.dart';
 import 'package:oasis_v2/widgets/canvas/journal_entry_widget.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 /// Draggable and long-press-deletable item on the canvas.

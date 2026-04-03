@@ -7,7 +7,7 @@ import 'package:oasis_v2/features/feed/domain/models/post.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/models/message.dart';
 import 'package:oasis_v2/widgets/messages/share_to_dm_modal.dart';

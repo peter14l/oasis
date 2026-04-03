@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:oasis_v2/services/messaging_service.dart';
-import 'package:oasis_v2/services/supabase_service.dart';
+import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MockSupabaseClient extends Mock implements SupabaseClient {
@@ -21,7 +21,9 @@ class MockSupabaseClient extends Mock implements SupabaseClient {
 class MockSupabaseQueryBuilder extends Mock implements SupabaseQueryBuilder {
   PostgrestFilterBuilder<List<Map<String, dynamic>>>? _filterBuilder;
 
-  void setFilterBuilder(PostgrestFilterBuilder<List<Map<String, dynamic>>> builder) {
+  void setFilterBuilder(
+    PostgrestFilterBuilder<List<Map<String, dynamic>>> builder,
+  ) {
     _filterBuilder = builder;
   }
 
@@ -31,19 +33,29 @@ class MockSupabaseQueryBuilder extends Mock implements SupabaseQueryBuilder {
   }
 
   @override
-  PostgrestFilterBuilder<List<Map<String, dynamic>>> update(Map<dynamic, dynamic> values, {String? returning}) {
+  PostgrestFilterBuilder<List<Map<String, dynamic>>> update(
+    Map<dynamic, dynamic> values, {
+    String? returning,
+  }) {
     return _filterBuilder!;
   }
 }
 
-class MockPostgrestFilterBuilder extends Mock implements PostgrestFilterBuilder<List<Map<String, dynamic>>> {
+class MockPostgrestFilterBuilder extends Mock
+    implements PostgrestFilterBuilder<List<Map<String, dynamic>>> {
   @override
-  PostgrestFilterBuilder<List<Map<String, dynamic>>> eq(String column, Object value) {
+  PostgrestFilterBuilder<List<Map<String, dynamic>>> eq(
+    String column,
+    Object value,
+  ) {
     return this;
   }
 
   @override
-  Future<R> then<R>(FutureOr<R> Function(List<Map<String, dynamic>> value) onValue, {Function? onError}) {
+  Future<R> then<R>(
+    FutureOr<R> Function(List<Map<String, dynamic>> value) onValue, {
+    Function? onError,
+  }) {
     return Future.value(onValue([]));
   }
 }
@@ -55,18 +67,18 @@ void main() {
 
     setUp(() {
       mockClient = MockSupabaseClient();
-      
+
       // Correct way to initialize SupabaseService for tests
       SupabaseService.reset();
       SupabaseService.setMockClient(mockClient);
-      
+
       messagingService = MessagingService(client: mockClient);
     });
 
     test('clearConversationMessages calls delete correctly', () async {
       final mockMessagesBuilder = MockSupabaseQueryBuilder();
       final mockMessagesFilter = MockPostgrestFilterBuilder();
-      
+
       final mockConversationsBuilder = MockSupabaseQueryBuilder();
       final mockConversationsFilter = MockPostgrestFilterBuilder();
 

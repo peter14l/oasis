@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase/supabase.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart' as all_platforms;
+import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart'
+    as all_platforms;
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:oasis_v2/models/user_model.dart' as app_models;
 import 'package:oasis_v2/core/config/supabase_config.dart';
@@ -18,13 +19,12 @@ import 'package:oasis_v2/services/notification_service.dart';
 import 'package:oasis_v2/services/session_registry_service.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
-import 'package:oasis_v2/providers/profile_provider.dart';
-import 'package:oasis_v2/providers/circle_provider.dart';
+import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis_v2/features/circles/presentation/providers/circle_provider.dart';
 import 'package:oasis_v2/providers/canvas_provider.dart';
 import 'package:oasis_v2/providers/notification_provider.dart';
 import 'package:oasis_v2/providers/community_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 
 class AuthService with ChangeNotifier {
   static final AuthService _instance = AuthService._internal();
@@ -53,7 +53,7 @@ class AuthService with ChangeNotifier {
       }
       notifyListeners();
     });
-    
+
     // Initial registry load
     _loadRegistry();
   }
@@ -66,7 +66,7 @@ class AuthService with ChangeNotifier {
   Future<void> _syncCurrentSessionToRegistry(Session session) async {
     final user = session.user;
     final metadata = user.userMetadata ?? {};
-    
+
     final account = RegisteredAccount(
       userId: user.id,
       email: user.email ?? '',
@@ -76,7 +76,7 @@ class AuthService with ChangeNotifier {
       session: session,
       lastUsed: DateTime.now(),
     );
-    
+
     await _registry.saveAccount(account);
     await _loadRegistry();
   }
@@ -84,7 +84,7 @@ class AuthService with ChangeNotifier {
   /// Switch to a different logged-in account
   Future<void> switchAccount(BuildContext context, String userId) async {
     final account = _registeredAccounts.firstWhere((a) => a.userId == userId);
-    
+
     try {
       // 1. Save current session state if possible
       // (Supabase auto-manages the current session, but we sync it periodically)
@@ -94,15 +94,15 @@ class AuthService with ChangeNotifier {
 
       // 3. Swap Supabase session
       await _supabase.auth.setSession(account.session.refreshToken!);
-      
+
       // 4. Mark as last used
       await _registry.markAsUsed(userId);
       await _loadRegistry();
-      
+
       // 5. Provision keys for the new user context
       _provisionEncryptionKeys();
       _notificationService.updateFcmToken(userId);
-      
+
       notifyListeners();
     } catch (e) {
       developer.log('Error switching account: $e');
@@ -122,10 +122,10 @@ class AuthService with ChangeNotifier {
   /// Remove an account from the registry (Logout specific account)
   Future<void> removeAccount(BuildContext context, String userId) async {
     final isCurrent = _supabase.auth.currentUser?.id == userId;
-    
+
     await _registry.removeAccount(userId);
     await _loadRegistry();
-    
+
     if (isCurrent) {
       if (_registeredAccounts.isNotEmpty) {
         // Switch to the next available account
@@ -156,14 +156,15 @@ class AuthService with ChangeNotifier {
   );
 
   // For Windows/Desktop fallback
-  static all_platforms.GoogleSignIn _googleSignInDesktop = all_platforms.GoogleSignIn(
-    params: all_platforms.GoogleSignInParams(
-      clientId: _googleWebClientId,
-      // clientSecret removed for public PKCE
-      redirectPort: 3000,
-      scopes: ['email', 'profile', 'openid'],
-    ),
-  );
+  static all_platforms.GoogleSignIn _googleSignInDesktop =
+      all_platforms.GoogleSignIn(
+        params: all_platforms.GoogleSignInParams(
+          clientId: _googleWebClientId,
+          // clientSecret removed for public PKCE
+          redirectPort: 3000,
+          scopes: ['email', 'profile', 'openid'],
+        ),
+      );
 
   // Auth state changes
   Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
@@ -293,7 +294,9 @@ class AuthService with ChangeNotifier {
   }
 
   // Sign in with Google
-  Future<app_models.AppUser> signInWithGoogle({bool forceSignIn = false}) async {
+  Future<app_models.AppUser> signInWithGoogle({
+    bool forceSignIn = false,
+  }) async {
     try {
       String? idToken;
       String? accessToken;
@@ -310,12 +313,14 @@ class AuthService with ChangeNotifier {
       } else {
         // Mobile/Web Flow
         GoogleSignInAccount? googleUser;
-        
+
         if (forceSignIn) {
           await _googleSignIn.signOut(); // Ensure we don't auto-sign in
           googleUser = await _googleSignIn.signIn();
         } else {
-          googleUser = await _googleSignIn.signInSilently() ?? await _googleSignIn.signIn();
+          googleUser =
+              await _googleSignIn.signInSilently() ??
+              await _googleSignIn.signIn();
         }
 
         if (googleUser == null) {
@@ -382,21 +387,28 @@ class AuthService with ChangeNotifier {
             'user_${user.id.substring(0, 8)}';
 
         // Sanitize: Lowercase and replace non-alphanumeric with underscores
-        String sanitizedUsername = rawUsername.toLowerCase().replaceAll(RegExp(r'[^a-z0-9_]'), '_');
-        
+        String sanitizedUsername = rawUsername.toLowerCase().replaceAll(
+          RegExp(r'[^a-z0-9_]'),
+          '_',
+        );
+
         // Ensure length constraints
         if (sanitizedUsername.length < 3) sanitizedUsername += '_user';
-        if (sanitizedUsername.length > 30) sanitizedUsername = sanitizedUsername.substring(0, 30);
+        if (sanitizedUsername.length > 30)
+          sanitizedUsername = sanitizedUsername.substring(0, 30);
 
         // Check for uniqueness (fallback logic)
-        final existing = await _supabase
-            .from(SupabaseConfig.profilesTable)
-            .select('id')
-            .eq('username', sanitizedUsername)
-            .maybeSingle();
-            
+        final existing =
+            await _supabase
+                .from(SupabaseConfig.profilesTable)
+                .select('id')
+                .eq('username', sanitizedUsername)
+                .maybeSingle();
+
         if (existing != null) {
-          sanitizedUsername += DateTime.now().millisecondsSinceEpoch.toString().substring(10);
+          sanitizedUsername += DateTime.now().millisecondsSinceEpoch
+              .toString()
+              .substring(10);
         }
 
         await _createUserProfile(
@@ -407,11 +419,11 @@ class AuthService with ChangeNotifier {
           avatarUrl: user.userMetadata?['avatar_url'],
         );
       }
-      
+
       // Provision/restore E2E keys in the background
       _provisionEncryptionKeys();
       _notificationService.updateFcmToken(user.id);
-      
+
       return _userFromSupabaseUser(user);
     } on AuthException {
       rethrow;
@@ -419,6 +431,7 @@ class AuthService with ChangeNotifier {
       throw AuthException('Failed to sign in with Google: ${e.toString()}');
     }
   }
+
   // Sign in with Apple
   Future<app_models.AppUser> signInWithApple() async {
     try {
@@ -507,19 +520,18 @@ class AuthService with ChangeNotifier {
           developer.log('Non-critical: Google desktop sign out failed: $e');
         }
       }
-      
+
       // Clear encryption keys and Signal state before Supabase signout
       // to ensure they are wiped while we still have the session (if needed)
       await EncryptionService().clearKeys();
       await SignalService().clearData();
-      
+
       await _supabase.auth.signOut();
       notifyListeners();
     } catch (e) {
       throw AuthException('Failed to sign out: ${e.toString()}');
     }
   }
-
 
   @override
   void dispose() {

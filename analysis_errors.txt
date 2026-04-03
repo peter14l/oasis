@@ -1,0 +1,91 @@
+[{
+	"resource": "/d:/morrow/lib/main.dart",
+	"owner": "_generated_diagnostic_collection_name_#5",
+	"code": {
+		"value": "uri_does_not_exist",
+		"target": {
+			"$mid": 1,
+			"path": "/diagnostics/uri_does_not_exist",
+			"scheme": "https",
+			"authority": "dart.dev"
+		}
+	},
+	"severity": 8,
+	"message": "Target of URI doesn't exist: 'package:oasis_v2/providers/circle_provider.dart'.\nTry creating the file referenced by the URI, or try using a URI for a file that does exist.",
+	"source": "dart",
+	"startLineNumber": 18,
+	"startColumn": 8,
+	"endLineNumber": 18,
+	"endColumn": 57,
+	"modelVersionId": 4,
+	"origin": "extHost1"
+}]
+
+[{
+	"resource": "/d:/morrow/lib/main.dart",
+	"owner": "_generated_diagnostic_collection_name_#5",
+	"code": {
+		"value": "uri_does_not_exist",
+		"target": {
+			"$mid": 1,
+			"path": "/diagnostics/uri_does_not_exist",
+			"scheme": "https",
+			"authority": "dart.dev"
+		}
+	},
+	"severity": 8,
+	"message": "Target of URI doesn't exist: 'package:oasis_v2/providers/profile_provider.dart'.\nTry creating the file referenced by the URI, or try using a URI for a file that does exist.",
+	"source": "dart",
+	"startLineNumber": 22,
+	"startColumn": 8,
+	"endLineNumber": 22,
+	"endColumn": 58,
+	"modelVersionId": 4,
+	"origin": "extHost1"
+}]
+
+[{
+	"resource": "/d:/morrow/lib/main.dart",
+	"owner": "_generated_diagnostic_collection_name_#5",
+	"code": {
+		"value": "non_type_as_type_argument",
+		"target": {
+			"$mid": 1,
+			"path": "/diagnostics/non_type_as_type_argument",
+			"scheme": "https",
+			"authority": "dart.dev"
+		}
+	},
+	"severity": 8,
+	"message": "The name 'ProfileProvider' isn't a type, so it can't be used as a type argument.\nTry correcting the name to an existing type, or defining a type named 'ProfileProvider'.",
+	"source": "dart",
+	"startLineNumber": 209,
+	"startColumn": 34,
+	"endLineNumber": 209,
+	"endColumn": 49,
+	"modelVersionId": 4,
+	"origin": "extHost1"
+}]
+
+[{
+	"resource": "/d:/morrow/lib/main.dart",
+	"owner": "_generated_diagnostic_collection_name_#5",
+	"code": {
+		"value": "non_type_as_type_argument",
+		"target": {
+			"$mid": 1,
+			"path": "/diagnostics/non_type_as_type_argument",
+			"scheme": "https",
+			"authority": "dart.dev"
+		}
+	},
+	"severity": 8,
+	"message": "The name 'CircleProvider' isn't a type, so it can't be used as a type argument.\nTry correcting the name to an existing type, or defining a type named 'CircleProvider'.",
+	"source": "dart",
+	"startLineNumber": 210,
+	"startColumn": 34,
+	"endLineNumber": 210,
+	"endColumn": 48,
+	"modelVersionId": 4,
+	"origin": "extHost1"
+}]

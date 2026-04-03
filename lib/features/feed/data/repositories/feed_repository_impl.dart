@@ -4,6 +4,7 @@ import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:oasis_v2/features/feed/domain/models/post.dart';
 import 'package:oasis_v2/features/feed/domain/repositories/feed_repository.dart';
 import 'package:oasis_v2/features/feed/data/datasources/feed_remote_datasource.dart';
+import 'package:oasis_v2/features/feed/data/datasources/feed_local_datasource.dart';
 import 'package:oasis_v2/services/cache_service.dart';
 import 'package:oasis_v2/services/notification_service.dart';
 

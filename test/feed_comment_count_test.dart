@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oasis_v2/providers/feed_provider.dart';
-import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/features/feed/domain/models/post.dart';
 import 'package:oasis_v2/services/feed_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mockito/mockito.dart';

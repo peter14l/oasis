@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis_v2/providers/canvas_provider.dart';
-import 'package:oasis_v2/providers/profile_provider.dart';
-import 'package:oasis_v2/models/user_profile.dart';
+import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis_v2/features/profile/domain/models/user_profile_entity.dart';
 import 'package:oasis_v2/screens/oasis_pro_screen.dart';
 
 class CreateCanvasScreen extends StatefulWidget {

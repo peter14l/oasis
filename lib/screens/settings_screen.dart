@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis_v2/services/app_initializer.dart'; // For ThemeProvider
 import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/services/profile_service.dart';
 import 'package:oasis_v2/core/utils/responsive_layout.dart';
 import 'package:oasis_v2/screens/settings/screen_time_screen.dart';
 import 'package:oasis_v2/screens/settings/vault_settings_screen.dart';
@@ -15,13 +14,13 @@ import 'package:oasis_v2/screens/settings/storage_usage_screen.dart';
 import 'package:oasis_v2/screens/settings/font_size_screen.dart';
 import 'package:oasis_v2/screens/settings/help_support_screen.dart';
 import 'package:oasis_v2/screens/settings/digital_wellbeing_screen.dart';
-import 'package:oasis_v2/screens/edit_profile_screen.dart';
+import 'package:oasis_v2/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:oasis_v2/screens/messages/encryption_setup_screen.dart';
 import 'package:oasis_v2/screens/oasis_pro_screen.dart';
 import 'package:oasis_v2/screens/moderation/moderation_screens.dart'; // For BlockedUsersScreen
 import 'package:oasis_v2/providers/user_settings_provider.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
-import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis_v2/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis_v2/providers/community_provider.dart';
 import 'package:oasis_v2/providers/notification_provider.dart';

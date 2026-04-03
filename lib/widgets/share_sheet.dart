@@ -7,7 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:oasis_v2/models/conversation.dart';
 import 'package:oasis_v2/services/messaging_service.dart';
-import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis_v2/models/message.dart';
 
 class ShareSheet extends StatefulWidget {

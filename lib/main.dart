@@ -2,12 +2,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
+import 'package:gotrue/gotrue.dart' as gotrue;
 import 'package:universal_io/io.dart';
 
 import 'package:oasis_v2/routes/app_router.dart';
 import 'package:oasis_v2/services/app_initializer.dart';
-import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/features/auth/presentation/providers/auth_provider.dart';
 import 'package:oasis_v2/services/energy_meter_service.dart';
 import 'package:oasis_v2/services/ripples_service.dart';
 import 'package:oasis_v2/services/screen_time_service.dart';
@@ -15,11 +16,11 @@ import 'package:oasis_v2/services/sharing_service.dart';
 import 'package:oasis_v2/services/vault_service.dart';
 import 'package:oasis_v2/services/wellness_service.dart';
 import 'package:oasis_v2/providers/canvas_provider.dart';
-import 'package:oasis_v2/providers/circle_provider.dart';
+import 'package:oasis_v2/features/circles/presentation/providers/circle_provider.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:oasis_v2/providers/notification_provider.dart';
 import 'package:oasis_v2/providers/presence_provider.dart';
-import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis_v2/providers/user_settings_provider.dart';
 import 'package:oasis_v2/themes/app_theme.dart';
 import 'package:oasis_v2/widgets/mesh_gradient_background.dart';
@@ -57,25 +58,25 @@ class _LifecycleManagerState extends State<LifecycleManager>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!mounted) return;
-    
+
     final screenTime = context.read<ScreenTimeService>();
     final energyMeter = context.read<EnergyMeterService>();
     final wellness = context.read<WellnessService>();
     final ripples = context.read<RipplesService>();
     final presence = context.read<PresenceProvider>();
-    final auth = context.read<AuthService>();
-    
+    final auth = context.read<AuthProvider>();
+
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       screenTime.stopTracking();
       energyMeter.onPaused();
       wellness.onPaused();
       ripples.onPaused();
-      
+
       context.read<VaultService>().lockItemsWithInterval('app_close');
-      
+
       // Update presence to offline when backgrounded
-      final userId = auth.currentUser?.id;
+      final userId = auth.currentAccount?.userId;
       if (userId != null) {
         presence.updateUserPresence(userId, 'offline');
       }
@@ -84,9 +85,9 @@ class _LifecycleManagerState extends State<LifecycleManager>
       energyMeter.onResumed();
       wellness.onResumed();
       ripples.onResumed();
-      
+
       // Update presence to online when resumed
-      final userId = auth.currentUser?.id;
+      final userId = auth.currentAccount?.userId;
       if (userId != null) {
         presence.updateUserPresence(userId, 'online');
       }
@@ -111,7 +112,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  StreamSubscription<AuthState>? _authSub;
+  StreamSubscription<gotrue.AuthState>? _authSub;
   bool _navigatingToReset = false;
 
   @override
@@ -150,7 +151,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     final router = AppRouter.router;
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final authService = Provider.of<AuthService>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
@@ -180,9 +181,11 @@ class _MyAppState extends State<MyApp> {
                         : AppTheme.m3eDark)
                     : AppTheme.dark);
 
-        return StreamBuilder<AuthState>(
-          stream: authService.authStateChanges,
+        return StreamBuilder<gotrue.AuthState>(
+          stream: Supabase.instance.client.auth.onAuthStateChange,
           builder: (context, snapshot) {
+            final session = snapshot.data?.session;
+            final isAuthenticated = session != null;
             return MaterialApp.router(
               title: 'Morrow',
               debugShowCheckedModeBanner: false,
@@ -191,89 +194,91 @@ class _MyAppState extends State<MyApp> {
               themeMode: themeProvider.themeMode,
               routerConfig: router,
               builder: (context, child) {
-            final mediaQuery = MediaQuery.of(context);
-            final settingsProvider = Provider.of<UserSettingsProvider>(context);
-            final scale = settingsProvider.fontSizeFactor;
-
-            if (snapshot.hasData && snapshot.data?.session != null) {
-              final userId = snapshot.data!.session!.user.id;
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                context.read<NotificationProvider>().init(userId);
-                context.read<PresenceProvider>().updateUserPresence(
-                  userId,
-                  'online',
+                final mediaQuery = MediaQuery.of(context);
+                final settingsProvider = Provider.of<UserSettingsProvider>(
+                  context,
                 );
-                context.read<ConversationProvider>().initialize(userId);
-                context.read<ProfileProvider>().loadCurrentProfile(userId);
-                context.read<CircleProvider>().loadCircles(userId);
-                context.read<CanvasProvider>().loadCanvases(userId);
-                SharingService().init(context);
-              });
-            } else {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                context.read<NotificationProvider>().init(null);
-              });
-            }
+                final scale = settingsProvider.fontSizeFactor;
 
-            return MediaQuery(
-              data: mediaQuery.copyWith(
-                textScaler: TextScaler.linear(scale),
-                boldText: false,
-              ),
-              child: Consumer<UserSettingsProvider>(
-                builder: (context, userSettings, _) {
-                  Widget childWidget = child!;
+                if (snapshot.hasData && snapshot.data?.session != null) {
+                  final userId = snapshot.data!.session!.user.id;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    context.read<NotificationProvider>().init(userId);
+                    context.read<PresenceProvider>().updateUserPresence(
+                      userId,
+                      'online',
+                    );
+                    context.read<ConversationProvider>().initialize(userId);
+                    context.read<ProfileProvider>().loadCurrentProfile(userId);
+                    context.read<CircleProvider>().loadCircles(userId);
+                    context.read<CanvasProvider>().loadCanvases(userId);
+                    SharingService().init(context);
+                  });
+                } else {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    context.read<NotificationProvider>().init(null);
+                  });
+                }
 
-                  if (Platform.isWindows && userSettings.micaEnabled) {
-                    final theme = Theme.of(context);
-                    childWidget = Theme(
-                      data: theme.copyWith(
-                        colorScheme: theme.colorScheme.copyWith(
-                          surface: Colors.black.withValues(alpha: 0.05),
-                          surfaceContainer: Colors.black.withValues(
-                            alpha: 0.02,
+                return MediaQuery(
+                  data: mediaQuery.copyWith(
+                    textScaler: TextScaler.linear(scale),
+                    boldText: false,
+                  ),
+                  child: Consumer<UserSettingsProvider>(
+                    builder: (context, userSettings, _) {
+                      Widget childWidget = child!;
+
+                      if (Platform.isWindows && userSettings.micaEnabled) {
+                        final theme = Theme.of(context);
+                        childWidget = Theme(
+                          data: theme.copyWith(
+                            colorScheme: theme.colorScheme.copyWith(
+                              surface: Colors.black.withValues(alpha: 0.05),
+                              surfaceContainer: Colors.black.withValues(
+                                alpha: 0.02,
+                              ),
+                              onSurface: Colors.white,
+                            ),
+                            scaffoldBackgroundColor: Colors.transparent,
+                            canvasColor: Colors.transparent,
+                            cardColor: Colors.white.withValues(alpha: 0.02),
                           ),
-                          onSurface: Colors.white,
-                        ),
-                        scaffoldBackgroundColor: Colors.transparent,
-                        canvasColor: Colors.transparent,
-                        cardColor: Colors.white.withValues(alpha: 0.02),
-                      ),
-                      child: childWidget,
-                    );
+                          child: childWidget,
+                        );
 
-                    return Container(
-                      color: Colors.transparent,
-                      child: childWidget,
-                    );
-                  }
+                        return Container(
+                          color: Colors.transparent,
+                          child: childWidget,
+                        );
+                      }
 
-                  if (userSettings.meshEnabled) {
-                    return MeshGradientBackground(child: childWidget);
-                  } else {
-                    final isDark =
-                        themeProvider.themeMode == ThemeMode.dark ||
-                        (themeProvider.themeMode == ThemeMode.system &&
-                            MediaQuery.platformBrightnessOf(context) ==
-                                Brightness.dark);
+                      if (userSettings.meshEnabled) {
+                        return MeshGradientBackground(child: childWidget);
+                      } else {
+                        final isDark =
+                            themeProvider.themeMode == ThemeMode.dark ||
+                            (themeProvider.themeMode == ThemeMode.system &&
+                                MediaQuery.platformBrightnessOf(context) ==
+                                    Brightness.dark);
 
-                    return Container(
-                      color:
-                          isDark
-                              ? const Color(0xFF080A0E)
-                              : const Color(0xFFF8F9FA),
-                      child: childWidget,
-                    );
-                  }
-                },
-              ),
+                        return Container(
+                          color:
+                              isDark
+                                  ? const Color(0xFF080A0E)
+                                  : const Color(0xFFF8F9FA),
+                          child: childWidget,
+                        );
+                      }
+                    },
+                  ),
+                );
+              },
             );
           },
         );
       },
     );
-  },
-);
   }
 }
 

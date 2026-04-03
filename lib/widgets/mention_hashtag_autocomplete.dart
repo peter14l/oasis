@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:oasis_v2/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:oasis_v2/services/hashtag_service.dart';
-import 'package:oasis_v2/services/profile_service.dart';
 import 'package:oasis_v2/features/feed/domain/models/hashtag.dart';
-import 'package:oasis_v2/models/user_profile.dart';
+import 'package:oasis_v2/features/profile/domain/models/user_profile_entity.dart';
 
 class MentionHashtagAutocomplete extends StatefulWidget {
   final TextEditingController controller;
@@ -22,7 +22,7 @@ class MentionHashtagAutocomplete extends StatefulWidget {
 class _MentionHashtagAutocompleteState
     extends State<MentionHashtagAutocomplete> {
   final _hashtagService = HashtagService();
-  final _profileService = ProfileService();
+  final _profileRepository = ProfileRepositoryImpl();
 
   List<dynamic> _suggestions = [];
   bool _showSuggestions = false;
@@ -129,7 +129,10 @@ class _MentionHashtagAutocompleteState
     }
 
     try {
-      final users = await _profileService.searchUsers(query: query, limit: 5);
+      final users = await _profileRepository.searchUsers(
+        query: query,
+        limit: 5,
+      );
       if (mounted) {
         setState(() {
           _suggestions = users;
@@ -153,7 +156,7 @@ class _MentionHashtagAutocompleteState
       final hashtag = suggestion as Hashtag;
       replacement = '#${hashtag.tag}';
     } else {
-      final user = suggestion as UserProfile;
+      final user = suggestion as UserProfileEntity;
       replacement = '@${user.username}';
     }
 
@@ -218,7 +221,7 @@ class _MentionHashtagAutocompleteState
               onTap: () => _selectSuggestion(suggestion),
             );
           } else {
-            final user = suggestion as UserProfile;
+            final user = suggestion as UserProfileEntity;
             return ListTile(
               dense: true,
               leading: CircleAvatar(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis_v2/providers/capsule_provider.dart';
-import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis_v2/widgets/capsules/capsule_feed_item.dart';
 
 class CapsuleCarousel extends StatefulWidget {

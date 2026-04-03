@@ -1,0 +1,318 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:oasis_v2/features/auth/presentation/providers/auth_provider.dart';
+import 'package:oasis_v2/widgets/app_button.dart';
+import 'package:oasis_v2/widgets/custom_text_field.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:oasis_v2/features/auth/presentation/widgets/auth_layout_wrapper.dart';
+
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+  bool _obscurePassword = true;
+  final FocusNode _nameFocus = FocusNode();
+  final FocusNode _emailFocus = FocusNode();
+  final FocusNode _passwordFocus = FocusNode();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _nameFocus.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
+    super.dispose();
+  }
+
+  Future<void> _register() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      await authProvider.signUp(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        username: _nameController.text.trim().toLowerCase().replaceAll(
+          ' ',
+          '_',
+        ),
+        fullName: _nameController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        try {
+          await Supabase.instance.client.auth.resend(
+            type: OtpType.signup,
+            email: user.email!,
+          );
+
+          if (mounted) {
+            await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder:
+                  (context) => AlertDialog(
+                    title: const Text('Verify Your Email'),
+                    content: Text(
+                      'A verification email has been sent to ${user.email}. '
+                      'Please verify your email to continue using the app. '
+                      'You can verify later from your profile settings.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          if (mounted) {
+                            context.go('/feed');
+                          }
+                        },
+                        child: const Text('Continue to App'),
+                      ),
+                    ],
+                  ),
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Account created! You can verify your email later from profile settings.',
+                ),
+              ),
+            );
+            context.go('/feed');
+          }
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Registration successful! Please sign in.'),
+            ),
+          );
+          context.go('/login');
+        }
+      }
+    } catch (e) {
+      debugPrint('Registration error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Registration failed: ${e.toString().replaceAll('Exception: ', '')}',
+            ),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return AuthLayoutWrapper(
+      wrapInScroll: true,
+      topBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.close, color: Colors.white),
+          onPressed: () => Navigator.maybePop(context),
+        ),
+        title: const Text(
+          'Sign up',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            letterSpacing: -0.3,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomTextField(
+                controller: _nameController,
+                focusNode: _nameFocus,
+                hint: 'Name',
+                prefixIcon: Icons.person_outline,
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_emailFocus);
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your name';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomTextField(
+                controller: _emailController,
+                focusNode: _emailFocus,
+                hint: 'Email',
+                prefixIcon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_passwordFocus);
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  if (!value.contains('@')) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomTextField(
+                controller: _passwordController,
+                focusNode: _passwordFocus,
+                hint: 'Password',
+                prefixIcon: Icons.lock_outline,
+                obscureText: _obscurePassword,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a password';
+                  }
+                  if (value.length < 6) {
+                    return 'Password must be at least 6 characters';
+                  }
+                  return null;
+                },
+                onFieldSubmitted: (_) => _register(),
+              ),
+              const SizedBox(height: 32),
+              AppButton.secondary(
+                text: 'Sign in with Google',
+                isLoading: _isLoading,
+                onPressed:
+                    _isLoading
+                        ? null
+                        : () async {
+                          setState(() => _isLoading = true);
+                          try {
+                            final authProvider = Provider.of<AuthProvider>(
+                              context,
+                              listen: false,
+                            );
+                            await authProvider.signInWithGoogle();
+                            if (mounted) {
+                              context.go('/feed');
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(e.toString())),
+                              );
+                            }
+                          } finally {
+                            if (mounted) setState(() => _isLoading = false);
+                          }
+                        },
+                icon: Image.network(
+                  'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
+                  height: 24,
+                  errorBuilder:
+                      (context, error, stackTrace) => const Icon(
+                        Icons.g_mobiledata,
+                        size: 24,
+                        color: Colors.red,
+                      ),
+                ),
+              ),
+
+              const SizedBox(height: 16.0),
+              AppButton.primary(
+                text: 'Sign up',
+                onPressed: _isLoading ? null : _register,
+                isLoading: _isLoading,
+              ),
+
+              const SizedBox(height: 16.0),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24.0, top: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Already have an account? ',
+                      style: TextStyle(color: Color(0xFF9DA6B9), fontSize: 14),
+                    ),
+                    TextButton(
+                      onPressed: _isLoading ? null : () => context.go('/login'),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        'Sign in',
+                        style: TextStyle(
+                          color: Color(0xFF1152D4),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

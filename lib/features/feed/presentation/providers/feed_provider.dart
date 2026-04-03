@@ -4,8 +4,11 @@ import 'package:oasis_v2/features/feed/domain/models/comment.dart';
 import 'package:oasis_v2/features/feed/domain/repositories/feed_repository.dart';
 import 'package:oasis_v2/features/feed/domain/repositories/post_repository.dart';
 import 'package:oasis_v2/features/feed/domain/repositories/comment_repository.dart';
-import 'package:oasis_v2/services/cache_service.dart';
+import 'package:oasis_v2/features/feed/data/datasources/feed_local_datasource.dart';
 import 'package:oasis_v2/features/feed/presentation/providers/feed_state.dart';
+
+export 'package:oasis_v2/features/feed/presentation/providers/feed_state.dart'
+    show FeedType;
 
 /// Feed feature provider managing feed state, posts, and comments.
 ///
@@ -19,6 +22,14 @@ class FeedProvider with ChangeNotifier {
 
   FeedState _state = const FeedState();
   FeedState get state => _state;
+
+  // Proxy getters for convenience (screens access these directly on FeedProvider)
+  List<Post> get posts => _state.posts;
+  bool get isLoading => _state.isLoading;
+  bool get isLoadingMore => _state.isLoadingMore;
+  bool get hasMore => _state.hasMore;
+  String? get error => _state.error;
+  FeedType get currentFeedType => _state.currentFeedType;
 
   FeedProvider({
     required FeedRepository feedRepository,
@@ -307,8 +318,8 @@ class FeedProvider with ChangeNotifier {
       }
     }
 
-    updateList(_state.forYouPosts as List<Post>);
-    updateList(_state.followingPosts as List<Post>);
+    updateList(_state.forYouPosts);
+    updateList(_state.followingPosts);
     notifyListeners();
   }
 

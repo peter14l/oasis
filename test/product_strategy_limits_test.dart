@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oasis_v2/models/user_profile.dart';
+import 'package:oasis_v2/features/profile/domain/models/user_profile_entity.dart';
 
 void main() {
   group('Product Strategy Logic Tests', () {
     test('User Pro status check', () {
-      final freeUser = UserProfile(
+      final freeUser = UserProfileEntity(
         id: '1',
         username: 'free',
         email: 'free@example.com',
@@ -12,7 +12,7 @@ void main() {
         createdAt: DateTime.now(),
       );
       
-      final proUser = UserProfile(
+      final proUser = UserProfileEntity(
         id: '2',
         username: 'pro',
         email: 'pro@example.com',

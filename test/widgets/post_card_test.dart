@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oasis_v2/models/post.dart';
-import 'package:oasis_v2/models/user_profile.dart';
+import 'package:oasis_v2/features/feed/domain/models/post.dart';
+import 'package:oasis_v2/features/profile/domain/models/user_profile_entity.dart';
 import 'package:oasis_v2/widgets/post_card.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/providers/profile_provider.dart';
+import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
 
 // We need a simple mock for ProfileProvider
 class MockProfileProvider extends ChangeNotifier implements ProfileProvider {
   @override
-  List<UserProfile> get following => [];
-  
+  List<UserProfileEntity> get following => [];
+
   @override
-  Future<void> followUser({required String followerId, required String followingId}) async {}
-  
+  Future<void> followUser({
+    required String followerId,
+    required String followingId,
+  }) async {}
+
   @override
-  Future<void> unfollowUser({required String followerId, required String followingId}) async {}
+  Future<void> unfollowUser({
+    required String followerId,
+    required String followingId,
+  }) async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -64,10 +70,12 @@ void main() {
     // Find by key
     final likeButton = find.byKey(const ValueKey('post_card_like_button'));
     expect(likeButton, findsOneWidget);
-    
+
     await tester.ensureVisible(likeButton);
-    await tester.tap(likeButton); 
-    await tester.pump(const Duration(milliseconds: 500)); // Fixed duration instead of pumpAndSettle
+    await tester.tap(likeButton);
+    await tester.pump(
+      const Duration(milliseconds: 500),
+    ); // Fixed duration instead of pumpAndSettle
 
     expect(likeCalled, isTrue);
 
@@ -117,7 +125,7 @@ void main() {
     // Double tap the image area
     final aspectRatioFinder = find.byType(AspectRatio);
     await tester.ensureVisible(aspectRatioFinder);
-    
+
     await tester.tap(aspectRatioFinder);
     await tester.pump(const Duration(milliseconds: 50));
     await tester.tap(aspectRatioFinder);
