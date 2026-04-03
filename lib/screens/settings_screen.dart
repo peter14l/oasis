@@ -22,7 +22,7 @@ import 'package:oasis_v2/screens/moderation/moderation_screens.dart'; // For Blo
 import 'package:oasis_v2/providers/user_settings_provider.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:oasis_v2/providers/profile_provider.dart';
-import 'package:oasis_v2/providers/feed_provider.dart';
+import 'package:oasis_v2/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis_v2/providers/community_provider.dart';
 import 'package:oasis_v2/providers/notification_provider.dart';
 import 'package:oasis_v2/services/desktop_window_service.dart';

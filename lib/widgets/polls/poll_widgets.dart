@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/models/enhanced_poll.dart';
+import 'package:oasis_v2/features/feed/domain/models/enhanced_poll.dart';
 import 'package:oasis_v2/core/utils/haptic_utils.dart';
 
 /// Widget for creating enhanced polls

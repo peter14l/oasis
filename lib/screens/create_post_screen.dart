@@ -8,11 +8,11 @@ import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/services/post_service.dart';
 import 'package:oasis_v2/services/ai_content_service.dart';
 import 'package:oasis_v2/services/app_initializer.dart';
-import 'package:oasis_v2/providers/feed_provider.dart';
+import 'package:oasis_v2/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis_v2/core/utils/responsive_layout.dart';
 import 'package:oasis_v2/core/utils/haptic_utils.dart';
-import 'package:oasis_v2/models/post_mood.dart';
-import 'package:oasis_v2/models/enhanced_poll.dart';
+import 'package:oasis_v2/features/feed/domain/models/post_mood.dart';
+import 'package:oasis_v2/features/feed/domain/models/enhanced_poll.dart';
 import 'package:oasis_v2/widgets/mood_selector.dart';
 import 'package:oasis_v2/widgets/polls/poll_widgets.dart';
 

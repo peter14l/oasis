@@ -1,7 +1,7 @@
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:oasis_v2/models/user_profile.dart';
-import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/features/feed/domain/models/post.dart';
 import 'package:oasis_v2/services/profile_service.dart';
 import 'package:oasis_v2/services/feed_service.dart';
 import 'package:oasis_v2/services/messaging_service.dart';

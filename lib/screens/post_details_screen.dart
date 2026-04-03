@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/features/feed/domain/models/post.dart';
 import 'package:oasis_v2/widgets/post_card.dart';
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/services/post_service.dart';

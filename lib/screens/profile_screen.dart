@@ -6,7 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis_v2/providers/profile_provider.dart';
 import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/services/post_service.dart';
-import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/features/feed/domain/models/post.dart';
 import 'package:oasis_v2/models/user_profile.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:oasis_v2/widgets/wellness_badge.dart';

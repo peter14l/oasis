@@ -28,7 +28,7 @@ import 'package:oasis_v2/providers/capsule_provider.dart';
 import 'package:oasis_v2/providers/circle_provider.dart';
 import 'package:oasis_v2/providers/community_provider.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
-import 'package:oasis_v2/providers/feed_provider.dart';
+import 'package:oasis_v2/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis_v2/providers/notification_provider.dart';
 import 'package:oasis_v2/providers/presence_provider.dart';
 import 'package:oasis_v2/providers/profile_provider.dart';

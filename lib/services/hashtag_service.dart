@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/models/hashtag.dart';
+import 'package:oasis_v2/features/feed/domain/models/hashtag.dart';
 import 'package:oasis_v2/core/network/supabase_client.dart';
 
 class HashtagService {

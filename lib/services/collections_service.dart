@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:oasis_v2/models/collection.dart';
-import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/features/feed/domain/models/post.dart';
 import 'package:oasis_v2/core/network/supabase_client.dart';
 
 class CollectionsService {

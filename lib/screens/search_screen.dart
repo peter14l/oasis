@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:oasis_v2/models/post.dart';
+import 'package:oasis_v2/features/feed/domain/models/post.dart';
 import 'package:oasis_v2/services/search_service.dart';
 import 'package:oasis_v2/widgets/post_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
