@@ -42,6 +42,52 @@ class ChatDetailsScreen extends StatefulWidget {
   State<ChatDetailsScreen> createState() => _ChatDetailsScreenState();
 }
 
+class VerticalLineThumbShape extends SliderComponentShape {
+  final double thumbWidth;
+  final double thumbHeight;
+
+  const VerticalLineThumbShape({
+    this.thumbWidth = 4.0,
+    this.thumbHeight = 24.0,
+  });
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) {
+    return Size(thumbWidth, thumbHeight);
+  }
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset center, {
+    required Animation<double> activationAnimation,
+    required Animation<double> enableAnimation,
+    required bool isDiscrete,
+    required TextPainter labelPainter,
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required TextDirection textDirection,
+    required double value,
+    required double textScaleFactor,
+    required Size sizeWithOverflow,
+  }) {
+    final Canvas canvas = context.canvas;
+
+    final rect = Rect.fromCenter(
+      center: center,
+      width: thumbWidth,
+      height: thumbHeight,
+    );
+
+    final paint = Paint()
+      ..color = sliderTheme.thumbColor ?? Colors.white
+      ..style = PaintingStyle.fill;
+
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(2)), paint);
+  }
+}
+
 class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   final MessagingService _messagingService = MessagingService();
   final EncryptionService _encryptionService = EncryptionService();
@@ -1092,48 +1138,51 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                 Text(
                   title,
                   style: TextStyle(
-                    fontWeight: isM3E ? FontWeight.bold : FontWeight.w500, 
+                    fontWeight: isM3E ? FontWeight.bold : FontWeight.w500,
                     fontSize: 14,
                     letterSpacing: isM3E ? -0.2 : null,
                   ),
                 ),
-                isM3E 
-                  ? SliderTheme(
-                      data: SliderTheme.of(context).copyWith(
-                        trackHeight: 12,
-                        activeTrackColor: colorScheme.primary,
-                        inactiveTrackColor: colorScheme.surfaceContainerHighest,
-                        thumbColor: colorScheme.onPrimary,
-                        overlayColor: colorScheme.primary.withValues(alpha: 0.1),
-                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10, elevation: 2),
-                        trackShape: const RoundedRectSliderTrackShape(),
-                      ),
-                      child: Slider(
+                isM3E
+                    ? SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          trackHeight: 8.0,
+                          activeTrackColor: colorScheme.primary,
+                          inactiveTrackColor:
+                              colorScheme.primary.withOpacity(0.3),
+                          thumbColor: colorScheme.primary,
+                          overlayColor: colorScheme.primary.withOpacity(0.1),
+                          thumbShape: const VerticalLineThumbShape(),
+                          trackShape: const RoundedRectSliderTrackShape(),
+                        ),
+                        child: Slider(
+                          value: value,
+                          onChanged: onChanged,
+                          min: 0.0,
+                          max: 1.0,
+                        ),
+                      )
+                    : Slider(
                         value: value,
                         onChanged: onChanged,
                         min: 0.0,
                         max: 1.0,
                       ),
-                    )
-                  : Slider(
-                      value: value,
-                      onChanged: onChanged,
-                      min: 0.0,
-                      max: 1.0,
-                    ),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: isM3E ? BoxDecoration(
-              color: colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(8),
-            ) : null,
+            decoration: isM3E
+                ? BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  )
+                : null,
             child: Text(
               '${(value * 100).toInt()}%',
               style: TextStyle(
-                fontSize: 12, 
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: isM3E ? colorScheme.onPrimaryContainer : null,
               ),

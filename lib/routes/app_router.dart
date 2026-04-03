@@ -22,7 +22,7 @@ import 'package:oasis_v2/screens/canvas/create_canvas_screen.dart';
 
 import 'package:oasis_v2/screens/messages/direct_messages_screen.dart'
     as messages;
-import 'package:oasis_v2/screens/messages/chat_screen.dart';
+import 'package:oasis_v2/features/messages/presentation/screens/chat_screen.dart';
 import 'package:oasis_v2/screens/messages/new_message_screen.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:oasis_v2/services/app_initializer.dart';

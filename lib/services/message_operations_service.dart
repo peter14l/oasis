@@ -100,7 +100,7 @@ class MessageOperationsService {
         'user_id': userId,
         'is_typing': isTyping,
         'updated_at': DateTime.now().toIso8601String(),
-      });
+      }, onConflict: 'conversation_id,user_id');
     } catch (e) {
       debugPrint('[MessageOps] Error updating typing status: $e');
     }
@@ -306,7 +306,7 @@ class MessageOperationsService {
               messageId: r['message_id'] as String,
               userId: r['user_id'] as String,
               username: profile?['username'] ?? 'Unknown',
-              reaction: r['emoji'] ?? r['reaction'] as String,
+              reaction: r['emoji'] as String? ?? r['reaction'] as String? ?? '',
               createdAt: DateTime.parse(r['created_at'] as String),
             );
           }).toList();

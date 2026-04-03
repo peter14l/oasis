@@ -44,7 +44,7 @@ class MessageReactionModel {
       messageId: json['message_id'] as String,
       userId: json['user_id'] as String,
       username: json['username'] ?? 'Unknown',
-      reaction: json['emoji'] ?? json['reaction'] as String,
+      reaction: json['emoji'] as String? ?? json['reaction'] as String? ?? '',
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }

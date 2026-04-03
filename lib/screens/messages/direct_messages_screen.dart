@@ -14,7 +14,7 @@ import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/providers/typing_indicator_provider.dart';
 import 'package:oasis_v2/widgets/messages/unread_badge_widget.dart';
 import 'package:oasis_v2/widgets/messages/typing_indicator_widget.dart';
-import 'package:oasis_v2/screens/messages/chat_screen.dart';
+import 'package:oasis_v2/features/messages/presentation/screens/chat_screen.dart';
 import 'package:oasis_v2/screens/messages/chat_details_screen.dart';
 import 'package:oasis_v2/services/vault_service.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
@@ -37,7 +37,8 @@ class DirectMessagesScreen extends StatefulWidget {
   State<DirectMessagesScreen> createState() => _DirectMessagesScreenState();
 }
 
-class _DirectMessagesScreenState extends State<DirectMessagesScreen> with WidgetsBindingObserver {
+class _DirectMessagesScreenState extends State<DirectMessagesScreen>
+    with WidgetsBindingObserver {
   Conversation? _selectedConversation;
   bool _showDetails = false;
   double _bgOpacity = 1.0;
