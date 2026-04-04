@@ -13,6 +13,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis_v2/services/app_initializer.dart';
 import 'package:oasis_v2/core/utils/haptic_utils.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+
+import 'package:oasis_v2/widgets/stories/music_picker_sheet.dart';
+import 'package:oasis_v2/models/story_model.dart';
 
 class CreateStoryScreen extends StatefulWidget {
   const CreateStoryScreen({super.key});
@@ -33,6 +37,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   bool _isCaptionVisible = false;
   bool _isDrawingMode = false;
   bool _isFilterPickerVisible = false;
+  StoryMusic? _selectedMusic;
 
   // Text Overlay State
   List<StoryText> _texts = [];
@@ -57,178 +62,31 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   final List<Map<String, dynamic>> _filterPresets = [
     {
       'name': 'Normal',
-      'matrix': <double>[
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-      ],
+      'matrix': <double>[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0],
     },
     {
       'name': 'Clarendon',
-      'matrix': <double>[
-        1.2,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1.1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1.5,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-      ],
+      'matrix': <double>[1.2, 0, 0, 0, 0, 0, 1.1, 0, 0, 0, 0, 0, 1.5, 0, 0, 0, 0, 0, 1, 0],
     },
     {
       'name': 'Gingham',
-      'matrix': <double>[
-        0.9,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0.9,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0.9,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-      ],
+      'matrix': <double>[0.9, 0, 0, 0, 0, 0, 0.9, 0, 0, 0, 0, 0, 0.9, 0, 0, 0, 0, 0, 1, 0],
     },
     {
       'name': 'Moon',
-      'matrix': <double>[
-        0.21,
-        0.71,
-        0.07,
-        0,
-        0,
-        0.21,
-        0.71,
-        0.07,
-        0,
-        0,
-        0.21,
-        0.71,
-        0.07,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-      ],
+      'matrix': <double>[0.21, 0.71, 0.07, 0, 0, 0.21, 0.71, 0.07, 0, 0, 0.21, 0.71, 0.07, 0, 0, 0, 0, 0, 1, 0],
     },
     {
       'name': 'Lark',
-      'matrix': <double>[
-        1.1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1.1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1.3,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-      ],
+      'matrix': <double>[1.1, 0, 0, 0, 0, 0, 1.1, 0, 0, 0, 0, 0, 1.3, 0, 0, 0, 0, 0, 1, 0],
     },
     {
       'name': 'Reyes',
-      'matrix': <double>[
-        1,
-        0,
-        0,
-        0,
-        50,
-        0,
-        1,
-        0,
-        0,
-        50,
-        0,
-        0,
-        1,
-        0,
-        20,
-        0,
-        0,
-        0,
-        1,
-        0,
-      ],
+      'matrix': <double>[1, 0, 0, 0, 50, 0, 1, 0, 0, 50, 0, 0, 1, 0, 20, 0, 0, 0, 1, 0],
     },
     {
       'name': 'Juno',
-      'matrix': <double>[
-        1.1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1.3,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1.1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-      ],
+      'matrix': <double>[1.1, 0, 0, 0, 0, 0, 1.3, 0, 0, 0, 0, 0, 1.1, 0, 0, 0, 0, 0, 1, 0],
     },
   ];
 
@@ -286,6 +144,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           _strokes = [];
           _currentStroke = [];
           _selectedFilterIndex = 0;
+          _selectedMusic = null;
         });
       }
     } catch (e) {
@@ -332,9 +191,25 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
 
     try {
       final finalFile = await _captureCompositeImage() ?? _selectedFile!;
+      
+      // Prepare interactive metadata for text layers
+      final interactiveMetadata = _texts.map((t) => {
+        'type': 'text',
+        'data': {
+          'text': t.text,
+          'color': '#${t.color.value.toRadixString(16)}',
+          'background_mode': t.backgroundMode,
+        },
+        'x': t.position.dx / MediaQuery.of(context).size.width,
+        'y': t.position.dy / MediaQuery.of(context).size.height,
+      }).toList();
+
       final story = await _storiesService.createStory(
         file: finalFile,
-        mediaType: 'image',
+        mediaType: _mediaType,
+        musicId: _selectedMusic?.trackId,
+        musicMetadata: _selectedMusic?.toJson(),
+        interactiveMetadata: interactiveMetadata,
       );
 
       if (story != null && mounted) {
@@ -380,6 +255,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     }
 
     setState(() {
+      final isM3E = Provider.of<ThemeProvider>(context, listen: false).isM3EEnabled;
       final newText = StoryText(
         text: _captionController.text.trim(),
         position:
@@ -406,61 +282,29 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     });
   }
 
-  void _openMusicPicker() {
-    showModalBottomSheet(
+  void _openMusicPicker() async {
+    final StoryMusic? result = await showModalBottomSheet<StoryMusic>(
       context: context,
-      backgroundColor: Colors.black87,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder:
-          (context) => Container(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                const Text(
-                  'Choose Music',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: 10,
-                    itemBuilder:
-                        (context, index) => ListTile(
-                          leading: Container(
-                            width: 50,
-                            height: 50,
-                            color: Colors.grey[800],
-                          ),
-                          title: Text(
-                            'Song ${index + 1}',
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                          subtitle: Text(
-                            'Artist ${index + 1}',
-                            style: const TextStyle(color: Colors.white70),
-                          ),
-                          onTap: () => Navigator.pop(context),
-                        ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const MusicPickerSheet(),
     );
+
+    if (result != null) {
+      setState(() {
+        _selectedMusic = result;
+      });
+      HapticUtils.success();
+    }
   }
 
   void _openStickerTray() {
+    final isM3E = Provider.of<ThemeProvider>(context, listen: false).isM3EEnabled;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.black87,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(isM3E ? 48 : 20)),
       ),
       builder:
           (context) => Container(
@@ -476,7 +320,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                   (context, index) => Container(
                     decoration: BoxDecoration(
                       color: Colors.white10,
-                      borderRadius: BorderRadius.circular(15),
+                      borderRadius: BorderRadius.circular(isM3E ? 24 : 15),
                     ),
                     child: const Icon(
                       Icons.emoji_emotions_outlined,
@@ -514,6 +358,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                         child: Image.file(_selectedFile!, fit: BoxFit.cover),
                       ),
                     ),
+                    
+                    // Music Sticker (Rendered into composite)
+                    if (_selectedMusic != null)
+                      _buildMusicStickerWidget(_selectedMusic!),
+
                     Positioned.fill(
                       child: CustomPaint(
                         painter: DrawingPainter(
@@ -526,6 +375,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     ..._texts.asMap().entries.map((entry) {
                       final i = entry.key;
                       final t = entry.value;
+                      final isM3E = Provider.of<ThemeProvider>(context, listen: false).isM3EEnabled;
                       return Positioned(
                         left: t.position.dx - 100,
                         top: t.position.dy - 25,
@@ -599,7 +449,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                                           : (t.backgroundMode == 2
                                               ? Colors.black54
                                               : Colors.transparent),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(isM3E ? 16 : 8),
                                 ),
                                 child: Text(
                                   t.text,
@@ -612,7 +462,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                                                 : Colors.white)
                                             : t.color,
                                     fontSize: 28,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                                    letterSpacing: isM3E ? -0.5 : 0,
                                   ),
                                 ),
                               ),
@@ -729,6 +580,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }
 
   Widget _buildTrashArea() {
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
     return Positioned(
       bottom: 80,
       left: 0,
@@ -746,7 +598,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                       _isTextOverTrash
                           ? Colors.red.withValues(alpha: 0.9)
                           : Colors.black45,
-                  shape: BoxShape.circle,
+                  shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                  borderRadius: isM3E ? BorderRadius.circular(24) : null,
                   border: Border.all(
                     color: _isTextOverTrash ? Colors.white : Colors.white38,
                     width: 2,
@@ -772,13 +625,13 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               AnimatedOpacity(
                 opacity: _isTextOverTrash ? 1.0 : 0.0,
                 duration: const Duration(milliseconds: 150),
-                child: const Text(
+                child: Text(
                   'Remove',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
+                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                    letterSpacing: isM3E ? -0.5 : 0.5,
                   ),
                 ),
               ),
@@ -857,6 +710,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }
 
   Widget _buildTextEditor() {
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
     return Positioned.fill(
       child: Container(
         color: Colors.black.withValues(alpha: 0.8),
@@ -886,7 +740,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                               _textBackgroundMode > 0
                                   ? Colors.white
                                   : Colors.white10,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(isM3E ? 12 : 8),
                         ),
                         child: Icon(
                           Icons.format_color_text_rounded,
@@ -900,12 +754,13 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     const SizedBox(width: 16),
                     TextButton(
                       onPressed: _finishTextEditing,
-                      child: const Text(
+                      child: Text(
                         'Done',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                          letterSpacing: isM3E ? -0.5 : 0,
                         ),
                       ),
                     ),
@@ -923,7 +778,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                   style: TextStyle(
                     color: _textColor,
                     fontSize: 36,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                    letterSpacing: isM3E ? -1.0 : 0,
                     backgroundColor:
                         _textBackgroundMode == 1
                             ? Colors.white
@@ -947,6 +803,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }
 
   Widget _buildColorPicker() {
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
     return Container(
       height: 60,
       margin: const EdgeInsets.only(bottom: 40),
@@ -963,7 +820,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 5),
                 decoration: BoxDecoration(
                   color: Colors.primaries[index],
-                  shape: BoxShape.circle,
+                  shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                  borderRadius: isM3E ? BorderRadius.circular(8) : null,
                   border: Border.all(
                     color:
                         _textColor == Colors.primaries[index]
@@ -1151,6 +1009,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }
 
   Widget _buildDrawingTools() {
+    final isM3E = Provider.of<ThemeProvider>(context, listen: false).isM3EEnabled;
     return Positioned(
       bottom: 40,
       left: 0,
@@ -1170,7 +1029,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: _isEraserMode ? Colors.white : Colors.white10,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(isM3E ? 12 : 20),
                     ),
                     child: Icon(
                       _isEraserMode
@@ -1196,6 +1055,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }
 
   Widget _buildColorPickerForDrawing() {
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
     return SizedBox(
       height: 50,
       child: ListView.builder(
@@ -1215,7 +1075,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 5),
                 decoration: BoxDecoration(
                   color: Colors.primaries[index],
-                  shape: BoxShape.circle,
+                  shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                  borderRadius: isM3E ? BorderRadius.circular(8) : null,
                   border: Border.all(
                     color:
                         _selectedColor == Colors.primaries[index] &&
@@ -1319,6 +1180,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     required String label,
     required VoidCallback onTap,
   }) {
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -1327,10 +1189,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
               fontSize: 10,
-              fontWeight: FontWeight.bold,
+              fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+              letterSpacing: isM3E ? -0.2 : 0,
             ),
           ),
         ],
@@ -1365,6 +1228,67 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                   : null,
         ),
         child: Icon(icon, color: Colors.black, size: 24),
+      ),
+    );
+  }
+
+  Widget _buildMusicStickerWidget(StoryMusic music) {
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
+    return Center(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedMusic = null),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(isM3E ? 20 : 12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(isM3E ? 8 : 4),
+                child: CachedNetworkImage(
+                  imageUrl: music.albumArtUrl,
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    music.title,
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                      fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    music.artist,
+                    style: TextStyle(
+                      color: Colors.black.withValues(alpha: 0.7),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 12),
+              const Icon(Icons.music_note, color: Colors.black),
+            ],
+          ),
+        ),
       ),
     );
   }

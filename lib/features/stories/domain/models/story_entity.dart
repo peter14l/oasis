@@ -14,6 +14,11 @@ class StoryEntity {
   final int viewCount;
   final bool hasViewed;
 
+  // Music & Interactivity
+  final String? musicId;
+  final StoryMusicEntity? musicMetadata;
+  final List<StoryStickerEntity>? interactiveMetadata;
+
   const StoryEntity({
     required this.id,
     required this.userId,
@@ -28,6 +33,9 @@ class StoryEntity {
     required this.expiresAt,
     this.viewCount = 0,
     this.hasViewed = false,
+    this.musicId,
+    this.musicMetadata,
+    this.interactiveMetadata,
   });
 
   factory StoryEntity.fromJson(Map<String, dynamic> json) {
@@ -45,6 +53,22 @@ class StoryEntity {
       expiresAt: DateTime.parse(json['expires_at'] as String),
       viewCount: json['view_count'] as int? ?? 0,
       hasViewed: json['has_viewed'] as bool? ?? false,
+      musicId: json['music_id'] as String?,
+      musicMetadata: json['music_metadata'] != null
+          ? StoryMusicEntity.fromJson(
+            json['music_metadata'] as Map<String, dynamic>,
+          )
+          : null,
+      interactiveMetadata:
+          json['interactive_metadata'] != null
+              ? (json['interactive_metadata'] as List<dynamic>)
+                  .map(
+                    (s) => StoryStickerEntity.fromJson(
+                      s as Map<String, dynamic>,
+                    ),
+                  )
+                  .toList()
+              : null,
     );
   }
 
@@ -63,6 +87,10 @@ class StoryEntity {
       'expires_at': expiresAt.toIso8601String(),
       'view_count': viewCount,
       'has_viewed': hasViewed,
+      'music_id': musicId,
+      'music_metadata': musicMetadata?.toJson(),
+      'interactive_metadata':
+          interactiveMetadata?.map((s) => s.toJson()).toList(),
     };
   }
 
@@ -80,6 +108,9 @@ class StoryEntity {
     DateTime? expiresAt,
     int? viewCount,
     bool? hasViewed,
+    String? musicId,
+    StoryMusicEntity? musicMetadata,
+    List<StoryStickerEntity>? interactiveMetadata,
   }) {
     return StoryEntity(
       id: id ?? this.id,
@@ -95,12 +126,16 @@ class StoryEntity {
       expiresAt: expiresAt ?? this.expiresAt,
       viewCount: viewCount ?? this.viewCount,
       hasViewed: hasViewed ?? this.hasViewed,
+      musicId: musicId ?? this.musicId,
+      musicMetadata: musicMetadata ?? this.musicMetadata,
+      interactiveMetadata: interactiveMetadata ?? this.interactiveMetadata,
     );
   }
 
   bool get isExpired => DateTime.now().isAfter(expiresAt);
   bool get isVideo => mediaType == 'video';
   bool get isImage => mediaType == 'image';
+  bool get hasMusic => musicId != null && musicMetadata != null;
 }
 
 /// Story group entity representing a user's story bundle.
@@ -173,5 +208,81 @@ class StoryViewerEntity {
       avatarUrl: profile?['avatar_url'] as String?,
       viewedAt: DateTime.parse(viewedAt),
     );
+  }
+}
+
+class StoryMusicEntity {
+  final String trackId;
+  final String title;
+  final String artist;
+  final String albumArtUrl;
+  final String previewUrl;
+
+  StoryMusicEntity({
+    required this.trackId,
+    required this.title,
+    required this.artist,
+    required this.albumArtUrl,
+    required this.previewUrl,
+  });
+
+  factory StoryMusicEntity.fromJson(Map<String, dynamic> json) {
+    return StoryMusicEntity(
+      trackId: json['track_id'] as String,
+      title: json['title'] as String,
+      artist: json['artist'] as String,
+      albumArtUrl: json['album_art_url'] as String,
+      previewUrl: json['preview_url'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'track_id': trackId,
+      'title': title,
+      'artist': artist,
+      'album_art_url': albumArtUrl,
+      'preview_url': previewUrl,
+    };
+  }
+}
+
+class StoryStickerEntity {
+  final String type; // 'text', 'mention', 'hashtag', 'music', 'location'
+  final Map<String, dynamic> data;
+  final double x;
+  final double y;
+  final double scale;
+  final double rotation;
+
+  StoryStickerEntity({
+    required this.type,
+    required this.data,
+    required this.x,
+    required this.y,
+    this.scale = 1.0,
+    this.rotation = 0.0,
+  });
+
+  factory StoryStickerEntity.fromJson(Map<String, dynamic> json) {
+    return StoryStickerEntity(
+      type: json['type'] as String,
+      data: json['data'] as Map<String, dynamic>,
+      x: (json['x'] as num).toDouble(),
+      y: (json['y'] as num).toDouble(),
+      scale: (json['scale'] as num? ?? 1.0).toDouble(),
+      rotation: (json['rotation'] as num? ?? 0.0).toDouble(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type,
+      'data': data,
+      'x': x,
+      'y': y,
+      'scale': scale,
+      'rotation': rotation,
+    };
   }
 }

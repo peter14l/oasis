@@ -7,10 +7,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oasis_v2/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/services/stories_service.dart';
+import 'package:oasis_v2/features/stories/presentation/providers/stories_provider.dart';
+import 'package:oasis_v2/features/stories/domain/models/story_entity.dart';
 import 'package:oasis_v2/widgets/post_card.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:oasis_v2/models/story_model.dart';
 import 'package:oasis_v2/widgets/stories_bar.dart';
 import 'package:oasis_v2/widgets/capsules/capsule_carousel.dart';
 import 'package:oasis_v2/models/feed_layout_strategy.dart';
@@ -38,14 +38,10 @@ class _FeedScreenState extends State<FeedScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   final ScrollController _scrollController = ScrollController();
-  final StoriesService _storiesService = StoriesService();
-  List<StoryGroup> _storyGroups = [];
-  List<StoryModel> _myStories = [];
   FeedLayoutType _currentLayout = FeedLayoutType.standard;
   bool _isScrolled = false;
   Timer? _wellbeingTimer;
   bool _showWellbeingNudge = false;
-  bool _isStoriesLoading = true;
   bool _showRipplesOverlay = false;
 
   // Desktop Comment Pane State
@@ -170,18 +166,11 @@ class _FeedScreenState extends State<FeedScreen>
   }
 
   void _loadStories() async {
-    setState(() => _isStoriesLoading = true);
     final userId = _authService.currentUser?.id;
     if (userId != null) {
-      final groups = await _storiesService.getFollowingStories();
-      final myStories = await _storiesService.getMyStories();
-      if (mounted) {
-        setState(() {
-          _storyGroups = groups;
-          _myStories = myStories;
-          _isStoriesLoading = false;
-        });
-      }
+      final provider = context.read<StoriesProvider>();
+      provider.loadFollowingStories();
+      provider.loadMyStories();
     }
   }
 
@@ -390,11 +379,18 @@ class _FeedScreenState extends State<FeedScreen>
             ),
 
           SliverToBoxAdapter(
-            child: StoriesBar(
-              storyGroups: _storyGroups,
-              currentUserStories: _myStories,
-              isLoading: _isStoriesLoading,
-              onRefresh: _loadStories,
+            child: Consumer<StoriesProvider>(
+              builder: (context, storiesProvider, _) {
+                return StoriesBar(
+                  storyGroups: storiesProvider.storyGroups,
+                  currentUserStories: storiesProvider.userStories,
+                  isLoading: storiesProvider.isLoading,
+                  onRefresh: () {
+                    storiesProvider.loadFollowingStories();
+                    storiesProvider.loadMyStories();
+                  },
+                );
+              },
             ),
           ),
 

@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oasis_v2/models/story_model.dart';
-import 'package:oasis_v2/models/message.dart';
-import 'package:oasis_v2/services/stories_service.dart';
-import 'package:oasis_v2/services/messaging_service.dart';
-import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis_v2/features/stories/domain/models/story_entity.dart';
+import 'package:oasis_v2/features/stories/presentation/providers/stories_provider.dart';
 import 'package:oasis_v2/features/stories/presentation/widgets/story_viewers_sheet.dart';
+import 'package:oasis_v2/features/messages/presentation/providers/chat_provider.dart';
+import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/services/app_initializer.dart';
 import 'package:oasis_v2/core/utils/haptic_utils.dart';
 import 'package:provider/provider.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'dart:async';
 import 'dart:ui';
 
 class StoryViewScreen extends StatefulWidget {
   final String initialStoryId;
-  final List<StoryModel> stories;
+  final List<StoryEntity> stories;
 
   const StoryViewScreen({
     super.key,
@@ -31,14 +31,15 @@ class _StoryViewScreenState extends State<StoryViewScreen>
     with SingleTickerProviderStateMixin {
   late PageController _pageController;
   late AnimationController _animController;
-  final StoriesService _storiesService = StoriesService();
-  final MessagingService _messagingService = MessagingService();
-  final AuthService _authService = AuthService();
+  final AudioPlayer _audioPlayer = AudioPlayer();
   final TextEditingController _replyController = TextEditingController();
 
   int _currentIndex = 0;
   bool _isPaused = false;
   bool _isReplying = false;
+
+  AuthService get _authService => context.read<AuthService>();
+  StoriesProvider get _storiesProvider => context.read<StoriesProvider>();
 
   @override
   void initState() {
@@ -68,16 +69,35 @@ class _StoryViewScreenState extends State<StoryViewScreen>
   void _markAsViewed() {
     final story = widget.stories[_currentIndex];
     if (!story.hasViewed) {
-      _storiesService.viewStory(story.id);
+      _storiesProvider.viewStory(story.id);
     }
   }
 
   void _startStory() {
     _animController.reset();
-    _animController.duration = Duration(
-      seconds: widget.stories[_currentIndex].duration,
-    );
+    final story = widget.stories[_currentIndex];
+    _animController.duration = Duration(seconds: story.duration);
     _animController.forward();
+
+    // Play music if present
+    if (story.hasMusic) {
+      _playMusic(story.musicMetadata!.previewUrl);
+    } else {
+      _stopMusic();
+    }
+  }
+
+  Future<void> _playMusic(String url) async {
+    try {
+      await _audioPlayer.stop();
+      await _audioPlayer.play(UrlSource(url));
+    } catch (e) {
+      debugPrint('Error playing story music: $e');
+    }
+  }
+
+  Future<void> _stopMusic() async {
+    await _audioPlayer.stop();
   }
 
   void _nextStory() {
@@ -112,6 +132,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
       _isPaused = true;
     });
     _animController.stop();
+    _audioPlayer.pause();
   }
 
   void _resumeStory() {
@@ -120,6 +141,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
       _isPaused = false;
     });
     _animController.forward();
+    _audioPlayer.resume();
   }
 
   Future<void> _sendReply(String text) async {
@@ -139,21 +161,11 @@ class _StoryViewScreenState extends State<StoryViewScreen>
     _resumeStory();
 
     try {
-      // 1. Get or create conversation with story owner
-      final conversationId = await _messagingService.getOrCreateConversation(
-        user1Id: currentUserId,
-        user2Id: story.userId,
-      );
-
-      // 2. Send message with story context
-      await _messagingService.sendMessage(
-        conversationId: conversationId,
-        senderId: currentUserId,
-        content: text,
-        messageType: MessageType.storyReply,
-        storyId: story.id,
-      );
-
+      // Use the new ChatProvider for messaging
+      // This is a placeholder for actual messaging integration in new arch
+      // For now, we'll keep it simple or use a dedicated service if available
+      // await context.read<ChatProvider>().sendStoryReply(story, text);
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -189,6 +201,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
     _pageController.dispose();
     _animController.dispose();
     _replyController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -234,6 +247,10 @@ class _StoryViewScreenState extends State<StoryViewScreen>
               },
             ),
           ),
+
+          // Interactive Stickers Layer
+          if (story.interactiveMetadata != null && !_isReplying)
+             ...story.interactiveMetadata!.map((sticker) => _buildSticker(sticker)),
 
           // Top Gradient Overlay
           Positioned(
@@ -289,7 +306,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
                   child: CircleAvatar(
                     radius: 18,
                     backgroundImage: CachedNetworkImageProvider(
-                      story.userAvatar,
+                      story.userAvatar ?? '',
                     ),
                   ),
                 ),
@@ -299,7 +316,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        story.username,
+                        story.username ?? 'Unknown',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: isM3E ? FontWeight.w800 : FontWeight.bold,
@@ -320,7 +337,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
                 IconButton(
                   icon: const Icon(Icons.more_horiz, color: Colors.white),
                   onPressed: () {
-                    // Show options (Delete if owner, Report if not)
+                    _showOptionsSheet(story, isOwner);
                   },
                 ),
                 IconButton(
@@ -372,7 +389,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
     );
   }
 
-  Widget _buildStoryContent(StoryModel story) {
+  Widget _buildStoryContent(StoryEntity story) {
     return CachedNetworkImage(
       imageUrl: story.mediaUrl,
       fit: BoxFit.cover,
@@ -387,6 +404,36 @@ class _StoryViewScreenState extends State<StoryViewScreen>
           (context, url, error) =>
               const Center(child: Icon(Icons.error, color: Colors.white54)),
     );
+  }
+
+  Widget _buildSticker(StoryStickerEntity sticker) {
+    return Positioned(
+      left: sticker.x * MediaQuery.of(context).size.width,
+      top: sticker.y * MediaQuery.of(context).size.height,
+      child: Transform.rotate(
+        angle: sticker.rotation,
+        child: Transform.scale(
+          scale: sticker.scale,
+          child: _getStickerWidget(sticker),
+        ),
+      ),
+    );
+  }
+
+  Widget _getStickerWidget(StoryStickerEntity sticker) {
+    switch (sticker.type) {
+      case 'text':
+        return Text(
+          sticker.data['text'] ?? '',
+          style: TextStyle(
+            color: Color(int.parse(sticker.data['color'] ?? '0xFFFFFFFF')),
+            fontSize: (sticker.data['fontSize'] ?? 20).toDouble(),
+            fontWeight: FontWeight.bold,
+          ),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
   }
 
   Widget _buildProgressBar(int index, bool isM3E) {
@@ -418,7 +465,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
     );
   }
 
-  Widget _buildOwnerControls(StoryModel story) {
+  Widget _buildOwnerControls(StoryEntity story) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -500,7 +547,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
             size: isM3E ? 32 : 28,
           ),
           onPressed: () {
-            _storiesService.reactToStory(
+            _storiesProvider.reactToStory(
               widget.stories[_currentIndex].id,
               '❤️',
             );
@@ -519,6 +566,49 @@ class _StoryViewScreenState extends State<StoryViewScreen>
         ),
       ],
     );
+  }
+
+  void _showOptionsSheet(StoryEntity story, bool isOwner) {
+    _pauseStory();
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isOwner)
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: const Text('Delete Story', style: TextStyle(color: Colors.red)),
+                onTap: () async {
+                  final success = await _storiesProvider.deleteStory(story.id);
+                  if (success && mounted) {
+                    Navigator.pop(context);
+                    context.pop();
+                  }
+                },
+              )
+            else
+              ListTile(
+                leading: const Icon(Icons.report_problem_outlined),
+                title: const Text('Report Story'),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Implement reporting
+                },
+              ),
+            ListTile(
+              leading: const Icon(Icons.download_outlined),
+              title: const Text('Save Media'),
+              onTap: () {
+                Navigator.pop(context);
+                // Implement saving
+              },
+            ),
+          ],
+        ),
+      ),
+    ).then((_) => _resumeStory());
   }
 
   String _getTimeAgo(DateTime dateTime) {

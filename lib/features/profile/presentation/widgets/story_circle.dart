@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oasis_v2/models/story_model.dart';
+import 'package:oasis_v2/features/stories/domain/models/story_entity.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis_v2/services/app_initializer.dart';
 
 class StoryCircle extends StatelessWidget {
-  final StoryModel story;
+  final StoryEntity story;
   final VoidCallback onTap;
 
   const StoryCircle({super.key, required this.story, required this.onTap});
@@ -60,14 +60,14 @@ class StoryCircle extends StatelessWidget {
                 clipBehavior: Clip.antiAlias,
                 child: CircleAvatar(
                   radius: 32,
-                  backgroundImage: CachedNetworkImageProvider(story.userAvatar),
+                  backgroundImage: CachedNetworkImageProvider(story.userAvatar ?? ''),
                 ),
               ),
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            story.username,
+            story.username ?? 'Unknown',
             style: theme.textTheme.labelSmall?.copyWith(
               fontWeight: isM3E ? FontWeight.bold : null,
               letterSpacing: isM3E ? -0.2 : null,

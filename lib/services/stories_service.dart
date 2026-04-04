@@ -70,6 +70,9 @@ class StoriesService {
     String? caption,
     int duration = 5,
     bool autoPostToSocial = false,
+    String? musicId,
+    Map<String, dynamic>? musicMetadata,
+    List<Map<String, dynamic>>? interactiveMetadata,
   }) async {
     try {
       final userId = _supabase.auth.currentUser?.id;
@@ -119,6 +122,9 @@ class StoriesService {
                 'duration': duration,
                 'created_at': now.toIso8601String(),
                 'expires_at': expiresAt.toIso8601String(),
+                'music_id': musicId,
+                'music_metadata': musicMetadata,
+                'interactive_metadata': interactiveMetadata,
               })
               .select('''
             *,

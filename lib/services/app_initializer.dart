@@ -25,7 +25,7 @@ import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:oasis_v2/services/vault_service.dart';
 import 'package:oasis_v2/services/wellness_service.dart';
-import 'package:oasis_v2/providers/canvas_provider.dart';
+import 'package:oasis_v2/features/canvas/presentation/providers/canvas_provider.dart';
 import 'package:oasis_v2/providers/capsule_provider.dart';
 import 'package:oasis_v2/features/circles/presentation/providers/circle_provider.dart';
 import 'package:oasis_v2/features/circles/data/repositories/circle_repository_impl.dart';
@@ -41,6 +41,7 @@ import 'package:oasis_v2/features/profile/presentation/providers/profile_provide
 import 'package:oasis_v2/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:oasis_v2/providers/typing_indicator_provider.dart';
 import 'package:oasis_v2/providers/user_settings_provider.dart';
+import 'package:oasis_v2/features/stories/presentation/providers/stories_provider.dart';
 import 'package:oasis_v2/themes/app_theme.dart';
 import 'package:oasis_v2/core/storage/prefs_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -52,7 +53,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ThemeProvider with ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.dark;
   bool _highContrast = false;
-  bool _isM3EEnabled = false;
+  bool _isM3EEnabled = true;
   bool _isM3ETransparencyDisabled = false;
   bool _useMaterialYou = false;
   static const String _themeKey = 'theme_mode';
@@ -345,6 +346,7 @@ class AppInitializer {
         ),
         ChangeNotifierProvider(create: (_) => RipplesService()),
         ChangeNotifierProvider(create: (_) => CapsuleProvider()),
+        ChangeNotifierProvider(create: (_) => StoriesProvider()),
         ChangeNotifierProvider<VaultService>(create: (_) => VaultService()),
       ],
       child: child,

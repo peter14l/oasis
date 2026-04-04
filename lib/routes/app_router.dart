@@ -38,8 +38,11 @@ import 'package:oasis_v2/screens/settings/storage_usage_screen.dart';
 import 'package:oasis_v2/screens/settings/font_size_screen.dart';
 import 'package:oasis_v2/screens/settings/help_support_screen.dart';
 import 'package:oasis_v2/screens/moderation/moderation_screens.dart';
-import 'package:oasis_v2/screens/story_view_screen.dart';
-import 'package:oasis_v2/models/story_model.dart';
+import 'package:oasis_v2/features/stories/domain/models/story_entity.dart';
+import 'package:oasis_v2/features/stories/presentation/screens/story_view_screen.dart'
+    as new_story_view;
+import 'package:oasis_v2/features/stories/presentation/screens/create_story_screen.dart'
+    as new_create_story;
 import '../features/auth/presentation/screens/login_screen.dart'
     as login_screen;
 import '../features/auth/presentation/screens/register_screen.dart';
@@ -58,7 +61,6 @@ import '../features/auth/presentation/screens/onboarding_screen.dart';
 import '../features/capsules/presentation/screens/create_capsule_screen.dart';
 import '../features/capsules/presentation/screens/capsule_view_screen.dart';
 import '../features/circles/presentation/screens/circle_join_screen.dart';
-import '../screens/stories/create_story_screen.dart';
 import '../screens/ripples_screen.dart';
 import '../screens/create_ripple_screen.dart';
 import '../screens/oasis_pro_screen.dart';
@@ -363,7 +365,8 @@ class _MainLayoutState extends State<MainLayout> {
   }) {
     final isDesktop = ResponsiveLayout.isDesktop(context);
     if (isDesktop) return null;
-    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
 
     if (currentIndex == 2) {
       // Spaces tab — no FAB needed, circles/canvas have their own buttons
@@ -1214,7 +1217,7 @@ class AppRouter {
             return MaterialPage(
               key: state.pageKey,
               fullscreenDialog: true,
-              child: const CreateStoryScreen(),
+              child: const new_create_story.CreateStoryScreen(),
             );
           },
         ),
@@ -1347,10 +1350,13 @@ class AppRouter {
           name: 'story_view',
           pageBuilder: (context, state) {
             final storyId = state.pathParameters['storyId']!;
-            final stories = state.extra as List<StoryModel>;
+            final stories = state.extra as List<StoryEntity>;
             return CustomTransitionPage(
               key: state.pageKey,
-              child: StoryViewScreen(initialStoryId: storyId, stories: stories),
+              child: new_story_view.StoryViewScreen(
+                initialStoryId: storyId,
+                stories: stories,
+              ),
               transitionsBuilder: (
                 context,
                 animation,

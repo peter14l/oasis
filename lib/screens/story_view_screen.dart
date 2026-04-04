@@ -10,6 +10,7 @@ import 'package:oasis_v2/features/stories/presentation/widgets/story_viewers_she
 import 'package:oasis_v2/services/app_initializer.dart';
 import 'package:oasis_v2/core/utils/haptic_utils.dart';
 import 'package:provider/provider.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'dart:async';
 import 'dart:ui';
 
@@ -34,6 +35,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
   final StoriesService _storiesService = StoriesService();
   final MessagingService _messagingService = MessagingService();
   final AuthService _authService = AuthService();
+  final AudioPlayer _audioPlayer = AudioPlayer();
   final TextEditingController _replyController = TextEditingController();
 
   int _currentIndex = 0;
@@ -72,12 +74,19 @@ class _StoryViewScreenState extends State<StoryViewScreen>
     }
   }
 
-  void _startStory() {
+  Future<void> _startStory() async {
     _animController.reset();
     _animController.duration = Duration(
       seconds: widget.stories[_currentIndex].duration,
     );
     _animController.forward();
+
+    // Handle Music
+    await _audioPlayer.stop();
+    final story = widget.stories[_currentIndex];
+    if (story.hasMusic && story.musicMetadata?.previewUrl != null) {
+      await _audioPlayer.play(UrlSource(story.musicMetadata!.previewUrl));
+    }
   }
 
   void _nextStory() {
@@ -112,6 +121,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
       _isPaused = true;
     });
     _animController.stop();
+    _audioPlayer.pause();
   }
 
   void _resumeStory() {
@@ -120,6 +130,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
       _isPaused = false;
     });
     _animController.forward();
+    _audioPlayer.resume();
   }
 
   Future<void> _sendReply(String text) async {
@@ -139,13 +150,11 @@ class _StoryViewScreenState extends State<StoryViewScreen>
     _resumeStory();
 
     try {
-      // 1. Get or create conversation with story owner
       final conversationId = await _messagingService.getOrCreateConversation(
         user1Id: currentUserId,
         user2Id: story.userId,
       );
 
-      // 2. Send message with story context
       await _messagingService.sendMessage(
         conversationId: conversationId,
         senderId: currentUserId,
@@ -189,6 +198,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
     _pageController.dispose();
     _animController.dispose();
     _replyController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -230,7 +240,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
               physics: const NeverScrollableScrollPhysics(),
               itemCount: widget.stories.length,
               itemBuilder: (context, index) {
-                return _buildStoryContent(widget.stories[index]);
+                return _buildStoryBody(widget.stories[index], isM3E);
               },
             ),
           ),
@@ -241,15 +251,17 @@ class _StoryViewScreenState extends State<StoryViewScreen>
             left: 0,
             right: 0,
             height: 160,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.black.withValues(alpha: 0.8),
-                    Colors.transparent,
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+            child: IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.black.withValues(alpha: 0.8),
+                      Colors.transparent,
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                 ),
               ),
             ),
@@ -307,12 +319,29 @@ class _StoryViewScreenState extends State<StoryViewScreen>
                           letterSpacing: isM3E ? -0.5 : null,
                         ),
                       ),
-                      Text(
-                        _getTimeAgo(story.createdAt),
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 11,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            _getTimeAgo(story.createdAt),
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.7),
+                              fontSize: 11,
+                            ),
+                          ),
+                          if (story.hasMusic) ...[
+                            const SizedBox(width: 8),
+                            const Icon(Icons.music_note, color: Colors.white70, size: 10),
+                            const SizedBox(width: 4),
+                            Text(
+                              story.musicMetadata!.title,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 11,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ],
                   ),
@@ -372,21 +401,116 @@ class _StoryViewScreenState extends State<StoryViewScreen>
     );
   }
 
-  Widget _buildStoryContent(StoryModel story) {
-    return CachedNetworkImage(
-      imageUrl: story.mediaUrl,
-      fit: BoxFit.cover,
-      placeholder:
-          (context, url) => const Center(
-            child: CircularProgressIndicator(
-              color: Colors.white,
-              strokeWidth: 2,
+  Widget _buildStoryBody(StoryModel story, bool isM3E) {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: CachedNetworkImage(
+            imageUrl: story.mediaUrl,
+            fit: BoxFit.cover,
+            placeholder: (context, url) => const Center(
+              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+            ),
+            errorWidget: (context, url, error) => const Center(
+              child: Icon(Icons.error, color: Colors.white54),
             ),
           ),
-      errorWidget:
-          (context, url, error) =>
-              const Center(child: Icon(Icons.error, color: Colors.white54)),
+        ),
+        
+        // Music Sticker Overlay
+        if (story.hasMusic)
+          _buildMusicStickerOverlay(story.musicMetadata!, isM3E),
+
+        // Interactive Text Layers Overlay
+        if (story.interactiveMetadata != null)
+          ...story.interactiveMetadata!.map((sticker) => _buildInteractiveLayer(sticker, isM3E)),
+      ],
     );
+  }
+
+  Widget _buildMusicStickerOverlay(StoryMusic music, bool isM3E) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(isM3E ? 20 : 12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(isM3E ? 8 : 4),
+              child: CachedNetworkImage(
+                imageUrl: music.albumArtUrl,
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  music.title,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 14,
+                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  music.artist,
+                  style: TextStyle(
+                    color: Colors.black.withValues(alpha: 0.7),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 12),
+            const Icon(Icons.music_note, color: Colors.black, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInteractiveLayer(StorySticker sticker, bool isM3E) {
+    if (sticker.type == 'text') {
+      final colorHex = sticker.data['color'] as String;
+      final color = Color(int.parse(colorHex.replaceFirst('#', '0xff')));
+      final backgroundMode = sticker.data['background_mode'] as int;
+      
+      return Positioned(
+        left: sticker.x * MediaQuery.of(context).size.width - 100,
+        top: sticker.y * MediaQuery.of(context).size.height - 25,
+        child: Container(
+          width: 200,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: backgroundMode == 1 
+                ? color.withValues(alpha: 0.9) 
+                : (backgroundMode == 2 ? Colors.black54 : Colors.transparent),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            sticker.data['text'],
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: backgroundMode == 1 
+                  ? (color.computeLuminance() > 0.5 ? Colors.black : Colors.white) 
+                  : color,
+              fontSize: 28,
+              fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+            ),
+          ),
+        ),
+      );
+    }
+    return const SizedBox.shrink();
   }
 
   Widget _buildProgressBar(int index, bool isM3E) {

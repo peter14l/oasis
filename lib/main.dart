@@ -14,7 +14,7 @@ import 'package:oasis_v2/services/screen_time_service.dart';
 import 'package:oasis_v2/services/sharing_service.dart';
 import 'package:oasis_v2/services/vault_service.dart';
 import 'package:oasis_v2/services/wellness_service.dart';
-import 'package:oasis_v2/providers/canvas_provider.dart';
+import 'package:oasis_v2/features/canvas/presentation/providers/canvas_provider.dart';
 import 'package:oasis_v2/features/circles/presentation/providers/circle_provider.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
 import 'package:oasis_v2/providers/notification_provider.dart';

@@ -1,185 +1,86 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/services/stories_service.dart';
-import 'package:oasis_v2/core/utils/responsive_layout.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:oasis_v2/features/stories/domain/models/story_entity.dart';
+import 'package:oasis_v2/features/stories/presentation/providers/stories_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis_v2/services/app_initializer.dart';
 
-class StoryViewersSheet extends StatefulWidget {
+class StoryViewersSheet extends StatelessWidget {
   final String storyId;
 
   const StoryViewersSheet({super.key, required this.storyId});
 
   @override
-  State<StoryViewersSheet> createState() => _StoryViewersSheetState();
-}
-
-class _StoryViewersSheetState extends State<StoryViewersSheet> {
-  final StoriesService _storiesService = StoriesService();
-  bool _isLoading = true;
-  List<Map<String, dynamic>> _viewers = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadViewers();
-  }
-
-  Future<void> _loadViewers() async {
-    final viewers = await _storiesService.getStoryViewers(widget.storyId);
-    if (mounted) {
-      setState(() {
-        _viewers = viewers;
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
+    return FutureBuilder<List<StoryViewerEntity>>(
+      future: context.read<StoriesProvider>().getStoryViewers(storyId),
+      builder: (context, snapshot) {
+        final viewers = snapshot.data ?? [];
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(isM3E ? 48 : 24),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(2),
-            ),
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Text(
-                  'Viewers',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
-                    letterSpacing: isM3E ? -0.5 : 0,
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Story Activity',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              if (isLoading)
+                const Padding(
+                  padding: EdgeInsets.all(40.0),
+                  child: CircularProgressIndicator(),
+                )
+              else if (viewers.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(40.0),
+                  child: Text('No views yet'),
+                )
+              else
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: viewers.length,
+                    itemBuilder: (context, index) {
+                      final viewer = viewers[index];
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage: CachedNetworkImageProvider(
+                            viewer.avatarUrl ?? '',
+                          ),
+                        ),
+                        title: Text(viewer.username),
+                        subtitle: Text(_getTimeAgo(viewer.viewedAt)),
+                      );
+                    },
                   ),
                 ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color:
-                        isM3E
-                            ? colorScheme.primary
-                            : colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
-                  ),
-                  child: Text(
-                    _viewers.length.toString(),
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color:
-                          isM3E
-                              ? colorScheme.onPrimary
-                              : colorScheme.onPrimaryContainer,
-                      fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            ],
           ),
-          const SizedBox(height: 16),
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 40),
-              child: CircularProgressIndicator(),
-            )
-          else if (_viewers.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 40),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.visibility_off_outlined,
-                    size: 48,
-                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No viewers yet',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _viewers.length,
-                itemBuilder: (context, index) {
-                  final viewer = _viewers[index];
-                  final user = viewer['user'] as Map<String, dynamic>;
-                  final username = user['username'] as String;
-                  final avatarUrl = user['avatar_url'] as String?;
-                  final viewedAt = DateTime.parse(viewer['viewed_at']);
-
-                  return ListTile(
-                    leading: Container(
-                      decoration: BoxDecoration(
-                        shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
-                        borderRadius: isM3E ? BorderRadius.circular(12) : null,
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: CircleAvatar(
-                        radius: 20,
-                        backgroundImage:
-                            avatarUrl != null
-                                ? CachedNetworkImageProvider(avatarUrl)
-                                : null,
-                        child:
-                            avatarUrl == null
-                                ? Text(username[0].toUpperCase())
-                                : null,
-                      ),
-                    ),
-                    title: Text(
-                      username,
-                      style: TextStyle(
-                        fontWeight: isM3E ? FontWeight.w800 : FontWeight.w600,
-                      ),
-                    ),
-                    subtitle: Text(_getTimeAgo(viewedAt)),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.more_vert),
-                      onPressed: () {},
-                    ),
-                  );
-                },
-              ),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   String _getTimeAgo(DateTime dateTime) {
     final difference = DateTime.now().difference(dateTime);
-    if (difference.inDays > 0) return '${difference.inDays}d ago';
     if (difference.inHours > 0) return '${difference.inHours}h ago';
     if (difference.inMinutes > 0) return '${difference.inMinutes}m ago';
     return 'Just now';

@@ -2,7 +2,7 @@
 -- FRESH WHISPER MODE IMPLEMENTATION
 -- Centralized server-side logic for Vanish Mode
 -- =====================================================
-
+w
 -- 1. Clean up ALL old whisper-related triggers and functions
 DROP TRIGGER IF EXISTS trigger_whisper_mode_messages ON public.messages;
 DROP TRIGGER IF EXISTS trigger_message_expiration ON public.message_read_receipts;
