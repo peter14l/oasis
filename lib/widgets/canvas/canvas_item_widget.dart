@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oasis_v2/models/canvas_item.dart';
+import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
 import 'package:oasis_v2/widgets/canvas/journal_entry_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
@@ -8,7 +8,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 /// Draggable and long-press-deletable item on the canvas.
 class CanvasItemWidget extends StatefulWidget {
-  final CanvasItem item;
+  final CanvasItemEntity item;
   final void Function(double x, double y, double rotation) onMoved;
   final VoidCallback onDelete;
   final void Function(String emoji)? onReact;

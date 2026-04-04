@@ -9,7 +9,7 @@ import 'package:oasis_v2/services/wellness_service.dart';
 import 'package:oasis_v2/providers/user_settings_provider.dart';
 import 'package:oasis_v2/core/utils/responsive_layout.dart';
 import 'package:oasis_v2/providers/conversation_provider.dart';
-import 'package:oasis_v2/core/utils/responsive_layout.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
 
 /// Navigation shell with bottom navigation bar
 class NavigationShell extends StatelessWidget {

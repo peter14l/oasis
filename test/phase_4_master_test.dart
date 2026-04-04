@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis_v2/services/session_registry_service.dart';
-import 'package:oasis_v2/widgets/circles/commitment_card.dart';
-import 'package:oasis_v2/models/commitment.dart';
+import 'package:oasis_v2/features/circles/presentation/widgets/circles/commitment_card.dart';
+import 'package:oasis_v2/features/circles/domain/models/circles_models.dart';
 import 'package:oasis_v2/widgets/fluid_mesh_background.dart';
 import 'package:oasis_v2/widgets/canvas/scattered_polaroid_spread.dart';
-import 'package:oasis_v2/models/canvas_item.dart';
+import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
 import 'test_setup.dart';
 
 void main() {
   setupTestEnvironment();
-  
+
   group('RegisteredAccount Model Tests', () {
     test('RegisteredAccount JSON serialization', () {
       // Mock User for Session
-      final user = User(
+const User({
         id: 'user1',
         appMetadata: {},
         userMetadata: {},
@@ -29,7 +28,7 @@ void main() {
         tokenType: 'bearer',
         user: user,
       );
-      
+
       final account = RegisteredAccount(
         userId: 'user1',
         email: 'test@test.com',
@@ -49,12 +48,12 @@ void main() {
   });
 
   group('Widget UI Tests (Phase 4)', () {
-    testWidgets('FluidMeshBackground renders without error', (WidgetTester tester) async {
+    testWidgets('FluidMeshBackground renders without error', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: FluidMeshBackground(streakCount: 5),
-          ),
+          home: Scaffold(body: FluidMeshBackground(streakCount: 5)),
         ),
       );
 
@@ -62,9 +61,11 @@ void main() {
       expect(find.byType(CustomPaint), findsWidgets);
     });
 
-    testWidgets('ScatteredPolaroidSpread renders items', (WidgetTester tester) async {
+    testWidgets('ScatteredPolaroidSpread renders items', (
+      WidgetTester tester,
+    ) async {
       final items = [
-        CanvasItem(
+        CanvasItemEntity(
           id: '1',
           canvasId: 'c1',
           authorId: 'a1',
@@ -78,9 +79,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: ScatteredPolaroidSpread(items: items),
-          ),
+          home: Scaffold(body: ScatteredPolaroidSpread(items: items)),
         ),
       );
 
@@ -88,16 +87,18 @@ void main() {
       expect(find.byType(Transform), findsWidgets);
     });
 
-    testWidgets('CommitmentCard long press visual check', (WidgetTester tester) async {
-      final commitment = Commitment(
+    testWidgets('CommitmentCard long press visual check', (
+      WidgetTester tester,
+    ) async {
+      final commitment = CommitmentEntity(
         id: '1',
         circleId: 'c1',
         createdBy: 'u1',
-        title: 'Test Commitment',
+        title: 'Test CommitmentEntity',
         dueDate: DateTime.now(),
         status: CommitmentStatus.open,
         responses: {
-          'current_user': CommitmentResponse(
+          'current_user': CommitmentResponseEntity(
             userId: 'current_user',
             intent: MemberIntent.inTrying,
             completed: false,
@@ -121,14 +122,16 @@ void main() {
       );
 
       expect(find.text('HOLD TO VERIFY'), findsOneWidget);
-      
+
       // Simulate long press start
-      final gesture = await tester.startGesture(tester.getCenter(find.byType(CommitmentCard)));
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(CommitmentCard)),
+      );
       await tester.pump(const Duration(milliseconds: 500));
-      
+
       // Should see custom paint for fluid fill (Stack should have children)
       expect(find.byType(CustomPaint), findsWidgets);
-      
+
       await gesture.up();
       await tester.pumpAndSettle();
     });

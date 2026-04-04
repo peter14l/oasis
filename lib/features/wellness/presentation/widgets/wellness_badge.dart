@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/services/wellness_service.dart';
 
 class WellnessBadge extends StatelessWidget {
   const WellnessBadge({super.key});
@@ -46,7 +45,7 @@ class WellnessBadge extends StatelessWidget {
             Container(
               width: 1,
               height: 12,
-              color: Colors.white30,
+              color: Colors.white.withValues(alpha: 0.3),
             ),
             const SizedBox(width: 8),
             const Icon(Icons.insights, size: 16, color: Colors.white),
@@ -55,5 +54,4 @@ class WellnessBadge extends StatelessWidget {
       ),
     );
   }
-}
 }

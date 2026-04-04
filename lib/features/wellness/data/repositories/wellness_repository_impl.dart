@@ -24,6 +24,7 @@ class WellnessRepositoryImpl implements WellnessRepository {
   Timer? _wellbeingTicker;
   String? _currentCategory;
   Map<String, int> _categoryMinutes = {};
+  int _cachedWellnessStreak = 0;
 
   // Focus Mode state
   Timer? _focusTimer;
@@ -403,6 +404,9 @@ class WellnessRepositoryImpl implements WellnessRepository {
   int get currentSessionElapsedSeconds => _currentSessionElapsedSeconds;
 
   @override
+  int get wellnessStreak => _cachedWellnessStreak;
+
+  @override
   Future<int> getWellnessStreak() async {
     int streak = 0;
     final now = DateTime.now();
@@ -419,6 +423,7 @@ class WellnessRepositoryImpl implements WellnessRepository {
         break;
       }
     }
+    _cachedWellnessStreak = streak;
     return streak;
   }
 

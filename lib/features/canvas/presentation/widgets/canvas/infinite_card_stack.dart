@@ -1,10 +1,10 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/models/canvas_item.dart';
+import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class InfiniteCardStack extends StatelessWidget {
-  final List<CanvasItem> items;
+  final List<CanvasItemEntity> items;
   final double width;
   final double height;
 
@@ -123,7 +123,7 @@ class InfiniteCardStack extends StatelessWidget {
   }
 
   Widget _buildCardVisually({
-    required CanvasItem item,
+    required CanvasItemEntity item,
     required double width,
     required double height,
     int? additionalCount,
@@ -207,7 +207,7 @@ class InfiniteCardStack extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _SwipeableCardStack extends StatefulWidget {
-  final List<CanvasItem> items;
+  final List<CanvasItemEntity> items;
   final double width;
   final double height;
 
@@ -222,7 +222,7 @@ class _SwipeableCardStack extends StatefulWidget {
 }
 
 class _SwipeableCardStackState extends State<_SwipeableCardStack> {
-  late List<CanvasItem> _displayItems;
+  late List<CanvasItemEntity> _displayItems;
   Offset _dragOffset = Offset.zero;
   bool _isDragging = false;
 
@@ -293,7 +293,7 @@ class _SwipeableCardStackState extends State<_SwipeableCardStack> {
     );
   }
 
-  Widget _buildInteractiveCard(CanvasItem item, int indexFromFront, bool isTop) {
+  Widget _buildInteractiveCard(CanvasItemEntity item, int indexFromFront, bool isTop) {
     final double scale = isTop ? 1.0 : (1.0 - (indexFromFront * 0.05)).clamp(0.8, 1.0);
     final double topPadding = indexFromFront * 16.0;
     final double rotation = indexFromFront * 0.02; 

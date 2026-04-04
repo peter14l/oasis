@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/models/canvas_item.dart';
+import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 
 class TimelineScrubber extends StatelessWidget {
-  final List<CanvasItem> items;
+  final List<CanvasItemEntity> items;
   final ScrollController scrollController;
 
   const TimelineScrubber({

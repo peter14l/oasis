@@ -21,6 +21,7 @@ abstract class WellnessRepository {
   Future<void> stopTracking();
   void setCurrentCategory(String? category);
   int get currentSessionElapsedSeconds;
+  int get wellnessStreak;
   Future<int> getWellnessStreak();
 
   // Focus Mode operations

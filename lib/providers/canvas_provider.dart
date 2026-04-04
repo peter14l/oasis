@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/models/canvas_item.dart';
+import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
 import 'package:oasis_v2/models/oasis_canvas.dart';
 import 'package:oasis_v2/services/canvas_service.dart';
 
@@ -9,17 +9,17 @@ class CanvasProvider extends ChangeNotifier {
 
   List<OasisCanvas> _canvases = [];
   OasisCanvas? _activeCanvas;
-  List<CanvasItem> _activeItems = [];
+  List<CanvasItemEntity> _activeItems = [];
   bool _isLoading = false;
   String? _error;
-  StreamSubscription<List<CanvasItem>>? _realtimeSubscription;
+  StreamSubscription<List<CanvasItemEntity>>? _realtimeSubscription;
   Map<String, dynamic> _presenceState = {};
   StreamSubscription<Map<String, dynamic>>? _presenceSubscription;
 
   // ─── Getters ──────────────────────────────────────────────────────────────────
   List<OasisCanvas> get canvases => _canvases;
   OasisCanvas? get activeCanvas => _activeCanvas;
-  List<CanvasItem> get activeItems => _activeItems;
+  List<CanvasItemEntity> get activeItems => _activeItems;
   bool get isLoading => _isLoading;
   String? get error => _error;
   Map<String, dynamic> get presenceState => _presenceState;

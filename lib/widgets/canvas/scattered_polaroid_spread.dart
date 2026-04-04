@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:math' as math;
-import 'package:oasis_v2/models/canvas_item.dart';
+import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
 
 class ScatteredPolaroidSpread extends StatefulWidget {
-  final List<CanvasItem> items;
+  final List<CanvasItemEntity> items;
   const ScatteredPolaroidSpread({super.key, required this.items});
 
   @override

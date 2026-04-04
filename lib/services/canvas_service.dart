@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:oasis_v2/models/oasis_canvas.dart';
-import 'package:oasis_v2/models/canvas_item.dart';
+import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
 import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -149,7 +149,7 @@ class CanvasService {
   // ─── Items ───────────────────────────────────────────────────────────────────
 
   /// Fetch all items for a specific canvas.
-  Future<List<CanvasItem>> fetchCanvasItems(String canvasId) async {
+  Future<List<CanvasItemEntity>> fetchCanvasItems(String canvasId) async {
     try {
       final response = await _supabase
           .from('canvas_items')
@@ -157,7 +157,7 @@ class CanvasService {
           .eq('canvas_id', canvasId)
           .order('created_at', ascending: true);
 
-      return (response as List).map((json) => CanvasItem.fromJson(json)).toList();
+      return (response as List).map((json) => CanvasItemEntity.fromJson(json)).toList();
     } catch (e) {
       debugPrint('CanvasService.fetchCanvasItems error: $e');
       rethrow;
@@ -165,7 +165,7 @@ class CanvasService {
   }
 
   /// Add a new item to a canvas.
-  Future<CanvasItem> addItem({
+  Future<CanvasItemEntity> addItem({
     required String canvasId,
     required String authorId,
     required CanvasItemType type,
@@ -196,7 +196,7 @@ class CanvasService {
 
       final response = await _supabase.from('canvas_items').insert(insertData).select().single();
 
-      return CanvasItem.fromJson(response);
+      return CanvasItemEntity.fromJson(response);
     } catch (e) {
       debugPrint('CanvasService.addItem error: $e');
       rethrow;
@@ -419,8 +419,8 @@ class CanvasService {
   // ─── Realtime ────────────────────────────────────────────────────────────────
 
   /// Subscribe to live item changes for a canvas.
-  Stream<List<CanvasItem>> subscribeToCanvas(String canvasId) {
-    final controller = StreamController<List<CanvasItem>>.broadcast();
+  Stream<List<CanvasItemEntity>> subscribeToCanvas(String canvasId) {
+    final controller = StreamController<List<CanvasItemEntity>>.broadcast();
 
     final channel = _supabase.channel('canvas_items:$canvasId');
 
