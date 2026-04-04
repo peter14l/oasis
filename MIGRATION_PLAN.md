@@ -1207,3 +1207,23 @@ See `MIGRATION_TRACKER.md` in the project root for the live tracking file.
 - The `AppInitializer` will need to be updated after each phase as provider locations change.
 - The router refactoring (Phase 19) should happen AFTER all features are migrated, so route imports are stable.
 - Total estimated effort: **8-10 weeks** for a single developer, or **4-5 weeks** with 2 developers working on independent features in parallel.
+
+---
+
+## ❌ Removed Features (Not Used in App)
+
+The following features were planned but are **NOT actively used** in the application and have been removed from the migration scope:
+
+### Audio Rooms
+- **Status**: Completely unimplemented
+- **Files**: `lib/services/audio_room_service.dart`, `lib/models/audio_room.dart`
+- **Reason**: Both files are entirely commented out (`/* ... */`). The service throws `UnimplementedError` for room creation. No audio room UI screens exist.
+
+### Communities  
+- **Status**: Screens exist but not accessible
+- **Files**: 7 screens in `lib/screens/community/`, service `community_service.dart`, provider `community_provider.dart`, models `community.dart`, `community_model.dart`
+- **Reason**: 
+  - No routes in `app_router.dart` point to any community screens
+  - No navigation in `spaces_screen.dart` references communities
+  - Provider exists but is not used anywhere in the app
+  - Feature appears to be a planned but incomplete feature

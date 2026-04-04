@@ -4,16 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:oasis_v2/providers/canvas_provider.dart';
+import 'package:oasis_v2/features/canvas/presentation/providers/canvas_provider.dart';
 import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
-import 'package:oasis_v2/models/canvas_item.dart';
-import 'package:oasis_v2/models/oasis_canvas.dart';
-import 'package:oasis_v2/widgets/canvas/starry_night_background.dart';
-import 'package:oasis_v2/widgets/canvas/glowing_note.dart';
-import 'package:oasis_v2/widgets/canvas/infinite_card_stack.dart';
-import 'package:oasis_v2/widgets/canvas/timeline_scrubber.dart';
-import 'package:oasis_v2/widgets/canvas/pulse_ripple.dart';
-import 'package:oasis_v2/widgets/canvas/voice_memo.dart';
+import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
+import 'package:oasis_v2/features/canvas/presentation/widgets/canvas/starry_night_background.dart';
+import 'package:oasis_v2/features/canvas/presentation/widgets/canvas/glowing_note.dart';
+import 'package:oasis_v2/features/canvas/presentation/widgets/canvas/infinite_card_stack.dart';
+import 'package:oasis_v2/features/canvas/presentation/widgets/canvas/timeline_scrubber.dart';
+import 'package:oasis_v2/features/canvas/presentation/widgets/canvas/pulse_ripple.dart';
+import 'package:oasis_v2/features/canvas/presentation/widgets/canvas/voice_memo.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:intl/intl.dart';
@@ -249,7 +248,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     );
   }
 
-  Widget _buildMobileAppBar(OasisCanvas? canvas, bool isOwner) {
+  Widget _buildMobileAppBar(OasisCanvasEntity? canvas, bool isOwner) {
     return SliverAppBar(
       floating: true,
       backgroundColor: Colors.transparent,
@@ -290,7 +289,10 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     );
   }
 
-  Widget _buildDesktopHeader(OasisCanvas? canvas, CanvasProvider provider) {
+  Widget _buildDesktopHeader(
+    OasisCanvasEntity? canvas,
+    CanvasProvider provider,
+  ) {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
@@ -423,7 +425,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     return cursors;
   }
 
-  void _showInviteSheet(OasisCanvas? canvas) {
+  void _showInviteSheet(OasisCanvasEntity? canvas) {
     if (canvas == null) return;
     showModalBottomSheet(
       context: context,
@@ -524,15 +526,15 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     );
   }
 
-  List<Widget> _buildTimelineSlivers(List<CanvasItem> items) {
-    final sortedItems = List<CanvasItem>.from(items)
+  List<Widget> _buildTimelineSlivers(List<CanvasItemEntity> items) {
+    final sortedItems = List<CanvasItemEntity>.from(items)
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     final List<dynamic> timelineGroups = [];
     for (int i = 0; i < sortedItems.length; i++) {
       final item = sortedItems[i];
       if (item.type == CanvasItemType.photo) {
-        final List<CanvasItem> stack = [item];
+        final List<CanvasItemEntity> stack = [item];
         while (i + 1 < sortedItems.length &&
             sortedItems[i + 1].type == CanvasItemType.photo &&
             item.createdAt
@@ -553,7 +555,9 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
 
     for (var group in timelineGroups) {
       final firstItem =
-          group is List ? group.first as CanvasItem : group as CanvasItem;
+          group is List
+              ? group.first as CanvasItemEntity
+              : group as CanvasItemEntity;
       final monthStr = DateFormat('MMMM yyyy').format(firstItem.createdAt);
 
       if (monthStr != currentMonth) {
@@ -626,7 +630,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
   Widget _buildTimelineItem(dynamic group) {
     final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
 
-    if (group is List<CanvasItem>) {
+    if (group is List<CanvasItemEntity>) {
       final isLocked = group.any(
         (item) =>
             item.unlockAt != null && item.unlockAt!.isAfter(DateTime.now()),
@@ -635,7 +639,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
       return ScatteredPolaroidSpread(items: group);
     }
 
-    final item = group as CanvasItem;
+    final item = group as CanvasItemEntity;
     final isLocked =
         item.unlockAt != null && item.unlockAt!.isAfter(DateTime.now());
     if (isLocked) return _buildTimeCapsuleWidget(item);
@@ -643,30 +647,30 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     return Align(
       alignment: Alignment.center,
       child: CanvasItemWidget(
-      item: item,
-      onMoved: (dx, dy, rotation) {
-        context.read<CanvasProvider>().moveItem(
-          itemId: item.id,
-          xPos: dx,
-          yPos: dy,
-          rotation: rotation,
-          lastModifiedBy: currentUserId,
-        );
-      },
-      onDelete: () => context.read<CanvasProvider>().deleteItem(item.id),
-      onReact:
-          (emoji) => context.read<CanvasProvider>().toggleReaction(
-            item.id,
-            currentUserId!,
-            emoji,
-          ),
-      onLock:
-          (lock) => context.read<CanvasProvider>().setItemLock(item.id, lock),
-    ),
-);
+        item: item,
+        onMoved: (dx, dy, rotation) {
+          context.read<CanvasProvider>().moveItem(
+            itemId: item.id,
+            xPos: dx,
+            yPos: dy,
+            rotation: rotation,
+            lastModifiedBy: currentUserId,
+          );
+        },
+        onDelete: () => context.read<CanvasProvider>().deleteItem(item.id),
+        onReact:
+            (emoji) => context.read<CanvasProvider>().toggleReaction(
+              item.id,
+              currentUserId!,
+              emoji,
+            ),
+        onLock:
+            (lock) => context.read<CanvasProvider>().setItemLock(item.id, lock),
+      ),
+    );
   }
 
-  Widget _buildTimeCapsuleWidget(CanvasItem item) {
+  Widget _buildTimeCapsuleWidget(CanvasItemEntity item) {
     final timeLeft = item.unlockAt!.difference(DateTime.now());
     return Container(
       padding: const EdgeInsets.all(24),
