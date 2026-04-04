@@ -21,6 +21,7 @@ import 'package:oasis_v2/services/ripples_service.dart';
 import 'package:oasis_v2/services/screen_time_service.dart';
 import 'package:oasis_v2/services/signal/signal_service.dart';
 import 'package:oasis_v2/services/subscription_service.dart';
+import 'package:oasis_v2/services/auth_service.dart';
 import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:oasis_v2/services/vault_service.dart';
 import 'package:oasis_v2/services/wellness_service.dart';
@@ -41,6 +42,7 @@ import 'package:oasis_v2/features/profile/data/repositories/profile_repository_i
 import 'package:oasis_v2/providers/typing_indicator_provider.dart';
 import 'package:oasis_v2/providers/user_settings_provider.dart';
 import 'package:oasis_v2/themes/app_theme.dart';
+import 'package:oasis_v2/core/storage/prefs_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ---------------------------------------------------------------------------
@@ -221,6 +223,10 @@ class AppInitializer {
     await SupabaseService.initialize();
     debugPrint('Supabase initialized successfully');
 
+    // PrefsStorage (shared preferences wrapper — required by SessionLocalDatasource)
+    await PrefsStorage.init();
+    debugPrint('PrefsStorage initialized successfully');
+
     // Auth
     final authProvider = AuthProvider(repository: AuthRepositoryImpl());
     await authProvider.restoreSession();
@@ -290,6 +296,7 @@ class AppInitializer {
         ChangeNotifierProvider<AuthProvider>.value(
           value: services.authProvider,
         ),
+        ChangeNotifierProvider<AuthService>.value(value: AuthService()),
         ChangeNotifierProvider<UserSettingsProvider>.value(
           value: services.userSettingsProvider,
         ),

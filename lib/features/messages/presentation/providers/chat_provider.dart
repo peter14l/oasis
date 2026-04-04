@@ -146,7 +146,8 @@ class ChatProvider with ChangeNotifier {
   // =========================================================================
 
   Future<void> _initializeEncryption() async {
-    if (!_encryptionService.isInitialized) return;
+    // Always call init() to check/restore keys - don't return early if not initialized
+    // This ensures _encryptionReady is properly set based on actual key status
 
     if (!SignalService().isInitialized) {
       final success = await SignalService().init();

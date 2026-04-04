@@ -1,0 +1,1397 @@
+I/flutter (12078): ScreenTime: Session started at 2026-04-03 23:17:54.669148
+I/flutter (12078): EnergyMeter: Recovery timer resumed (foreground)
+I/flutter (12078): Wellness: Wind-down monitor resumed
+I/flutter (12078): Ripples: Lockout check timer resumed
+D/InputMethodManagerUtils(12078): startInputInner - Id : 0
+I/InputMethodManager(12078): startInputInner - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
+I/InputMethodManager(12078): handleMessage: setImeVisibility visible=false
+D/InsetsController(12078): hide(ime(), fromIme=false)
+I/ImeTracker(12078): com.example.morrow_v2:b2a8040e: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+D/InputTransport(12078): Input channel constructed: 'ClientS', fd=304
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 118997505 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/VRI[MainActivity]@5e1c100(12078): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@5e1c100
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 168005672
+I/flutter (12078): GoRouter: INFO: going to /notifications
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 478268594 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 504958183
+I/flutter (12078): GoRouter: INFO: going to /messages
+I/VRI[MainActivity]@5e1c100(12078): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@5e1c100
+W/FlutterLoader(15027): If you are trying to specify io.flutter.embedding.engine.loader.FlutterLoader.aot-shared-library-name in your application manifest, please make sure to use the new metadata key name: io.flutter.embedding.android.AOTSharedLibraryName
+E/FlutterLoader(15027): External path /libandroid_release_android_library_flutter_artifacts.so rejected; not overriding aot-shared-library-name.
+E/FlutterLoader(15027): Skipping unsafe AOT shared library name flag: libandroid_release_android_library_flutter_artifacts.so. Please ensure that the library is vetted and placed in your application's internal storage.
+W/FlutterLoader(15027): If you are trying to specify io.flutter.embedding.engine.loader.FlutterLoader.flutter-assets-dir in your application manifest, please make sure to use the new metadata key name: io.flutter.embedding.android.FlutterAssetsDir
+I/flutter (15027): [IMPORTANT:flutter/shell/common/shell.cc(528)] [Action Required]: Impeller opt-out deprecated.
+I/flutter (15027):     The application opted out of Impeller by either using the
+I/flutter (15027):     `--no-enable-impeller` flag or the
+I/flutter (15027):     `io.flutter.embedding.android.EnableImpeller` `AndroidManifest.xml` entry.
+I/flutter (15027):     These options are going to go away in an upcoming Flutter release. Remove
+I/flutter (15027):     the explicit opt-out. If you need to opt-out, please report a bug describing
+I/flutter (15027):     the issue.
+I/flutter (15027):
+I/flutter (15027):     https://github.com/flutter/flutter/issues/new?template=02_bug.yml
+I/flutter (15027):
+I/VRI[MainActivity]@5e1c100(12078): handleResized, frames=ClientWindowFrames{frame=[0,0][1080,2340] display=[0,0][1080,2340] parentFrame=[0,0][0,0]} displayId=0 dragResizing=false compatScale=1.0 frameChanged=false attachedFrameChanged=false configChanged=false displayChanged=false compatScaleChanged=false dragResizingChanged=false
+I/InsetsSourceConsumer(12078): applyRequestedVisibilityToControl: visible=true, type=statusBars, host=com.example.morrow_v2/com.example.morrow_v2.MainActivity
+I/ImeFocusController(12078): onPreWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+I/ImeFocusController(12078): onPostWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+D/InputTransport(12078): Input channel destroyed: 'ClientS', fd=220
+D/VRI[MainActivity]@5e1c100(12078): mThreadedRenderer.initializeIfNeeded()#2 mSurface={isValid=true 0xb400006f7b859a10}
+I/flutter (12078): ScreenTime: Session started at 2026-04-03 23:18:28.920366
+I/flutter (12078): EnergyMeter: Recovery timer resumed (foreground)
+I/flutter (12078): Wellness: Wind-down monitor resumed
+I/flutter (12078): Ripples: Lockout check timer resumed
+I/flutter (12078): DirectMessages: Refresh timer resumed
+D/InputMethodManagerUtils(12078): startInputInner - Id : 0
+I/InputMethodManager(12078): startInputInner - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
+D/InputTransport(12078): Input channel constructed: 'ClientS', fd=206
+I/InputMethodManager(12078): handleMessage: setImeVisibility visible=false
+D/InsetsController(12078): hide(ime(), fromIme=false)
+I/ImeTracker(12078): com.example.morrow_v2:b32221dd: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+I/ImeFocusController(12078): onPreWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+I/ImeFocusController(12078): onPostWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+D/InputTransport(12078): Input channel destroyed: 'ClientS', fd=206
+W/ample.morrow_v2(12078): Cleared Reference was only reachable from finalizer (only reported once)
+I/ample.morrow_v2(12078): Background concurrent mark compact GC freed 3949KB AllocSpace bytes, 64(1536KB) LOS objects, 53% free, 5347KB/11MB, paused 842us,4.578ms total 195.434ms
+D/InputTransport(12078): Input channel destroyed: 'ClientS', fd=199
+D/InputTransport(12078): Input channel destroyed: 'ClientS', fd=304
+D/VRI[MainActivity]@5e1c100(12078): mThreadedRenderer.initializeIfNeeded()#2 mSurface={isValid=true 0xb400006f7b859a10}
+I/flutter (12078): ScreenTime: Session started at 2026-04-03 23:18:39.540415
+I/flutter (12078): EnergyMeter: Recovery timer resumed (foreground)
+I/flutter (12078): Wellness: Wind-down monitor resumed
+I/flutter (12078): Ripples: Lockout check timer resumed
+I/flutter (12078): DirectMessages: Refresh timer resumed
+D/InputMethodManagerUtils(12078): startInputInner - Id : 0
+I/InputMethodManager(12078): startInputInner - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
+D/InputTransport(12078): Input channel constructed: 'ClientS', fd=209
+I/InputMethodManager(12078): handleMessage: setImeVisibility visible=false
+D/InsetsController(12078): hide(ime(), fromIme=false)
+I/ImeTracker(12078): com.example.morrow_v2:31639e48: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+I/ImeFocusController(12078): onPreWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+I/ImeFocusController(12078): onPostWindowFocus: skipped hasWindowFocus=false mHasImeFocus=true
+D/InputTransport(12078): Input channel destroyed: 'ClientS', fd=209
+D/VRI[MainActivity]@5e1c100(12078): mThreadedRenderer.initializeIfNeeded()#2 mSurface={isValid=true 0xb400006f7b859a10}
+I/flutter (12078): ScreenTime: Session started at 2026-04-03 23:19:22.701463
+I/flutter (12078): EnergyMeter: Recovery timer resumed (foreground)
+I/flutter (12078): Wellness: Wind-down monitor resumed
+I/flutter (12078): Ripples: Lockout check timer resumed
+I/flutter (12078): DirectMessages: Refresh timer resumed
+D/InputMethodManagerUtils(12078): startInputInner - Id : 0
+I/InputMethodManager(12078): startInputInner - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
+D/InputTransport(12078): Input channel constructed: 'ClientS', fd=206
+I/InputMethodManager(12078): handleMessage: setImeVisibility visible=false
+D/InsetsController(12078): hide(ime(), fromIme=false)
+I/ImeTracker(12078): com.example.morrow_v2:1951fb39: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 996749930 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/VRI[MainActivity]@5e1c100(12078): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@5e1c100
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 368849450
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 462943013 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 106000920
+I/flutter (12078): GoRouter: INFO: going to /spaces
+I/Choreographer(12078): Skipped 34 frames!  The application may be doing too much work on its main thread.
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 53844367 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 523504174
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 35350025 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 574616862
+I/flutter (12078): GoRouter: INFO: getting location for name: "canvas_detail", pathParameters: {canvasId: 67d60596-98b6-49e8-8f8a-f6ba69901470}
+I/flutter (12078): GoRouter: INFO: pushing /spaces/canvas/67d60596-98b6-49e8-8f8a-f6ba69901470
+I/flutter (12078): CanvasAudioService: Starting ambient loop
+I/flutter (12078): CanvasAudioService: Playing audio/hasin2004-nature-sound-near-river-or-waterfall-247409.mp3
+V/MediaPlayer-JNI(12078): native_setup
+V/MediaPlayerNative(12078): constructor
+D/AudioSystem(12078): onNewServiceWithAdapter: media.audio_flinger service obtained 0xb400006fcb95b3b0
+D/AudioSystem(12078): getService: checking for service media.audio_flinger: 0xb400006e9b82b830
+V/MediaPlayerNative(12078): setListener
+V/MediaPlayer-JNI(12078): get_session_id()
+V/MediaPlayer-JNI(12078): setParameter: key 1400
+V/MediaPlayerNative(12078): MediaPlayer::setParameter(1400)
+V/MediaPlayer-JNI(12078): reset
+V/MediaPlayerNative(12078): reset
+V/MediaPlayer(12078): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer(12078): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+V/MediaPlayer-JNI(12078): setDataSourceFD: fd 180
+V/MediaPlayerNative(12078): setDataSource(180, 0, 576460752303423487)
+V/MediaPlayer-JNI(12078): setVolume: left 1.000000  right 1.000000
+V/MediaPlayerNative(12078): MediaPlayer::setVolume(1.000000, 1.000000)
+V/MediaPlayer-JNI(12078): setLooping: 0
+V/MediaPlayerNative(12078): MediaPlayer::setLooping
+V/MediaPlayerNative(12078): setVideoSurfaceTexture
+V/MediaPlayerNative(12078): prepareAsync
+V/MediaPlayerNative(12078): invoke 80
+V/MediaPlayerNative(12078): message received msg=200, ext1=10973, ext2=0
+W/MediaPlayerNative(12078): info/warning (10973, 0)
+V/MediaPlayerNative(12078): message received msg=1, ext1=0, ext2=0
+V/MediaPlayerNative(12078): MediaPlayer::notify() prepared
+V/MediaPlayerNative(12078): invoke 76
+V/MediaPlayerNative(12078): getDuration_l
+V/MediaPlayer-JNI(12078): getDuration: 36336 (msec)
+V/MediaPlayer-JNI(12078): getPlaybackSettings: 1.000000 1.000000 2 0
+V/MediaPlayer-JNI(12078): setPlaybackParams: 1:1.000000 1:1.000000 1:2 1:0
+V/MediaPlayerNative(12078): setPlaybackSettings: 1.000000 1.000000 2 0
+V/MediaPlayerNative(12078): getDuration_l
+V/MediaPlayer-JNI(12078): getDuration: 36336 (msec)
+V/MediaPlayerNative(12078): message received msg=6, ext1=0, ext2=0
+V/MediaPlayerNative(12078): Received media started message
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 880419950 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 604964125
+D/WindowOnBackDispatcher(12078): onBackInvoked, callback=androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@e40257b
+W/WindowOnBackDispatcher(12078): sendCancelIfRunning: isInProgress=false callback=androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@e40257b
+I/flutter (12078): CanvasAudioService: Stopped ambient loop
+V/MediaPlayer-JNI(12078): stop
+V/MediaPlayerNative(12078): stop
+V/MediaPlayerNative(12078): message received msg=8, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayer-JNI(12078): reset
+V/MediaPlayerNative(12078): reset
+V/MediaPlayer(12078): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer(12078): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+V/MediaPlayer(12078): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer(12078): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+V/MediaPlayer-JNI(12078): release
+V/MediaPlayerNative(12078): setListener
+V/MediaPlayerNative(12078): disconnect
+V/MediaPlayerNative(12078): destructor
+V/MediaPlayerNative(12078): disconnect
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 1018437445 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 850405517
+I/flutter (12078): GoRouter: INFO: getting location for name: "canvas_detail", pathParameters: {canvasId: ae3e52a4-639d-43c0-858c-8865a40d2ddc}
+I/flutter (12078): GoRouter: INFO: pushing /spaces/canvas/ae3e52a4-639d-43c0-858c-8865a40d2ddc
+I/flutter (12078): CanvasAudioService: Starting ambient loop
+I/flutter (12078): CanvasAudioService: Playing audio/hasin2004-nature-sound-near-river-or-waterfall-247409.mp3
+V/MediaPlayer-JNI(12078): native_setup
+V/MediaPlayerNative(12078): constructor
+V/MediaPlayerNative(12078): setListener
+V/MediaPlayer-JNI(12078): get_session_id()
+V/MediaPlayer-JNI(12078): setParameter: key 1400
+V/MediaPlayerNative(12078): MediaPlayer::setParameter(1400)
+V/MediaPlayer-JNI(12078): reset
+V/MediaPlayerNative(12078): reset
+V/MediaPlayer(12078): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer(12078): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+V/MediaPlayer-JNI(12078): setDataSourceFD: fd 203
+V/MediaPlayerNative(12078): setDataSource(203, 0, 576460752303423487)
+V/MediaPlayer-JNI(12078): setVolume: left 1.000000  right 1.000000
+V/MediaPlayerNative(12078): MediaPlayer::setVolume(1.000000, 1.000000)
+V/MediaPlayer-JNI(12078): setLooping: 0
+V/MediaPlayerNative(12078): MediaPlayer::setLooping
+V/MediaPlayerNative(12078): setVideoSurfaceTexture
+V/MediaPlayerNative(12078): prepareAsync
+V/MediaPlayerNative(12078): invoke 80
+V/MediaPlayerNative(12078): message received msg=200, ext1=10973, ext2=0
+W/MediaPlayerNative(12078): info/warning (10973, 0)
+V/MediaPlayerNative(12078): message received msg=1, ext1=0, ext2=0
+V/MediaPlayerNative(12078): MediaPlayer::notify() prepared
+V/MediaPlayerNative(12078): invoke 76
+V/MediaPlayerNative(12078): getDuration_l
+V/MediaPlayer-JNI(12078): getDuration: 36336 (msec)
+V/MediaPlayer-JNI(12078): getPlaybackSettings: 1.000000 1.000000 2 0
+V/MediaPlayer-JNI(12078): setPlaybackParams: 1:1.000000 1:1.000000 1:2 1:0
+V/MediaPlayerNative(12078): setPlaybackSettings: 1.000000 1.000000 2 0
+V/MediaPlayerNative(12078): getDuration_l
+V/MediaPlayer-JNI(12078): getDuration: 36336 (msec)
+V/MediaPlayerNative(12078): message received msg=6, ext1=0, ext2=0
+V/MediaPlayerNative(12078): Received media started message
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+
+══╡ EXCEPTION CAUGHT BY WIDGETS LIBRARY ╞═══════════════════════════════════════════════════════════
+The following assertion was thrown while applying parent data.:
+Incorrect use of ParentDataWidget.
+The ParentDataWidget Positioned(left: 0.2, top: 0.1) wants to apply ParentData of type
+StackParentData to a RenderObject, which has been set up to accept ParentData of incompatible type
+BoxParentData.
+Usually, this means that the Positioned widget has the wrong ancestor RenderObjectWidget. Typically,
+Positioned widgets are placed directly inside Stack widgets.
+The offending Positioned is currently placed inside a Padding widget.
+The ownership chain for the RenderObject that received the incompatible parent data was:
+  _GestureSemantics ← RawGestureDetector ← GestureDetector ← Positioned ← CanvasItemWidget ← Padding
+← SliverToBoxAdapter ← Viewport ← IgnorePointer-[GlobalKey#08064] ← Semantics ← ⋯
+
+When the exception was thrown, this was the stack:
+#0      RenderObjectElement._updateParentData.<anonymous closure> (package:flutter/src/widgets/framework.dart:6882:11)
+#1      RenderObjectElement._updateParentData (package:flutter/src/widgets/framework.dart:6899:6)
+#2      RenderObjectElement.attachRenderObject (package:flutter/src/widgets/framework.dart:6945:7)
+#3      RenderObjectElement.mount (package:flutter/src/widgets/framework.dart:6801:5)
+#4      SingleChildRenderObjectElement.mount (package:flutter/src/widgets/framework.dart:7114:11)
+...     Normal element mounting (35 frames)
+#39     Element.inflateWidget (package:flutter/src/widgets/framework.dart:4587:20)
+#40     MultiChildRenderObjectElement.inflateWidget (package:flutter/src/widgets/framework.dart:7264:36)
+#41     Element.updateChild (package:flutter/src/widgets/framework.dart:4059:18)
+#42     Element.updateChildren (package:flutter/src/widgets/framework.dart:4255:32)
+#43     MultiChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7295:17)
+#44     _ViewportElement.update (package:flutter/src/widgets/viewport.dart:264:11)
+#45     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#46     SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7122:14)
+#47     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#48     SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7122:14)
+#49     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#50     SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7122:14)
+#51     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#52     SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7122:14)
+#53     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#54     ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#55     StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#56     Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#57     StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#58     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#59     SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7122:14)
+#60     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#61     ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#62     Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#63     ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#64     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#65     SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7122:14)
+#66     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#67     ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#68     Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#69     ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#70     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#71     SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7122:14)
+#72     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#73     SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7122:14)
+#74     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#75     ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#76     StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#77     Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#78     StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#79     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#80     ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#81     Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#82     StatelessElement.update (package:flutter/src/widgets/framework.dart:5895:5)
+#83     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#84     SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7122:14)
+#85     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#86     ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#87     StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#88     Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#89     StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#90     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#91     ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#92     Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#93     ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#94     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#95     ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#96     StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#97     Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#98     StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#99     Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#100    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#101    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#102    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#103    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#104    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#105    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#106    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#107    StatelessElement.update (package:flutter/src/widgets/framework.dart:5895:5)
+#108    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#109    Element.updateChildren (package:flutter/src/widgets/framework.dart:4191:32)
+#110    MultiChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7295:17)
+#111    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#112    SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7122:14)
+#113    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#114    SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7122:14)
+#115    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#116    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#117    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#118    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#119    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#120    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#121    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#122    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#123    StatelessElement.update (package:flutter/src/widgets/framework.dart:5895:5)
+#124    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#125    SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7122:14)
+#126    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#127    Element.updateChildren (package:flutter/src/widgets/framework.dart:4191:32)
+#128    MultiChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7295:17)
+#129    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#130    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#131    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#132    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#133    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#134    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#135    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#136    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#137    StatelessElement.update (package:flutter/src/widgets/framework.dart:5895:5)
+#138    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#139    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#140    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#141    StatelessElement.update (package:flutter/src/widgets/framework.dart:5895:5)
+#142    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#143    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#144    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#145    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#146    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#147    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#148    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#149    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#150    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#151    Element.updateChildren (package:flutter/src/widgets/framework.dart:4191:32)
+#152    MultiChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7295:17)
+#153    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#154    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#155    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#156    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#157    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#158    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#159    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#160    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#161    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#162    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#163    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#164    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#165    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#166    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#167    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#168    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#169    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#170    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#171    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#172    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#173    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#174    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#175    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#176    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#177    SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7122:14)
+#178    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#179    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#180    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#181    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#182    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#183    SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7122:14)
+#184    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#185    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#186    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#187    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#188    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#189    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#190    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#191    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#192    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#193    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#194    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#195    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#196    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#197    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#198    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#199    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#200    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#201    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#202    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#203    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#204    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#205    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#206    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#207    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#208    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#209    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#210    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#211    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#212    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#213    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#214    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
+#215    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#216    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#217    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#218    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#219    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
+#220    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
+#221    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
+#222    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
+#223    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
+#224    BuildScope._tryRebuild (package:flutter/src/widgets/framework.dart:2750:15)
+#225    BuildScope._flushDirtyElements (package:flutter/src/widgets/framework.dart:2807:11)
+#226    BuildOwner.buildScope (package:flutter/src/widgets/framework.dart:3111:18)
+#227    WidgetsBinding.drawFrame (package:flutter/src/widgets/binding.dart:1302:21)
+#228    RendererBinding._handlePersistentFrameCallback (package:flutter/src/rendering/binding.dart:495:5)
+#229    SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
+#230    SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1345:9)
+#231    SchedulerBinding._handleDrawFrame (package:flutter/src/scheduler/binding.dart:1198:5)
+#232    _invoke (dart:ui/hooks.dart:356:13)
+#233    PlatformDispatcher._drawFrame (dart:ui/platform_dispatcher.dart:444:5)
+#234    _drawFrame (dart:ui/hooks.dart:328:31)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 172782874 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 857079895
+W/Sentry  (12078): Failed to delete the current session file.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+I/ample.morrow_v2(12078): Background concurrent mark compact GC freed 4076KB AllocSpace bytes, 52(2128KB) LOS objects, 52% free, 5592KB/11MB, paused 497us,7.777ms total 61.612ms
+V/MediaPlayer-JNI(12078): native_finalize
+V/MediaPlayer-JNI(12078): release
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 928474140 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 157575586
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Failed to delete the current session file.
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 643732624 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 418927121
+D/Sentry  (12078): Request failed, API returned 429
+D/Sentry  (12078): {"detail":"Sentry dropped data due to a quota or internal rate limit being reached. This will not affect your application. See https://docs.sentry.io/product/accounts/quotas/ for more information."}
+D/Sentry  (12078): The transport failed to send the envelope with response code 429
+E/Sentry  (12078): Envelope submission failed
+E/Sentry  (12078): java.lang.IllegalStateException: The transport failed to send the envelope with response code 429
+E/Sentry  (12078):      at io.sentry.transport.AsyncHttpTransport$EnvelopeSender.flush(AsyncHttpTransport.java:322)
+E/Sentry  (12078):      at io.sentry.transport.AsyncHttpTransport$EnvelopeSender.run(AsyncHttpTransport.java:247)
+E/Sentry  (12078):      at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:520)
+E/Sentry  (12078):      at java.util.concurrent.FutureTask.run(FutureTask.java:317)
+E/Sentry  (12078):      at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1154)
+E/Sentry  (12078):      at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:652)
+E/Sentry  (12078):      at java.lang.Thread.run(Thread.java:1564)
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+D/Sentry  (12078): Request failed, API returned 429
+D/Sentry  (12078): {"detail":"Sentry dropped data due to a quota or internal rate limit being reached. This will not affect your application. See https://docs.sentry.io/product/accounts/quotas/ for more information."}
+D/Sentry  (12078): The transport failed to send the envelope with response code 429
+E/Sentry  (12078): Envelope submission failed
+E/Sentry  (12078): java.lang.IllegalStateException: The transport failed to send the envelope with response code 429
+E/Sentry  (12078):      at io.sentry.transport.AsyncHttpTransport$EnvelopeSender.flush(AsyncHttpTransport.java:322)
+E/Sentry  (12078):      at io.sentry.transport.AsyncHttpTransport$EnvelopeSender.run(AsyncHttpTransport.java:247)
+E/Sentry  (12078):      at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:520)
+E/Sentry  (12078):      at java.util.concurrent.FutureTask.run(FutureTask.java:317)
+E/Sentry  (12078):      at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1154)
+E/Sentry  (12078):      at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:652)
+E/Sentry  (12078):      at java.lang.Thread.run(Thread.java:1564)
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+D/Sentry  (12078): Request failed, API returned 429
+D/Sentry  (12078): {"detail":"Sentry dropped data due to a quota or internal rate limit being reached. This will not affect your application. See https://docs.sentry.io/product/accounts/quotas/ for more information."}
+D/Sentry  (12078): The transport failed to send the envelope with response code 429
+E/Sentry  (12078): Envelope submission failed
+E/Sentry  (12078): java.lang.IllegalStateException: The transport failed to send the envelope with response code 429
+E/Sentry  (12078):      at io.sentry.transport.AsyncHttpTransport$EnvelopeSender.flush(AsyncHttpTransport.java:322)
+E/Sentry  (12078):      at io.sentry.transport.AsyncHttpTransport$EnvelopeSender.run(AsyncHttpTransport.java:247)
+E/Sentry  (12078):      at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:520)
+E/Sentry  (12078):      at java.util.concurrent.FutureTask.run(FutureTask.java:317)
+E/Sentry  (12078):      at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1154)
+E/Sentry  (12078):      at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:652)
+E/Sentry  (12078):      at java.lang.Thread.run(Thread.java:1564)
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 503781340 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 535314334
+D/Sentry  (12078): Request failed, API returned 429
+D/Sentry  (12078): {"detail":"Sentry dropped data due to a quota or internal rate limit being reached. This will not affect your application. See https://docs.sentry.io/product/accounts/quotas/ for more information."}
+D/Sentry  (12078): The transport failed to send the envelope with response code 429
+E/Sentry  (12078): Envelope submission failed
+E/Sentry  (12078): java.lang.IllegalStateException: The transport failed to send the envelope with response code 429
+E/Sentry  (12078):      at io.sentry.transport.AsyncHttpTransport$EnvelopeSender.flush(AsyncHttpTransport.java:322)
+E/Sentry  (12078):      at io.sentry.transport.AsyncHttpTransport$EnvelopeSender.run(AsyncHttpTransport.java:247)
+E/Sentry  (12078):      at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:520)
+E/Sentry  (12078):      at java.util.concurrent.FutureTask.run(FutureTask.java:317)
+E/Sentry  (12078):      at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1154)
+E/Sentry  (12078):      at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:652)
+E/Sentry  (12078):      at java.lang.Thread.run(Thread.java:1564)
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+D/Sentry  (12078): Request failed, API returned 429
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+D/Sentry  (12078): {"detail":"Sentry dropped data due to a quota or internal rate limit being reached. This will not affect your application. See https://docs.sentry.io/product/accounts/quotas/ for more information."}
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+D/Sentry  (12078): The transport failed to send the envelope with response code 429
+W/Sentry  (12078): Submit cancelled
+E/Sentry  (12078): Envelope submission failed
+E/Sentry  (12078): java.lang.IllegalStateException: The transport failed to send the envelope with response code 429
+E/Sentry  (12078):      at io.sentry.transport.AsyncHttpTransport$EnvelopeSender.flush(AsyncHttpTransport.java:322)
+E/Sentry  (12078):      at io.sentry.transport.AsyncHttpTransport$EnvelopeSender.run(AsyncHttpTransport.java:247)
+E/Sentry  (12078):      at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:520)
+E/Sentry  (12078):      at java.util.concurrent.FutureTask.run(FutureTask.java:317)
+E/Sentry  (12078):      at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1154)
+E/Sentry  (12078):      at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:652)
+E/Sentry  (12078):      at java.lang.Thread.run(Thread.java:1564)
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 572485515 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 727735019
+D/Sentry  (12078): Request failed, API returned 429
+D/Sentry  (12078): {"detail":"Sentry dropped data due to a quota or internal rate limit being reached. This will not affect your application. See https://docs.sentry.io/product/accounts/quotas/ for more information."}
+D/Sentry  (12078): The transport failed to send the envelope with response code 429
+E/Sentry  (12078): Envelope submission failed
+E/Sentry  (12078): java.lang.IllegalStateException: The transport failed to send the envelope with response code 429
+E/Sentry  (12078):      at io.sentry.transport.AsyncHttpTransport$EnvelopeSender.flush(AsyncHttpTransport.java:322)
+E/Sentry  (12078):      at io.sentry.transport.AsyncHttpTransport$EnvelopeSender.run(AsyncHttpTransport.java:247)
+E/Sentry  (12078):      at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:520)
+E/Sentry  (12078):      at java.util.concurrent.FutureTask.run(FutureTask.java:317)
+E/Sentry  (12078):      at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1154)
+E/Sentry  (12078):      at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:652)
+E/Sentry  (12078):      at java.lang.Thread.run(Thread.java:1564)
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+D/Sentry  (12078): Request failed, API returned 429
+D/Sentry  (12078): {"detail":"Sentry dropped data due to a quota or internal rate limit being reached. This will not affect your application. See https://docs.sentry.io/product/accounts/quotas/ for more information."}
+D/Sentry  (12078): The transport failed to send the envelope with response code 429
+E/Sentry  (12078): Envelope submission failed
+E/Sentry  (12078): java.lang.IllegalStateException: The transport failed to send the envelope with response code 429
+E/Sentry  (12078):      at io.sentry.transport.AsyncHttpTransport$EnvelopeSender.flush(AsyncHttpTransport.java:322)
+E/Sentry  (12078):      at io.sentry.transport.AsyncHttpTransport$EnvelopeSender.run(AsyncHttpTransport.java:247)
+E/Sentry  (12078):      at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:520)
+E/Sentry  (12078):      at java.util.concurrent.FutureTask.run(FutureTask.java:317)
+E/Sentry  (12078):      at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1154)
+E/Sentry  (12078):      at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:652)
+E/Sentry  (12078):      at java.lang.Thread.run(Thread.java:1564)
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 756561904 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 854163525
+Another exception was thrown: Incorrect use of ParentDataWidget.
+D/Sentry  (12078): Request failed, API returned 429
+Another exception was thrown: Incorrect use of ParentDataWidget.
+D/Sentry  (12078): {"detail":"Sentry dropped data due to a quota or internal rate limit being reached. This will not affect your application. See https://docs.sentry.io/product/accounts/quotas/ for more information."}
+D/Sentry  (12078): The transport failed to send the envelope with response code 429
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+E/Sentry  (12078): Envelope submission failed
+E/Sentry  (12078): java.lang.IllegalStateException: The transport failed to send the envelope with response code 429
+E/Sentry  (12078):      at io.sentry.transport.AsyncHttpTransport$EnvelopeSender.flush(AsyncHttpTransport.java:322)
+E/Sentry  (12078):      at io.sentry.transport.AsyncHttpTransport$EnvelopeSender.run(AsyncHttpTransport.java:247)
+E/Sentry  (12078):      at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:520)
+E/Sentry  (12078):      at java.util.concurrent.FutureTask.run(FutureTask.java:317)
+E/Sentry  (12078):      at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1154)
+E/Sentry  (12078):      at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:652)
+E/Sentry  (12078):      at java.lang.Thread.run(Thread.java:1564)
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+I/VRI[MainActivity]@5e1c100(12078): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@5e1c100
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 833020353 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/VRI[MainActivity]@5e1c100(12078): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@5e1c100
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 664198319
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 967962922 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 803623421
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 183978884 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 771909067
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 290951513 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 1004756176
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 741941266 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 213917779
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 968376187 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 471628001
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+D/WindowOnBackDispatcher(12078): onBackInvoked, callback=androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@e40257b
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/WindowOnBackDispatcher(12078): sendCancelIfRunning: isInProgress=false callback=androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@e40257b
+I/flutter (12078): CanvasAudioService: Stopped ambient loop
+V/MediaPlayer-JNI(12078): stop
+V/MediaPlayerNative(12078): stop
+V/MediaPlayerNative(12078): message received msg=8, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayer-JNI(12078): reset
+V/MediaPlayerNative(12078): reset
+V/MediaPlayer(12078): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer(12078): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+V/MediaPlayer(12078): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer(12078): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+V/MediaPlayer-JNI(12078): release
+V/MediaPlayerNative(12078): setListener
+V/MediaPlayerNative(12078): disconnect
+V/MediaPlayerNative(12078): destructor
+V/MediaPlayerNative(12078): disconnect
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 771327588 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 744270269
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 354650129 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 1025754943
+I/flutter (12078): GoRouter: INFO: getting location for name: "canvas_detail", pathParameters: {canvasId: 86163aaa-3d8c-4cb6-ace2-bcae22ea1560}
+I/flutter (12078): GoRouter: INFO: pushing /spaces/canvas/86163aaa-3d8c-4cb6-ace2-bcae22ea1560
+I/flutter (12078): CanvasAudioService: Starting ambient loop
+I/flutter (12078): CanvasAudioService: Playing audio/hasin2004-nature-sound-near-river-or-waterfall-247409.mp3
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+V/MediaPlayer-JNI(12078): native_finalize
+V/MediaPlayer-JNI(12078): release
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+V/MediaPlayer-JNI(12078): native_setup
+V/MediaPlayerNative(12078): constructor
+V/MediaPlayerNative(12078): setListener
+V/MediaPlayer-JNI(12078): get_session_id()
+V/MediaPlayer-JNI(12078): setParameter: key 1400
+V/MediaPlayerNative(12078): MediaPlayer::setParameter(1400)
+V/MediaPlayer-JNI(12078): reset
+V/MediaPlayerNative(12078): reset
+V/MediaPlayer(12078): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer(12078): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+V/MediaPlayer-JNI(12078): setDataSourceFD: fd 204
+V/MediaPlayerNative(12078): setDataSource(204, 0, 576460752303423487)
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+V/MediaPlayer-JNI(12078): setVolume: left 1.000000  right 1.000000
+V/MediaPlayerNative(12078): MediaPlayer::setVolume(1.000000, 1.000000)
+V/MediaPlayer-JNI(12078): setLooping: 0
+V/MediaPlayerNative(12078): MediaPlayer::setLooping
+V/MediaPlayerNative(12078): setVideoSurfaceTexture
+V/MediaPlayerNative(12078): prepareAsync
+V/MediaPlayerNative(12078): invoke 80
+V/MediaPlayerNative(12078): message received msg=200, ext1=10973, ext2=0
+W/MediaPlayerNative(12078): info/warning (10973, 0)
+W/Sentry  (12078): Failed to delete the current session file.
+V/MediaPlayerNative(12078): message received msg=1, ext1=0, ext2=0
+V/MediaPlayerNative(12078): MediaPlayer::notify() prepared
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+V/MediaPlayerNative(12078): invoke 76
+V/MediaPlayerNative(12078): getDuration_l
+V/MediaPlayer-JNI(12078): getDuration: 36336 (msec)
+V/MediaPlayer-JNI(12078): getPlaybackSettings: 1.000000 1.000000 2 0
+V/MediaPlayer-JNI(12078): setPlaybackParams: 1:1.000000 1:1.000000 1:2 1:0
+V/MediaPlayerNative(12078): setPlaybackSettings: 1.000000 1.000000 2 0
+V/MediaPlayerNative(12078): getDuration_l
+V/MediaPlayer-JNI(12078): getDuration: 36336 (msec)
+V/MediaPlayerNative(12078): message received msg=6, ext1=0, ext2=0
+V/MediaPlayerNative(12078): Received media started message
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 960982314 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 429835284
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 614070939 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 48137954
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 473770977 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 326747215
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 841566830 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 634833968
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 892424697 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 1039987808
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 247693024 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 428228394
+D/WindowOnBackDispatcher(12078): onBackInvoked, callback=androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@e40257b
+W/WindowOnBackDispatcher(12078): sendCancelIfRunning: isInProgress=false callback=androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@e40257b
+I/flutter (12078): CanvasAudioService: Stopped ambient loop
+V/MediaPlayer-JNI(12078): stop
+V/MediaPlayerNative(12078): stop
+V/MediaPlayerNative(12078): message received msg=8, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayer-JNI(12078): reset
+V/MediaPlayerNative(12078): reset
+V/MediaPlayer(12078): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer(12078): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+V/MediaPlayer(12078): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer(12078): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+V/MediaPlayer-JNI(12078): release
+V/MediaPlayerNative(12078): setListener
+V/MediaPlayerNative(12078): disconnect
+V/MediaPlayerNative(12078): destructor
+V/MediaPlayerNative(12078): disconnect
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 935215244 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 528103629
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 785045125 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 893071094
+I/flutter (12078): GoRouter: INFO: getting location for name: "canvas_detail", pathParameters: {canvasId: 6611b585-ca53-442d-8e90-fa3e6e943e4e}
+I/flutter (12078): GoRouter: INFO: pushing /spaces/canvas/6611b585-ca53-442d-8e90-fa3e6e943e4e
+I/flutter (12078): CanvasAudioService: Starting ambient loop
+I/flutter (12078): CanvasAudioService: Playing audio/hasin2004-nature-sound-near-river-or-waterfall-247409.mp3
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+V/MediaPlayer-JNI(12078): native_setup
+V/MediaPlayerNative(12078): constructor
+V/MediaPlayerNative(12078): setListener
+V/MediaPlayer-JNI(12078): get_session_id()
+V/MediaPlayer-JNI(12078): setParameter: key 1400
+V/MediaPlayerNative(12078): MediaPlayer::setParameter(1400)
+V/MediaPlayer-JNI(12078): reset
+V/MediaPlayerNative(12078): reset
+V/MediaPlayer(12078): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer(12078): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+V/MediaPlayer-JNI(12078): setDataSourceFD: fd 210
+V/MediaPlayerNative(12078): setDataSource(210, 0, 576460752303423487)
+V/MediaPlayer-JNI(12078): setVolume: left 1.000000  right 1.000000
+V/MediaPlayerNative(12078): MediaPlayer::setVolume(1.000000, 1.000000)
+V/MediaPlayer-JNI(12078): setLooping: 0
+V/MediaPlayerNative(12078): MediaPlayer::setLooping
+V/MediaPlayerNative(12078): setVideoSurfaceTexture
+V/MediaPlayerNative(12078): prepareAsync
+V/MediaPlayerNative(12078): invoke 80
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+V/MediaPlayerNative(12078): message received msg=200, ext1=10973, ext2=0
+W/MediaPlayerNative(12078): info/warning (10973, 0)
+V/MediaPlayerNative(12078): message received msg=1, ext1=0, ext2=0
+V/MediaPlayerNative(12078): MediaPlayer::notify() prepared
+V/MediaPlayer-JNI(12078): native_finalize
+V/MediaPlayer-JNI(12078): release
+V/MediaPlayerNative(12078): invoke 76
+V/MediaPlayerNative(12078): getDuration_l
+V/MediaPlayer-JNI(12078): getDuration: 36336 (msec)
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+V/MediaPlayer-JNI(12078): getPlaybackSettings: 1.000000 1.000000 2 0
+V/MediaPlayer-JNI(12078): setPlaybackParams: 1:1.000000 1:1.000000 1:2 1:0
+V/MediaPlayerNative(12078): setPlaybackSettings: 1.000000 1.000000 2 0
+V/MediaPlayerNative(12078): getDuration_l
+V/MediaPlayer-JNI(12078): getDuration: 36336 (msec)
+V/MediaPlayerNative(12078): message received msg=6, ext1=0, ext2=0
+V/MediaPlayerNative(12078): Received media started message
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 262824755 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 86180004
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 1035179246 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 276652504
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 1037590669 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 1024641084
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): Failed to delete the current session file.
+W/Sentry  (12078): Submit cancelled
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+W/Sentry  (12078): Submit cancelled
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 509304224 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 397481325
+D/WindowOnBackDispatcher(12078): onBackInvoked, callback=androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@e40257b
+W/WindowOnBackDispatcher(12078): sendCancelIfRunning: isInProgress=false callback=androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@e40257b
+I/flutter (12078): CanvasAudioService: Stopped ambient loop
+V/MediaPlayer-JNI(12078): stop
+V/MediaPlayerNative(12078): stop
+V/MediaPlayerNative(12078): message received msg=8, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayer-JNI(12078): reset
+V/MediaPlayerNative(12078): reset
+V/MediaPlayer(12078): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer(12078): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+V/MediaPlayer(12078): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer(12078): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+V/MediaPlayer-JNI(12078): release
+V/MediaPlayerNative(12078): setListener
+V/MediaPlayerNative(12078): disconnect
+V/MediaPlayerNative(12078): destructor
+V/MediaPlayerNative(12078): disconnect
+V/MediaPlayer-JNI(12078): native_finalize
+V/MediaPlayer-JNI(12078): release
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 403102318 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 489683862
+I/flutter (12078): GoRouter: INFO: getting location for name: "canvas_detail", pathParameters: {canvasId: 05612b2f-c8fd-4e04-9f24-14e64c5876f0}
+I/flutter (12078): GoRouter: INFO: pushing /spaces/canvas/05612b2f-c8fd-4e04-9f24-14e64c5876f0
+I/flutter (12078): CanvasAudioService: Starting ambient loop
+I/flutter (12078): CanvasAudioService: Playing audio/hasin2004-nature-sound-near-river-or-waterfall-247409.mp3
+Another exception was thrown: Incorrect use of ParentDataWidget.
+W/Sentry  (12078): 1 envelope items will be dropped due rate limiting.
+V/MediaPlayer-JNI(12078): native_setup
+V/MediaPlayerNative(12078): constructor
+V/MediaPlayerNative(12078): setListener
+V/MediaPlayer-JNI(12078): get_session_id()
+V/MediaPlayer-JNI(12078): setParameter: key 1400
+V/MediaPlayerNative(12078): MediaPlayer::setParameter(1400)
+V/MediaPlayer-JNI(12078): reset
+V/MediaPlayerNative(12078): reset
+V/MediaPlayer(12078): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer(12078): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+V/MediaPlayer-JNI(12078): setDataSourceFD: fd 215
+V/MediaPlayerNative(12078): setDataSource(215, 0, 576460752303423487)
+V/MediaPlayer-JNI(12078): setVolume: left 1.000000  right 1.000000
+V/MediaPlayerNative(12078): MediaPlayer::setVolume(1.000000, 1.000000)
+V/MediaPlayer-JNI(12078): setLooping: 0
+V/MediaPlayerNative(12078): MediaPlayer::setLooping
+V/MediaPlayerNative(12078): setVideoSurfaceTexture
+V/MediaPlayerNative(12078): prepareAsync
+V/MediaPlayerNative(12078): invoke 80
+V/MediaPlayerNative(12078): message received msg=200, ext1=10973, ext2=0
+W/MediaPlayerNative(12078): info/warning (10973, 0)
+V/MediaPlayerNative(12078): message received msg=1, ext1=0, ext2=0
+V/MediaPlayerNative(12078): MediaPlayer::notify() prepared
+V/MediaPlayerNative(12078): invoke 76
+V/MediaPlayerNative(12078): getDuration_l
+V/MediaPlayer-JNI(12078): getDuration: 36336 (msec)
+V/MediaPlayer-JNI(12078): getPlaybackSettings: 1.000000 1.000000 2 0
+V/MediaPlayer-JNI(12078): setPlaybackParams: 1:1.000000 1:1.000000 1:2 1:0
+V/MediaPlayerNative(12078): setPlaybackSettings: 1.000000 1.000000 2 0
+V/MediaPlayerNative(12078): getDuration_l
+V/MediaPlayer-JNI(12078): getDuration: 36336 (msec)
+V/MediaPlayerNative(12078): message received msg=6, ext1=0, ext2=0
+V/MediaPlayerNative(12078): Received media started message
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+I/GestureDetector(12078): obtain mCurrentDownEvent. id: 489562456 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(12078): obtain mCurrentMotionEventRaw. action: 2 id: 232745983
+D/WindowOnBackDispatcher(12078): onBackInvoked, callback=androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@e40257b
+W/WindowOnBackDispatcher(12078): sendCancelIfRunning: isInProgress=false callback=androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@e40257b
+I/flutter (12078): CanvasAudioService: Stopped ambient loop
+V/MediaPlayer-JNI(12078): stop
+V/MediaPlayerNative(12078): stop
+V/MediaPlayerNative(12078): message received msg=8, ext1=0, ext2=0
+V/MediaPlayerNative(12078): message received msg=211, ext1=0, ext2=0
+V/MediaPlayer-JNI(12078): reset
+V/MediaPlayerNative(12078): reset
+V/MediaPlayer(12078): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer(12078): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+V/MediaPlayer(12078): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer(12078): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+V/MediaPlayer-JNI(12078): release
+V/MediaPlayerNative(12078): setListener
+V/MediaPlayerNative(12078): disconnect
+V/MediaPlayerNative(12078): destructor
+V/MediaPlayerNative(12078): disconnect
+V/MediaPlayer-JNI(12078): native_finalize
+V/MediaPlayer-JNI(12078): release
+I/VRI[MainActivity]@5e1c100(12078): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@5e1c100

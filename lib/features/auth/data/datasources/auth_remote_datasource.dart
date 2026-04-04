@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:gotrue/gotrue.dart' as gotrue;
 import 'package:oasis_v2/core/network/supabase_client.dart';
 import 'package:oasis_v2/features/auth/domain/models/auth_models.dart';
@@ -71,7 +72,29 @@ class AuthRemoteDatasource {
 
   Future<void> signInWithGoogle() async {
     try {
-      await _supabase.auth.signInWithOAuth(OAuthProvider.google);
+      final googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'],
+        serverClientId: const String.fromEnvironment('GOOGLE_WEB_CLIENT_ID'),
+      );
+
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        throw Exception('Google sign-in was cancelled');
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+      final accessToken = googleAuth.accessToken;
+
+      if (idToken == null) {
+        throw Exception('No ID token returned from Google');
+      }
+
+      await _supabase.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: accessToken,
+      );
     } on AuthException catch (e) {
       debugPrint('[AuthRemoteDatasource] Google sign in error: ${e.message}');
       throw Exception(e.message);

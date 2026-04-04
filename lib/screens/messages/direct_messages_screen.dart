@@ -48,9 +48,11 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   final TextEditingController _searchController = TextEditingController();
   double _scrollVelocity = 0;
   double _lastScrollOffset = 0;
-  bool _useMockData = true;
+  // bool _useMockData = true;
+  bool _useMockData = false;
   String _searchQuery = '';
-  final List<String> _pinnedMockIds = [];
+  bool _isEditingFavorites = false;
+  // final List<String> _pinnedMockIds = [];
 
   final Map<String, int> _conversationSizes = {};
   Conversation? _previewConversation;
@@ -128,11 +130,11 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
       return;
     }
 
-    final mockConv =
-        _generateMockConversations().where((c) => c.id == convId).firstOrNull;
-    if (mockConv != null) {
-      setState(() => _selectedConversation = mockConv);
-    }
+    // final mockConv =
+    //     _generateMockConversations().where((c) => c.id == convId).firstOrNull;
+    // if (mockConv != null) {
+    //   setState(() => _selectedConversation = mockConv);
+    // }
   }
 
   Future<void> _loadConversationSizes() async {
@@ -190,17 +192,17 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   void _togglePin(String id) {
     if (!mounted) return;
     HapticFeedback.mediumImpact();
-    if (id.startsWith('mock_')) {
-      setState(() {
-        if (_pinnedMockIds.contains(id)) {
-          _pinnedMockIds.remove(id);
-        } else {
-          _pinnedMockIds.add(id);
-        }
-      });
-    } else {
+    // if (id.startsWith('mock_')) {
+    //   setState(() {
+    //     if (_pinnedMockIds.contains(id)) {
+    //       _pinnedMockIds.remove(id);
+    //     } else {
+    //       _pinnedMockIds.add(id);
+    //     }
+    //   });
+    // } else {
       context.read<ConversationProvider>().togglePin(id);
-    }
+    // }
   }
 
   void _handleLongPressBubble(Conversation conversation, Offset position) {
@@ -246,41 +248,39 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
           ),
         ),
         PopupMenuItem(
+          // onTap: () {
+          //   if (conversation.id.startsWith('mock_')) {
+          //     setState(() {
+          //       if (_pinnedMockIds.contains(conversation.id)) {
+          //         _pinnedMockIds.remove(conversation.id);
+          //       } else {
+          //         _pinnedMockIds.add(conversation.id);
+          //       }
+          //     });
+          //     HapticFeedback.mediumImpact();
+          //   } else {
+          //     context.read<ConversationProvider>().togglePin(conversation.id);
+          //   }
+          // },
           onTap: () {
-            if (conversation.id.startsWith('mock_')) {
-              setState(() {
-                if (_pinnedMockIds.contains(conversation.id)) {
-                  _pinnedMockIds.remove(conversation.id);
-                } else {
-                  _pinnedMockIds.add(conversation.id);
-                }
-              });
-              HapticFeedback.mediumImpact();
-            } else {
-              context.read<ConversationProvider>().togglePin(conversation.id);
-            }
+            context.read<ConversationProvider>().togglePin(conversation.id);
+            HapticFeedback.mediumImpact();
           },
           child: Row(
             children: [
               Icon(
-                (conversation.id.startsWith('mock_')
-                        ? _pinnedMockIds.contains(conversation.id)
-                        : conversation.isPinned)
+                conversation.isPinned
                     ? FluentIcons.pin_off_24_regular
                     : FluentIcons.pin_24_regular,
                 size: 20,
                 color:
-                    (conversation.id.startsWith('mock_')
-                            ? _pinnedMockIds.contains(conversation.id)
-                            : conversation.isPinned)
+                    conversation.isPinned
                         ? Colors.redAccent
                         : colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: 12),
               Text(
-                (conversation.id.startsWith('mock_')
-                        ? _pinnedMockIds.contains(conversation.id)
-                        : conversation.isPinned)
+                conversation.isPinned
                     ? 'Unfavorite'
                     : 'Add to Favorites',
               ),
@@ -750,7 +750,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
 
         final List<Conversation> allConversations = [
           ...conversations,
-          if (_useMockData) ..._generateMockConversations(),
+          // if (_useMockData) ..._generateMockConversations(),
         ];
 
         final List<Conversation> filteredConversations =
@@ -833,18 +833,21 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
                             letterSpacing: 1.5,
                           ),
                         ),
-                        Text(
-                              'LONG-PRESS TO RESIZE',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.primary.withValues(
-                                  alpha: 0.4,
-                                ),
-                                fontWeight: FontWeight.w800,
-                                fontSize: 8,
-                              ),
-                            )
-                            .animate(onPlay: (c) => c.repeat())
-                            .shimmer(delay: 2.seconds),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _isEditingFavorites = !_isEditingFavorites;
+                            });
+                          },
+                          child: Text(
+                            _isEditingFavorites ? 'DONE' : 'EDIT',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -860,6 +863,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
                       conversationSizes: _conversationSizes,
                       onToggleSize: _toggleSize,
                       onTogglePin: _togglePin,
+                      isEditing: _isEditingFavorites,
                     ),
                   ),
                 ),
@@ -906,71 +910,71 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
     );
   }
 
-  List<Conversation> _generateMockConversations() {
-    final names = [
-      'Alex Rivera',
-      'Sarah Chen',
-      'Jordan Smith',
-      'Mila Kunis',
-      'David Bowie',
-      'Elena Gilbert',
-      'Marcus Aurelius',
-      'Luna Lovegood',
-      'Peter Parker',
-      'Tony Stark',
-      'Wanda Maximoff',
-      'Steve Rogers',
-      'Natasha Romanoff',
-      'Bruce Banner',
-      'Diana Prince',
-      'Arthur Curry',
-      'Barry Allen',
-      'Victor Stone',
-      'Hal Jordan',
-      'Oliver Queen',
-    ];
-
-    // Default some to pinned if none are set yet (first run experience)
-    if (_pinnedMockIds.isEmpty && _searchQuery.isEmpty) {
-      for (int i = 0; i < 6; i++) {
-        _pinnedMockIds.add('mock_$i');
-      }
-    }
-
-    return List.generate(names.length, (index) {
-      final id = 'mock_$index';
-      int unread = 0;
-      List<String> mockMessages = [];
-      if (index == 0) {
-        unread = 3;
-        mockMessages = [
-          "Hey!",
-          "The bubbles look amazing 🫧",
-          "Can't wait to test!",
-        ];
-      } else if (index == 12) {
-        unread = 5;
-        mockMessages = [
-          "Wait, stealth preview?",
-          "Cool",
-          "Privacy game changer",
-          "Coffee?",
-          "Bubble tea!",
-        ];
-      }
-      return Conversation(
-        id: id,
-        otherUserId: 'user_$index',
-        otherUserName: names[index],
-        otherUserAvatar: '',
-        lastMessage: mockMessages.isNotEmpty ? mockMessages.last : 'Hello!',
-        lastMessageTime: DateTime.now().subtract(Duration(minutes: index * 15)),
-        unreadCount: unread,
-        isPinned: _pinnedMockIds.contains(id),
-        recentMessages: mockMessages,
-      );
-    });
-  }
+  // List<Conversation> _generateMockConversations() {
+  //   final names = [
+  //     'Alex Rivera',
+  //     'Sarah Chen',
+  //     'Jordan Smith',
+  //     'Mila Kunis',
+  //     'David Bowie',
+  //     'Elena Gilbert',
+  //     'Marcus Aurelius',
+  //     'Luna Lovegood',
+  //     'Peter Parker',
+  //     'Tony Stark',
+  //     'Wanda Maximoff',
+  //     'Steve Rogers',
+  //     'Natasha Romanoff',
+  //     'Bruce Banner',
+  //     'Diana Prince',
+  //     'Arthur Curry',
+  //     'Barry Allen',
+  //     'Victor Stone',
+  //     'Hal Jordan',
+  //     'Oliver Queen',
+  //   ];
+  //
+  //   // Default some to pinned if none are set yet (first run experience)
+  //   if (_pinnedMockIds.isEmpty && _searchQuery.isEmpty) {
+  //     for (int i = 0; i < 6; i++) {
+  //       _pinnedMockIds.add('mock_$i');
+  //     }
+  //   }
+  //
+  //   return List.generate(names.length, (index) {
+  //     final id = 'mock_$index';
+  //     int unread = 0;
+  //     List<String> mockMessages = [];
+  //     if (index == 0) {
+  //       unread = 3;
+  //       mockMessages = [
+  //         "Hey!",
+  //         "The bubbles look amazing 🫧",
+  //         "Can't wait to test!",
+  //       ];
+  //     } else if (index == 12) {
+  //       unread = 5;
+  //       mockMessages = [
+  //         "Wait, stealth preview?",
+  //         "Cool",
+  //         "Privacy game changer",
+  //         "Coffee?",
+  //         "Bubble tea!",
+  //       ];
+  //     }
+  //     return Conversation(
+  //       id: id,
+  //       otherUserId: 'user_$index',
+  //       otherUserName: names[index],
+  //       otherUserAvatar: '',
+  //       lastMessage: mockMessages.isNotEmpty ? mockMessages.last : 'Hello!',
+  //       lastMessageTime: DateTime.now().subtract(Duration(minutes: index * 15)),
+  //       unreadCount: unread,
+  //       isPinned: _pinnedMockIds.contains(id),
+  //       recentMessages: mockMessages,
+  //     );
+  //   });
+  // }
 
   void _handleConversationTap(Conversation conversation, bool isDesktop) async {
     final vaultService = Provider.of<VaultService>(context, listen: false);
@@ -1016,6 +1020,7 @@ class _BentoPinnedGrid extends StatelessWidget {
   final Map<String, int> conversationSizes;
   final Function(String) onToggleSize;
   final Function(String) onTogglePin;
+  final bool isEditing;
   const _BentoPinnedGrid({
     required this.conversations,
     required this.onTap,
@@ -1023,6 +1028,7 @@ class _BentoPinnedGrid extends StatelessWidget {
     required this.conversationSizes,
     required this.onToggleSize,
     required this.onTogglePin,
+    this.isEditing = false,
   });
   @override
   Widget build(BuildContext context) {
@@ -1051,6 +1057,7 @@ class _BentoPinnedGrid extends StatelessWidget {
                 selected: isSelected(conversation),
                 isLarge: mainAxis > 1,
                 isWide: crossAxis > 2,
+                isEditing: isEditing,
               ),
             );
           }).toList(),
@@ -1066,6 +1073,7 @@ class _BentoItem extends StatelessWidget {
   final bool selected;
   final bool isLarge;
   final bool isWide;
+  final bool isEditing;
   const _BentoItem({
     super.key,
     required this.conversation,
@@ -1075,6 +1083,7 @@ class _BentoItem extends StatelessWidget {
     required this.selected,
     required this.isLarge,
     this.isWide = false,
+    this.isEditing = false,
   });
   @override
   Widget build(BuildContext context) {
@@ -1296,6 +1305,26 @@ class _BentoItem extends StatelessWidget {
                                 ],
                               ),
                     ),
+                    if (isEditing)
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: onTogglePin,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: colorScheme.errorContainer.withAlpha(200),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.close_rounded,
+                              size: 16,
+                              color: colorScheme.onErrorContainer,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
