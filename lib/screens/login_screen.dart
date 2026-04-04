@@ -109,135 +109,103 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 16.0),
               Text(
                 'Welcome Back',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 8.0),
-                Text(
-                  'Sign in to continue',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
-                  textAlign: TextAlign.center,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8.0),
+              Text(
+                'Sign in to continue',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 48.0),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email_outlined),
+                  border: OutlineInputBorder(),
                 ),
-                const SizedBox(height: 48.0),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  if (!value.contains('@')) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16.0),
+              TextFormField(
+                controller: _passwordController,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: Icon(Icons.lock_outline),
+                  border: OutlineInputBorder(),
                 ),
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(),
-                  ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed:
-                        (_isLoggingIn || _isResettingPassword)
-                            ? null
-                            : _resetPassword,
-                    child:
-                        _isResettingPassword
-                            ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                            : const Text('Forgot Password?'),
-                  ),
-                ),
-                const SizedBox(height: 24.0),
-                AppButton.primary(
-                  text: 'Sign In',
-                  isLoading: _isLoggingIn,
-                  onPressed: (_isLoggingIn || _isResettingPassword) ? null : _login,
-                ),
-                const SizedBox(height: 16.0),
-                AppButton.secondary(
-                  text: 'Sign in with Google',
-                  disabled: _isLoggingIn || _isResettingPassword,
-                  icon: Image.network(
-                    'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
-                    height: 24,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
-                      Icons.g_mobiledata,
-                      size: 24,
-                      color: Colors.red,
-                    ),
-                  ),
-                  onPressed: () async {
-                    setState(() => _isLoggingIn = true);
-                    try {
-                      final authService = Provider.of<AuthService>(
-                        context,
-                        listen: false,
-                      );
-                      final addAccount = GoRouterState.of(context).uri.queryParameters['add_account'] == 'true';
-                      await authService.signInWithGoogle(forceSignIn: addAccount);
-                      if (mounted) {
-                        context.go('/feed');
-                      }
-                    } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(e.toString())),
-                        );
-                      }
-                    } finally {
-                      if (mounted) setState(() => _isLoggingIn = false);
-                    }
-                  },
-                ),
-                const SizedBox(height: 16.0),
-                TextButton(
+                obscureText: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your password';
+                  }
+                  if (value.length < 6) {
+                    return 'Password must be at least 6 characters';
+                  }
+                  return null;
+                },
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
                   onPressed:
                       (_isLoggingIn || _isResettingPassword)
                           ? null
-                          : () {
-                              final addAccount = GoRouterState.of(context).uri.queryParameters['add_account'];
-                              if (addAccount == 'true') {
-                                context.go('/register?add_account=true');
-                              } else {
-                                context.go('/register');
-                              }
-                            },
-                  child: const Text("Don't have an account? Sign Up"),
+                          : _resetPassword,
+                  child:
+                      _isResettingPassword
+                          ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : const Text('Forgot Password?'),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 24.0),
+              AppButton.primary(
+                text: 'Sign In',
+                isLoading: _isLoggingIn,
+                onPressed:
+                    (_isLoggingIn || _isResettingPassword) ? null : _login,
+              ),
+              const SizedBox(height: 16.0),
+              TextButton(
+                onPressed:
+                    (_isLoggingIn || _isResettingPassword)
+                        ? null
+                        : () {
+                          final addAccount =
+                              GoRouterState.of(
+                                context,
+                              ).uri.queryParameters['add_account'];
+                          if (addAccount == 'true') {
+                            context.go('/register?add_account=true');
+                          } else {
+                            context.go('/register');
+                          }
+                        },
+                child: const Text("Don't have an account? Sign Up"),
+              ),
+            ],
           ),
         ),
+      ),
     );
   }
 }

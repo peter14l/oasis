@@ -36,6 +36,14 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="oasis"/>
             </intent-filter>
+            <!-- App Links (Android) for https://oasis-web-red.vercel.app -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https"
+                      android:host="oasis-web-red.vercel.app"/>
+            </intent-filter>
         </activity>
 
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />

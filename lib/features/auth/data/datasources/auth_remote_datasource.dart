@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:gotrue/gotrue.dart' as gotrue;
+import 'package:http/http.dart' as http;
 import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis_v2/core/config/supabase_config.dart';
 import 'package:oasis_v2/features/auth/domain/models/auth_models.dart';
 import 'package:oasis_v2/services/session_registry_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,6 +14,9 @@ class AuthRemoteDatasource {
 
   Future<RegisteredAccount> signInWithEmail(AuthCredentials credentials) async {
     try {
+      debugPrint(
+        '[AuthRemoteDatasource] Starting sign in with email: ${credentials.email}',
+      );
       final response = await _supabase.auth.signInWithPassword(
         email: credentials.email,
         password: credentials.password,
@@ -19,13 +25,17 @@ class AuthRemoteDatasource {
       final user = response.user;
       final session = response.session;
 
+      debugPrint(
+        '[AuthRemoteDatasource] Response - user: ${user?.id}, session: ${session != null}',
+      );
+
       if (user == null || session == null) {
         throw Exception('Sign in failed: no user or session returned');
       }
 
       return _toRegisteredAccount(user, session);
     } on AuthException catch (e) {
-      debugPrint('[AuthRemoteDatasource] Sign in error: ${e.message}');
+      debugPrint('[AuthRemoteDatasource] Sign in AuthException: ${e.message}');
       throw Exception(e.message);
     } catch (e) {
       debugPrint('[AuthRemoteDatasource] Sign in error: $e');
@@ -76,6 +86,9 @@ class AuthRemoteDatasource {
         scopes: ['email', 'profile'],
         serverClientId: const String.fromEnvironment('GOOGLE_WEB_CLIENT_ID'),
       );
+
+      // Sign out first to clear any cached session - this forces account picker
+      await googleSignIn.signOut();
 
       final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
@@ -144,13 +157,51 @@ class AuthRemoteDatasource {
 
   Future<void> resetPassword(String email) async {
     try {
-      await _supabase.auth.resetPasswordForEmail(email);
+      // First try the built-in Supabase email with full URL for redirect
+      await _supabase.auth.resetPasswordForEmail(
+        email,
+        redirectTo: 'https://oasis-web-red.vercel.app/reset-password',
+      );
     } on AuthException catch (e) {
-      debugPrint('[AuthRemoteDatasource] Reset password error: ${e.message}');
-      throw Exception(e.message);
+      // If Supabase fails (rate limit, etc.), try the custom Edge Function with Resend
+      debugPrint(
+        '[AuthRemoteDatasource] Supabase email failed, trying Edge Function: ${e.message}',
+      );
+      await _sendPasswordResetViaEdgeFunction(email);
     } catch (e) {
       debugPrint('[AuthRemoteDatasource] Reset password error: $e');
-      rethrow;
+      // Try Edge Function as fallback
+      try {
+        await _sendPasswordResetViaEdgeFunction(email);
+      } catch (edgeError) {
+        debugPrint(
+          '[AuthRemoteDatasource] Edge function also failed: $edgeError',
+        );
+        rethrow;
+      }
+    }
+  }
+
+  /// Send password reset email via custom Edge Function (bypasses Supabase rate limits)
+  Future<void> _sendPasswordResetViaEdgeFunction(String email) async {
+    try {
+      final supabaseUrl = SupabaseConfig.supabaseUrl;
+      final response = await http.post(
+        Uri.parse('$supabaseUrl/functions/v1/send-password-reset'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Edge function failed: ${response.body}');
+      }
+
+      debugPrint(
+        '[AuthRemoteDatasource] Password reset email sent via Edge Function',
+      );
+    } catch (e) {
+      debugPrint('[AuthRemoteDatasource] Edge function error: $e');
+      throw Exception('Failed to send password reset email: $e');
     }
   }
 
@@ -162,6 +213,19 @@ class AuthRemoteDatasource {
       throw Exception(e.message);
     } catch (e) {
       debugPrint('[AuthRemoteDatasource] Set session error: $e');
+      rethrow;
+    }
+  }
+
+  /// Update the user's password (used after password reset link or for Google users)
+  Future<void> updatePassword(String newPassword) async {
+    try {
+      await _supabase.auth.updateUser(UserAttributes(password: newPassword));
+    } on AuthException catch (e) {
+      debugPrint('[AuthRemoteDatasource] Update password error: ${e.message}');
+      throw Exception(e.message);
+    } catch (e) {
+      debugPrint('[AuthRemoteDatasource] Update password error: $e');
       rethrow;
     }
   }

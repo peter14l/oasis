@@ -233,46 +233,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 onFieldSubmitted: (_) => _register(),
               ),
               const SizedBox(height: 32),
-              AppButton.secondary(
-                text: 'Sign in with Google',
-                isLoading: _isLoading,
-                onPressed:
-                    _isLoading
-                        ? null
-                        : () async {
-                          setState(() => _isLoading = true);
-                          try {
-                            final authProvider = Provider.of<AuthProvider>(
-                              context,
-                              listen: false,
-                            );
-                            await authProvider.signInWithGoogle();
-                            if (mounted) {
-                              context.go('/feed');
-                            }
-                          } catch (e) {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(e.toString())),
-                              );
-                            }
-                          } finally {
-                            if (mounted) setState(() => _isLoading = false);
-                          }
-                        },
-                icon: Image.network(
-                  'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
-                  height: 24,
-                  errorBuilder:
-                      (context, error, stackTrace) => const Icon(
-                        Icons.g_mobiledata,
-                        size: 24,
-                        color: Colors.red,
-                      ),
-                ),
-              ),
-
-              const SizedBox(height: 16.0),
               AppButton.primary(
                 text: 'Sign up',
                 onPressed: _isLoading ? null : _register,

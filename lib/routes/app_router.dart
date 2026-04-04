@@ -853,7 +853,9 @@ class AppRouter {
     return path == '/login' ||
         path == '/register' ||
         path == '/splash' ||
-        path == '/reset-password'; // accessible with a recovery session
+        path == '/reset-password' || // accessible with a recovery session
+        path ==
+            '/set-password'; // accessible with a recovery session (for Google users)
   }
 
   /// Routes that a fully-authenticated user should be bounced away from
@@ -876,6 +878,8 @@ class AppRouter {
         // Password-reset screen is always reachable once Supabase sets the
         // recovery session — never redirect away from it automatically.
         if (state.uri.path == '/reset-password') return null;
+        // Same for set-password screen
+        if (state.uri.path == '/set-password') return null;
 
         // Check onboarding status
         final hasSeenOnboarding = await OnboardingScreen.hasSeenOnboarding();
@@ -927,6 +931,17 @@ class AppRouter {
         GoRoute(
           path: '/reset-password',
           name: 'reset_password',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const ResetPasswordScreen(),
+              ),
+        ),
+
+        // Set Password (for Google users who want to set a password)
+        GoRoute(
+          path: '/set-password',
+          name: 'set_password',
           pageBuilder:
               (context, state) => MaterialPage(
                 key: state.pageKey,

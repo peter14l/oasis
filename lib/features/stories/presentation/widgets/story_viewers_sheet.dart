@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:oasis_v2/services/stories_service.dart';
 import 'package:oasis_v2/core/utils/responsive_layout.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
+import 'package:oasis_v2/services/app_initializer.dart';
 
 class StoryViewersSheet extends StatefulWidget {
   final String storyId;
@@ -37,12 +39,15 @@ class _StoryViewersSheetState extends State<StoryViewersSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(isM3E ? 48 : 24),
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -63,21 +68,31 @@ class _StoryViewersSheetState extends State<StoryViewersSheet> {
                 Text(
                   'Viewers',
                   style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                    letterSpacing: isM3E ? -0.5 : 0,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
+                    color:
+                        isM3E
+                            ? colorScheme.primary
+                            : colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
                   ),
                   child: Text(
                     _viewers.length.toString(),
                     style: theme.textTheme.labelMedium?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
+                      color:
+                          isM3E
+                              ? colorScheme.onPrimary
+                              : colorScheme.onPrimaryContainer,
+                      fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
                     ),
                   ),
                 ),
@@ -124,18 +139,29 @@ class _StoryViewersSheetState extends State<StoryViewersSheet> {
                   final viewedAt = DateTime.parse(viewer['viewed_at']);
 
                   return ListTile(
-                    leading: CircleAvatar(
-                      radius: 20,
-                      backgroundImage: avatarUrl != null
-                          ? CachedNetworkImageProvider(avatarUrl)
-                          : null,
-                      child: avatarUrl == null
-                          ? Text(username[0].toUpperCase())
-                          : null,
+                    leading: Container(
+                      decoration: BoxDecoration(
+                        shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                        borderRadius: isM3E ? BorderRadius.circular(12) : null,
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundImage:
+                            avatarUrl != null
+                                ? CachedNetworkImageProvider(avatarUrl)
+                                : null,
+                        child:
+                            avatarUrl == null
+                                ? Text(username[0].toUpperCase())
+                                : null,
+                      ),
                     ),
                     title: Text(
                       username,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontWeight: isM3E ? FontWeight.w800 : FontWeight.w600,
+                      ),
                     ),
                     subtitle: Text(_getTimeAgo(viewedAt)),
                     trailing: IconButton(

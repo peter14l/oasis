@@ -22,6 +22,8 @@ abstract class AuthRepository {
 
   Future<void> resetPassword(String email);
 
+  Future<void> updatePassword(String password);
+
   Future<void> switchAccount(String userId);
 
   Future<List<RegisteredAccount>> getRegisteredAccounts();

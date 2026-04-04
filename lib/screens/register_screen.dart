@@ -202,118 +202,77 @@ class _RegisterScreenState extends State<RegisterScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Name Field
-                    CustomTextField(
-                      controller: _nameController,
-                      focusNode: _nameFocus,
-                      hint: 'Name',
-                      prefixIcon: Icons.person_outline,
-                      textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) {
-                        FocusScope.of(context).requestFocus(_emailFocus);
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your name';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 8),
+              CustomTextField(
+                controller: _nameController,
+                focusNode: _nameFocus,
+                hint: 'Name',
+                prefixIcon: Icons.person_outline,
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_emailFocus);
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your name';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8),
 
-                    // Email Field
-                    CustomTextField(
-                      controller: _emailController,
-                      focusNode: _emailFocus,
-                      hint: 'Email',
-                      prefixIcon: Icons.email_outlined,
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) {
-                        FocusScope.of(context).requestFocus(_passwordFocus);
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        if (!value.contains('@')) {
-                          return 'Please enter a valid email';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 8),
+              // Email Field
+              CustomTextField(
+                controller: _emailController,
+                focusNode: _emailFocus,
+                hint: 'Email',
+                prefixIcon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_passwordFocus);
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  if (!value.contains('@')) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8),
 
-                    // Password Field
-                    CustomTextField(
-                      controller: _passwordController,
-                      focusNode: _passwordFocus,
-                      hint: 'Password',
-                      prefixIcon: Icons.lock_outline,
-                      obscureText: _obscurePassword,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a password';
-                        }
-                        if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
-                      },
-                      onFieldSubmitted: (_) => _register(),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Google Sign In Button
-                    AppButton.secondary(
-                      text: 'Sign in with Google',
-                      isLoading: _isLoading,
-                      onPressed:
-                          _isLoading
-                              ? null
-                              : () async {
-                                setState(() => _isLoading = true);
-                                try {
-                                  final authService = Provider.of<AuthService>(
-                                    context,
-                                    listen: false,
-                                  );
-                                  await authService.signInWithGoogle();
-                                  if (mounted) {
-                                    context.go('/feed');
-                                  }
-                                } catch (e) {
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(e.toString())),
-                                    );
-                                  }
-                                } finally {
-                                  if (mounted) setState(() => _isLoading = false);
-                                }
-                              },
-                      icon: Image.network(
-                        'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
-                        height: 24,
-                        errorBuilder: (context, error, stackTrace) => const Icon(
-                          Icons.g_mobiledata,
-                          size: 24,
-                          color: Colors.red,
-                        ),
-                      ),
-                    ),
+              // Password Field
+              CustomTextField(
+                controller: _passwordController,
+                focusNode: _passwordFocus,
+                hint: 'Password',
+                prefixIcon: Icons.lock_outline,
+                obscureText: _obscurePassword,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a password';
+                  }
+                  if (value.length < 6) {
+                    return 'Password must be at least 6 characters';
+                  }
+                  return null;
+                },
+                onFieldSubmitted: (_) => _register(),
+              ),
+              const SizedBox(height: 32),
 
               const SizedBox(height: 16.0),
 

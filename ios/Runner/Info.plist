@@ -53,9 +53,23 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>Oasis</string>
+				<string>oasis</string>
 			</array>
 		</dict>
+		<!-- Support for universal links (https://oasis-web-red.vercel.app) -->
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>app.oasis</string>
+			</array>
+		</dict>
+	</array>
+	<!-- Associated domains for Universal Links (iOS 9+) -->
+	<key>NSApplinksDomains</key>
+	<array>
+		<string>oasis-web-red.vercel.app</string>
 	</array>
 </dict>
 </plist>

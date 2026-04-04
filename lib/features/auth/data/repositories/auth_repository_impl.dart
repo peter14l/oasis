@@ -19,9 +19,12 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<RegisteredAccount> signInWithEmail(AuthCredentials credentials) async {
+    debugPrint('[AuthRepositoryImpl] Sign in with email');
     final account = await _remoteDatasource.signInWithEmail(credentials);
+    debugPrint('[AuthRepositoryImpl] Got account: ${account.userId}');
     await _localDatasource.saveAccount(account);
     await _localDatasource.setLastActiveUserId(account.userId);
+    debugPrint('[AuthRepositoryImpl] Account saved locally');
     return account;
   }
 
@@ -66,6 +69,11 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> resetPassword(String email) async {
     await _remoteDatasource.resetPassword(email);
+  }
+
+  @override
+  Future<void> updatePassword(String password) async {
+    await _remoteDatasource.updatePassword(password);
   }
 
   @override

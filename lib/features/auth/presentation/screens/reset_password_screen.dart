@@ -34,7 +34,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     setState(() => _isLoading = true);
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.resetPassword(_passwordController.text.trim());
+      // Use updatePassword instead of resetPassword - the user comes here with a valid session token
+      await authProvider.updatePassword(_passwordController.text.trim());
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

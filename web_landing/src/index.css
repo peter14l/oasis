@@ -1,16 +1,56 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wdth,wght,GRAD@8..144,25..151,100..1000,-200..150&display=swap');
 
 :root {
-  --bg-primary: #000000;
-  --bg-secondary: #0a0a0a;
-  --bg-tertiary: #141414;
-  --text-primary: #ffffff;
-  --text-secondary: #888888;
-  --accent-color: #007AFF; /* Apple Blue */
-  --accent-glow: rgba(0, 122, 255, 0.4);
-  --border-color: rgba(255, 255, 255, 0.1);
-  --glass-bg: rgba(25, 25, 25, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  /* Material 3 Expressive Color Tokens - Dark Theme (Vibrant) */
+  --md-sys-color-primary: #D0BCFF;
+  --md-sys-color-on-primary: #381E72;
+  --md-sys-color-primary-container: #4F378B;
+  --md-sys-color-on-primary-container: #EADDFF;
+  
+  --md-sys-color-secondary: #CCC2DC;
+  --md-sys-color-on-secondary: #332D41;
+  --md-sys-color-secondary-container: #4A4458;
+  --md-sys-color-on-secondary-container: #E8DEF8;
+  
+  --md-sys-color-tertiary: #EFB8C8;
+  --md-sys-color-on-tertiary: #492532;
+  --md-sys-color-tertiary-container: #633B48;
+  --md-sys-color-on-tertiary-container: #FFD8E4;
+  
+  --md-sys-color-error: #F2B8B5;
+  --md-sys-color-on-error: #601410;
+  
+  --md-sys-color-background: #1C1B1F;
+  --md-sys-color-on-background: #E6E1E5;
+  
+  --md-sys-color-surface: #1C1B1F;
+  --md-sys-color-on-surface: #E6E1E5;
+  --md-sys-color-surface-variant: #49454F;
+  --md-sys-color-on-surface-variant: #CAC4D0;
+  
+  --md-sys-color-outline: #938F99;
+  --md-sys-color-outline-variant: #444746;
+
+  /* Material 3 Expressive Shape Tokens */
+  --md-sys-shape-none: 0px;
+  --md-sys-shape-xs: 4px;
+  --md-sys-shape-s: 8px;
+  --md-sys-shape-m: 12px;
+  --md-sys-shape-l: 16px;
+  --md-sys-shape-xl: 28px;
+  --md-sys-shape-full: 9999px;
+
+  /* Legacy variable mapping for compatibility */
+  --bg-primary: var(--md-sys-color-background);
+  --bg-secondary: #252429;
+  --bg-tertiary: #2d2c31;
+  --text-primary: var(--md-sys-color-on-background);
+  --text-secondary: var(--md-sys-color-on-surface-variant);
+  --accent-color: var(--md-sys-color-primary);
+  --accent-glow: rgba(208, 188, 255, 0.4);
+  --border-color: var(--md-sys-color-outline-variant);
+  --glass-bg: rgba(28, 27, 31, 0.7);
+  --glass-border: var(--md-sys-color-outline-variant);
 }
 
 * {
@@ -19,14 +59,40 @@
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  height: 100%;
+  width: 100%;
+}
+
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+  font-family: 'Roboto Flex', sans-serif;
+  background-color: var(--md-sys-color-background);
+  color: var(--md-sys-color-on-background);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+section {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+footer {
+  width: 100%;
+  position: relative;
+  z-index: 10;
 }
 
 a {
@@ -34,17 +100,18 @@ a {
   text-decoration: none;
 }
 
-/* Glassmorphism Utilities */
+/* Material 3 Expressive Glassmorphism */
 .glass-panel {
   background: var(--glass-bg);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--glass-border);
-  border-radius: 20px;
+  border-radius: var(--md-sys-shape-xl);
+  transition: transform 0.3s ease, background 0.3s ease;
 }
 
 .glass-nav {
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(28, 27, 31, 0.8);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   border-bottom: 1px solid var(--glass-border);
@@ -54,107 +121,119 @@ a {
   z-index: 100;
 }
 
-/* Typography elements */
+/* Material 3 Typography Scale (Expressive) */
 .text-gradient {
-  background: linear-gradient(135deg, #fff 0%, #888 100%);
+  background: linear-gradient(135deg, var(--md-sys-color-primary) 0%, var(--md-sys-color-tertiary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .heading-massive {
-  font-size: clamp(3rem, 8vw, 6rem);
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1.1;
+  font-size: clamp(3.5rem, 10vw, 7rem);
+  font-weight: 900;
+  font-variation-settings: 'wdth' 125, 'GRAD' 150;
+  letter-spacing: -0.05em;
+  line-height: 1.0;
 }
 
 .heading-large {
-  font-size: clamp(2rem, 5vw, 4rem);
-  font-weight: 700;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 800;
+  font-variation-settings: 'wdth' 115;
   letter-spacing: -0.03em;
-  line-height: 1.2;
+  line-height: 1.1;
 }
 
 .heading-medium {
-  font-size: clamp(1.5rem, 3vw, 2.5rem);
-  font-weight: 600;
+  font-size: clamp(1.75rem, 4vw, 3rem);
+  font-weight: 700;
+  font-variation-settings: 'wdth' 110;
   letter-spacing: -0.02em;
 }
 
 .text-body {
-  font-size: clamp(1rem, 1.5vw, 1.25rem);
-  color: var(--text-secondary);
+  font-size: clamp(1.1rem, 1.8vw, 1.4rem);
+  color: var(--md-sys-color-on-surface-variant);
   font-weight: 400;
+  font-variation-settings: 'wdth' 100;
 }
 
 /* Common Layout */
 .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 32px;
 }
 
-.section-padding {
-  padding: 120px 0;
-}
-
-/* Buttons */
+/* Material 3 Expressive Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 24px;
-  border-radius: 999px;
+  padding: 16px 32px;
+  border-radius: var(--md-sys-shape-full);
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.1rem;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: all 0.4s cubic-bezier(0.2, 0, 0, 1);
   border: none;
   outline: none;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-primary {
-  background-color: var(--text-primary);
-  color: var(--bg-primary);
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
 }
 
 .btn-primary:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+  background-color: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
 }
 
 .btn-secondary {
-  background-color: var(--glass-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(10px);
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  border: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .btn-secondary:hover {
-  background-color: rgba(255,255,255,0.1);
-  border-color: rgba(255,255,255,0.2);
+  background-color: var(--md-sys-color-secondary);
+  color: var(--md-sys-color-on-secondary);
 }
 
 .btn-accent {
-  background-color: var(--accent-color);
-  color: white;
-  box-shadow: 0 0 15px var(--accent-glow);
+  background-color: var(--md-sys-color-tertiary);
+  color: var(--md-sys-color-on-tertiary);
 }
 
 .btn-accent:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 25px var(--accent-glow);
+  background-color: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
 }
 
-/* Glowing background effects */
+/* Expressive Shape Morphing Utilities */
+.shape-organic {
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  animation: morph 8s ease-in-out infinite;
+}
+
+@keyframes morph {
+  0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+  100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+}
+
 .ambient-glow {
   position: absolute;
-  width: 600px;
-  height: 600px;
+  width: 800px;
+  height: 800px;
   background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-  filter: blur(80px);
+  filter: blur(100px);
   z-index: -1;
   border-radius: 50%;
   pointer-events: none;

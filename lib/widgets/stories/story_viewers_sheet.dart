@@ -68,7 +68,10 @@ class _StoryViewersSheetState extends State<StoryViewersSheet> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(12),
@@ -124,18 +127,29 @@ class _StoryViewersSheetState extends State<StoryViewersSheet> {
                   final viewedAt = DateTime.parse(viewer['viewed_at']);
 
                   return ListTile(
-                    leading: CircleAvatar(
-                      radius: 20,
-                      backgroundImage: avatarUrl != null
-                          ? CachedNetworkImageProvider(avatarUrl)
-                          : null,
-                      child: avatarUrl == null
-                          ? Text(username[0].toUpperCase())
-                          : null,
+                    leading: Container(
+                      decoration: BoxDecoration(
+                        shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                        borderRadius: isM3E ? BorderRadius.circular(12) : null,
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundImage:
+                            avatarUrl != null
+                                ? CachedNetworkImageProvider(avatarUrl)
+                                : null,
+                        child:
+                            avatarUrl == null
+                                ? Text(username[0].toUpperCase())
+                                : null,
+                      ),
                     ),
                     title: Text(
                       username,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontWeight: isM3E ? FontWeight.w800 : FontWeight.w600,
+                      ),
                     ),
                     subtitle: Text(_getTimeAgo(viewedAt)),
                     trailing: IconButton(

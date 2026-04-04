@@ -68,40 +68,36 @@ const Navbar = () => {
 
   return (
     <nav 
-      className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
+      className="fixed top-0 left-0 right-0 transition-all duration-500"
       style={{
         paddingLeft: 'clamp(1rem, 5vw, 2rem)',
-        paddingRight: 'clamp(2rem, 8vw, 4rem)', // Explicitly more margin on the right
-        paddingTop: scrolled ? '1rem' : '1.5rem',
-        paddingBottom: scrolled ? '1rem' : '1.5rem',
-        backgroundColor: scrolled || isOpen ? 'rgba(0, 0, 0, 0.8)' : 'transparent',
-        backdropFilter: scrolled || isOpen ? 'blur(20px)' : 'none',
-        WebkitBackdropFilter: scrolled || isOpen ? 'blur(20px)' : 'none',
-        borderBottom: scrolled || isOpen ? '1px solid rgba(255, 255, 255, 0.05)' : 'none',
+        paddingRight: 'clamp(1rem, 5vw, 2rem)',
+        paddingTop: scrolled ? '0.75rem' : '1.25rem',
+        paddingBottom: scrolled ? '0.75rem' : '1.25rem',
+        backgroundColor: scrolled || isOpen ? 'rgba(28, 27, 31, 0.98)' : 'rgba(28, 27, 31, 0.85)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid var(--md-sys-color-outline-variant)',
         display: 'flex',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        zIndex: 1000
       }}
     >
-      <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '1200px' }}>
-        <Link to="/" className="logo" style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.05em', display: 'flex', alignItems: 'center', gap: '0.5rem', zIndex: 101 }}>
-          <span style={{ 
-            background: 'linear-gradient(to right, #3b82f6, #d946ef)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
-          }}>OASIS</span>
+      <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '1400px' }}>
+        <Link to="/" className="logo" style={{ fontSize: '1.75rem', fontWeight: 900, letterSpacing: '-0.05em', display: 'flex', alignItems: 'center', gap: '0.5rem', zIndex: 101, fontVariationSettings: "'wdth' 125" }}>
+          <span className="text-gradient">OASIS</span>
         </Link>
 
         {/* Desktop Nav */}
-        <div className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '2.5rem' }}>
+        <div className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
           {navLinks.map((link) => (
             <Link 
               key={link.name} 
               to={link.path}
               style={{ 
-                fontSize: '0.9rem', 
+                fontSize: '1rem', 
                 fontWeight: 600, 
-                color: location.pathname === link.path ? '#fff' : '#94a3b8',
+                color: location.pathname === link.path ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-on-surface-variant)',
                 transition: 'color 0.3s'
               }}
             >
@@ -113,21 +109,33 @@ const Navbar = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
               <button 
                 onClick={handleLogout} 
-                style={{ background: 'none', color: '#94a3b8', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', padding: 0 }}
+                className="btn-secondary"
+                style={{ 
+                  padding: '8px 16px',
+                  fontSize: '0.9rem', 
+                  fontWeight: 600, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.5rem', 
+                  borderRadius: 'var(--md-sys-shape-full)',
+                  border: '1px solid var(--md-sys-color-outline-variant)',
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}
               >
                 <LogOut size={16} /> Logout
               </button>
-              <Link to="/profile" style={{ color: '#fff', display: 'flex', alignItems: 'center' }}>
-                <User size={20} />
+              <Link to="/profile" style={{ color: 'var(--md-sys-color-primary)', display: 'flex', alignItems: 'center' }}>
+                <User size={24} />
               </Link>
             </div>
           ) : (
             <Link 
               to="/login"
               style={{ 
-                fontSize: '0.9rem', 
+                fontSize: '1rem', 
                 fontWeight: 600, 
-                color: '#94a3b8',
+                color: 'var(--md-sys-color-on-surface-variant)',
                 transition: 'color 0.3s'
               }}
             >
@@ -138,21 +146,17 @@ const Navbar = () => {
           <div style={{ position: 'relative' }} ref={dropdownRef}>
             <button 
               onClick={() => setDownloadDropdownOpen(!downloadDropdownOpen)}
+              className="btn btn-primary"
               style={{
-                padding: '0.6rem 1.2rem',
-                borderRadius: '99px',
-                background: '#fff',
-                color: '#000',
+                padding: '10px 24px',
                 fontWeight: 700,
-                fontSize: '0.85rem',
+                fontSize: '0.9rem',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.5rem',
-                border: 'none',
-                cursor: 'pointer'
+                gap: '0.5rem'
               }}
             >
-              <Download size={16} /> Get App <ChevronDown size={14} style={{ transform: downloadDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }} />
+              <Download size={18} /> Get App <ChevronDown size={14} style={{ transform: downloadDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }} />
             </button>
 
             <AnimatePresence>
@@ -165,13 +169,13 @@ const Navbar = () => {
                     position: 'absolute',
                     top: '120%',
                     right: 0,
-                    background: 'rgba(0, 0, 0, 0.9)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '16px',
-                    padding: '0.5rem',
-                    minWidth: '200px',
-                    boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+                    background: 'var(--md-sys-color-surface-variant)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid var(--md-sys-color-outline-variant)',
+                    borderRadius: 'var(--md-sys-shape-l)',
+                    padding: '0.75rem',
+                    minWidth: '220px',
+                    boxShadow: '0 12px 32px rgba(0,0,0,0.6)',
                     zIndex: 1000
                   }}
                 >
@@ -183,15 +187,21 @@ const Navbar = () => {
                         display: 'flex',
                         alignItems: 'center',
                         gap: '0.75rem',
-                        padding: '0.75rem 1rem',
-                        color: '#fff',
-                        fontSize: '0.85rem',
+                        padding: '1rem',
+                        color: 'var(--md-sys-color-on-surface-variant)',
+                        fontSize: '0.9rem',
                         fontWeight: 600,
-                        borderRadius: '10px',
-                        transition: 'background 0.2s'
+                        borderRadius: 'var(--md-sys-shape-m)',
+                        transition: 'all 0.2s'
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'var(--md-sys-color-primary-container)';
+                        e.currentTarget.style.color = 'var(--md-sys-color-on-primary-container)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.color = 'var(--md-sys-color-on-surface-variant)';
+                      }}
                     >
                       {opt.icon} {opt.name}
                     </a>
@@ -205,10 +215,10 @@ const Navbar = () => {
         {/* Mobile Toggle */}
         <button 
           className="mobile-toggle" 
-          style={{ display: 'none', background: 'none', color: '#fff', zIndex: 101 }} 
+          style={{ display: 'none', background: 'none', color: 'var(--md-sys-color-on-background)', zIndex: 101, border: 'none', cursor: 'pointer' }} 
           onClick={() => setIsOpen(!isOpen)}
         >
-          {isOpen ? <X size={28} /> : <Menu size={28} />}
+          {isOpen ? <X size={32} /> : <Menu size={32} />}
         </button>
       </div>
 
@@ -225,12 +235,12 @@ const Navbar = () => {
               left: 0,
               right: 0,
               height: '100vh',
-              background: '#000',
+              background: 'var(--md-sys-color-background)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '2rem',
+              gap: '2.5rem',
               zIndex: 100
             }}
           >
@@ -238,25 +248,22 @@ const Navbar = () => {
               <Link 
                 key={link.name} 
                 to={link.path}
-                style={{ fontSize: '1.5rem', fontWeight: 700, color: location.pathname === link.path ? '#fff' : '#94a3b8' }}
+                style={{ fontSize: '2rem', fontWeight: 800, color: location.pathname === link.path ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-on-surface-variant)' }}
               >
                 {link.name}
               </Link>
             ))}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '80%', maxWidth: '300px' }}>
-              <p style={{ color: '#94a3b8', fontSize: '0.8rem', fontWeight: 700, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Download App</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', width: '85%', maxWidth: '320px' }}>
+              <p style={{ color: 'var(--md-sys-color-on-surface-variant)', fontSize: '0.9rem', fontWeight: 700, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Download App</p>
               {downloadOptions.map((opt) => (
                 <a 
                   key={opt.name}
                   href={opt.href} 
+                  className={opt.name.includes('Windows') ? 'btn btn-secondary' : 'btn btn-primary'}
                   style={{
-                    padding: '1rem 2rem',
-                    borderRadius: '99px',
-                    background: opt.name.includes('Windows') ? 'transparent' : '#fff',
-                    border: opt.name.includes('Windows') ? '1px solid rgba(255,255,255,0.2)' : 'none',
-                    color: opt.name.includes('Windows') ? '#fff' : '#000',
+                    padding: '1.25rem',
                     fontWeight: 800,
-                    fontSize: '1rem',
+                    fontSize: '1.1rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -272,7 +279,7 @@ const Navbar = () => {
       </AnimatePresence>
 
       <style>{`
-        @media (max-width: 768px) {
+        @media (max-width: 992px) {
           .desktop-nav { display: none !important; }
           .mobile-toggle { display: block !important; }
         }

@@ -41,21 +41,34 @@ class AuthProvider with ChangeNotifier {
     required String email,
     required String password,
   }) async {
+    debugPrint('[AuthProvider] signInWithEmail called');
     _state = _state.copyWith(isLoading: true, error: null);
     notifyListeners();
 
     try {
+      debugPrint('[AuthProvider] Calling repository signInWithEmail');
       final account = await _repository.signInWithEmail(
         AuthCredentials(email: email, password: password),
       );
+      debugPrint(
+        '[AuthProvider] Repository returned account: ${account.userId}',
+      );
       _state = _state.copyWith(currentAccount: account, isAuthenticated: true);
+      debugPrint(
+        '[AuthProvider] State updated, isAuthenticated: ${_state.isAuthenticated}',
+      );
       await _loadAccounts();
+      debugPrint('[AuthProvider] Accounts loaded');
     } catch (e) {
-      _state = _state.copyWith(error: e.toString());
       debugPrint('[AuthProvider] Sign in error: $e');
+      _state = _state.copyWith(error: e.toString());
+      rethrow;
     } finally {
       _state = _state.copyWith(isLoading: false);
       notifyListeners();
+      debugPrint(
+        '[AuthProvider] Done, isAuthenticated: ${_state.isAuthenticated}',
+      );
     }
   }
 
@@ -125,6 +138,21 @@ class AuthProvider with ChangeNotifier {
       _state = _state.copyWith(error: e.toString());
       notifyListeners();
       rethrow;
+    }
+  }
+
+  Future<void> updatePassword(String password) async {
+    _state = _state.copyWith(isLoading: true, error: null);
+    notifyListeners();
+
+    try {
+      await _repository.updatePassword(password);
+    } catch (e) {
+      _state = _state.copyWith(error: e.toString());
+      debugPrint('[AuthProvider] Update password error: $e');
+    } finally {
+      _state = _state.copyWith(isLoading: false);
+      notifyListeners();
     }
   }
 
