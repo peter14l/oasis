@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oasis/services/ripples_service.dart';
+import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
+import 'package:oasis/features/ripples/domain/models/ripple_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mockito/mockito.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -7,14 +8,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class MockSupabaseClient extends Mock implements SupabaseClient {}
 
 void main() {
-  group('RipplesService Unit Tests', () {
-    late RipplesService ripplesService;
+  group('RipplesProvider Unit Tests', () {
+    late RipplesProvider ripplesService;
     late MockSupabaseClient mockSupabase;
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       mockSupabase = MockSupabaseClient();
-      ripplesService = RipplesService(supabase: mockSupabase);
+      ripplesService = RipplesProvider(supabase: mockSupabase);
     });
 
     test('Initial layout should be kineticCardStack', () {

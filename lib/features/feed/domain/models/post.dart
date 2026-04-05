@@ -11,7 +11,7 @@ abstract class Post with _$Post {
     required String username,
     @JsonKey(name: 'userAvatar') required String userAvatar,
     String? content,
-    String? imageUrl,
+    @JsonKey(name: 'image_url') String? imageUrl,
     @JsonKey(name: 'thumbnail_url') String? thumbnailUrl,
     @JsonKey(name: 'dominant_color') String? dominantColor,
     @Default([]) @JsonKey(name: 'media_urls') List<String> mediaUrls,
@@ -40,6 +40,7 @@ abstract class Post with _$Post {
     normalized['username'] = json['username'] ?? json['full_name'] ?? '';
     normalized['userAvatar'] =
         json['user_avatar'] ?? json['avatar_url'] ?? json['userAvatar'] ?? '';
+    normalized['imageUrl'] = json['image_url'] ?? json['imageUrl'];
     normalized['likes'] = json['likes_count'] ?? json['likes'] ?? 0;
     normalized['comments'] = json['comments_count'] ?? json['comments'] ?? 0;
     normalized['shares'] = json['shares_count'] ?? json['shares'] ?? 0;

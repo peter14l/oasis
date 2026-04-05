@@ -12,7 +12,7 @@ _Post _$PostFromJson(Map<String, dynamic> json) => _Post(
   username: json['username'] as String,
   userAvatar: json['userAvatar'] as String,
   content: json['content'] as String?,
-  imageUrl: json['imageUrl'] as String?,
+  imageUrl: json['image_url'] as String?,
   thumbnailUrl: json['thumbnail_url'] as String?,
   dominantColor: json['dominant_color'] as String?,
   mediaUrls:
@@ -44,7 +44,7 @@ Map<String, dynamic> _$PostToJson(_Post instance) => <String, dynamic>{
   'username': instance.username,
   'userAvatar': instance.userAvatar,
   'content': instance.content,
-  'imageUrl': instance.imageUrl,
+  'image_url': instance.imageUrl,
   'thumbnail_url': instance.thumbnailUrl,
   'dominant_color': instance.dominantColor,
   'media_urls': instance.mediaUrls,

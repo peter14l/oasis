@@ -17,7 +17,7 @@ import 'package:oasis/screens/zen_feed_screen.dart';
 import 'package:oasis/screens/pulse_feed_screen.dart';
 import 'package:oasis/widgets/comments_modal.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
-import 'package:oasis/services/ripples_service.dart';
+import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/providers/user_settings_provider.dart';
 import 'package:go_router/go_router.dart';
@@ -63,7 +63,7 @@ class _FeedScreenState extends State<FeedScreen>
       final userId = _authService.currentUser?.id;
       if (userId != null) {
         context.read<ProfileProvider>().loadFollowing(userId);
-        context.read<RipplesService>().initForUser(userId);
+        context.read<RipplesProvider>().initForUser(userId);
       }
       _startWellbeingPolling();
     });
@@ -182,7 +182,7 @@ class _FeedScreenState extends State<FeedScreen>
   void _handleRipplesTap(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final service = context.read<RipplesService>();
+    final service = context.read<RipplesProvider>();
     if (service.isRipplesLocked) {
       final end = service.lockoutEndTime;
       final diff = end != null ? end.difference(DateTime.now()).inMinutes : 30;

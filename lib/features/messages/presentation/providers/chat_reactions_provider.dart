@@ -109,16 +109,23 @@ class ChatReactionsProvider with ChangeNotifier {
             .eq('user_id', userId)
             .eq('emoji', reaction);
       } else {
-        // Upsert new reaction — include both 'emoji' and 'reaction' fields
-        // to match what MessageReactionModel.toJson() and the Edge Function expect
-        await Supabase.instance.client.from('message_reactions').upsert({
+        // Insert new reaction — split into delete+insert to avoid RLS blocking upsert
+        // First remove any existing reaction from this user on this message
+        await Supabase.instance.client
+            .from('message_reactions')
+            .delete()
+            .eq('message_id', message.id)
+            .eq('user_id', userId);
+
+        // Then insert the new reaction
+        await Supabase.instance.client.from('message_reactions').insert({
           'message_id': message.id,
           'user_id': userId,
           'emoji': reaction,
           'reaction': reaction,
           'username': username,
           'created_at': DateTime.now().toIso8601String(),
-        }, onConflict: 'message_id,user_id,emoji');
+        });
       }
     } catch (e) {
       debugPrint('Error updating reaction: $e');

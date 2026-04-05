@@ -18,6 +18,7 @@ import 'package:oasis/services/energy_meter_service.dart';
 import 'package:oasis/services/encryption_service.dart';
 import 'package:oasis/services/notification_manager.dart';
 import 'package:oasis/services/ripples_service.dart';
+import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/services/signal/signal_service.dart';
 import 'package:oasis/services/subscription_service.dart';
@@ -25,6 +26,7 @@ import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/vault_service.dart';
 import 'package:oasis/services/wellness_service.dart';
+import 'package:oasis/services/digital_wellbeing_service.dart';
 import 'package:oasis/features/canvas/presentation/providers/canvas_provider.dart';
 import 'package:oasis/providers/capsule_provider.dart';
 import 'package:oasis/features/circles/presentation/providers/circle_provider.dart';
@@ -133,6 +135,7 @@ class InitializedServices {
   final WellnessService wellnessService;
   final EnergyMeterService energyMeterService;
   final SubscriptionService subscriptionService;
+  final DigitalWellbeingService digitalWellbeingService;
 
   const InitializedServices({
     required this.themeProvider,
@@ -142,6 +145,7 @@ class InitializedServices {
     required this.wellnessService,
     required this.energyMeterService,
     required this.subscriptionService,
+    required this.digitalWellbeingService,
   });
 }
 
@@ -252,6 +256,7 @@ class AppInitializer {
     // Wellness & tracking services
     final screenTimeService = await ScreenTimeService.init();
     final wellnessService = await WellnessService.init();
+    final digitalWellbeingService = await DigitalWellbeingService.init(AuthService());
     final energyMeterService = await EnergyMeterService.init();
 
     // Notifications
@@ -280,6 +285,7 @@ class AppInitializer {
       wellnessService: wellnessService,
       energyMeterService: energyMeterService,
       subscriptionService: subscriptionService,
+      digitalWellbeingService: digitalWellbeingService,
     );
   }
 
@@ -305,6 +311,9 @@ class AppInitializer {
         ),
         ChangeNotifierProvider<WellnessService>.value(
           value: services.wellnessService,
+        ),
+        ChangeNotifierProvider<DigitalWellbeingService>.value(
+          value: services.digitalWellbeingService,
         ),
         ChangeNotifierProvider<EnergyMeterService>.value(
           value: services.energyMeterService,
@@ -346,7 +355,7 @@ class AppInitializer {
         ChangeNotifierProvider(
           create: (_) => CircleProvider(repository: CircleRepositoryImpl()),
         ),
-        ChangeNotifierProvider(create: (_) => RipplesService()),
+        ChangeNotifierProvider(create: (_) => RipplesProvider()),
         ChangeNotifierProvider(create: (_) => CapsuleProvider()),
         ChangeNotifierProvider(create: (_) => StoriesProvider()),
         ChangeNotifierProvider<VaultService>(create: (_) => VaultService()),

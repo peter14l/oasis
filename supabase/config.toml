@@ -346,13 +346,10 @@ enabled = false
 # domain = "example.clerk.accounts.dev"
 
 # OAuth server configuration
-[auth.oauth_server]
-# Enable OAuth server functionality
-enabled = false
-# Path for OAuth consent flow UI
-authorization_url_path = "/oauth/consent"
-# Allow dynamic client registration
-allow_dynamic_registration = false
+# [auth.oauth_server]
+# enabled = false
+# authorization_url_path = "/oauth/consent"
+# allow_dynamic_registration = false
 
 [edge_runtime]
 enabled = true
@@ -386,3 +383,7 @@ s3_region = "env(S3_REGION)"
 s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
+ACCESS_KEY)"
+# Configures AWS_SECRET_ACCESS_KEY for S3 bucket
+s3_secret_key = "env(S3_SECRET_KEY)"
+_KEY)"

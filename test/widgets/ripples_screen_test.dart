@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/screens/ripples_screen.dart';
-import 'package:oasis/services/ripples_service.dart';
+import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
@@ -51,8 +51,8 @@ void main() {
     VideoPlayerPlatform.instance = MockVideoPlayerPlatform();
   });
 
-  Widget createRipplesScreen(RipplesService service) {
-    return ChangeNotifierProvider<RipplesService>.value(
+  Widget createRipplesScreen(RipplesProvider service) {
+    return ChangeNotifierProvider<RipplesProvider>.value(
       value: service,
       child: const MaterialApp(
         home: RipplesScreen(),
@@ -61,7 +61,7 @@ void main() {
   }
 
   testWidgets('RipplesScreen renders and has an exit button', (WidgetTester tester) async {
-    final service = RipplesService();
+    final service = RipplesProvider();
     await tester.runAsync(() async {
       await tester.pumpWidget(createRipplesScreen(service));
       await tester.pump();
@@ -74,7 +74,7 @@ void main() {
   });
 
   testWidgets('DynamicRipplePill expands on tap', (WidgetTester tester) async {
-    final service = RipplesService();
+    final service = RipplesProvider();
     await tester.runAsync(() async {
       await tester.pumpWidget(createRipplesScreen(service));
       await tester.pump();

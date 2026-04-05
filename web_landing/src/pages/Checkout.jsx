@@ -5,6 +5,7 @@ import { supabase } from '../supabaseClient';
 import { Shield, Check, Tag, ArrowLeft, Loader2, Globe } from 'lucide-react';
 import PayUPayment from '../components/PayUPayment';
 import PayPalPayment from '../components/PayPalPayment';
+import RazorpayPayment from '../components/RazorpayPayment';
 
 const Checkout = () => {
   const [searchParams] = useSearchParams();
@@ -34,12 +35,30 @@ const Checkout = () => {
 
   useEffect(() => {
     // Determine country for payment method
+    // Fallback based on currency if fetch fails
+    const inferCountryFromCurrency = (curr) => {
+      if (curr === 'INR') return 'IN';
+      if (curr === 'GBP') return 'GB';
+      if (curr === 'EUR') return 'EU';
+      return 'US';
+    };
+
     fetch('https://ipapi.co/json/')
-      .then(res => res.json())
-      .then(data => {
-        setCountry(data.country_code);
+      .then(res => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.json();
       })
-      .catch(() => console.log('Country fetch failed'));
+      .then(data => {
+        if (data.country_code) {
+          setCountry(data.country_code);
+        } else {
+          setCountry(inferCountryFromCurrency(currency));
+        }
+      })
+      .catch(() => {
+        console.log('Country fetch failed, inferring from currency');
+        setCountry(inferCountryFromCurrency(currency));
+      });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session && !userId) {
@@ -198,7 +217,7 @@ const Checkout = () => {
                 </div>
 
                 {country === 'IN' ? (
-                  <PayUPayment 
+                  <RazorpayPayment 
                     plan={planName} 
                     amount={finalPrice} 
                     currency={currency} 

@@ -7,6 +7,7 @@ import Privacy from './pages/Privacy';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import Checkout from './pages/Checkout';
+import Success from './pages/Success';
 import SharedMoment from './pages/SharedMoment';
 import Profile from './pages/Profile';
 import Navbar from './components/Navbar';
@@ -69,6 +70,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/success" element={<Success />} />
             <Route path="/moment/:id" element={<SharedMoment />} />
             <Route path="/reset-password" element={<ResetPasswordHandler />} />
             <Route path="/profile" element={<Profile />} />

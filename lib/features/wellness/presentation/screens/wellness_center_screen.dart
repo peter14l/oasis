@@ -1,0 +1,421 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:oasis/services/digital_wellbeing_service.dart';
+import 'package:oasis/services/wellness_service.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'dart:ui';
+
+class WellnessCenterScreen extends StatelessWidget {
+  const WellnessCenterScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final wellbeing = context.watch<DigitalWellbeingService>();
+    final auth = context.read<AuthService>();
+    final isPro = auth.currentUser?.isPro ?? false;
+
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: const Text('Wellness Center'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        flexibleSpace: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(color: Colors.transparent),
+          ),
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colorScheme.surface,
+              colorScheme.primary.withValues(alpha: 0.05),
+              colorScheme.surface,
+            ],
+          ),
+        ),
+        child: ListView(
+          padding: EdgeInsets.fromLTRB(
+            20,
+            MediaQuery.of(context).padding.top + 70,
+            20,
+            40,
+          ),
+          children: [
+            _buildSessionCard(context, wellbeing),
+            const SizedBox(height: 24),
+            _buildLockoutSection(context, wellbeing, isPro),
+            const SizedBox(height: 24),
+            _buildQuickActions(context),
+            const SizedBox(height: 24),
+            _buildConsolidatedFeatures(context),
+          ],
+        ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.05),
+      ),
+    );
+  }
+
+  Widget _buildSessionCard(
+    BuildContext context,
+    DigitalWellbeingService wellbeing,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.auto_graph_rounded, color: colorScheme.primary),
+              const SizedBox(width: 12),
+              Text(
+                'Current Session',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              _buildStatItem(
+                context,
+                'Feed',
+                '${wellbeing.feedMinutes}m',
+                Icons.art_track_rounded,
+                Colors.blue,
+              ),
+              Container(
+                width: 1,
+                height: 40,
+                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+              ),
+              _buildStatItem(
+                context,
+                'Ripples',
+                '${wellbeing.ripplesMinutes}m',
+                Icons.waves_rounded,
+                Colors.purple,
+              ),
+              Container(
+                width: 1,
+                height: 40,
+                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+              ),
+              _buildStatItem(
+                context,
+                'Total',
+                '${wellbeing.totalMinutes}m',
+                Icons.timer_rounded,
+                colorScheme.primary,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    final theme = Theme.of(context);
+    return Expanded(
+      child: Column(
+        children: [
+          Icon(icon, color: color.withValues(alpha: 0.7), size: 20),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLockoutSection(
+    BuildContext context,
+    DigitalWellbeingService wellbeing,
+    bool isPro,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final threshold = wellbeing.lockoutThresholdMinutes;
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Intentional Limit',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (!isPro)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'PRO FEATURE',
+                    style: TextStyle(
+                      color: Colors.amber,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'The app will lock your Feed and Ripples after this many minutes of use.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Text(
+                '$threshold',
+                style: theme.textTheme.displaySmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'minutes',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          if (isPro)
+            Slider(
+              value: threshold.toDouble(),
+              min: 60,
+              max: 180,
+              divisions: 12,
+              onChanged: (value) {
+                wellbeing.setLockoutThreshold(value.toInt());
+              },
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: LinearProgressIndicator(
+                  value: threshold / 180,
+                  backgroundColor: colorScheme.outlineVariant,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActions(BuildContext context) {
+    return Row(
+      children: [
+        _buildActionCard(
+          context,
+          'Zen Mode',
+          'Quiet all noise',
+          Icons.spa_rounded,
+          Colors.teal,
+          () {},
+        ),
+        const SizedBox(width: 16),
+        _buildActionCard(
+          context,
+          'Focus Mode',
+          'Lock distractions',
+          Icons.center_focus_strong_rounded,
+          Colors.orange,
+          () {},
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionCard(
+    BuildContext context,
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: color, size: 28),
+              const SizedBox(height: 16),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildConsolidatedFeatures(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      child: Column(
+        children: [
+          _buildListTile(
+            context,
+            'Mindful Breathing',
+            'Take a moment to center yourself',
+            Icons.air_rounded,
+            Colors.lightBlue,
+          ),
+          Divider(
+            height: 1,
+            indent: 70,
+            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+          ),
+          _buildListTile(
+            context,
+            'Digital Badges',
+            'Your wellbeing achievements',
+            Icons.verified_rounded,
+            Colors.amber,
+          ),
+          Divider(
+            height: 1,
+            indent: 70,
+            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+          ),
+          _buildListTile(
+            context,
+            'Sleep Wind-down',
+            'Prepare for a restful night',
+            Icons.nights_stay_rounded,
+            Colors.indigo,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListTile(
+    BuildContext context,
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: color, size: 22),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+      ),
+      trailing: Icon(
+        Icons.chevron_right_rounded,
+        color: colorScheme.outline,
+        size: 20,
+      ),
+      onTap: () {},
+    );
+  }
+}

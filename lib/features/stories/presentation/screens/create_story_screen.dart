@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:oasis/core/utils/haptic_utils.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/services/stories_service.dart';
 
 import 'package:oasis/widgets/stories/music_picker_sheet.dart';
 import 'package:oasis/models/story_model.dart' as old_models;
@@ -26,6 +27,7 @@ class CreateStoryScreen extends StatefulWidget {
 }
 
 class _CreateStoryScreenState extends State<CreateStoryScreen> {
+  final _storiesService = StoriesService();
   final _captionController = TextEditingController();
   final _imagePicker = ImagePicker();
   final GlobalKey _boundaryKey = GlobalKey();
@@ -341,18 +343,35 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     try {
       final finalFile = await _captureCompositeImage() ?? _selectedFile!;
 
-      // In a real implementation, we would upload the file to storage first
-      // and get a URL. For now, we'll simulate this or use a mock.
-      const simulatedMediaUrl = 'https://example.com/simulated_story.png';
+      // Prepare interactive metadata for text layers
+      final interactiveMetadata =
+          _texts
+              .map(
+                (t) => {
+                  'type': 'text',
+                  'data': {
+                    'text': t.text,
+                    'color': '#${t.color.toARGB32().toRadixString(16)}',
+                    'background_mode': t.backgroundMode,
+                  },
+                  'x': t.position.dx / MediaQuery.of(context).size.width,
+                  'y': t.position.dy / MediaQuery.of(context).size.height,
+                },
+              )
+              .toList();
 
-      final story = await context.read<StoriesProvider>().createStory(
-        mediaUrl: simulatedMediaUrl,
+      // Use the original StoriesService to handle actual file upload
+      final story = await _storiesService.createStory(
+        file: finalFile,
         mediaType: _mediaType,
-        caption: _texts.isNotEmpty ? _texts.first.text : null,
-        duration: _mediaType == 'video' ? 15 : 5,
+        musicId: _selectedMusic?.trackId,
+        musicMetadata: _selectedMusic?.toJson(),
+        interactiveMetadata: interactiveMetadata,
       );
 
       if (story != null && mounted) {
+        // Refresh stories via provider
+        await context.read<StoriesProvider>().loadMyStories();
         context.pop(true);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

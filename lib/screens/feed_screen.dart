@@ -21,6 +21,8 @@ import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/services/ripples_service.dart';
 import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/providers/user_settings_provider.dart';
+import 'package:oasis/services/digital_wellbeing_service.dart';
+import 'package:oasis/widgets/wellbeing/lockout_overlay.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 import 'package:oasis/services/app_initializer.dart';
@@ -41,8 +43,7 @@ class _FeedScreenState extends State<FeedScreen>
   List<StoryEntity> _myStories = [];
   FeedLayoutType _currentLayout = FeedLayoutType.standard;
   bool _isScrolled = false;
-  Timer? _wellbeingTimer;
-  bool _showWellbeingNudge = false;
+  // Removed old wellbeing logic
   bool _isStoriesLoading = true;
   bool _showRipplesOverlay = false;
 
@@ -68,74 +69,23 @@ class _FeedScreenState extends State<FeedScreen>
       final userId = _authService.currentUser?.id;
       if (userId != null) {
         context.read<ProfileProvider>().loadFollowing(userId);
-        context.read<RipplesService>().initForUser(userId);
+        context.read<RipplesProvider>().initForUser(userId);
       }
-      _startWellbeingPolling();
-    });
-  }
-
-  void _startWellbeingPolling() {
-    _wellbeingTimer?.cancel();
-    _wellbeingTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      _checkWellbeingLimit();
+      
+      // Start session tracking
+      context.read<DigitalWellbeingService>().startTracking('feed');
     });
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    final wellbeing = context.read<DigitalWellbeingService>();
     if (state == AppLifecycleState.paused) {
-      _wellbeingTimer?.cancel();
-      _wellbeingTimer = null;
-      debugPrint('FeedScreen: Wellbeing polling paused (background)');
+      wellbeing.stopTracking();
+      debugPrint('FeedScreen: Wellbeing tracking stopped (background)');
     } else if (state == AppLifecycleState.resumed) {
-      _startWellbeingPolling();
-      debugPrint('FeedScreen: Wellbeing polling resumed');
-    }
-  }
-
-  Future<void> _checkWellbeingLimit() async {
-    final settings = context.read<UserSettingsProvider>();
-    if (settings.dailyLimitMinutes <= 0) return;
-
-    try {
-      final screenTimeService = context.read<ScreenTimeService>();
-      final todayUsage = await screenTimeService.getTodayTotalUsage();
-      final usageMinutes = todayUsage.inMinutes;
-
-      if (usageMinutes >= settings.dailyLimitMinutes && !_showWellbeingNudge) {
-        if (mounted) {
-          setState(() => _showWellbeingNudge = true);
-        }
-      }
-    } catch (e) {
-      debugPrint('Error checking wellbeing limit: $e');
-    }
-  }
-
-  void _onScroll() {
-    if (_scrollController.hasClients) {
-      if (_scrollController.offset > 50 && !_isScrolled) {
-        setState(() => _isScrolled = true);
-      } else if (_scrollController.offset <= 50 && _isScrolled) {
-        setState(() => _isScrolled = false);
-      }
-
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 200) {
-        final userId = _authService.currentUser?.id;
-        if (userId != null) {
-          final feedProvider = context.read<FeedProvider>();
-          if (!feedProvider.isLoadingMore && feedProvider.hasMore) {
-            feedProvider.loadMore(userId: userId);
-          }
-        }
-      }
-    }
-  }
-
-  void _handleTabSelection() {
-    if (_tabController.indexIsChanging) {
-      _loadFeed();
+      wellbeing.startTracking('feed');
+      debugPrint('FeedScreen: Wellbeing tracking resumed');
     }
   }
 
@@ -144,7 +94,10 @@ class _FeedScreenState extends State<FeedScreen>
     WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     _scrollController.dispose();
-    _wellbeingTimer?.cancel();
+    // Stop tracking when leaving the screen
+    if (mounted) {
+       context.read<DigitalWellbeingService>().stopTracking();
+    }
     super.dispose();
   }
 
@@ -194,7 +147,7 @@ class _FeedScreenState extends State<FeedScreen>
   void _handleRipplesTap(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final service = context.read<RipplesService>();
+    final service = context.read<RipplesProvider>();
     if (service.isRipplesLocked) {
       final end = service.lockoutEndTime;
       final diff = end != null ? end.difference(DateTime.now()).inMinutes : 30;
@@ -579,7 +532,7 @@ class _FeedScreenState extends State<FeedScreen>
               ),
             ),
 
-          if (_showWellbeingNudge) _buildWellbeingNudge(),
+          const LockoutOverlay(pageName: 'Feed'),
         ],
       ),
     );

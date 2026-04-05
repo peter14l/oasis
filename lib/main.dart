@@ -9,11 +9,12 @@ import 'package:oasis/routes/app_router.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/services/energy_meter_service.dart';
-import 'package:oasis/services/ripples_service.dart';
+import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/services/sharing_service.dart';
 import 'package:oasis/services/vault_service.dart';
 import 'package:oasis/services/wellness_service.dart';
+import 'package:oasis/services/digital_wellbeing_service.dart';
 import 'package:oasis/features/canvas/presentation/providers/canvas_provider.dart';
 import 'package:oasis/features/circles/presentation/providers/circle_provider.dart';
 import 'package:oasis/providers/conversation_provider.dart';
@@ -61,7 +62,8 @@ class _LifecycleManagerState extends State<LifecycleManager>
     final screenTime = context.read<ScreenTimeService>();
     final energyMeter = context.read<EnergyMeterService>();
     final wellness = context.read<WellnessService>();
-    final ripples = context.read<RipplesService>();
+    final wellbeing = context.read<DigitalWellbeingService>();
+    final ripples = context.read<RipplesProvider>();
     final presence = context.read<PresenceProvider>();
     final auth = context.read<AuthService>();
 
@@ -70,6 +72,7 @@ class _LifecycleManagerState extends State<LifecycleManager>
       screenTime.stopTracking();
       energyMeter.onPaused();
       wellness.onPaused();
+      wellbeing.resetSession();
       ripples.onPaused();
 
       context.read<VaultService>().lockItemsWithInterval('app_close');

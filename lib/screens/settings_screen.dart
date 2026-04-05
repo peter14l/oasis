@@ -4,15 +4,14 @@ import 'package:provider/provider.dart';
 import 'package:oasis/services/app_initializer.dart'; // For ThemeProvider
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
-import 'package:oasis/screens/settings/screen_time_screen.dart';
 import 'package:oasis/screens/settings/vault_settings_screen.dart';
+import 'package:oasis/features/wellness/presentation/screens/wellness_center_screen.dart';
 import 'package:oasis/screens/settings/account_privacy_screen.dart';
 import 'package:oasis/screens/settings/two_factor_auth_screen.dart';
 import 'package:oasis/screens/settings/download_data_screen.dart';
 import 'package:oasis/screens/settings/storage_usage_screen.dart';
 import 'package:oasis/screens/settings/font_size_screen.dart';
 import 'package:oasis/screens/settings/help_support_screen.dart';
-import 'package:oasis/screens/settings/digital_wellbeing_screen.dart';
 import 'package:oasis/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:oasis/screens/messages/encryption_setup_screen.dart';
 import 'package:oasis/screens/oasis_pro_screen.dart';
@@ -664,23 +663,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return _buildSettingsGroup(context, index: index, [
       _buildSettingsTile(
         context,
-        icon: Icons.timer_outlined,
-        title: 'Screen Time & Wellness',
-        subtitle: 'Track usage and manage wellbeing',
-        iconColor: Theme.of(context).colorScheme.secondary,
-        onTap:
-            () => _navigateToSubPage('Screen Time', const ScreenTimeScreen()),
-      ),
-      _buildSettingsTile(
-        context,
         icon: Icons.spa_outlined,
-        title: 'Digital Wellbeing',
-        subtitle: 'Habits and usage limits',
+        title: 'Wellness Center',
+        subtitle: 'Mindful usage, sessions and limits',
         iconColor: Colors.green,
         onTap:
             () => _navigateToSubPage(
-              'Digital Wellbeing',
-              const DigitalWellbeingScreen(),
+              'Wellness Center',
+              const WellnessCenterScreen(),
             ),
       ),
     ]);

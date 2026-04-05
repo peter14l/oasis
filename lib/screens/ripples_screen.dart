@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
+import 'package:oasis/services/digital_wellbeing_service.dart';
+import 'package:oasis/widgets/wellbeing/lockout_overlay.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/features/ripples/domain/models/ripple_entity.dart'
@@ -53,6 +55,9 @@ class _RipplesScreenState extends State<RipplesScreen>
           }
         }
       });
+      
+      // Start session tracking
+      context.read<DigitalWellbeingService>().startTracking('ripples');
     });
 
     final ripplesService = context.read<RipplesProvider>();
@@ -73,9 +78,26 @@ class _RipplesScreenState extends State<RipplesScreen>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final wellbeing = context.read<DigitalWellbeingService>();
+    if (state == AppLifecycleState.paused) {
+      wellbeing.stopTracking();
+      debugPrint('RipplesScreen: Wellbeing tracking stopped (background)');
+    } else if (state == AppLifecycleState.resumed) {
+      wellbeing.startTracking('ripples');
+      debugPrint('RipplesScreen: Wellbeing tracking resumed');
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _sessionSub?.cancel();
     _pageController.dispose();
+    // Stop tracking when leaving the screen
+    if (mounted) {
+      context.read<DigitalWellbeingService>().stopTracking();
+    }
     super.dispose();
   }
 
@@ -586,6 +608,7 @@ class _RipplesScreenState extends State<RipplesScreen>
                   ),
                 ),
               ),
+              const LockoutOverlay(pageName: 'Ripples'),
             ],
           ),
         );

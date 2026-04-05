@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
+import 'package:oasis/features/messages/domain/models/message_reaction.dart';
 import 'package:oasis/features/messages/presentation/widgets/bubbles/bubbles.dart';
+import 'package:oasis/features/messages/presentation/providers/chat_reactions_provider.dart';
 import 'package:oasis/widgets/skeleton_container.dart';
+import 'package:oasis/widgets/messages/message_reactions.dart';
 
 /// Chat message list with skeleton loading, empty state, and message rendering.
 class ChatMessageList extends StatelessWidget {
@@ -18,6 +21,7 @@ class ChatMessageList extends StatelessWidget {
     this.textColorSent,
     this.textColorReceived,
     this.scrollController,
+    this.onReactionsTap,
   });
 
   final List<Message> messages;
@@ -31,6 +35,7 @@ class ChatMessageList extends StatelessWidget {
   final Color? textColorSent;
   final Color? textColorReceived;
   final ScrollController? scrollController;
+  final VoidCallback? onReactionsTap;
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +89,7 @@ class ChatMessageList extends StatelessWidget {
       textColorReceived: textColorReceived,
       onLongPress: () => onMessageLongPress(message, null),
       onDoubleTap: () => onMessageDoubleTap(message),
+      onReactionsTap: onReactionsTap,
     );
   }
 
@@ -158,6 +164,7 @@ class MessageBubble extends StatelessWidget {
     this.bubbleColorReceived,
     this.textColorSent,
     this.textColorReceived,
+    this.onReactionsTap,
   });
 
   final Message message;
@@ -168,6 +175,7 @@ class MessageBubble extends StatelessWidget {
   final Color? bubbleColorReceived;
   final Color? textColorSent;
   final Color? textColorReceived;
+  final VoidCallback? onReactionsTap;
 
   @override
   Widget build(BuildContext context) {
@@ -291,7 +299,17 @@ class MessageBubble extends StatelessWidget {
             maxWidth:
                 isDesktop ? 400.0 : MediaQuery.of(context).size.width * 0.75,
           ),
-          child: IntrinsicWidth(child: bubble),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment:
+                isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            children: [
+              IntrinsicWidth(child: bubble),
+              // Reaction badges below the bubble
+              if (message.reactions.isNotEmpty)
+                _buildReactionBadges(context, isMe),
+            ],
+          ),
         ),
       ),
     );
@@ -363,5 +381,81 @@ class MessageBubble extends StatelessWidget {
     final h = dt.hour.toString().padLeft(2, '0');
     final m = dt.minute.toString().padLeft(2, '0');
     return '$h:$m';
+  }
+
+  Widget _buildReactionBadges(BuildContext context, bool isMe) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final groupedReactions = ChatReactionsProvider().groupReactions(
+      message.reactions,
+      null, // currentUserId not needed for display grouping
+    );
+
+    if (groupedReactions.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: 4,
+        left: isMe ? 0 : 4,
+        right: isMe ? 4 : 0,
+      ),
+      child: Wrap(
+        spacing: 4,
+        runSpacing: 4,
+        alignment: isMe ? WrapAlignment.end : WrapAlignment.start,
+        children:
+            groupedReactions.map((group) {
+              final hasCurrentUser = group.hasCurrentUserReacted;
+              return GestureDetector(
+                onTap: onReactionsTap,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        hasCurrentUser
+                            ? colorScheme.primaryContainer.withValues(
+                              alpha: 0.8,
+                            )
+                            : colorScheme.surfaceContainerHighest.withValues(
+                              alpha: 0.9,
+                            ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color:
+                          hasCurrentUser
+                              ? colorScheme.primary.withValues(alpha: 0.5)
+                              : colorScheme.outline.withValues(alpha: 0.2),
+                      width: hasCurrentUser ? 1.5 : 0.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(group.emoji, style: const TextStyle(fontSize: 14)),
+                      if (group.count > 1) ...[
+                        const SizedBox(width: 2),
+                        Text(
+                          '${group.count}',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.labelSmall?.copyWith(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color:
+                                hasCurrentUser
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+      ),
+    );
   }
 }

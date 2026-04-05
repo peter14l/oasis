@@ -8,54 +8,113 @@ const PayPalPayment = ({ plan, amount, currency, onSuccess }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Load PayPal Script
-    const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID&currency=${currency}`;
-    script.addEventListener('load', () => {
-      setLoading(false);
-      window.paypal.Buttons({
-        createOrder: (data, actions) => {
-          return actions.order.create({
-            purchase_units: [
-              {
-                description: `Oasis ${plan} Subscription`,
-                amount: {
-                  currency_code: currency,
-                  value: amount.toFixed(2),
-                },
-              },
-            ],
-          });
-        },
-        onApprove: async (data, actions) => {
-          const order = await actions.order.capture();
-          
-          // Verify with your backend/Supabase Edge Function
-          const { error: verifyError } = await supabase.functions.invoke('paypal-verify', {
-            body: {
-              orderId: data.orderID,
-              plan,
-              amount,
-              currency
-            }
-          });
+    let script;
+    let isMounted = true;
 
-          if (verifyError) {
-            setError('Payment verification failed. Please contact support.');
-          } else {
-            onSuccess();
-          }
-        },
-        onError: (err) => {
-          console.error('PayPal Error:', err);
-          setError('An error occurred with PayPal.');
+    const loadPayPalScript = () => {
+      const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID || 'sb';
+      const scriptId = `paypal-sdk-${currency}`;
+      
+      // Check if script already exists
+      const existingScript = document.getElementById(scriptId);
+      
+      if (existingScript) {
+        if (window.paypal) {
+          renderButtons();
+        } else {
+          existingScript.addEventListener('load', renderButtons);
         }
-      }).render(paypalRef.current);
-    });
-    document.body.appendChild(script);
+        return;
+      }
+
+      script = document.createElement('script');
+      script.id = scriptId;
+      script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${currency}`;
+      script.async = true;
+      script.onload = () => {
+        if (isMounted) renderButtons();
+      };
+      script.onerror = () => {
+        if (isMounted) {
+          setLoading(false);
+          setError('Failed to load PayPal SDK.');
+        }
+      };
+      document.body.appendChild(script);
+    };
+
+    const renderButtons = () => {
+      if (!isMounted) return;
+      setLoading(false);
+      
+      if (window.paypal) {
+        // Clear previous buttons if any
+        if (paypalRef.current) {
+          paypalRef.current.innerHTML = '';
+        }
+
+        window.paypal.Buttons({
+          createOrder: (data, actions) => {
+            return actions.order.create({
+              purchase_units: [
+                {
+                  description: `Oasis ${plan} Subscription`,
+                  amount: {
+                    currency_code: currency,
+                    value: amount.toFixed(2),
+                  },
+                },
+              ],
+            });
+          },
+          onApprove: async (data, actions) => {
+            try {
+              const order = await actions.order.capture();
+              
+              // Verify with your backend/Supabase Edge Function
+              const { error: verifyError } = await supabase.functions.invoke('paypal-verify', {
+                body: {
+                  orderId: data.orderID,
+                  plan,
+                  amount,
+                  currency
+                }
+              });
+
+              if (verifyError) {
+                setError('Payment verification failed. Please contact support.');
+              } else {
+                onSuccess();
+              }
+            } catch (err) {
+              console.error('Capture Error:', err);
+              setError('Failed to capture payment.');
+            }
+          },
+          onError: (err) => {
+            console.error('PayPal Error:', err);
+            // Don't set error if it's just a currency mismatch that we can explain
+            if (err.message?.includes('currency')) {
+              setError('This currency is not supported by PayPal in your region.');
+            } else {
+              setError('An error occurred with PayPal.');
+            }
+          }
+        }).render(paypalRef.current).catch(err => {
+          console.warn('PayPal Render Error (likely due to remount):', err);
+        });
+      }
+    };
+
+    loadPayPalScript();
 
     return () => {
-      // Cleanup script if necessary (though usually fine to leave)
+      isMounted = false;
+      // We don't necessarily want to remove the script as it might be used by other instances
+      // but we do want to ensure the button container is cleared
+      if (paypalRef.current) {
+        paypalRef.current.innerHTML = '';
+      }
     };
   }, [plan, amount, currency, onSuccess]);
 
@@ -72,7 +131,7 @@ const PayPalPayment = ({ plan, amount, currency, onSuccess }) => {
           {error}
         </div>
       )}
-      <div ref={paypalRef}></div>
+      <div ref={paypalRef} style={{ marginTop: '1rem' }}></div>
     </div>
   );
 };
