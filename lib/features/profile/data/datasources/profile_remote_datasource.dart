@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/core/config/supabase_config.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis/core/config/supabase_config.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -60,7 +60,7 @@ class ProfileRemoteDatasource {
       final isPro = user?.userMetadata?['is_pro'] == true;
       if (!isPro && bannerColor != null) {
         throw Exception(
-          'Upgrade to Morrow Pro to use custom banner colors and themes.',
+          'Upgrade to Oasis Pro to use custom banner colors and themes.',
         );
       }
 

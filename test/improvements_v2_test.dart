@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:oasis_v2/services/notification_service.dart';
-import 'package:oasis_v2/services/post_service.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis/services/notification_service.dart';
+import 'package:oasis/services/post_service.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MockSupabaseClient extends Mock implements SupabaseClient {

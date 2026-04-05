@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/models/message.dart';
+import 'package:oasis/models/message.dart';
 
 /// Reply preview bar shown above the input area when replying to a message.
 /// Extracted from _buildReplyPreview() in chat_screen.dart.

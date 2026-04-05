@@ -1,4 +1,4 @@
-import 'package:oasis_v2/features/stories/domain/models/story_entity.dart';
+import 'package:oasis/features/stories/domain/models/story_entity.dart';
 
 /// Immutable state class for stories feature.
 class StoriesState {

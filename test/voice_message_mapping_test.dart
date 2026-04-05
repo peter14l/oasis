@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oasis_v2/models/message.dart';
+import 'package:oasis/models/message.dart';
 
 void main() {
   group('Message Model Mapping Tests', () {

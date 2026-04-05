@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/features/messages/presentation/widgets/shared/attachment_option_card.dart';
+import 'package:oasis/features/messages/presentation/widgets/shared/attachment_option_card.dart';
 
 /// Attachment options bottom sheet.
 /// Extracted from _showAttachmentOptions() in chat_screen.dart.
-/// TODO: Wire up actual pick callbacks from the screen.
 class AttachmentOptionsSheet extends StatelessWidget {
   const AttachmentOptionsSheet({
     super.key,

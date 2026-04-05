@@ -1,5 +1,5 @@
 -- =====================================================
--- MORROW V2 - NOTIFICATION TRIGGERS
+-- OASIS - NOTIFICATION TRIGGERS
 -- =====================================================
 -- This migration creates triggers for automatic notification creation
 

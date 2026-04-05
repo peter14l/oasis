@@ -1,5 +1,5 @@
 import 'package:go_router/go_router.dart';
-import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis/services/auth_service.dart';
 
 /// Route guards for authentication and authorization
 class RouteGuards {

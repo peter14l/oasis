@@ -1,4 +1,4 @@
-import 'package:oasis_v2/features/ripples/domain/models/ripple_entity.dart';
+import 'package:oasis/features/ripples/domain/models/ripple_entity.dart';
 
 /// Immutable state class for ripples feature.
 /// Captures all UI state for ripples including session management.

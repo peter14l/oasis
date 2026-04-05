@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/models/story_model.dart';
-import 'package:oasis_v2/services/spotify_service.dart';
+import 'package:oasis/models/story_model.dart';
+import 'package:oasis/services/spotify_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/services/app_initializer.dart';
-import 'package:oasis_v2/core/utils/haptic_utils.dart';
+import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/core/utils/haptic_utils.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:animate_do/animate_do.dart';
 

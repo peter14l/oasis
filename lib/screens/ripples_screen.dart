@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:go_router/go_router.dart';
-import 'package:oasis_v2/features/ripples/presentation/providers/ripples_provider.dart';
-import 'package:oasis_v2/features/ripples/domain/models/ripple_entity.dart'
+import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
+import 'package:oasis/features/ripples/domain/models/ripple_entity.dart'
     show RipplesLayoutType;
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/widgets/share_sheet.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/widgets/share_sheet.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:oasis_v2/core/utils/responsive_layout.dart';
-import 'package:oasis_v2/widgets/messages/share_to_dm_modal.dart';
-import 'package:oasis_v2/models/message.dart';
-import 'package:oasis_v2/services/app_initializer.dart'; // For ThemeProvider
+import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:oasis/widgets/messages/share_to_dm_modal.dart';
+import 'package:oasis/models/message.dart';
+import 'package:oasis/services/app_initializer.dart'; // For ThemeProvider
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 
 class RipplesScreen extends StatefulWidget {

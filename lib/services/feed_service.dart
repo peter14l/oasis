@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/core/config/supabase_config.dart';
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/services/notification_service.dart';
+import 'package:oasis/core/config/supabase_config.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/services/notification_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FeedService {
@@ -51,7 +51,7 @@ class FeedService {
                 userAvatar:
                     'https://ui-avatars.com/api/?name=Ad&background=random',
                 content:
-                    'Get Morrow Pro to enjoy an ad-free experience, unlimited time capsules, advanced analytics, and more.',
+                    'Get Oasis Pro to enjoy an ad-free experience, unlimited time capsules, advanced analytics, and more.',
                 timestamp: DateTime.now(),
                 isAd: true,
               ),
@@ -109,7 +109,7 @@ class FeedService {
                 userAvatar:
                     'https://ui-avatars.com/api/?name=Ad&background=random',
                 content:
-                    'Get Morrow Pro to enjoy an ad-free experience, unlimited time capsules, advanced analytics, and more.',
+                    'Get Oasis Pro to enjoy an ad-free experience, unlimited time capsules, advanced analytics, and more.',
                 timestamp: DateTime.now(),
                 isAd: true,
               ),

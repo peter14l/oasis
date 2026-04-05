@@ -1,5 +1,5 @@
-import 'package:oasis_v2/features/feed/domain/models/enhanced_poll.dart';
-import 'package:oasis_v2/features/feed/domain/repositories/post_repository.dart';
+import 'package:oasis/features/feed/domain/models/enhanced_poll.dart';
+import 'package:oasis/features/feed/domain/repositories/post_repository.dart';
 
 /// Create or manage a poll attached to a post.
 class ManagePoll {

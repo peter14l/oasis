@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
+import 'package:oasis/features/canvas/domain/models/canvas_models.dart';
 
 void main() {
   group('CanvasItemEntity Model Tests', () {

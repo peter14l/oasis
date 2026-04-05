@@ -1,4 +1,4 @@
-import 'package:oasis_v2/features/ripples/domain/models/ripple_entity.dart';
+import 'package:oasis/features/ripples/domain/models/ripple_entity.dart';
 
 /// Repository interface for ripples - defines the contract for data operations.
 /// This is the domain layer abstraction that decouples the presentation layer

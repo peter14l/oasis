@@ -6,7 +6,7 @@ class AppStrings {
   AppStrings._();
 
   // App Info
-  static const String appName = 'Morrow';
+  static const String appName = 'Oasis';
   static const String appTagline = 'Share moments, connect with communities.';
 
   // Auth

@@ -1,4 +1,4 @@
-import 'package:oasis_v2/features/profile/domain/repositories/profile_repository.dart';
+import 'package:oasis/features/profile/domain/repositories/profile_repository.dart';
 
 class FollowUser {
   final ProfileRepository _repository;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/features/messages/presentation/widgets/shared/view_mode_button.dart';
+import 'package:oasis/features/messages/presentation/widgets/shared/view_mode_button.dart';
 
 /// Media view mode selector (Keep in Chat / Allow Replay / View Once).
 /// Extracted from _buildMediaViewModeSelector() in chat_screen.dart.

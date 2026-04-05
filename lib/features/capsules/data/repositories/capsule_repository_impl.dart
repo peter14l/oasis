@@ -1,7 +1,7 @@
-import 'package:oasis_v2/core/config/supabase_config.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/features/capsules/domain/models/time_capsule_entity.dart';
-import 'package:oasis_v2/features/capsules/domain/repositories/capsule_repository.dart';
+import 'package:oasis/core/config/supabase_config.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/features/capsules/domain/models/time_capsule_entity.dart';
+import 'package:oasis/features/capsules/domain/repositories/capsule_repository.dart';
 import 'package:uuid/uuid.dart';
 
 /// Implementation of CapsuleRepository wrapping existing TimeCapsuleService logic
@@ -92,7 +92,7 @@ class CapsuleRepositoryImpl implements CapsuleRepository {
 
       if (activeCapsulesResponse.length >= 2) {
         throw Exception(
-          'Free tier is limited to 2 active time capsules. Upgrade to Morrow Pro for unlimited capsules.',
+          'Free tier is limited to 2 active time capsules. Upgrade to Oasis Pro for unlimited capsules.',
         );
       }
     }

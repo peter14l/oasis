@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/features/stories/domain/models/story_entity.dart';
-import 'package:oasis_v2/features/stories/domain/repositories/stories_repository.dart';
-import 'package:oasis_v2/features/stories/data/repositories/stories_repository_impl.dart';
-import 'package:oasis_v2/features/stories/presentation/providers/stories_state.dart';
+import 'package:oasis/features/stories/domain/models/story_entity.dart';
+import 'package:oasis/features/stories/domain/repositories/stories_repository.dart';
+import 'package:oasis/features/stories/data/repositories/stories_repository_impl.dart';
+import 'package:oasis/features/stories/presentation/providers/stories_state.dart';
 
 /// Provider for stories feature - manages UI state.
 class StoriesProvider extends ChangeNotifier {

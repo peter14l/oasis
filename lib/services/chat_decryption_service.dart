@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/services/encryption_service.dart';
-import 'package:oasis_v2/services/signal/signal_service.dart';
+import 'package:oasis/services/encryption_service.dart';
+import 'package:oasis/services/signal/signal_service.dart';
 
 /// Centralized service for decrypting chat messages.
 /// 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oasis_v2/screens/messages/image_preview_screen.dart';
-import 'package:oasis_v2/features/messages/presentation/widgets/bubbles/text_bubble.dart';
+import 'package:oasis/screens/messages/image_preview_screen.dart';
+import 'package:oasis/features/messages/presentation/widgets/bubbles/text_bubble.dart';
 
 /// Image message bubble with view-once/allow-replay support.
 /// Extracted from the image branch of _buildMessageBubble() in chat_screen.dart.

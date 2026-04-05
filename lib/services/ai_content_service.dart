@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 
 /// AI Content Companion service for caption and hashtag suggestions
 class AIContentService {

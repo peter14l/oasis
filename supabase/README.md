@@ -1,6 +1,6 @@
-# Morrow V2 - Supabase Database Setup
+# Oasis V2 - Supabase Database Setup
 
-This directory contains all the SQL migrations needed to set up the Morrow V2 database in Supabase.
+This directory contains all the SQL migrations needed to set up the Oasis V2 database in Supabase.
 
 ## 📋 Prerequisites
 
@@ -55,7 +55,7 @@ For real-time features like messaging and notifications:
 2. Create OAuth 2.0 credentials
 3. Add authorized redirect URIs:
    - `https://your-project-id.supabase.co/auth/v1/callback`
-   - `morrow://login-callback` (for mobile)
+   - `oasis://login-callback` (for mobile)
 4. Copy Client ID and Client Secret to Supabase
 
 #### Apple Sign In Setup:

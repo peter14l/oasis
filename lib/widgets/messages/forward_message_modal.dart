@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/models/conversation.dart';
-import 'package:oasis_v2/models/message.dart';
-import 'package:oasis_v2/services/messaging_service.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/providers/conversation_provider.dart';
+import 'package:oasis/models/conversation.dart';
+import 'package:oasis/models/message.dart';
+import 'package:oasis/services/messaging_service.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/providers/conversation_provider.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
 

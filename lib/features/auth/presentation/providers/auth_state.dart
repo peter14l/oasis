@@ -1,4 +1,4 @@
-import 'package:oasis_v2/services/session_registry_service.dart';
+import 'package:oasis/services/session_registry_service.dart';
 
 class AuthState {
   final RegisteredAccount? currentAccount;

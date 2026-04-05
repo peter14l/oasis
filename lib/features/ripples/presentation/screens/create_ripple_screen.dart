@@ -5,9 +5,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 import 'package:uuid/uuid.dart';
-import 'package:oasis_v2/features/ripples/presentation/providers/ripples_provider.dart';
+import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 
 class CreateRippleScreen extends StatefulWidget {
   const CreateRippleScreen({super.key});

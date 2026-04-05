@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/services/wellness_service.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/models/user_model.dart';
-import 'package:oasis_v2/core/utils/haptic_utils.dart';
+import 'package:oasis/services/wellness_service.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/models/user_model.dart';
+import 'package:oasis/core/utils/haptic_utils.dart';
 import 'dart:ui';
 
 class WellnessStatsScreen extends StatelessWidget {

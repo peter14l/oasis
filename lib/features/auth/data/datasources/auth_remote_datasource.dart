@@ -3,10 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:gotrue/gotrue.dart' as gotrue;
 import 'package:http/http.dart' as http;
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/core/config/supabase_config.dart';
-import 'package:oasis_v2/features/auth/domain/models/auth_models.dart';
-import 'package:oasis_v2/services/session_registry_service.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/core/config/supabase_config.dart';
+import 'package:oasis/features/auth/domain/models/auth_models.dart';
+import 'package:oasis/services/session_registry_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthRemoteDatasource {

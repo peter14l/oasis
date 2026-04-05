@@ -1,4 +1,4 @@
-name: oasis_v2
+name: oasis
 description: "A modern social media app for sharing moments and connecting with communities."
 
 publish_to: 'none' 
@@ -169,5 +169,5 @@ flutter:
 sentry:
   upload_debug_symbols: true
   upload_source_maps: true
-  project: morrow
+  project: oasis
   org: cresca

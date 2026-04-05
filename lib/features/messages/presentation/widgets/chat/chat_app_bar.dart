@@ -1,14 +1,14 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/providers/presence_provider.dart';
-import 'package:oasis_v2/providers/typing_indicator_provider.dart';
+import 'package:oasis/providers/presence_provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:go_router/go_router.dart';
 
 /// Chat app bar with avatar, presence indicator, encryption lock, and action buttons.
-/// TODO: Fully extract from chat_screen.dart _buildAppBar section.
-/// This is a placeholder — the actual implementation is still in the legacy screen.
-class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
+/// Extracted floating glassmorphic header from chat_screen.dart.
+class ChatAppBar extends StatelessWidget {
   const ChatAppBar({
     super.key,
     required this.otherUserName,
@@ -35,192 +35,208 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onSearchPressed;
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final topPadding = MediaQuery.of(context).padding.top;
 
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, size: 18),
-        onPressed: () => Navigator.of(context).pop(),
-      ),
-      title: Row(
+    return Positioned(
+      top: topPadding + 12,
+      left: 16,
+      right: 16,
+      child: Row(
         children: [
-          // Avatar with online indicator
-          Stack(
-            children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: colorScheme.primaryContainer,
-                backgroundImage:
-                    (otherUserAvatar ?? '').isNotEmpty
-                        ? CachedNetworkImageProvider(otherUserAvatar!)
-                        : null,
-                child:
-                    (otherUserAvatar ?? '').isEmpty
-                        ? Text(
-                          (otherUserName.isNotEmpty ? otherUserName[0] : 'U')
-                              .toUpperCase(),
-                          style: TextStyle(
-                            color: colorScheme.onPrimaryContainer,
-                            fontSize: 14,
-                          ),
-                        )
-                        : null,
+          // Left: Back button (mobile only)
+          if (!isDesktop)
+            _FloatingContainer(
+              isCircular: true,
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, size: 20),
+                onPressed: () {
+                  final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+                  if (keyboardHeight > 0) {
+                    FocusScope.of(context).unfocus();
+                  } else {
+                    if (context.mounted) context.pop();
+                  }
+                },
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
-              Consumer<PresenceProvider>(
-                builder: (context, presenceProvider, child) {
-                  final isOnline =
-                      otherUserId != null &&
-                      presenceProvider.isUserOnline(otherUserId!);
-                  return Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: isOnline ? Colors.green : Colors.grey,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: colorScheme.surface,
-                          width: 1.5,
+            ),
+          if (!isDesktop) const SizedBox(width: 8),
+
+          // Middle: Avatar, name, status
+          Expanded(
+            child: GestureDetector(
+              onTap: isDesktop ? null : onDetailsToggle,
+              behavior: HitTestBehavior.opaque,
+              child: _FloatingContainer(
+                isCircular: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Row(
+                    children: [
+                      Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: isDesktop ? 18 : 16,
+                            backgroundColor: colorScheme.primaryContainer,
+                            backgroundImage: (otherUserAvatar ?? '').isNotEmpty
+                                ? CachedNetworkImageProvider(otherUserAvatar!)
+                                : null,
+                            child: (otherUserAvatar ?? '').isEmpty
+                                ? Text(
+                                    (otherUserName.isNotEmpty ? otherUserName[0] : 'U').toUpperCase(),
+                                    style: TextStyle(
+                                      color: colorScheme.onPrimaryContainer,
+                                      fontSize: 14,
+                                    ),
+                                  )
+                                : null,
+                          ),
+                          Consumer<PresenceProvider>(
+                            builder: (context, presenceProvider, child) {
+                              final isOnline = otherUserId != null &&
+                                  presenceProvider.isUserOnline(otherUserId!);
+                              return Positioned(
+                                right: 0,
+                                bottom: 0,
+                                child: Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: isOnline ? Colors.green : Colors.grey,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: colorScheme.surface,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              otherUserName,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontSize: isDesktop ? 15 : 14,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -0.2,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Consumer<PresenceProvider>(
+                              builder: (context, presenceProvider, child) {
+                                final presence = otherUserId != null
+                                    ? presenceProvider.getUserPresence(otherUserId!)
+                                    : null;
+                                final isOnline = presence?.status == 'online';
+
+                                return Row(
+                                  children: [
+                                    if (isEncryptionReady) ...[
+                                      Icon(
+                                        FluentIcons.lock_closed_12_filled,
+                                        size: 10,
+                                        color: colorScheme.primary.withValues(alpha: 0.7),
+                                      ),
+                                      const SizedBox(width: 4),
+                                    ],
+                                    Text(
+                                      isOnline
+                                          ? 'Online'
+                                          : (presence?.lastSeen != null
+                                              ? 'Last seen ${_formatSeenTime(presence!.lastSeen!)}'
+                                              : 'Offline'),
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: isOnline
+                                            ? Colors.green.withValues(alpha: 0.8)
+                                            : colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  otherUserName,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontSize: isDesktop ? 15 : 14,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.2,
+                    ],
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-                Consumer<PresenceProvider>(
-                  builder: (context, presenceProvider, child) {
-                    final presence =
-                        otherUserId != null
-                            ? presenceProvider.getUserPresence(otherUserId!)
-                            : null;
-                    final isOnline = presence?.status == 'online';
-
-                    return Row(
-                      children: [
-                        if (isEncryptionReady) ...[
-                          Icon(
-                            FluentIcons.lock_closed_12_filled,
-                            size: 10,
-                            color: colorScheme.primary.withValues(alpha: 0.7),
-                          ),
-                          const SizedBox(width: 4),
-                        ],
-                        Text(
-                          isOnline
-                              ? 'Online'
-                              : (presence?.lastSeen != null
-                                  ? 'Last seen ${_formatSeenTime(presence!.lastSeen!)}'
-                                  : 'Offline'),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color:
-                                isOnline
-                                    ? Colors.green.withValues(alpha: 0.8)
-                                    : colorScheme.onSurfaceVariant.withValues(
-                                      alpha: 0.7,
-                                    ),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ],
+              ),
             ),
+          ),
+
+          const SizedBox(width: 8),
+
+          // Right: Action buttons
+          _FloatingContainer(
+            isCircular: true,
+            child: isDesktop
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(FluentIcons.call_24_regular, size: 20),
+                        onPressed: onCallPressed,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                      const SizedBox(width: 4),
+                      IconButton(
+                        icon: const Icon(FluentIcons.video_24_regular, size: 20),
+                        onPressed: onVideoCallPressed,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                      const SizedBox(width: 4),
+                      IconButton(
+                        icon: Icon(
+                          isDetailsOpen ? FluentIcons.info_24_filled : FluentIcons.info_24_regular,
+                          size: 20,
+                        ),
+                        onPressed: onDetailsToggle,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  )
+                : PopupMenuButton<String>(
+                    onSelected: (value) {
+                      if (value == 'details') onDetailsToggle?.call();
+                    },
+                    icon: const Icon(Icons.more_vert, size: 20),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'details',
+                        child: Row(
+                          children: [
+                            Icon(Icons.info_outline),
+                            SizedBox(width: 12),
+                            Text('Details'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ],
       ),
-      actions: [
-        if (isDesktop)
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(FluentIcons.call_24_regular, size: 20),
-                onPressed: onCallPressed,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                icon: const Icon(FluentIcons.video_24_regular, size: 20),
-                onPressed: onVideoCallPressed,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                icon: const Icon(FluentIcons.search_24_regular, size: 20),
-                onPressed: onSearchPressed,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                icon: Icon(
-                  isDetailsOpen
-                      ? FluentIcons.info_24_filled
-                      : FluentIcons.info_24_regular,
-                  size: 20,
-                ),
-                onPressed: onDetailsToggle,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-            ],
-          )
-        else
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'details') onDetailsToggle?.call();
-            },
-            icon: const Icon(Icons.more_vert, size: 20),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            itemBuilder:
-                (context) => [
-                  const PopupMenuItem(
-                    value: 'details',
-                    child: Row(
-                      children: [
-                        Icon(Icons.info_outline),
-                        SizedBox(width: 12),
-                        Text('Details'),
-                      ],
-                    ),
-                  ),
-                ],
-          ),
-        const SizedBox(width: 8),
-      ],
     );
   }
 
@@ -231,5 +247,35 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
     if (difference.inHours < 1) return '${difference.inMinutes}m ago';
     if (difference.inDays < 1) return '${difference.inHours}h ago';
     return '${difference.inDays}d ago';
+  }
+}
+
+class _FloatingContainer extends StatelessWidget {
+  final Widget child;
+  final bool isCircular;
+
+  const _FloatingContainer({required this.child, required this.isCircular});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.6),
+        borderRadius: isCircular ? BorderRadius.circular(20) : BorderRadius.circular(24),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.1),
+          width: 1,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: isCircular ? BorderRadius.circular(20) : BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: child,
+        ),
+      ),
+    );
   }
 }

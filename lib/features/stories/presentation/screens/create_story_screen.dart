@@ -10,14 +10,14 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:gal/gal.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/core/utils/haptic_utils.dart';
+import 'package:oasis/core/utils/haptic_utils.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oasis_v2/services/app_initializer.dart';
+import 'package:oasis/services/app_initializer.dart';
 
-import 'package:oasis_v2/widgets/stories/music_picker_sheet.dart';
-import 'package:oasis_v2/models/story_model.dart' as old_models;
-import 'package:oasis_v2/features/stories/domain/models/story_entity.dart';
-import 'package:oasis_v2/features/stories/presentation/providers/stories_provider.dart';
+import 'package:oasis/widgets/stories/music_picker_sheet.dart';
+import 'package:oasis/models/story_model.dart' as old_models;
+import 'package:oasis/features/stories/domain/models/story_entity.dart';
+import 'package:oasis/features/stories/presentation/providers/stories_provider.dart';
 
 class CreateStoryScreen extends StatefulWidget {
   const CreateStoryScreen({super.key});
@@ -298,8 +298,13 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+    debugPrint('M3E DEBUG: isM3EEnabled = \$isM3E');
+    final colorScheme = Theme.of(context).colorScheme;
+    
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: isM3E ? colorScheme.surface : Colors.black,
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
@@ -309,7 +314,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             child: Container(
               width: double.infinity,
               height: double.infinity,
-              color: Colors.black,
+              color: isM3E ? colorScheme.surface : Colors.black,
               child: Stack(
                 children: [
                   if (_selectedFile != null) ...[

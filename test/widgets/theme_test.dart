@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oasis_v2/themes/app_theme.dart';
+import 'package:oasis/themes/app_theme.dart';
 import '../test_setup.dart';
 
 void main() {

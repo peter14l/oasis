@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/features/circles/domain/models/circles_models.dart';
-import 'package:oasis_v2/features/circles/presentation/providers/circle_provider.dart';
-import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
-import 'package:oasis_v2/widgets/fluid_mesh_background.dart';
+import 'package:oasis/features/circles/domain/models/circles_models.dart';
+import 'package:oasis/features/circles/presentation/providers/circle_provider.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis/widgets/fluid_mesh_background.dart';
 
 class CircleJoinScreen extends StatefulWidget {
   final String circleId;

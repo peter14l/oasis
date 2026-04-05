@@ -1,11 +1,10 @@
 import 'package:gotrue/gotrue.dart' as gotrue;
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/features/auth/domain/models/auth_models.dart';
-import 'package:oasis_v2/features/auth/domain/repositories/auth_repository.dart';
-import 'package:oasis_v2/features/auth/data/datasources/auth_remote_datasource.dart';
-import 'package:oasis_v2/features/auth/data/datasources/session_local_datasource.dart';
-import 'package:oasis_v2/services/session_registry_service.dart';
+import 'package:oasis/features/auth/domain/models/auth_models.dart';
+import 'package:oasis/features/auth/domain/repositories/auth_repository.dart';
+import 'package:oasis/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:oasis/features/auth/data/datasources/session_local_datasource.dart';
+import 'package:oasis/services/session_registry_service.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDatasource _remoteDatasource;
@@ -113,6 +112,7 @@ class AuthRepositoryImpl implements AuthRepository {
     );
   }
 
+  @override
   Stream<gotrue.AuthState> get onAuthStateChange =>
       _remoteDatasource.onAuthStateChange;
 }

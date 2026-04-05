@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oasis_v2/features/stories/domain/models/story_entity.dart';
-import 'package:oasis_v2/services/app_initializer.dart';
+import 'package:oasis/features/stories/domain/models/story_entity.dart';
+import 'package:oasis/services/app_initializer.dart';
 import 'package:provider/provider.dart';
 
 class StoryRing extends StatelessWidget {

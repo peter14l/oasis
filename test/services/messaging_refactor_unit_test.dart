@@ -1,15 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:oasis_v2/services/chat_decryption_service.dart';
-import 'package:oasis_v2/services/encryption_service.dart';
-import 'package:oasis_v2/services/signal/signal_service.dart';
+import 'package:oasis/services/chat_decryption_service.dart';
+import 'package:oasis/services/encryption_service.dart';
+import 'package:oasis/services/signal/signal_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis_v2/services/messaging_service.dart';
-import 'package:oasis_v2/services/conversation_service.dart';
-import 'package:oasis_v2/services/chat_messaging_service.dart';
-import 'package:oasis_v2/services/chat_media_service.dart';
-import 'package:oasis_v2/services/message_operations_service.dart';
+import 'package:oasis/services/messaging_service.dart';
+import 'package:oasis/services/conversation_service.dart';
+import 'package:oasis/services/chat_messaging_service.dart';
+import 'package:oasis/services/chat_media_service.dart';
+import 'package:oasis/services/message_operations_service.dart';
 
 @GenerateMocks([
   EncryptionService,

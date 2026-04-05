@@ -1,12 +1,11 @@
 import 'package:flutter/foundation.dart';
-import 'package:gotrue/gotrue.dart' as gotrue;
-import 'package:oasis_v2/features/auth/domain/models/auth_models.dart';
-import 'package:oasis_v2/features/auth/domain/repositories/auth_repository.dart';
-import 'package:oasis_v2/features/auth/presentation/providers/auth_state.dart'
+import 'package:oasis/features/auth/domain/models/auth_models.dart';
+import 'package:oasis/features/auth/domain/repositories/auth_repository.dart';
+import 'package:oasis/features/auth/presentation/providers/auth_state.dart'
     as app_auth;
-import 'package:oasis_v2/services/session_registry_service.dart';
+import 'package:oasis/services/session_registry_service.dart';
 
-export 'package:oasis_v2/features/auth/presentation/providers/auth_state.dart';
+export 'package:oasis/features/auth/presentation/providers/auth_state.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthRepository _repository;

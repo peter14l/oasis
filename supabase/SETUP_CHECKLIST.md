@@ -54,7 +54,7 @@ Use this checklist to ensure your Supabase backend is properly configured.
   - Client Secret
 - [ ] Add authorized redirect URIs:
   - `https://[YOUR-PROJECT-ID].supabase.co/auth/v1/callback`
-  - `morrow://login-callback`
+  - `oasis://login-callback`
 - [ ] Test: Try signing in with Google
 
 ### Apple Sign In

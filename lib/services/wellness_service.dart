@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/services/notification_manager.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/services/notification_manager.dart';
 
 /// Wellness achievement types
 enum AchievementType {
@@ -277,7 +277,7 @@ class WellnessService extends ChangeNotifier {
 
   Future<void> setBlockedFeatures(Set<String> features) async {
     if (!_isUserPro()) {
-      throw Exception('Upgrade to Morrow Pro to customize Focus Mode blocklist.');
+      throw Exception('Upgrade to Oasis Pro to customize Focus Mode blocklist.');
     }
     _blockedFeatures = features;
     await _prefs.setStringList(_blockedFeaturesKey, features.toList());
@@ -302,7 +302,7 @@ class WellnessService extends ChangeNotifier {
   // Wind Down methods
   Future<void> setWindDownEnabled(bool enabled) async {
     if (enabled && !_isUserPro()) {
-      throw Exception('Upgrade to Morrow Pro to enable Wind-down mode.');
+      throw Exception('Upgrade to Oasis Pro to enable Wind-down mode.');
     }
     _windDownEnabled = enabled;
     await _prefs.setBool(_windDownEnabledKey, enabled);
@@ -443,7 +443,7 @@ class WellnessService extends ChangeNotifier {
     List<Map<String, dynamic>> weeklyData,
   ) {
     if (!_isUserPro()) {
-      throw Exception('Upgrade to Morrow Pro to generate Wellness Weekly Reports.');
+      throw Exception('Upgrade to Oasis Pro to generate Wellness Weekly Reports.');
     }
     if (weeklyData.isEmpty) {
       return {

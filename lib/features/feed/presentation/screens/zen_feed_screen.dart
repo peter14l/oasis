@@ -2,18 +2,18 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
-import 'package:oasis_v2/models/feed_layout_strategy.dart';
-import 'package:oasis_v2/features/feed/presentation/providers/feed_provider.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/core/utils/friction_scroll_physics.dart';
-import 'package:oasis_v2/widgets/animations/micro_animations.dart';
-import 'package:oasis_v2/services/app_initializer.dart';
-import 'package:oasis_v2/widgets/zen_breath_widget.dart';
-import 'package:oasis_v2/widgets/energy_meter_widget.dart';
-import 'package:oasis_v2/widgets/feed_layout_switcher.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/models/feed_layout_strategy.dart';
+import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/core/utils/friction_scroll_physics.dart';
+import 'package:oasis/widgets/animations/micro_animations.dart';
+import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/widgets/zen_breath_widget.dart';
+import 'package:oasis/widgets/energy_meter_widget.dart';
+import 'package:oasis/widgets/feed_layout_switcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oasis_v2/widgets/comments_modal.dart';
+import 'package:oasis/widgets/comments_modal.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// Zen Carousel feed screen - one post at a time with breath interstitials
@@ -414,7 +414,7 @@ class _ZenPostPage extends StatelessWidget {
             isM3E: isM3E,
             onTap: () {
               final deepLink = 'https://oasis-web-red.vercel.app/post/${post.id}';
-              Share.share('Check out this post on Morrow! $deepLink');
+              Share.share('Check out this post on Oasis! $deepLink');
             },
           ),
           _buildActionButton(

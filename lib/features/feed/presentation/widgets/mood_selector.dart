@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/features/feed/domain/models/post_mood.dart';
-import 'package:oasis_v2/core/utils/haptic_utils.dart';
+import 'package:oasis/features/feed/domain/models/post_mood.dart';
+import 'package:oasis/core/utils/haptic_utils.dart';
 
 /// Widget for selecting mood when creating a post
 class MoodSelector extends StatelessWidget {

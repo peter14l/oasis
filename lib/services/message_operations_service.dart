@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis_v2/core/config/supabase_config.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/services/chat_media_service.dart';
-import 'package:oasis_v2/models/message_reaction.dart';
+import 'package:oasis/core/config/supabase_config.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/services/chat_media_service.dart';
+import 'package:oasis/models/message_reaction.dart';
 
 /// Service for handling auxiliary chat operations.
 ///

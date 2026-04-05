@@ -1,5 +1,5 @@
-import 'package:oasis_v2/features/ripples/domain/models/ripple_entity.dart';
-import 'package:oasis_v2/features/ripples/domain/repositories/ripple_repository.dart';
+import 'package:oasis/features/ripples/domain/models/ripple_entity.dart';
+import 'package:oasis/features/ripples/domain/repositories/ripple_repository.dart';
 
 /// Use case for liking a ripple.
 class LikeRipple {

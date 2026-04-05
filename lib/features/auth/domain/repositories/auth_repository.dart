@@ -1,6 +1,6 @@
 import 'package:gotrue/gotrue.dart' as gotrue;
-import 'package:oasis_v2/services/session_registry_service.dart';
-import 'package:oasis_v2/features/auth/domain/models/auth_models.dart';
+import 'package:oasis/services/session_registry_service.dart';
+import 'package:oasis/features/auth/domain/models/auth_models.dart';
 
 abstract class AuthRepository {
   Future<RegisteredAccount> signInWithEmail(AuthCredentials credentials);

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/models/moderation.dart';
-import 'package:oasis_v2/services/moderation_service.dart';
+import 'package:oasis/models/moderation.dart';
+import 'package:oasis/services/moderation_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class BlockedUsersScreen extends StatefulWidget {

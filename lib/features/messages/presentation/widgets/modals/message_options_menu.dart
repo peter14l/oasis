@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/models/message.dart';
-import 'package:oasis_v2/widgets/messages/forward_message_modal.dart';
+import 'package:oasis/models/message.dart';
+import 'package:oasis/widgets/messages/forward_message_modal.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 /// Desktop context menu for message options.

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oasis_v2/models/message_reaction.dart';
+import 'package:oasis/models/message_reaction.dart';
 
 void main() {
   group('MessageReactionModel Tests', () {

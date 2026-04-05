@@ -1,5 +1,5 @@
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
-import 'package:oasis_v2/features/feed/domain/repositories/feed_repository.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/features/feed/domain/repositories/feed_repository.dart';
 
 /// Get "For You" algorithmic feed posts.
 class GetFeedPosts {

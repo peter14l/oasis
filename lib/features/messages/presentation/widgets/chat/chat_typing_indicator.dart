@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/providers/typing_indicator_provider.dart';
-import 'package:oasis_v2/widgets/messages/typing_indicator_widget.dart';
+import 'package:oasis/providers/typing_indicator_provider.dart';
+import 'package:oasis/widgets/messages/typing_indicator_widget.dart';
 
 /// Typing indicator widget.
 /// Extracted from the Consumer<TypingIndicatorProvider> block in chat_screen.dart.

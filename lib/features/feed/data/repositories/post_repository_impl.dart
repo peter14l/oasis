@@ -1,8 +1,8 @@
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
-import 'package:oasis_v2/features/feed/domain/repositories/post_repository.dart';
-import 'package:oasis_v2/features/feed/data/datasources/post_remote_datasource.dart';
-import 'package:oasis_v2/services/notification_service.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/features/feed/domain/repositories/post_repository.dart';
+import 'package:oasis/features/feed/data/datasources/post_remote_datasource.dart';
+import 'package:oasis/services/notification_service.dart';
 
 /// Implementation of PostRepository.
 ///

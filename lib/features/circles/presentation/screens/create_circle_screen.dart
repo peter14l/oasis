@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:oasis_v2/features/circles/presentation/providers/circle_provider.dart';
-import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis/features/circles/presentation/providers/circle_provider.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 
 class CreateCircleScreen extends StatefulWidget {
   const CreateCircleScreen({super.key});

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 import '../../domain/models/call_entity.dart';
 import '../../domain/models/call_participant_entity.dart';
 import '../../domain/repositories/call_repository.dart';

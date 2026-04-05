@@ -1,8 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/features/stories/data/datasources/stories_remote_datasource.dart';
-import 'package:oasis_v2/features/stories/domain/models/story_entity.dart';
-import 'package:oasis_v2/features/stories/domain/repositories/stories_repository.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/features/stories/data/datasources/stories_remote_datasource.dart';
+import 'package:oasis/features/stories/domain/models/story_entity.dart';
+import 'package:oasis/features/stories/domain/repositories/stories_repository.dart';
 
 /// Implementation of StoriesRepository.
 class StoriesRepositoryImpl implements StoriesRepository {

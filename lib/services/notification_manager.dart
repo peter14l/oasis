@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:win_toast/win_toast.dart';
-import 'package:oasis_v2/routes/app_router.dart';
+import 'package:oasis/routes/app_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -199,9 +199,9 @@ class NotificationManager {
         final String largeIconPath = await _downloadAndSaveImage(senderAvatar, 'notification_icon');
         
         androidDetails = AndroidNotificationDetails(
-          'morrow_channel',
-          'Morrow Notifications',
-          channelDescription: 'Main notification channel for Morrow',
+          'oasis_channel',
+          'Oasis Notifications',
+          channelDescription: 'Main notification channel for Oasis',
           importance: Importance.max,
           priority: Priority.high,
           showWhen: true,
@@ -220,9 +220,9 @@ class NotificationManager {
     }
 
     androidDetails ??= const AndroidNotificationDetails(
-      'morrow_channel',
-      'Morrow Notifications',
-      channelDescription: 'Main notification channel for Morrow',
+      'oasis_channel',
+      'Oasis Notifications',
+      channelDescription: 'Main notification channel for Oasis',
       importance: Importance.max,
       priority: Priority.high,
       showWhen: true,
@@ -285,9 +285,9 @@ class NotificationManager {
       
       await androidPlugin?.createNotificationChannel(
         const AndroidNotificationChannel(
-          'morrow_channel',
-          'Morrow Notifications',
-          description: 'Main notification channel for Morrow',
+          'oasis_channel',
+          'Oasis Notifications',
+          description: 'Main notification channel for Oasis',
           importance: Importance.max,
           playSound: true,
           enableVibration: true,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/features/feed/domain/models/enhanced_poll.dart';
-import 'package:oasis_v2/core/utils/haptic_utils.dart';
+import 'package:oasis/features/feed/domain/models/enhanced_poll.dart';
+import 'package:oasis/core/utils/haptic_utils.dart';
 
 /// Widget for creating enhanced polls
 class PollCreator extends StatefulWidget {
@@ -447,7 +447,7 @@ class PollDisplay extends StatelessWidget {
             if (poll.pollType == PollType.quiz &&
                 showResults &&
                 option.isCorrect)
-              Padding(
+              const Padding(
                 padding: const EdgeInsets.only(left: 8),
                 child: Icon(Icons.check_circle, color: Colors.green, size: 20),
               ),

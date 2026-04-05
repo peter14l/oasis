@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 import '../../domain/models/energy_meter_entity.dart';
 import '../../domain/models/wellness_entity.dart';
 

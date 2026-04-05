@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis/features/canvas/domain/models/canvas_models.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
-import 'package:oasis_v2/core/config/supabase_config.dart';
+import 'package:oasis/core/config/supabase_config.dart';
 
 /// Remote data source for Canvas operations using Supabase.
 class CanvasRemoteDatasource {

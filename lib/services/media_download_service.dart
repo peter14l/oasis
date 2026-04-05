@@ -5,9 +5,9 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:gal/gal.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 
-import 'package:oasis_v2/core/config/feature_flags.dart';
+import 'package:oasis/core/config/feature_flags.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MediaDownloadService {
@@ -27,7 +27,7 @@ class MediaDownloadService {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'Upgrade to Morrow Pro to download other users\' content.',
+                'Upgrade to Oasis Pro to download other users\' content.',
               ),
               backgroundColor: Colors.red,
             ),
@@ -78,7 +78,7 @@ class MediaDownloadService {
 
       // Get temporary directory
       final tempDir = await getTemporaryDirectory();
-      final fileName = 'morrow_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final fileName = 'oasis_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final filePath = '${tempDir.path}/$fileName';
 
       // Download file
@@ -114,7 +114,7 @@ class MediaDownloadService {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'Upgrade to Morrow Pro to download other users\' content.',
+                'Upgrade to Oasis Pro to download other users\' content.',
               ),
               backgroundColor: Colors.red,
             ),
@@ -157,7 +157,7 @@ class MediaDownloadService {
 
       // Get temporary directory
       final tempDir = await getTemporaryDirectory();
-      final fileName = 'morrow_${DateTime.now().millisecondsSinceEpoch}.mp4';
+      final fileName = 'oasis_${DateTime.now().millisecondsSinceEpoch}.mp4';
       final filePath = '${tempDir.path}/$fileName';
 
       // Download file
@@ -194,7 +194,7 @@ class MediaDownloadService {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'Upgrade to Morrow Pro to download other users\' content.',
+                'Upgrade to Oasis Pro to download other users\' content.',
               ),
               backgroundColor: Colors.red,
             ),
@@ -238,7 +238,7 @@ class MediaDownloadService {
       // Get downloads directory
       Directory? downloadsDir;
       if (Platform.isAndroid) {
-        downloadsDir = Directory('/storage/emulated/0/Download/Morrow');
+        downloadsDir = Directory('/storage/emulated/0/Download/Oasis');
       } else if (Platform.isIOS) {
         downloadsDir = await getApplicationDocumentsDirectory();
       } else {
@@ -249,7 +249,7 @@ class MediaDownloadService {
         throw Exception('Could not access downloads directory');
       }
 
-      // Create Morrow folder if it doesn't exist
+      // Create Oasis folder if it doesn't exist
       if (!await downloadsDir.exists()) {
         await downloadsDir.create(recursive: true);
       }

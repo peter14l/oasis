@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/features/capsules/data/repositories/capsule_repository_impl.dart';
-import 'package:oasis_v2/features/capsules/domain/models/time_capsule_entity.dart';
-import 'package:oasis_v2/features/capsules/domain/repositories/capsule_repository.dart';
-import 'package:oasis_v2/features/capsules/domain/usecases/create_capsule.dart';
-import 'package:oasis_v2/features/capsules/domain/usecases/get_capsules.dart';
-import 'package:oasis_v2/features/capsules/domain/usecases/open_capsule.dart';
-import 'package:oasis_v2/features/capsules/presentation/providers/capstate.dart'
+import 'package:oasis/features/capsules/data/repositories/capsule_repository_impl.dart';
+import 'package:oasis/features/capsules/domain/models/time_capsule_entity.dart';
+import 'package:oasis/features/capsules/domain/repositories/capsule_repository.dart';
+import 'package:oasis/features/capsules/domain/usecases/create_capsule.dart';
+import 'package:oasis/features/capsules/domain/usecases/get_capsules.dart';
+import 'package:oasis/features/capsules/domain/usecases/open_capsule.dart';
+import 'package:oasis/features/capsules/presentation/providers/capstate.dart'
     show CapsuleState;
 
 /// Provider for Capsule feature using Clean Architecture

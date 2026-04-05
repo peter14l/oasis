@@ -1,15 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis_v2/models/message.dart';
-import 'package:oasis_v2/models/conversation.dart';
-import 'package:oasis_v2/models/message_reaction.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/services/notification_service.dart';
-import 'package:oasis_v2/services/conversation_service.dart';
-import 'package:oasis_v2/services/chat_messaging_service.dart';
-import 'package:oasis_v2/services/chat_media_service.dart';
-import 'package:oasis_v2/services/message_operations_service.dart';
-import 'package:oasis_v2/services/moderation_service.dart';
+import 'package:oasis/models/message.dart';
+import 'package:oasis/models/conversation.dart';
+import 'package:oasis/models/message_reaction.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/services/notification_service.dart';
+import 'package:oasis/services/conversation_service.dart';
+import 'package:oasis/services/chat_messaging_service.dart';
+import 'package:oasis/services/chat_media_service.dart';
+import 'package:oasis/services/message_operations_service.dart';
+import 'package:oasis/services/moderation_service.dart';
 
 /// Facade service for all messaging and chat-related operations.
 ///

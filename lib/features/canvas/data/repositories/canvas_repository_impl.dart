@@ -1,6 +1,6 @@
-import 'package:oasis_v2/features/canvas/data/datasources/canvas_remote_datasource.dart';
-import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
-import 'package:oasis_v2/features/canvas/domain/repositories/canvas_repository.dart';
+import 'package:oasis/features/canvas/data/datasources/canvas_remote_datasource.dart';
+import 'package:oasis/features/canvas/domain/models/canvas_models.dart';
+import 'package:oasis/features/canvas/domain/repositories/canvas_repository.dart';
 
 /// Implementation of CanvasRepository using remote data source.
 class CanvasRepositoryImpl implements CanvasRepository {

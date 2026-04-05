@@ -1,4 +1,4 @@
-import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
+import 'package:oasis/features/canvas/domain/models/canvas_models.dart';
 
 /// Abstract repository interface for Canvas operations.
 /// This defines the contract that the data layer must implement.

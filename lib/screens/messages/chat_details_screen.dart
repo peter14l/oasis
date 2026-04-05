@@ -6,16 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:oasis_v2/models/message.dart';
-import 'package:oasis_v2/services/messaging_service.dart';
-import 'package:oasis_v2/services/vault_service.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/services/encryption_service.dart';
-import 'package:oasis_v2/services/signal/signal_service.dart';
+import 'package:oasis/models/message.dart';
+import 'package:oasis/services/messaging_service.dart';
+import 'package:oasis/services/vault_service.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/services/encryption_service.dart';
+import 'package:oasis/services/signal/signal_service.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
-import 'package:oasis_v2/services/app_initializer.dart';
+import 'package:oasis/services/app_initializer.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class ChatDetailsScreen extends StatefulWidget {

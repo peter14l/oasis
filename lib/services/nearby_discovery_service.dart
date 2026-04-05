@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 import 'dart:math' as math;
 
 /// Nearby discovery service for finding users and events
@@ -108,7 +108,7 @@ class NearbyDiscoveryService {
     final user = _supabase.auth.currentUser;
     final isPro = user?.userMetadata?['is_pro'] == true;
     if (!isPro) {
-      throw Exception('Upgrade to Morrow Pro to access nearby events.');
+      throw Exception('Upgrade to Oasis Pro to access nearby events.');
     }
     try {
       final response = await _supabase

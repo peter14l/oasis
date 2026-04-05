@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/services/app_initializer.dart';
+import 'package:oasis/services/app_initializer.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;

@@ -3,16 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
-import 'package:oasis_v2/features/profile/domain/models/user_profile_entity.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/services/post_service.dart';
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis/features/profile/domain/models/user_profile_entity.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/services/post_service.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:oasis_v2/widgets/wellness_badge.dart';
-import 'package:oasis_v2/widgets/account_switcher_sheet.dart';
-import 'package:oasis_v2/services/app_initializer.dart';
-import 'package:oasis_v2/core/utils/responsive_layout.dart';
+import 'package:oasis/widgets/wellness_badge.dart';
+import 'package:oasis/widgets/account_switcher_sheet.dart';
+import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userId;
@@ -927,7 +927,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           const SizedBox(width: 12),
         ],
         IconButton.filledTonal(
-          onPressed: () => Share.share('Check out my profile on Morrow!'),
+          onPressed: () => Share.share('Check out my profile on Oasis!'),
           icon: const Icon(Icons.ios_share_rounded),
           style: IconButton.styleFrom(
             padding: const EdgeInsets.all(16),

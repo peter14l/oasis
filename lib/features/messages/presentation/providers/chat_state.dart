@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:oasis_v2/models/message.dart';
-import 'package:oasis_v2/models/chat_theme.dart';
+import 'package:oasis/models/message.dart';
+import 'package:oasis/models/chat_theme.dart';
 
 /// Immutable UI state for the chat screen.
 /// Extracted from the 4,571-line _ChatScreenState in chat_screen.dart.
@@ -39,6 +39,7 @@ class ChatState {
   final bool whisperTriggered;
   final String? otherUserName;
   final String? otherUserId;
+  final String? otherUserAvatar;
 
   const ChatState({
     this.messages = const [],
@@ -71,6 +72,7 @@ class ChatState {
     this.whisperTriggered = false,
     this.otherUserName,
     this.otherUserId,
+    this.otherUserAvatar,
   });
 
   ChatState copyWith({
@@ -104,6 +106,7 @@ class ChatState {
     bool? whisperTriggered,
     String? otherUserName,
     String? otherUserId,
+    String? otherUserAvatar,
   }) {
     return ChatState(
       messages: messages ?? this.messages,
@@ -137,6 +140,7 @@ class ChatState {
       whisperTriggered: whisperTriggered ?? this.whisperTriggered,
       otherUserName: otherUserName ?? this.otherUserName,
       otherUserId: otherUserId ?? this.otherUserId,
+      otherUserAvatar: otherUserAvatar ?? this.otherUserAvatar,
     );
   }
 }

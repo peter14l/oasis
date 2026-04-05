@@ -4,12 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:navigation_bar_m3e/navigation_bar_m3e.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:oasis_v2/services/screen_time_service.dart';
-import 'package:oasis_v2/services/wellness_service.dart';
-import 'package:oasis_v2/providers/user_settings_provider.dart';
-import 'package:oasis_v2/core/utils/responsive_layout.dart';
-import 'package:oasis_v2/providers/conversation_provider.dart';
-import 'package:oasis_v2/services/app_initializer.dart';
+import 'package:oasis/services/screen_time_service.dart';
+import 'package:oasis/services/wellness_service.dart';
+import 'package:oasis/providers/user_settings_provider.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:oasis/providers/conversation_provider.dart';
+import 'package:oasis/services/app_initializer.dart';
 
 /// Navigation shell with bottom navigation bar
 class NavigationShell extends StatelessWidget {

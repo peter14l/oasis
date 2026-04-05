@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/services/presence_service.dart';
+import 'package:oasis/services/presence_service.dart';
 
 class UserPresence {
   final String status;

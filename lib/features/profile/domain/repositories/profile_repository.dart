@@ -1,4 +1,4 @@
-import 'package:oasis_v2/features/profile/domain/models/user_profile_entity.dart';
+import 'package:oasis/features/profile/domain/models/user_profile_entity.dart';
 
 abstract class ProfileRepository {
   Future<UserProfileEntity> getProfile(String userId);

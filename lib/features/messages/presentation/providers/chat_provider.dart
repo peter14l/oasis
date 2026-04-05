@@ -7,18 +7,18 @@ import 'package:flutter/scheduler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:file_picker/file_picker.dart' show PlatformFile;
-import 'package:oasis_v2/models/message.dart';
-import 'package:oasis_v2/models/message_reaction.dart';
-import 'package:oasis_v2/models/chat_theme.dart';
-import 'package:oasis_v2/services/messaging_service.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/services/encryption_service.dart';
-import 'package:oasis_v2/services/signal/signal_service.dart';
-import 'package:oasis_v2/services/smart_reply_service.dart';
-import 'package:oasis_v2/features/messages/presentation/providers/chat_state.dart';
-import 'package:oasis_v2/features/messages/presentation/providers/chat_encryption_provider.dart';
-import 'package:oasis_v2/features/messages/presentation/providers/chat_settings_provider.dart';
+import 'package:oasis/models/message.dart';
+import 'package:oasis/models/message_reaction.dart';
+import 'package:oasis/models/chat_theme.dart';
+import 'package:oasis/services/messaging_service.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/services/encryption_service.dart';
+import 'package:oasis/services/signal/signal_service.dart';
+import 'package:oasis/services/smart_reply_service.dart';
+import 'package:oasis/features/messages/presentation/providers/chat_state.dart';
+import 'package:oasis/features/messages/presentation/providers/chat_encryption_provider.dart';
+import 'package:oasis/features/messages/presentation/providers/chat_settings_provider.dart';
 
 /// Main chat provider managing message list, sending, receiving, and UI state.
 /// Fully migrated from _ChatScreenState in chat_screen.dart.
@@ -57,6 +57,7 @@ class ChatProvider with ChangeNotifier {
   // Callbacks for UI actions
   VoidCallback? onReloadRequested;
   Function(String)? onError;
+  Function(EncryptionStatus)? onEncryptionNeeded;
 
   ChatProvider({
     required this.conversationId,
@@ -162,8 +163,16 @@ class ChatProvider with ChangeNotifier {
       setState((s) => s.copyWith(encryptionReady: true));
       // Re-decrypt messages
       await loadMessages(silent: true);
+    } else if (status == EncryptionStatus.needsSecurityUpgrade) {
+      // For security upgrade, we can still decrypt messages with v1 keys
+      setState((s) => s.copyWith(encryptionReady: true));
+      await loadMessages(silent: true);
+      // But we still need to prompt for upgrade
+      onEncryptionNeeded?.call(status);
+    } else {
+      // Notify the screen that PIN-based setup/restore/upgrade is needed
+      onEncryptionNeeded?.call(status);
     }
-    // For needsSetup/needsRestore, the screen should handle navigation
   }
 
   Future<Message> _decryptSingleMessage(Message message) async {
@@ -747,6 +756,7 @@ class ChatProvider with ChangeNotifier {
         (s) => s.copyWith(
           otherUserName: details.otherUserName,
           otherUserId: details.otherUserId,
+          otherUserAvatar: details.otherUserAvatar,
           whisperMode: 0, // Forced to 0 to disable Whisper Mode
           ephemeralDuration: details.whisperMode == 1 ? 0 : 86400,
         ),

@@ -5,10 +5,10 @@ import 'package:universal_io/io.dart';
 import 'package:screen_protector/screen_protector.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oasis_v2/models/message.dart';
-import 'package:oasis_v2/services/encryption_service.dart';
-import 'package:oasis_v2/services/signal/signal_service.dart';
-import 'package:oasis_v2/screens/messages/encryption_setup_screen.dart';
+import 'package:oasis/models/message.dart';
+import 'package:oasis/services/encryption_service.dart';
+import 'package:oasis/services/signal/signal_service.dart';
+import 'package:oasis/screens/messages/encryption_setup_screen.dart';
 
 /// Provider handling all encryption-related chat logic.
 /// Extracted from _ChatScreenState encryption methods in chat_screen.dart.

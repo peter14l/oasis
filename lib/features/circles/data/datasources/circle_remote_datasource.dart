@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/features/circles/domain/models/circles_models.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/features/circles/domain/models/circles_models.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 

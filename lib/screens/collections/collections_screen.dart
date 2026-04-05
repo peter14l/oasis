@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/models/collection.dart';
-import 'package:oasis_v2/services/collections_service.dart';
+import 'package:oasis/models/collection.dart';
+import 'package:oasis/services/collections_service.dart';
 import 'package:go_router/go_router.dart';
 
 class CollectionsScreen extends StatefulWidget {

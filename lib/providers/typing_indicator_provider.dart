@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/services/messaging_service.dart';
+import 'package:oasis/services/messaging_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TypingIndicatorProvider with ChangeNotifier {

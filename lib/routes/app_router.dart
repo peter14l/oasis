@@ -6,42 +6,45 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:navigation_bar_m3e/navigation_bar_m3e.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/services/screen_time_service.dart';
-import 'package:oasis_v2/services/wellness_service.dart';
-import 'package:oasis_v2/providers/user_settings_provider.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/services/screen_time_service.dart';
+import 'package:oasis/services/wellness_service.dart';
+import 'package:oasis/providers/user_settings_provider.dart';
 import 'package:universal_io/io.dart';
-import 'package:oasis_v2/screens/spaces/spaces_screen.dart';
+import 'package:oasis/screens/spaces/spaces_screen.dart';
 
-import 'package:oasis_v2/features/circles/presentation/screens/circle_detail_screen.dart';
-import 'package:oasis_v2/features/circles/presentation/screens/create_circle_screen.dart';
-import 'package:oasis_v2/features/circles/presentation/screens/create_commitment_screen.dart';
+import 'package:oasis/features/circles/presentation/screens/circle_detail_screen.dart';
+import 'package:oasis/features/circles/presentation/screens/create_circle_screen.dart';
+import 'package:oasis/features/circles/presentation/screens/create_commitment_screen.dart';
 
-import 'package:oasis_v2/screens/canvas/timeline_canvas_screen.dart';
-import 'package:oasis_v2/screens/canvas/create_canvas_screen.dart';
+import 'package:oasis/screens/canvas/timeline_canvas_screen.dart';
+import 'package:oasis/screens/canvas/create_canvas_screen.dart';
 
-import 'package:oasis_v2/screens/messages/direct_messages_screen.dart'
+import 'package:oasis/screens/messages/direct_messages_screen.dart'
     as messages;
-import 'package:oasis_v2/features/messages/presentation/screens/chat_screen.dart';
-import 'package:oasis_v2/screens/messages/new_message_screen.dart';
-import 'package:oasis_v2/providers/conversation_provider.dart';
-import 'package:oasis_v2/services/app_initializer.dart';
-import 'package:oasis_v2/screens/messages/active_call_screen.dart';
-import 'package:oasis_v2/models/call.dart';
-import 'package:oasis_v2/screens/notifications/notifications_screen.dart';
-import 'package:oasis_v2/screens/settings_screen.dart';
-import 'package:oasis_v2/screens/settings/subscription_screen.dart';
-import 'package:oasis_v2/screens/settings/account_privacy_screen.dart';
-import 'package:oasis_v2/screens/settings/two_factor_auth_screen.dart';
-import 'package:oasis_v2/screens/settings/download_data_screen.dart';
-import 'package:oasis_v2/screens/settings/storage_usage_screen.dart';
-import 'package:oasis_v2/screens/settings/font_size_screen.dart';
-import 'package:oasis_v2/screens/settings/help_support_screen.dart';
-import 'package:oasis_v2/screens/moderation/moderation_screens.dart';
-import 'package:oasis_v2/features/stories/domain/models/story_entity.dart';
-import 'package:oasis_v2/features/stories/presentation/screens/story_view_screen.dart'
+import 'package:oasis/features/messages/presentation/screens/chat_screen.dart';
+import 'package:oasis/screens/messages/new_message_screen.dart';
+import 'package:oasis/providers/conversation_provider.dart';
+import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/services/encryption_service.dart';
+import 'package:oasis/widgets/security_upgrade_banner.dart';
+import 'package:oasis/widgets/security_pin_sheet.dart';
+import 'package:oasis/screens/messages/active_call_screen.dart';
+import 'package:oasis/models/call.dart';
+import 'package:oasis/screens/notifications/notifications_screen.dart';
+import 'package:oasis/screens/settings_screen.dart';
+import 'package:oasis/screens/settings/subscription_screen.dart';
+import 'package:oasis/screens/settings/account_privacy_screen.dart';
+import 'package:oasis/screens/settings/two_factor_auth_screen.dart';
+import 'package:oasis/screens/settings/download_data_screen.dart';
+import 'package:oasis/screens/settings/storage_usage_screen.dart';
+import 'package:oasis/screens/settings/font_size_screen.dart';
+import 'package:oasis/screens/settings/help_support_screen.dart';
+import 'package:oasis/screens/moderation/moderation_screens.dart';
+import 'package:oasis/features/stories/domain/models/story_entity.dart';
+import 'package:oasis/features/stories/presentation/screens/story_view_screen.dart'
     as new_story_view;
-import 'package:oasis_v2/features/stories/presentation/screens/create_story_screen.dart'
+import 'package:oasis/features/stories/presentation/screens/create_story_screen.dart'
     as new_create_story;
 import '../features/auth/presentation/screens/login_screen.dart'
     as login_screen;
@@ -51,7 +54,7 @@ import '../features/feed/presentation/screens/feed_screen.dart';
 import '../screens/search_screen.dart';
 import '../features/feed/presentation/screens/create_post_screen.dart';
 import '../features/feed/presentation/screens/comments_screen.dart';
-import 'package:oasis_v2/features/feed/presentation/screens/post_details_screen.dart';
+import 'package:oasis/features/feed/presentation/screens/post_details_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../features/profile/presentation/screens/followers_screen.dart';
@@ -64,12 +67,12 @@ import '../features/circles/presentation/screens/circle_join_screen.dart';
 import '../screens/ripples_screen.dart';
 import '../screens/create_ripple_screen.dart';
 import '../screens/oasis_pro_screen.dart';
-import 'package:oasis_v2/core/utils/responsive_layout.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 
-import 'package:oasis_v2/screens/settings/wellness_stats_screen.dart';
+import 'package:oasis/screens/settings/wellness_stats_screen.dart';
 
-import 'package:oasis_v2/widgets/account_switcher_sheet.dart';
+import 'package:oasis/widgets/account_switcher_sheet.dart';
 
 class UnreadMessagesBadge extends StatelessWidget {
   final Widget child;
@@ -108,9 +111,39 @@ class _MainLayoutState extends State<MainLayout> {
   /// Routes that are locked when the collaboration kill-switch or focus mode is active.
   static const _restrictedRoutes = {'/feed', '/search'};
   bool _isRailExtended = false;
+  EncryptionStatus? _encryptionStatus;
 
   // Panel state for Desktop
   String? _activePanel; // 'search', 'notifications', or null
+
+  @override
+  void initState() {
+    super.initState();
+    _checkEncryption();
+  }
+
+  Future<void> _checkEncryption() async {
+    final encryption = context.read<EncryptionService>();
+    final status = await encryption.init();
+    
+    if (mounted) {
+      setState(() {
+        _encryptionStatus = status;
+      });
+
+      if (status == EncryptionStatus.needsRestore) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            SecurityPinSheet.show(context, status).then((success) {
+              if (success == true) {
+                _checkEncryption(); // Re-check to clear banner
+              }
+            });
+          }
+        });
+      }
+    }
+  }
 
   int _getCurrentIndex() {
     final location = GoRouterState.of(context).uri.path;
@@ -186,6 +219,18 @@ class _MainLayoutState extends State<MainLayout> {
           }
         }
 
+        Widget mainContent = widget.child;
+        
+        // Add Security Upgrade Banner if needed
+        if (_encryptionStatus == EncryptionStatus.needsSecurityUpgrade) {
+          mainContent = Column(
+            children: [
+              const SecurityUpgradeBanner(),
+              Expanded(child: mainContent),
+            ],
+          );
+        }
+
         if (isDesktop) {
           return Scaffold(
             backgroundColor: Colors.transparent,
@@ -197,7 +242,7 @@ class _MainLayoutState extends State<MainLayout> {
                   child: Row(
                     children: [
                       SizedBox(width: (_isRailExtended ? 240 : 120) + 12),
-                      Expanded(child: widget.child),
+                      Expanded(child: mainContent),
                     ],
                   ),
                 ),

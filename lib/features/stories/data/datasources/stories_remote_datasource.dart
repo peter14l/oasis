@@ -1,6 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/features/stories/domain/models/story_entity.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/features/stories/domain/models/story_entity.dart';
 
 /// Remote data source for stories - handles all Supabase API calls.
 class StoriesRemoteDatasource {

@@ -1,4 +1,4 @@
-import 'package:oasis_v2/features/feed/domain/repositories/post_repository.dart';
+import 'package:oasis/features/feed/domain/repositories/post_repository.dart';
 
 /// Delete a post (verifies ownership).
 class DeletePost {

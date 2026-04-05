@@ -9,19 +9,19 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:oasis_v2/models/conversation.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/providers/typing_indicator_provider.dart';
-import 'package:oasis_v2/widgets/messages/unread_badge_widget.dart';
-import 'package:oasis_v2/widgets/messages/typing_indicator_widget.dart';
-import 'package:oasis_v2/features/messages/presentation/screens/chat_screen.dart';
-import 'package:oasis_v2/screens/messages/chat_details_screen.dart';
-import 'package:oasis_v2/services/vault_service.dart';
-import 'package:oasis_v2/providers/conversation_provider.dart';
+import 'package:oasis/models/conversation.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/providers/typing_indicator_provider.dart';
+import 'package:oasis/widgets/messages/unread_badge_widget.dart';
+import 'package:oasis/widgets/messages/typing_indicator_widget.dart';
+import 'package:oasis/features/messages/presentation/screens/chat_screen.dart';
+import 'package:oasis/screens/messages/chat_details_screen.dart';
+import 'package:oasis/services/vault_service.dart';
+import 'package:oasis/providers/conversation_provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
-import 'package:oasis_v2/providers/presence_provider.dart';
-import 'package:oasis_v2/services/app_initializer.dart';
+import 'package:oasis/providers/presence_provider.dart';
+import 'package:oasis/services/app_initializer.dart';
 
 class DirectMessagesScreen extends StatefulWidget {
   final String? initialConversationId;

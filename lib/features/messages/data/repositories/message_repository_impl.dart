@@ -1,6 +1,6 @@
-import 'package:oasis_v2/features/messages/data/datasources/message_remote_datasource.dart';
-import 'package:oasis_v2/features/messages/domain/models/message_entity.dart';
-import 'package:oasis_v2/features/messages/domain/repositories/message_repository.dart';
+import 'package:oasis/features/messages/data/datasources/message_remote_datasource.dart';
+import 'package:oasis/features/messages/domain/models/message_entity.dart';
+import 'package:oasis/features/messages/domain/repositories/message_repository.dart';
 
 /// Implementation of MessageRepository
 class MessageRepositoryImpl implements MessageRepository {

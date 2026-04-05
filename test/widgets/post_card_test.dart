@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
-import 'package:oasis_v2/features/profile/domain/models/user_profile_entity.dart';
-import 'package:oasis_v2/widgets/post_card.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/features/profile/domain/models/user_profile_entity.dart';
+import 'package:oasis/widgets/post_card.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 
 // We need a simple mock for ProfileProvider
 class MockProfileProvider extends ChangeNotifier implements ProfileProvider {

@@ -1,5 +1,5 @@
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
-import 'package:oasis_v2/features/feed/domain/repositories/post_repository.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/features/feed/domain/repositories/post_repository.dart';
 
 /// Get a single post by ID with like/bookmark status.
 class GetPostDetails {

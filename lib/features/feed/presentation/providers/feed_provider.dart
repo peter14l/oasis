@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
-import 'package:oasis_v2/features/feed/domain/models/comment.dart';
-import 'package:oasis_v2/features/feed/domain/repositories/feed_repository.dart';
-import 'package:oasis_v2/features/feed/domain/repositories/post_repository.dart';
-import 'package:oasis_v2/features/feed/domain/repositories/comment_repository.dart';
-import 'package:oasis_v2/features/feed/data/datasources/feed_local_datasource.dart';
-import 'package:oasis_v2/features/feed/presentation/providers/feed_state.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/features/feed/domain/models/comment.dart';
+import 'package:oasis/features/feed/domain/repositories/feed_repository.dart';
+import 'package:oasis/features/feed/domain/repositories/post_repository.dart';
+import 'package:oasis/features/feed/domain/repositories/comment_repository.dart';
+import 'package:oasis/features/feed/data/datasources/feed_local_datasource.dart';
+import 'package:oasis/features/feed/presentation/providers/feed_state.dart';
 
-export 'package:oasis_v2/features/feed/presentation/providers/feed_state.dart'
+export 'package:oasis/features/feed/presentation/providers/feed_state.dart'
     show FeedType;
 
 /// Feed feature provider managing feed state, posts, and comments.

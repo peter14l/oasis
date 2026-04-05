@@ -1,7 +1,7 @@
 -- =====================================================
--- MORROW V2 - INITIAL DATABASE SCHEMA
+-- OASIS - INITIAL DATABASE SCHEMA
 -- =====================================================
--- This migration creates the core database structure for the Morrow social media app
+-- This migration creates the core database structure for the Oasis social media app
 -- Run this in your Supabase SQL Editor
 
 -- Enable necessary extensions

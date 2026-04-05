@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
-import 'package:oasis_v2/models/oasis_canvas.dart';
-import 'package:oasis_v2/services/canvas_service.dart';
+import 'package:oasis/features/canvas/domain/models/canvas_models.dart';
+import 'package:oasis/models/oasis_canvas.dart';
+import 'package:oasis/services/canvas_service.dart';
 
 class CanvasProvider extends ChangeNotifier {
   final CanvasService _service = CanvasService();

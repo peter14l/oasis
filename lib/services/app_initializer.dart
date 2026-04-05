@@ -9,41 +9,41 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:universal_io/io.dart';
 
-import 'package:oasis_v2/firebase_options.dart';
-import 'package:oasis_v2/features/auth/presentation/providers/auth_provider.dart';
-import 'package:oasis_v2/features/auth/data/repositories/auth_repository_impl.dart';
-import 'package:oasis_v2/services/call_service.dart';
-import 'package:oasis_v2/services/desktop_window_service.dart';
-import 'package:oasis_v2/services/energy_meter_service.dart';
-import 'package:oasis_v2/services/encryption_service.dart';
-import 'package:oasis_v2/services/notification_manager.dart';
-import 'package:oasis_v2/services/ripples_service.dart';
-import 'package:oasis_v2/services/screen_time_service.dart';
-import 'package:oasis_v2/services/signal/signal_service.dart';
-import 'package:oasis_v2/services/subscription_service.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/services/vault_service.dart';
-import 'package:oasis_v2/services/wellness_service.dart';
-import 'package:oasis_v2/features/canvas/presentation/providers/canvas_provider.dart';
-import 'package:oasis_v2/providers/capsule_provider.dart';
-import 'package:oasis_v2/features/circles/presentation/providers/circle_provider.dart';
-import 'package:oasis_v2/features/circles/data/repositories/circle_repository_impl.dart';
-import 'package:oasis_v2/providers/community_provider.dart';
-import 'package:oasis_v2/providers/conversation_provider.dart';
-import 'package:oasis_v2/features/feed/presentation/providers/feed_provider.dart';
-import 'package:oasis_v2/features/feed/data/repositories/feed_repository_impl.dart';
-import 'package:oasis_v2/features/feed/data/repositories/post_repository_impl.dart';
-import 'package:oasis_v2/features/feed/data/repositories/comment_repository_impl.dart';
-import 'package:oasis_v2/providers/notification_provider.dart';
-import 'package:oasis_v2/providers/presence_provider.dart';
-import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
-import 'package:oasis_v2/features/profile/data/repositories/profile_repository_impl.dart';
-import 'package:oasis_v2/providers/typing_indicator_provider.dart';
-import 'package:oasis_v2/providers/user_settings_provider.dart';
-import 'package:oasis_v2/features/stories/presentation/providers/stories_provider.dart';
-import 'package:oasis_v2/themes/app_theme.dart';
-import 'package:oasis_v2/core/storage/prefs_storage.dart';
+import 'package:oasis/firebase_options.dart';
+import 'package:oasis/features/auth/presentation/providers/auth_provider.dart';
+import 'package:oasis/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:oasis/services/call_service.dart';
+import 'package:oasis/services/desktop_window_service.dart';
+import 'package:oasis/services/energy_meter_service.dart';
+import 'package:oasis/services/encryption_service.dart';
+import 'package:oasis/services/notification_manager.dart';
+import 'package:oasis/services/ripples_service.dart';
+import 'package:oasis/services/screen_time_service.dart';
+import 'package:oasis/services/signal/signal_service.dart';
+import 'package:oasis/services/subscription_service.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/services/vault_service.dart';
+import 'package:oasis/services/wellness_service.dart';
+import 'package:oasis/features/canvas/presentation/providers/canvas_provider.dart';
+import 'package:oasis/providers/capsule_provider.dart';
+import 'package:oasis/features/circles/presentation/providers/circle_provider.dart';
+import 'package:oasis/features/circles/data/repositories/circle_repository_impl.dart';
+import 'package:oasis/providers/community_provider.dart';
+import 'package:oasis/providers/conversation_provider.dart';
+import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
+import 'package:oasis/features/feed/data/repositories/feed_repository_impl.dart';
+import 'package:oasis/features/feed/data/repositories/post_repository_impl.dart';
+import 'package:oasis/features/feed/data/repositories/comment_repository_impl.dart';
+import 'package:oasis/providers/notification_provider.dart';
+import 'package:oasis/providers/presence_provider.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis/features/profile/data/repositories/profile_repository_impl.dart';
+import 'package:oasis/providers/typing_indicator_provider.dart';
+import 'package:oasis/providers/user_settings_provider.dart';
+import 'package:oasis/features/stories/presentation/providers/stories_provider.dart';
+import 'package:oasis/themes/app_theme.dart';
+import 'package:oasis/core/storage/prefs_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ---------------------------------------------------------------------------
@@ -73,7 +73,7 @@ class ThemeProvider with ChangeNotifier {
     final themeIndex = prefs.getInt(_themeKey) ?? ThemeMode.system.index;
     _themeMode = ThemeMode.values[themeIndex];
     _highContrast = prefs.getBool(_highContrastKey) ?? false;
-    _isM3EEnabled = prefs.getBool(_m3eKey) ?? false;
+    _isM3EEnabled = prefs.getBool(_m3eKey) ?? true;
     _isM3ETransparencyDisabled = prefs.getBool(_m3eTransparencyKey) ?? false;
     _useMaterialYou = prefs.getBool(_materialYouKey) ?? false;
     notifyListeners();
@@ -312,6 +312,9 @@ class AppInitializer {
         ),
         ChangeNotifierProvider<SubscriptionService>.value(
           value: services.subscriptionService,
+        ),
+        Provider<EncryptionService>(
+          create: (_) => EncryptionService(),
         ),
         ChangeNotifierProvider(
           create:

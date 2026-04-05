@@ -87,7 +87,7 @@ serve(async (req) => {
     const emailHtml = type === "magic"
       ? `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1>Sign in to Morrow</h1>
+          <h1>Sign in to Oasis</h1>
           <p>Click the button below to sign in to your account:</p>
           <a href="${resetLink}" style="display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;">
             Sign In
@@ -120,7 +120,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Morrow <noreply@yourdomain.com>",
+        from: "Oasis <noreply@yourdomain.com>",
         to: email,
         subject: emailSubject,
         html: emailHtml,

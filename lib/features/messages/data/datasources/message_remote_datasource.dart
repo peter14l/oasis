@@ -1,6 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/features/messages/domain/models/message_entity.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/features/messages/domain/models/message_entity.dart';
 
 /// Remote datasource for message operations
 class MessageRemoteDatasource {

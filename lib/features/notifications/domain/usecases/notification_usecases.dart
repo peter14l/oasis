@@ -1,6 +1,6 @@
-import 'package:oasis_v2/core/result/result.dart';
-import 'package:oasis_v2/features/notifications/domain/models/notification_entity.dart';
-import 'package:oasis_v2/features/notifications/domain/repositories/notification_repository.dart';
+import 'package:oasis/core/result/result.dart';
+import 'package:oasis/features/notifications/domain/models/notification_entity.dart';
+import 'package:oasis/features/notifications/domain/repositories/notification_repository.dart';
 
 class GetNotifications {
   final NotificationRepository _repository;

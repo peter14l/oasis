@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/models/time_capsule.dart';
-import 'package:oasis_v2/services/time_capsule_service.dart';
+import 'package:oasis/models/time_capsule.dart';
+import 'package:oasis/services/time_capsule_service.dart';
 
 class CapsuleProvider with ChangeNotifier {
   final TimeCapsuleService _service = TimeCapsuleService();

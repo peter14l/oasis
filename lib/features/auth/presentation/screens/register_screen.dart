@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/features/auth/presentation/providers/auth_provider.dart';
-import 'package:oasis_v2/widgets/app_button.dart';
-import 'package:oasis_v2/widgets/custom_text_field.dart';
+import 'package:oasis/features/auth/presentation/providers/auth_provider.dart';
+import 'package:oasis/widgets/app_button.dart';
+import 'package:oasis/widgets/custom_text_field.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis_v2/features/auth/presentation/widgets/auth_layout_wrapper.dart';
+import 'package:oasis/features/auth/presentation/widgets/auth_layout_wrapper.dart';
+
+import 'package:oasis/widgets/security_pin_sheet.dart';
+import 'package:oasis/services/encryption_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -59,6 +62,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       final user = Supabase.instance.client.auth.currentUser;
       if (user != null) {
+        // --- NEW: Security PIN Setup for E2E Encryption ---
+        if (mounted) {
+          final pinSuccess = await SecurityPinSheet.show(
+            context, 
+            EncryptionStatus.needsSetup
+          );
+          
+          if (pinSuccess != true) {
+            // If they cancel PIN setup, we still let them in, but they'll 
+            // see the "Upgrade Security" banner later.
+            debugPrint('User skipped initial PIN setup.');
+          }
+        }
+
         try {
           await Supabase.instance.client.auth.resend(
             type: OtpType.signup,

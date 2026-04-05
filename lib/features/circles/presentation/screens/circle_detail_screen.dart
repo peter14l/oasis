@@ -4,14 +4,15 @@ import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:oasis_v2/features/circles/domain/models/circles_models.dart';
-import 'package:oasis_v2/features/circles/presentation/providers/circle_provider.dart';
-import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
-import 'package:oasis_v2/features/circles/presentation/widgets/circles/streak_banner.dart';
-import 'package:oasis_v2/features/circles/presentation/widgets/circles/commitment_card.dart';
-import 'package:oasis_v2/widgets/share_sheet.dart';
-import 'package:oasis_v2/features/circles/presentation/widgets/circles/shattering_glass_animation.dart';
-import 'package:oasis_v2/widgets/fluid_mesh_background.dart';
+import 'package:oasis/features/circles/domain/models/circles_models.dart';
+import 'package:oasis/features/circles/presentation/providers/circle_provider.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis/features/circles/presentation/widgets/circles/streak_banner.dart';
+import 'package:oasis/features/circles/presentation/widgets/circles/commitment_card.dart';
+import 'package:oasis/widgets/share_sheet.dart';
+import 'package:oasis/features/circles/presentation/widgets/circles/shattering_glass_animation.dart';
+import 'package:oasis/widgets/fluid_mesh_background.dart';
+import 'package:oasis/services/app_initializer.dart';
 
 class CircleDetailScreen extends StatefulWidget {
   final String circleId;
@@ -110,10 +111,13 @@ class _CircleDetailScreenState extends State<CircleDetailScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final provider = context.watch<CircleProvider>();
     final circle = provider.activeCircle;
     final commitments = provider.todaysCommitments;
     final isCreator = circle?.createdBy == _currentUserId;
+    final themeProvider = context.watch<ThemeProvider>();
+    final isM3E = themeProvider.isM3EEnabled;
 
     if (circle == null && provider.isLoading) {
       return const Scaffold(
@@ -132,7 +136,7 @@ class _CircleDetailScreenState extends State<CircleDetailScreen>
                   // ── Header ────────────────────────────────────────────────────
                   SliverAppBar(
                     pinned: true,
-                    expandedHeight: 140, // Reduced from 180 to shift upwards
+                    expandedHeight: isM3E ? 180 : 160,
                     backgroundColor: Colors.black.withValues(alpha: 0.2),
                     leading: IconButton(
                       icon: const Icon(FluentIcons.chevron_left_24_regular),
@@ -184,14 +188,14 @@ class _CircleDetailScreenState extends State<CircleDetailScreen>
                                     children: [
                                       Icon(
                                         FluentIcons.delete_24_regular,
-                                        color: theme.colorScheme.error,
+                                        color: colorScheme.error,
                                         size: 20,
                                       ),
                                       const SizedBox(width: 12),
                                       Text(
                                         'Delete Circle',
                                         style: TextStyle(
-                                          color: theme.colorScheme.error,
+                                          color: colorScheme.error,
                                         ),
                                       ),
                                     ],
@@ -201,9 +205,10 @@ class _CircleDetailScreenState extends State<CircleDetailScreen>
                         ),
                     ],
                     flexibleSpace: FlexibleSpaceBar(
-                      titlePadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
+                      titlePadding: EdgeInsets.only(
+                        left: isM3E ? 20 : 16,
+                        right: 16,
+                        bottom: isM3E ? 56 : 48,
                       ),
                       centerTitle: false,
                       title: Row(
@@ -212,16 +217,24 @@ class _CircleDetailScreenState extends State<CircleDetailScreen>
                         children: [
                           Text(
                             circle?.emoji ?? '🌊',
-                            style: const TextStyle(fontSize: 20),
+                            style: TextStyle(
+                              fontSize: isM3E ? 24 : 20,
+                            ),
                           ),
                           const SizedBox(width: 8),
                           Flexible(
                             child: Text(
                               circle?.name ?? '',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                              style: isM3E
+                                  ? theme.textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                      letterSpacing: 0.15,
+                                    )
+                                  : theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -263,6 +276,26 @@ class _CircleDetailScreenState extends State<CircleDetailScreen>
                     ),
                     bottom: TabBar(
                       controller: _tabController,
+                      indicator: isM3E
+                          ? UnderlineTabIndicator(
+                              borderSide: BorderSide(
+                                color: colorScheme.primary,
+                                width: 3,
+                              ),
+                              insets: const EdgeInsets.symmetric(horizontal: 16),
+                            )
+                          : null,
+                      labelStyle: isM3E
+                          ? theme.textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.1,
+                            )
+                          : null,
+                      unselectedLabelStyle: isM3E
+                          ? theme.textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            )
+                          : null,
                       tabs: const [
                         Tab(text: "Today's Commitments"),
                         Tab(text: 'History'),

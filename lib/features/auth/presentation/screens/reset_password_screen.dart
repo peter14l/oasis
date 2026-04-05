@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/features/auth/presentation/providers/auth_provider.dart';
+import 'package:oasis/features/auth/presentation/providers/auth_provider.dart';
 
 /// Screen shown after a user taps the password-reset link from email.
 /// Supabase deep-links the user back with tokens already in the session,

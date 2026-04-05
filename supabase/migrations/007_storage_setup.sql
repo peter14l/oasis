@@ -1,5 +1,5 @@
 -- =====================================================
--- MORROW V2 - STORAGE BUCKETS SETUP
+-- OASIS - STORAGE BUCKETS SETUP
 -- =====================================================
 -- This migration creates storage buckets and policies for file uploads
 

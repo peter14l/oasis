@@ -1,11 +1,11 @@
-import 'package:oasis_v2/widgets/skeleton_container.dart';
+import 'package:oasis/widgets/skeleton_container.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oasis_v2/features/stories/domain/models/story_entity.dart';
-import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis/features/stories/domain/models/story_entity.dart';
+import 'package:oasis/services/auth_service.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/services/app_initializer.dart';
+import 'package:oasis/services/app_initializer.dart';
 
 class StoriesBar extends StatefulWidget {
   final List<StoryGroupEntity> storyGroups;

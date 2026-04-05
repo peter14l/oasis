@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/models/message.dart';
-import 'package:oasis_v2/widgets/messages/share_to_dm_modal.dart';
-import 'package:oasis_v2/services/app_initializer.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/models/message.dart';
+import 'package:oasis/widgets/messages/share_to_dm_modal.dart';
+import 'package:oasis/services/app_initializer.dart';
 
 class PostCard extends StatefulWidget {
   final Post post;

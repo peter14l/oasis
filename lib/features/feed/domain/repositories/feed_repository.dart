@@ -1,4 +1,4 @@
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
 
 /// Repository contract for feed operations.
 ///

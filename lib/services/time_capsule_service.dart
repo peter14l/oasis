@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/core/config/supabase_config.dart';
-import 'package:oasis_v2/models/time_capsule.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis/core/config/supabase_config.dart';
+import 'package:oasis/models/time_capsule.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 import 'package:uuid/uuid.dart';
 
 class TimeCapsuleService {
@@ -28,7 +28,7 @@ class TimeCapsuleService {
 
         if (activeCapsulesResponse.length >= 2) {
           throw Exception(
-            'Free tier is limited to 2 active time capsules. Upgrade to Morrow Pro for unlimited capsules.',
+            'Free tier is limited to 2 active time capsules. Upgrade to Oasis Pro for unlimited capsules.',
           );
         }
       }

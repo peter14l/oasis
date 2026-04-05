@@ -4,17 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/services/post_service.dart';
-import 'package:oasis_v2/services/ai_content_service.dart';
-import 'package:oasis_v2/services/app_initializer.dart';
-import 'package:oasis_v2/features/feed/presentation/providers/feed_provider.dart';
-import 'package:oasis_v2/core/utils/responsive_layout.dart';
-import 'package:oasis_v2/core/utils/haptic_utils.dart';
-import 'package:oasis_v2/features/feed/domain/models/post_mood.dart';
-import 'package:oasis_v2/features/feed/domain/models/enhanced_poll.dart';
-import 'package:oasis_v2/widgets/mood_selector.dart';
-import 'package:oasis_v2/widgets/polls/poll_widgets.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/services/post_service.dart';
+import 'package:oasis/services/ai_content_service.dart';
+import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:oasis/core/utils/haptic_utils.dart';
+import 'package:oasis/features/feed/domain/models/post_mood.dart';
+import 'package:oasis/features/feed/domain/models/enhanced_poll.dart';
+import 'package:oasis/widgets/mood_selector.dart';
+import 'package:oasis/widgets/polls/poll_widgets.dart';
 
 class CreatePostScreen extends StatefulWidget {
   final String? communityId;

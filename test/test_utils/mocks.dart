@@ -1,13 +1,13 @@
-/// Mock implementations for Morrow app services
+/// Mock implementations for Oasis app services
 ///
 /// These mocks are used for unit and widget testing without
 /// requiring actual Supabase or other external service connections.
 library;
 
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/models/user_model.dart';
-import 'package:oasis_v2/models/post.dart';
-import 'package:oasis_v2/models/community_model.dart';
+import 'package:oasis/models/user_model.dart';
+import 'package:oasis/models/post.dart';
+import 'package:oasis/models/community_model.dart';
 
 /// Mock user for testing
 class MockUser {

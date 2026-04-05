@@ -1,5 +1,5 @@
 -- =====================================================
--- MORROW V2 - ROW LEVEL SECURITY POLICIES
+-- OASIS - ROW LEVEL SECURITY POLICIES
 -- =====================================================
 -- This migration sets up RLS policies for all tables
 

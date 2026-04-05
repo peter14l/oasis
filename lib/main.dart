@@ -5,24 +5,24 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:universal_io/io.dart';
 
-import 'package:oasis_v2/routes/app_router.dart';
-import 'package:oasis_v2/services/app_initializer.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/services/energy_meter_service.dart';
-import 'package:oasis_v2/services/ripples_service.dart';
-import 'package:oasis_v2/services/screen_time_service.dart';
-import 'package:oasis_v2/services/sharing_service.dart';
-import 'package:oasis_v2/services/vault_service.dart';
-import 'package:oasis_v2/services/wellness_service.dart';
-import 'package:oasis_v2/features/canvas/presentation/providers/canvas_provider.dart';
-import 'package:oasis_v2/features/circles/presentation/providers/circle_provider.dart';
-import 'package:oasis_v2/providers/conversation_provider.dart';
-import 'package:oasis_v2/providers/notification_provider.dart';
-import 'package:oasis_v2/providers/presence_provider.dart';
-import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
-import 'package:oasis_v2/providers/user_settings_provider.dart';
-import 'package:oasis_v2/themes/app_theme.dart';
-import 'package:oasis_v2/widgets/mesh_gradient_background.dart';
+import 'package:oasis/routes/app_router.dart';
+import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/services/energy_meter_service.dart';
+import 'package:oasis/services/ripples_service.dart';
+import 'package:oasis/services/screen_time_service.dart';
+import 'package:oasis/services/sharing_service.dart';
+import 'package:oasis/services/vault_service.dart';
+import 'package:oasis/services/wellness_service.dart';
+import 'package:oasis/features/canvas/presentation/providers/canvas_provider.dart';
+import 'package:oasis/features/circles/presentation/providers/circle_provider.dart';
+import 'package:oasis/providers/conversation_provider.dart';
+import 'package:oasis/providers/notification_provider.dart';
+import 'package:oasis/providers/presence_provider.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis/providers/user_settings_provider.dart';
+import 'package:oasis/themes/app_theme.dart';
+import 'package:oasis/widgets/mesh_gradient_background.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 
 // ---------------------------------------------------------------------------
@@ -184,7 +184,7 @@ class _MyAppState extends State<MyApp> {
           stream: authService.authStateChanges,
           builder: (context, snapshot) {
             return MaterialApp.router(
-              title: 'Morrow',
+              title: 'Oasis',
               debugShowCheckedModeBanner: false,
               theme: theme,
               darkTheme: darkTheme,

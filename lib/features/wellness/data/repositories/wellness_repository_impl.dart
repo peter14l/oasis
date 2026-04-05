@@ -489,7 +489,7 @@ class WellnessRepositoryImpl implements WellnessRepository {
   Future<void> setBlockedFeatures(Set<String> features) async {
     if (!_datasource.isUserPro) {
       throw Exception(
-        'Upgrade to Morrow Pro to customize Focus Mode blocklist.',
+        'Upgrade to Oasis Pro to customize Focus Mode blocklist.',
       );
     }
     await _datasource.setBlockedFeatures(features);
@@ -525,7 +525,7 @@ class WellnessRepositoryImpl implements WellnessRepository {
   @override
   Future<void> setWindDownEnabled(bool enabled) async {
     if (enabled && !_datasource.isUserPro) {
-      throw Exception('Upgrade to Morrow Pro to enable Wind-down mode.');
+      throw Exception('Upgrade to Oasis Pro to enable Wind-down mode.');
     }
     await _datasource.setWindDownEnabled(enabled);
   }

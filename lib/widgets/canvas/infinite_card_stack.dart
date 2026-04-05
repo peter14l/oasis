@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
+import 'package:oasis/features/canvas/domain/models/canvas_models.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class InfiniteCardStack extends StatelessWidget {

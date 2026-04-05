@@ -1,5 +1,5 @@
-import 'package:oasis_v2/features/stories/domain/models/story_entity.dart';
-import 'package:oasis_v2/features/stories/domain/repositories/stories_repository.dart';
+import 'package:oasis/features/stories/domain/models/story_entity.dart';
+import 'package:oasis/features/stories/domain/repositories/stories_repository.dart';
 
 /// Use case for creating a new story.
 class CreateStory {

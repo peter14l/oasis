@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/models/community.dart';
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
-import 'package:oasis_v2/services/community_service.dart';
-import 'package:oasis_v2/services/post_service.dart';
-import 'package:oasis_v2/services/feed_service.dart';
+import 'package:oasis/models/community.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/services/community_service.dart';
+import 'package:oasis/services/post_service.dart';
+import 'package:oasis/services/feed_service.dart';
 
 class CommunityProvider with ChangeNotifier {
   final CommunityService _communityService = CommunityService();

@@ -9,21 +9,21 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_sign_in_all_platforms/google_sign_in_all_platforms.dart'
     as all_platforms;
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:oasis_v2/models/user_model.dart' as app_models;
-import 'package:oasis_v2/core/config/supabase_config.dart';
+import 'package:oasis/models/user_model.dart' as app_models;
+import 'package:oasis/core/config/supabase_config.dart';
 // Provider is used in other files that import this one
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/services/encryption_service.dart';
-import 'package:oasis_v2/services/signal/signal_service.dart';
-import 'package:oasis_v2/services/notification_service.dart';
-import 'package:oasis_v2/services/session_registry_service.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/services/encryption_service.dart';
+import 'package:oasis/services/signal/signal_service.dart';
+import 'package:oasis/services/notification_service.dart';
+import 'package:oasis/services/session_registry_service.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/providers/conversation_provider.dart';
-import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
-import 'package:oasis_v2/features/circles/presentation/providers/circle_provider.dart';
-import 'package:oasis_v2/providers/canvas_provider.dart';
-import 'package:oasis_v2/providers/notification_provider.dart';
-import 'package:oasis_v2/providers/community_provider.dart';
+import 'package:oasis/providers/conversation_provider.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis/features/circles/presentation/providers/circle_provider.dart';
+import 'package:oasis/providers/canvas_provider.dart';
+import 'package:oasis/providers/notification_provider.dart';
+import 'package:oasis/providers/community_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthService with ChangeNotifier {
@@ -446,7 +446,7 @@ class AuthService with ChangeNotifier {
           // https://developer.apple.com/account/resources/identifiers/list/serviceId
           clientId: const String.fromEnvironment(
             'APPLE_SERVICE_ID',
-            defaultValue: 'com.yourcompany.morrow.service',
+            defaultValue: 'com.oasis.service',
           ),
           redirectUri: Uri.parse(
             'https://oasis-web-red.vercel.app/auth/apple/callback',

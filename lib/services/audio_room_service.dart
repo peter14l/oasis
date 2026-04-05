@@ -1,6 +1,6 @@
 /*
-import 'package:oasis_v2/models/audio_room.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis/models/audio_room.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 
 class AudioRoomService {
   final _supabase = SupabaseService().client;
@@ -15,7 +15,7 @@ class AudioRoomService {
     final isPro = user?.userMetadata?['is_pro'] == true;
 
     if (!isPro) {
-      throw Exception('Upgrade to Morrow Pro to host an Audio Room.');
+      throw Exception('Upgrade to Oasis Pro to host an Audio Room.');
     }
 
     // Placeholder for actual live blocks integration (e.g., Agora or LiveKit)

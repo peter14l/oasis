@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/core/config/supabase_config.dart';
-import 'package:oasis_v2/features/feed/domain/models/comment.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/services/notification_service.dart';
+import 'package:oasis/core/config/supabase_config.dart';
+import 'package:oasis/features/feed/domain/models/comment.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/services/notification_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:oasis_v2/widgets/dotted_border_painter.dart';
-import 'package:oasis_v2/features/messages/presentation/widgets/shared/recording_dot.dart';
+import 'package:oasis/widgets/dotted_border_painter.dart';
+import 'package:oasis/features/messages/presentation/widgets/shared/recording_dot.dart';
 
 /// Chat input area with text field, attachment button, and send/record toggle.
 /// Matches the legacy chat_screen.dart input section exactly.

@@ -1,4 +1,4 @@
--- Consolidated SQL Setup for Morrow V2: Calling, XP System, and Study Sessions
+-- Consolidated SQL Setup for Oasis V2: Calling, XP System, and Study Sessions
 -- Updated for idempotency (handles existing policies)
 
 -- 1. CALLING SYSTEM (Voice & Video)

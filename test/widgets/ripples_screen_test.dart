@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/screens/ripples_screen.dart';
-import 'package:oasis_v2/services/ripples_service.dart';
+import 'package:oasis/screens/ripples_screen.dart';
+import 'package:oasis/services/ripples_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/core/storage/prefs_storage.dart';
-import 'package:oasis_v2/services/session_registry_service.dart';
+import 'package:oasis/core/storage/prefs_storage.dart';
+import 'package:oasis/services/session_registry_service.dart';
 
 class SessionLocalDatasource {
   final SessionRegistryService _registry = SessionRegistryService();

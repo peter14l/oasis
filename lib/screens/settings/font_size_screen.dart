@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/providers/user_settings_provider.dart';
+import 'package:oasis/providers/user_settings_provider.dart';
 
 class FontSizeScreen extends StatelessWidget {
   const FontSizeScreen({super.key});
@@ -33,7 +33,7 @@ class FontSizeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'This is how the text will look across the Morrow app. You can adjust the scale below.',
+                    'This is how the text will look across the Oasis app. You can adjust the scale below.',
                     style: TextStyle(
                       fontSize: 14 * settingsProvider.fontSizeFactor,
                     ),

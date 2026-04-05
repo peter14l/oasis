@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oasis_v2/features/profile/domain/models/user_profile_entity.dart';
+import 'package:oasis/features/profile/domain/models/user_profile_entity.dart';
 
 void main() {
   group('Product Strategy Logic Tests', () {

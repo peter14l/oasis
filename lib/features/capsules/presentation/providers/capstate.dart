@@ -1,4 +1,4 @@
-import 'package:oasis_v2/features/capsules/domain/models/time_capsule_entity.dart';
+import 'package:oasis/features/capsules/domain/models/time_capsule_entity.dart';
 
 /// Immutable state for Capsule feature
 class CapsuleState {

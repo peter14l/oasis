@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis_v2/services/session_registry_service.dart';
-import 'package:oasis_v2/features/circles/presentation/widgets/circles/commitment_card.dart';
-import 'package:oasis_v2/features/circles/domain/models/circles_models.dart';
-import 'package:oasis_v2/widgets/fluid_mesh_background.dart';
-import 'package:oasis_v2/widgets/canvas/scattered_polaroid_spread.dart';
-import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
+import 'package:oasis/services/session_registry_service.dart';
+import 'package:oasis/features/circles/presentation/widgets/circles/commitment_card.dart';
+import 'package:oasis/features/circles/domain/models/circles_models.dart';
+import 'package:oasis/widgets/fluid_mesh_background.dart';
+import 'package:oasis/widgets/canvas/scattered_polaroid_spread.dart';
+import 'package:oasis/features/canvas/domain/models/canvas_models.dart';
 import 'test_setup.dart';
 
 void main() {

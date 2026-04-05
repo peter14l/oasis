@@ -1,4 +1,4 @@
-/// Test utilities for Morrow app
+/// Test utilities for Oasis app
 ///
 /// This file provides common test setup functions and mock factories
 /// to streamline testing across the application.
@@ -7,7 +7,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:oasis_v2/services/screen_time_service.dart';
+import 'package:oasis/services/screen_time_service.dart';
 
 /// Sets up shared preferences for testing
 Future<void> setupTestPreferences([

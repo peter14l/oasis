@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
-import 'package:oasis_v2/services/collections_service.dart';
-import 'package:oasis_v2/widgets/post_card.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/services/collections_service.dart';
+import 'package:oasis/widgets/post_card.dart';
 import 'package:go_router/go_router.dart';
 
 class CollectionDetailScreen extends StatefulWidget {

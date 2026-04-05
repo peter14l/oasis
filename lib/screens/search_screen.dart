@@ -2,13 +2,13 @@ import 'dart:ui';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
-import 'package:oasis_v2/services/search_service.dart';
-import 'package:oasis_v2/widgets/post_card.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/services/search_service.dart';
+import 'package:oasis/widgets/post_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oasis_v2/core/utils/responsive_layout.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
 
-import 'package:oasis_v2/services/app_initializer.dart'; // For ThemeProvider
+import 'package:oasis/services/app_initializer.dart'; // For ThemeProvider
 import 'package:provider/provider.dart';
 
 class SearchScreen extends StatefulWidget {

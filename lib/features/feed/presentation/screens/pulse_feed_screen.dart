@@ -3,19 +3,19 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sensors_plus/sensors_plus.dart';
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
-import 'package:oasis_v2/models/pulse_node_position.dart';
-import 'package:oasis_v2/models/feed_layout_strategy.dart';
-import 'package:oasis_v2/features/feed/presentation/providers/feed_provider.dart';
-import 'package:oasis_v2/services/energy_meter_service.dart';
-import 'package:oasis_v2/core/utils/map_positioner.dart';
-import 'package:oasis_v2/widgets/pulse_node_widget.dart';
-import 'package:oasis_v2/widgets/energy_meter_widget.dart';
-import 'package:oasis_v2/widgets/feed_layout_switcher.dart';
-import 'package:oasis_v2/painters/pulse_background_painter.dart';
-import 'package:oasis_v2/widgets/post_card.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/widgets/comments_modal.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/models/pulse_node_position.dart';
+import 'package:oasis/models/feed_layout_strategy.dart';
+import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
+import 'package:oasis/services/energy_meter_service.dart';
+import 'package:oasis/core/utils/map_positioner.dart';
+import 'package:oasis/widgets/pulse_node_widget.dart';
+import 'package:oasis/widgets/energy_meter_widget.dart';
+import 'package:oasis/widgets/feed_layout_switcher.dart';
+import 'package:oasis/painters/pulse_background_painter.dart';
+import 'package:oasis/widgets/post_card.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/widgets/comments_modal.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// Pulse Map feed screen - spatial exploration of posts
@@ -399,7 +399,7 @@ class _PulseFeedScreenState extends State<PulseFeedScreen>
                                   );
                                 },                                onShare: () {
                                   final deepLink = 'https://oasis-web-red.vercel.app/post/${post.id}';
-                                  Share.share('Check out this post on Morrow! $deepLink');
+                                  Share.share('Check out this post on Oasis! $deepLink');
                                 },
                               ),
                             ),

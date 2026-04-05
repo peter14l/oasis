@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/features/profile/domain/models/user_profile_entity.dart';
-import 'package:oasis_v2/features/profile/domain/repositories/profile_repository.dart';
-import 'package:oasis_v2/features/profile/presentation/providers/profile_state.dart';
-import 'package:oasis_v2/features/feed/domain/repositories/post_repository.dart';
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
-import 'package:oasis_v2/services/messaging_service.dart';
+import 'package:oasis/features/profile/domain/models/user_profile_entity.dart';
+import 'package:oasis/features/profile/domain/repositories/profile_repository.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_state.dart';
+import 'package:oasis/features/feed/domain/repositories/post_repository.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/services/messaging_service.dart';
 
-export 'package:oasis_v2/features/profile/presentation/providers/profile_state.dart';
+export 'package:oasis/features/profile/presentation/providers/profile_state.dart';
 
 class ProfileProvider with ChangeNotifier {
   final ProfileRepository _profileRepository;

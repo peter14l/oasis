@@ -4,19 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:oasis_v2/services/stories_service.dart';
+import 'package:oasis/services/stories_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:gal/gal.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/services/app_initializer.dart';
-import 'package:oasis_v2/core/utils/haptic_utils.dart';
+import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/core/utils/haptic_utils.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-import 'package:oasis_v2/widgets/stories/music_picker_sheet.dart';
-import 'package:oasis_v2/models/story_model.dart';
+import 'package:oasis/widgets/stories/music_picker_sheet.dart';
+import 'package:oasis/models/story_model.dart';
 
 class CreateStoryScreen extends StatefulWidget {
   const CreateStoryScreen({super.key});

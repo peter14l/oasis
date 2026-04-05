@@ -2,8 +2,8 @@ import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
-import 'package:oasis_v2/core/config/supabase_config.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis/core/config/supabase_config.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 
 /// Service for managing media attachments in chat.
 /// 

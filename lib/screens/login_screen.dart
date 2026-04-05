@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/widgets/auth_layout_wrapper.dart';
-import 'package:oasis_v2/widgets/app_button.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/widgets/auth_layout_wrapper.dart';
+import 'package:oasis/widgets/app_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

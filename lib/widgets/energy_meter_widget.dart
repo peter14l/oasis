@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/services/energy_meter_service.dart';
+import 'package:oasis/services/energy_meter_service.dart';
 
 /// Persistent overlay widget displaying user's interaction energy
 /// Shows as a subtle, dynamic circular indicator

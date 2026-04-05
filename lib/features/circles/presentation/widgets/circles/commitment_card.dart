@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:oasis_v2/features/circles/domain/models/circles_models.dart';
+import 'package:oasis/features/circles/domain/models/circles_models.dart';
 import 'dart:math' as math;
-import 'package:oasis_v2/core/utils/haptic_utils.dart';
+import 'package:oasis/core/utils/haptic_utils.dart';
 
 class CommitmentCard extends StatefulWidget {
   final CommitmentEntity commitment;

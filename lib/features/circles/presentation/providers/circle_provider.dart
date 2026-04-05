@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/features/circles/domain/models/circles_models.dart';
-import 'package:oasis_v2/features/circles/domain/repositories/circle_repository.dart';
-import 'package:oasis_v2/features/circles/presentation/providers/circle_state.dart';
+import 'package:oasis/features/circles/domain/models/circles_models.dart';
+import 'package:oasis/features/circles/domain/repositories/circle_repository.dart';
+import 'package:oasis/features/circles/presentation/providers/circle_state.dart';
 
-export 'package:oasis_v2/features/circles/presentation/providers/circle_state.dart';
+export 'package:oasis/features/circles/presentation/providers/circle_state.dart';
 
 class CircleProvider with ChangeNotifier {
   final CircleRepository _repository;

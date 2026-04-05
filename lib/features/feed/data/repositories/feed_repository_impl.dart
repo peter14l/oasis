@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/core/config/supabase_config.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
-import 'package:oasis_v2/features/feed/domain/repositories/feed_repository.dart';
-import 'package:oasis_v2/features/feed/data/datasources/feed_remote_datasource.dart';
-import 'package:oasis_v2/features/feed/data/datasources/feed_local_datasource.dart';
-import 'package:oasis_v2/services/cache_service.dart';
-import 'package:oasis_v2/services/notification_service.dart';
+import 'package:oasis/core/config/supabase_config.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/features/feed/domain/repositories/feed_repository.dart';
+import 'package:oasis/features/feed/data/datasources/feed_remote_datasource.dart';
+import 'package:oasis/features/feed/data/datasources/feed_local_datasource.dart';
+import 'package:oasis/services/cache_service.dart';
+import 'package:oasis/services/notification_service.dart';
 
 /// Implementation of FeedRepository.
 ///
@@ -83,7 +83,7 @@ class FeedRepositoryImpl implements FeedRepository {
             username: 'Sponsored',
             userAvatar: 'https://ui-avatars.com/api/?name=Ad&background=random',
             content:
-                'Get Morrow Pro to enjoy an ad-free experience, unlimited time capsules, advanced analytics, and more.',
+                'Get Oasis Pro to enjoy an ad-free experience, unlimited time capsules, advanced analytics, and more.',
             timestamp: DateTime.now(),
             isAd: true,
           ),

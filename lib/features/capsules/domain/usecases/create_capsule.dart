@@ -1,5 +1,5 @@
-import 'package:oasis_v2/features/capsules/domain/models/time_capsule_entity.dart';
-import 'package:oasis_v2/features/capsules/domain/repositories/capsule_repository.dart';
+import 'package:oasis/features/capsules/domain/models/time_capsule_entity.dart';
+import 'package:oasis/features/capsules/domain/repositories/capsule_repository.dart';
 
 /// Use case to create a new time capsule
 class CreateCapsule {

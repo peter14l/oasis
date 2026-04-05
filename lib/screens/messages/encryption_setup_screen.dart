@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/services/encryption_service.dart';
+import 'package:oasis/services/encryption_service.dart';
 
 class EncryptionSetupScreen extends StatefulWidget {
   final bool isRestore;

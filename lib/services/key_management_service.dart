@@ -1,13 +1,15 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:pointycastle/export.dart';
 
-enum EncryptionStatus { ready, needsSetup, needsRestore, error }
+enum EncryptionStatus { ready, needsSetup, needsRestore, needsSecurityUpgrade, error }
 
 /// Service for managing the lifecycle of cryptographic keys.
 /// 
@@ -24,11 +26,46 @@ class KeyManagementService {
   /// Returns the secure storage key for a user's public RSA key.
   static String publicKeyKey(String uid) => 'rsa_public_key_$uid';
 
-  /// Derives a 32-byte key from the User ID for seamless backup encryption.
-  encrypt.Key deriveBackupKey(String userId) {
+  /// Derives a 32-byte key from the User ID for legacy seamless backup encryption.
+  /// 🚩 VULNERABLE: Only for backward compatibility.
+  encrypt.Key deriveLegacyBackupKey(String userId) {
     final bytes = utf8.encode(userId);
     final digest = sha256.convert(bytes);
     return encrypt.Key(Uint8List.fromList(digest.bytes));
+  }
+
+  /// Generates a random 32-byte salt and returns it as a Base64 string.
+  String generateSalt() {
+    final random = Random.secure();
+    final salt = Uint8List(32);
+    for (int i = 0; i < 32; i++) {
+      salt[i] = random.nextInt(256);
+    }
+    return base64.encode(salt);
+  }
+
+  /// Derives a secure 32-byte AES key from a 6-digit PIN and a Salt using Argon2id.
+  encrypt.Key deriveSecureBackupKey(String pin, String saltBase64) {
+    final salt = base64.decode(saltBase64);
+    final pinBytes = utf8.encode(pin);
+
+    // Argon2id parameters tuned for mobile (takes ~0.5s - 1s)
+    final parameters = Argon2Parameters(
+      Argon2Parameters.ARGON2_id,
+      salt,
+      version: Argon2Parameters.ARGON2_VERSION_13,
+      iterations: 3,
+      memoryPowerOf2: 15, // 32MB
+      lanes: 2,
+      desiredKeyLength: 32,
+    );
+
+    final argon2 = Argon2BytesGenerator();
+    argon2.init(parameters);
+
+    // Generate exactly 32 bytes for the AES-256 key
+    final derivedKey = argon2.process(Uint8List.fromList(pinBytes));
+    return encrypt.Key(Uint8List.fromList(derivedKey.sublist(0, 32)));
   }
 
   /// Normalizes and hashes a public key for consistent identification.

@@ -1,7 +1,7 @@
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/models/story_model.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis/features/stories/domain/models/story_entity.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -10,7 +10,7 @@ class StoriesService {
   final _uuid = const Uuid();
 
   /// Get story groups from following users
-  Future<List<StoryGroup>> getFollowingStories() async {
+  Future<List<StoryGroupEntity>> getFollowingStories() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) return [];
@@ -23,7 +23,7 @@ class StoriesService {
       if (response == null || response.isEmpty) return [];
 
       return (response as List)
-          .map((json) => StoryGroup.fromJson(json as Map<String, dynamic>))
+          .map((json) => StoryGroupEntity.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
       debugPrint('Error fetching following stories: $e');
@@ -32,7 +32,7 @@ class StoriesService {
   }
 
   /// Get active stories for a specific user
-  Future<List<StoryModel>> getUserStories(String targetUserId) async {
+  Future<List<StoryEntity>> getUserStories(String targetUserId) async {
     try {
       final response = await _supabase.rpc(
         'get_active_stories',
@@ -42,7 +42,7 @@ class StoriesService {
       if (response == null || response.isEmpty) return [];
 
       return (response as List)
-          .map((json) => StoryModel.fromJson(json as Map<String, dynamic>))
+          .map((json) => StoryEntity.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
       debugPrint('Error fetching user stories: $e');
@@ -51,7 +51,7 @@ class StoriesService {
   }
 
   /// Get current user's own stories
-  Future<List<StoryModel>> getMyStories() async {
+  Future<List<StoryEntity>> getMyStories() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) return [];
@@ -64,7 +64,7 @@ class StoriesService {
   }
 
   /// Create a new story
-  Future<StoryModel?> createStory({
+  Future<StoryEntity?> createStory({
     required File file,
     required String mediaType, // 'image' or 'video'
     String? caption,
@@ -84,14 +84,14 @@ class StoriesService {
       if (!isPro) {
         if (autoPostToSocial) {
           throw Exception(
-            'Upgrade to Morrow Pro to auto-share stories to social platforms.',
+            'Upgrade to Oasis Pro to auto-share stories to social platforms.',
           );
         }
 
         final myStories = await getMyStories();
         if (myStories.length >= 3) {
           throw Exception(
-            'Free tier is limited to 3 active stories. Upgrade to Morrow Pro for unlimited stories.',
+            'Free tier is limited to 3 active stories. Upgrade to Oasis Pro for unlimited stories.',
           );
         }
       }
@@ -144,7 +144,7 @@ class StoriesService {
         storyData['user_avatar'] = profile['avatar_url'];
       }
 
-      return StoryModel.fromJson(storyData);
+      return StoryEntity.fromJson(storyData);
     } catch (e) {
       debugPrint('Error creating story: $e');
       return null;

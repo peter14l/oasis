@@ -1,5 +1,5 @@
 -- =====================================================
--- MORROW V2 - TRIGGERS AND FUNCTIONS
+-- OASIS - TRIGGERS AND FUNCTIONS
 -- =====================================================
 -- This migration creates triggers and functions for automatic updates
 

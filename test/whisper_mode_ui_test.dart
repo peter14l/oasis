@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oasis_v2/widgets/dotted_border_painter.dart';
+import 'package:oasis/widgets/dotted_border_painter.dart';
 
 void main() {
   group('DottedBorder Tests', () {

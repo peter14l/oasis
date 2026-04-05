@@ -4,11 +4,11 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:oasis_v2/providers/conversation_provider.dart';
-import 'package:oasis_v2/models/conversation.dart';
-import 'package:oasis_v2/services/messaging_service.dart';
-import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
-import 'package:oasis_v2/models/message.dart';
+import 'package:oasis/providers/conversation_provider.dart';
+import 'package:oasis/models/conversation.dart';
+import 'package:oasis/services/messaging_service.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis/models/message.dart';
 
 class ShareSheet extends StatefulWidget {
   final String title;

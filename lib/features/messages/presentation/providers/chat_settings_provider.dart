@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis_v2/models/message.dart';
-import 'package:oasis_v2/models/chat_theme.dart';
-import 'package:oasis_v2/services/messaging_service.dart';
+import 'package:oasis/models/message.dart';
+import 'package:oasis/models/chat_theme.dart';
+import 'package:oasis/services/messaging_service.dart';
 
 /// Provider handling chat settings: background, whisper mode, caching, themes.
 /// Extracted from _ChatScreenState settings methods in chat_screen.dart.

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/services/time_capsule_service.dart';
-import 'package:oasis_v2/core/utils/responsive_layout.dart';
-import 'package:oasis_v2/widgets/share_sheet.dart';
-import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
-import 'package:oasis_v2/screens/oasis_pro_screen.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/services/time_capsule_service.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:oasis/widgets/share_sheet.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis/screens/oasis_pro_screen.dart';
 
 class CreateCapsuleScreen extends StatefulWidget {
   const CreateCapsuleScreen({super.key});

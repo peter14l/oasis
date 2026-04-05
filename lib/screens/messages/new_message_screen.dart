@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oasis_v2/features/profile/data/repositories/profile_repository_impl.dart';
-import 'package:oasis_v2/features/profile/domain/models/user_profile_entity.dart';
-import 'package:oasis_v2/services/messaging_service.dart';
-import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis/features/profile/data/repositories/profile_repository_impl.dart';
+import 'package:oasis/features/profile/domain/models/user_profile_entity.dart';
+import 'package:oasis/services/messaging_service.dart';
+import 'package:oasis/services/auth_service.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class NewMessageScreen extends StatefulWidget {

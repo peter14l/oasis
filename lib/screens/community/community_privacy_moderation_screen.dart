@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis_v2/services/community_service.dart';
-import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis/services/community_service.dart';
+import 'package:oasis/services/auth_service.dart';
 
 class CommunityPrivacyModerationScreen extends StatefulWidget {
   final String name;

@@ -64,7 +64,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '244356693090',
     projectId: 'morrow-6712f',
     storageBucket: 'morrow-6712f.firebasestorage.app',
-    iosBundleId: 'com.example.morrow_v2',
+    iosBundleId: 'com.example.morrowV2',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -73,7 +73,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '244356693090',
     projectId: 'morrow-6712f',
     storageBucket: 'morrow-6712f.firebasestorage.app',
-    iosBundleId: 'com.example.morrow_v2',
+    iosBundleId: 'com.example.morrowV2',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
@@ -86,4 +86,3 @@ class DefaultFirebaseOptions {
     measurementId: 'G-8T22BFD635',
   );
 }
-

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DownloadDataScreen extends StatefulWidget {
@@ -94,7 +94,7 @@ class _DownloadDataScreenState extends State<DownloadDataScreen> {
           const Icon(Icons.download, size: 80, color: Colors.teal),
           const SizedBox(height: 24),
           const Text(
-            'Get a copy of your Morrow info',
+            'Get a copy of your Oasis info',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),

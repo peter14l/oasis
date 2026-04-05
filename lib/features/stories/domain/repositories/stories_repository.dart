@@ -1,4 +1,4 @@
-import 'package:oasis_v2/features/stories/domain/models/story_entity.dart';
+import 'package:oasis/features/stories/domain/models/story_entity.dart';
 
 /// Repository interface for stories - defines the contract for story operations.
 abstract class StoriesRepository {

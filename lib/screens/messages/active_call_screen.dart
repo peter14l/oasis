@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:oasis_v2/models/call.dart';
-import 'package:oasis_v2/services/call_service.dart';
+import 'package:oasis/models/call.dart';
+import 'package:oasis/services/call_service.dart';
 import 'package:provider/provider.dart';
 
 class ActiveCallScreen extends StatefulWidget {

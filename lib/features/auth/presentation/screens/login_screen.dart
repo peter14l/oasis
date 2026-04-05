@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis_v2/features/auth/presentation/providers/auth_provider.dart';
-import 'package:oasis_v2/features/auth/presentation/widgets/auth_layout_wrapper.dart';
-import 'package:oasis_v2/widgets/app_button.dart';
+import 'package:oasis/features/auth/presentation/providers/auth_provider.dart';
+import 'package:oasis/features/auth/presentation/widgets/auth_layout_wrapper.dart';
+import 'package:oasis/widgets/app_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:oasis_v2/features/canvas/presentation/providers/canvas_provider.dart';
-import 'package:oasis_v2/services/app_initializer.dart';
-import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
-import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
-import 'package:oasis_v2/features/canvas/presentation/widgets/canvas/canvas_list_tile.dart';
+import 'package:oasis/features/canvas/presentation/providers/canvas_provider.dart';
+import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis/features/canvas/domain/models/canvas_models.dart';
+import 'package:oasis/features/canvas/presentation/widgets/canvas/canvas_list_tile.dart';
 
 class CanvasListScreen extends StatefulWidget {
   const CanvasListScreen({super.key});

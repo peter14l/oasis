@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/services/media_download_service.dart';
+import 'package:oasis/services/media_download_service.dart';
 
 /// Document/file message bubble with download support.
 /// Extracted from the document branch of _buildMessageBubble() in chat_screen.dart.

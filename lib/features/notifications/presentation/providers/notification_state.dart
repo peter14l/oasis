@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/features/notifications/domain/models/notification_entity.dart';
+import 'package:oasis/features/notifications/domain/models/notification_entity.dart';
 
 enum NotificationLoadingState { initial, loading, loaded, error }
 

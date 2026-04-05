@@ -1,6 +1,6 @@
-import 'package:oasis_v2/features/messages/data/datasources/conversation_remote_datasource.dart';
-import 'package:oasis_v2/features/messages/domain/models/conversation_entity.dart';
-import 'package:oasis_v2/features/messages/domain/repositories/conversation_repository.dart';
+import 'package:oasis/features/messages/data/datasources/conversation_remote_datasource.dart';
+import 'package:oasis/features/messages/domain/models/conversation_entity.dart';
+import 'package:oasis/features/messages/domain/repositories/conversation_repository.dart';
 
 /// Implementation of ConversationRepository
 class ConversationRepositoryImpl implements ConversationRepository {

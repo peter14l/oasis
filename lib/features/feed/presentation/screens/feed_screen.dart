@@ -4,28 +4,28 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:oasis_v2/features/feed/presentation/providers/feed_provider.dart';
-import 'package:oasis_v2/features/profile/presentation/providers/profile_provider.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/features/stories/presentation/providers/stories_provider.dart';
-import 'package:oasis_v2/features/stories/domain/models/story_entity.dart';
-import 'package:oasis_v2/widgets/post_card.dart';
+import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/features/stories/presentation/providers/stories_provider.dart';
+import 'package:oasis/features/stories/domain/models/story_entity.dart';
+import 'package:oasis/widgets/post_card.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:oasis_v2/widgets/stories_bar.dart';
-import 'package:oasis_v2/widgets/capsules/capsule_carousel.dart';
-import 'package:oasis_v2/models/feed_layout_strategy.dart';
-import 'package:oasis_v2/widgets/feed_layout_switcher.dart';
-import 'package:oasis_v2/screens/ripples_screen.dart';
-import 'package:oasis_v2/screens/zen_feed_screen.dart';
-import 'package:oasis_v2/screens/pulse_feed_screen.dart';
-import 'package:oasis_v2/widgets/comments_modal.dart';
-import 'package:oasis_v2/core/utils/responsive_layout.dart';
-import 'package:oasis_v2/services/ripples_service.dart';
-import 'package:oasis_v2/services/screen_time_service.dart';
-import 'package:oasis_v2/providers/user_settings_provider.dart';
+import 'package:oasis/widgets/stories_bar.dart';
+import 'package:oasis/widgets/capsules/capsule_carousel.dart';
+import 'package:oasis/models/feed_layout_strategy.dart';
+import 'package:oasis/widgets/feed_layout_switcher.dart';
+import 'package:oasis/screens/ripples_screen.dart';
+import 'package:oasis/screens/zen_feed_screen.dart';
+import 'package:oasis/screens/pulse_feed_screen.dart';
+import 'package:oasis/widgets/comments_modal.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:oasis/services/ripples_service.dart';
+import 'package:oasis/services/screen_time_service.dart';
+import 'package:oasis/providers/user_settings_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
-import 'package:oasis_v2/services/app_initializer.dart';
+import 'package:oasis/services/app_initializer.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -483,7 +483,7 @@ class _FeedScreenState extends State<FeedScreen>
                       onShare: () {
                         final deepLink =
                             'https://oasis-web-red.vercel.app/post/${post.id}';
-                        Share.share('Check out this post on Morrow! $deepLink');
+                        Share.share('Check out this post on Oasis! $deepLink');
                       },
                     );
                   }, childCount: posts.length),
@@ -842,7 +842,7 @@ class _FeedScreenState extends State<FeedScreen>
                 ],
               ),
               const SizedBox(height: 24),
-              _buildTrendingItem('#MorrowApp', '2.4k posts'),
+              _buildTrendingItem('#OasisApp', '2.4k posts'),
               _buildTrendingItem('#OasisV2', '1.8k posts'),
               _buildTrendingItem('#FlutterDesktop', '942 posts'),
               _buildTrendingItem('#CyberDesign', '621 posts'),

@@ -1,4 +1,4 @@
-import 'package:oasis_v2/features/circles/domain/models/circles_models.dart';
+import 'package:oasis/features/circles/domain/models/circles_models.dart';
 
 class CircleState {
   final List<CircleEntity> circles;

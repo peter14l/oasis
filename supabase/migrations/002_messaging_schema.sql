@@ -1,5 +1,5 @@
 -- =====================================================
--- MORROW V2 - MESSAGING SCHEMA
+-- OASIS - MESSAGING SCHEMA
 -- =====================================================
 -- This migration creates the messaging and real-time chat structure
 

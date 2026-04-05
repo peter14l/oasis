@@ -1,4 +1,4 @@
-import 'package:oasis_v2/features/canvas/domain/repositories/canvas_repository.dart';
+import 'package:oasis/features/canvas/domain/repositories/canvas_repository.dart';
 
 /// Use case to delete a canvas.
 class DeleteCanvas {

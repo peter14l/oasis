@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:oasis_v2/core/config/feature_flags.dart';
+import 'package:oasis/core/config/feature_flags.dart';
 import '../../domain/models/shared_media_entity.dart';
 
 /// Data source for handling share intents and external sharing

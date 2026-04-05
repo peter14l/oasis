@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
+import 'package:oasis/features/canvas/domain/models/canvas_models.dart';
 
-import 'package:oasis_v2/services/app_initializer.dart'; // For ThemeProvider
+import 'package:oasis/services/app_initializer.dart'; // For ThemeProvider
 import 'package:provider/provider.dart';
 
 class CanvasListTile extends StatelessWidget {

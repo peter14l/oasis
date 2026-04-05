@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:oasis_v2/services/pricing_service.dart';
+import 'package:oasis/services/pricing_service.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 import 'dart:ui';
 
 class OasisProScreen extends StatefulWidget {

@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'package:oasis_v2/core/config/supabase_config.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/features/notifications/domain/models/notification_entity.dart';
+import 'package:oasis/core/config/supabase_config.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/features/notifications/domain/models/notification_entity.dart';
 
 class NotificationRemoteDatasource {
   final _supabase = SupabaseService().client;

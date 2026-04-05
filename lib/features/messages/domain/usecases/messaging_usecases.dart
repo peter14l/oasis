@@ -1,6 +1,6 @@
-import 'package:oasis_v2/core/result/result.dart';
-import 'package:oasis_v2/features/messages/domain/models/message_entity.dart';
-import 'package:oasis_v2/features/messages/domain/repositories/message_repository.dart';
+import 'package:oasis/core/result/result.dart';
+import 'package:oasis/features/messages/domain/models/message_entity.dart';
+import 'package:oasis/features/messages/domain/repositories/message_repository.dart';
 
 /// Use case for getting messages in a conversation
 class GetMessages {

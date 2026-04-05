@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:oasis_v2/providers/user_settings_provider.dart';
+import 'package:oasis/providers/user_settings_provider.dart';
 
 class DigitalWellbeingScreen extends StatefulWidget {
   const DigitalWellbeingScreen({super.key});

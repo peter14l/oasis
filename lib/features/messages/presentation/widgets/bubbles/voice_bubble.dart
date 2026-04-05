@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/widgets/messages/voice_message_player.dart';
+import 'package:oasis/widgets/messages/voice_message_player.dart';
 
 /// Voice/audio message bubble.
 /// Extracted from the voice branch of _buildMessageBubble() in chat_screen.dart.

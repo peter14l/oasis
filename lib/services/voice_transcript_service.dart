@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 
 /// Voice message transcript service for speech-to-text
 /// Note: Full speech recognition requires speech_to_text package
@@ -24,7 +24,7 @@ class VoiceTranscriptService {
     final user = SupabaseService().client.auth.currentUser;
     final isPro = user?.userMetadata?['is_pro'] == true;
     if (!isPro) {
-      throw Exception('Upgrade to Morrow Pro to transcribe voice messages.');
+      throw Exception('Upgrade to Oasis Pro to transcribe voice messages.');
     }
 
     debugPrint('Transcribing audio: $audioPath');

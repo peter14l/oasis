@@ -1,5 +1,5 @@
-import 'package:oasis_v2/features/feed/domain/models/comment.dart';
-import 'package:oasis_v2/features/feed/domain/repositories/comment_repository.dart';
+import 'package:oasis/features/feed/domain/models/comment.dart';
+import 'package:oasis/features/feed/domain/repositories/comment_repository.dart';
 
 /// Get comments for a post.
 class GetComments {

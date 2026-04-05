@@ -2,14 +2,14 @@ import 'dart:async';
 import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import 'package:oasis_v2/models/message.dart';
-import 'package:oasis_v2/models/conversation.dart';
-import 'package:oasis_v2/services/messaging_service.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/providers/conversation_provider.dart';
+import 'package:oasis/models/message.dart';
+import 'package:oasis/models/conversation.dart';
+import 'package:oasis/services/messaging_service.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/providers/conversation_provider.dart';
 import 'package:provider/provider.dart';
 
-import 'package:oasis_v2/core/config/feature_flags.dart';
+import 'package:oasis/core/config/feature_flags.dart';
 
 class SharingService {
   static final SharingService _instance = SharingService._internal();
@@ -19,20 +19,33 @@ class SharingService {
   StreamSubscription? _intentDataStreamSubscription;
   final AuthService _authService = AuthService();
 
+  // Queue for pending shared files when navigator is not ready
+  List<SharedMediaFile>? _pendingFiles;
+  bool _isShowingModal = false;
+  int _retryAttempts = 0;
+  static const int _maxRetryAttempts = 10;
+
   void init(BuildContext context) {
     if (!FeatureFlags.supportSystemIntents) return;
 
     // For sharing images coming from outside the app while the app is in the memory
-    _intentDataStreamSubscription = ReceiveSharingIntent.instance.getMediaStream().listen((List<SharedMediaFile> value) {
-      if (value.isNotEmpty) {
-        _handleSharedFiles(context, value);
-      }
-    }, onError: (err) {
-      debugPrint("getIntentDataStream error: $err");
-    });
+    _intentDataStreamSubscription = ReceiveSharingIntent.instance
+        .getMediaStream()
+        .listen(
+          (List<SharedMediaFile> value) {
+            if (value.isNotEmpty) {
+              _handleSharedFiles(context, value);
+            }
+          },
+          onError: (err) {
+            debugPrint("getIntentDataStream error: $err");
+          },
+        );
 
     // For sharing images coming from outside the app while the app is closed
-    ReceiveSharingIntent.instance.getInitialMedia().then((List<SharedMediaFile> value) {
+    ReceiveSharingIntent.instance.getInitialMedia().then((
+      List<SharedMediaFile> value,
+    ) {
       if (value.isNotEmpty) {
         _handleSharedFiles(context, value);
       }
@@ -46,12 +59,90 @@ class SharingService {
   void _handleSharedFiles(BuildContext context, List<SharedMediaFile> files) {
     if (_authService.currentUser == null) return;
 
+    // Check if context is still valid (mounted and has navigator)
+    if (!_isContextValid(context)) {
+      _queueFilesForLater(context, files);
+      return;
+    }
+
+    _showShareModal(context, files);
+  }
+
+  bool _isContextValid(BuildContext context) {
+    // Check if context is still mounted by verifying it can access a navigator
+    try {
+      final navigator = Navigator.of(context, rootNavigator: true);
+      return navigator.mounted;
+    } catch (e) {
+      // Navigator.of throws when no navigator is found
+      return false;
+    }
+  }
+
+  void _queueFilesForLater(BuildContext context, List<SharedMediaFile> files) {
+    // Accumulate all pending files
+    _pendingFiles = [...?_pendingFiles, ...files];
+
+    // If already scheduled, don't schedule again
+    if (_isShowingModal) return;
+
+    _retryAttempts = 0;
+    _scheduleRetry(context);
+  }
+
+  void _scheduleRetry(BuildContext context) {
+    _isShowingModal = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _tryShowPendingFiles(context);
+    });
+  }
+
+  void _tryShowPendingFiles(BuildContext context) {
+    if (_pendingFiles == null || _pendingFiles!.isEmpty) {
+      _isShowingModal = false;
+      _retryAttempts = 0;
+      return;
+    }
+
+    // Check if we should stop retrying
+    if (_retryAttempts >= _maxRetryAttempts) {
+      debugPrint(
+        'SharingService: Max retry attempts reached, clearing pending files',
+      );
+      _pendingFiles = null;
+      _isShowingModal = false;
+      _retryAttempts = 0;
+      return;
+    }
+
+    // Try to show the modal
+    if (_isContextValid(context)) {
+      final files = _pendingFiles!;
+      _pendingFiles = null;
+      _isShowingModal = false;
+      _retryAttempts = 0;
+      _showShareModal(context, files);
+    } else {
+      // Schedule another retry
+      _retryAttempts++;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _tryShowPendingFiles(context);
+      });
+    }
+  }
+
+  void _showShareModal(BuildContext context, List<SharedMediaFile> files) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => ShareToChatModal(files: files),
-    );
+      builder: (ctx) => ShareToChatModal(files: files),
+    ).catchError((e) {
+      // Handle case where modal is dismissed or fails to show
+      debugPrint('SharingService: ModalBottomSheet error: $e');
+      return null;
+    });
   }
 }
 
@@ -73,9 +164,12 @@ class _ShareToChatModalState extends State<ShareToChatModal> {
     final colorScheme = theme.colorScheme;
     final conversations = context.watch<ConversationProvider>().conversations;
 
-    final filteredConversations = conversations.where((c) {
-      return c.otherUserName.toLowerCase().contains(_searchQuery.toLowerCase());
-    }).toList();
+    final filteredConversations =
+        conversations.where((c) {
+          return c.otherUserName.toLowerCase().contains(
+            _searchQuery.toLowerCase(),
+          );
+        }).toList();
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
@@ -100,7 +194,9 @@ class _ShareToChatModalState extends State<ShareToChatModal> {
               children: [
                 Text(
                   'Share to...',
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
                 if (_isSending)
@@ -119,7 +215,9 @@ class _ShareToChatModalState extends State<ShareToChatModal> {
                 hintText: 'Search people...',
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                fillColor: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.5,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -130,32 +228,40 @@ class _ShareToChatModalState extends State<ShareToChatModal> {
           ),
           const SizedBox(height: 12),
           Expanded(
-            child: filteredConversations.isEmpty
-                ? Center(
-                    child: Text(
-                      'No conversations found',
-                      style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: filteredConversations.length,
-                    itemBuilder: (context, index) {
-                      final conv = filteredConversations[index];
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: conv.otherUserAvatar.isNotEmpty
-                              ? NetworkImage(conv.otherUserAvatar)
-                              : null,
-                          child: conv.otherUserAvatar.isEmpty
-                              ? Text(conv.otherUserName[0].toUpperCase())
-                              : null,
+            child:
+                filteredConversations.isEmpty
+                    ? Center(
+                      child: Text(
+                        'No conversations found',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
                         ),
-                        title: Text(conv.otherUserName),
-                        onTap: _isSending ? null : () => _shareToConversation(conv),
-                        trailing: const Icon(Icons.send_rounded),
-                      );
-                    },
-                  ),
+                      ),
+                    )
+                    : ListView.builder(
+                      itemCount: filteredConversations.length,
+                      itemBuilder: (context, index) {
+                        final conv = filteredConversations[index];
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage:
+                                conv.otherUserAvatar.isNotEmpty
+                                    ? NetworkImage(conv.otherUserAvatar)
+                                    : null,
+                            child:
+                                conv.otherUserAvatar.isEmpty
+                                    ? Text(conv.otherUserName[0].toUpperCase())
+                                    : null,
+                          ),
+                          title: Text(conv.otherUserName),
+                          onTap:
+                              _isSending
+                                  ? null
+                                  : () => _shareToConversation(conv),
+                          trailing: const Icon(Icons.send_rounded),
+                        );
+                      },
+                    ),
           ),
         ],
       ),
@@ -179,13 +285,18 @@ class _ShareToChatModalState extends State<ShareToChatModal> {
 
         // Simple type detection
         final pathLower = sharedFile.path.toLowerCase();
-        final isAudio = pathLower.endsWith('.mp3') || pathLower.endsWith('.m4a') || pathLower.endsWith('.wav');
+        final isAudio =
+            pathLower.endsWith('.mp3') ||
+            pathLower.endsWith('.m4a') ||
+            pathLower.endsWith('.wav');
 
         if (sizeInMb > 50) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('File ${sharedFile.path.split('/').last} is too large (Max 50MB). Skipping.'),
+                content: Text(
+                  'File ${sharedFile.path.split('/').last} is too large (Max 50MB). Skipping.',
+                ),
                 backgroundColor: Colors.orange,
               ),
             );
@@ -195,8 +306,10 @@ class _ShareToChatModalState extends State<ShareToChatModal> {
 
         String folder = 'files';
         MessageType type = MessageType.document;
-        
-        if (pathLower.endsWith('.jpg') || pathLower.endsWith('.jpeg') || pathLower.endsWith('.png')) {
+
+        if (pathLower.endsWith('.jpg') ||
+            pathLower.endsWith('.jpeg') ||
+            pathLower.endsWith('.png')) {
           folder = 'images';
           type = MessageType.image;
         } else if (pathLower.endsWith('.mp4') || pathLower.endsWith('.mov')) {
@@ -225,7 +338,10 @@ class _ShareToChatModalState extends State<ShareToChatModal> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Shared successfully!'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Shared successfully!'),
+            backgroundColor: Colors.green,
+          ),
         );
         // Optionally navigate to the chat
         // context.push('/chat/${conversation.id}');
@@ -233,7 +349,10 @@ class _ShareToChatModalState extends State<ShareToChatModal> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to share: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Failed to share: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {

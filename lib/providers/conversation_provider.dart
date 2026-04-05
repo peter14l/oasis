@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/models/conversation.dart';
-import 'package:oasis_v2/services/messaging_service.dart';
+import 'package:oasis/models/conversation.dart';
+import 'package:oasis/services/messaging_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:oasis_v2/providers/presence_provider.dart';
+import 'package:oasis/providers/presence_provider.dart';
 
 class ConversationProvider with ChangeNotifier {
   final MessagingService _messagingService = MessagingService();

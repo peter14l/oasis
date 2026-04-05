@@ -2,21 +2,21 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:morrow_v2/screens/community/communities_screen.dart';
-import 'package:morrow_v2/screens/community/community_name_theme_screen.dart';
-import 'package:morrow_v2/screens/community/community_guidelines_screen.dart';
-import 'package:morrow_v2/screens/community/community_description_rules_screen.dart';
-import 'package:morrow_v2/screens/community/community_privacy_moderation_screen.dart';
-import 'package:morrow_v2/screens/community/community_setup_confirmation_screen.dart';
-import 'package:morrow_v2/screens/messages/direct_messages_screen.dart' as messages;
-import 'package:morrow_v2/screens/notifications/notifications_screen.dart';
-import 'package:morrow_v2/screens/login_screen.dart' as login_screen;
+import 'package:oasis/screens/community/communities_screen.dart';
+import 'package:oasis/screens/community/community_name_theme_screen.dart';
+import 'package:oasis/screens/community/community_guidelines_screen.dart';
+import 'package:oasis/screens/community/community_description_rules_screen.dart';
+import 'package:oasis/screens/community/community_privacy_moderation_screen.dart';
+import 'package:oasis/screens/community/community_setup_confirmation_screen.dart';
+import 'package:oasis/screens/messages/direct_messages_screen.dart' as messages;
+import 'package:oasis/screens/notifications/notifications_screen.dart';
+import 'package:oasis/screens/login_screen.dart' as login_screen;
 import '../screens/register_screen.dart';
 import '../screens/feed_screen.dart';
 import '../screens/create_post_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/splash/splash_screen.dart';
-import 'package:morrow_v2/services/auth_service.dart';
+import 'package:oasis/services/auth_service.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();

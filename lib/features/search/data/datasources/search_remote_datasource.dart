@@ -1,7 +1,7 @@
-import 'package:oasis_v2/core/config/supabase_config.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/features/search/domain/models/search_entity.dart';
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
+import 'package:oasis/core/config/supabase_config.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/features/search/domain/models/search_entity.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
 
 class SearchRemoteDatasource {
   final _supabase = SupabaseService().client;

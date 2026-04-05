@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/features/search/data/repositories/search_repository_impl.dart';
-import 'package:oasis_v2/features/search/domain/models/search_entity.dart';
-import 'package:oasis_v2/features/search/domain/repositories/search_repository.dart';
-import 'package:oasis_v2/features/search/domain/usecases/search_usecases.dart';
-import 'package:oasis_v2/features/search/presentation/providers/search_state.dart';
+import 'package:oasis/features/search/data/repositories/search_repository_impl.dart';
+import 'package:oasis/features/search/domain/models/search_entity.dart';
+import 'package:oasis/features/search/domain/repositories/search_repository.dart';
+import 'package:oasis/features/search/domain/usecases/search_usecases.dart';
+import 'package:oasis/features/search/presentation/providers/search_state.dart';
 
 class SearchProvider extends ChangeNotifier {
   final SearchRepository _repository;

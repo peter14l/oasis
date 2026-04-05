@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
-import 'package:oasis_v2/models/time_capsule.dart';
+import 'package:oasis/models/time_capsule.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class CapsuleFeedItem extends StatelessWidget {

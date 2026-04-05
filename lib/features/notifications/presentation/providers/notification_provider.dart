@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/features/notifications/data/repositories/notification_repository_impl.dart';
-import 'package:oasis_v2/features/notifications/domain/models/notification_entity.dart';
-import 'package:oasis_v2/features/notifications/domain/repositories/notification_repository.dart';
-import 'package:oasis_v2/features/notifications/domain/usecases/notification_usecases.dart';
-import 'package:oasis_v2/features/notifications/presentation/providers/notification_state.dart';
+import 'package:oasis/features/notifications/data/repositories/notification_repository_impl.dart';
+import 'package:oasis/features/notifications/domain/models/notification_entity.dart';
+import 'package:oasis/features/notifications/domain/repositories/notification_repository.dart';
+import 'package:oasis/features/notifications/domain/usecases/notification_usecases.dart';
+import 'package:oasis/features/notifications/presentation/providers/notification_state.dart';
 
 class NotificationProvider extends ChangeNotifier {
   final NotificationRepository _repository;

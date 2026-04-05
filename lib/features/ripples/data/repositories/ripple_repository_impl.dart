@@ -1,8 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis_v2/core/network/supabase_client.dart';
-import 'package:oasis_v2/features/ripples/data/datasources/ripple_remote_datasource.dart';
-import 'package:oasis_v2/features/ripples/domain/models/ripple_entity.dart';
-import 'package:oasis_v2/features/ripples/domain/repositories/ripple_repository.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/features/ripples/data/datasources/ripple_remote_datasource.dart';
+import 'package:oasis/features/ripples/domain/models/ripple_entity.dart';
+import 'package:oasis/features/ripples/domain/repositories/ripple_repository.dart';
 
 /// Implementation of RippleRepository - wraps the remote datasource.
 class RippleRepositoryImpl implements RippleRepository {

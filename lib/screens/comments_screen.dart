@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oasis_v2/features/feed/domain/models/comment.dart';
-import 'package:oasis_v2/services/comment_service.dart';
-import 'package:oasis_v2/services/auth_service.dart';
+import 'package:oasis/features/feed/domain/models/comment.dart';
+import 'package:oasis/services/comment_service.dart';
+import 'package:oasis/services/auth_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis_v2/core/utils/responsive_layout.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
-import 'package:oasis_v2/widgets/post_card.dart';
-import 'package:oasis_v2/services/auth_service.dart';
-import 'package:oasis_v2/services/post_service.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/widgets/post_card.dart';
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/services/post_service.dart';
 import 'package:share_plus/share_plus.dart';
 
 class PostDetailsScreen extends StatefulWidget {

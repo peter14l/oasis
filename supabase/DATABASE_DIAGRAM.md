@@ -1,4 +1,4 @@
-# Morrow V2 - Database Schema Diagram
+# Oasis V2 - Database Schema Diagram
 
 ## Entity Relationship Overview
 

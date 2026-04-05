@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/features/messages/presentation/widgets/previews/media_view_mode_selector.dart';
+import 'package:oasis/features/messages/presentation/widgets/previews/media_view_mode_selector.dart';
 
 /// Video preview bar shown above the input area when a video is selected.
 /// Extracted from _buildVideoPreview() in chat_screen.dart.

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:libsignal_protocol_dart/libsignal_protocol_dart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis_v2/services/encryption_service.dart';
+import 'package:oasis/services/encryption_service.dart';
 import 'signal_store.dart';
 
 class SignalService {

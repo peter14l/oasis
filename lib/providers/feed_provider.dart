@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/features/feed/domain/models/post.dart';
-import 'package:oasis_v2/services/feed_service.dart';
-import 'package:oasis_v2/services/cache_service.dart'; // Added import
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/services/feed_service.dart';
+import 'package:oasis/services/cache_service.dart'; // Added import
 
 enum FeedType { forYou, following }
 

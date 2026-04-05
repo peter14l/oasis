@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/widgets/mesh_gradient_background.dart';
+import 'package:oasis/widgets/mesh_gradient_background.dart';
 
 class AuthLayoutWrapper extends StatelessWidget {
   final Widget child;

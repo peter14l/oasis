@@ -1,15 +1,14 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:oasis_v2/features/canvas/data/repositories/canvas_repository_impl.dart';
-import 'package:oasis_v2/features/canvas/domain/models/canvas_models.dart';
-import 'package:oasis_v2/features/canvas/domain/usecases/usecases.dart';
-import 'package:oasis_v2/features/canvas/presentation/providers/canvas_state.dart';
+import 'package:oasis/features/canvas/data/repositories/canvas_repository_impl.dart';
+import 'package:oasis/features/canvas/domain/models/canvas_models.dart';
+import 'package:oasis/features/canvas/domain/usecases/usecases.dart';
+import 'package:oasis/features/canvas/presentation/providers/canvas_state.dart';
 
 /// Provider for Canvas feature using Clean Architecture.
 class CanvasProvider extends ChangeNotifier {
   final GetCanvases _getCanvases;
   final CreateCanvas _createCanvas;
-  final UpdateCanvas _updateCanvas;
   final DeleteCanvas _deleteCanvas;
   final AddCanvasItem _addCanvasItem;
   final GetCanvasTimeline _getCanvasTimeline;
@@ -22,7 +21,6 @@ class CanvasProvider extends ChangeNotifier {
   CanvasProvider({
     GetCanvases? getCanvases,
     CreateCanvas? createCanvas,
-    UpdateCanvas? updateCanvas,
     DeleteCanvas? deleteCanvas,
     AddCanvasItem? addCanvasItem,
     GetCanvasTimeline? getCanvasTimeline,
@@ -32,8 +30,6 @@ class CanvasProvider extends ChangeNotifier {
            getCanvases ?? GetCanvases(repository ?? CanvasRepositoryImpl()),
        _createCanvas =
            createCanvas ?? CreateCanvas(repository ?? CanvasRepositoryImpl()),
-       _updateCanvas =
-           updateCanvas ?? UpdateCanvas(repository ?? CanvasRepositoryImpl()),
        _deleteCanvas =
            deleteCanvas ?? DeleteCanvas(repository ?? CanvasRepositoryImpl()),
        _addCanvasItem =

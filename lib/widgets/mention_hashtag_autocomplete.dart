@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:oasis_v2/features/profile/data/repositories/profile_repository_impl.dart';
-import 'package:oasis_v2/services/hashtag_service.dart';
-import 'package:oasis_v2/features/feed/domain/models/hashtag.dart';
-import 'package:oasis_v2/features/profile/domain/models/user_profile_entity.dart';
+import 'package:oasis/features/profile/data/repositories/profile_repository_impl.dart';
+import 'package:oasis/services/hashtag_service.dart';
+import 'package:oasis/features/feed/domain/models/hashtag.dart';
+import 'package:oasis/features/profile/domain/models/user_profile_entity.dart';
 
 class MentionHashtagAutocomplete extends StatefulWidget {
   final TextEditingController controller;

@@ -1,4 +1,4 @@
-import 'package:oasis_v2/features/feed/domain/models/comment.dart';
+import 'package:oasis/features/feed/domain/models/comment.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Repository contract for comment operations.

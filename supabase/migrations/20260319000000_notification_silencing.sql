@@ -1,5 +1,5 @@
 -- =====================================================
--- MORROW V2 - NOTIFICATION SILENCING LOGIC
+-- OASIS - NOTIFICATION SILENCING LOGIC
 -- =====================================================
 -- This migration ensures that muted or blocked interactions do not trigger notifications.
 

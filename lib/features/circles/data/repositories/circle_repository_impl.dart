@@ -1,6 +1,6 @@
-import 'package:oasis_v2/features/circles/domain/models/circles_models.dart';
-import 'package:oasis_v2/features/circles/domain/repositories/circle_repository.dart';
-import 'package:oasis_v2/features/circles/data/datasources/circle_remote_datasource.dart';
+import 'package:oasis/features/circles/domain/models/circles_models.dart';
+import 'package:oasis/features/circles/domain/repositories/circle_repository.dart';
+import 'package:oasis/features/circles/data/datasources/circle_remote_datasource.dart';
 
 class CircleRepositoryImpl implements CircleRepository {
   final CircleRemoteDatasource _remoteDatasource;
