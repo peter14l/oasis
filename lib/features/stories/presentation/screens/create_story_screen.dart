@@ -1014,7 +1014,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                             height: 70,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(
-                                isM3E ? 24 : 12,
+                                isM3E
+                                    ? 16
+                                    : 12, // M3E Large (16dp) vs M3 Medium (12dp)
                               ),
                               border: Border.all(
                                 color:
@@ -1044,9 +1046,12 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                               fontWeight:
                                   isSelected
                                       ? (isM3E
-                                          ? FontWeight.w900
+                                          ? FontWeight
+                                              .w600 // M3E uses Medium (500-600)
                                           : FontWeight.bold)
                                       : FontWeight.normal,
+                              letterSpacing:
+                                  isM3E ? -0.5 : 0, // M3E tighter spacing
                             ),
                           ),
                         ],
@@ -1314,7 +1319,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     return GestureDetector(
       onTap: onTap,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(isM3E ? 16 : 20),
+        borderRadius: BorderRadius.circular(
+          isM3E ? 12 : 20,
+        ), // M3E Medium (12dp) vs old (20)
         child: BackdropFilter(
           filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
@@ -1345,8 +1352,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             style: TextStyle(
               color: Colors.white,
               fontSize: 10,
-              fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
-              letterSpacing: isM3E ? -0.2 : 0,
+              fontWeight:
+                  isM3E
+                      ? FontWeight.w600
+                      : FontWeight.bold, // M3E Medium weight
+              letterSpacing: isM3E ? -0.5 : 0, // M3E tighter spacing
             ),
           ),
         ],
@@ -1368,7 +1378,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
-          borderRadius: isM3E ? BorderRadius.circular(24) : null,
+          borderRadius:
+              isM3E
+                  ? BorderRadius.circular(28)
+                  : null, // M3E Extra Large (28dp)
           boxShadow:
               isM3E
                   ? [
@@ -1395,7 +1408,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(isM3E ? 20 : 12),
+            borderRadius: BorderRadius.circular(
+              isM3E ? 16 : 12,
+            ), // M3E Large (16dp) vs old
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.2),
@@ -1408,7 +1423,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(isM3E ? 8 : 4),
+                borderRadius: BorderRadius.circular(
+                  isM3E ? 8 : 4,
+                ), // M3E Small (8dp)
                 child: CachedNetworkImage(
                   imageUrl: music.albumArtUrl,
                   width: 40,
@@ -1426,7 +1443,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 14,
-                      fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                      fontWeight:
+                          isM3E
+                              ? FontWeight.w600
+                              : FontWeight.bold, // M3E Medium
+                      letterSpacing: isM3E ? -0.5 : 0,
                     ),
                   ),
                   Text(
@@ -1434,6 +1455,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     style: TextStyle(
                       color: Colors.black.withValues(alpha: 0.7),
                       fontSize: 12,
+                      fontWeight:
+                          isM3E
+                              ? FontWeight.w400
+                              : FontWeight.normal, // M3E body weight
                     ),
                   ),
                 ],
