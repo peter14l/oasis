@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:oasis/models/message.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/features/messages/presentation/widgets/bubbles/bubbles.dart';
-import 'package:oasis/features/messages/presentation/widgets/bubbles/text_bubble.dart';
 import 'package:oasis/widgets/skeleton_container.dart';
 
 /// Chat message list with skeleton loading, empty state, and message rendering.
@@ -185,7 +184,7 @@ class MessageBubble extends StatelessWidget {
             ? (textColorSent ?? colorScheme.onPrimaryContainer)
             : (textColorReceived ?? colorScheme.onSurface);
 
-    Widget content = _buildContent(context, textColor);
+    final Widget content = _buildContent(context, textColor);
 
     final bubbleDecoration = BoxDecoration(
       color: bubbleColor,
@@ -206,7 +205,7 @@ class MessageBubble extends StatelessWidget {
       ],
     );
 
-    Widget bubble = Container(
+    final Widget bubble = Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: bubbleDecoration,
       child: Column(
@@ -299,8 +298,6 @@ class MessageBubble extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context, Color textColor) {
-    final theme = Theme.of(context);
-
     switch (message.messageType) {
       case MessageType.text:
         return TextBubble(

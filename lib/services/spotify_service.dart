@@ -69,7 +69,9 @@ class SpotifyService {
 
     if (_clientId.isEmpty ||
         _clientId == 'your_client_id_here' ||
-        _clientSecret.isEmpty) return null;
+        _clientSecret.isEmpty) {
+      return null;
+    }
 
     try {
       final authStr = base64Encode(utf8.encode('$_clientId:$_clientSecret'));

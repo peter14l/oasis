@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import 'package:oasis/models/message.dart';
-import 'package:oasis/models/conversation.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
+import 'package:oasis/features/messages/domain/models/conversation.dart';
 import 'package:oasis/services/messaging_service.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/providers/conversation_provider.dart';
@@ -38,7 +38,7 @@ class SharingService {
             }
           },
           onError: (err) {
-            debugPrint("getIntentDataStream error: $err");
+            debugPrint('getIntentDataStream error: $err');
           },
         );
 
@@ -278,7 +278,7 @@ class _ShareToChatModalState extends State<ShareToChatModal> {
       if (userId == null) return;
 
       for (final sharedFile in widget.files) {
-        String filePath = sharedFile.path;
+        final String filePath = sharedFile.path;
         final file = File(filePath);
         final sizeInBytes = await file.length();
         final sizeInMb = sizeInBytes / (1024 * 1024);

@@ -62,7 +62,6 @@ class WellnessRepositoryImpl implements WellnessRepository {
 
   void _loadScreenTimeState() {
     final dateKey = _getDateKey(DateTime.now());
-    final catKey = 'screen_time_categories_$dateKey';
     final data = _datasource.getCategoryMinutes(DateTime.now());
     _categoryMinutes = data;
   }
@@ -198,7 +197,7 @@ class WellnessRepositoryImpl implements WellnessRepository {
 
   @override
   Future<List<Map<String, dynamic>>> getWeeklyData() async {
-    List<Map<String, dynamic>> data = [];
+    final List<Map<String, dynamic>> data = [];
     final now = DateTime.now();
 
     for (int i = 6; i >= 0; i--) {

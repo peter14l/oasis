@@ -156,7 +156,7 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.light(
+      colorScheme: const ColorScheme.light(
         primary: LightColors.primary,
         surface: LightColors.background, // background -> surface
         onSurface: LightColors.onBackground, // onBackground -> onSurface
@@ -206,7 +206,7 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.dark(
+      colorScheme: const ColorScheme.dark(
         primary: DarkColors.primary,
         surface: DarkColors.background, // background -> surface
         onSurface: DarkColors.onBackground, // onBackground -> onSurface

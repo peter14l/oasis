@@ -147,7 +147,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           return const Scaffold(body: Center(child: Text('Profile not found')));
         }
 
-        Widget profileContent = Scaffold(
+        final Widget profileContent = Scaffold(
           backgroundColor: Colors.transparent,
           extendBodyBehindAppBar: true,
           body: CustomScrollView(

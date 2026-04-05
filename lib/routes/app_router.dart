@@ -326,10 +326,10 @@ class _MainLayoutState extends State<MainLayout> {
                     bottom: 12,
                     left: (_isRailExtended ? 240 : 120) + 24,
                     child: motion.Animate(
-                      effects: [
+                      effects: const [
                         motion.MoveEffect(
-                          begin: const Offset(-50, 0),
-                          end: const Offset(0, 0),
+                          begin: Offset(-50, 0),
+                          end: Offset(0, 0),
                           curve: Curves.easeOutCubic,
                         ),
                         motion.FadeEffect(),
@@ -527,23 +527,23 @@ class _MainLayoutState extends State<MainLayout> {
           ),
           label: 'Search',
         ),
-        NavigationDestinationM3E(
-          icon: const Icon(FluentIcons.channel_24_regular),
-          selectedIcon: const Icon(FluentIcons.channel_24_filled),
+        const NavigationDestinationM3E(
+          icon: Icon(FluentIcons.channel_24_regular),
+          selectedIcon: Icon(FluentIcons.channel_24_filled),
           label: 'Spaces',
         ),
-        NavigationDestinationM3E(
-          icon: const UnreadMessagesBadge(
+        const NavigationDestinationM3E(
+          icon: UnreadMessagesBadge(
             child: Icon(FluentIcons.chat_24_regular),
           ),
-          selectedIcon: const UnreadMessagesBadge(
+          selectedIcon: UnreadMessagesBadge(
             child: Icon(FluentIcons.chat_24_filled),
           ),
           label: 'Messages',
         ),
-        NavigationDestinationM3E(
-          icon: const Icon(FluentIcons.alert_24_regular),
-          selectedIcon: const Icon(FluentIcons.alert_24_filled),
+        const NavigationDestinationM3E(
+          icon: Icon(FluentIcons.alert_24_regular),
+          selectedIcon: Icon(FluentIcons.alert_24_filled),
           label: 'Alerts',
         ),
         NavigationDestinationM3E(
@@ -682,24 +682,24 @@ class _MainLayoutState extends State<MainLayout> {
                   ? const Text('Search', style: TextStyle(color: Colors.grey))
                   : const Text('Search'),
         ),
-        NavigationRailDestination(
-          icon: const Icon(FluentIcons.channel_24_regular),
-          selectedIcon: const Icon(FluentIcons.channel_24_filled),
-          label: const Text('Spaces'),
+        const NavigationRailDestination(
+          icon: Icon(FluentIcons.channel_24_regular),
+          selectedIcon: Icon(FluentIcons.channel_24_filled),
+          label: Text('Spaces'),
         ),
-        NavigationRailDestination(
-          icon: const UnreadMessagesBadge(
+        const NavigationRailDestination(
+          icon: UnreadMessagesBadge(
             child: Icon(FluentIcons.chat_24_regular),
           ),
-          selectedIcon: const UnreadMessagesBadge(
+          selectedIcon: UnreadMessagesBadge(
             child: Icon(FluentIcons.chat_24_filled),
           ),
-          label: const Text('Messages'),
+          label: Text('Messages'),
         ),
-        NavigationRailDestination(
-          icon: const Icon(FluentIcons.alert_24_regular),
-          selectedIcon: const Icon(FluentIcons.alert_24_filled),
-          label: const Text('Notifications'),
+        const NavigationRailDestination(
+          icon: Icon(FluentIcons.alert_24_regular),
+          selectedIcon: Icon(FluentIcons.alert_24_filled),
+          label: Text('Notifications'),
         ),
         NavigationRailDestination(
           icon: GestureDetector(

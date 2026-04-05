@@ -38,7 +38,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
   Future<Result<void>> markAsRead(String notificationId) async {
     try {
       await _remoteDatasource.markAsRead(notificationId);
-      return Result.success(null);
+      return const Result.success(null);
     } catch (e) {
       return Result.failure(message: e.toString());
     }
@@ -53,7 +53,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
       }
 
       await _remoteDatasource.markAllAsRead(userId);
-      return Result.success(null);
+      return const Result.success(null);
     } catch (e) {
       return Result.failure(message: e.toString());
     }
@@ -64,7 +64,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
     try {
       final userId = SupabaseService().client.auth.currentUser?.id;
       if (userId == null) {
-        return Result.success(0);
+        return const Result.success(0);
       }
 
       final count = await _remoteDatasource.getUnreadCount(userId);

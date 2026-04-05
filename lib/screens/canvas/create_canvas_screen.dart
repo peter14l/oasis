@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/features/canvas/presentation/providers/canvas_provider.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
-import 'package:oasis/features/profile/domain/models/user_profile_entity.dart';
 import 'package:oasis/screens/oasis_pro_screen.dart';
 
 class CreateCanvasScreen extends StatefulWidget {

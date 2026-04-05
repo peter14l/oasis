@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:oasis/models/conversation.dart';
-import 'package:oasis/models/message.dart';
+import 'package:oasis/features/messages/domain/models/conversation.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/services/messaging_service.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/providers/conversation_provider.dart';

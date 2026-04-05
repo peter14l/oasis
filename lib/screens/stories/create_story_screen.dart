@@ -7,7 +7,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:oasis/services/stories_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:animate_do/animate_do.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:gal/gal.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -45,7 +44,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   bool _isDraggingText = false;
   bool _isTextOverTrash = false;
   int _textBackgroundMode = 0;
-  TextAlign _textAlign = TextAlign.center;
+  final TextAlign _textAlign = TextAlign.center;
   Color _textColor = Colors.white;
   final List<String> _fontStyles = ['Classic', 'Neon', 'Typewriter', 'Strong'];
   int _selectedFontIndex = 0;
@@ -54,7 +53,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   List<List<DrawingPoint>> _strokes = [];
   List<DrawingPoint> _currentStroke = [];
   Color _selectedColor = Colors.white;
-  double _strokeWidth = 5.0;
+  final double _strokeWidth = 5.0;
   bool _isEraserMode = false;
 
   // Filter State
@@ -62,31 +61,178 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   final List<Map<String, dynamic>> _filterPresets = [
     {
       'name': 'Normal',
-      'matrix': <double>[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0],
+      'matrix': <double>[
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+      ],
     },
     {
       'name': 'Clarendon',
-      'matrix': <double>[1.2, 0, 0, 0, 0, 0, 1.1, 0, 0, 0, 0, 0, 1.5, 0, 0, 0, 0, 0, 1, 0],
+      'matrix': <double>[
+        1.2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1.1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1.5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+      ],
     },
     {
       'name': 'Gingham',
-      'matrix': <double>[0.9, 0, 0, 0, 0, 0, 0.9, 0, 0, 0, 0, 0, 0.9, 0, 0, 0, 0, 0, 1, 0],
+      'matrix': <double>[
+        0.9,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.9,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.9,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+      ],
     },
     {
       'name': 'Moon',
-      'matrix': <double>[0.21, 0.71, 0.07, 0, 0, 0.21, 0.71, 0.07, 0, 0, 0.21, 0.71, 0.07, 0, 0, 0, 0, 0, 1, 0],
+      'matrix': <double>[
+        0.21,
+        0.71,
+        0.07,
+        0,
+        0,
+        0.21,
+        0.71,
+        0.07,
+        0,
+        0,
+        0.21,
+        0.71,
+        0.07,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+      ],
     },
     {
       'name': 'Lark',
-      'matrix': <double>[1.1, 0, 0, 0, 0, 0, 1.1, 0, 0, 0, 0, 0, 1.3, 0, 0, 0, 0, 0, 1, 0],
+      'matrix': <double>[
+        1.1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1.1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1.3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+      ],
     },
     {
       'name': 'Reyes',
-      'matrix': <double>[1, 0, 0, 0, 50, 0, 1, 0, 0, 50, 0, 0, 1, 0, 20, 0, 0, 0, 1, 0],
+      'matrix': <double>[
+        1,
+        0,
+        0,
+        0,
+        50,
+        0,
+        1,
+        0,
+        0,
+        50,
+        0,
+        0,
+        1,
+        0,
+        20,
+        0,
+        0,
+        0,
+        1,
+        0,
+      ],
     },
     {
       'name': 'Juno',
-      'matrix': <double>[1.1, 0, 0, 0, 0, 0, 1.3, 0, 0, 0, 0, 0, 1.1, 0, 0, 0, 0, 0, 1, 0],
+      'matrix': <double>[
+        1.1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1.3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1.1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+      ],
     },
   ];
 
@@ -148,10 +294,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         });
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 
@@ -170,16 +317,18 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       final composite = await _captureCompositeImage();
       if (composite != null) {
         await Gal.putImage(composite.path);
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(const SnackBar(content: Text('Saved to gallery!')));
+        }
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Failed: $e')));
+      }
     } finally {
       if (mounted) setState(() => _isUploading = false);
     }
@@ -191,18 +340,23 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
 
     try {
       final finalFile = await _captureCompositeImage() ?? _selectedFile!;
-      
+
       // Prepare interactive metadata for text layers
-      final interactiveMetadata = _texts.map((t) => {
-        'type': 'text',
-        'data': {
-          'text': t.text,
-          'color': '#${t.color.value.toRadixString(16)}',
-          'background_mode': t.backgroundMode,
-        },
-        'x': t.position.dx / MediaQuery.of(context).size.width,
-        'y': t.position.dy / MediaQuery.of(context).size.height,
-      }).toList();
+      final interactiveMetadata =
+          _texts
+              .map(
+                (t) => {
+                  'type': 'text',
+                  'data': {
+                    'text': t.text,
+                    'color': '#${t.color.toARGB32().toRadixString(16)}',
+                    'background_mode': t.backgroundMode,
+                  },
+                  'x': t.position.dx / MediaQuery.of(context).size.width,
+                  'y': t.position.dy / MediaQuery.of(context).size.height,
+                },
+              )
+              .toList();
 
       final story = await _storiesService.createStory(
         file: finalFile,
@@ -222,10 +376,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         );
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     } finally {
       if (mounted) setState(() => _isUploading = false);
     }
@@ -255,7 +410,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     }
 
     setState(() {
-      final isM3E = Provider.of<ThemeProvider>(context, listen: false).isM3EEnabled;
+      final isM3E =
+          Provider.of<ThemeProvider>(context, listen: false).isM3EEnabled;
       final newText = StoryText(
         text: _captionController.text.trim(),
         position:
@@ -299,12 +455,15 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }
 
   void _openStickerTray() {
-    final isM3E = Provider.of<ThemeProvider>(context, listen: false).isM3EEnabled;
+    final isM3E =
+        Provider.of<ThemeProvider>(context, listen: false).isM3EEnabled;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.black87,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(isM3E ? 48 : 20)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(isM3E ? 48 : 20),
+        ),
       ),
       builder:
           (context) => Container(
@@ -358,7 +517,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                         child: Image.file(_selectedFile!, fit: BoxFit.cover),
                       ),
                     ),
-                    
+
                     // Music Sticker (Rendered into composite)
                     if (_selectedMusic != null)
                       _buildMusicStickerWidget(_selectedMusic!),
@@ -375,7 +534,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     ..._texts.asMap().entries.map((entry) {
                       final i = entry.key;
                       final t = entry.value;
-                      final isM3E = Provider.of<ThemeProvider>(context, listen: false).isM3EEnabled;
+                      final isM3E =
+                          Provider.of<ThemeProvider>(
+                            context,
+                            listen: false,
+                          ).isM3EEnabled;
                       return Positioned(
                         left: t.position.dx - 100,
                         top: t.position.dy - 25,
@@ -449,7 +612,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                                           : (t.backgroundMode == 2
                                               ? Colors.black54
                                               : Colors.transparent),
-                                  borderRadius: BorderRadius.circular(isM3E ? 16 : 8),
+                                  borderRadius: BorderRadius.circular(
+                                    isM3E ? 16 : 8,
+                                  ),
                                 ),
                                 child: Text(
                                   t.text,
@@ -462,7 +627,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                                                 : Colors.white)
                                             : t.color,
                                     fontSize: 28,
-                                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                                    fontWeight:
+                                        isM3E
+                                            ? FontWeight.w900
+                                            : FontWeight.bold,
                                     letterSpacing: isM3E ? -0.5 : 0,
                                   ),
                                 ),
@@ -471,7 +639,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                           ),
                         ),
                       );
-                    }).toList(),
+                    }),
                   ] else
                     _buildEmptyState(),
                 ],
@@ -982,9 +1150,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             _buildBlurButton(
               icon: Icons.close_rounded,
               onTap: () {
-                if (_isDrawingMode)
+                if (_isDrawingMode) {
                   setState(() => _isDrawingMode = false);
-                else if (_isFilterPickerVisible)
+                } else if (_isFilterPickerVisible)
                   setState(() => _isFilterPickerVisible = false);
                 else
                   setState(() => _selectedFile = null);
@@ -1009,7 +1177,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }
 
   Widget _buildDrawingTools() {
-    final isM3E = Provider.of<ThemeProvider>(context, listen: false).isM3EEnabled;
+    final isM3E =
+        Provider.of<ThemeProvider>(context, listen: false).isM3EEnabled;
     return Positioned(
       bottom: 40,
       left: 0,
@@ -1096,7 +1265,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     return Positioned.fill(
       child: IgnorePointer(
         child: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -1106,7 +1275,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 Colors.transparent,
                 Colors.black54,
               ],
-              stops: const [0.0, 0.15, 0.85, 1.0],
+              stops: [0.0, 0.15, 0.85, 1.0],
             ),
           ),
         ),

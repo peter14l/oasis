@@ -42,7 +42,6 @@ import 'package:oasis/features/profile/data/repositories/profile_repository_impl
 import 'package:oasis/providers/typing_indicator_provider.dart';
 import 'package:oasis/providers/user_settings_provider.dart';
 import 'package:oasis/features/stories/presentation/providers/stories_provider.dart';
-import 'package:oasis/themes/app_theme.dart';
 import 'package:oasis/core/storage/prefs_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

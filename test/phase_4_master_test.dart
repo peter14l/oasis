@@ -15,7 +15,7 @@ void main() {
   group('RegisteredAccount Model Tests', () {
     test('RegisteredAccount JSON serialization', () {
       // Mock User for Session
-const User({
+      const user = User(
         id: 'user1',
         appMetadata: {},
         userMetadata: {},
@@ -98,7 +98,7 @@ const User({
         dueDate: DateTime.now(),
         status: CommitmentStatus.open,
         responses: {
-          'current_user': CommitmentResponseEntity(
+          'current_user': const CommitmentResponseEntity(
             userId: 'current_user',
             intent: MemberIntent.inTrying,
             completed: false,

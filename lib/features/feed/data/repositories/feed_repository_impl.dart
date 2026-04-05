@@ -1,12 +1,7 @@
-import 'package:flutter/foundation.dart';
-import 'package:oasis/core/config/supabase_config.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:oasis/features/feed/domain/repositories/feed_repository.dart';
 import 'package:oasis/features/feed/data/datasources/feed_remote_datasource.dart';
-import 'package:oasis/features/feed/data/datasources/feed_local_datasource.dart';
-import 'package:oasis/services/cache_service.dart';
-import 'package:oasis/services/notification_service.dart';
 
 /// Implementation of FeedRepository.
 ///
@@ -14,14 +9,9 @@ import 'package:oasis/services/notification_service.dart';
 /// and handles ad injection for non-Pro users.
 class FeedRepositoryImpl implements FeedRepository {
   final FeedRemoteDatasource _remoteDatasource;
-  final FeedLocalDatasource _localDatasource;
-  final NotificationService _notificationService = NotificationService();
 
-  FeedRepositoryImpl({
-    FeedRemoteDatasource? remoteDatasource,
-    FeedLocalDatasource? localDatasource,
-  }) : _remoteDatasource = remoteDatasource ?? FeedRemoteDatasource(),
-       _localDatasource = localDatasource ?? FeedLocalDatasource();
+  FeedRepositoryImpl({FeedRemoteDatasource? remoteDatasource})
+    : _remoteDatasource = remoteDatasource ?? FeedRemoteDatasource();
 
   @override
   Future<List<Post>> getFeedPosts({

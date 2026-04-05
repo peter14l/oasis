@@ -21,7 +21,7 @@ class PostShareBubble extends StatelessWidget {
     final postContent = shareData?['content'] ?? message.content;
     final mediaUrl = message.mediaUrl ?? shareData?['image_url'];
 
-    Widget card = Container(
+    final Widget card = Container(
       constraints: const BoxConstraints(maxWidth: 280),
       decoration: BoxDecoration(
         color:

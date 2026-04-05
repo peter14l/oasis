@@ -447,8 +447,8 @@ class PollDisplay extends StatelessWidget {
             if (poll.pollType == PollType.quiz &&
                 showResults &&
                 option.isCorrect)
-              Padding(
-                padding: const EdgeInsets.only(left: 8),
+              const Padding(
+                padding: EdgeInsets.only(left: 8),
                 child: Icon(Icons.check_circle, color: Colors.green, size: 20),
               ),
           ],

@@ -94,8 +94,8 @@ class HashtagService {
           .range(offset, offset + limit - 1);
 
       return (response as List)
-          .map((item) => item['posts'] as Map<String, dynamic>)
-          .where((post) => post != null)
+          .map((item) => item['posts'] as Map<String, dynamic>?)
+          .whereType<Map<String, dynamic>>()
           .toList();
     } catch (e) {
       debugPrint('Error fetching posts by hashtag: $e');

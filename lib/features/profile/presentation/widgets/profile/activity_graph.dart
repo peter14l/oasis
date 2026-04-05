@@ -5,36 +5,43 @@ import 'package:intl/intl.dart';
 class ActivityGraph extends StatelessWidget {
   final List<Post> posts;
 
-  const ActivityGraph({
-    super.key,
-    required this.posts,
-  });
+  const ActivityGraph({super.key, required this.posts});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     // Calculate daily post frequencies for the last year
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    
+
     final endDate = today;
     final startDate = today.subtract(const Duration(days: 364));
-    final adjustedStartDate = startDate.subtract(Duration(days: startDate.weekday % 7));
-    
+    final adjustedStartDate = startDate.subtract(
+      Duration(days: startDate.weekday % 7),
+    );
+
     final Map<DateTime, int> dailyCounts = {};
     for (var post in posts) {
-      final postDate = DateTime(post.timestamp.year, post.timestamp.month, post.timestamp.day);
-      if (postDate.isAfter(adjustedStartDate.subtract(const Duration(days: 1))) && 
+      final postDate = DateTime(
+        post.timestamp.year,
+        post.timestamp.month,
+        post.timestamp.day,
+      );
+      if (postDate.isAfter(
+            adjustedStartDate.subtract(const Duration(days: 1)),
+          ) &&
           postDate.isBefore(endDate.add(const Duration(days: 1)))) {
         dailyCounts[postDate] = (dailyCounts[postDate] ?? 0) + 1;
       }
     }
 
-    final totalContributions = dailyCounts.values.fold(0, (sum, count) => sum + count);
+    final totalContributions = dailyCounts.values.fold(
+      0,
+      (sum, count) => sum + count,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,7 +66,11 @@ class ActivityGraph extends StatelessWidget {
                       color: colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                   ),
-                  Icon(Icons.arrow_drop_down, size: 16, color: colorScheme.onSurface.withValues(alpha: 0.5)),
+                  Icon(
+                    Icons.arrow_drop_down,
+                    size: 16,
+                    color: colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
                 ],
               ),
             ],
@@ -99,7 +110,13 @@ class ActivityGraph extends StatelessWidget {
                                 _buildDayLabel('Fri'),
                               ],
                             ),
-                          ),                          _buildContributionGrid(context, adjustedStartDate, endDate, dailyCounts),
+                          ),
+                          _buildContributionGrid(
+                            context,
+                            adjustedStartDate,
+                            endDate,
+                            dailyCounts,
+                          ),
                         ],
                       ),
                     ),
@@ -119,7 +136,9 @@ class ActivityGraph extends StatelessWidget {
                             Text(
                               'Less',
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.onSurface.withValues(alpha: 0.4),
+                                color: colorScheme.onSurface.withValues(
+                                  alpha: 0.4,
+                                ),
                                 fontSize: 10,
                               ),
                             ),
@@ -137,7 +156,9 @@ class ActivityGraph extends StatelessWidget {
                             Text(
                               'More',
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.onSurface.withValues(alpha: 0.4),
+                                color: colorScheme.onSurface.withValues(
+                                  alpha: 0.4,
+                                ),
                                 fontSize: 10,
                               ),
                             ),
@@ -161,8 +182,7 @@ class ActivityGraph extends StatelessWidget {
 
   Widget _buildYearSelector(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
+
     return Column(
       children: [
         _buildYearButton(context, '2026', isSelected: true),
@@ -174,10 +194,14 @@ class ActivityGraph extends StatelessWidget {
     );
   }
 
-  Widget _buildYearButton(BuildContext context, String year, {required bool isSelected}) {
+  Widget _buildYearButton(
+    BuildContext context,
+    String year, {
+    required bool isSelected,
+  }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Container(
       width: 80,
       height: 32,
@@ -189,7 +213,10 @@ class ActivityGraph extends StatelessWidget {
       child: Text(
         year,
         style: TextStyle(
-          color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface.withValues(alpha: 0.6),
+          color:
+              isSelected
+                  ? colorScheme.onPrimary
+                  : colorScheme.onSurface.withValues(alpha: 0.6),
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           fontSize: 12,
         ),
@@ -208,17 +235,17 @@ class ActivityGraph extends StatelessWidget {
   }
 
   Widget _buildContributionGrid(
-    BuildContext context, 
-    DateTime startDate, 
-    DateTime endDate, 
-    Map<DateTime, int> dailyCounts
+    BuildContext context,
+    DateTime startDate,
+    DateTime endDate,
+    Map<DateTime, int> dailyCounts,
   ) {
-    List<List<DateTime?>> weeks = [];
+    final List<List<DateTime?>> weeks = [];
     DateTime current = startDate;
-    
+
     while (current.isBefore(endDate.add(const Duration(days: 1)))) {
-      List<DateTime?> week = List.generate(7, (index) {
-        DateTime day = current.add(Duration(days: index));
+      final List<DateTime?> week = List.generate(7, (index) {
+        final DateTime day = current.add(Duration(days: index));
         if (day.isAfter(endDate)) return null;
         return day;
       });
@@ -229,21 +256,22 @@ class ActivityGraph extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: _buildMonthLabels(weeks),
-        ),
+        Row(children: _buildMonthLabels(weeks)),
         const SizedBox(height: 4),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: weeks.map((week) {
-            return Column(
-              children: week.map((day) {
-                if (day == null) return const SizedBox(width: 13, height: 13);
-                final count = dailyCounts[day] ?? 0;
-                return _buildContributionSquare(context, day, count);
+          children:
+              weeks.map((week) {
+                return Column(
+                  children:
+                      week.map((day) {
+                        if (day == null)
+                          return const SizedBox(width: 13, height: 13);
+                        final count = dailyCounts[day] ?? 0;
+                        return _buildContributionSquare(context, day, count);
+                      }).toList(),
+                );
               }).toList(),
-            );
-          }).toList(),
         ),
       ],
     );
@@ -254,10 +282,10 @@ class ActivityGraph extends StatelessWidget {
       final weekIndex = entry.key;
       final week = entry.value;
       final firstDay = week.firstWhere((d) => d != null, orElse: () => null);
-      
+
       if (firstDay != null && firstDay.day <= 7) {
         return SizedBox(
-          width: 13, 
+          width: 13,
           height: 15,
           child: Stack(
             clipBehavior: Clip.none,
@@ -282,7 +310,11 @@ class ActivityGraph extends StatelessWidget {
     }).toList();
   }
 
-  Widget _buildContributionSquare(BuildContext context, DateTime date, int count) {
+  Widget _buildContributionSquare(
+    BuildContext context,
+    DateTime date,
+    int count,
+  ) {
     final color = _getContributionColor(context, count);
     return Tooltip(
       message: '${DateFormat('MMM d, y').format(date)}: $count contributions',
@@ -309,7 +341,11 @@ class ActivityGraph extends StatelessWidget {
     );
   }
 
-  Color _getContributionColor(BuildContext context, int count, {bool isLegend = false}) {
+  Color _getContributionColor(
+    BuildContext context,
+    int count, {
+    bool isLegend = false,
+  }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -318,14 +354,20 @@ class ActivityGraph extends StatelessWidget {
     }
 
     if (isDark) {
-      if (count == 1 || (isLegend && count == 1)) return const Color(0xFF0E4429);
-      if (count == 2 || (isLegend && count == 2)) return const Color(0xFF006D32);
-      if (count == 3 || (isLegend && count == 3)) return const Color(0xFF26A641);
+      if (count == 1 || (isLegend && count == 1))
+        return const Color(0xFF0E4429);
+      if (count == 2 || (isLegend && count == 2))
+        return const Color(0xFF006D32);
+      if (count == 3 || (isLegend && count == 3))
+        return const Color(0xFF26A641);
       return const Color(0xFF39D353);
     } else {
-      if (count == 1 || (isLegend && count == 1)) return const Color(0xFF9BE9A8);
-      if (count == 2 || (isLegend && count == 2)) return const Color(0xFF40C463);
-      if (count == 3 || (isLegend && count == 3)) return const Color(0xFF30A14E);
+      if (count == 1 || (isLegend && count == 1))
+        return const Color(0xFF9BE9A8);
+      if (count == 2 || (isLegend && count == 2))
+        return const Color(0xFF40C463);
+      if (count == 3 || (isLegend && count == 3))
+        return const Color(0xFF30A14E);
       return const Color(0xFF216E39);
     }
   }

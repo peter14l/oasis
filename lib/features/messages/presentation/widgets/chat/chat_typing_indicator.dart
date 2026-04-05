@@ -4,7 +4,7 @@ import 'package:oasis/providers/typing_indicator_provider.dart';
 import 'package:oasis/widgets/messages/typing_indicator_widget.dart';
 
 /// Typing indicator widget.
-/// Extracted from the Consumer<TypingIndicatorProvider> block in chat_screen.dart.
+/// Extracted from the `Consumer<TypingIndicatorProvider>` block in chat_screen.dart.
 class ChatTypingIndicator extends StatelessWidget {
   const ChatTypingIndicator({
     super.key,
@@ -22,8 +22,8 @@ class ChatTypingIndicator extends StatelessWidget {
         final isTyping = typingProvider.isUserTyping(conversationId);
         if (!isTyping) return const SizedBox.shrink();
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        return const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: TypingIndicatorWidget(username: 'Someone'),
         );
       },

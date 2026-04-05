@@ -37,7 +37,7 @@ class TextParser {
             text: matchedText,
             style:
                 hashtagStyle ??
-                TextStyle(color: Colors.blue, fontWeight: FontWeight.w600),
+                const TextStyle(color: Colors.blue, fontWeight: FontWeight.w600),
             recognizer:
                 TapGestureRecognizer()
                   ..onTap = () {
@@ -53,7 +53,7 @@ class TextParser {
             text: matchedText,
             style:
                 mentionStyle ??
-                TextStyle(color: Colors.blue, fontWeight: FontWeight.w600),
+                const TextStyle(color: Colors.blue, fontWeight: FontWeight.w600),
             recognizer:
                 TapGestureRecognizer()
                   ..onTap = () {

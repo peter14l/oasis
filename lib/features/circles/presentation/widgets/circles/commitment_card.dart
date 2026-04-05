@@ -209,7 +209,7 @@ class _CommitmentCardState extends State<CommitmentCard>
                           Row(
                             children: [
                               _IntentChip(
-                                label: "👊",
+                                label: '👊',
                                 isSelected: intent == MemberIntent.inTrying,
                                 onTap:
                                     () => widget.onSetIntent(
@@ -219,7 +219,7 @@ class _CommitmentCardState extends State<CommitmentCard>
                               ),
                               const SizedBox(width: 8),
                               _IntentChip(
-                                label: "Skip",
+                                label: 'Skip',
                                 isSelected: intent == MemberIntent.out,
                                 onTap:
                                     () => widget.onSetIntent(MemberIntent.out),

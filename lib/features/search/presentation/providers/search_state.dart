@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:oasis/features/search/domain/models/search_entity.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
 

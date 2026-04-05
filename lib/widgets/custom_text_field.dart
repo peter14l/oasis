@@ -33,7 +33,7 @@ class CustomTextField extends StatelessWidget {
   final BoxConstraints? suffixIconConstraints;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.focusNode,
     required this.hint,
@@ -62,7 +62,7 @@ class CustomTextField extends StatelessWidget {
     this.contentPadding,
     this.prefixIconConstraints,
     this.suffixIconConstraints,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

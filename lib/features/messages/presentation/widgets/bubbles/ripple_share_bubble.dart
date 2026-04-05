@@ -25,7 +25,7 @@ class RippleShareBubble extends StatelessWidget {
     final caption = shareData?['caption'] ?? message.content;
     final mediaUrl = message.mediaUrl ?? shareData?['thumbnail_url'];
 
-    Widget card = Container(
+    final Widget card = Container(
       constraints: const BoxConstraints(maxWidth: 280),
       decoration: BoxDecoration(
         color:

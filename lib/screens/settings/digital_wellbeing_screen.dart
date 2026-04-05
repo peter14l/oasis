@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/providers/user_settings_provider.dart';
@@ -15,68 +14,69 @@ class _DigitalWellbeingScreenState extends State<DigitalWellbeingScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final userSettings = context.watch<UserSettingsProvider>();
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     final content = ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          _buildUsageCard(theme),
-          const SizedBox(height: 32),
-          
-          Text(
-            'Usage Limits',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+      padding: const EdgeInsets.all(24),
+      children: [
+        _buildUsageCard(theme),
+        const SizedBox(height: 32),
+
+        Text(
+          'Usage Limits',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(height: 16),
-          
-          _buildWellbeingTile(
-            context,
-            icon: FluentIcons.timer_24_regular,
-            title: 'Daily Limit',
-            subtitle: userSettings.dailyLimitMinutes > 0 
-                ? '${userSettings.dailyLimitMinutes} minutes' 
-                : 'Not set',
-            trailing: Switch(
-              value: userSettings.dailyLimitMinutes > 0,
-              onChanged: (value) => _showLimitPicker(context, userSettings),
-            ),
+        ),
+        const SizedBox(height: 16),
+
+        _buildWellbeingTile(
+          context,
+          icon: FluentIcons.timer_24_regular,
+          title: 'Daily Limit',
+          subtitle:
+              userSettings.dailyLimitMinutes > 0
+                  ? '${userSettings.dailyLimitMinutes} minutes'
+                  : 'Not set',
+          trailing: Switch(
+            value: userSettings.dailyLimitMinutes > 0,
+            onChanged: (value) => _showLimitPicker(context, userSettings),
           ),
-          
-          _buildWellbeingTile(
-            context,
-            icon: FluentIcons.sleep_24_regular,
-            title: 'Wind Down',
-            subtitle: 'Remind me to check on my Circles before bed',
-            trailing: Switch(
-              value: userSettings.windDownEnabled,
-              onChanged: (value) => userSettings.setWindDownEnabled(value),
-            ),
+        ),
+
+        _buildWellbeingTile(
+          context,
+          icon: FluentIcons.sleep_24_regular,
+          title: 'Wind Down',
+          subtitle: 'Remind me to check on my Circles before bed',
+          trailing: Switch(
+            value: userSettings.windDownEnabled,
+            onChanged: (value) => userSettings.setWindDownEnabled(value),
           ),
-          
-          const SizedBox(height: 32),
-          Text(
-            'Positive Habits',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
+
+        const SizedBox(height: 32),
+        Text(
+          'Positive Habits',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(height: 16),
-          
-          _buildWellbeingTile(
-            context,
-            icon: FluentIcons.approvals_app_24_regular,
-            title: 'Circle Reminders',
-            subtitle: 'Gentle nudges to stay consistent with your friends',
-            trailing: Switch(
-              value: true,
-              onChanged: (value) {},
-            ),
-          ),
-          
-          const SizedBox(height: 40),
-          _buildQuoteCard(theme),
-        ],
-      );
+        ),
+        const SizedBox(height: 16),
+
+        _buildWellbeingTile(
+          context,
+          icon: FluentIcons.approvals_app_24_regular,
+          title: 'Circle Reminders',
+          subtitle: 'Gentle nudges to stay consistent with your friends',
+          trailing: Switch(value: true, onChanged: (value) {}),
+        ),
+
+        const SizedBox(height: 40),
+        _buildQuoteCard(theme),
+      ],
+    );
 
     if (isDesktop) return Material(color: Colors.transparent, child: content);
 
@@ -103,12 +103,20 @@ class _DigitalWellbeingScreenState extends State<DigitalWellbeingScreen> {
         children: [
           const Text(
             'TODAY\'S USAGE',
-            style: TextStyle(color: Colors.white54, letterSpacing: 2, fontSize: 12),
+            style: TextStyle(
+              color: Colors.white54,
+              letterSpacing: 2,
+              fontSize: 12,
+            ),
           ),
           const SizedBox(height: 12),
           const Text(
             '1h 24m',
-            style: TextStyle(color: Colors.white, fontSize: 48, fontWeight: FontWeight.w800),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 48,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 12),
           LinearProgressIndicator(
@@ -144,7 +152,10 @@ class _DigitalWellbeingScreenState extends State<DigitalWellbeingScreen> {
         child: Icon(icon, color: Colors.blueAccent),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+      subtitle: Text(
+        subtitle,
+        style: const TextStyle(color: Colors.white54, fontSize: 12),
+      ),
       trailing: trailing,
     );
   }
@@ -154,7 +165,10 @@ class _DigitalWellbeingScreenState extends State<DigitalWellbeingScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.blueAccent.withValues(alpha: 0.2), Colors.transparent],
+          colors: [
+            Colors.blueAccent.withValues(alpha: 0.2),
+            Colors.transparent,
+          ],
           begin: Alignment.topLeft,
         ),
         borderRadius: BorderRadius.circular(24),
@@ -166,7 +180,10 @@ class _DigitalWellbeingScreenState extends State<DigitalWellbeingScreen> {
           Text(
             '"Oasis is designed to connect you, not consume you. Take a break, breathe, and come back when you\'re ready."',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white70, fontStyle: FontStyle.italic),
+            style: TextStyle(
+              color: Colors.white70,
+              fontStyle: FontStyle.italic,
+            ),
           ),
         ],
       ),
@@ -177,36 +194,56 @@ class _DigitalWellbeingScreenState extends State<DigitalWellbeingScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Color(0xFF1A1F26),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Set Daily Limit', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 24),
-            ListTile(
-              title: const Text('15 Minutes'),
-              onTap: () { provider.setDailyLimit(15); Navigator.pop(context); },
+      builder:
+          (context) => Container(
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: Color(0xFF1A1F26),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
             ),
-            ListTile(
-              title: const Text('30 Minutes'),
-              onTap: () { provider.setDailyLimit(30); Navigator.pop(context); },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Set Daily Limit',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ListTile(
+                  title: const Text('15 Minutes'),
+                  onTap: () {
+                    provider.setDailyLimit(15);
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  title: const Text('30 Minutes'),
+                  onTap: () {
+                    provider.setDailyLimit(30);
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  title: const Text('1 Hour'),
+                  onTap: () {
+                    provider.setDailyLimit(60);
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  title: const Text('No Limit'),
+                  onTap: () {
+                    provider.setDailyLimit(0);
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
             ),
-            ListTile(
-              title: const Text('1 Hour'),
-              onTap: () { provider.setDailyLimit(60); Navigator.pop(context); },
-            ),
-            ListTile(
-              title: const Text('No Limit'),
-              onTap: () { provider.setDailyLimit(0); Navigator.pop(context); },
-            ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 }

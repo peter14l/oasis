@@ -39,7 +39,7 @@ class _SpacesScreenState extends State<SpacesScreen>
     final disableTransparency = themeProvider.isM3ETransparencyDisabled;
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
-    Widget spacesContent = Column(
+    final Widget spacesContent = Column(
       children: [
         // ── Custom top tab bar ───────────────────────────────────────
         SafeArea(

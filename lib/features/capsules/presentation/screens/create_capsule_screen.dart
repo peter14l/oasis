@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/services/time_capsule_service.dart';
-import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/widgets/share_sheet.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/screens/oasis_pro_screen.dart';

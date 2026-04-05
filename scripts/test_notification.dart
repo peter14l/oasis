@@ -10,11 +10,11 @@ void main() async {
   }
 
   final List<String> testAppIds = [
-    "com.oasis.v2_fxkeb4dgdm144!oasisv2", // Official
-    "Chrome",
-    "MSEdge",
-    "com.squirrel.Discord.Discord",
-    "Microsoft.VisualStudioCode",
+    'com.oasis.v2_fxkeb4dgdm144!oasisv2', // Official
+    'Chrome',
+    'MSEdge',
+    'com.squirrel.Discord.Discord',
+    'Microsoft.VisualStudioCode',
   ];
 
   for (final appId in testAppIds) {

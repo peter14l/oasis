@@ -702,7 +702,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           vertical: isM3E ? 8 : 8,
         ),
         leading: Container(
-          padding: isM3E ? EdgeInsets.all(2) : EdgeInsets.zero,
+          padding: isM3E ? const EdgeInsets.all(2) : EdgeInsets.zero,
           decoration:
               isM3E && !notification.isRead
                   ? BoxDecoration(

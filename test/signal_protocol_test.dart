@@ -8,11 +8,11 @@ void main() {
     test('Simulate Alice to Bob encrypted message exchange', () async {
       // 1. Setup Alice and Bob stores
       final aliceStore = InMemorySignalProtocolStore(
-        await generateIdentityKeyPair(),
+        generateIdentityKeyPair(),
         11111,
       );
       final bobStore = InMemorySignalProtocolStore(
-        await generateIdentityKeyPair(),
+        generateIdentityKeyPair(),
         22222,
       );
 
@@ -39,7 +39,7 @@ void main() {
       );
 
       // 4. Alice fetches Bob's bundle and builds a session
-      final bobAddress = SignalProtocolAddress('bob', 1);
+      const bobAddress = SignalProtocolAddress('bob', 1);
       final sessionBuilder = SessionBuilder(aliceStore, aliceStore, aliceStore, aliceStore, bobAddress);
       
       // Process Bob's prekey bundle
@@ -47,7 +47,7 @@ void main() {
 
       // 5. Alice encrypts a message for Bob
       final sessionCipherAlice = SessionCipher(aliceStore, aliceStore, aliceStore, aliceStore, bobAddress);
-      final plaintext = 'Hello Bob, this is a secret message!';
+      const plaintext = 'Hello Bob, this is a secret message!';
       final ciphertextMessage = await sessionCipherAlice.encrypt(
         Uint8List.fromList(utf8.encode(plaintext)),
       );
@@ -56,7 +56,7 @@ void main() {
       expect(ciphertextMessage.getType(), CiphertextMessage.prekeyType);
 
       // 6. Bob receives the message and decrypts it
-      final aliceAddress = SignalProtocolAddress('alice', 1);
+      const aliceAddress = SignalProtocolAddress('alice', 1);
       final sessionCipherBob = SessionCipher(bobStore, bobStore, bobStore, bobStore, aliceAddress);
 
       // Bob decodes it as a PreKeySignalMessage
@@ -67,7 +67,7 @@ void main() {
       expect(decryptedText, plaintext);
 
       // 7. Bob replies to Alice
-      final bobReply = 'Hello Alice, message received!';
+      const bobReply = 'Hello Alice, message received!';
       final bobCiphertext = await sessionCipherBob.encrypt(
         Uint8List.fromList(utf8.encode(bobReply)),
       );

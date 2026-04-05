@@ -2,7 +2,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/services/wellness_service.dart';
-import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/core/utils/haptic_utils.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
@@ -16,7 +15,7 @@ class ScreenTimeScreen extends StatefulWidget {
 
 class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
   DateTime _selectedDate = DateTime.now();
-  int _touchedIndex = -1;
+  final int _touchedIndex = -1;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +27,6 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
     // Data for selected day
     final usageData = screenTimeService.getDailyUsage(_selectedDate);
     final totalMinutes = usageData['totalMinutes'] as int;
-    final hourlyBreakdown = usageData['hourlyBreakdown'] as List<int>;
 
     // Weekly data
     final weeklyData = screenTimeService.getWeeklyData();
@@ -36,7 +34,7 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
 
     // Category data
     final categoryUsage = screenTimeService.getCategoryUsage(totalMinutes);
-    
+
     // Wellness data
     final dailyGoal = wellnessService.dailyGoalMinutes;
     final isUnderGoal = totalMinutes <= dailyGoal;
@@ -45,146 +43,164 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     final content = Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colorScheme.primary.withValues(alpha: 0.05),
-              colorScheme.surface,
-              colorScheme.tertiary.withValues(alpha: 0.05),
-            ],
-          ),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colorScheme.primary.withValues(alpha: 0.05),
+            colorScheme.surface,
+            colorScheme.tertiary.withValues(alpha: 0.05),
+          ],
         ),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(
-            top: isDesktop ? 20 : MediaQuery.of(context).padding.top + 80,
-            left: isDesktop ? 40 : 16,
-            right: isDesktop ? 40 : 16,
-            bottom: 32,
-          ),
-          child: Center(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 900),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Hero Usage Card
-                  _buildUsageHero(theme, totalMinutes, dailyGoal, progressToGoal),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Quick Stats Row
+      ),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          top: isDesktop ? 20 : MediaQuery.of(context).padding.top + 80,
+          left: isDesktop ? 40 : 16,
+          right: isDesktop ? 40 : 16,
+          bottom: 32,
+        ),
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Hero Usage Card
+                _buildUsageHero(theme, totalMinutes, dailyGoal, progressToGoal),
+
+                const SizedBox(height: 24),
+
+                // Quick Stats Row
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        context,
+                        'Daily Average',
+                        _formatDuration(weeklyAverage),
+                        Icons.history_toggle_off,
+                        colorScheme.secondary,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildStatCard(
+                        context,
+                        'Goal Status',
+                        isUnderGoal ? 'On Track' : 'Over Limit',
+                        isUnderGoal
+                            ? Icons.check_circle_outline
+                            : Icons.warning_amber_rounded,
+                        isUnderGoal ? Colors.green : Colors.orange,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 32),
+
+                // Weekly Activity Chart
+                _buildChartSection(
+                  context,
+                  'Weekly Activity',
+                  _buildWeeklyBarChart(context, weeklyData, dailyGoal),
+                ),
+
+                const SizedBox(height: 32),
+
+                if (isDesktop)
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: _buildStatCard(
-                          context,
-                          'Daily Average',
-                          _formatDuration(weeklyAverage),
-                          Icons.history_toggle_off,
-                          colorScheme.secondary,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatCard(
-                          context,
-                          'Goal Status',
-                          isUnderGoal ? 'On Track' : 'Over Limit',
-                          isUnderGoal ? Icons.check_circle_outline : Icons.warning_amber_rounded,
-                          isUnderGoal ? Colors.green : Colors.orange,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Weekly Activity Chart
-                  _buildChartSection(context, 'Weekly Activity', _buildWeeklyBarChart(context, weeklyData, dailyGoal)),
-
-                  const SizedBox(height: 32),
-
-                  if (isDesktop) 
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 1,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Activity Breakdown',
-                                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                        flex: 1,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Activity Breakdown',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
-                              const SizedBox(height: 16),
-                              ...categoryUsage.map((category) => _buildCategoryItem(
+                            ),
+                            const SizedBox(height: 16),
+                            ...categoryUsage.map(
+                              (category) => _buildCategoryItem(
                                 context,
                                 category['name'],
                                 category['minutes'],
                                 category['icon'] as IconData,
                                 Color(category['color']),
                                 totalMinutes,
-                              )),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 40),
-                        Expanded(
-                          flex: 1,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Mindful Tools',
-                                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                               ),
-                              const SizedBox(height: 16),
-                              _buildMindfulTools(theme, wellnessService),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    )
-                  else ...[
-                    // Category Breakdown
-                    Text(
-                      'Activity Breakdown',
-                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 40),
+                      Expanded(
+                        flex: 1,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Mindful Tools',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildMindfulTools(theme, wellnessService),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
+                else ...[
+                  // Category Breakdown
+                  Text(
+                    'Activity Breakdown',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 16),
-                    ...categoryUsage.map((category) => _buildCategoryItem(
+                  ),
+                  const SizedBox(height: 16),
+                  ...categoryUsage.map(
+                    (category) => _buildCategoryItem(
                       context,
                       category['name'],
                       category['minutes'],
                       category['icon'] as IconData,
                       Color(category['color']),
                       totalMinutes,
-                    )),
-
-                    const SizedBox(height: 32),
-                    
-                    // Wellness Features
-                    Text(
-                      'Mindful Tools',
-                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 16),
-                    _buildMindfulTools(theme, wellnessService),
-                  ],
+                  ),
 
                   const SizedBox(height: 32),
-                  
-                  // Focus Session CTA
-                  _buildFocusCTA(colorScheme),
+
+                  // Wellness Features
+                  Text(
+                    'Mindful Tools',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildMindfulTools(theme, wellnessService),
                 ],
-              ),
+
+                const SizedBox(height: 32),
+
+                // Focus Session CTA
+                _buildFocusCTA(colorScheme),
+              ],
             ),
           ),
         ),
-      );
+      ),
+    );
 
     if (isDesktop) {
       return Material(color: Colors.transparent, child: content);
@@ -231,7 +247,9 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+            ),
           ),
           child: Column(
             children: [
@@ -248,11 +266,16 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
-                    wellnessService.focusModeEnabled ? Icons.filter_center_focus : Icons.filter_center_focus_outlined,
+                    wellnessService.focusModeEnabled
+                        ? Icons.filter_center_focus
+                        : Icons.filter_center_focus_outlined,
                     color: theme.colorScheme.primary,
                   ),
                 ),
-                title: const Text('Focus Mode', style: TextStyle(fontWeight: FontWeight.bold)),
+                title: const Text(
+                  'Focus Mode',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 subtitle: const Text('Block Home/Search and earn 50 XP'),
               ),
               if (wellnessService.focusModeEnabled) ...[
@@ -275,7 +298,9 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
                           ),
                           Text(
                             'Early stop: -35 XP',
-                            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.error,
+                            ),
                           ),
                         ],
                       ),
@@ -305,7 +330,10 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.7)],
+          colors: [
+            colorScheme.primary,
+            colorScheme.primary.withValues(alpha: 0.7),
+          ],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
@@ -351,21 +379,31 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
-            child: const Text('Start Now', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text(
+              'Start Now',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildUsageHero(ThemeData theme, int totalMinutes, int dailyGoal, double progress) {
+  Widget _buildUsageHero(
+    ThemeData theme,
+    int totalMinutes,
+    int dailyGoal,
+    double progress,
+  ) {
     final colorScheme = theme.colorScheme;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -449,14 +487,22 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
     );
   }
 
-  Widget _buildStatCard(BuildContext context, String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,7 +534,9 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
       children: [
         Text(
           title,
-          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 16),
         Container(
@@ -497,7 +545,9 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+            ),
           ),
           child: chart,
         ),
@@ -505,7 +555,11 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
     );
   }
 
-  Widget _buildWeeklyBarChart(BuildContext context, List<Map<String, dynamic>> data, int goal) {
+  Widget _buildWeeklyBarChart(
+    BuildContext context,
+    List<Map<String, dynamic>> data,
+    int goal,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
     return BarChart(
       BarChartData(
@@ -515,7 +569,10 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               return BarTooltipItem(
                 '${data[group.x.toInt()]['day']}\n${_formatDuration(rod.toY.toInt())}',
-                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               );
             },
           ),
@@ -542,9 +599,15 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
               },
             ),
           ),
-          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          leftTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
         ),
         gridData: const FlGridData(show: false),
         borderData: FlBorderData(show: false),
@@ -556,7 +619,12 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
             barRods: [
               BarChartRodData(
                 toY: minutes.toDouble(),
-                color: minutes > goal ? Colors.orange : (isToday ? colorScheme.primary : colorScheme.primary.withValues(alpha: 0.4)),
+                color:
+                    minutes > goal
+                        ? Colors.orange
+                        : (isToday
+                            ? colorScheme.primary
+                            : colorScheme.primary.withValues(alpha: 0.4)),
                 width: 18,
                 borderRadius: BorderRadius.circular(6),
                 backDrawRodData: BackgroundBarChartRodData(
@@ -589,10 +657,17 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
     );
   }
 
-  Widget _buildCategoryItem(BuildContext context, String name, int minutes, IconData icon, Color color, int total) {
+  Widget _buildCategoryItem(
+    BuildContext context,
+    String name,
+    int minutes,
+    IconData icon,
+    Color color,
+    int total,
+  ) {
     final theme = Theme.of(context);
     final percentage = total > 0 ? (minutes / total).clamp(0.0, 1.0) : 0.0;
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Container(
@@ -600,7 +675,9 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3)),
+          border: Border.all(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+          ),
         ),
         child: Row(
           children: [
@@ -620,8 +697,14 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                      Text(_formatDuration(minutes), style: theme.textTheme.bodySmall),
+                      Text(
+                        name,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        _formatDuration(minutes),
+                        style: theme.textTheme.bodySmall,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -629,7 +712,8 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
                       value: percentage,
-                      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                      backgroundColor:
+                          theme.colorScheme.surfaceContainerHighest,
                       valueColor: AlwaysStoppedAnimation<Color>(color),
                       minHeight: 4,
                     ),
@@ -643,13 +727,22 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
     );
   }
 
-  Widget _buildFeatureTile(BuildContext context, String title, String subtitle, IconData icon, bool value, Function(bool) onChanged) {
+  Widget _buildFeatureTile(
+    BuildContext context,
+    String title,
+    String subtitle,
+    IconData icon,
+    bool value,
+    Function(bool) onChanged,
+  ) {
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       child: SwitchListTile(
         value: value,
@@ -675,7 +768,7 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
   String _formatSeconds(int totalSeconds) {
     final m = totalSeconds ~/ 60;
     final s = totalSeconds % 60;
-    return '${m}:${s.toString().padLeft(2, '0')}';
+    return '$m:${s.toString().padLeft(2, '0')}';
   }
 
   String _formatDuration(int totalMinutes) {

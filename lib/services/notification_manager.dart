@@ -1,6 +1,5 @@
 import 'package:universal_io/io.dart';
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -44,9 +43,9 @@ class NotificationManager {
         if (Platform.isWindows) {
           // Initialize WinToast for Windows
           await WinToast.instance().initialize(
-            appName: "Oasis",
-            productName: "Oasis",
-            companyName: "Oasis",
+            appName: 'Oasis',
+            productName: 'Oasis',
+            companyName: 'Oasis',
           );
         } else if (Platform.isMacOS) {
           await _initLocalNotifications();
@@ -341,7 +340,7 @@ class NotificationManager {
     });
     
     // Check if app was opened from terminated state
-    RemoteMessage? initialMessage = await messaging.getInitialMessage();
+    final RemoteMessage? initialMessage = await messaging.getInitialMessage();
     if (initialMessage != null) {
       _handleNotificationTap(jsonEncode(initialMessage.data));
     }

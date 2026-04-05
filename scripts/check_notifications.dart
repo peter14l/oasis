@@ -5,7 +5,7 @@ void main() async {
 
   if (!Platform.isWindows) return;
 
-  final script = r'''
+  const script = r'''
 $path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications"
 $name = "ToastEnabled"
 try {

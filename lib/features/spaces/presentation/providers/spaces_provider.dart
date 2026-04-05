@@ -70,11 +70,6 @@ class SpacesProvider extends ChangeNotifier {
 
   /// Navigate to a tab by route
   void navigateToRoute(String route) {
-    final tab = _state.appShell.tabs.firstWhere(
-      (t) => t.route == route,
-      orElse: () => _state.appShell.tabs.first,
-    );
-
     final updatedTabs =
         _state.appShell.tabs
             .map((t) => t.copyWith(isSelected: t.route == route))

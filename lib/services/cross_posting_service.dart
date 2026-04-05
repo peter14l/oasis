@@ -91,8 +91,9 @@ class CrossPostingService {
             // Free users fall back to generic native share
             return await _shareGeneric(shareText, imageUrls);
           }
-          if (platformId == 'twitter')
+          if (platformId == 'twitter') {
             return await _shareToTwitter(shareText, imageUrls);
+          }
           return await _shareToLinkedIn(shareText, postUrl);
         case 'facebook':
           return await _shareToFacebook(shareText, postUrl);

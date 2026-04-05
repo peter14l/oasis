@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/models/story_model.dart';
-import 'package:oasis/models/message.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/services/stories_service.dart';
 import 'package:oasis/services/messaging_service.dart';
 import 'package:oasis/services/auth_service.dart';
@@ -12,7 +12,6 @@ import 'package:oasis/core/utils/haptic_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:async';
-import 'dart:ui';
 
 class StoryViewScreen extends StatefulWidget {
   final String initialStoryId;

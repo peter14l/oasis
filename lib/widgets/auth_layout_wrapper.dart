@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:oasis/widgets/mesh_gradient_background.dart';
 
 class AuthLayoutWrapper extends StatelessWidget {
   final Widget child;
@@ -19,7 +18,7 @@ class AuthLayoutWrapper extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     
     // The content constrained
-    Widget contentContainer = ConstrainedBox(
+    final Widget contentContainer = ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 400),
       child: wrapInScroll ? SingleChildScrollView(child: child) : child,
     );

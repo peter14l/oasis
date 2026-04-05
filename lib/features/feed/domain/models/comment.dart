@@ -1,91 +1,37 @@
-class Comment {
-  final String id;
-  final String postId;
-  final String userId;
-  final String? parentCommentId;
-  final String username;
-  final String userAvatar;
-  final String content;
-  final int likes;
-  final int repliesCount;
-  final bool isLiked;
-  final DateTime timestamp;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  Comment({
-    required this.id,
-    required this.postId,
-    required this.userId,
-    this.parentCommentId,
-    required this.username,
-    required this.userAvatar,
-    required this.content,
-    required this.likes,
-    required this.repliesCount,
-    required this.isLiked,
-    required this.timestamp,
-  });
+part 'comment.freezed.dart';
+part 'comment.g.dart';
 
-  factory Comment.fromJson(Map<String, dynamic> json) {
-    return Comment(
-      id: json['id'] as String,
-      postId: json['post_id'] as String,
-      userId: json['user_id'] as String,
-      parentCommentId: json['parent_comment_id'] as String?,
-      username: json['username'] as String? ?? '',
-      userAvatar:
-          json['user_avatar'] as String? ?? json['avatar_url'] as String? ?? '',
-      content: json['content'] as String,
-      likes: json['likes_count'] as int? ?? 0,
-      repliesCount: json['replies_count'] as int? ?? 0,
-      isLiked: json['is_liked'] as bool? ?? false,
-      timestamp:
-          json['created_at'] != null
-              ? DateTime.parse(json['created_at'] as String).toUtc()
-              : DateTime.now().toUtc(),
-    );
-  }
+@freezed
+abstract class Comment with _$Comment {
+  const factory Comment({
+    required String id,
+    @JsonKey(name: 'post_id') required String postId,
+    @JsonKey(name: 'user_id') required String userId,
+    @JsonKey(name: 'parent_comment_id') String? parentCommentId,
+    required String username,
+    @JsonKey(name: 'user_avatar') required String userAvatar,
+    required String content,
+    @Default(0) @JsonKey(name: 'likes_count') int likes,
+    @Default(0) @JsonKey(name: 'replies_count') int repliesCount,
+    @Default(false) @JsonKey(name: 'is_liked') bool isLiked,
+    @JsonKey(name: 'created_at') required DateTime timestamp,
+  }) = _Comment;
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'post_id': postId,
-      'user_id': userId,
-      'parent_comment_id': parentCommentId,
-      'username': username,
-      'user_avatar': userAvatar,
-      'content': content,
-      'likes_count': likes,
-      'replies_count': repliesCount,
-      'is_liked': isLiked,
-      'created_at': timestamp.toIso8601String(),
-    };
-  }
+  const Comment._();
 
-  Comment copyWith({
-    String? id,
-    String? postId,
-    String? userId,
-    String? parentCommentId,
-    String? username,
-    String? userAvatar,
-    String? content,
-    int? likes,
-    int? repliesCount,
-    bool? isLiked,
-    DateTime? timestamp,
-  }) {
-    return Comment(
-      id: id ?? this.id,
-      postId: postId ?? this.postId,
-      userId: userId ?? this.userId,
-      parentCommentId: parentCommentId ?? this.parentCommentId,
-      username: username ?? this.username,
-      userAvatar: userAvatar ?? this.userAvatar,
-      content: content ?? this.content,
-      likes: likes ?? this.likes,
-      repliesCount: repliesCount ?? this.repliesCount,
-      isLiked: isLiked ?? this.isLiked,
-      timestamp: timestamp ?? this.timestamp,
-    );
+  factory Comment.fromJson(Map<String, dynamic> json) =>
+      _$CommentFromJson(_normalizeCommentJson(json));
+
+  static Map<String, dynamic> _normalizeCommentJson(Map<String, dynamic> json) {
+    final Map<String, dynamic> normalized = Map.from(json);
+    normalized['user_avatar'] = json['user_avatar'] ?? json['avatar_url'] ?? '';
+    normalized['likes_count'] = json['likes_count'] ?? json['likes'] ?? 0;
+    normalized['replies_count'] = json['replies_count'] ?? json['replies'] ?? 0;
+    normalized['is_liked'] = json['is_liked'] ?? false;
+    normalized['created_at'] =
+        json['created_at'] ?? DateTime.now().toIso8601String();
+    return normalized;
   }
 }

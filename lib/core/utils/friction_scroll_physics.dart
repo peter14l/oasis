@@ -75,7 +75,7 @@ class FrictionScrollPhysics extends ScrollPhysics {
     double velocity,
   ) {
     // Clamp velocity to prevent multi-page flings
-    final double maxVelocity = 800.0; // Adjust for desired friction
+    const double maxVelocity = 800.0; // Adjust for desired friction
     final clampedVelocity = velocity.clamp(-maxVelocity, maxVelocity);
 
     // Use parent's simulation with clamped velocity

@@ -68,7 +68,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             // Send verification email using Supabase
             await Supabase.instance.client.auth.resend(
               type: OtpType.signup,
-              email: user.email!,
+              email: user.email,
             );
 
             // Show verification dialog

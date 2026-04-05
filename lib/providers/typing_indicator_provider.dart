@@ -121,7 +121,9 @@ class TypingIndicatorProvider with ChangeNotifier {
       await unsubscribeFromTypingStatus(conversationId);
     }
     _typingStatus.clear();
-    _debounceTimers.values.forEach((timer) => timer.cancel());
+    for (var timer in _debounceTimers.values) {
+      timer.cancel();
+    }
     _debounceTimers.clear();
     notifyListeners();
   }

@@ -79,7 +79,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         try {
           await Supabase.instance.client.auth.resend(
             type: OtpType.signup,
-            email: user.email!,
+            email: user.email,
           );
 
           if (mounted) {

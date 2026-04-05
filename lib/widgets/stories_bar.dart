@@ -293,11 +293,11 @@ class _StoriesBarState extends State<StoriesBar> {
         separatorBuilder: (context, index) => const SizedBox(width: 16),
         itemBuilder: (context, index) {
           if (widget.isLoading) {
-            return Column(
+            return const Column(
               children: [
-                const SkeletonContainer.circular(size: 70),
-                const SizedBox(height: 4),
-                const SkeletonContainer.rounded(width: 50, height: 10),
+                SkeletonContainer.circular(size: 70),
+                SizedBox(height: 4),
+                SkeletonContainer.rounded(width: 50, height: 10),
               ],
             );
           }

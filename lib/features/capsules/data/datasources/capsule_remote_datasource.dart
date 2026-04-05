@@ -23,7 +23,7 @@ class CapsuleRemoteDatasource {
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
 
-      if (response == null || (response as List).isEmpty) return [];
+      if ((response as List).isEmpty) return [];
 
       // Fetch profile for the current user
       final profileResponse = await _supabase
@@ -103,7 +103,7 @@ class CapsuleRemoteDatasource {
             .eq('user_id', userId)
             .eq('is_locked', true);
 
-        if (activeCapsulesResponse != null && (activeCapsulesResponse as List).length >= 2) {
+        if ((activeCapsulesResponse as List).length >= 2) {
           throw Exception(
             'Free tier is limited to 2 active time capsules. Upgrade to Oasis Pro for unlimited capsules.',
           );

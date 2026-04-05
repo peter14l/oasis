@@ -12,10 +12,10 @@ class StreakBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [
-            const Color(0xFFFF6B35),
-            const Color(0xFFFF9F1C),
+            Color(0xFFFF6B35),
+            Color(0xFFFF9F1C),
           ],
         ),
         boxShadow: [

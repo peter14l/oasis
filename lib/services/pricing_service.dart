@@ -1,12 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 
-enum Currency {
-  USD,
-  INR,
-  EUR,
-  GBP,
-}
+enum Currency { usd, inr, eur, gbp }
 
 class PricingPlan {
   final String name;
@@ -24,27 +19,27 @@ class PricingPlan {
 
 class PricingService {
   static final Map<Currency, Map<String, dynamic>> _pricingData = {
-    Currency.USD: {'symbol': '\$', 'plus': 4.99, 'pro': 9.99},
-    Currency.INR: {'symbol': '₹', 'plus': 149.0, 'pro': 299.0},
-    Currency.EUR: {'symbol': '€', 'plus': 4.99, 'pro': 9.99},
-    Currency.GBP: {'symbol': '£', 'plus': 4.49, 'pro': 8.99},
+    Currency.usd: {'symbol': '\$', 'plus': 4.99, 'pro': 9.99},
+    Currency.inr: {'symbol': '₹', 'plus': 149.0, 'pro': 299.0},
+    Currency.eur: {'symbol': '€', 'plus': 4.99, 'pro': 9.99},
+    Currency.gbp: {'symbol': '£', 'plus': 4.49, 'pro': 8.99},
   };
 
   static Currency detectCurrency() {
     final locale = PlatformDispatcher.instance.locale.countryCode;
-    
+
     switch (locale) {
       case 'IN':
-        return Currency.INR;
+        return Currency.inr;
       case 'GB':
-        return Currency.GBP;
+        return Currency.gbp;
       case 'DE':
       case 'FR':
       case 'IT':
       case 'ES':
-        return Currency.EUR;
+        return Currency.eur;
       default:
-        return Currency.USD;
+        return Currency.usd;
     }
   }
 

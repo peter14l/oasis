@@ -103,7 +103,7 @@ class CapsuleFeedItem extends StatelessWidget {
                           // Or just the real text blurred (privacy risk if blur isn't perfect, but okay for MVP)
                           // Better: Show "Locked Content" text if locked to be safe.
                           isLocked 
-                            ? "This is a secret message that is quite long and hidden..." 
+                            ? 'This is a secret message that is quite long and hidden...' 
                             : capsule.content,
                           style: theme.textTheme.bodyLarge,
                         ),

@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
 
 /// Immutable UI state for the feed feature.

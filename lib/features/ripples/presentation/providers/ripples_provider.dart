@@ -16,7 +16,6 @@ class RipplesProvider extends ChangeNotifier {
   static const String _remainingDurationKey = 'ripples_remaining_duration';
   static const String _lastActiveKey = 'ripples_last_active';
 
-  final RippleRepository _repository;
   final SupabaseClient _supabase;
 
   List<Map<String, dynamic>> _ripples = [];
@@ -36,9 +35,8 @@ class RipplesProvider extends ChangeNotifier {
   final StreamController<void> _sessionEndController =
       StreamController<void>.broadcast();
 
-  RipplesProvider({RippleRepository? repository, SupabaseClient? supabase})
-    : _repository = repository ?? RippleRepositoryImpl(),
-      _supabase = supabase ?? SupabaseService().client {
+  RipplesProvider({SupabaseClient? supabase})
+    : _supabase = supabase ?? SupabaseService().client {
     _startLockoutTimer();
   }
 
@@ -158,7 +156,7 @@ class RipplesProvider extends ChangeNotifier {
       }
     }
 
-    final baseLockout = const Duration(minutes: 30);
+    const baseLockout = Duration(minutes: 30);
     final actualLockoutMinutes =
         (baseLockout.inMinutes * _lockoutMultiplier).round();
 
@@ -280,8 +278,9 @@ class RipplesProvider extends ChangeNotifier {
       _ripples[index]['is_liked'] = false;
       _ripples[index]['likes_count'] =
           (_ripples[index]['likes_count'] ?? 0) - 1;
-      if (_ripples[index]['likes_count'] < 0)
+      if (_ripples[index]['likes_count'] < 0) {
         _ripples[index]['likes_count'] = 0;
+      }
       notifyListeners();
     }
 

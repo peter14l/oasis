@@ -15,15 +15,15 @@ void main() {
   final match = versionRegExp.firstMatch(content);
 
   if (match != null) {
-    String currentVersionName = match.group(1)!;
-    int currentBuildNumber = int.parse(match.group(2)!);
+    final String currentVersionName = match.group(1)!;
+    final int currentBuildNumber = int.parse(match.group(2)!);
     
     // We set base to 4.1.0 as requested, then increment build number
-    String newVersionName = "4.1.0"; 
-    int newBuildNumber = currentBuildNumber + 1;
+    const String newVersionName = '4.1.0'; 
+    final int newBuildNumber = currentBuildNumber + 1;
     
-    String oldVersionLine = 'version: $currentVersionName+$currentBuildNumber';
-    String newVersionLine = 'version: $newVersionName+$newBuildNumber';
+    final String oldVersionLine = 'version: $currentVersionName+$currentBuildNumber';
+    final String newVersionLine = 'version: $newVersionName+$newBuildNumber';
     
     content = content.replaceFirst(oldVersionLine, newVersionLine);
     print('Updated pubspec version: $newVersionLine');
@@ -32,10 +32,10 @@ void main() {
     // MSIX version usually follows x.y.z.0 format
     final msixRegExp = RegExp(r'msix_version: (\d+\.\d+\.\d+)\.0');
     if (msixRegExp.hasMatch(content)) {
-      String oldMsixLine = 'msix_version: $currentVersionName.0';
+      final String oldMsixLine = 'msix_version: $currentVersionName.0';
       // For MSIX, we can use the same version name. 
       // Note: MSIX requires 4 segments (e.g., 4.1.0.0)
-      String newMsixLine = 'msix_version: $newVersionName.0';
+      const String newMsixLine = 'msix_version: $newVersionName.0';
       content = content.replaceFirst(msixRegExp, newMsixLine);
       print('Updated MSIX version: $newMsixLine');
     }

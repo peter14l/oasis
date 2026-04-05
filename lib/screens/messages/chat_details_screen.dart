@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:universal_io/io.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -6,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:oasis/models/message.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/services/messaging_service.dart';
 import 'package:oasis/services/vault_service.dart';
 import 'package:oasis/services/auth_service.dart';
@@ -14,7 +13,6 @@ import 'package:oasis/services/encryption_service.dart';
 import 'package:oasis/services/signal/signal_service.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:go_router/go_router.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
@@ -25,7 +23,8 @@ class ChatDetailsScreen extends StatefulWidget {
   final String otherUserId;
   final int whisperMode;
   final String? currentBackground;
-  final Function(double opacity, double brightness)? onBackgroundSettingsChanged;
+  final Function(double opacity, double brightness)?
+  onBackgroundSettingsChanged;
 
   const ChatDetailsScreen({
     super.key,
@@ -79,12 +78,15 @@ class VerticalLineThumbShape extends SliderComponentShape {
       height: thumbHeight,
     );
 
-    final paint = Paint()
-      ..color = sliderTheme.thumbColor ?? Colors.white
-      ..style = PaintingStyle.fill;
+    final paint =
+        Paint()
+          ..color = sliderTheme.thumbColor ?? Colors.white
+          ..style = PaintingStyle.fill;
 
     canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, const Radius.circular(2)), paint);
+      RRect.fromRectAndRadius(rect, const Radius.circular(2)),
+      paint,
+    );
   }
 }
 
@@ -147,12 +149,13 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       final userId = _authService.currentUser?.id;
       if (userId == null) return;
 
-      final response = await Supabase.instance.client
-          .from('conversation_participants')
-          .select('is_muted')
-          .eq('conversation_id', widget.conversationId)
-          .eq('user_id', userId)
-          .maybeSingle();
+      final response =
+          await Supabase.instance.client
+              .from('conversation_participants')
+              .select('is_muted')
+              .eq('conversation_id', widget.conversationId)
+              .eq('user_id', userId)
+              .maybeSingle();
 
       if (response != null && mounted) {
         setState(() => _isMuted = response['is_muted'] as bool? ?? false);
@@ -181,7 +184,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(value ? 'Notifications muted' : 'Notifications unmuted'),
+            content: Text(
+              value ? 'Notifications muted' : 'Notifications unmuted',
+            ),
             backgroundColor: value ? Colors.orange : Colors.green,
             behavior: SnackBarBehavior.floating,
           ),
@@ -199,21 +204,33 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   Future<void> _toggleBlock() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(_isBlocked ? 'Unblock ${widget.otherUserName}?' : 'Block ${widget.otherUserName}?'),
-        content: Text(_isBlocked 
-          ? 'They will be able to message you again.' 
-          : 'They will no longer be able to message you or see your posts.'),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true), 
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(_isBlocked ? 'Unblock' : 'Block'),
+      builder:
+          (context) => AlertDialog(
+            title: Text(
+              _isBlocked
+                  ? 'Unblock ${widget.otherUserName}?'
+                  : 'Block ${widget.otherUserName}?',
+            ),
+            content: Text(
+              _isBlocked
+                  ? 'They will be able to message you again.'
+                  : 'They will no longer be able to message you or see your posts.',
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: Text(_isBlocked ? 'Unblock' : 'Block'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
 
     if (confirmed == true) {
@@ -223,7 +240,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         } else {
           await _messagingService.blockUser(widget.otherUserId);
         }
-        
+
         setState(() => _isBlocked = !_isBlocked);
 
         if (mounted) {
@@ -258,7 +275,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       final messages = await _messagingService.getMessages(
         conversationId: widget.conversationId,
       );
-      
+
       final decryptedMessages = <Message>[];
       for (final message in messages) {
         await Future.delayed(Duration.zero);
@@ -282,7 +299,8 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
 
     if (message.signalMessageType != null) {
       try {
-        final isSender = currentUserId != null &&
+        final isSender =
+            currentUserId != null &&
             message.senderId.toLowerCase() == currentUserId.toLowerCase();
 
         if (isSender &&
@@ -319,10 +337,11 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         }
       } catch (e) {
         debugPrint('Signal decryption failed in search: $e');
-        decryptedMessage = decryptedMessage.copyWith(content: '🔒 Message encrypted');
+        decryptedMessage = decryptedMessage.copyWith(
+          content: '🔒 Message encrypted',
+        );
       }
-    } 
-    else if (message.encryptedKeys != null && message.iv != null) {
+    } else if (message.encryptedKeys != null && message.iv != null) {
       try {
         final decrypted = await _encryptionService.decryptMessage(
           message.content,
@@ -348,9 +367,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       return;
     }
 
-    final results = _allMessages.where((m) {
-      return m.content.toLowerCase().contains(query.toLowerCase());
-    }).toList();
+    final results =
+        _allMessages.where((m) {
+          return m.content.toLowerCase().contains(query.toLowerCase());
+        }).toList();
 
     setState(() {
       _searchResults = results;
@@ -363,86 +383,136 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       useRootNavigator: true,
-      builder: (context) => SafeArea(
-        child: StatefulBuilder(
-          builder: (context, setModalState) {
-            final theme = Theme.of(context);
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.8,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-              ),
-              child: Column(
-                children: [
-                  const SizedBox(height: 12),
-                  Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(2))),
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: TextField(
-                      controller: _searchController,
-                      autofocus: true,
-                      onChanged: (val) {
-                        _onSearchChanged(val);
-                        setModalState(() {});
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Search in this chat...',
-                        prefixIcon: const Icon(FluentIcons.search_24_regular),
-                        suffixIcon: _searchController.text.isNotEmpty 
-                          ? IconButton(icon: const Icon(FluentIcons.dismiss_24_regular), onPressed: () {
-                              _searchController.clear();
-                              _onSearchChanged('');
-                              setModalState(() {});
-                            })
-                          : null,
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.05),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
-                      ),
+      builder:
+          (context) => SafeArea(
+            child: StatefulBuilder(
+              builder: (context, setModalState) {
+                final theme = Theme.of(context);
+                return Container(
+                  height: MediaQuery.of(context).size.height * 0.8,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(32),
                     ),
                   ),
-                  Expanded(
-                    child: _searchController.text.isEmpty
-                      ? Center(child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(FluentIcons.chat_24_regular, size: 48, color: Colors.white24),
-                            const SizedBox(height: 16),
-                            Text('Search for keywords', style: const TextStyle(color: Colors.white38)),
-                          ],
-                        ))
-                      : _searchResults.isEmpty
-                        ? const Center(child: Text('No messages found', style: const TextStyle(color: Colors.white38)))
-                        : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: _searchResults.length,
-                            itemBuilder: (context, index) {
-                              final msg = _searchResults[index];
-                              return ListTile(
-                                leading: const Icon(FluentIcons.history_24_regular, size: 20, color: Colors.white24),
-                                title: Text(msg.content, maxLines: 2, overflow: TextOverflow.ellipsis),
-                                subtitle: Text(_formatTimestamp(msg.timestamp), style: const TextStyle(fontSize: 11)),
-                                onTap: () {
-                                  Navigator.pop(context);
-                                },
-                              );
-                            },
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 12),
+                      Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white10,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: TextField(
+                          controller: _searchController,
+                          autofocus: true,
+                          onChanged: (val) {
+                            _onSearchChanged(val);
+                            setModalState(() {});
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Search in this chat...',
+                            prefixIcon: const Icon(
+                              FluentIcons.search_24_regular,
+                            ),
+                            suffixIcon:
+                                _searchController.text.isNotEmpty
+                                    ? IconButton(
+                                      icon: const Icon(
+                                        FluentIcons.dismiss_24_regular,
+                                      ),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        _onSearchChanged('');
+                                        setModalState(() {});
+                                      },
+                                    )
+                                    : null,
+                            filled: true,
+                            fillColor: Colors.white.withValues(alpha: 0.05),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide.none,
+                            ),
                           ),
+                        ),
+                      ),
+                      Expanded(
+                        child:
+                            _searchController.text.isEmpty
+                                ? const Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        FluentIcons.chat_24_regular,
+                                        size: 48,
+                                        color: Colors.white24,
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        'Search for keywords',
+                                        style: TextStyle(color: Colors.white38),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                                : _searchResults.isEmpty
+                                ? const Center(
+                                  child: Text(
+                                    'No messages found',
+                                    style: TextStyle(color: Colors.white38),
+                                  ),
+                                )
+                                : ListView.builder(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  itemCount: _searchResults.length,
+                                  itemBuilder: (context, index) {
+                                    final msg = _searchResults[index];
+                                    return ListTile(
+                                      leading: const Icon(
+                                        FluentIcons.history_24_regular,
+                                        size: 20,
+                                        color: Colors.white24,
+                                      ),
+                                      title: Text(
+                                        msg.content,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      subtitle: Text(
+                                        _formatTimestamp(msg.timestamp),
+                                        style: const TextStyle(fontSize: 11),
+                                      ),
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                      },
+                                    );
+                                  },
+                                ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            );
-          }
-        ),
-      ),
+                );
+              },
+            ),
+          ),
     );
   }
 
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
     final difference = now.difference(timestamp);
-    if (difference.inDays < 1) return '${timestamp.hour}:${timestamp.minute.toString().padLeft(2, "0")}';
+    if (difference.inDays < 1)
+      return '${timestamp.hour}:${timestamp.minute.toString().padLeft(2, "0")}';
     return '${timestamp.day}/${timestamp.month}/${timestamp.year % 100}';
   }
 
@@ -462,8 +532,11 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     final prefs = await SharedPreferences.getInstance();
     if (mounted) {
       setState(() {
-        _bgOpacity = prefs.getDouble('chat_bg_opacity_${widget.conversationId}') ?? 1.0;
-        _bgBrightness = prefs.getDouble('chat_bg_brightness_${widget.conversationId}') ?? 0.7;
+        _bgOpacity =
+            prefs.getDouble('chat_bg_opacity_${widget.conversationId}') ?? 1.0;
+        _bgBrightness =
+            prefs.getDouble('chat_bg_brightness_${widget.conversationId}') ??
+            0.7;
       });
     }
   }
@@ -572,7 +645,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   Future<String?> _getInitialDirectory() async {
     if (Platform.isWindows) {
       try {
-        final dir = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
+        final dir =
+            await getDownloadsDirectory() ??
+            await getApplicationDocumentsDirectory();
         return dir.path;
       } catch (e) {
         debugPrint('Error getting initial directory: $e');
@@ -608,7 +683,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         setState(() => _selectedBackground = backgroundUrl);
 
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('chat_bg_${widget.conversationId}', backgroundUrl);
+        await prefs.setString(
+          'chat_bg_${widget.conversationId}',
+          backgroundUrl,
+        );
 
         try {
           await _messagingService.updateChatBackground(
@@ -739,34 +817,37 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         scrolledUnderElevation: 0,
         backgroundColor: Colors.transparent,
         titleSpacing: isDesktop ? 24 : null,
-        automaticallyImplyLeading: false, 
-        leading: isDesktop
-            ? (widget.onBackgroundSettingsChanged != null
-                ? IconButton(
-                    icon: const Icon(FluentIcons.dismiss_24_regular),
-                    onPressed: widget.onBackgroundSettingsChanged != null 
-                        ? () => widget.onBackgroundSettingsChanged!(0,0)
-                        : null,
-                  )
-                : null)
-            : (canPop
-                ? IconButton(
-                    icon: const Icon(FluentIcons.chevron_left_24_regular),
-                    onPressed: () => Navigator.of(context).maybePop(),
-                  )
-                : null),
+        automaticallyImplyLeading: false,
+        leading:
+            isDesktop
+                ? (widget.onBackgroundSettingsChanged != null
+                    ? IconButton(
+                      icon: const Icon(FluentIcons.dismiss_24_regular),
+                      onPressed:
+                          widget.onBackgroundSettingsChanged != null
+                              ? () => widget.onBackgroundSettingsChanged!(0, 0)
+                              : null,
+                    )
+                    : null)
+                : (canPop
+                    ? IconButton(
+                      icon: const Icon(FluentIcons.chevron_left_24_regular),
+                      onPressed: () => Navigator.of(context).maybePop(),
+                    )
+                    : null),
         actions: [
           if (isDesktop && widget.onBackgroundSettingsChanged != null)
-             IconButton(
-                icon: const Icon(FluentIcons.dismiss_24_regular),
-                onPressed: () {},
-              ),
+            IconButton(
+              icon: const Icon(FluentIcons.dismiss_24_regular),
+              onPressed: () {},
+            ),
         ],
       ),
       body: Center(
         child: Container(
-          constraints:
-              BoxConstraints(maxWidth: isDesktop ? 600 : double.infinity),
+          constraints: BoxConstraints(
+            maxWidth: isDesktop ? 600 : double.infinity,
+          ),
           child: ListView(
             padding: EdgeInsets.only(
               left: 16,
@@ -823,7 +904,8 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                                     backgroundColor: Colors.black45,
                                     padding: EdgeInsets.zero,
                                     minimumSize: const Size(28, 28),
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
                                   ),
                                 ),
                               ),
@@ -869,7 +951,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                 child: Column(
                   children: [
                     _buildSwitchTile(
-                      icon: _isLocked ? FluentIcons.lock_closed_24_filled : FluentIcons.lock_open_24_regular,
+                      icon:
+                          _isLocked
+                              ? FluentIcons.lock_closed_24_filled
+                              : FluentIcons.lock_open_24_regular,
                       title: 'Vault Lock',
                       subtitle: 'Hide and protect this chat',
                       value: _isLocked,
@@ -947,7 +1032,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                       onTap: _showSearchModal,
                     ),
                     _buildSwitchTile(
-                      icon: _isMuted ? FluentIcons.alert_off_24_regular : FluentIcons.alert_24_regular,
+                      icon:
+                          _isMuted
+                              ? FluentIcons.alert_off_24_regular
+                              : FluentIcons.alert_24_regular,
                       title: 'Mute Notifications',
                       subtitle: 'Silence alerts for this chat',
                       value: _isMuted,
@@ -962,8 +1050,14 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                       onTap: _clearChat,
                     ),
                     _buildActionTile(
-                      icon: _isBlocked ? FluentIcons.person_available_24_regular : FluentIcons.person_prohibited_24_regular,
-                      title: _isBlocked ? 'Unblock ${widget.otherUserName}' : 'Block ${widget.otherUserName}',
+                      icon:
+                          _isBlocked
+                              ? FluentIcons.person_available_24_regular
+                              : FluentIcons.person_prohibited_24_regular,
+                      title:
+                          _isBlocked
+                              ? 'Unblock ${widget.otherUserName}'
+                              : 'Block ${widget.otherUserName}',
                       titleColor: colorScheme.error,
                       iconColor: colorScheme.error,
                       onTap: _toggleBlock,
@@ -1024,7 +1118,11 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(FluentIcons.shield_task_24_regular, size: 14, color: colorScheme.primary),
+                Icon(
+                  FluentIcons.shield_task_24_regular,
+                  size: 14,
+                  color: colorScheme.primary,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   'End-to-End Encrypted',
@@ -1060,12 +1158,11 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: child,
-      ),
+      child: ClipRRect(borderRadius: BorderRadius.circular(20), child: child),
     );
   }
 
@@ -1089,7 +1186,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         ),
       ),
       subtitle: subtitle != null ? Text(subtitle) : null,
-      trailing: trailing ?? const Icon(FluentIcons.chevron_right_24_regular, size: 20),
+      trailing:
+          trailing ??
+          const Icon(FluentIcons.chevron_right_24_regular, size: 20),
       onTap: onTap,
     );
   }
@@ -1110,7 +1209,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       ),
       subtitle: Text(subtitle),
       value: value,
-      activeColor: activeColor,
+      activeThumbColor: activeColor,
       onChanged: onChanged,
     );
   }
@@ -1145,40 +1244,44 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                 ),
                 isM3E
                     ? SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          trackHeight: 8.0,
-                          activeTrackColor: colorScheme.primary,
-                          inactiveTrackColor:
-                              colorScheme.primary.withOpacity(0.3),
-                          thumbColor: colorScheme.primary,
-                          overlayColor: colorScheme.primary.withOpacity(0.1),
-                          thumbShape: const VerticalLineThumbShape(),
-                          trackShape: const RoundedRectSliderTrackShape(),
+                      data: SliderTheme.of(context).copyWith(
+                        trackHeight: 8.0,
+                        activeTrackColor: colorScheme.primary,
+                        inactiveTrackColor: colorScheme.primary.withValues(
+                          alpha: 0.3,
                         ),
-                        child: Slider(
-                          value: value,
-                          onChanged: onChanged,
-                          min: 0.0,
-                          max: 1.0,
+                        thumbColor: colorScheme.primary,
+                        overlayColor: colorScheme.primary.withValues(
+                          alpha: 0.1,
                         ),
-                      )
-                    : Slider(
+                        thumbShape: const VerticalLineThumbShape(),
+                        trackShape: const RoundedRectSliderTrackShape(),
+                      ),
+                      child: Slider(
                         value: value,
                         onChanged: onChanged,
                         min: 0.0,
                         max: 1.0,
                       ),
+                    )
+                    : Slider(
+                      value: value,
+                      onChanged: onChanged,
+                      min: 0.0,
+                      max: 1.0,
+                    ),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: isM3E
-                ? BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  )
-                : null,
+            decoration:
+                isM3E
+                    ? BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    )
+                    : null,
             child: Text(
               '${(value * 100).toInt()}%',
               style: TextStyle(
@@ -1193,13 +1296,21 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     );
   }
 
-  Widget _buildCompactRadio(String label, String value, ColorScheme colorScheme) {
+  Widget _buildCompactRadio(
+    String label,
+    String value,
+    ColorScheme colorScheme,
+  ) {
     final vault = context.watch<VaultService>();
     final current = vault.getLockInterval(widget.conversationId);
     final isSelected = current == value;
 
     return GestureDetector(
-      onTap: () => context.read<VaultService>().setLockInterval(widget.conversationId, value),
+      onTap:
+          () => context.read<VaultService>().setLockInterval(
+            widget.conversationId,
+            value,
+          ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
@@ -1213,7 +1324,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                 activeColor: Colors.indigo,
                 onChanged: (val) {
                   if (val != null) {
-                    context.read<VaultService>().setLockInterval(widget.conversationId, val);
+                    context.read<VaultService>().setLockInterval(
+                      widget.conversationId,
+                      val,
+                    );
                   }
                 },
               ),

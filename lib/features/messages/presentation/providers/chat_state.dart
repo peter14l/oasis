@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:oasis/models/message.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/models/chat_theme.dart';
 
 /// Immutable UI state for the chat screen.

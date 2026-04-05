@@ -5,8 +5,8 @@
 library;
 
 import 'package:flutter/foundation.dart';
-import 'package:oasis/models/user_model.dart';
-import 'package:oasis/models/post.dart';
+import 'package:oasis/features/auth/domain/models/app_user.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:oasis/models/community_model.dart';
 
 /// Mock user for testing
@@ -17,7 +17,7 @@ class MockUser {
   static const String testDisplayName = 'Test User';
   static const String testAvatarUrl = 'https://example.com/avatar.jpg';
 
-  static AppUser get testAppUser => AppUser(
+  static AppUser get testAppUser => const AppUser(
     id: testUserId,
     email: testEmail,
     username: testUsername,

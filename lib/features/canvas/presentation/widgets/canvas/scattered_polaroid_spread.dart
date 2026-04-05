@@ -73,7 +73,7 @@ class _ScatteredPolaroidSpreadState extends State<ScatteredPolaroidSpread>
                 Offset fanOffset = Offset.zero;
                 
                 if (widget.items.length > 1) {
-                  final double fanRange = 0.8; // Total arc
+                  const double fanRange = 0.8; // Total arc
                   final double step = fanRange / (widget.items.length - 1);
                   fanRotation = -fanRange/2 + (index * step);
                   fanOffset = Offset(

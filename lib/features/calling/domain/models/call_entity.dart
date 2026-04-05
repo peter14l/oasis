@@ -120,5 +120,5 @@ class CallEntity {
   bool get isVoiceCall => type == CallType.voice;
   bool get isVideoCall => type == CallType.video;
   Duration? get duration =>
-      endedAt != null ? endedAt!.difference(startedAt) : null;
+      endedAt?.difference(startedAt);
 }

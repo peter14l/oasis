@@ -1,10 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:oasis/models/message.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/widgets/messages/forward_message_modal.dart';
 import 'package:oasis/widgets/messages/message_reactions.dart';
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart' hide Category;
 
 /// Message reactions picker sheet.
 class MessageOptionsSheet extends StatelessWidget {

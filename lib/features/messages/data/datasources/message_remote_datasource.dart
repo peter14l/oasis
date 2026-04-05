@@ -1,6 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/core/network/supabase_client.dart';
-import 'package:oasis/features/messages/domain/models/message_entity.dart';
 
 /// Remote datasource for message operations
 class MessageRemoteDatasource {
@@ -15,7 +14,7 @@ class MessageRemoteDatasource {
     int limit = 50,
     String? before,
   }) async {
-    var query = _client
+    final query = _client
         .from('messages')
         .select()
         .eq('conversation_id', conversationId)

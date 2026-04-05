@@ -1,6 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/core/network/supabase_client.dart';
-import 'package:oasis/features/messages/domain/models/conversation_entity.dart';
 
 /// Remote datasource for conversation operations
 class ConversationRemoteDatasource {
@@ -25,7 +24,7 @@ class ConversationRemoteDatasource {
     if (conversationIds.isEmpty) return [];
 
     // Get conversation details - fetch individually to avoid in_() issue
-    List<Map<String, dynamic>> conversations = [];
+    final List<Map<String, dynamic>> conversations = [];
     for (final id in conversationIds.take(50)) {
       final result =
           await _client
@@ -215,8 +214,6 @@ class ConversationRemoteDatasource {
     }
 
     return unreadCount;
-
-    return unreadCount;
   }
 
   /// Search conversations by name
@@ -238,7 +235,7 @@ class ConversationRemoteDatasource {
     if (conversationIds.isEmpty) return [];
 
     // Search in conversations - fetch individually to avoid in_() issue
-    List<Map<String, dynamic>> results = [];
+    final List<Map<String, dynamic>> results = [];
     for (final id in conversationIds.take(50)) {
       final result =
           await _client

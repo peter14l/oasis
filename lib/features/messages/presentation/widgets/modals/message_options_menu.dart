@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oasis/models/message.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/widgets/messages/forward_message_modal.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
@@ -105,7 +105,7 @@ class MessageOptionsMenu extends StatelessWidget {
                   color: colorScheme.error,
                 ),
                 const SizedBox(width: 12),
-                Text('Unsend', style: TextStyle(color: Colors.red)),
+                const Text('Unsend', style: TextStyle(color: Colors.red)),
               ],
             ),
           ),

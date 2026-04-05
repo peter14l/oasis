@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
-import 'dart:math' as math;
 
 class DottedBorderPainter extends CustomPainter {
   final Color color;

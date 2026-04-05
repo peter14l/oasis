@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ScreenTimeService extends ChangeNotifier {
@@ -39,7 +38,7 @@ class ScreenTimeService extends ChangeNotifier {
 
   void _loadCategoryData() {
     final dateKey = _getDateKey(DateTime.now());
-    final catKey = '${_categoryStorageKeyPrefix}$dateKey';
+    final catKey = '$_categoryStorageKeyPrefix$dateKey';
     final data = _prefs.getString(catKey);
     if (data != null) {
       try {
@@ -61,7 +60,7 @@ class ScreenTimeService extends ChangeNotifier {
 
   Future<void> _saveCategoryData() async {
     final dateKey = _getDateKey(DateTime.now());
-    final catKey = '${_categoryStorageKeyPrefix}$dateKey';
+    final catKey = '$_categoryStorageKeyPrefix$dateKey';
     await _prefs.setString(catKey, jsonEncode(_categoryMinutes));
   }
 
@@ -148,7 +147,7 @@ class ScreenTimeService extends ChangeNotifier {
     final hour = timestamp.hour;
 
     // Get current daily data
-    List<int> hourlyUsage = _getHourlyUsage(dateKey);
+    final List<int> hourlyUsage = _getHourlyUsage(dateKey);
 
     // Add minutes to current hour
     // Note: This is a simplification. If a session spans across hours,
@@ -184,7 +183,7 @@ class ScreenTimeService extends ChangeNotifier {
   }
 
   String _getDateKey(DateTime date) {
-    return '${_storageKeyPrefix}${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    return '$_storageKeyPrefix${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
   /// Get usage for a specific date
@@ -226,7 +225,7 @@ class ScreenTimeService extends ChangeNotifier {
 
   /// Get daily totals for the last 7 days including today
   List<Map<String, dynamic>> getWeeklyData() {
-    List<Map<String, dynamic>> data = [];
+    final List<Map<String, dynamic>> data = [];
     final now = DateTime.now();
 
     for (int i = 6; i >= 0; i--) {

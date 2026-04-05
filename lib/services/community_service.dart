@@ -23,7 +23,7 @@ class CommunityService {
       if (response.isEmpty) return [];
 
       return response
-          .map((json) => Community.fromJson(json as Map<String, dynamic>))
+          .map((json) => Community.fromJson(json))
           .toList();
     } catch (e) {
       debugPrint('Error fetching communities: $e');
@@ -98,7 +98,7 @@ class CommunityService {
             .from(SupabaseConfig.communitiesTable)
             .select('id')
             .eq('creator_id', creatorId);
-        if (createdCommunities.length >= 1) {
+        if (createdCommunities.isNotEmpty) {
           throw Exception(
             'Free tier is limited to creating 1 community. Upgrade to Oasis Pro to create more.',
           );
@@ -249,7 +249,7 @@ class CommunityService {
       if (response.isEmpty) return [];
 
       return response
-          .map((json) => Community.fromJson(json as Map<String, dynamic>))
+          .map((json) => Community.fromJson(json))
           .toList();
     } catch (e) {
       debugPrint('Error searching communities: $e');

@@ -1,11 +1,8 @@
 import 'package:oasis/features/feed/domain/models/enhanced_poll.dart';
-import 'package:oasis/features/feed/domain/repositories/post_repository.dart';
 
 /// Create or manage a poll attached to a post.
 class ManagePoll {
-  final PostRepository _repository;
-
-  ManagePoll(this._repository);
+  ManagePoll();
 
   /// Create a poll (stored as part of post content).
   Future<EnhancedPoll> call({

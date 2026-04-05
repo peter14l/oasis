@@ -71,7 +71,7 @@ class DeleteMessage {
   Future<Result<void>> call(String messageId) async {
     try {
       await _repository.deleteMessage(messageId);
-      return Result.success(null);
+      return const Result.success(null);
     } catch (e) {
       return Result.failure(message: e.toString());
     }
@@ -114,7 +114,7 @@ class RemoveReaction {
   }) async {
     try {
       await _repository.removeReaction(messageId, userId);
-      return Result.success(null);
+      return const Result.success(null);
     } catch (e) {
       return Result.failure(message: e.toString());
     }

@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:oasis/features/canvas/domain/models/canvas_models.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -65,7 +64,7 @@ class InfiniteCardStack extends StatelessWidget {
   Widget build(BuildContext context) {
     if (items.isEmpty) return const SizedBox.shrink();
 
-    final int maxDisplay = 5;
+    const int maxDisplay = 5;
     final displayItems = items.take(maxDisplay).toList();
     final int extraCount = items.length - maxDisplay;
 
@@ -97,7 +96,7 @@ class InfiniteCardStack extends StatelessWidget {
             final middleIndex = (displayItems.length - 1) / 2.0;
             final positionOffset = itemIndex - middleIndex; // e.g. -2, -1, 0, 1, 2
             
-            final double angleStep = 0.15; // roughly 8.5 degrees
+            const double angleStep = 0.15; // roughly 8.5 degrees
             final double angle = positionOffset * angleStep;
             
             // We can also lower the outer cards a bit or let rotation handle it
@@ -298,7 +297,7 @@ class _SwipeableCardStackState extends State<_SwipeableCardStack> {
     final double topPadding = indexFromFront * 16.0;
     final double rotation = indexFromFront * 0.02; 
 
-    Widget card = Container(
+    final Widget card = Container(
       width: widget.width,
       height: widget.height,
       decoration: BoxDecoration(

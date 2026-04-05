@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis/models/conversation.dart';
+import 'package:oasis/features/messages/domain/models/conversation.dart';
 import 'package:oasis/core/config/supabase_config.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/chat_decryption_service.dart';

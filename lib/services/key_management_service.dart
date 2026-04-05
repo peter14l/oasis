@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -9,17 +8,20 @@ import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:pointycastle/export.dart';
 
-enum EncryptionStatus { ready, needsSetup, needsRestore, needsSecurityUpgrade, error }
+enum EncryptionStatus {
+  ready,
+  needsSetup,
+  needsRestore,
+  needsSecurityUpgrade,
+  error,
+}
 
 /// Service for managing the lifecycle of cryptographic keys.
-/// 
+///
 /// Handles derivation of backup keys from user IDs, generation of RSA key pairs,
-/// hashing of public keys for identification, and AES encryption/decryption 
+/// hashing of public keys for identification, and AES encryption/decryption
 /// of private keys for secure server-side storage (auto-restore).
 class KeyManagementService {
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
-  final SupabaseClient _supabase = Supabase.instance.client;
-
   /// Returns the secure storage key for a user's private RSA key.
   static String privateKeyKey(String uid) => 'rsa_private_key_$uid';
 
@@ -79,7 +81,9 @@ class KeyManagementService {
   /// Encrypts data with a specific key (used for backups).
   String encryptWithKey(String data, encrypt.Key key) {
     final iv = encrypt.IV.fromSecureRandom(16);
-    final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
+    final encrypter = encrypt.Encrypter(
+      encrypt.AES(key, mode: encrypt.AESMode.cbc),
+    );
     final encrypted = encrypter.encrypt(data, iv: iv);
 
     final combined = Uint8List(16 + encrypted.bytes.length);
@@ -99,7 +103,9 @@ class KeyManagementService {
       final encryptedBytes = combined.sublist(16);
       final encrypted = encrypt.Encrypted(encryptedBytes);
 
-      final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
+      final encrypter = encrypt.Encrypter(
+        encrypt.AES(key, mode: encrypt.AESMode.cbc),
+      );
       return encrypter.decrypt(encrypted, iv: iv);
     } catch (e) {
       debugPrint('[KeyManager] Decryption failed: $e');

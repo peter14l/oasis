@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oasis/models/message_reaction.dart';
+import 'package:oasis/features/messages/domain/models/message_reaction.dart';
 import 'package:oasis/core/utils/haptic_utils.dart';
 
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
@@ -104,7 +104,7 @@ class MessageReactionPicker extends StatelessWidget {
                 ),
               ),
             );
-          }).toList(),
+          }),
           // Add "+" button
           GestureDetector(
             onTap: () {

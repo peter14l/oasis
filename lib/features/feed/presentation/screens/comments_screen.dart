@@ -8,7 +8,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 
 class CommentsScreen extends StatefulWidget {
   final String postId;

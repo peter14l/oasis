@@ -4,14 +4,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/features/stories/domain/models/story_entity.dart';
 import 'package:oasis/features/stories/presentation/providers/stories_provider.dart';
 import 'package:oasis/features/stories/presentation/widgets/story_viewers_sheet.dart';
-import 'package:oasis/features/messages/presentation/providers/chat_provider.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/core/utils/haptic_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:async';
-import 'dart:ui';
 
 class StoryViewScreen extends StatefulWidget {
   final String initialStoryId;
@@ -147,7 +145,6 @@ class _StoryViewScreenState extends State<StoryViewScreen>
   Future<void> _sendReply(String text) async {
     if (text.trim().isEmpty) return;
 
-    final story = widget.stories[_currentIndex];
     final currentUserId = _authService.currentUser?.id;
     if (currentUserId == null) return;
 
@@ -165,7 +162,7 @@ class _StoryViewScreenState extends State<StoryViewScreen>
       // This is a placeholder for actual messaging integration in new arch
       // For now, we'll keep it simple or use a dedicated service if available
       // await context.read<ChatProvider>().sendStoryReply(story, text);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -250,7 +247,9 @@ class _StoryViewScreenState extends State<StoryViewScreen>
 
           // Interactive Stickers Layer
           if (story.interactiveMetadata != null && !_isReplying)
-             ...story.interactiveMetadata!.map((sticker) => _buildSticker(sticker)),
+            ...story.interactiveMetadata!.map(
+              (sticker) => _buildSticker(sticker),
+            ),
 
           // Top Gradient Overlay
           Positioned(
@@ -572,42 +571,51 @@ class _StoryViewScreenState extends State<StoryViewScreen>
     _pauseStory();
     showModalBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isOwner)
-              ListTile(
-                leading: const Icon(Icons.delete_outline, color: Colors.red),
-                title: const Text('Delete Story', style: TextStyle(color: Colors.red)),
-                onTap: () async {
-                  final success = await _storiesProvider.deleteStory(story.id);
-                  if (success && mounted) {
+      builder:
+          (context) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isOwner)
+                  ListTile(
+                    leading: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.red,
+                    ),
+                    title: const Text(
+                      'Delete Story',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                    onTap: () async {
+                      final success = await _storiesProvider.deleteStory(
+                        story.id,
+                      );
+                      if (success && mounted) {
+                        Navigator.pop(context);
+                        context.pop();
+                      }
+                    },
+                  )
+                else
+                  ListTile(
+                    leading: const Icon(Icons.report_problem_outlined),
+                    title: const Text('Report Story'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      // Implement reporting
+                    },
+                  ),
+                ListTile(
+                  leading: const Icon(Icons.download_outlined),
+                  title: const Text('Save Media'),
+                  onTap: () {
                     Navigator.pop(context);
-                    context.pop();
-                  }
-                },
-              )
-            else
-              ListTile(
-                leading: const Icon(Icons.report_problem_outlined),
-                title: const Text('Report Story'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Implement reporting
-                },
-              ),
-            ListTile(
-              leading: const Icon(Icons.download_outlined),
-              title: const Text('Save Media'),
-              onTap: () {
-                Navigator.pop(context);
-                // Implement saving
-              },
+                    // Implement saving
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
     ).then((_) => _resumeStory());
   }
 

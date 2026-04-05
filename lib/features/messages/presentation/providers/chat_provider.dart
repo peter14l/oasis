@@ -1,15 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:file_picker/file_picker.dart' show PlatformFile;
-import 'package:oasis/models/message.dart';
-import 'package:oasis/models/message_reaction.dart';
-import 'package:oasis/models/chat_theme.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
+import 'package:oasis/features/messages/domain/models/message_reaction.dart';
 import 'package:oasis/services/messaging_service.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';

@@ -75,18 +75,23 @@ class _ReportDialogState extends State<ReportDialog> {
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
-            ...ReportCategory.all.map((category) {
-              return RadioListTile<String>(
-                value: category,
-                groupValue: _selectedCategory,
-                onChanged: (value) {
-                  setState(() => _selectedCategory = value!);
-                },
-                title: Text(ReportCategory.getDisplayName(category)),
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-              );
-            }),
+            RadioGroup<String>(
+              groupValue: _selectedCategory,
+              onChanged: (value) {
+                setState(() => _selectedCategory = value!);
+              },
+              child: Column(
+                children:
+                    ReportCategory.all.map((category) {
+                      return RadioListTile<String>(
+                        value: category,
+                        title: Text(ReportCategory.getDisplayName(category)),
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                      );
+                    }).toList(),
+              ),
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: _descriptionController,
@@ -216,18 +221,23 @@ class _MuteUserDialogState extends State<MuteUserDialog> {
             'Duration:',
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
-          ..._durationOptions.map((option) {
-            return RadioListTile<Duration?>(
-              value: option.value,
-              groupValue: _duration,
-              onChanged: (value) {
-                setState(() => _duration = value);
-              },
-              title: Text(option.key),
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-            );
-          }),
+          RadioGroup<Duration?>(
+            groupValue: _duration,
+            onChanged: (value) {
+              setState(() => _duration = value);
+            },
+            child: Column(
+              children:
+                  _durationOptions.map((option) {
+                    return RadioListTile<Duration?>(
+                      value: option.value,
+                      title: Text(option.key),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    );
+                  }).toList(),
+            ),
+          ),
         ],
       ),
       actions: [

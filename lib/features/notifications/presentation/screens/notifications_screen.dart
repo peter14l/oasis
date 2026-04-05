@@ -6,7 +6,6 @@ import 'package:oasis/features/notifications/domain/models/notification_entity.d
 import 'package:oasis/features/notifications/presentation/providers/notification_provider.dart';
 import 'package:oasis/features/notifications/presentation/providers/notification_state.dart'
     as state;
-import 'package:oasis/services/auth_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/services/app_initializer.dart';
@@ -734,7 +733,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           vertical: isM3E ? 8 : 8,
         ),
         leading: Container(
-          padding: isM3E ? EdgeInsets.all(2) : EdgeInsets.zero,
+          padding: isM3E ? const EdgeInsets.all(2) : EdgeInsets.zero,
           decoration:
               isM3E && !notification.isRead
                   ? BoxDecoration(

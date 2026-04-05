@@ -15,7 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'dart:convert';
-import 'package:oasis/models/message.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/services/messaging_service.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/services/media_download_service.dart';
@@ -29,7 +29,7 @@ import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/widgets/skeleton_container.dart';
 import 'package:oasis/widgets/messages/voice_message_player.dart';
 import 'package:oasis/services/vault_service.dart';
-import 'package:oasis/models/message_reaction.dart';
+import 'package:oasis/features/messages/domain/models/message_reaction.dart';
 import 'package:oasis/models/chat_theme.dart';
 import 'package:oasis/core/utils/haptic_utils.dart';
 import 'package:oasis/services/smart_reply_service.dart';
@@ -1064,7 +1064,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         initialDirectory: await _getInitialDirectory(),
       );
       if (result != null && result.files.single.path != null) {
-        File audioFile = File(result.files.single.path!);
+        final File audioFile = File(result.files.single.path!);
 
         final sizeInBytes = await audioFile.length();
         final sizeInMb = sizeInBytes / (1024 * 1024);
@@ -1512,8 +1512,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           messageType.name,
         );
         Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted)
+          if (mounted) {
             conversationProvider.refreshConversation(widget.conversationId);
+          }
         });
       }
       _saveMessagesToCache();
@@ -2233,8 +2234,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             },
                             onVerticalDragUpdate: (details) {
                               final rawDelta = -details.delta.dy;
-                              if (rawDelta <= 0 && _whisperDragOffset == 0)
+                              if (rawDelta <= 0 && _whisperDragOffset == 0) {
                                 return;
+                              }
                               setState(() {
                                 _whisperDragOffset = (_whisperDragOffset +
                                         rawDelta)
@@ -3636,7 +3638,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ],
     );
 
-    Widget bubble = Container(
+    final Widget bubble = Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: bubbleDecoration,
       child: Column(
@@ -3814,7 +3816,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final postContent = shareData?['content'] ?? message.content;
     final mediaUrl = message.mediaUrl ?? shareData?['image_url'];
 
-    Widget card = Container(
+    final Widget card = Container(
       constraints: const BoxConstraints(maxWidth: 280),
       decoration: BoxDecoration(
         color:
@@ -3938,7 +3940,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final caption = shareData?['caption'] ?? message.content;
     final mediaUrl = message.mediaUrl ?? shareData?['thumbnail_url'];
 
-    Widget card = Container(
+    final Widget card = Container(
       constraints: const BoxConstraints(maxWidth: 280),
       decoration: BoxDecoration(
         color:
@@ -4078,7 +4080,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     final hasMedia = message.mediaUrl != null && message.mediaUrl!.isNotEmpty;
 
-    Widget card = Container(
+    final Widget card = Container(
       constraints: const BoxConstraints(maxWidth: 260),
       decoration: BoxDecoration(
         color:
@@ -4457,7 +4459,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   bool _containsUrl(String text) {
     final urlRegExp = RegExp(
-      r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/[^\s]+)",
+      r'(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/[^\s]+)',
       caseSensitive: false,
     );
     return urlRegExp.hasMatch(text);
@@ -4465,7 +4467,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   String _extractUrl(String text) {
     final urlRegExp = RegExp(
-      r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/[^\s]+)",
+      r'(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/[^\s]+)',
       caseSensitive: false,
     );
     return urlRegExp.firstMatch(text)?.group(0) ?? '';

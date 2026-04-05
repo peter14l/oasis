@@ -336,7 +336,7 @@ class _CanvasItemWidgetState extends State<CanvasItemWidget> {
           width: 140,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceVariant,
+            color: theme.colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(

@@ -1,11 +1,9 @@
-import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:universal_io/io.dart';
 import 'package:screen_protector/screen_protector.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oasis/models/message.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/services/encryption_service.dart';
 import 'package:oasis/services/signal/signal_service.dart';
 import 'package:oasis/screens/messages/encryption_setup_screen.dart';
@@ -165,7 +163,7 @@ class ChatEncryptionProvider with ChangeNotifier {
                 replySignalType,
               );
 
-              if (decryptedReply!.contains('🔒') &&
+              if (decryptedReply.contains('🔒') &&
                   replySenderContent != null &&
                   replyEncryptedKeys != null &&
                   replyIv != null) {

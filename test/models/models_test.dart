@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oasis/models/post.dart';
-import 'package:oasis/models/user_model.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/features/auth/domain/models/app_user.dart';
 import 'package:oasis/models/community_model.dart';
 
 void main() {
@@ -99,7 +99,7 @@ void main() {
     });
 
     test('should convert AppUser to JSON', () {
-      final user = AppUser(
+      const user = AppUser(
         id: 'user-123',
         email: 'test@example.com',
         username: 'testuser',
@@ -115,14 +115,14 @@ void main() {
     });
 
     test('should provide displayNameOrUsername getter', () {
-      final userWithDisplayName = AppUser(
+      const userWithDisplayName = AppUser(
         id: 'user-123',
         email: 'test@example.com',
         username: 'testuser',
         displayName: 'Test User',
       );
 
-      final userWithoutDisplayName = AppUser(
+      const userWithoutDisplayName = AppUser(
         id: 'user-456',
         email: 'test2@example.com',
         username: 'another_user',

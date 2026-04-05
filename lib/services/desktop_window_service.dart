@@ -20,7 +20,7 @@ class DesktopWindowService extends WindowListener with TrayListener {
     await Window.initialize();
     
     // Set title
-    await windowManager.setTitle("   Oasis");
+    await windowManager.setTitle('   Oasis');
 
     // Tray initialization
     await trayManager.setIcon(
@@ -86,7 +86,7 @@ class DesktopWindowService extends WindowListener with TrayListener {
   // WindowManager overrides
   @override
   void onWindowClose() async {
-    bool isPreventClose = await windowManager.isPreventClose();
+    final bool isPreventClose = await windowManager.isPreventClose();
     if (isPreventClose) {
       await windowManager.hide();
       await windowManager.setSkipTaskbar(true);

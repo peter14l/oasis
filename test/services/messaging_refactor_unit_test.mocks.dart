@@ -3,23 +3,25 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i7;
-import 'dart:typed_data' as _i9;
+import 'dart:async' as _i8;
+import 'dart:typed_data' as _i10;
 
 import 'package:encrypt/encrypt.dart' as _i2;
 import 'package:libsignal_protocol_dart/libsignal_protocol_dart.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i11;
-import 'package:oasis/models/conversation.dart' as _i14;
-import 'package:oasis/models/message.dart' as _i6;
-import 'package:oasis/services/chat_decryption_service.dart' as _i12;
+import 'package:mockito/src/dummies.dart' as _i12;
+import 'package:oasis/features/messages/domain/models/conversation.dart' as _i6;
+import 'package:oasis/features/messages/domain/models/message.dart' as _i7;
+import 'package:oasis/features/messages/domain/models/message_reaction.dart'
+    as _i18;
+import 'package:oasis/services/chat_decryption_service.dart' as _i13;
 import 'package:oasis/services/chat_media_service.dart' as _i16;
 import 'package:oasis/services/chat_messaging_service.dart' as _i15;
-import 'package:oasis/services/conversation_service.dart' as _i13;
+import 'package:oasis/services/conversation_service.dart' as _i14;
 import 'package:oasis/services/encryption_service.dart' as _i3;
-import 'package:oasis/services/key_management_service.dart' as _i8;
+import 'package:oasis/services/key_management_service.dart' as _i9;
 import 'package:oasis/services/message_operations_service.dart' as _i17;
-import 'package:oasis/services/signal/signal_service.dart' as _i10;
+import 'package:oasis/services/signal/signal_service.dart' as _i11;
 import 'package:supabase_flutter/supabase_flutter.dart' as _i5;
 
 // ignore_for_file: type=lint
@@ -107,8 +109,13 @@ class _FakeRealtimeChannel_11 extends _i1.SmartFake
     : super(parent, parentInvocation);
 }
 
-class _FakeMessage_12 extends _i1.SmartFake implements _i6.Message {
-  _FakeMessage_12(Object parent, Invocation parentInvocation)
+class _FakeConversation_12 extends _i1.SmartFake implements _i6.Conversation {
+  _FakeConversation_12(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeMessage_13 extends _i1.SmartFake implements _i7.Message {
+  _FakeMessage_13(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
@@ -126,30 +133,54 @@ class MockEncryptionService extends _i1.Mock implements _i3.EncryptionService {
           as bool);
 
   @override
-  _i7.Future<_i8.EncryptionStatus> init() =>
+  _i8.Future<_i9.EncryptionStatus> init() =>
       (super.noSuchMethod(
             Invocation.method(#init, []),
-            returnValue: _i7.Future<_i8.EncryptionStatus>.value(
-              _i8.EncryptionStatus.ready,
+            returnValue: _i8.Future<_i9.EncryptionStatus>.value(
+              _i9.EncryptionStatus.ready,
             ),
           )
-          as _i7.Future<_i8.EncryptionStatus>);
+          as _i8.Future<_i9.EncryptionStatus>);
 
   @override
-  _i7.Future<bool> setupEncryption() =>
+  _i8.Future<bool> restoreSecureKeys(String? pin) =>
       (super.noSuchMethod(
-            Invocation.method(#setupEncryption, []),
-            returnValue: _i7.Future<bool>.value(false),
+            Invocation.method(#restoreSecureKeys, [pin]),
+            returnValue: _i8.Future<bool>.value(false),
           )
-          as _i7.Future<bool>);
+          as _i8.Future<bool>);
 
   @override
-  _i7.Future<bool> restoreKeys() =>
+  _i8.Future<bool> upgradeSecurity(String? pin) =>
+      (super.noSuchMethod(
+            Invocation.method(#upgradeSecurity, [pin]),
+            returnValue: _i8.Future<bool>.value(false),
+          )
+          as _i8.Future<bool>);
+
+  @override
+  _i8.Future<bool> generateNewKeys() =>
+      (super.noSuchMethod(
+            Invocation.method(#generateNewKeys, []),
+            returnValue: _i8.Future<bool>.value(false),
+          )
+          as _i8.Future<bool>);
+
+  @override
+  _i8.Future<bool> setupEncryption({String? pin}) =>
+      (super.noSuchMethod(
+            Invocation.method(#setupEncryption, [], {#pin: pin}),
+            returnValue: _i8.Future<bool>.value(false),
+          )
+          as _i8.Future<bool>);
+
+  @override
+  _i8.Future<bool> restoreKeys() =>
       (super.noSuchMethod(
             Invocation.method(#restoreKeys, []),
-            returnValue: _i7.Future<bool>.value(false),
+            returnValue: _i8.Future<bool>.value(false),
           )
-          as _i7.Future<bool>);
+          as _i8.Future<bool>);
 
   @override
   _i2.Key generateAESKey() =>
@@ -163,20 +194,20 @@ class MockEncryptionService extends _i1.Mock implements _i3.EncryptionService {
           as _i2.Key);
 
   @override
-  _i9.Uint8List encryptData(_i9.Uint8List? data, _i2.Key? key) =>
+  _i10.Uint8List encryptData(_i10.Uint8List? data, _i2.Key? key) =>
       (super.noSuchMethod(
             Invocation.method(#encryptData, [data, key]),
-            returnValue: _i9.Uint8List(0),
+            returnValue: _i10.Uint8List(0),
           )
-          as _i9.Uint8List);
+          as _i10.Uint8List);
 
   @override
-  _i9.Uint8List? decryptData(_i9.Uint8List? combinedData, _i2.Key? key) =>
+  _i10.Uint8List? decryptData(_i10.Uint8List? combinedData, _i2.Key? key) =>
       (super.noSuchMethod(Invocation.method(#decryptData, [combinedData, key]))
-          as _i9.Uint8List?);
+          as _i10.Uint8List?);
 
   @override
-  _i7.Future<_i3.EncryptedMessage> encryptMessage(
+  _i8.Future<_i3.EncryptedMessage> encryptMessage(
     String? content,
     List<String>? recipientPublicKeysPem, {
     _i2.Key? reuseKey,
@@ -187,7 +218,7 @@ class MockEncryptionService extends _i1.Mock implements _i3.EncryptionService {
               [content, recipientPublicKeysPem],
               {#reuseKey: reuseKey},
             ),
-            returnValue: _i7.Future<_i3.EncryptedMessage>.value(
+            returnValue: _i8.Future<_i3.EncryptedMessage>.value(
               _FakeEncryptedMessage_1(
                 this,
                 Invocation.method(
@@ -198,10 +229,10 @@ class MockEncryptionService extends _i1.Mock implements _i3.EncryptionService {
               ),
             ),
           )
-          as _i7.Future<_i3.EncryptedMessage>);
+          as _i8.Future<_i3.EncryptedMessage>);
 
   @override
-  _i7.Future<String?> decryptMessage(
+  _i8.Future<String?> decryptMessage(
     String? encryptedContentBase64,
     Map<String, dynamic>? encryptedKeys,
     String? ivBase64,
@@ -212,12 +243,12 @@ class MockEncryptionService extends _i1.Mock implements _i3.EncryptionService {
               encryptedKeys,
               ivBase64,
             ]),
-            returnValue: _i7.Future<String?>.value(),
+            returnValue: _i8.Future<String?>.value(),
           )
-          as _i7.Future<String?>);
+          as _i8.Future<String?>);
 
   @override
-  _i7.Future<bool> backupSignalIdentity(
+  _i8.Future<bool> backupSignalIdentity(
     String? identityKeyPairBase64,
     int? registrationId,
   ) =>
@@ -226,32 +257,32 @@ class MockEncryptionService extends _i1.Mock implements _i3.EncryptionService {
               identityKeyPairBase64,
               registrationId,
             ]),
-            returnValue: _i7.Future<bool>.value(false),
+            returnValue: _i8.Future<bool>.value(false),
           )
-          as _i7.Future<bool>);
+          as _i8.Future<bool>);
 
   @override
-  _i7.Future<Map<String, dynamic>?> restoreSignalIdentity() =>
+  _i8.Future<Map<String, dynamic>?> restoreSignalIdentity() =>
       (super.noSuchMethod(
             Invocation.method(#restoreSignalIdentity, []),
-            returnValue: _i7.Future<Map<String, dynamic>?>.value(),
+            returnValue: _i8.Future<Map<String, dynamic>?>.value(),
           )
-          as _i7.Future<Map<String, dynamic>?>);
+          as _i8.Future<Map<String, dynamic>?>);
 
   @override
-  _i7.Future<void> clearKeys() =>
+  _i8.Future<void> clearKeys() =>
       (super.noSuchMethod(
             Invocation.method(#clearKeys, []),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i7.Future<void>);
+          as _i8.Future<void>);
 }
 
 /// A class which mocks [SignalService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSignalService extends _i1.Mock implements _i10.SignalService {
+class MockSignalService extends _i1.Mock implements _i11.SignalService {
   MockSignalService() {
     _i1.throwOnMissingStub(this);
   }
@@ -262,33 +293,33 @@ class MockSignalService extends _i1.Mock implements _i10.SignalService {
           as bool);
 
   @override
-  _i7.Future<bool> init() =>
+  _i8.Future<bool> init() =>
       (super.noSuchMethod(
             Invocation.method(#init, []),
-            returnValue: _i7.Future<bool>.value(false),
+            returnValue: _i8.Future<bool>.value(false),
           )
-          as _i7.Future<bool>);
+          as _i8.Future<bool>);
 
   @override
-  _i7.Future<void> clearData() =>
+  _i8.Future<void> clearData() =>
       (super.noSuchMethod(
             Invocation.method(#clearData, []),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i7.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i7.Future<void> forceRefreshBundle(String? remoteUserId) =>
+  _i8.Future<void> forceRefreshBundle(String? remoteUserId) =>
       (super.noSuchMethod(
             Invocation.method(#forceRefreshBundle, [remoteUserId]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i7.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i7.Future<_i4.CiphertextMessage> encryptMessage(
+  _i8.Future<_i4.CiphertextMessage> encryptMessage(
     String? recipientId,
     String? plaintext, {
     int? deviceId = 1,
@@ -299,7 +330,7 @@ class MockSignalService extends _i1.Mock implements _i10.SignalService {
               [recipientId, plaintext],
               {#deviceId: deviceId},
             ),
-            returnValue: _i7.Future<_i4.CiphertextMessage>.value(
+            returnValue: _i8.Future<_i4.CiphertextMessage>.value(
               _FakeCiphertextMessage_2(
                 this,
                 Invocation.method(
@@ -310,10 +341,10 @@ class MockSignalService extends _i1.Mock implements _i10.SignalService {
               ),
             ),
           )
-          as _i7.Future<_i4.CiphertextMessage>);
+          as _i8.Future<_i4.CiphertextMessage>);
 
   @override
-  _i7.Future<String> decryptMessage(
+  _i8.Future<String> decryptMessage(
     String? senderId,
     String? base64Ciphertext,
     int? type, {
@@ -325,8 +356,8 @@ class MockSignalService extends _i1.Mock implements _i10.SignalService {
               [senderId, base64Ciphertext, type],
               {#deviceId: deviceId},
             ),
-            returnValue: _i7.Future<String>.value(
-              _i11.dummyValue<String>(
+            returnValue: _i8.Future<String>.value(
+              _i12.dummyValue<String>(
                 this,
                 Invocation.method(
                   #decryptMessage,
@@ -336,7 +367,7 @@ class MockSignalService extends _i1.Mock implements _i10.SignalService {
               ),
             ),
           )
-          as _i7.Future<String>);
+          as _i8.Future<String>);
 }
 
 /// A class which mocks [SupabaseClient].
@@ -494,47 +525,47 @@ class MockSupabaseClient extends _i1.Mock implements _i5.SupabaseClient {
           as List<_i5.RealtimeChannel>);
 
   @override
-  _i7.Future<String> removeChannel(_i5.RealtimeChannel? channel) =>
+  _i8.Future<String> removeChannel(_i5.RealtimeChannel? channel) =>
       (super.noSuchMethod(
             Invocation.method(#removeChannel, [channel]),
-            returnValue: _i7.Future<String>.value(
-              _i11.dummyValue<String>(
+            returnValue: _i8.Future<String>.value(
+              _i12.dummyValue<String>(
                 this,
                 Invocation.method(#removeChannel, [channel]),
               ),
             ),
           )
-          as _i7.Future<String>);
+          as _i8.Future<String>);
 
   @override
-  _i7.Future<List<String>> removeAllChannels() =>
+  _i8.Future<List<String>> removeAllChannels() =>
       (super.noSuchMethod(
             Invocation.method(#removeAllChannels, []),
-            returnValue: _i7.Future<List<String>>.value(<String>[]),
+            returnValue: _i8.Future<List<String>>.value(<String>[]),
           )
-          as _i7.Future<List<String>>);
+          as _i8.Future<List<String>>);
 
   @override
-  _i7.Future<void> dispose() =>
+  _i8.Future<void> dispose() =>
       (super.noSuchMethod(
             Invocation.method(#dispose, []),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i7.Future<void>);
+          as _i8.Future<void>);
 }
 
 /// A class which mocks [ChatDecryptionService].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockChatDecryptionService extends _i1.Mock
-    implements _i12.ChatDecryptionService {
+    implements _i13.ChatDecryptionService {
   MockChatDecryptionService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i7.Future<String> decryptMessageContent({
+  _i8.Future<String> decryptMessageContent({
     required String? senderId,
     required String? currentUserId,
     required String? content,
@@ -553,8 +584,8 @@ class MockChatDecryptionService extends _i1.Mock
               #signalMessageType: signalMessageType,
               #signalSenderContent: signalSenderContent,
             }),
-            returnValue: _i7.Future<String>.value(
-              _i11.dummyValue<String>(
+            returnValue: _i8.Future<String>.value(
+              _i12.dummyValue<String>(
                 this,
                 Invocation.method(#decryptMessageContent, [], {
                   #senderId: senderId,
@@ -568,13 +599,13 @@ class MockChatDecryptionService extends _i1.Mock
               ),
             ),
           )
-          as _i7.Future<String>);
+          as _i8.Future<String>);
 
   @override
   String determineMessageType(Map<String, dynamic>? data) =>
       (super.noSuchMethod(
             Invocation.method(#determineMessageType, [data]),
-            returnValue: _i11.dummyValue<String>(
+            returnValue: _i12.dummyValue<String>(
               this,
               Invocation.method(#determineMessageType, [data]),
             ),
@@ -586,13 +617,13 @@ class MockChatDecryptionService extends _i1.Mock
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockConversationService extends _i1.Mock
-    implements _i13.ConversationService {
+    implements _i14.ConversationService {
   MockConversationService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i7.Future<List<_i14.Conversation>> getConversations({
+  _i8.Future<List<_i6.Conversation>> getConversations({
     required String? userId,
     int? limit = 50,
     int? offset = 0,
@@ -603,14 +634,27 @@ class MockConversationService extends _i1.Mock
               #limit: limit,
               #offset: offset,
             }),
-            returnValue: _i7.Future<List<_i14.Conversation>>.value(
-              <_i14.Conversation>[],
+            returnValue: _i8.Future<List<_i6.Conversation>>.value(
+              <_i6.Conversation>[],
             ),
           )
-          as _i7.Future<List<_i14.Conversation>>);
+          as _i8.Future<List<_i6.Conversation>>);
 
   @override
-  _i7.Future<String> getOrCreateConversation({
+  _i8.Future<_i6.Conversation> getConversationDetails(String? conversationId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getConversationDetails, [conversationId]),
+            returnValue: _i8.Future<_i6.Conversation>.value(
+              _FakeConversation_12(
+                this,
+                Invocation.method(#getConversationDetails, [conversationId]),
+              ),
+            ),
+          )
+          as _i8.Future<_i6.Conversation>);
+
+  @override
+  _i8.Future<String> getOrCreateConversation({
     required String? user1Id,
     required String? user2Id,
   }) =>
@@ -619,8 +663,8 @@ class MockConversationService extends _i1.Mock
               #user1Id: user1Id,
               #user2Id: user2Id,
             }),
-            returnValue: _i7.Future<String>.value(
-              _i11.dummyValue<String>(
+            returnValue: _i8.Future<String>.value(
+              _i12.dummyValue<String>(
                 this,
                 Invocation.method(#getOrCreateConversation, [], {
                   #user1Id: user1Id,
@@ -629,7 +673,7 @@ class MockConversationService extends _i1.Mock
               ),
             ),
           )
-          as _i7.Future<String>);
+          as _i8.Future<String>);
 
   @override
   _i5.RealtimeChannel subscribeToConversations({
@@ -652,7 +696,39 @@ class MockConversationService extends _i1.Mock
           as _i5.RealtimeChannel);
 
   @override
-  _i7.Future<void> updateChatBackground(
+  _i5.RealtimeChannel subscribeToBackgroundChanges({
+    required String? conversationId,
+    String? userId,
+    required dynamic Function(String?)? onUpdate,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#subscribeToBackgroundChanges, [], {
+              #conversationId: conversationId,
+              #userId: userId,
+              #onUpdate: onUpdate,
+            }),
+            returnValue: _FakeRealtimeChannel_11(
+              this,
+              Invocation.method(#subscribeToBackgroundChanges, [], {
+                #conversationId: conversationId,
+                #userId: userId,
+                #onUpdate: onUpdate,
+              }),
+            ),
+          )
+          as _i5.RealtimeChannel);
+
+  @override
+  _i8.Future<void> toggleMute(String? conversationId, bool? mute) =>
+      (super.noSuchMethod(
+            Invocation.method(#toggleMute, [conversationId, mute]),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> updateChatBackground(
     String? conversationId,
     String? backgroundUrl,
   ) =>
@@ -661,10 +737,10 @@ class MockConversationService extends _i1.Mock
               conversationId,
               backgroundUrl,
             ]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i7.Future<void>);
+          as _i8.Future<void>);
 }
 
 /// A class which mocks [ChatMessagingService].
@@ -677,7 +753,7 @@ class MockChatMessagingService extends _i1.Mock
   }
 
   @override
-  _i7.Future<List<_i6.Message>> getMessages({
+  _i8.Future<List<_i7.Message>> getMessages({
     required String? conversationId,
     int? limit = 50,
     int? offset = 0,
@@ -690,16 +766,16 @@ class MockChatMessagingService extends _i1.Mock
               #offset: offset,
               #sessionStart: sessionStart,
             }),
-            returnValue: _i7.Future<List<_i6.Message>>.value(<_i6.Message>[]),
+            returnValue: _i8.Future<List<_i7.Message>>.value(<_i7.Message>[]),
           )
-          as _i7.Future<List<_i6.Message>>);
+          as _i8.Future<List<_i7.Message>>);
 
   @override
-  _i7.Future<_i6.Message> sendMessage({
+  _i8.Future<_i7.Message> sendMessage({
     required String? conversationId,
     required String? senderId,
     required String? content,
-    _i6.MessageType? messageType = _i6.MessageType.text,
+    _i7.MessageType? messageType = _i7.MessageType.text,
     String? mediaUrl,
     String? mediaFileName,
     int? mediaFileSize,
@@ -740,8 +816,8 @@ class MockChatMessagingService extends _i1.Mock
               #shareData: shareData,
               #mediaViewMode: mediaViewMode,
             }),
-            returnValue: _i7.Future<_i6.Message>.value(
-              _FakeMessage_12(
+            returnValue: _i8.Future<_i7.Message>.value(
+              _FakeMessage_13(
                 this,
                 Invocation.method(#sendMessage, [], {
                   #conversationId: conversationId,
@@ -768,10 +844,10 @@ class MockChatMessagingService extends _i1.Mock
               ),
             ),
           )
-          as _i7.Future<_i6.Message>);
+          as _i8.Future<_i7.Message>);
 
   @override
-  _i7.Future<void> markAsRead({
+  _i8.Future<void> markAsRead({
     required String? messageId,
     required String? userId,
   }) =>
@@ -780,15 +856,15 @@ class MockChatMessagingService extends _i1.Mock
               #messageId: messageId,
               #userId: userId,
             }),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i7.Future<void>);
+          as _i8.Future<void>);
 
   @override
   _i5.RealtimeChannel subscribeToMessages({
     required String? conversationId,
-    required dynamic Function(_i6.Message)? onNewMessage,
+    required dynamic Function(_i7.Message)? onNewMessage,
     dynamic Function(String)? onDeleteMessage,
   }) =>
       (super.noSuchMethod(
@@ -818,10 +894,10 @@ class MockChatMediaService extends _i1.Mock implements _i16.ChatMediaService {
   }
 
   @override
-  _i7.Future<String> uploadChatMedia(
+  _i8.Future<String> uploadChatMedia(
     String? filePath, {
     String? folder = 'images',
-    _i9.Uint8List? encryptedBytes,
+    _i10.Uint8List? encryptedBytes,
     String? fileExtension,
   }) =>
       (super.noSuchMethod(
@@ -834,8 +910,8 @@ class MockChatMediaService extends _i1.Mock implements _i16.ChatMediaService {
                 #fileExtension: fileExtension,
               },
             ),
-            returnValue: _i7.Future<String>.value(
-              _i11.dummyValue<String>(
+            returnValue: _i8.Future<String>.value(
+              _i12.dummyValue<String>(
                 this,
                 Invocation.method(
                   #uploadChatMedia,
@@ -849,16 +925,16 @@ class MockChatMediaService extends _i1.Mock implements _i16.ChatMediaService {
               ),
             ),
           )
-          as _i7.Future<String>);
+          as _i8.Future<String>);
 
   @override
-  _i7.Future<void> deleteMediaFromUrl(String? url) =>
+  _i8.Future<void> deleteMediaFromUrl(String? url) =>
       (super.noSuchMethod(
             Invocation.method(#deleteMediaFromUrl, [url]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i7.Future<void>);
+          as _i8.Future<void>);
 }
 
 /// A class which mocks [MessageOperationsService].
@@ -871,34 +947,34 @@ class MockMessageOperationsService extends _i1.Mock
   }
 
   @override
-  _i7.Future<void> deleteMessage(String? messageId) =>
+  _i8.Future<void> deleteMessage(String? messageId) =>
       (super.noSuchMethod(
             Invocation.method(#deleteMessage, [messageId]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i7.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i7.Future<void> clearChatForMe(String? conversationId) =>
+  _i8.Future<void> clearChatForMe(String? conversationId) =>
       (super.noSuchMethod(
             Invocation.method(#clearChatForMe, [conversationId]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i7.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i7.Future<void> clearConversationMessages(String? conversationId) =>
+  _i8.Future<void> clearConversationMessages(String? conversationId) =>
       (super.noSuchMethod(
             Invocation.method(#clearConversationMessages, [conversationId]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i7.Future<void>);
+          as _i8.Future<void>);
 
   @override
-  _i7.Future<void> updateTypingStatus(
+  _i8.Future<void> updateTypingStatus(
     String? conversationId,
     String? userId,
     bool? isTyping,
@@ -909,10 +985,86 @@ class MockMessageOperationsService extends _i1.Mock
               userId,
               isTyping,
             ]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
           )
-          as _i7.Future<void>);
+          as _i8.Future<void>);
+
+  @override
+  _i5.RealtimeChannel subscribeToTypingStatus({
+    required String? conversationId,
+    required dynamic Function(String, bool)? onTypingUpdate,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#subscribeToTypingStatus, [], {
+              #conversationId: conversationId,
+              #onTypingUpdate: onTypingUpdate,
+            }),
+            returnValue: _FakeRealtimeChannel_11(
+              this,
+              Invocation.method(#subscribeToTypingStatus, [], {
+                #conversationId: conversationId,
+                #onTypingUpdate: onTypingUpdate,
+              }),
+            ),
+          )
+          as _i5.RealtimeChannel);
+
+  @override
+  _i8.Future<void> markConversationAsRead(
+    String? conversationId,
+    String? userId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#markConversationAsRead, [
+              conversationId,
+              userId,
+            ]),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> markMessagesAsRead(
+    String? conversationId,
+    List<String>? messageIds,
+    String? userId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#markMessagesAsRead, [
+              conversationId,
+              messageIds,
+              userId,
+            ]),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> toggleWhisperMode(
+    String? conversationId,
+    int? whisperMode,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#toggleWhisperMode, [
+              conversationId,
+              whisperMode,
+            ]),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
+
+  @override
+  _i8.Future<void> incrementMediaViewCount(String? messageId) =>
+      (super.noSuchMethod(
+            Invocation.method(#incrementMediaViewCount, [messageId]),
+            returnValue: _i8.Future<void>.value(),
+            returnValueForMissingStub: _i8.Future<void>.value(),
+          )
+          as _i8.Future<void>);
 
   @override
   _i5.RealtimeChannel subscribeToReadReceipts({
@@ -927,6 +1079,27 @@ class MockMessageOperationsService extends _i1.Mock
             returnValue: _FakeRealtimeChannel_11(
               this,
               Invocation.method(#subscribeToReadReceipts, [], {
+                #conversationId: conversationId,
+                #onUpdate: onUpdate,
+              }),
+            ),
+          )
+          as _i5.RealtimeChannel);
+
+  @override
+  _i5.RealtimeChannel subscribeToReactions({
+    required String? conversationId,
+    required dynamic Function(String, List<_i18.MessageReactionModel>)?
+    onUpdate,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#subscribeToReactions, [], {
+              #conversationId: conversationId,
+              #onUpdate: onUpdate,
+            }),
+            returnValue: _FakeRealtimeChannel_11(
+              this,
+              Invocation.method(#subscribeToReactions, [], {
                 #conversationId: conversationId,
                 #onUpdate: onUpdate,
               }),

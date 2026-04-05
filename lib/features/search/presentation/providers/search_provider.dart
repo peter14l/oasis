@@ -6,7 +6,6 @@ import 'package:oasis/features/search/domain/usecases/search_usecases.dart';
 import 'package:oasis/features/search/presentation/providers/search_state.dart';
 
 class SearchProvider extends ChangeNotifier {
-  final SearchRepository _repository;
   final SearchUsers _searchUsers;
   final SearchPosts _searchPosts;
   final SearchHashtags _searchHashtags;
@@ -16,8 +15,7 @@ class SearchProvider extends ChangeNotifier {
   SearchState get state => _state;
 
   SearchProvider({SearchRepository? repository})
-    : _repository = repository ?? SearchRepositoryImpl(),
-      _searchUsers = SearchUsers(repository ?? SearchRepositoryImpl()),
+    : _searchUsers = SearchUsers(repository ?? SearchRepositoryImpl()),
       _searchPosts = SearchPosts(repository ?? SearchRepositoryImpl()),
       _searchHashtags = SearchHashtags(repository ?? SearchRepositoryImpl()),
       _getTrendingHashtags = GetTrendingHashtags(

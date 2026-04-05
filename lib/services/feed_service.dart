@@ -277,7 +277,7 @@ class FeedService {
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
 
-      if (response == null || response.isEmpty) return [];
+      if (response.isEmpty) return [];
 
       final List<Post> posts = [];
       for (final item in response) {

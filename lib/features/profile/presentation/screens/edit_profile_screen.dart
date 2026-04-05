@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/services/auth_service.dart';
-import 'package:oasis/core/utils/responsive_layout.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -79,7 +78,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         bio: _bioController.text.trim(),
         location: _locationController.text.trim(),
         website: _websiteController.text.trim(),
-        avatarFilePath: _newAvatar != null ? _newAvatar!.path : null,
+        avatarFilePath: _newAvatar?.path,
       );
 
       if (mounted) {

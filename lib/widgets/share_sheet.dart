@@ -1,14 +1,13 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:oasis/providers/conversation_provider.dart';
-import 'package:oasis/models/conversation.dart';
+import 'package:oasis/features/messages/domain/models/conversation.dart';
 import 'package:oasis/services/messaging_service.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
-import 'package:oasis/models/message.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
 
 class ShareSheet extends StatefulWidget {
   final String title;

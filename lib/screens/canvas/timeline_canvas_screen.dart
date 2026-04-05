@@ -1,5 +1,3 @@
-import 'package:universal_io/io.dart';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -8,11 +6,8 @@ import 'package:oasis/features/canvas/presentation/providers/canvas_provider.dar
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/features/canvas/domain/models/canvas_models.dart';
 import 'package:oasis/features/canvas/presentation/widgets/canvas/starry_night_background.dart';
-import 'package:oasis/features/canvas/presentation/widgets/canvas/glowing_note.dart';
-import 'package:oasis/features/canvas/presentation/widgets/canvas/infinite_card_stack.dart';
 import 'package:oasis/features/canvas/presentation/widgets/canvas/timeline_scrubber.dart';
 import 'package:oasis/features/canvas/presentation/widgets/canvas/pulse_ripple.dart';
-import 'package:oasis/features/canvas/presentation/widgets/canvas/voice_memo.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:intl/intl.dart';
@@ -22,11 +17,8 @@ import 'package:oasis/widgets/share_sheet.dart';
 import 'package:oasis/services/canvas_audio_service.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 import 'package:oasis/services/notification_service.dart';
 import 'package:oasis/widgets/canvas/scattered_polaroid_spread.dart';
-import 'package:oasis/widgets/canvas/scrapbook_motif_wrapper.dart';
-import 'package:oasis/widgets/canvas/journal_entry_widget.dart';
 import 'package:oasis/widgets/canvas/canvas_item_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -51,7 +43,6 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
   RealtimeChannel? _pulseChannel;
   final AudioRecorder _audioRecorder = AudioRecorder();
   bool _isMapMode = false;
-  Offset _lastCursorPos = Offset.zero;
 
   @override
   void initState() {
@@ -1231,12 +1222,13 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                                   );
                                 }
                               } catch (e) {
-                                if (mounted)
+                                if (mounted) {
                                   messenger.showSnackBar(
                                     SnackBar(
                                       content: Text('Failed to upload: $e'),
                                     ),
                                   );
+                                }
                               }
                             }
                           } else {

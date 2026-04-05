@@ -1,39 +1,24 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:oasis/models/message.dart';
-import 'package:oasis/models/message_reaction.dart';
-import 'package:oasis/models/chat_theme.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/models/call.dart';
-import 'package:oasis/services/messaging_service.dart';
 import 'package:oasis/services/auth_service.dart';
-import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/vault_service.dart';
-import 'package:oasis/providers/conversation_provider.dart';
 import 'package:oasis/providers/typing_indicator_provider.dart';
 import 'package:oasis/providers/presence_provider.dart';
 import 'package:oasis/screens/messages/incoming_call_overlay.dart';
 import 'package:oasis/screens/messages/chat_details_screen.dart';
-import 'package:oasis/screens/messages/image_preview_screen.dart';
-import 'package:oasis/widgets/messages/forward_message_modal.dart';
 import 'package:oasis/widgets/security_pin_sheet.dart';
 import 'package:oasis/services/encryption_service.dart';
-import 'package:oasis/widgets/messages/chat_theme_selector.dart';
-import 'package:oasis/widgets/dotted_border_painter.dart';
 import 'package:oasis/core/utils/haptic_utils.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/features/messages/presentation/providers/providers.dart';
 import 'package:oasis/features/messages/presentation/widgets/chat/chat_app_bar.dart';
 import 'package:oasis/features/messages/presentation/widgets/chat/chat_background.dart';
@@ -49,7 +34,6 @@ import 'package:oasis/features/messages/presentation/widgets/previews/file_previ
 import 'package:oasis/features/messages/presentation/widgets/modals/attachment_options_sheet.dart';
 import 'package:oasis/features/messages/presentation/widgets/modals/message_options_sheet.dart';
 import 'package:oasis/features/messages/presentation/widgets/modals/message_options_menu.dart';
-import 'package:oasis/features/messages/presentation/widgets/shared/recording_dot.dart';
 import 'package:oasis/features/messages/data/datasources/chat_media_picker.dart';
 
 /// Fully wired ChatScreen — thin orchestrator composing extracted widgets.
@@ -97,7 +81,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Timer? _recordTimer;
   int _recordDuration = 0;
 
-  DateTime? _lastResumeTime;
   late VaultService _vaultService;
 
   @override
@@ -399,8 +382,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         imageFile == null &&
         videoFile == null &&
         audioFile == null &&
-        docFile == null)
+        docFile == null) {
       return;
+    }
 
     // Clear UI state immediately — eliminates the 1-1.5s lag where text persists
     _messageController.clear();
@@ -534,14 +518,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               },
             ),
       ),
-    );
-  }
-
-  void _showIncomingCallOverlay(Call call) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Center(child: IncomingCallOverlay(call: call)),
     );
   }
 
@@ -936,14 +912,5 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         },
       ),
     );
-  }
-
-  String _formatSeenTime(DateTime time) {
-    final now = DateTime.now();
-    final difference = now.difference(time);
-    if (difference.inMinutes < 1) return 'just now';
-    if (difference.inHours < 1) return '${difference.inMinutes}m ago';
-    if (difference.inDays < 1) return '${difference.inHours}h ago';
-    return '${difference.inDays}d ago';
   }
 }

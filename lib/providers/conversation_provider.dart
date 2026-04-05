@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:oasis/models/conversation.dart';
+import 'package:oasis/features/messages/domain/models/conversation.dart';
 import 'package:oasis/services/messaging_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,7 +30,7 @@ class ConversationProvider with ChangeNotifier {
   // Getters
   List<Conversation> get conversations => _conversations;
   bool get isLoading => _isLoading;
-  int get totalUnreadCount => _conversations.fold(0, (sum, conv) => sum + conv.unreadCount);
+  int get totalUnreadCount => _conversations.fold<int>(0, (sum, conv) => sum + conv.unreadCount);
 
   /// Initialize and load conversations
   Future<void> initialize(String? userId) async {
@@ -48,7 +48,7 @@ class ConversationProvider with ChangeNotifier {
     
     // Load pinned IDs first
     final prefs = await SharedPreferences.getInstance();
-    final pinnedList = prefs.getStringList('pinned_conversations_${_currentUserId}') ?? [];
+    final pinnedList = prefs.getStringList('pinned_conversations_$_currentUserId') ?? [];
     _pinnedIds = pinnedList.toSet();
 
     // Load cache first
@@ -68,7 +68,7 @@ class ConversationProvider with ChangeNotifier {
     if (_currentUserId == null) return;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final String? cachedData = prefs.getString('cached_conversations_${_currentUserId}');
+      final String? cachedData = prefs.getString('cached_conversations_$_currentUserId');
       if (cachedData != null) {
         final List<dynamic> decodedData = jsonDecode(cachedData);
         _conversations = decodedData.map((item) {
@@ -96,7 +96,7 @@ class ConversationProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String encodedData = jsonEncode(_conversations.map((c) => c.toJson()).toList());
-      await prefs.setString('cached_conversations_${_currentUserId}', encodedData);
+      await prefs.setString('cached_conversations_$_currentUserId', encodedData);
     } catch (e) {
       debugPrint('Error saving conversations to cache: $e');
     }
@@ -319,7 +319,7 @@ class ConversationProvider with ChangeNotifier {
         _pinnedIds.remove(conversationId);
       }
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList('pinned_conversations_${_currentUserId}', _pinnedIds.toList());
+      await prefs.setStringList('pinned_conversations_$_currentUserId', _pinnedIds.toList());
       
       await _saveConversationsToCache();
     } catch (e) {
@@ -361,7 +361,7 @@ class ConversationProvider with ChangeNotifier {
     if (_currentUserId != null) {
       try {
         final prefs = await SharedPreferences.getInstance();
-        await prefs.remove('cached_conversations_${_currentUserId}');
+        await prefs.remove('cached_conversations_$_currentUserId');
       } catch (e) {
         debugPrint('Error clearing cached conversations: $e');
       }

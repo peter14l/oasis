@@ -72,7 +72,7 @@ class BreathingCirclePainter extends CustomPainter {
     const particleCount = 8;
     for (int i = 0; i < particleCount; i++) {
       final angle = (i / particleCount) * 2 * pi + (progress * 2 * pi);
-      final particleRadius = 4.0;
+      const particleRadius = 4.0;
       final x = center.dx + radius * cos(angle);
       final y = center.dy + radius * sin(angle);
       canvas.drawCircle(Offset(x, y), particleRadius, particlePaint);

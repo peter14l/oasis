@@ -8,18 +8,18 @@ class VoiceMessagePlayer extends StatefulWidget {
   final Color color;
 
   const VoiceMessagePlayer({
-    Key? key,
+    super.key,
     required this.audioUrl,
     this.duration,
     required this.isMe,
     required this.color,
-  }) : super(key: key);
+  });
 
   @override
-  _VoiceMessagePlayerState createState() => _VoiceMessagePlayerState();
+  VoiceMessagePlayerState createState() => VoiceMessagePlayerState();
 }
 
-class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
+class VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isPlaying = false;
   bool _isError = false;
@@ -84,7 +84,7 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
 
   Future<void> _togglePlayPause() async {
     if (_isError) return;
-    
+
     try {
       if (_isPlaying) {
         await _audioPlayer.pause();
@@ -107,11 +107,11 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
     final currentIndex = _speeds.indexOf(_playbackSpeed);
     final nextIndex = (currentIndex + 1) % _speeds.length;
     final nextSpeed = _speeds[nextIndex];
-    
+
     setState(() {
       _playbackSpeed = nextSpeed;
     });
-    
+
     await _audioPlayer.setPlaybackRate(nextSpeed);
   }
 
@@ -159,9 +159,10 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
     return Container(
       padding: const EdgeInsets.only(left: 4, right: 8, top: 4, bottom: 4),
       decoration: BoxDecoration(
-        color: widget.isMe 
-          ? widget.color.withValues(alpha: 0.12)
-          : Colors.black.withValues(alpha: 0.05),
+        color:
+            widget.isMe
+                ? widget.color.withValues(alpha: 0.12)
+                : Colors.black.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
@@ -171,7 +172,9 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             icon: Icon(
-              _isPlaying ? Icons.pause_circle_filled_rounded : Icons.play_circle_filled_rounded,
+              _isPlaying
+                  ? Icons.pause_circle_filled_rounded
+                  : Icons.play_circle_filled_rounded,
               color: widget.color,
               size: 38,
             ),
@@ -188,17 +191,27 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     trackHeight: 3,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 6,
+                    ),
+                    overlayShape: const RoundSliderOverlayShape(
+                      overlayRadius: 12,
+                    ),
                     activeTrackColor: widget.color,
                     inactiveTrackColor: widget.color.withValues(alpha: 0.2),
                     thumbColor: widget.color,
                     overlayColor: widget.color.withValues(alpha: 0.1),
                   ),
                   child: Slider(
-                    value: _position.inSeconds.toDouble().clamp(0, _duration.inSeconds.toDouble()),
+                    value: _position.inSeconds.toDouble().clamp(
+                      0,
+                      _duration.inSeconds.toDouble(),
+                    ),
                     min: 0,
-                    max: _duration.inSeconds > 0 ? _duration.inSeconds.toDouble() : 1.0,
+                    max:
+                        _duration.inSeconds > 0
+                            ? _duration.inSeconds.toDouble()
+                            : 1.0,
                     onChangeStart: (_) => setState(() => _isDragging = true),
                     onChangeEnd: (val) {
                       _onSeek(val);

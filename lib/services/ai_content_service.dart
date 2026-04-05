@@ -396,7 +396,7 @@ class AIContentService {
     // Check for hashtags count
     final hashtagCount = '#'.allMatches(caption).length;
     if (hashtagCount > 30) {
-      issues.add('Too many hashtags (${hashtagCount})');
+      issues.add('Too many hashtags ($hashtagCount)');
       suggestions.add('Keep hashtags under 30 for best engagement');
     }
 

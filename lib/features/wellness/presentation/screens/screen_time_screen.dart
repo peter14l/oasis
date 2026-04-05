@@ -2,7 +2,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/services/wellness_service.dart';
-import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/core/utils/haptic_utils.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
@@ -16,7 +15,6 @@ class ScreenTimeScreen extends StatefulWidget {
 
 class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
   DateTime _selectedDate = DateTime.now();
-  int _touchedIndex = -1;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +25,6 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
 
     final usageData = screenTimeService.getDailyUsage(_selectedDate);
     final totalMinutes = usageData['totalMinutes'] as int;
-    final hourlyBreakdown = usageData['hourlyBreakdown'] as List<int>;
 
     final weeklyData = screenTimeService.getWeeklyData();
     final weeklyAverage = screenTimeService.getWeeklyAverage();
@@ -759,7 +756,7 @@ class _ScreenTimeScreenState extends State<ScreenTimeScreen> {
   String _formatSeconds(int totalSeconds) {
     final m = totalSeconds ~/ 60;
     final s = totalSeconds % 60;
-    return '${m}:${s.toString().padLeft(2, '0')}';
+    return '$m:${s.toString().padLeft(2, '0')}';
   }
 
   String _formatDuration(int totalMinutes) {

@@ -58,7 +58,7 @@ class ChatInputArea extends StatelessWidget {
       ),
     );
 
-    Widget inputContainer = Container(
+    final Widget inputContainer = Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       decoration: decoration,
       child: Row(

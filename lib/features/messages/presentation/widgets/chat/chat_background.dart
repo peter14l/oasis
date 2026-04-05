@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -24,7 +23,7 @@ class ChatBackground extends StatelessWidget {
       child: Stack(
         children: [
           // Base background color
-          Container(color: colorScheme.background),
+          Container(color: colorScheme.surface),
           // Background image overlay
           if (backgroundUrl != null)
             Positioned.fill(

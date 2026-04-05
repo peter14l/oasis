@@ -62,7 +62,7 @@ class CanvasListTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(isM3E ? 12 : 100),
                   shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
                 ),
-                child: Icon(
+                child: const Icon(
                   FluentIcons.whiteboard_24_regular,
                   color: Colors.white,
                   size: 24,

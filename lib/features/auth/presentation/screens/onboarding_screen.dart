@@ -31,40 +31,40 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _currentPage = 0;
 
   final List<OnboardingPage> _pages = [
-    OnboardingPage(
+    const OnboardingPage(
       icon: Icons.dynamic_feed_rounded,
       title: 'Share Your Moments',
       description:
           'Post updates, photos, and stories to share your life with friends and followers.',
-      color: const Color(0xFF6B9EFF),
+      color: Color(0xFF6B9EFF),
     ),
-    OnboardingPage(
+    const OnboardingPage(
       icon: Icons.lock_rounded,
       title: 'Private & Secure Messages',
       description:
           'Your conversations are protected with end-to-end encryption. Only you and your recipient can read your messages.',
-      color: const Color(0xFF4CAF50),
+      color: Color(0xFF4CAF50),
     ),
-    OnboardingPage(
+    const OnboardingPage(
       icon: Icons.people_rounded,
       title: 'Join Communities',
       description:
           'Connect with like-minded people in communities. Share interests, discuss topics, and make new friends.',
-      color: const Color(0xFFFF9800),
+      color: Color(0xFFFF9800),
     ),
-    OnboardingPage(
+    const OnboardingPage(
       icon: Icons.timer_rounded,
       title: 'Mindful Usage',
       description:
           'Track your screen time and build healthy digital habits with our built-in wellness features.',
-      color: const Color(0xFF9C27B0),
+      color: Color(0xFF9C27B0),
     ),
-    OnboardingPage(
+    const OnboardingPage(
       icon: Icons.bookmark_rounded,
       title: 'Save & Organize',
       description:
           'Bookmark posts you love and organize them into collections for easy access later.',
-      color: const Color(0xFFE91E63),
+      color: Color(0xFFE91E63),
     ),
   ];
 

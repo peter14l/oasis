@@ -1,10 +1,7 @@
-import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:oasis/models/notification.dart';
-import 'package:oasis/providers/notification_provider.dart';
 import 'package:oasis/services/notification_service.dart';
-import 'package:oasis/services/notification_manager.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MockNotificationService extends Mock implements NotificationService {

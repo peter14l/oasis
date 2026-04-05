@@ -60,7 +60,7 @@ class CallService extends ChangeNotifier {
 
     await initWebRTC(type == CallType.video);
 
-    RTCSessionDescription offer = await _peerConnection!.createOffer();
+    final RTCSessionDescription offer = await _peerConnection!.createOffer();
     await _peerConnection!.setLocalDescription(offer);
 
     final callData = {
@@ -92,10 +92,10 @@ class CallService extends ChangeNotifier {
   Future<void> answerCall(Call call) async {
     await initWebRTC(call.type == CallType.video);
 
-    RTCSessionDescription offer = RTCSessionDescription(call.sdp!, call.sdpType!);
+    final RTCSessionDescription offer = RTCSessionDescription(call.sdp, call.sdpType);
     await _peerConnection!.setRemoteDescription(offer);
 
-    RTCSessionDescription answer = await _peerConnection!.createAnswer();
+    final RTCSessionDescription answer = await _peerConnection!.createAnswer();
     await _peerConnection!.setLocalDescription(answer);
     
     _currentCallId = call.id;
@@ -124,9 +124,9 @@ class CallService extends ChangeNotifier {
           if (updatedCall.status == CallStatus.active && 
               _peerConnection?.getRemoteDescription() == null &&
               updatedCall.sdpType == 'answer') {
-            RTCSessionDescription answer = RTCSessionDescription(
-              updatedCall.sdp!,
-              updatedCall.sdpType!,
+            final RTCSessionDescription answer = RTCSessionDescription(
+              updatedCall.sdp,
+              updatedCall.sdpType,
             );
             await _peerConnection!.setRemoteDescription(answer);
           }

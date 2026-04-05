@@ -143,7 +143,7 @@ class ScreenTimeEntity {
   });
 
   factory ScreenTimeEntity.empty() {
-    return ScreenTimeEntity(
+    return const ScreenTimeEntity(
       totalMinutesToday: 0,
       weeklyAverageMinutes: 0,
       weeklyData: [],

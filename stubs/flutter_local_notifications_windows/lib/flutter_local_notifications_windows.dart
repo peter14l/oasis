@@ -31,6 +31,7 @@ class FlutterLocalNotificationsWindows extends FlutterLocalNotificationsPlatform
   }
 
   // The main plugin expects 'details' parameter name for Windows
+  @override
   Future<void> show(
     int id,
     String? title,

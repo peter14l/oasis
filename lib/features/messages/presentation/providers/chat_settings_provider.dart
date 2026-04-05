@@ -1,9 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis/models/message.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/models/chat_theme.dart';
 import 'package:oasis/services/messaging_service.dart';
 
@@ -166,8 +165,9 @@ class ChatSettingsProvider with ChangeNotifier {
             cachedMessages.where((m) {
               if (!m.isEphemeral) return true;
               if (m.ephemeralDuration == 0 && m.readAt != null) return false;
-              if (m.expiresAt != null && now.isAfter(m.expiresAt!))
+              if (m.expiresAt != null && now.isAfter(m.expiresAt!)) {
                 return false;
+              }
               return true;
             }).toList();
 

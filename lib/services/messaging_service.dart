@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:oasis/models/message.dart';
-import 'package:oasis/models/conversation.dart';
-import 'package:oasis/models/message_reaction.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
+import 'package:oasis/features/messages/domain/models/conversation.dart';
+import 'package:oasis/features/messages/domain/models/message_reaction.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/notification_service.dart';
 import 'package:oasis/services/conversation_service.dart';

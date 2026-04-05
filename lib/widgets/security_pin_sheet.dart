@@ -7,11 +7,7 @@ class SecurityPinSheet extends StatefulWidget {
   final EncryptionStatus status;
   final Function(bool success)? onComplete;
 
-  const SecurityPinSheet({
-    super.key,
-    required this.status,
-    this.onComplete,
-  });
+  const SecurityPinSheet({super.key, required this.status, this.onComplete});
 
   static Future<bool?> show(BuildContext context, EncryptionStatus status) {
     return showModalBottomSheet<bool>(
@@ -31,11 +27,8 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
     6,
     (index) => TextEditingController(),
   );
-  final List<FocusNode> _focusNodes = List.generate(
-    6,
-    (index) => FocusNode(),
-  );
-  
+  final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
+
   bool _isLoading = false;
   String? _error;
   bool _isConfirming = false;
@@ -63,8 +56,8 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
     }
   }
 
-  void _onKeyEvent(RawKeyEvent event, int index) {
-    if (event is RawKeyDownEvent &&
+  void _onKeyEvent(KeyEvent event, int index) {
+    if (event is KeyDownEvent &&
         event.logicalKey == LogicalKeyboardKey.backspace &&
         _controllers[index].text.isEmpty &&
         index > 0) {
@@ -85,7 +78,7 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
       final encryptionService = context.read<EncryptionService>();
       bool success = false;
 
-      if (widget.status == EncryptionStatus.needsSetup || 
+      if (widget.status == EncryptionStatus.needsSetup ||
           widget.status == EncryptionStatus.needsSecurityUpgrade) {
         if (!_isConfirming) {
           setState(() {
@@ -112,7 +105,7 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
             });
             return;
           }
-          
+
           if (widget.status == EncryptionStatus.needsSetup) {
             success = await encryptionService.setupEncryption(pin: pin);
           } else {
@@ -154,14 +147,16 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
 
     if (widget.status == EncryptionStatus.needsSetup) {
       title = _isConfirming ? 'Confirm PIN' : 'Setup Security PIN';
-      subtitle = _isConfirming 
-          ? 'Re-enter your 6-digit PIN' 
-          : 'Create a PIN to protect your encrypted messages';
+      subtitle =
+          _isConfirming
+              ? 'Re-enter your 6-digit PIN'
+              : 'Create a PIN to protect your encrypted messages';
     } else if (widget.status == EncryptionStatus.needsSecurityUpgrade) {
       title = _isConfirming ? 'Confirm PIN' : 'Upgrade Security';
-      subtitle = _isConfirming 
-          ? 'Re-enter your new PIN' 
-          : 'Set a 6-digit PIN to secure your chat backups';
+      subtitle =
+          _isConfirming
+              ? 'Re-enter your new PIN'
+              : 'Set a 6-digit PIN to secure your chat backups';
     } else if (widget.status == EncryptionStatus.needsRestore) {
       title = 'Restore Chats';
       subtitle = 'Enter your 6-digit Security PIN to access your messages';
@@ -206,9 +201,9 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
               6,
               (index) => SizedBox(
                 width: 45,
-                child: RawKeyboardListener(
-                  focusNode: FocusNode(), // Dummy focus node for listener
-                  onKey: (event) => _onKeyEvent(event, index),
+                child: KeyboardListener(
+                  focusNode: FocusNode(),
+                  onKeyEvent: (event) => _onKeyEvent(event, index),
                   child: TextField(
                     controller: _controllers[index],
                     focusNode: _focusNodes[index],
@@ -232,9 +227,7 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
                         ),
                       ),
                     ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     onChanged: (value) => _onChanged(value, index),
                   ),
                 ),
@@ -243,10 +236,7 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
           ),
           if (_error != null) ...[
             const SizedBox(height: 16),
-            Text(
-              _error!,
-              style: TextStyle(color: theme.colorScheme.error),
-            ),
+            Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
           ],
           const SizedBox(height: 32),
           if (_isLoading)

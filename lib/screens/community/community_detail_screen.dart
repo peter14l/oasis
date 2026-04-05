@@ -178,9 +178,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                           ),
                           const Spacer(),
                           if (community.isPrivate)
-                            Chip(
-                              label: const Text('Private'),
-                              avatar: const Icon(Icons.lock_outline, size: 16),
+                            const Chip(
+                              label: Text('Private'),
+                              avatar: Icon(Icons.lock_outline, size: 16),
                             ),
                         ],
                       ),

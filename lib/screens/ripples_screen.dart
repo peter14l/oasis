@@ -8,11 +8,9 @@ import 'package:oasis/features/ripples/presentation/providers/ripples_provider.d
 import 'package:oasis/features/ripples/domain/models/ripple_entity.dart'
     show RipplesLayoutType;
 import 'package:oasis/core/network/supabase_client.dart';
-import 'package:oasis/widgets/share_sheet.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/widgets/messages/share_to_dm_modal.dart';
-import 'package:oasis/models/message.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/services/app_initializer.dart'; // For ThemeProvider
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 
@@ -32,7 +30,7 @@ class _RipplesScreenState extends State<RipplesScreen>
   StreamSubscription? _sessionSub;
   int _currentIndex = 0;
   DateTime? _sessionStartTime;
-  bool _isPlayingGlobal = true;
+  final bool _isPlayingGlobal = true;
 
   @override
   void initState() {
@@ -517,8 +515,8 @@ class _RipplesScreenState extends State<RipplesScreen>
                 child: motion.Animate(
                   effects: [
                     motion.FadeEffect(duration: 400.ms),
-                    motion.MoveEffect(
-                      begin: const Offset(0, 20),
+                    const motion.MoveEffect(
+                      begin: Offset(0, 20),
                       curve: Curves.easeOutQuad,
                     ),
                   ],
@@ -1220,12 +1218,14 @@ class _RippleCommentsListState extends State<RippleCommentsList> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading)
+    if (_isLoading) {
       return const Center(child: CircularProgressIndicator(strokeWidth: 2));
-    if (_comments.isEmpty)
+    }
+    if (_comments.isEmpty) {
       return const Center(
         child: Text('No comments yet', style: TextStyle(color: Colors.white24)),
       );
+    }
 
     return ListView.separated(
       itemCount: _comments.length,

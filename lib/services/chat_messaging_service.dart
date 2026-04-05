@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
-import 'package:oasis/models/message.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/core/config/supabase_config.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/notification_service.dart';
@@ -121,8 +121,8 @@ class ChatMessagingService {
           final myReadTimeStr = myReadMap[messages[i].id];
           final anyReadTimeStr = firstReadMap[messages[i].id];
 
-          DateTime? myReadAt = myReadTimeStr != null ? DateTime.parse(myReadTimeStr) : null;
-          DateTime? anyReadAt = anyReadTimeStr != null ? DateTime.parse(anyReadTimeStr) : null;
+          final DateTime? myReadAt = myReadTimeStr != null ? DateTime.parse(myReadTimeStr) : null;
+          final DateTime? anyReadAt = anyReadTimeStr != null ? DateTime.parse(anyReadTimeStr) : null;
 
           if (myReadAt != null || anyReadAt != null) {
             messages[i] = messages[i].copyWith(

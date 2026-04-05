@@ -6,7 +6,7 @@ import 'package:any_link_preview/any_link_preview.dart';
 /// Extracted from _ChatScreenState helper methods in chat_screen.dart.
 class MessageTextUtils {
   static const _urlRegExp =
-      r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/[^\s]+)";
+      r'(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/[^\s]+)';
 
   static bool isDisplayableCaption(String text) {
     if (text.isEmpty) return false;
@@ -53,7 +53,7 @@ class TextBubble extends StatelessWidget {
             ? theme.colorScheme.onPrimaryContainer
             : theme.colorScheme.onSurface);
 
-    Widget textContent = Text(
+    final Widget textContent = Text(
       content.trim(),
       style: theme.textTheme.bodyMedium?.copyWith(
         color: color,

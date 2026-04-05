@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:oasis/core/config/supabase_config.dart';
 import 'package:oasis/core/network/supabase_client.dart';
-import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -274,7 +273,7 @@ class PostRemoteDatasource {
         .order('created_at', ascending: false)
         .range(offset, offset + limit - 1);
 
-    if (response == null || response.isEmpty) return [];
+    if (response.isEmpty) return [];
 
     final posts = <Map<String, dynamic>>[];
     for (final item in response) {

@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/services/auth_service.dart';
-import 'package:oasis/models/message.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/widgets/messages/share_to_dm_modal.dart';
 import 'package:oasis/services/app_initializer.dart';
 
@@ -505,7 +505,7 @@ class _PostCardState extends State<PostCard>
               : null,
     );
 
-    Widget cardContent = Container(
+    final Widget cardContent = Container(
       decoration: cardDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -596,8 +596,9 @@ class _PostCardState extends State<PostCard>
                                 builder: (context, profileProvider, child) {
                                   final isFollowing = profileProvider.following
                                       .any((p) => p.id == widget.post.userId);
-                                  if (isFollowing)
+                                  if (isFollowing) {
                                     return const SizedBox.shrink();
+                                  }
                                   return Padding(
                                     padding: const EdgeInsets.only(left: 8.0),
                                     child: InkWell(

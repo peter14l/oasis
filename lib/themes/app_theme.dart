@@ -590,7 +590,7 @@ class AppTheme {
     elevation: 0,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(24),
-      side: BorderSide(color: _lightSurfaceColor),
+      side: const BorderSide(color: _lightSurfaceColor),
     ),
     color: _lightSurfaceColor,
   );
@@ -643,7 +643,7 @@ class AppTheme {
   static TabBarThemeData get tabBarTheme => TabBarThemeData(
     labelColor: _lightPrimaryColor,
     unselectedLabelColor: _lightOnSurfaceVariantColor,
-    indicator: UnderlineTabIndicator(
+    indicator: const UnderlineTabIndicator(
       borderSide: BorderSide(color: _lightPrimaryColor, width: 2),
     ),
     labelStyle: textTheme.labelLarge,
@@ -668,10 +668,10 @@ class AppTheme {
   );
 
   // Bottom Sheet Theme
-  static BottomSheetThemeData get bottomSheetTheme => BottomSheetThemeData(
+  static BottomSheetThemeData get bottomSheetTheme => const BottomSheetThemeData(
     backgroundColor: _lightSurfaceColor,
     elevation: 0,
-    shape: const RoundedRectangleBorder(
+    shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),
   );
@@ -849,7 +849,7 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: _darkPrimaryColor, width: 2),
+        borderSide: const BorderSide(color: _darkPrimaryColor, width: 2),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -867,7 +867,7 @@ class AppTheme {
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: _darkPrimaryColor,
-        side: BorderSide(color: _darkPrimaryColor),
+        side: const BorderSide(color: _darkPrimaryColor),
       ),
     ),
     navigationBarTheme: navigationBarTheme.copyWith(
@@ -884,7 +884,7 @@ class AppTheme {
     tabBarTheme: tabBarTheme.copyWith(
       labelColor: _darkPrimaryColor,
       unselectedLabelColor: _darkOnSurfaceVariantColor,
-      indicator: UnderlineTabIndicator(
+      indicator: const UnderlineTabIndicator(
         borderSide: BorderSide(color: _darkPrimaryColor, width: 2),
       ),
     ),
@@ -893,7 +893,7 @@ class AppTheme {
   // M3E Light Theme — Rich, Vibrant, Expressive
   static final ThemeData m3eLightTheme = ThemeData(
     useMaterial3: true,
-    colorScheme: ColorScheme.light(
+    colorScheme: const ColorScheme.light(
       primary: _m3eLightPrimary,
       onPrimary: _m3eLightOnPrimary,
       primaryContainer: _m3eLightPrimaryContainer,
@@ -936,7 +936,7 @@ class AppTheme {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(m3eShapeExtraLarge),
-        side: BorderSide(color: _m3eLightOutlineVariant, width: 1),
+        side: const BorderSide(color: _m3eLightOutlineVariant, width: 1),
       ),
       color: _m3eLightSurfaceContainerLow,
       clipBehavior: Clip.antiAlias,
@@ -1033,10 +1033,10 @@ class AppTheme {
       ),
     ),
     // Bottom Sheets — XL top radius, Level 4 elevation
-    bottomSheetTheme: BottomSheetThemeData(
+    bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: _m3eLightSurfaceContainerHigh,
       elevation: 4,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(m3eShapeExtraLarge),
         ),
@@ -1053,7 +1053,7 @@ class AppTheme {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(m3eShapeLarge),
-        borderSide: BorderSide(color: _m3eLightOutlineVariant, width: 1),
+        borderSide: const BorderSide(color: _m3eLightOutlineVariant, width: 1),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(m3eShapeLarge),
@@ -1121,16 +1121,16 @@ class AppTheme {
       }),
       iconTheme: WidgetStateProperty.resolveWith<IconThemeData>((states) {
         if (states.contains(WidgetState.selected)) {
-          return IconThemeData(color: _m3eLightOnSurface, size: 24);
+          return const IconThemeData(color: _m3eLightOnSurface, size: 24);
         }
-        return IconThemeData(color: _m3eLightOnSurfaceVariant, size: 24);
+        return const IconThemeData(color: _m3eLightOnSurfaceVariant, size: 24);
       }),
     ),
     // Tab Bar
     tabBarTheme: TabBarThemeData(
       labelColor: _m3eLightPrimary,
       unselectedLabelColor: _m3eLightOnSurfaceVariant,
-      indicator: UnderlineTabIndicator(
+      indicator: const UnderlineTabIndicator(
         borderSide: BorderSide(color: _m3eLightPrimary, width: 2),
       ),
       labelStyle: GoogleFonts.robotoFlex(
@@ -1208,7 +1208,7 @@ class AppTheme {
       overlayColor: _m3eLightPrimary.withValues(alpha: 0.12),
     ),
     // Progress Indicator
-    progressIndicatorTheme: ProgressIndicatorThemeData(
+    progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: _m3eLightPrimary,
       linearTrackColor: _m3eLightPrimaryContainer,
     ),
@@ -1217,7 +1217,7 @@ class AppTheme {
   // M3E Dark Theme — Deep, Rich, Expressive
   static final ThemeData m3eDarkTheme = ThemeData(
     useMaterial3: true,
-    colorScheme: ColorScheme.dark(
+    colorScheme: const ColorScheme.dark(
       primary: _m3eDarkPrimary,
       onPrimary: _m3eDarkOnPrimary,
       primaryContainer: _m3eDarkPrimaryContainer,
@@ -1260,7 +1260,7 @@ class AppTheme {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(m3eShapeExtraLarge),
-        side: BorderSide(color: _m3eDarkOutlineVariant, width: 1),
+        side: const BorderSide(color: _m3eDarkOutlineVariant, width: 1),
       ),
       color: _m3eDarkSurfaceContainerLow,
       clipBehavior: Clip.antiAlias,
@@ -1357,10 +1357,10 @@ class AppTheme {
       ),
     ),
     // Bottom Sheets — XL top radius, Level 4 elevation
-    bottomSheetTheme: BottomSheetThemeData(
+    bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: _m3eDarkSurfaceContainerHigh,
       elevation: 4,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(m3eShapeExtraLarge),
         ),
@@ -1377,7 +1377,7 @@ class AppTheme {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(m3eShapeLarge),
-        borderSide: BorderSide(color: _m3eDarkOutlineVariant, width: 1),
+        borderSide: const BorderSide(color: _m3eDarkOutlineVariant, width: 1),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(m3eShapeLarge),
@@ -1446,16 +1446,16 @@ class AppTheme {
       }),
       iconTheme: WidgetStateProperty.resolveWith<IconThemeData>((states) {
         if (states.contains(WidgetState.selected)) {
-          return IconThemeData(color: _m3eDarkOnSurface, size: 24);
+          return const IconThemeData(color: _m3eDarkOnSurface, size: 24);
         }
-        return IconThemeData(color: _m3eDarkOnSurfaceVariant, size: 24);
+        return const IconThemeData(color: _m3eDarkOnSurfaceVariant, size: 24);
       }),
     ),
     // Tab Bar
     tabBarTheme: TabBarThemeData(
       labelColor: _m3eDarkPrimary,
       unselectedLabelColor: _m3eDarkOnSurfaceVariant,
-      indicator: UnderlineTabIndicator(
+      indicator: const UnderlineTabIndicator(
         borderSide: BorderSide(color: _m3eDarkPrimary, width: 2),
       ),
       labelStyle: GoogleFonts.robotoFlex(
@@ -1482,7 +1482,7 @@ class AppTheme {
       elevation: 3,
     ),
     // Divider
-    dividerTheme: DividerThemeData(
+    dividerTheme: const DividerThemeData(
       color: _m3eDarkOutlineVariant,
       thickness: 1,
       space: 0,
@@ -1533,7 +1533,7 @@ class AppTheme {
       overlayColor: _m3eDarkPrimary.withValues(alpha: 0.12),
     ),
     // Progress Indicator
-    progressIndicatorTheme: ProgressIndicatorThemeData(
+    progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: _m3eDarkPrimary,
       linearTrackColor: _m3eDarkPrimaryContainer,
     ),

@@ -40,7 +40,7 @@ class PresenceService {
           final lastSeenStr = presence.payload['last_seen'] as String?;
           if (lastSeenStr != null) {
             final lastSeen = DateTime.parse(lastSeenStr);
-            if (latestSeen == null || lastSeen.isAfter(latestSeen!)) {
+            if (latestSeen == null || lastSeen.isAfter(latestSeen)) {
               latestSeen = lastSeen;
             }
           }
@@ -81,7 +81,7 @@ class PresenceService {
     channel = _supabase.channel(channelName);
     _presenceChannels[channelName] = channel;
 
-    await channel.subscribe((subscribeStatus, [error]) async {
+    channel.subscribe((subscribeStatus, [error]) async {
       if (subscribeStatus == RealtimeSubscribeStatus.channelError) {
         debugPrint('PresenceService: updateUserPresence error: $error');
       }

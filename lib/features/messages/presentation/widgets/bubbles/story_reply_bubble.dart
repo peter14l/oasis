@@ -27,7 +27,7 @@ class StoryReplyBubble extends StatelessWidget {
 
     final hasMedia = message.mediaUrl != null && message.mediaUrl!.isNotEmpty;
 
-    Widget card = Container(
+    final Widget card = Container(
       constraints: const BoxConstraints(maxWidth: 260),
       decoration: BoxDecoration(
         color:

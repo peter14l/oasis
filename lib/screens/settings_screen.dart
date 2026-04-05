@@ -6,7 +6,6 @@ import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/screens/settings/screen_time_screen.dart';
 import 'package:oasis/screens/settings/vault_settings_screen.dart';
-import 'package:oasis/screens/settings/subscription_screen.dart';
 import 'package:oasis/screens/settings/account_privacy_screen.dart';
 import 'package:oasis/screens/settings/two_factor_auth_screen.dart';
 import 'package:oasis/screens/settings/download_data_screen.dart';
@@ -476,7 +475,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Row(
                   children: [
                     Container(
-                      padding: isM3E ? EdgeInsets.all(3) : EdgeInsets.zero,
+                      padding: isM3E ? const EdgeInsets.all(3) : EdgeInsets.zero,
                       decoration:
                           isM3E
                               ? BoxDecoration(
@@ -562,7 +561,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onPressed:
                           () => _navigateToSubPage(
                             'Edit Profile',
-                            EditProfileScreen(),
+                            const EditProfileScreen(),
                           ),
                     ),
                   ],
@@ -656,7 +655,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         onTap:
             () => Navigator.of(
               context,
-            ).push(MaterialPageRoute(builder: (context) => OasisProScreen())),
+            ).push(MaterialPageRoute(builder: (context) => const OasisProScreen())),
       ),
     );
   }

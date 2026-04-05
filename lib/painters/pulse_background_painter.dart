@@ -49,9 +49,9 @@ class PulseBackgroundPainter extends CustomPainter {
         cos(animationValue * 2 * pi) * 0.1,
       ),
       radius: 1.8 + sin(animationValue * pi) * 0.1, // Pulsing radius
-      colors: [
-        const Color(0xFF0F1420), // Darker center
-        const Color(0xFF050812), // Deep space black
+      colors: const [
+        Color(0xFF0F1420), // Darker center
+        Color(0xFF050812), // Deep space black
       ],
       stops: const [0.0, 1.0],
     );
@@ -188,15 +188,15 @@ class PulseBackgroundPainter extends CustomPainter {
     final adjustedCenter = center;
 
     // Draw simple crosshair
-    final crosshairSize = 10.0;
+    const crosshairSize = 10.0;
     canvas.drawLine(
-      adjustedCenter - Offset(crosshairSize, 0),
-      adjustedCenter + Offset(crosshairSize, 0),
+      adjustedCenter - const Offset(crosshairSize, 0),
+      adjustedCenter + const Offset(crosshairSize, 0),
       markerPaint,
     );
     canvas.drawLine(
-      adjustedCenter - Offset(0, crosshairSize),
-      adjustedCenter + Offset(0, crosshairSize),
+      adjustedCenter - const Offset(0, crosshairSize),
+      adjustedCenter + const Offset(0, crosshairSize),
       markerPaint,
     );
   }

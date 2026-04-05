@@ -9,11 +9,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:oasis/models/conversation.dart';
-import 'package:oasis/services/auth_service.dart';
-import 'package:oasis/providers/typing_indicator_provider.dart';
+import 'package:oasis/features/messages/domain/models/conversation.dart';
 import 'package:oasis/widgets/messages/unread_badge_widget.dart';
-import 'package:oasis/widgets/messages/typing_indicator_widget.dart';
 import 'package:oasis/features/messages/presentation/screens/chat_screen.dart';
 import 'package:oasis/screens/messages/chat_details_screen.dart';
 import 'package:oasis/services/vault_service.dart';
@@ -49,7 +46,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   double _scrollVelocity = 0;
   double _lastScrollOffset = 0;
   // bool _useMockData = true;
-  bool _useMockData = false;
+  final bool _useMockData = false;
   String _searchQuery = '';
   bool _isEditingFavorites = false;
   // final List<String> _pinnedMockIds = [];
@@ -201,7 +198,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
     //     }
     //   });
     // } else {
-      context.read<ConversationProvider>().togglePin(id);
+    context.read<ConversationProvider>().togglePin(id);
     // }
   }
 
@@ -279,11 +276,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
                         : colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: 12),
-              Text(
-                conversation.isPinned
-                    ? 'Unfavorite'
-                    : 'Add to Favorites',
-              ),
+              Text(conversation.isPinned ? 'Unfavorite' : 'Add to Favorites'),
             ],
           ),
         ),
@@ -1000,7 +993,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
         });
       }
     } else {
-      if (mounted)
+      if (mounted) {
         context.push(
           '/messages/${conversation.id}',
           extra: {
@@ -1009,6 +1002,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
             'otherUserId': conversation.otherUserId,
           },
         );
+      }
     }
   }
 }
@@ -1041,10 +1035,11 @@ class _BentoPinnedGrid extends StatelessWidget {
             final sizeTier = conversationSizes[conversation.id] ?? 0;
             int crossAxis = 2;
             int mainAxis = 1;
-            if (sizeTier == 1)
+            if (sizeTier == 1) {
               mainAxis = 2;
-            else if (sizeTier == 2)
+            } else if (sizeTier == 2) {
               crossAxis = 4;
+            }
             return StaggeredGridTile.count(
               crossAxisCellCount: crossAxis,
               mainAxisCellCount: mainAxis,
@@ -1553,8 +1548,9 @@ class _StealthPreviewPopup extends StatelessWidget {
 
     double left = position.dx - (popupWidth / 2);
     if (left < 20) left = 20;
-    if (left + popupWidth > size.width - 20)
+    if (left + popupWidth > size.width - 20) {
       left = size.width - popupWidth - 20;
+    }
 
     double top = position.dy - popupHeight - 20;
     if (top < safeTop) top = position.dy + 30;
@@ -1787,15 +1783,4 @@ Color _getVibeColor(String name) {
     const Color(0xFFA3E635),
   ];
   return colors[hash.abs() % colors.length];
-}
-
-String _formatTimestamp(DateTime timestamp) {
-  final now = DateTime.now();
-  final difference = now.difference(timestamp);
-  if (difference.isNegative || difference.inMinutes < 1) return 'Just now';
-  if (difference.inHours < 1) return '${difference.inMinutes}m';
-  if (difference.inDays < 1) return '${difference.inHours}h';
-  if (difference.inDays == 1) return 'Yesterday';
-  if (difference.inDays < 7) return '${difference.inDays}d';
-  return '${timestamp.month}/${timestamp.day}/${timestamp.year % 100}';
 }

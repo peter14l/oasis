@@ -60,7 +60,7 @@ class ProfileCustomization {
       'mood_emoji': moodEmoji,
       'accent_color':
           accentColor != null
-              ? '#${accentColor!.value.toRadixString(16).substring(2)}'
+              ? '#${accentColor!.toARGB32().toRadixString(16).substring(2)}'
               : null,
     };
   }

@@ -24,7 +24,7 @@ void main() {
           home: Scaffold(
             body: DottedBorder(
               borderRadius: BorderRadius.circular(10),
-              child: SizedBox(width: 100, height: 100),
+              child: const SizedBox(width: 100, height: 100),
             ),
           ),
         ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:oasis/services/time_capsule_service.dart';
 import 'package:oasis/models/time_capsule.dart';
 import 'package:oasis/widgets/fluid_mesh_background.dart';

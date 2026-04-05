@@ -18,17 +18,17 @@ class SmartReplyService {
       ])) {
         return [
           "I'm doing great! 😊",
-          "Pretty good, thanks!",
+          'Pretty good, thanks!',
           "Can't complain!",
-          "Living the dream 🌟",
+          'Living the dream 🌟',
         ];
       }
       if (_containsAny(lowerMessage, ['want to', 'wanna', 'do you want'])) {
         return [
-          "Sure, sounds good!",
+          'Sure, sounds good!',
           "I'd love to!",
-          "Maybe later?",
-          "Count me in! 🎉",
+          'Maybe later?',
+          'Count me in! 🎉',
         ];
       }
       if (_containsAny(lowerMessage, [
@@ -38,43 +38,43 @@ class SmartReplyService {
       ])) {
         return [
           "I think it's great!",
-          "Interesting idea 🤔",
-          "Let me think about it",
-          "I agree!",
+          'Interesting idea 🤔',
+          'Let me think about it',
+          'I agree!',
         ];
       }
       if (_containsAny(lowerMessage, ['where', 'when', 'what time'])) {
         return [
-          "Let me check",
+          'Let me check',
           "I'll get back to you",
-          "Not sure yet",
-          "Give me a sec",
+          'Not sure yet',
+          'Give me a sec',
         ];
       }
       if (_containsAny(lowerMessage, ['can you', 'could you', 'would you'])) {
         return [
-          "Sure thing!",
-          "Of course!",
-          "No problem 👍",
+          'Sure thing!',
+          'Of course!',
+          'No problem 👍',
           "I'll try my best",
         ];
       }
       // Generic question
-      return ["Yes!", "No, sorry", "Maybe 🤔", "Let me check"];
+      return ['Yes!', 'No, sorry', 'Maybe 🤔', 'Let me check'];
     }
 
     // Greeting responses
     if (_containsAny(lowerMessage, ['hi', 'hello', 'hey', 'hola', 'sup'])) {
-      return ["Hey! 👋", "Hello!", "Hi there!", "What's up? 😊"];
+      return ['Hey! 👋', 'Hello!', 'Hi there!', "What's up? 😊"];
     }
 
     // Gratitude responses
     if (_containsAny(lowerMessage, ['thank', 'thanks', 'thx', 'appreciate'])) {
       return [
         "You're welcome!",
-        "No problem! 😊",
-        "Anytime!",
-        "Happy to help!",
+        'No problem! 😊',
+        'Anytime!',
+        'Happy to help!',
       ];
     }
 
@@ -88,7 +88,7 @@ class SmartReplyService {
       'cool',
       'perfect',
     ])) {
-      return ["🎉", "Glad you like it!", "Right?! 😄", "Absolutely!"];
+      return ['🎉', 'Glad you like it!', 'Right?! 😄', 'Absolutely!'];
     }
 
     // Sympathy
@@ -102,14 +102,14 @@ class SmartReplyService {
       return [
         "I'm here for you 💙",
         "That's tough, sorry",
-        "Sending hugs 🤗",
-        "Things will get better",
+        'Sending hugs 🤗',
+        'Things will get better',
       ];
     }
 
     // Excitement
     if (_containsAny(lowerMessage, ['excited', 'can\'t wait', 'omg', '!!!'])) {
-      return ["So exciting! 🎉", "I know right?!", "Me too!", "Can't wait! 🚀"];
+      return ['So exciting! 🎉', 'I know right?!', 'Me too!', "Can't wait! 🚀"];
     }
 
     // Affirmation
@@ -121,10 +121,10 @@ class SmartReplyService {
       'alright',
     ])) {
       return [
-        "Perfect! 👍",
-        "Great!",
-        "See you then!",
-        "Looking forward to it",
+        'Perfect! 👍',
+        'Great!',
+        'See you then!',
+        'Looking forward to it',
       ];
     }
 
@@ -137,11 +137,11 @@ class SmartReplyService {
       'gtg',
       'gotta go',
     ])) {
-      return ["Bye! 👋", "See you later!", "Take care!", "Talk soon! 😊"];
+      return ['Bye! 👋', 'See you later!', 'Take care!', 'Talk soon! 😊'];
     }
 
     // Generic fallbacks
-    return ["👍", "😊", "Sounds good!", "Got it!"];
+    return ['👍', '😊', 'Sounds good!', 'Got it!'];
   }
 
   static bool _containsAny(String text, List<String> patterns) {

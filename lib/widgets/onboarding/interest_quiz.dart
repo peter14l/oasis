@@ -390,7 +390,7 @@ class _InterestDiscoveryQuizState extends State<InterestDiscoveryQuiz> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Fine-tune your interests",
+                  'Fine-tune your interests',
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),

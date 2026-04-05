@@ -96,7 +96,7 @@ DateTime? safeDateTimeOrNull(Map<String, dynamic> json, String key) {
   return null;
 }
 
-/// Safely extract a List<String> from JSON.
+/// Safely extract a `List<String>` from JSON.
 List<String> safeStringList(Map<String, dynamic> json, String key) {
   final value = json[key];
   if (value is! List) return [];

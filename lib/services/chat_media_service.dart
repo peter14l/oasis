@@ -61,7 +61,7 @@ class ChatMediaService {
     try {
       final uri = Uri.parse(url);
       final pathSegments = uri.pathSegments;
-      final bucketName = SupabaseConfig.messageAttachmentsBucket;
+      const bucketName = SupabaseConfig.messageAttachmentsBucket;
       
       final bucketIndex = pathSegments.indexOf(bucketName);
       if (bucketIndex != -1 && bucketIndex < pathSegments.length - 1) {

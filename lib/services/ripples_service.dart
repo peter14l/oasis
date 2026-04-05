@@ -63,7 +63,7 @@ class RipplesService extends ChangeNotifier {
     debugPrint('Ripples: Lockout check timer resumed');
   }
 
-  String _getUserKey(String baseKey) => _currentUserId != null ? '${baseKey}_${_currentUserId}' : baseKey;
+  String _getUserKey(String baseKey) => _currentUserId != null ? '${baseKey}_$_currentUserId' : baseKey;
 
   Future<void> initForUser(String userId) async {
     if (_currentUserId == userId) return;
@@ -183,7 +183,7 @@ class RipplesService extends ChangeNotifier {
       }
     }
 
-    final baseLockout = const Duration(minutes: 30);
+    const baseLockout = Duration(minutes: 30);
     final actualLockoutMinutes = (baseLockout.inMinutes * _lockoutMultiplier).round();
     
     _lockoutEndTime = DateTime.now().add(Duration(minutes: actualLockoutMinutes));
@@ -249,7 +249,7 @@ class RipplesService extends ChangeNotifier {
             ripple_saves!left (
               user_id
             )
-          ''').or('is_private.eq.false,user_id.eq.${userId}').order(
+          ''').or('is_private.eq.false,user_id.eq.$userId').order(
         'created_at',
         ascending: false,
       );

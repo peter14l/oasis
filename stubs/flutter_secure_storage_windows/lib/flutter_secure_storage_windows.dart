@@ -1,4 +1,4 @@
-library flutter_secure_storage_windows;
+library;
 
 import 'dart:convert';
 import 'dart:typed_data';
