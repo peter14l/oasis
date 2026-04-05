@@ -109,7 +109,6 @@ class _CreateRippleScreenState extends State<CreateRippleScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     final content = SingleChildScrollView(

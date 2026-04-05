@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
-import 'package:oasis/features/messages/domain/models/message_reaction.dart';
 import 'package:oasis/features/messages/presentation/widgets/bubbles/bubbles.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_reactions_provider.dart';
 import 'package:oasis/widgets/skeleton_container.dart';
-import 'package:oasis/widgets/messages/message_reactions.dart';
 
 /// Chat message list with skeleton loading, empty state, and message rendering.
 class ChatMessageList extends StatelessWidget {

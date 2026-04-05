@@ -1,4 +1,4 @@
-import 'package:gotrue/gotrue.dart' as gotrue;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/services/session_registry_service.dart';
 import 'package:oasis/features/auth/domain/models/auth_models.dart';
 
@@ -37,5 +37,5 @@ abstract class AuthRepository {
     String? avatarUrl,
   });
 
-  Stream<gotrue.AuthState> get onAuthStateChange;
+  Stream<AuthState> get onAuthStateChange;
 }

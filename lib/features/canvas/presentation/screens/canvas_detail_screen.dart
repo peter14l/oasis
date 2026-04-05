@@ -379,7 +379,7 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
         imageQuality: 70,
       );
 
-      if (pickedFile != null && mounted) {
+      if (pickedFile != null && context.mounted) {
         final messenger = ScaffoldMessenger.of(context);
         final provider = context.read<CanvasProvider>();
         final profileProvider = context.read<ProfileProvider>();
@@ -410,7 +410,7 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
       }
     } catch (e) {
       debugPrint('Error adding photo: $e');
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Failed to add photo')));

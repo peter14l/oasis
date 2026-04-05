@@ -17,7 +17,7 @@ import 'package:oasis/services/desktop_window_service.dart';
 import 'package:oasis/services/energy_meter_service.dart';
 import 'package:oasis/services/encryption_service.dart';
 import 'package:oasis/services/notification_manager.dart';
-import 'package:oasis/services/ripples_service.dart';
+
 import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/services/signal/signal_service.dart';

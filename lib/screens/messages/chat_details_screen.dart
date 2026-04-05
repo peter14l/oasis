@@ -511,8 +511,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
     final difference = now.difference(timestamp);
-    if (difference.inDays < 1)
+    if (difference.inDays < 1) {
       return '${timestamp.hour}:${timestamp.minute.toString().padLeft(2, "0")}';
+    }
     return '${timestamp.day}/${timestamp.month}/${timestamp.year % 100}';
   }
 
@@ -579,53 +580,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error updating vault: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating vault: $e')));
       }
     }
-  }
-
-  Future<void> _toggleWhisperMode() async {
-    /*
-    final int nextMode = (_whisperMode + 1) % 3;
-    
-    try {
-      await _messagingService.toggleWhisperMode(widget.conversationId, nextMode);
-      setState(() => _whisperMode = nextMode);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('chat_whisper_mode_${widget.conversationId}', nextMode);
-
-      String message;
-      switch (nextMode) {
-        case 1:
-          message = '✨ Instant Vanish enabled';
-          break;
-        case 2:
-          message = '🕒 24h Vanish enabled';
-          break;
-        default:
-          message = 'Whisper Mode disabled';
-      }
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            backgroundColor:
-                nextMode > 0 ? Theme.of(context).colorScheme.secondary : Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
-      }
-    }
-    */
   }
 
   Future<void> _updateBgOpacity(double value) async {
@@ -794,8 +751,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isM3E = themeProvider.isM3EEnabled;
 
     final canPop = Navigator.of(context).canPop();
 
@@ -1320,8 +1275,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
               width: 24,
               child: Radio<String>(
                 value: value,
+                // ignore: deprecated_member_use
                 groupValue: current,
                 activeColor: Colors.indigo,
+                // ignore: deprecated_member_use
                 onChanged: (val) {
                   if (val != null) {
                     context.read<VaultService>().setLockInterval(

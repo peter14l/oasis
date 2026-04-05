@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:video_player/video_player.dart';
 import 'package:go_router/go_router.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:gal/gal.dart';
@@ -39,6 +40,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   bool _isDrawingMode = false;
   bool _isFilterPickerVisible = false;
   StoryMusicEntity? _selectedMusic;
+  // New Instagram Features State
+  bool _shareToCloseFriends = false;
+  int _storyDuration = 5;
+  VideoPlayerController? _videoController;
 
   // Text Overlay State
   List<StoryText> _texts = [];
@@ -48,7 +53,6 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   int _textBackgroundMode = 0;
   final TextAlign _textAlign = TextAlign.center;
   Color _textColor = Colors.white;
-  final List<String> _fontStyles = ['Classic', 'Neon', 'Typewriter', 'Strong'];
   int _selectedFontIndex = 0;
 
   // Drawing State
@@ -241,6 +245,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   @override
   void dispose() {
     _captionController.dispose();
+    _videoController?.dispose();
     super.dispose();
   }
 
@@ -285,8 +290,20 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       }
 
       if (file != null) {
+        final pickedFile = File(file.path);
+        
+        if (isVideo) {
+          _videoController?.dispose();
+          _videoController = VideoPlayerController.file(pickedFile)
+            ..initialize().then((_) {
+              _videoController!.setLooping(true);
+              _videoController!.play();
+              if (mounted) setState(() {});
+            });
+        }
+        
         setState(() {
-          _selectedFile = File(file!.path);
+          _selectedFile = pickedFile;
           _mediaType = isVideo ? 'video' : 'image';
           _texts = [];
           _strokes = [];
@@ -341,7 +358,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     setState(() => _isUploading = true);
 
     try {
-      final finalFile = await _captureCompositeImage() ?? _selectedFile!;
+      final finalFile = _mediaType == 'video' ? _selectedFile! : (await _captureCompositeImage() ?? _selectedFile!);
 
       // Prepare interactive metadata for text layers
       final interactiveMetadata =
@@ -360,6 +377,14 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               )
               .toList();
 
+      interactiveMetadata.add({
+         'type': 'story_settings',
+         'data': {
+         },
+         'x': 0,
+         'y': 0,
+      });
+
       // Use the original StoriesService to handle actual file upload
       final story = await _storiesService.createStory(
         file: finalFile,
@@ -372,6 +397,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       if (story != null && mounted) {
         // Refresh stories via provider
         await context.read<StoriesProvider>().loadMyStories();
+        if (!mounted) return;
         context.pop(true);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -415,8 +441,6 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     }
 
     setState(() {
-      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-      final isM3E = themeProvider.isM3EEnabled;
       final newText = StoryText(
         text: _captionController.text.trim(),
         position:
@@ -493,7 +517,16 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                         colorFilter: ui.ColorFilter.matrix(
                           _filterPresets[_selectedFilterIndex]['matrix'],
                         ),
-                        child: Image.file(_selectedFile!, fit: BoxFit.cover),
+                        child: _mediaType == 'video' && _videoController != null && _videoController!.value.isInitialized
+                            ? FittedBox(
+                                fit: BoxFit.cover,
+                                child: SizedBox(
+                                  width: _videoController!.value.size.width,
+                                  height: _videoController!.value.size.height,
+                                  child: VideoPlayer(_videoController!),
+                                ),
+                              )
+                            : Image.file(_selectedFile!, fit: BoxFit.cover),
                       ),
                     ),
 
@@ -840,12 +873,20 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 onTap: () => _pickMedia(ImageSource.camera),
                 isM3E: isM3E,
               ),
-              const SizedBox(width: 40),
+              const SizedBox(width: 20),
               _buildModernPickerItem(
                 icon: Icons.photo_library_rounded,
                 label: 'Gallery',
                 color: isM3E ? colorScheme.tertiary : Colors.pink,
                 onTap: () => _pickMedia(ImageSource.gallery),
+                isM3E: isM3E,
+              ),
+              const SizedBox(width: 20),
+              _buildModernPickerItem(
+                icon: Icons.videocam_rounded,
+                label: 'Video',
+                color: isM3E ? colorScheme.secondary : Colors.purple,
+                onTap: () => _pickMedia(ImageSource.gallery, isVideo: true),
                 isM3E: isM3E,
               ),
             ],
@@ -901,15 +942,15 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     const SizedBox(width: 16),
                     TextButton(
                       onPressed: _finishTextEditing,
-                      child: Text(
-                        'Done',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
-                          letterSpacing: isM3E ? -0.5 : 0,
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        textStyle: TextStyle(
+                          fontSize: 16,
+                          fontWeight: isM3E ? FontWeight.w500 : FontWeight.bold,
+                          letterSpacing: isM3E ? 0.1 : 0,
                         ),
                       ),
+                      child: const Text('Done'),
                     ),
                   ],
                 ),
@@ -1062,7 +1103,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.close, color: Colors.white),
+              icon: const Icon(Icons.close),
+              style: IconButton.styleFrom(
+                foregroundColor: Colors.white,
+              ),
               onPressed: () => setState(() => _isFilterPickerVisible = false),
             ),
           ],
@@ -1106,6 +1150,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }
 
   Widget _buildBottomActionBar() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
     return Positioned(
       bottom: MediaQuery.of(context).padding.bottom + 20,
       left: 20,
@@ -1114,20 +1160,35 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           _buildBlurButton(icon: Icons.download_rounded, onTap: _saveToGallery),
+          if (isM3E) ...[
+            const SizedBox(width: 12),
+            _buildBlurButton(
+              icon: _shareToCloseFriends ? Icons.stars_rounded : Icons.star_border_rounded,
+              onTap: () => setState(() => _shareToCloseFriends = !_shareToCloseFriends),
+            ),
+          ],
           const Spacer(),
-          _buildCircleActionButton(
-            icon:
-                _isUploading
-                    ? Icons.hourglass_empty
-                    : Icons.chevron_right_rounded,
-            onTap: _isUploading ? () {} : _createStory,
-          ),
+          if (isM3E)
+            _buildCircleActionButton(
+              icon: _isUploading ? Icons.hourglass_empty : Icons.send_rounded,
+              label: _shareToCloseFriends ? 'Close Friends' : 'Share',
+              onTap: _isUploading ? () {} : _createStory,
+            )
+          else
+            _buildCircleActionButton(
+              icon:
+                  _isUploading
+                      ? Icons.hourglass_empty
+                      : Icons.chevron_right_rounded,
+              onTap: _isUploading ? () {} : _createStory,
+            ),
         ],
       ),
     );
   }
 
   Widget _buildTopToolbar() {
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1141,12 +1202,39 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 } else if (_isFilterPickerVisible) {
                   setState(() => _isFilterPickerVisible = false);
                 } else {
-                  setState(() => _selectedFile = null);
+                  setState(() {
+                     _selectedFile = null;
+                     _videoController?.pause();
+                  });
                 }
               },
             ),
             if (!_isCaptionVisible && !_isDrawingMode) ...[
               const Spacer(),
+              if (isM3E)
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      if (_storyDuration == 5) {
+                        _storyDuration = 7;
+                      } else if (_storyDuration == 7) {
+                        _storyDuration = 10;
+                      } else if (_storyDuration == 10) {
+                        _storyDuration = 15;
+                      } else {
+                        _storyDuration = 5;
+                      }
+                    });
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.black26,
+                    minimumSize: const Size(48, 48),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: Text('${_storyDuration}s', style: const TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              const SizedBox(width: 8),
               _buildBlurButton(
                 icon: Icons.music_note_rounded,
                 onTap: _openMusicPicker,
@@ -1278,30 +1366,58 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     required VoidCallback onTap,
     bool isM3E = false,
   }) {
+    if (isM3E) {
+      return Card.filled(
+        color: color.withValues(alpha: 0.15),
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(28),
+          child: Container(
+            width: 100,
+            height: 100,
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: color, size: 36),
+                const SizedBox(height: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return GestureDetector(
       onTap: onTap,
       child: Column(
         children: [
           Container(
-            width: isM3E ? 90 : 80,
-            height: isM3E ? 90 : 80,
+            width: 80,
+            height: 80,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
-              borderRadius: isM3E ? BorderRadius.circular(28) : null,
+              shape: BoxShape.circle,
               border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
             ),
-            child: Icon(icon, color: color, size: isM3E ? 36 : 32),
+            child: Icon(icon, color: color, size: 32),
           ),
           const SizedBox(height: 12),
           Text(
             label,
-            style: TextStyle(
-              color:
-                  isM3E
-                      ? Theme.of(context).colorScheme.onSurface
-                      : Colors.white,
-              fontWeight: isM3E ? FontWeight.bold : FontWeight.bold,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],
@@ -1316,18 +1432,22 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(
-          isM3E ? 12 : 20,
-        ), // M3E Medium (12dp) vs old (20)
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            color: isM3E ? Colors.white.withValues(alpha: 0.2) : Colors.white10,
-            child: Icon(icon, color: Colors.white, size: 24),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(isM3E ? 16 : 20),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(isM3E ? 16 : 20),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              alignment: Alignment.center,
+              padding: const EdgeInsets.all(12),
+              color: isM3E ? Colors.white.withValues(alpha: 0.2) : Colors.white10,
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
           ),
         ),
       ),
@@ -1341,57 +1461,73 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          _buildBlurButton(icon: icon, onTap: onTap),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 10,
-              fontWeight:
-                  isM3E
-                      ? FontWeight.w600
-                      : FontWeight.bold, // M3E Medium weight
-              letterSpacing: isM3E ? -0.5 : 0, // M3E tighter spacing
+    return Column(
+      children: [
+        if (isM3E)
+          IconButton.filledTonal(
+            onPressed: onTap,
+            icon: Icon(icon),
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.white.withValues(alpha: 0.15),
+              foregroundColor: Colors.white,
+              minimumSize: const Size(48, 48),
             ),
+          )
+        else
+          _buildBlurButton(icon: icon, onTap: onTap),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: isM3E ? FontWeight.w500 : FontWeight.bold,
+            letterSpacing: isM3E ? 0.1 : 0,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildCircleActionButton({
     required IconData icon,
     required VoidCallback onTap,
+    String? label,
   }) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
+
+    if (isM3E) {
+      if (label != null) {
+        return FilledButton.icon(
+          onPressed: onTap,
+          icon: Icon(icon, size: 24),
+          label: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            minimumSize: const Size(48, 48),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          ),
+        );
+      }
+      return FilledButton(
+        onPressed: onTap,
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.all(16),
+          minimumSize: const Size(56, 56),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        ),
+        child: Icon(icon, size: 24),
+      );
+    }
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
-          shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
-          borderRadius:
-              isM3E
-                  ? BorderRadius.circular(28)
-                  : null, // M3E Extra Large (28dp)
-          boxShadow:
-              isM3E
-                  ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                  : null,
+          shape: BoxShape.circle,
         ),
         child: Icon(icon, color: Colors.black, size: 24),
       ),

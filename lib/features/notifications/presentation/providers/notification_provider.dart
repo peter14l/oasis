@@ -6,7 +6,6 @@ import 'package:oasis/features/notifications/domain/usecases/notification_usecas
 import 'package:oasis/features/notifications/presentation/providers/notification_state.dart';
 
 class NotificationProvider extends ChangeNotifier {
-  final NotificationRepository _repository;
   final GetNotifications _getNotifications;
   final MarkNotificationRead _markNotificationRead;
   final MarkAllNotificationsRead _markAllNotificationsRead;
@@ -16,8 +15,7 @@ class NotificationProvider extends ChangeNotifier {
   NotificationState get state => _state;
 
   NotificationProvider({NotificationRepository? repository})
-    : _repository = repository ?? NotificationRepositoryImpl(),
-      _getNotifications = GetNotifications(
+    : _getNotifications = GetNotifications(
         repository ?? NotificationRepositoryImpl(),
       ),
       _markNotificationRead = MarkNotificationRead(

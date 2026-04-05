@@ -11,7 +11,7 @@ class PersistentSignalStore implements SignalProtocolStore {
   final InMemorySignalProtocolStore _inMemoryStore;
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   late final SharedPreferences _prefs;
-  bool _initialized = false;
+
 
   // Keys for SharedPreferences / Secure Storage
   static String _identityKeyPairKey(String uid) =>
@@ -85,7 +85,7 @@ class PersistentSignalStore implements SignalProtocolStore {
     final store = PersistentSignalStore(identityKeyPair, registrationId);
     store._prefs = prefs;
     await store._loadState(userId);
-    store._initialized = true;
+
     return store;
   }
 
@@ -132,7 +132,7 @@ class PersistentSignalStore implements SignalProtocolStore {
 
     // Load remaining state (sessions, etc) into memory
     await store._loadState(userId);
-    store._initialized = true;
+
 
     return store;
   }
@@ -434,6 +434,6 @@ class PersistentSignalStore implements SignalProtocolStore {
         await _prefs.remove(key);
       }
     }
-    _initialized = false;
+
   }
 }

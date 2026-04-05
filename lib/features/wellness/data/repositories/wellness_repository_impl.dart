@@ -61,7 +61,6 @@ class WellnessRepositoryImpl implements WellnessRepository {
   }
 
   void _loadScreenTimeState() {
-    final dateKey = _getDateKey(DateTime.now());
     final data = _datasource.getCategoryMinutes(DateTime.now());
     _categoryMinutes = data;
   }

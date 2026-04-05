@@ -79,7 +79,7 @@ class _CircleDetailScreenState extends State<CircleDetailScreen>
           ),
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && mounted) {
       try {
         await context.read<CircleProvider>().deleteCircle(widget.circleId);
         if (mounted) {

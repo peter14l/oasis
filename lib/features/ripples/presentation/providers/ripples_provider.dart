@@ -5,8 +5,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/features/ripples/domain/models/ripple_entity.dart'
     show RipplesLayoutType;
-import 'package:oasis/features/ripples/domain/repositories/ripple_repository.dart';
-import 'package:oasis/features/ripples/data/repositories/ripple_repository_impl.dart';
 
 /// Provider for ripples feature - manages UI state and session lifecycle.
 /// Uses Maps internally for backward compatibility with existing screen code.

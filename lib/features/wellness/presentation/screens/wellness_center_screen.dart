@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
-import 'package:oasis/services/wellness_service.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui';

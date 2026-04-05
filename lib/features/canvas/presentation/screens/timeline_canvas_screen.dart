@@ -1189,7 +1189,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                               recordPath = path;
                             });
 
-                            if (recordPath != null && mounted) {
+                            if (recordPath != null && modalCtx.mounted) {
                               final profile =
                                   modalCtx
                                       .read<ProfileProvider>()

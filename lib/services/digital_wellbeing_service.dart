@@ -18,7 +18,7 @@ class DigitalWellbeingService extends ChangeNotifier {
 
   // Lockout state
   DateTime? _lockoutEndTime;
-  int _lastOverspendSeconds = 0;
+
 
   DigitalWellbeingService(this._prefs, this._authService) {
     _loadState();
@@ -32,7 +32,7 @@ class DigitalWellbeingService extends ChangeNotifier {
         _lockoutEndTime = null;
       }
     }
-    _lastOverspendSeconds = _prefs.getInt(_lastOverspendKey) ?? 0;
+
   }
 
   // --- Tracking ---
@@ -91,9 +91,9 @@ class DigitalWellbeingService extends ChangeNotifier {
 
   void _triggerLockout(int overspendSeconds) {
     // Adapted lockout: 60 mins base + overspend
-    final lockoutDuration = Duration(minutes: 60) + Duration(seconds: overspendSeconds);
+    final lockoutDuration = const Duration(minutes: 60) + Duration(seconds: overspendSeconds);
     _lockoutEndTime = DateTime.now().add(lockoutDuration);
-    _lastOverspendSeconds = overspendSeconds;
+
 
     _prefs.setString(_lockoutEndTimeKey, _lockoutEndTime!.toIso8601String());
     _prefs.setInt(_lastOverspendKey, overspendSeconds);

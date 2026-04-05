@@ -43,10 +43,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   Timer? _refreshTimer;
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
-  double _scrollVelocity = 0;
   double _lastScrollOffset = 0;
-  // bool _useMockData = true;
-  final bool _useMockData = false;
   String _searchQuery = '';
   bool _isEditingFavorites = false;
   // final List<String> _pinnedMockIds = [];
@@ -167,12 +164,8 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   void _onScroll() {
     if (!_scrollController.hasClients) return;
     final currentOffset = _scrollController.offset;
-    final delta = currentOffset - _lastScrollOffset;
     if (mounted) {
-      setState(() {
-        _scrollVelocity = delta.clamp(-20, 20);
-        _lastScrollOffset = currentOffset;
-      });
+      _lastScrollOffset = currentOffset;
     }
   }
 
@@ -1332,8 +1325,6 @@ class _BentoItem extends StatelessWidget {
   }
 
   void _showBentoMenu(BuildContext context, Offset position) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     showMenu(
       context: context,
       position: RelativeRect.fromLTRB(
@@ -1537,7 +1528,6 @@ class _StealthPreviewPopup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final size = MediaQuery.of(context).size;
     final padding = MediaQuery.of(context).padding;
     final vibeColor = _getVibeColor(conversation.otherUserName);

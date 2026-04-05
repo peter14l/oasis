@@ -46,7 +46,6 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   int _textBackgroundMode = 0;
   final TextAlign _textAlign = TextAlign.center;
   Color _textColor = Colors.white;
-  final List<String> _fontStyles = ['Classic', 'Neon', 'Typewriter', 'Strong'];
   int _selectedFontIndex = 0;
 
   // Drawing State
@@ -410,8 +409,6 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     }
 
     setState(() {
-      final isM3E =
-          Provider.of<ThemeProvider>(context, listen: false).isM3EEnabled;
       final newText = StoryText(
         text: _captionController.text.trim(),
         position:
@@ -1152,10 +1149,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               onTap: () {
                 if (_isDrawingMode) {
                   setState(() => _isDrawingMode = false);
-                } else if (_isFilterPickerVisible)
+                } else if (_isFilterPickerVisible) {
                   setState(() => _isFilterPickerVisible = false);
-                else
+                } else {
                   setState(() => _selectedFile = null);
+                }
               },
             ),
             if (!_isCaptionVisible && !_isDrawingMode) ...[

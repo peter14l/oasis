@@ -30,7 +30,6 @@ class _RipplesScreenState extends State<RipplesScreen>
   StreamSubscription? _sessionSub;
   int _currentIndex = 0;
   DateTime? _sessionStartTime;
-  final bool _isPlayingGlobal = true;
 
   @override
   void initState() {

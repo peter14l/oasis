@@ -181,8 +181,6 @@ class ActivityGraph extends StatelessWidget {
   }
 
   Widget _buildYearSelector(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Column(
       children: [
         _buildYearButton(context, '2026', isSelected: true),
@@ -265,8 +263,9 @@ class ActivityGraph extends StatelessWidget {
                 return Column(
                   children:
                       week.map((day) {
-                        if (day == null)
+                        if (day == null) {
                           return const SizedBox(width: 13, height: 13);
+                        }
                         final count = dailyCounts[day] ?? 0;
                         return _buildContributionSquare(context, day, count);
                       }).toList(),
@@ -279,7 +278,6 @@ class ActivityGraph extends StatelessWidget {
 
   List<Widget> _buildMonthLabels(List<List<DateTime?>> weeks) {
     return weeks.asMap().entries.map((entry) {
-      final weekIndex = entry.key;
       final week = entry.value;
       final firstDay = week.firstWhere((d) => d != null, orElse: () => null);
 
@@ -354,20 +352,26 @@ class ActivityGraph extends StatelessWidget {
     }
 
     if (isDark) {
-      if (count == 1 || (isLegend && count == 1))
+      if (count == 1 || (isLegend && count == 1)) {
         return const Color(0xFF0E4429);
-      if (count == 2 || (isLegend && count == 2))
+      }
+      if (count == 2 || (isLegend && count == 2)) {
         return const Color(0xFF006D32);
-      if (count == 3 || (isLegend && count == 3))
+      }
+      if (count == 3 || (isLegend && count == 3)) {
         return const Color(0xFF26A641);
+      }
       return const Color(0xFF39D353);
     } else {
-      if (count == 1 || (isLegend && count == 1))
+      if (count == 1 || (isLegend && count == 1)) {
         return const Color(0xFF9BE9A8);
-      if (count == 2 || (isLegend && count == 2))
+      }
+      if (count == 2 || (isLegend && count == 2)) {
         return const Color(0xFF40C463);
-      if (count == 3 || (isLegend && count == 3))
+      }
+      if (count == 3 || (isLegend && count == 3)) {
         return const Color(0xFF30A14E);
+      }
       return const Color(0xFF216E39);
     }
   }

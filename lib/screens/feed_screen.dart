@@ -18,9 +18,7 @@ import 'package:oasis/screens/zen_feed_screen.dart';
 import 'package:oasis/screens/pulse_feed_screen.dart';
 import 'package:oasis/widgets/comments_modal.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
-import 'package:oasis/services/ripples_service.dart';
-import 'package:oasis/services/screen_time_service.dart';
-import 'package:oasis/providers/user_settings_provider.dart';
+import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
 import 'package:oasis/widgets/wellbeing/lockout_overlay.dart';
 import 'package:go_router/go_router.dart';
@@ -43,7 +41,6 @@ class _FeedScreenState extends State<FeedScreen>
   List<StoryEntity> _myStories = [];
   FeedLayoutType _currentLayout = FeedLayoutType.standard;
   bool _isScrolled = false;
-  // Removed old wellbeing logic
   bool _isStoriesLoading = true;
   bool _showRipplesOverlay = false;
 
@@ -898,87 +895,17 @@ class _FeedScreenState extends State<FeedScreen>
     );
   }
 
-  Widget _buildWellbeingNudge() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final settings = context.read<UserSettingsProvider>();
+  void _handleTabSelection() {
+    if (_tabController.indexIsChanging) {
+      _loadFeed();
+      setState(() {});
+    }
+  }
 
-    return Positioned.fill(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          color: Colors.black.withValues(alpha: 0.7),
-          child: Center(
-            child: motion.Animate(
-              effects: const [motion.FadeEffect(), motion.ScaleEffect()],
-              child: Container(
-                margin: const EdgeInsets.all(32),
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(32),
-                  border: Border.all(
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-                  ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.spa_rounded,
-                        color: Colors.amber,
-                        size: 40,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Time for a breather?',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'You\'ve been on Oasis for ${settings.dailyLimitMinutes} minutes today.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () {
-                          setState(() => _showWellbeingNudge = false);
-                          context.go('/spaces/circles');
-                        },
-                        child: const Text('CHECK ON YOUR CIRCLES'),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed:
-                          () => setState(() => _showWellbeingNudge = false),
-                      child: const Text(
-                        'Stay for 5 more minutes',
-                        style: TextStyle(color: Colors.white54),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+  void _onScroll() {
+    final scrolled = _scrollController.offset > 10;
+    if (scrolled != _isScrolled) {
+      setState(() => _isScrolled = scrolled);
+    }
   }
 }

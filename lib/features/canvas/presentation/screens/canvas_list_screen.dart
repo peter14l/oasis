@@ -292,7 +292,7 @@ class _CanvasTileWrapper extends StatelessWidget {
 
     if (result == 'open') {
       onTap();
-    } else if (result == 'delete') {
+    } else if (result == 'delete' && context.mounted) {
       final confirmed = await showDialog<bool>(
         context: context,
         builder:
@@ -315,10 +315,10 @@ class _CanvasTileWrapper extends StatelessWidget {
             ),
       );
 
-      if (confirmed == true) {
+      if (confirmed == true && context.mounted) {
         await canvasProvider.deleteCanvas(canvas.id);
       }
-    } else if (result == 'leave') {
+    } else if (result == 'leave' && context.mounted) {
       final confirmed = await showDialog<bool>(
         context: context,
         builder:
@@ -341,7 +341,7 @@ class _CanvasTileWrapper extends StatelessWidget {
             ),
       );
 
-      if (confirmed == true) {
+      if (confirmed == true && context.mounted) {
         await canvasProvider.leaveCanvas(canvas.id);
       }
     }

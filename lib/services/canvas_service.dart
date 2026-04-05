@@ -100,7 +100,7 @@ class CanvasService {
 
       // The DB RLS policy will handle security, but we can do a quick check here if needed.
       // We'll let the DB enforce deletion rights.
-      final result = await _supabase.from('canvases').delete().eq('id', canvasId);
+      await _supabase.from('canvases').delete().eq('id', canvasId);
       
       // If no error was thrown, it was either successful or nothing matched.
     } catch (e) {
