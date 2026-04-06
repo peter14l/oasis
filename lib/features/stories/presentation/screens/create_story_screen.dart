@@ -897,59 +897,72 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                   : [const Color(0xFF1A1A1A), const Color(0xFF000000)],
         ),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ZoomIn(
-            child: Icon(
-              Icons.auto_awesome_mosaic_rounded,
-              size: isM3E ? 100 : 80,
-              color:
-                  isM3E
-                      ? colorScheme.primary.withValues(alpha: 0.3)
-                      : Colors.white24,
+      child: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 40),
+                ZoomIn(
+                  child: Icon(
+                    Icons.auto_awesome_mosaic_rounded,
+                    size: isM3E ? 100 : 80,
+                    color:
+                        isM3E
+                            ? colorScheme.primary.withValues(alpha: 0.3)
+                            : Colors.white24,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Text(
+                  'Create Story',
+                  style: TextStyle(
+                    color: isM3E ? colorScheme.onSurface : Colors.white,
+                    fontSize: isM3E ? 36 : 32,
+                    fontWeight: isM3E ? FontWeight.w800 : FontWeight.w900,
+                    letterSpacing: isM3E ? -1.5 : null,
+                  ),
+                ),
+                const SizedBox(height: 60),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildModernPickerItem(
+                        icon: Icons.camera_alt_rounded,
+                        label: 'Camera',
+                        color: isM3E ? colorScheme.primary : Colors.blue,
+                        onTap: () => _pickMedia(ImageSource.camera),
+                        isM3E: isM3E,
+                      ),
+                      const SizedBox(width: 20),
+                      _buildModernPickerItem(
+                        icon: Icons.photo_library_rounded,
+                        label: 'Gallery',
+                        color: isM3E ? colorScheme.tertiary : Colors.pink,
+                        onTap: () => _pickMedia(ImageSource.gallery),
+                        isM3E: isM3E,
+                      ),
+                      const SizedBox(width: 20),
+                      _buildModernPickerItem(
+                        icon: Icons.videocam_rounded,
+                        label: 'Video',
+                        color: isM3E ? colorScheme.secondary : Colors.purple,
+                        onTap:
+                            () =>
+                                _pickMedia(ImageSource.gallery, isVideo: true),
+                        isM3E: isM3E,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 40),
+              ],
             ),
           ),
-          const SizedBox(height: 32),
-          Text(
-            'Create Story',
-            style: TextStyle(
-              color: isM3E ? colorScheme.onSurface : Colors.white,
-              fontSize: isM3E ? 36 : 32,
-              fontWeight: isM3E ? FontWeight.w800 : FontWeight.w900,
-              letterSpacing: isM3E ? -1.5 : null,
-            ),
-          ),
-          const SizedBox(height: 60),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildModernPickerItem(
-                icon: Icons.camera_alt_rounded,
-                label: 'Camera',
-                color: isM3E ? colorScheme.primary : Colors.blue,
-                onTap: () => _pickMedia(ImageSource.camera),
-                isM3E: isM3E,
-              ),
-              const SizedBox(width: 20),
-              _buildModernPickerItem(
-                icon: Icons.photo_library_rounded,
-                label: 'Gallery',
-                color: isM3E ? colorScheme.tertiary : Colors.pink,
-                onTap: () => _pickMedia(ImageSource.gallery),
-                isM3E: isM3E,
-              ),
-              const SizedBox(width: 20),
-              _buildModernPickerItem(
-                icon: Icons.videocam_rounded,
-                label: 'Video',
-                color: isM3E ? colorScheme.secondary : Colors.purple,
-                onTap: () => _pickMedia(ImageSource.gallery, isVideo: true),
-                isM3E: isM3E,
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
