@@ -75,7 +75,7 @@ jobs:
         run: flutter build windows --release --dart-define-from-file=".env"
 
       - name: Create MSIX
-        run: dart run msix:create --no-build-windows
+        run: dart run msix:create --build-windows false
 
       - name: Upload MSIX
         uses: actions/upload-artifact@v4

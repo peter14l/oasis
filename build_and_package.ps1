@@ -103,7 +103,7 @@ $windowsExit = Invoke-BuildStep -Title "Windows Release Build" -Command $FLUTTER
 if ($windowsExit -eq 0) {
     Write-Header "Step 3: Packaging"
     Write-Step "Creating MSIX package..." "Yellow"
-    dart run msix:create --no-build-windows
+    dart run msix:create --build-windows false
     if ($LASTEXITCODE -eq 0) {
         Write-Success "Packaging complete."
         if (Test-Path "test_certificate.pfx") {
