@@ -45,7 +45,9 @@ jobs:
           RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | tr -d '\r\n' | base64 --decode > android/app/release-keystore.jks
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release-keystore.jks
+          # Verify the file was created and isn't empty
+          ls -l android/app/release-keystore.jks
           flutter build apk --release --split-per-abi --dart-define-from-file=".env" --no-pub
 
       - name: Upload APKs
