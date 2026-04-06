@@ -10,8 +10,8 @@ buildDir = File(rootDir, "../build/app")
 
 android {
     namespace = "com.example.morrow_v2"
-    compileSdk = 36
-    buildToolsVersion = "36.0.0"
+    compileSdk = 35
+    buildToolsVersion = "35.0.0"
     ndkVersion = "28.2.13676358"
 
     compileOptions {
@@ -29,8 +29,8 @@ android {
 
     defaultConfig {
         applicationId = "com.example.morrow_v2"
-        minSdk = flutter.minSdkVersion // Required by Firebase Firestore 26.x
-        targetSdk = 36
+        minSdk = 24
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -43,11 +43,12 @@ android {
             val envKeyAlias = System.getenv("RELEASE_KEY_ALIAS")
             val envKeyPass = System.getenv("RELEASE_KEY_PASSWORD")
 
-            if (envFile != null) {
+            if (!envFile.isNullOrEmpty()) {
                 storeFile = file(envFile)
                 storePassword = envStorePass
                 keyAlias = envKeyAlias
                 keyPassword = envKeyPass
+                storeType = "PKCS12"
             }
         }
     }
@@ -58,7 +59,10 @@ android {
             isMinifyEnabled = false
             isShrinkResources = false
             
-            signingConfig = signingConfigs.getByName("release")
+            val envFile = System.getenv("RELEASE_STORE_FILE")
+            if (!envFile.isNullOrEmpty()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
