@@ -35,13 +35,30 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            // Read from environment variables if they exist (for CI)
+            val envFile = System.getenv("RELEASE_STORE_FILE")
+            val envStorePass = System.getenv("RELEASE_STORE_PASSWORD")
+            val envKeyAlias = System.getenv("RELEASE_KEY_ALIAS")
+            val envKeyPass = System.getenv("RELEASE_KEY_PASSWORD")
+
+            if (envFile != null) {
+                storeFile = file(envFile)
+                storePassword = envStorePass
+                keyAlias = envKeyAlias
+                keyPassword = envKeyPass
+            }
+        }
+    }
+
     buildTypes {
         getByName("release") {
             // ❌ Disabling for debugging the launch crash
             isMinifyEnabled = false
             isShrinkResources = false
             
-            signingConfig = signingConfigs.getByName("debug") // Replace with release config for production
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }

@@ -496,8 +496,15 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
-    debugPrint('M3E DEBUG: isM3EEnabled = \$isM3E');
+    debugPrint('=== CreateStoryScreen build ===');
+    debugPrint('_selectedFile: $_selectedFile');
+    debugPrint('isM3E: $isM3E');
     final colorScheme = Theme.of(context).colorScheme;
+
+    debugPrint(
+      'Returning Scaffold with body Stack, children count: ${_selectedFile == null ? 4 : 6}',
+    );
+    debugPrint('Will show empty state: ${_selectedFile == null}');
 
     return Scaffold(
       backgroundColor: isM3E ? colorScheme.surface : Colors.black,
@@ -802,16 +809,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             if (_isDraggingText) _buildTrashArea(),
           ],
 
-          if (_selectedFile == null)
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: _buildBlurButton(
-                  icon: Icons.close_rounded,
-                  onTap: () => context.pop(),
-                ),
-              ),
-            ),
+          // Close button now integrated into empty state layout
         ],
       ),
     );
@@ -898,70 +896,90 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         ),
       ),
       child: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 40),
-                ZoomIn(
-                  child: Icon(
-                    Icons.auto_awesome_mosaic_rounded,
-                    size: isM3E ? 100 : 80,
-                    color:
-                        isM3E
-                            ? colorScheme.primary.withValues(alpha: 0.3)
-                            : Colors.white24,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  'Create Story',
-                  style: TextStyle(
-                    color: isM3E ? colorScheme.onSurface : Colors.white,
-                    fontSize: isM3E ? 36 : 32,
-                    fontWeight: isM3E ? FontWeight.w800 : FontWeight.w900,
-                    letterSpacing: isM3E ? -1.5 : null,
-                  ),
-                ),
-                const SizedBox(height: 60),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildModernPickerItem(
-                        icon: Icons.camera_alt_rounded,
-                        label: 'Camera',
-                        color: isM3E ? colorScheme.primary : Colors.blue,
-                        onTap: () => _pickMedia(ImageSource.camera),
-                        isM3E: isM3E,
+        child: Stack(
+          children: [
+            // Main content - centered and scrollable
+            Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 40),
+                    ZoomIn(
+                      child: Icon(
+                        Icons.auto_awesome_mosaic_rounded,
+                        size: isM3E ? 100 : 80,
+                        color:
+                            isM3E
+                                ? colorScheme.primary.withValues(alpha: 0.3)
+                                : Colors.white24,
                       ),
-                      const SizedBox(width: 20),
-                      _buildModernPickerItem(
-                        icon: Icons.photo_library_rounded,
-                        label: 'Gallery',
-                        color: isM3E ? colorScheme.tertiary : Colors.pink,
-                        onTap: () => _pickMedia(ImageSource.gallery),
-                        isM3E: isM3E,
+                    ),
+                    const SizedBox(height: 32),
+                    Text(
+                      'Create Story',
+                      style: TextStyle(
+                        color: isM3E ? colorScheme.onSurface : Colors.white,
+                        fontSize: isM3E ? 36 : 32,
+                        fontWeight: isM3E ? FontWeight.w800 : FontWeight.w900,
+                        letterSpacing: isM3E ? -1.5 : null,
                       ),
-                      const SizedBox(width: 20),
-                      _buildModernPickerItem(
-                        icon: Icons.videocam_rounded,
-                        label: 'Video',
-                        color: isM3E ? colorScheme.secondary : Colors.purple,
-                        onTap:
-                            () =>
-                                _pickMedia(ImageSource.gallery, isVideo: true),
-                        isM3E: isM3E,
+                    ),
+                    const SizedBox(height: 60),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildModernPickerItem(
+                            icon: Icons.camera_alt_rounded,
+                            label: 'Camera',
+                            color: isM3E ? colorScheme.primary : Colors.blue,
+                            onTap: () => _pickMedia(ImageSource.camera),
+                            isM3E: isM3E,
+                          ),
+                          const SizedBox(width: 20),
+                          _buildModernPickerItem(
+                            icon: Icons.photo_library_rounded,
+                            label: 'Gallery',
+                            color: isM3E ? colorScheme.tertiary : Colors.pink,
+                            onTap: () => _pickMedia(ImageSource.gallery),
+                            isM3E: isM3E,
+                          ),
+                          const SizedBox(width: 20),
+                          _buildModernPickerItem(
+                            icon: Icons.videocam_rounded,
+                            label: 'Video',
+                            color:
+                                isM3E ? colorScheme.secondary : Colors.purple,
+                            onTap:
+                                () => _pickMedia(
+                                  ImageSource.gallery,
+                                  isVideo: true,
+                                ),
+                            isM3E: isM3E,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 40),
+                  ],
                 ),
-                const SizedBox(height: 40),
-              ],
+              ),
             ),
-          ),
+            // Close button - positioned at top-left
+            Positioned(
+              top: 0,
+              left: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: _buildBlurButton(
+                  icon: Icons.close_rounded,
+                  onTap: () => context.pop(),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
