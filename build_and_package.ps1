@@ -103,9 +103,13 @@ $windowsExit = Invoke-BuildStep -Title "Windows Release Build" -Command $FLUTTER
 if ($windowsExit -eq 0) {
     Write-Header "Step 3: Packaging"
     Write-Step "Creating MSIX package..." "Yellow"
-    dart run msix:create --build-windows false
+    dart run msix:create --no-build-windows
     if ($LASTEXITCODE -eq 0) {
         Write-Success "Packaging complete."
+        if (Test-Path "test_certificate.pfx") {
+            Write-Success "Certificate generated: test_certificate.pfx"
+            Write-Step "You can install this manually or use: certutil -addstore -f 'Root' 'test_certificate.pfx'" "DarkGray"
+        }
         Send-Notification -Title "Build Success" -Message "Oasis is ready!"
     } else {
         Write-Fail "MSIX creation failed."

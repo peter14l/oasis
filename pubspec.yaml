@@ -154,7 +154,7 @@ msix_config:
   capabilities: internetClient, location, microphone, webcam
   architecture: x64
   generate_certificate: true
-  install_certificate: true
+  install_certificate: false
   build_windows: false
 
 dependency_overrides:
