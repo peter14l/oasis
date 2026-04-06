@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:oasis/features/messages/data/encryption_service.dart';
+import 'package:oasis/widgets/recovery_key_sheet.dart';
 
 class EncryptionSetupScreen extends StatefulWidget {
   final bool isRestore;
@@ -57,7 +58,8 @@ class _EncryptionSetupScreenState extends State<EncryptionSetupScreen> {
     });
 
     try {
-      bool success;
+      bool success = false;
+      String? recoveryKey;
 
       if (forceNewKeys) {
         // User chose to generate brand-new keys (loses old message decryption)
@@ -98,7 +100,10 @@ class _EncryptionSetupScreenState extends State<EncryptionSetupScreen> {
         }
       } else {
         setState(() => _progressMessage = 'Generating encryption keys…');
-        success = await _encryptionService.setupEncryption();
+        final result = await _encryptionService.setupEncryption();
+        success = result.success;
+        recoveryKey = result.recoveryKey;
+
         if (!success) {
           setState(() {
             _errorMessage =
@@ -110,6 +115,9 @@ class _EncryptionSetupScreenState extends State<EncryptionSetupScreen> {
       }
 
       if (mounted) {
+        if (recoveryKey != null) {
+          await RecoveryKeySheet.show(context, recoveryKey: recoveryKey);
+        }
         Navigator.of(context).pop(true);
       }
     } catch (e) {

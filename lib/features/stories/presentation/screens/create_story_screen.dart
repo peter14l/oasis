@@ -40,10 +40,18 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   bool _isDrawingMode = false;
   bool _isFilterPickerVisible = false;
   StoryMusicEntity? _selectedMusic;
+
   // New Instagram Features State
   bool _shareToCloseFriends = false;
   int _storyDuration = 5;
   VideoPlayerController? _videoController;
+
+  // Camera UI State
+  int _selectedModeIndex = 1; // 0: POST, 1: STORY, 2: REEL, 3: LIVE
+  bool _isFlashOn = false;
+  bool _isFrontCamera = true;
+  String _activeTool = 'none'; // 'create', 'boomerang', 'layout', 'handsfree'
+  final List<String> _modes = ['POST', 'STORY', 'REEL', 'LIVE'];
 
   // Text Overlay State
   List<StoryText> _texts = [];
@@ -880,107 +888,214 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }
 
   Widget _buildEmptyState() {
+    return _buildCameraInterface();
+  }
+
+  Widget _buildCameraInterface() {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
-    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors:
-              isM3E
-                  ? [colorScheme.surfaceContainerHighest, colorScheme.surface]
-                  : [const Color(0xFF1A1A1A), const Color(0xFF000000)],
-        ),
-      ),
-      child: SafeArea(
-        child: Stack(
-          children: [
-            // Main content - centered and scrollable
-            Center(
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 40),
-                    ZoomIn(
-                      child: Icon(
-                        Icons.auto_awesome_mosaic_rounded,
-                        size: isM3E ? 100 : 80,
-                        color:
-                            isM3E
-                                ? colorScheme.primary.withValues(alpha: 0.3)
-                                : Colors.white24,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    Text(
-                      'Create Story',
-                      style: TextStyle(
-                        color: isM3E ? colorScheme.onSurface : Colors.white,
-                        fontSize: isM3E ? 36 : 32,
-                        fontWeight: isM3E ? FontWeight.w800 : FontWeight.w900,
-                        letterSpacing: isM3E ? -1.5 : null,
-                      ),
-                    ),
-                    const SizedBox(height: 60),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildModernPickerItem(
-                            icon: Icons.camera_alt_rounded,
-                            label: 'Camera',
-                            color: isM3E ? colorScheme.primary : Colors.blue,
-                            onTap: () => _pickMedia(ImageSource.camera),
-                            isM3E: isM3E,
-                          ),
-                          const SizedBox(width: 20),
-                          _buildModernPickerItem(
-                            icon: Icons.photo_library_rounded,
-                            label: 'Gallery',
-                            color: isM3E ? colorScheme.tertiary : Colors.pink,
-                            onTap: () => _pickMedia(ImageSource.gallery),
-                            isM3E: isM3E,
-                          ),
-                          const SizedBox(width: 20),
-                          _buildModernPickerItem(
-                            icon: Icons.videocam_rounded,
-                            label: 'Video',
-                            color:
-                                isM3E ? colorScheme.secondary : Colors.purple,
-                            onTap:
-                                () => _pickMedia(
-                                  ImageSource.gallery,
-                                  isVideo: true,
-                                ),
-                            isM3E: isM3E,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-                  ],
+      color: Colors.black,
+      child: Stack(
+        children: [
+          // Camera Sidebar (Instagram Tools)
+          Positioned(
+            left: 16,
+            top: MediaQuery.of(context).size.height * 0.15,
+            child: Column(
+              children: [
+                _buildCameraSideTool(
+                  icon: Icons.text_fields_rounded,
+                  label: 'Create',
+                  isActive: _activeTool == 'create',
+                  onTap: () => setState(() => _activeTool = 'create'),
                 ),
+                const SizedBox(height: 20),
+                _buildCameraSideTool(
+                  icon: Icons.all_inclusive_rounded,
+                  label: 'Boomerang',
+                  isActive: _activeTool == 'boomerang',
+                  onTap: () => setState(() => _activeTool = 'boomerang'),
+                ),
+                const SizedBox(height: 20),
+                _buildCameraSideTool(
+                  icon: Icons.grid_view_rounded,
+                  label: 'Layout',
+                  isActive: _activeTool == 'layout',
+                  onTap: () => setState(() => _activeTool = 'layout'),
+                ),
+                const SizedBox(height: 20),
+                _buildCameraSideTool(
+                  icon: Icons.timer_outlined,
+                  label: 'Hands-free',
+                  isActive: _activeTool == 'handsfree',
+                  onTap: () => setState(() => _activeTool = 'handsfree'),
+                ),
+                const SizedBox(height: 20),
+                _buildCameraSideTool(
+                  icon: Icons.keyboard_arrow_down_rounded,
+                  label: '',
+                  onTap: () {},
+                ),
+              ],
+            ),
+          ),
+
+          // Top Controls
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            left: 0,
+            right: 0,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.settings_outlined, color: Colors.white, size: 28),
+                    onPressed: () {},
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: Icon(
+                      _isFlashOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                    onPressed: () => setState(() => _isFlashOn = !_isFlashOn),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Colors.white, size: 32),
+                    onPressed: () => context.pop(),
+                  ),
+                ],
               ),
             ),
-            // Close button - positioned at top-left
-            Positioned(
-              top: 0,
-              left: 0,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: _buildBlurButton(
-                  icon: Icons.close_rounded,
-                  onTap: () => context.pop(),
+          ),
+
+          // Bottom Controls (Gallery, Shutter, Flip)
+          Positioned(
+            bottom: 100,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // Gallery Preview
+                GestureDetector(
+                  onTap: () => _pickMedia(ImageSource.gallery),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white, width: 2),
+                      borderRadius: BorderRadius.circular(8),
+                      image: const DecorationImage(
+                        image: CachedNetworkImageProvider('https://picsum.photos/100'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
                 ),
+
+                // Shutter Button
+                GestureDetector(
+                  onTap: () => _pickMedia(ImageSource.camera),
+                  onLongPress: () => _pickMedia(ImageSource.camera, isVideo: true),
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 4),
+                    ),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Flip Camera
+                IconButton(
+                  icon: const Icon(Icons.flip_camera_ios_rounded, color: Colors.white, size: 32),
+                  onPressed: () => setState(() => _isFrontCamera = !_isFrontCamera),
+                ),
+              ],
+            ),
+          ),
+
+          // Mode Selector
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: SizedBox(
+              height: 40,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width / 2 - 40),
+                itemCount: _modes.length,
+                itemBuilder: (context, index) {
+                  final isSelected = _selectedModeIndex == index;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() => _selectedModeIndex = index);
+                      HapticFeedback.lightImpact();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      alignment: Alignment.center,
+                      child: Text(
+                        _modes[index],
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : Colors.white60,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 14,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCameraSideTool({
+    required IconData icon,
+    required String label,
+    bool isActive = false,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isActive ? Colors.white24 : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: Colors.white, size: 28),
+          ),
+          if (label.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white, fontSize: 10),
             ),
           ],
-        ),
+        ],
       ),
     );
   }

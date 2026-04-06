@@ -69,6 +69,29 @@ class KeyManagementService {
     return encrypt.Key(Uint8List.fromList(derivedKey.sublist(0, 32)));
   }
 
+  /// Generates a random 24-character recovery key grouped by dashes.
+  String generateRecoveryKey() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude ambiguous 0, O, 1, I
+    final random = Random.secure();
+    final buffer = StringBuffer();
+
+    for (int i = 0; i < 24; i++) {
+      if (i > 0 && i % 4 == 0) buffer.write('-');
+      buffer.write(chars[random.nextInt(chars.length)]);
+    }
+
+    return buffer.toString();
+  }
+
+  /// Derives a 32-byte AES key from a recovery key using Argon2id.
+  encrypt.Key deriveRecoveryKey(String recoveryKey, String saltBase64) {
+    // Normalize: remove dashes and spaces, uppercase
+    final normalized = recoveryKey.replaceAll(RegExp(r'[\s-]'), '').toUpperCase();
+    
+    // Reuse the secure derivation logic but with the recovery key as the "pin"
+    return deriveSecureBackupKey(normalized, saltBase64);
+  }
+
   /// Normalizes and hashes a public key for consistent identification.
   String hashPublicKey(String publicKeyPem) {
     final normalized = publicKeyPem

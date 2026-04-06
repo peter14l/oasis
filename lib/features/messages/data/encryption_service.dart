@@ -247,58 +247,129 @@ class EncryptionService {
     }
   }
 
-  /// Upgrades a user from v1 (legacy) to v2 (PIN-based) security.
-  Future<bool> upgradeSecurity(String pin) async {
+  /// Restores keys using a recovery key.
+  Future<bool> restoreWithRecoveryKey(String recoveryKey) async {
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) return false;
+
+      final response = await _supabase
+          .from('profiles')
+          .select('encrypted_private_key_recovery, key_salt, public_key')
+          .eq('id', userId)
+          .single();
+
+      final encryptedPrivateKey = response['encrypted_private_key_recovery'] as String?;
+      final salt = response['key_salt'] as String?;
+      final publicKeyPem = response['public_key'] as String?;
+
+      if (encryptedPrivateKey == null || salt == null || publicKeyPem == null) {
+        return false;
+      }
+
+      final recoveryDerivedKey = _keyManager.deriveRecoveryKey(recoveryKey, salt);
+      final privateKeyPem = _keyManager.decryptWithKey(
+        encryptedPrivateKey,
+        recoveryDerivedKey,
+      );
+      
+      if (privateKeyPem == null) return false;
+
+      await _secureStorage.write(
+        key: KeyManagementService.privateKeyKey(userId),
+        value: privateKeyPem,
+      );
+      await _secureStorage.write(
+        key: KeyManagementService.publicKeyKey(userId),
+        value: publicKeyPem,
+      );
+
+      _isInitialized = true;
+      _lastStatus = EncryptionStatus.ready;
+      return true;
+    } catch (e) {
+      debugPrint('[Encryption] Recovery Restore Error: $e');
+      return false;
+    }
+  }
+
+  /// Resets the security PIN using a recovery key and returns a new recovery key.
+  Future<({bool success, String? recoveryKey})> resetPinWithRecoveryKey(
+    String recoveryKey,
+    String newPin,
+  ) async {
+    try {
+      final restored = await restoreWithRecoveryKey(recoveryKey);
+      if (!restored) return (success: false, recoveryKey: null);
+
+      return upgradeSecurity(newPin);
+    } catch (e) {
+      debugPrint('[Encryption] Reset PIN Error: $e');
+      return (success: false, recoveryKey: null);
+    }
+  }
+
+  /// Upgrades a user from v1 (legacy) to v2 (PIN-based) security.
+  Future<({bool success, String? recoveryKey})> upgradeSecurity(String pin) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return (success: false, recoveryKey: null);
 
       // 1. Get the current private key from local secure storage
       final privateKeyPem = await _secureStorage.read(
         key: KeyManagementService.privateKeyKey(userId),
       );
-      if (privateKeyPem == null) return false;
+      if (privateKeyPem == null) return (success: false, recoveryKey: null);
 
-      // 2. Generate new salt and derive new secure key
+      // 2. Generate new salt and recovery key
       final salt = _keyManager.generateSalt();
+      final recoveryKey = _keyManager.generateRecoveryKey();
+      
+      // 3. Derive keys
       final secureKey = _keyManager.deriveSecureBackupKey(pin, salt);
+      final recoveryDerivedKey = _keyManager.deriveRecoveryKey(recoveryKey, salt);
 
-      // 3. Encrypt private key with the new secure key
+      // 4. Encrypt private key with both keys
       final encryptedPrivateKeyV2 = _keyManager.encryptWithKey(
         privateKeyPem,
         secureKey,
       );
+      final encryptedPrivateKeyRecovery = _keyManager.encryptWithKey(
+        privateKeyPem,
+        recoveryDerivedKey,
+      );
 
-      // 4. Save to Supabase and mark as upgraded
+      // 5. Save to Supabase
       await _supabase
           .from('profiles')
           .update({
             'encrypted_private_key_v2': encryptedPrivateKeyV2,
+            'encrypted_private_key_recovery': encryptedPrivateKeyRecovery,
             'key_salt': salt,
             'has_upgraded_security': true,
-            // Optional: Set legacy key to null to completely remove the vulnerability
             'encrypted_private_key': null,
           })
           .eq('id', userId);
 
       _lastStatus = EncryptionStatus.ready;
-      return true;
+      return (success: true, recoveryKey: recoveryKey);
     } catch (e) {
       debugPrint('[Encryption] Security Upgrade Error: $e');
-      return false;
+      return (success: false, recoveryKey: null);
     }
   }
 
   /// Alias for setupEncryption to support legacy calls.
-  Future<bool> generateNewKeys() => setupEncryption();
+  Future<bool> generateNewKeys() async {
+    final result = await setupEncryption();
+    return result.success;
+  }
 
   /// Sets up a new encryption identity (RSA keys) and backs them up to the server.
-  /// 🚩 VULNERABLE: This version uses legacy derivation if PIN is not provided.
-  /// Added optional PIN support for fresh setup.
-  Future<bool> setupEncryption({String? pin}) async {
+  Future<({bool success, String? recoveryKey})> setupEncryption({String? pin}) async {
     try {
       final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) return false;
+      if (userId == null) return (success: false, recoveryKey: null);
 
       const keySize = kIsWeb ? 1024 : 2048;
       final keyPair = await _keyManager.generateKeyPair(keySize);
@@ -310,12 +381,22 @@ class EncryptionService {
         keyPair.publicKey as dynamic,
       );
 
+      String? recoveryKey;
+
       if (pin != null) {
         final salt = _keyManager.generateSalt();
+        recoveryKey = _keyManager.generateRecoveryKey();
+
         final secureKey = _keyManager.deriveSecureBackupKey(pin, salt);
+        final recoveryDerivedKey = _keyManager.deriveRecoveryKey(recoveryKey, salt);
+
         final encryptedPrivateKeyV2 = _keyManager.encryptWithKey(
           privateKeyPem,
           secureKey,
+        );
+        final encryptedPrivateKeyRecovery = _keyManager.encryptWithKey(
+          privateKeyPem,
+          recoveryDerivedKey,
         );
 
         await _supabase
@@ -323,6 +404,7 @@ class EncryptionService {
             .update({
               'public_key': publicKeyPem,
               'encrypted_private_key_v2': encryptedPrivateKeyV2,
+              'encrypted_private_key_recovery': encryptedPrivateKeyRecovery,
               'key_salt': salt,
               'has_upgraded_security': true,
             })
@@ -354,10 +436,10 @@ class EncryptionService {
 
       _isInitialized = true;
       _lastStatus = EncryptionStatus.ready;
-      return true;
+      return (success: true, recoveryKey: recoveryKey);
     } catch (e) {
       debugPrint('[Encryption] Setup Error: $e');
-      return false;
+      return (success: false, recoveryKey: null);
     }
   }
 

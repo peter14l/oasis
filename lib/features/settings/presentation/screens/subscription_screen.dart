@@ -204,8 +204,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                             // Placeholder for actual revenuecat purchase flow
                             await Future.delayed(const Duration(seconds: 2));
 
-                            // Mocking successful purchase by calling the service
-                            // In reality this triggers via webhooks / revenuecat listener
+                            // Call service to update pro status
                             await subService.debugToggleProStatus(true);
 
                             setState(() => _isProcessing = false);
