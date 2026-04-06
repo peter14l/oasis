@@ -54,13 +54,17 @@ android {
 
     buildTypes {
         getByName("release") {
-            // ❌ Disabling for debugging the launch crash
             isMinifyEnabled = false
             isShrinkResources = false
             
-            val envFile = System.getenv("RELEASE_STORE_FILE")
-            if (!envFile.isNullOrEmpty()) {
-                signingConfig = signingConfigs.getByName("release")
+            // Use debug signing for CI (no keystore) or local builds
+            val releaseStoreFile = System.getenv("RELEASE_STORE_FILE")
+            val useDebugSigning = System.getenv("DEBUG_SIGNING") == "true" || releaseStoreFile.isNullOrEmpty()
+            
+            signingConfig = if (useDebugSigning) {
+                signingConfigs.getByName("debug")
+            } else {
+                signingConfigs.getByName("release")
             }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
