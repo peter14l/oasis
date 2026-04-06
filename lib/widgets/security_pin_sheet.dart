@@ -107,10 +107,21 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
             return;
           }
 
+          String? recoveryKey;
           if (widget.status == EncryptionStatus.needsSetup) {
-            success = await encryptionService.setupEncryption(pin: pin);
+            final result = await encryptionService.setupEncryption(pin: pin);
+            success = result.success;
+            recoveryKey = result.recoveryKey;
           } else {
-            success = await encryptionService.upgradeSecurity(pin);
+            final result = await encryptionService.upgradeSecurity(pin);
+            success = result.success;
+            recoveryKey = result.recoveryKey;
+          }
+
+          if (success && recoveryKey != null) {
+            if (mounted) {
+              await RecoveryKeySheet.show(context, recoveryKey: recoveryKey);
+            }
           }
         }
       } else if (widget.status == EncryptionStatus.needsRestore) {
