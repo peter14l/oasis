@@ -331,6 +331,29 @@
 
 ---
 
+### Phase 12: Collections Feature
+**Status**: ✅ COMPLETED  
+**Started**: 2026-04-05  
+**Completed**: 2026-04-05  
+
+- [x] 12.1 Create `lib/features/collections/` structure
+- [x] 12.2 Create domain models (CollectionEntity)
+- [x] 12.3 Create repository interface + implementation
+- [x] 12.4 Create datasources (CollectionRemoteDatasource)
+- [x] 12.5 Create use cases (GetCollections, CreateCollection, etc.)
+- [x] 12.6 Create CollectionsState + CollectionsProvider
+- [x] 12.7 Test collections flows
+
+**Verification**:
+- [x] LSP diagnostics: 0 errors across collections feature files
+- [x] Domain models created
+- [x] Repository interface + implementation
+- [x] use cases created
+- [x] CollectionsProvider created
+- [x] Screens updated and provider injected
+
+---
+
 ### Phase 14: Wellness Feature
 **Status**: ✅ COMPLETED  
 **Started**: 2026-04-04  

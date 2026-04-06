@@ -155,6 +155,7 @@ msix_config:
   architecture: x64
   generate_certificate: true
   install_certificate: true
+  build_windows: false
 
 dependency_overrides:
   flutter_secure_storage_windows:

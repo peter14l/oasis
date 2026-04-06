@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:oasis/features/messages/domain/models/conversation.dart';
-import 'package:oasis/services/messaging_service.dart';
+import 'package:oasis/features/messages/data/messaging_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -182,7 +182,16 @@ class ConversationProvider with ChangeNotifier {
 
   /// Handle read receipt updates for a specific conversation
   Future<void> _handleReadReceiptUpdate(String conversationId) async {
-    // Optimization: Just refresh the single conversation instead of reloading the full list
+    // 1. Optimistically zero-out locally right away so the badge responds instantly
+    final index = _conversations.indexWhere((c) => c.id == conversationId);
+    if (index != -1 && _conversations[index].unreadCount > 0) {
+      _conversations[index] =
+          _conversations[index].copyWith(unreadCount: 0);
+      _conversations = List.from(_conversations);
+      notifyListeners();
+    }
+
+    // 2. Async refresh in the background to sync actual server state
     refreshConversation(conversationId);
   }
 

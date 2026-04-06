@@ -13,22 +13,34 @@ class OasisProScreen extends StatefulWidget {
 }
 
 class _OasisProScreenState extends State<OasisProScreen> {
-  late Currency _detectedCurrency;
-  late List<PricingPlan> _plans;
+  Currency _detectedCurrency = Currency.usd;
+  List<PricingPlan> _plans = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _detectedCurrency = PricingService.detectCurrency();
-    _plans = PricingService.getPlans(_detectedCurrency);
+    _initPricing();
+  }
+
+  Future<void> _initPricing() async {
+    final currency = await PricingService.detectPPP();
+    if (mounted) {
+      setState(() {
+        _detectedCurrency = currency;
+        _plans = PricingService.getPlans(currency);
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _subscribe(PricingPlan plan) async {
     final userId = SupabaseService().client.auth.currentUser?.id;
     if (userId == null) return;
 
+    // Directing to checkout page on web as requested
     final url = Uri.parse(
-      'https://oasis-web-red.vercel.app/pricing?user_id=$userId&plan=${plan.name.toLowerCase()}&currency=${plan.currency.name}',
+      'https://oasis-web-red.vercel.app/checkout?user_id=$userId&plan=${plan.name}&currency=${plan.currency.name.toUpperCase()}',
     );
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -61,100 +73,85 @@ class _OasisProScreenState extends State<OasisProScreen> {
           ),
         ),
 
-        CustomScrollView(
-          slivers: [
-            if (!isDesktop)
-              SliverAppBar(
-                backgroundColor: Colors.transparent,
-                leading: IconButton(
-                  icon: const Icon(
-                    FluentIcons.dismiss_24_filled,
-                    color: Colors.white,
+        if (_isLoading)
+          const Center(child: CircularProgressIndicator(color: Colors.blueAccent))
+        else
+          CustomScrollView(
+            slivers: [
+              if (!isDesktop)
+                SliverAppBar(
+                  backgroundColor: Colors.transparent,
+                  leading: IconButton(
+                    icon: const Icon(
+                      FluentIcons.dismiss_24_filled,
+                      color: Colors.white,
+                    ),
+                    onPressed: () => context.pop(),
                   ),
-                  onPressed: () => context.pop(),
-                ),
-                expandedHeight: 200,
-                flexibleSpace: FlexibleSpaceBar(
-                  centerTitle: true,
-                  title: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'Oasis Pro',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 24,
+                  expandedHeight: 200,
+                  flexibleSpace: FlexibleSpaceBar(
+                    centerTitle: true,
+                    title: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Oasis Pro',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 24,
+                          ),
                         ),
-                      ),
-                      Text(
-                        'Elevate your experience',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: Colors.white70,
+                        Text(
+                          'Elevate your experience',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: Colors.white70,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-            SliverPadding(
-              padding: const EdgeInsets.all(24),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _buildFeatureItem(
-                    FluentIcons.shield_lock_24_regular,
-                    'Signal Protocol Encryption',
-                    'The gold standard for privacy.',
-                  ),
-                  _buildFeatureItem(
-                    FluentIcons.video_clip_24_regular,
-                    'Unlimited Ripples',
-                    'Share your moments without limits.',
-                  ),
-                  _buildFeatureItem(
-                    FluentIcons.storage_24_regular,
-                    '100GB Secure Storage',
-                    'Keep your memories safe in the vault.',
-                  ),
-                  const SizedBox(height: 40),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Detected Region: ',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.white54,
-                        ),
-                      ),
-                      Text(
-                        _detectedCurrency.name,
-                        style: const TextStyle(
-                          color: Colors.blueAccent,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  ..._plans.map((plan) => _buildPricingCard(plan)),
-
-                  const SizedBox(height: 40),
-                  Center(
-                    child: Text(
-                      'Secure payments handled via our web portal.',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: Colors.white24,
-                      ),
+                      ],
                     ),
                   ),
-                ]),
+                ),
+
+              SliverPadding(
+                padding: const EdgeInsets.all(24),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    _buildFeatureItem(
+                      FluentIcons.shield_lock_24_regular,
+                      'Signal Protocol Encryption',
+                      'The gold standard for privacy.',
+                    ),
+                    _buildFeatureItem(
+                      FluentIcons.video_clip_24_regular,
+                      'Unlimited Ripples',
+                      'Share your moments without limits.',
+                    ),
+                    _buildFeatureItem(
+                      FluentIcons.storage_24_regular,
+                      '100GB Secure Storage',
+                      'Keep your memories safe in the vault.',
+                    ),
+                    const SizedBox(height: 40),
+
+                    // Detected region row removed as requested
+
+                    ..._plans.map((plan) => _buildPricingCard(plan)),
+
+                    const SizedBox(height: 40),
+                    Center(
+                      child: Text(
+                        'Secure payments handled via our web portal.',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: Colors.white24,
+                        ),
+                      ),
+                    ),
+                  ]),
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
       ],
     );
 

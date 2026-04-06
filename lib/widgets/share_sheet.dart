@@ -5,7 +5,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:oasis/providers/conversation_provider.dart';
 import 'package:oasis/features/messages/domain/models/conversation.dart';
-import 'package:oasis/services/messaging_service.dart';
+import 'package:oasis/features/messages/data/messaging_service.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
 

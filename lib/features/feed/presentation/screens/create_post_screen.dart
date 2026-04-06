@@ -12,8 +12,8 @@ import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis/core/utils/haptic_utils.dart';
 import 'package:oasis/features/feed/domain/models/post_mood.dart';
 import 'package:oasis/features/feed/domain/models/enhanced_poll.dart';
-import 'package:oasis/widgets/mood_selector.dart';
-import 'package:oasis/widgets/polls/poll_widgets.dart';
+import 'package:oasis/features/feed/presentation/widgets/mood_selector.dart';
+import 'package:oasis/features/feed/presentation/widgets/polls/poll_widgets.dart';
 
 class CreatePostScreen extends StatefulWidget {
   final String? communityId;

@@ -8,11 +8,11 @@ import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:file_picker/file_picker.dart' show PlatformFile;
 import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/features/messages/domain/models/message_reaction.dart';
-import 'package:oasis/services/messaging_service.dart';
+import 'package:oasis/features/messages/data/messaging_service.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
-import 'package:oasis/services/encryption_service.dart';
-import 'package:oasis/services/signal/signal_service.dart';
+import 'package:oasis/features/messages/data/encryption_service.dart';
+import 'package:oasis/features/messages/data/signal/signal_service.dart';
 import 'package:oasis/services/smart_reply_service.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_state.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_encryption_provider.dart';
@@ -119,25 +119,22 @@ class ChatProvider with ChangeNotifier {
       },
     );
 
-    // Initialize encryption
+    // Initialize encryption — this also loads messages once ready
+    // (avoids double-loading: encryption init calls loadMessages internally)
     await _initializeEncryption();
 
     // Fetch conversation details
     await fetchConversationDetails();
 
-    // Load messages
-    await loadMessages();
-
-    // Subscribe to realtime
+    // Subscribe to realtime channels
     subscribeToMessages();
     subscribeToReadReceipts();
     subscribeToReactions();
     subscribeToBackgroundChanges();
 
-    // Mark as read after a short delay
-    Future.delayed(const Duration(seconds: 2), () {
-      markAsRead();
-    });
+    // Mark as read immediately — no delay needed since loadMessages
+    // has already completed inside _initializeEncryption()
+    markAsRead();
   }
 
   // =========================================================================
@@ -159,16 +156,16 @@ class ChatProvider with ChangeNotifier {
 
     if (status == EncryptionStatus.ready) {
       setState((s) => s.copyWith(encryptionReady: true));
-      // Re-decrypt messages
       await loadMessages(silent: true);
     } else if (status == EncryptionStatus.needsSecurityUpgrade) {
-      // For security upgrade, we can still decrypt messages with v1 keys
+      // Can still decrypt with v1 keys
       setState((s) => s.copyWith(encryptionReady: true));
       await loadMessages(silent: true);
-      // But we still need to prompt for upgrade
       onEncryptionNeeded?.call(status);
     } else {
-      // Notify the screen that PIN-based setup/restore/upgrade is needed
+      // Encryption needs setup — still load messages so unencrypted ones show
+      // and encrypted ones render as 🔒 locked icons
+      await loadMessages(silent: false);
       onEncryptionNeeded?.call(status);
     }
   }

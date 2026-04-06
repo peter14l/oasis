@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:oasis/services/search_service.dart';
-import 'package:oasis/widgets/post_card.dart';
+import 'package:oasis/features/feed/presentation/widgets/post_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 

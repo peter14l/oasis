@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
-import 'package:oasis/models/time_capsule.dart';
+import 'package:oasis/features/capsules/domain/models/time_capsule_entity.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class CapsuleFeedItem extends StatelessWidget {
-  final TimeCapsule capsule;
+  final TimeCapsuleEntity capsule;
 
   const CapsuleFeedItem({super.key, required this.capsule});
 

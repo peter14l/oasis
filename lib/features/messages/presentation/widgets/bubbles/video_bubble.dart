@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oasis/screens/messages/image_preview_screen.dart';
+import 'package:oasis/features/messages/presentation/screens/image_preview_screen.dart';
 
 /// Video message bubble with view-once/allow-replay support.
 /// Extracted from the video branch of _buildMessageBubble() in chat_screen.dart.

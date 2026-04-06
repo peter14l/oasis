@@ -4,7 +4,7 @@ import 'package:oasis/features/profile/domain/repositories/profile_repository.da
 import 'package:oasis/features/profile/presentation/providers/profile_state.dart';
 import 'package:oasis/features/feed/domain/repositories/post_repository.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
-import 'package:oasis/services/messaging_service.dart';
+import 'package:oasis/features/messages/data/messaging_service.dart';
 
 export 'package:oasis/features/profile/presentation/providers/profile_state.dart';
 

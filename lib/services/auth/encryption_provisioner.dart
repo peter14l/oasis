@@ -1,5 +1,5 @@
 import 'dart:developer' as developer;
-import 'package:oasis/services/encryption_service.dart';
+import 'package:oasis/features/messages/data/encryption_service.dart';
 
 class EncryptionProvisioner {
   /// Silently provision or restore E2E encryption keys in the background.

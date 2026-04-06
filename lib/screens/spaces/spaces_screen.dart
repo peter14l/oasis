@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/features/circles/presentation/screens/circles_list_screen.dart';
-import 'package:oasis/screens/canvas/canvas_list_screen.dart';
+import 'package:oasis/features/canvas/presentation/screens/canvas_list_screen.dart';
 
 /// The Spaces hub replaces the old Communities tab.
 /// It contains two sub-tabs: Circles & Canvas.

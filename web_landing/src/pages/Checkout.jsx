@@ -61,8 +61,9 @@ const Checkout = () => {
       });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session && !userId) {
-        navigate('/login?redirect=checkout');
+      if (!session) {
+        const currentPath = window.location.pathname + window.location.search;
+        navigate(`/login?redirect=${encodeURIComponent(currentPath)}`);
       }
       setLoading(false);
     });

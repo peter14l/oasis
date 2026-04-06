@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/providers/community_provider.dart';
 import 'package:oasis/services/auth_service.dart';
-import 'package:oasis/widgets/post_card.dart';
+import 'package:oasis/features/feed/presentation/widgets/post_card.dart';
 import 'package:oasis/widgets/comments_modal.dart';
 import 'package:share_plus/share_plus.dart';
 

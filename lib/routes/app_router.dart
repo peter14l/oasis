@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/services/wellness_service.dart';
-import 'package:oasis/providers/user_settings_provider.dart';
+import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
 import 'package:universal_io/io.dart';
 import 'package:oasis/screens/spaces/spaces_screen.dart';
 
@@ -17,29 +17,29 @@ import 'package:oasis/features/circles/presentation/screens/circle_detail_screen
 import 'package:oasis/features/circles/presentation/screens/create_circle_screen.dart';
 import 'package:oasis/features/circles/presentation/screens/create_commitment_screen.dart';
 
-import 'package:oasis/screens/canvas/timeline_canvas_screen.dart';
-import 'package:oasis/screens/canvas/create_canvas_screen.dart';
+import 'package:oasis/features/canvas/presentation/screens/timeline_canvas_screen.dart';
+import 'package:oasis/features/canvas/presentation/screens/create_canvas_screen.dart';
 
-import 'package:oasis/screens/messages/direct_messages_screen.dart'
+import 'package:oasis/features/messages/presentation/screens/direct_messages_screen.dart'
     as messages;
 import 'package:oasis/features/messages/presentation/screens/chat_screen.dart';
-import 'package:oasis/screens/messages/new_message_screen.dart';
+import 'package:oasis/features/messages/presentation/screens/new_message_screen.dart';
 import 'package:oasis/providers/conversation_provider.dart';
 import 'package:oasis/services/app_initializer.dart';
-import 'package:oasis/services/encryption_service.dart';
+import 'package:oasis/features/messages/data/encryption_service.dart';
 import 'package:oasis/widgets/security_upgrade_banner.dart';
 import 'package:oasis/widgets/security_pin_sheet.dart';
-import 'package:oasis/screens/messages/active_call_screen.dart';
+import 'package:oasis/features/calls/presentation/screens/active_call_screen.dart';
 import 'package:oasis/models/call.dart';
-import 'package:oasis/screens/notifications/notifications_screen.dart';
+import 'package:oasis/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:oasis/screens/settings_screen.dart';
-import 'package:oasis/screens/settings/subscription_screen.dart';
-import 'package:oasis/screens/settings/account_privacy_screen.dart';
-import 'package:oasis/screens/settings/two_factor_auth_screen.dart';
-import 'package:oasis/screens/settings/download_data_screen.dart';
-import 'package:oasis/screens/settings/storage_usage_screen.dart';
-import 'package:oasis/screens/settings/font_size_screen.dart';
-import 'package:oasis/screens/settings/help_support_screen.dart';
+import 'package:oasis/features/settings/presentation/screens/subscription_screen.dart';
+import 'package:oasis/features/settings/presentation/screens/account_privacy_screen.dart';
+import 'package:oasis/features/settings/presentation/screens/two_factor_auth_screen.dart';
+import 'package:oasis/features/settings/presentation/screens/download_data_screen.dart';
+import 'package:oasis/features/settings/presentation/screens/storage_usage_screen.dart';
+import 'package:oasis/features/settings/presentation/screens/font_size_screen.dart';
+import 'package:oasis/features/settings/presentation/screens/help_support_screen.dart';
 import 'package:oasis/screens/moderation/moderation_screens.dart';
 import 'package:oasis/features/stories/domain/models/story_entity.dart';
 import 'package:oasis/features/stories/presentation/screens/story_view_screen.dart'
@@ -64,15 +64,15 @@ import '../features/auth/presentation/screens/onboarding_screen.dart';
 import '../features/capsules/presentation/screens/create_capsule_screen.dart';
 import '../features/capsules/presentation/screens/capsule_view_screen.dart';
 import '../features/circles/presentation/screens/circle_join_screen.dart';
-import '../screens/ripples_screen.dart';
-import '../screens/create_ripple_screen.dart';
+import 'package:oasis/features/ripples/presentation/screens/ripples_screen.dart';
+import 'package:oasis/features/ripples/presentation/screens/create_ripple_screen.dart';
 import '../screens/oasis_pro_screen.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 
-import 'package:oasis/screens/settings/wellness_stats_screen.dart';
+import 'package:oasis/features/settings/presentation/screens/wellness_stats_screen.dart';
 
-import 'package:oasis/widgets/account_switcher_sheet.dart';
+import 'package:oasis/features/auth/presentation/widgets/account_switcher_sheet.dart';
 
 class UnreadMessagesBadge extends StatelessWidget {
   final Widget child;

@@ -291,7 +291,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
 
       if (file != null) {
         final pickedFile = File(file.path);
-        
+
         if (isVideo) {
           _videoController?.dispose();
           _videoController = VideoPlayerController.file(pickedFile)
@@ -301,7 +301,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               if (mounted) setState(() {});
             });
         }
-        
+
         setState(() {
           _selectedFile = pickedFile;
           _mediaType = isVideo ? 'video' : 'image';
@@ -358,7 +358,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     setState(() => _isUploading = true);
 
     try {
-      final finalFile = _mediaType == 'video' ? _selectedFile! : (await _captureCompositeImage() ?? _selectedFile!);
+      final finalFile =
+          _mediaType == 'video'
+              ? _selectedFile!
+              : (await _captureCompositeImage() ?? _selectedFile!);
 
       // Prepare interactive metadata for text layers
       final interactiveMetadata =
@@ -378,11 +381,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               .toList();
 
       interactiveMetadata.add({
-         'type': 'story_settings',
-         'data': {
-         },
-         'x': 0,
-         'y': 0,
+        'type': 'story_settings',
+        'data': {},
+        'x': 0,
+        'y': 0,
       });
 
       // Use the original StoriesService to handle actual file upload
@@ -517,16 +519,72 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                         colorFilter: ui.ColorFilter.matrix(
                           _filterPresets[_selectedFilterIndex]['matrix'],
                         ),
-                        child: _mediaType == 'video' && _videoController != null && _videoController!.value.isInitialized
-                            ? FittedBox(
-                                fit: BoxFit.cover,
-                                child: SizedBox(
-                                  width: _videoController!.value.size.width,
-                                  height: _videoController!.value.size.height,
-                                  child: VideoPlayer(_videoController!),
+                        child:
+                            _mediaType == 'video' &&
+                                    _videoController != null &&
+                                    _videoController!.value.isInitialized
+                                ? FittedBox(
+                                  fit: BoxFit.cover,
+                                  child: SizedBox(
+                                    width: _videoController!.value.size.width,
+                                    height: _videoController!.value.size.height,
+                                    child: VideoPlayer(_videoController!),
+                                  ),
+                                )
+                                : Image.file(
+                                  _selectedFile!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    debugPrint(
+                                      'Error loading story image: $error',
+                                    );
+                                    return Container(
+                                      color: Colors.black,
+                                      child: Center(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.broken_image_outlined,
+                                              size: 64,
+                                              color: Colors.white.withValues(
+                                                alpha: 0.5,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 16),
+                                            Text(
+                                              'Failed to load image',
+                                              style: TextStyle(
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.7,
+                                                ),
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            TextButton.icon(
+                                              onPressed: () {
+                                                setState(
+                                                  () => _selectedFile = null,
+                                                );
+                                              },
+                                              icon: const Icon(
+                                                Icons.refresh,
+                                                color: Colors.white,
+                                              ),
+                                              label: const Text(
+                                                'Choose different',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
-                              )
-                            : Image.file(_selectedFile!, fit: BoxFit.cover),
                       ),
                     ),
 
@@ -1075,6 +1133,18 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                               child: Image.file(
                                 _selectedFile!,
                                 fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Colors.grey[800],
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.broken_image_outlined,
+                                        color: Colors.white54,
+                                        size: 32,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           ),
@@ -1104,9 +1174,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             ),
             IconButton(
               icon: const Icon(Icons.close),
-              style: IconButton.styleFrom(
-                foregroundColor: Colors.white,
-              ),
+              style: IconButton.styleFrom(foregroundColor: Colors.white),
               onPressed: () => setState(() => _isFilterPickerVisible = false),
             ),
           ],
@@ -1163,8 +1231,14 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           if (isM3E) ...[
             const SizedBox(width: 12),
             _buildBlurButton(
-              icon: _shareToCloseFriends ? Icons.stars_rounded : Icons.star_border_rounded,
-              onTap: () => setState(() => _shareToCloseFriends = !_shareToCloseFriends),
+              icon:
+                  _shareToCloseFriends
+                      ? Icons.stars_rounded
+                      : Icons.star_border_rounded,
+              onTap:
+                  () => setState(
+                    () => _shareToCloseFriends = !_shareToCloseFriends,
+                  ),
             ),
           ],
           const Spacer(),
@@ -1203,8 +1277,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                   setState(() => _isFilterPickerVisible = false);
                 } else {
                   setState(() {
-                     _selectedFile = null;
-                     _videoController?.pause();
+                    _selectedFile = null;
+                    _videoController?.pause();
                   });
                 }
               },
@@ -1230,9 +1304,14 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     foregroundColor: Colors.white,
                     backgroundColor: Colors.black26,
                     minimumSize: const Size(48, 48),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
-                  child: Text('${_storyDuration}s', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(
+                    '${_storyDuration}s',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               const SizedBox(width: 8),
               _buildBlurButton(
@@ -1445,7 +1524,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
               alignment: Alignment.center,
               padding: const EdgeInsets.all(12),
-              color: isM3E ? Colors.white.withValues(alpha: 0.2) : Colors.white10,
+              color:
+                  isM3E ? Colors.white.withValues(alpha: 0.2) : Colors.white10,
               child: Icon(icon, color: Colors.white, size: 24),
             ),
           ),
@@ -1502,11 +1582,16 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         return FilledButton.icon(
           onPressed: onTap,
           icon: Icon(icon, size: 24),
-          label: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          label: Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           style: FilledButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             minimumSize: const Size(48, 48),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+            ),
           ),
         );
       }
@@ -1515,7 +1600,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         style: FilledButton.styleFrom(
           padding: const EdgeInsets.all(16),
           minimumSize: const Size(56, 56),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
         ),
         child: Icon(icon, size: 24),
       );

@@ -6,8 +6,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/features/auth/domain/models/app_user.dart' as app_models;
 import 'package:oasis/core/config/supabase_config.dart';
 import 'package:oasis/core/network/supabase_client.dart';
-import 'package:oasis/services/encryption_service.dart';
-import 'package:oasis/services/signal/signal_service.dart';
+import 'package:oasis/features/messages/data/encryption_service.dart';
+import 'package:oasis/features/messages/data/signal/signal_service.dart';
 import 'package:oasis/services/notification_service.dart';
 import 'package:oasis/services/session_registry_service.dart';
 import 'package:oasis/services/auth/account_registry_manager.dart';
@@ -19,7 +19,7 @@ import 'package:oasis/providers/conversation_provider.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/features/circles/presentation/providers/circle_provider.dart';
 import 'package:oasis/features/canvas/presentation/providers/canvas_provider.dart';
-import 'package:oasis/providers/notification_provider.dart';
+import 'package:oasis/features/notifications/presentation/providers/notification_provider.dart';
 import 'package:oasis/providers/community_provider.dart';
 
 class AuthService with ChangeNotifier {

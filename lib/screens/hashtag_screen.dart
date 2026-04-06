@@ -4,7 +4,7 @@ import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:oasis/services/hashtag_service.dart';
 import 'package:oasis/services/post_service.dart';
 import 'package:oasis/services/auth_service.dart';
-import 'package:oasis/widgets/post_card.dart';
+import 'package:oasis/features/feed/presentation/widgets/post_card.dart';
 import 'package:oasis/widgets/comments_modal.dart';
 import 'package:oasis/widgets/share_sheet.dart';
 

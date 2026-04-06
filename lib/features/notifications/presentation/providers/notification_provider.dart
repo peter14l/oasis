@@ -133,4 +133,17 @@ class NotificationProvider extends ChangeNotifier {
 
   int get unreadCount => _state.unreadCount;
   List<AppNotification> get notifications => _state.notifications;
+
+  void init(String? userId) {
+    if (userId == null) {
+      clear();
+    } else {
+      loadNotifications(refresh: true);
+    }
+  }
+
+  void clear() {
+    _state = const NotificationState();
+    notifyListeners();
+  }
 }

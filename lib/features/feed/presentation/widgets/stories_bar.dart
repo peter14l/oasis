@@ -2,14 +2,14 @@ import 'package:oasis/widgets/skeleton_container.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:oasis/models/story_model.dart';
+import 'package:oasis/features/stories/domain/models/story_entity.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/services/app_initializer.dart';
 
 class StoriesBar extends StatefulWidget {
-  final List<StoryGroup> storyGroups;
-  final List<StoryModel>? currentUserStories;
+  final List<StoryGroupEntity> storyGroups;
+  final List<StoryEntity>? currentUserStories;
   final bool isLoading;
   final VoidCallback? onRefresh;
 
@@ -181,7 +181,7 @@ class _StoriesBarState extends State<StoriesBar> {
   Widget _buildStoryGroupCircle(
     BuildContext context,
     ThemeData theme,
-    StoryGroup group,
+    StoryGroupEntity group,
   ) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;

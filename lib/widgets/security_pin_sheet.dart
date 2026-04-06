@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis/services/encryption_service.dart';
+import 'package:oasis/features/messages/data/encryption_service.dart';
 
 class SecurityPinSheet extends StatefulWidget {
   final EncryptionStatus status;

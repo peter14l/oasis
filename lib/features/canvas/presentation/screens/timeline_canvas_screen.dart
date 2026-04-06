@@ -18,7 +18,7 @@ import 'package:oasis/services/canvas_audio_service.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:oasis/services/notification_service.dart';
-import 'package:oasis/widgets/canvas/scattered_polaroid_spread.dart';
+import 'package:oasis/features/canvas/presentation/widgets/canvas/scattered_polaroid_spread.dart';
 import 'package:oasis/features/canvas/presentation/widgets/canvas/canvas_item_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
 

@@ -12,9 +12,10 @@ import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/services/vault_service.dart';
 import 'package:oasis/providers/typing_indicator_provider.dart';
 import 'package:oasis/providers/presence_provider.dart';
-import 'package:oasis/screens/messages/chat_details_screen.dart';
+import 'package:oasis/features/messages/presentation/screens/chat_details_screen.dart';
+import 'package:oasis/providers/conversation_provider.dart';
 import 'package:oasis/widgets/security_pin_sheet.dart';
-import 'package:oasis/services/encryption_service.dart';
+import 'package:oasis/features/messages/data/encryption_service.dart';
 import 'package:oasis/core/utils/haptic_utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oasis/features/messages/presentation/providers/providers.dart';
@@ -149,6 +150,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           userId,
         );
       }
+      // Immediately reset unread badge in the inbox — no delay needed
+      context.read<ConversationProvider>().markAsRead(widget.conversationId);
     });
   }
 
@@ -175,14 +178,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _focusNode.dispose();
     _audioRecorder.dispose();
 
-    // Unsubscribe from typing and presence
+    // Capture provider references before super.dispose() tears down the tree.
+    // context.read() is safe here because we call it BEFORE super.dispose().
     final otherId = widget.otherUserId ?? _chatProvider.state.otherUserId;
+    final convId = widget.conversationId;
+    final presenceProvider = context.read<PresenceProvider>();
+    final typingProvider = context.read<TypingIndicatorProvider>();
+
     if (otherId != null) {
-      context.read<PresenceProvider>().unsubscribeFromUserPresence(otherId);
+      presenceProvider.unsubscribeFromUserPresence(otherId);
     }
-    context.read<TypingIndicatorProvider>().unsubscribeFromTypingStatus(
-      widget.conversationId,
-    );
+    typingProvider.unsubscribeFromTypingStatus(convId);
 
     // Lock chat if interval is set to On Chat Close
     if (_vaultService.getLockInterval(widget.conversationId) == 'chat_close') {

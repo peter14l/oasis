@@ -9,8 +9,8 @@ import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/services/post_service.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:oasis/widgets/wellness_badge.dart';
-import 'package:oasis/widgets/account_switcher_sheet.dart';
+import 'package:oasis/features/wellness/presentation/widgets/wellness_badge.dart';
+import 'package:oasis/features/auth/presentation/widgets/account_switcher_sheet.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 

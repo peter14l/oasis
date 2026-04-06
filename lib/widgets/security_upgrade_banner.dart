@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oasis/services/encryption_service.dart';
+import 'package:oasis/features/messages/data/encryption_service.dart';
 import 'package:oasis/widgets/security_pin_sheet.dart';
 
 class SecurityUpgradeBanner extends StatelessWidget {

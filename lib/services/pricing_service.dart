@@ -1,5 +1,7 @@
-import 'dart:ui';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
+import 'package:universal_io/io.dart';
 
 enum Currency { usd, inr, eur, gbp }
 
@@ -25,21 +27,51 @@ class PricingService {
     Currency.gbp: {'symbol': '£', 'plus': 4.49, 'pro': 8.99},
   };
 
-  static Currency detectCurrency() {
-    final locale = PlatformDispatcher.instance.locale.countryCode;
+  static final Map<String, Currency> _countryToCurrency = {
+    'IN': Currency.inr,
+    'GB': Currency.gbp,
+    'DE': Currency.eur,
+    'FR': Currency.eur,
+    'IT': Currency.eur,
+    'ES': Currency.eur,
+    'US': Currency.usd,
+  };
 
-    switch (locale) {
-      case 'IN':
-        return Currency.inr;
-      case 'GB':
-        return Currency.gbp;
-      case 'DE':
-      case 'FR':
-      case 'IT':
-      case 'ES':
-        return Currency.eur;
-      default:
-        return Currency.usd;
+  static Future<Currency> detectPPP() async {
+    try {
+      final response = await http.get(Uri.parse('https://ipapi.co/json/')).timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final countryCode = data['country_code'];
+        return _countryToCurrency[countryCode] ?? Currency.usd;
+      }
+    } catch (e) {
+      debugPrint('PPP Detection failed: $e');
+    }
+    
+    // Fallback to locale detection
+    return detectCurrency();
+  }
+
+  static Currency detectCurrency() {
+    try {
+      final locale = PlatformDispatcher.instance.locale.countryCode;
+
+      switch (locale) {
+        case 'IN':
+          return Currency.inr;
+        case 'GB':
+          return Currency.gbp;
+        case 'DE':
+        case 'FR':
+        case 'IT':
+        case 'ES':
+          return Currency.eur;
+        default:
+          return Currency.usd;
+      }
+    } catch (e) {
+      return Currency.usd;
     }
   }
 

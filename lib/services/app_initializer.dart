@@ -15,12 +15,12 @@ import 'package:oasis/features/auth/data/repositories/auth_repository_impl.dart'
 import 'package:oasis/services/call_service.dart';
 import 'package:oasis/services/desktop_window_service.dart';
 import 'package:oasis/services/energy_meter_service.dart';
-import 'package:oasis/services/encryption_service.dart';
+import 'package:oasis/features/messages/data/encryption_service.dart';
 import 'package:oasis/services/notification_manager.dart';
 
 import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/services/screen_time_service.dart';
-import 'package:oasis/services/signal/signal_service.dart';
+import 'package:oasis/features/messages/data/signal/signal_service.dart';
 import 'package:oasis/services/subscription_service.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
@@ -28,7 +28,7 @@ import 'package:oasis/services/vault_service.dart';
 import 'package:oasis/services/wellness_service.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
 import 'package:oasis/features/canvas/presentation/providers/canvas_provider.dart';
-import 'package:oasis/providers/capsule_provider.dart';
+import 'package:oasis/features/capsules/presentation/providers/capsule_provider.dart';
 import 'package:oasis/features/circles/presentation/providers/circle_provider.dart';
 import 'package:oasis/features/circles/data/repositories/circle_repository_impl.dart';
 import 'package:oasis/providers/community_provider.dart';
@@ -37,13 +37,26 @@ import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis/features/feed/data/repositories/feed_repository_impl.dart';
 import 'package:oasis/features/feed/data/repositories/post_repository_impl.dart';
 import 'package:oasis/features/feed/data/repositories/comment_repository_impl.dart';
-import 'package:oasis/providers/notification_provider.dart';
+import 'package:oasis/features/notifications/presentation/providers/notification_provider.dart';
 import 'package:oasis/providers/presence_provider.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:oasis/providers/typing_indicator_provider.dart';
-import 'package:oasis/providers/user_settings_provider.dart';
+import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
+import 'package:oasis/features/settings/data/repositories/settings_repository_impl.dart';
+import 'package:oasis/features/settings/domain/usecases/settings_usecases.dart';
 import 'package:oasis/features/stories/presentation/providers/stories_provider.dart';
+import 'package:oasis/features/collections/presentation/providers/collections_provider.dart';
+import 'package:oasis/features/collections/data/repositories/collection_repository_impl.dart';
+import 'package:oasis/features/collections/domain/usecases/get_collections.dart';
+import 'package:oasis/features/collections/domain/usecases/create_collection.dart';
+import 'package:oasis/features/collections/domain/usecases/update_collection.dart';
+import 'package:oasis/features/collections/domain/usecases/delete_collection.dart';
+import 'package:oasis/features/collections/domain/usecases/add_to_collection.dart';
+import 'package:oasis/features/collections/domain/usecases/remove_from_collection.dart';
+import 'package:oasis/features/collections/domain/usecases/get_collection_detail.dart';
+import 'package:oasis/features/collections/domain/usecases/check_post_in_collection.dart';
+import 'package:oasis/features/collections/domain/usecases/get_collections_for_post.dart';
 import 'package:oasis/core/storage/prefs_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -240,7 +253,11 @@ class AppInitializer {
     await themeProvider.loadTheme();
 
     // User settings
-    final userSettingsProvider = UserSettingsProvider();
+    final settingsRepo = SettingsRepositoryImpl();
+    final userSettingsProvider = UserSettingsProvider(
+      getSettingsUseCase: GetSettingsUseCase(settingsRepo),
+      saveSettingsUseCase: SaveSettingsUseCase(settingsRepo),
+    );
     await userSettingsProvider.loadSettings();
 
     // Desktop Windows enhancements
@@ -358,6 +375,22 @@ class AppInitializer {
         ChangeNotifierProvider(create: (_) => RipplesProvider()),
         ChangeNotifierProvider(create: (_) => CapsuleProvider()),
         ChangeNotifierProvider(create: (_) => StoriesProvider()),
+        ChangeNotifierProvider(
+          create: (_) {
+            final repo = CollectionRepositoryImpl();
+            return CollectionsProvider(
+              getCollectionsUseCase: GetCollectionsUseCase(repo),
+              createCollectionUseCase: CreateCollectionUseCase(repo),
+              updateCollectionUseCase: UpdateCollectionUseCase(repo),
+              deleteCollectionUseCase: DeleteCollectionUseCase(repo),
+              addToCollectionUseCase: AddToCollectionUseCase(repo),
+              removeFromCollectionUseCase: RemoveFromCollectionUseCase(repo),
+              getCollectionDetailUseCase: GetCollectionDetailUseCase(repo),
+              checkPostInCollectionUseCase: CheckPostInCollectionUseCase(repo),
+              getCollectionsForPostUseCase: GetCollectionsForPostUseCase(repo),
+            );
+          },
+        ),
         ChangeNotifierProvider<VaultService>(create: (_) => VaultService()),
       ],
       child: child,
