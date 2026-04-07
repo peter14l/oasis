@@ -14,6 +14,7 @@ class ChatInputArea extends StatelessWidget {
     required this.onSend,
     required this.onAttachment,
     required this.isRecording,
+    required this.recordDuration,
     required this.isSending,
     required this.isWhisperMode,
     required this.onToggleRecording,
@@ -28,6 +29,7 @@ class ChatInputArea extends StatelessWidget {
   final VoidCallback onSend;
   final VoidCallback onAttachment;
   final bool isRecording;
+  final int recordDuration;
   final bool isSending;
   final int isWhisperMode;
   final VoidCallback onToggleRecording;
@@ -35,6 +37,12 @@ class ChatInputArea extends StatelessWidget {
   final String? backgroundUrl;
   final Color? textColor;
   final String? hintText;
+
+  String _formatDuration(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '${minutes}:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,10 +112,10 @@ class ChatInputArea extends StatelessWidget {
                           valueListenable:
                               textNotifier ?? ValueNotifier(controller.text),
                           builder: (context, text, child) {
-                            final duration =
-                                controller.text.isEmpty ? '0:00' : '';
+                            final durationText =
+                                controller.text.isEmpty ? _formatDuration(recordDuration) : '';
                             return Text(
-                              duration,
+                              durationText,
                               style: TextStyle(
                                 color:
                                     backgroundUrl != null

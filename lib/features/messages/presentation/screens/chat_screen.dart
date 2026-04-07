@@ -74,11 +74,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final ValueNotifier<String> _textNotifier = ValueNotifier<String>('');
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
-  final AudioRecorder _audioRecorder = AudioRecorder();
   final ChatMediaPicker _mediaPicker = ChatMediaPicker();
-
-  Timer? _recordTimer;
-  int _recordDuration = 0;
 
   late VaultService _vaultService;
 
@@ -102,6 +98,31 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       encryptionProvider: _encryptionProvider,
       settingsProvider: _settingsProvider,
     );
+
+    _recordingProvider.addListener(() {
+      if (mounted) {
+        _chatProvider.setState(
+          (s) => s.copyWith(
+            isRecording: _recordingProvider.isRecording,
+            recordDuration: _recordingProvider.recordDuration,
+          ),
+        );
+      }
+    });
+
+    _recordingProvider.onRecordingComplete = (path, duration) async {
+      final userId = AuthService().currentUser?.id;
+      if (userId != null) {
+        await _recordingProvider.sendAudioMessage(
+          audioPath: path,
+          conversationId: widget.conversationId,
+          userId: userId,
+          recordDuration: duration,
+        );
+      }
+    };
+
+    _recordingProvider.onError = (error) => _showError(error);
 
     _chatProvider.onError = (error) {
       if (mounted) {
@@ -171,12 +192,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _recordTimer?.cancel();
     _messageController.dispose();
     _textNotifier.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
-    _audioRecorder.dispose();
 
     // Capture provider references before super.dispose() tears down the tree.
     // context.read() is safe here because we call it BEFORE super.dispose().
@@ -294,76 +313,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   // =========================================================================
 
   Future<void> _toggleRecording() async {
-    if (_recordingProvider.isRecording) {
-      await _stopRecording();
-    } else {
-      await _startRecording();
-    }
-  }
-
-  Future<void> _startRecording() async {
-    try {
-      if (await _audioRecorder.hasPermission()) {
-        final directory = await getTemporaryDirectory();
-        final filePath =
-            '${directory.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
-
-        await _audioRecorder.start(
-          const RecordConfig(
-            encoder: AudioEncoder.aacLc,
-            bitRate: 32000,
-            numChannels: 1,
-          ),
-          path: filePath,
-        );
-
-        setState(() {
-          _chatProvider.setState((s) => s.copyWith(isRecording: true));
-          _recordDuration = 0;
-        });
-
-        _recordTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-          setState(() => _recordDuration++);
-        });
-        HapticUtils.lightImpact();
-      }
-    } catch (e) {
-      _showError('Error starting recording: $e');
-    }
-  }
-
-  Future<void> _stopRecording() async {
-    try {
-      _recordTimer?.cancel();
-      _recordTimer = null;
-      final recordPath = await _audioRecorder.stop();
-
-      final duration = _recordDuration;
-      setState(() {
-        _chatProvider.setState(
-          (s) => s.copyWith(isRecording: false, recordDuration: 0),
-        );
-        _recordDuration = 0;
-      });
-
-      if (recordPath != null) {
-        final userId = AuthService().currentUser?.id;
-        if (userId != null) {
-          await _recordingProvider.sendAudioMessage(
-            audioPath: recordPath,
-            conversationId: widget.conversationId,
-            userId: userId,
-            recordDuration: duration,
-          );
-        }
-      }
-      HapticUtils.lightImpact();
-    } catch (e) {
-      _showError('Error stopping recording: $e');
-      setState(() {
-        _chatProvider.setState((s) => s.copyWith(isRecording: false));
-      });
-    }
+    await _recordingProvider.toggleRecording();
   }
 
   // =========================================================================
@@ -834,6 +784,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                             onAttachment:
                                                 _showAttachmentOptions,
                                             isRecording: state.isRecording,
+                                            recordDuration: state.recordDuration,
                                             isSending: state.isSending,
                                             isWhisperMode: state.whisperMode,
                                             onToggleRecording: _toggleRecording,
