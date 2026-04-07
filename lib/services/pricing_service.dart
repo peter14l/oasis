@@ -1,7 +1,6 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
-import 'package:universal_io/io.dart';
+import 'package:http/http.dart' as http;
 
 enum Currency { usd, inr, eur, gbp }
 
@@ -39,40 +38,48 @@ class PricingService {
 
   static Future<Currency> detectPPP() async {
     try {
-      final response = await http.get(Uri.parse('https://ipapi.co/json/')).timeout(const Duration(seconds: 5));
+      // Priority 1: IP-based detection (most accurate for travel/VPN)
+      final response = await http
+          .get(Uri.parse('https://ipapi.co/json/'))
+          .timeout(const Duration(seconds: 3));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final countryCode = data['country_code'];
-        return _countryToCurrency[countryCode] ?? Currency.usd;
+        final countryCode = data['country_code']?.toString().toUpperCase();
+        if (countryCode != null &&
+            _countryToCurrency.containsKey(countryCode)) {
+          return _countryToCurrency[countryCode]!;
+        }
       }
     } catch (e) {
-      debugPrint('PPP Detection failed: $e');
+      debugPrint('PPP Detection via IP failed: $e');
     }
-    
-    // Fallback to locale detection
+
+    // Priority 2: System Locale (reliable fallback on most OSs)
     return detectCurrency();
   }
 
   static Currency detectCurrency() {
     try {
-      final locale = PlatformDispatcher.instance.locale.countryCode;
+      // First check if we have a valid country code from the system locale
+      final countryCode =
+          PlatformDispatcher.instance.locale.countryCode?.toUpperCase();
+      if (countryCode != null && _countryToCurrency.containsKey(countryCode)) {
+        return _countryToCurrency[countryCode]!;
+      }
 
-      switch (locale) {
-        case 'IN':
-          return Currency.inr;
-        case 'GB':
-          return Currency.gbp;
-        case 'DE':
-        case 'FR':
-        case 'IT':
-        case 'ES':
-          return Currency.eur;
-        default:
-          return Currency.usd;
+      // Additional check for common European countries that might not be in our explicit map
+      final languageCode =
+          PlatformDispatcher.instance.locale.languageCode.toLowerCase();
+      if (['de', 'fr', 'it', 'es', 'nl', 'be', 'at'].contains(languageCode)) {
+        return Currency.eur;
       }
     } catch (e) {
-      return Currency.usd;
+      debugPrint('Locale detection failed: $e');
     }
+
+    // Fallback: For desktop apps, try to detect via IP (async call - synchronous for compatibility)
+    // This is a best-effort fallback. Callers should use detectPPP() for async IP detection.
+    return Currency.usd;
   }
 
   static List<PricingPlan> getPlans(Currency currency) {
