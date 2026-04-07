@@ -415,13 +415,13 @@ class _SharedContentScreenState extends State<SharedContentScreen>
         return FluentIcons.document_pdf_24_regular;
       case 'doc':
       case 'docx':
-        return FluentIcons.document_word_24_regular;
+        return FluentIcons.document_24_regular;
       case 'xls':
       case 'xlsx':
-        return FluentIcons.document_excel_24_regular;
+        return FluentIcons.grid_24_regular;
       case 'ppt':
       case 'pptx':
-        return FluentIcons.document_ppt_24_regular;
+        return FluentIcons.document_24_regular;
       case 'zip':
       case 'rar':
       case '7z':

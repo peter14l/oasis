@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -18,6 +19,7 @@ import 'package:oasis/widgets/security_pin_sheet.dart';
 import 'package:oasis/features/messages/data/encryption_service.dart';
 import 'package:oasis/core/utils/haptic_utils.dart';
 import 'package:go_router/go_router.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/features/messages/presentation/providers/providers.dart';
 import 'package:oasis/features/messages/presentation/widgets/chat/chat_app_bar.dart';
 import 'package:oasis/features/messages/presentation/widgets/chat/chat_background.dart';
