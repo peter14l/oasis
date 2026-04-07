@@ -384,6 +384,30 @@ class AppTheme {
   static const Color _m3eLightScrim = Color(0xFF000000);
   static const Color _m3eLightSurfaceTint = Color(0xFF6750A4);
 
+  static const ColorScheme m3eLightColorScheme = ColorScheme(
+    brightness: Brightness.light,
+    primary: _m3eLightPrimary,
+    onPrimary: _m3eLightOnPrimary,
+    primaryContainer: _m3eLightPrimaryContainer,
+    onPrimaryContainer: _m3eLightOnPrimaryContainer,
+    secondary: _m3eLightSecondary,
+    onSecondary: _m3eLightOnSecondary,
+    secondaryContainer: _m3eLightSecondaryContainer,
+    onSecondaryContainer: _m3eLightOnSecondaryContainer,
+    tertiary: _m3eLightTertiary,
+    onTertiary: _m3eLightOnTertiary,
+    tertiaryContainer: _m3eLightTertiaryContainer,
+    onTertiaryContainer: _m3eLightOnTertiaryContainer,
+    error: _m3eLightError,
+    onError: _m3eLightOnError,
+    errorContainer: _m3eLightErrorContainer,
+    onErrorContainer: _m3eLightOnErrorContainer,
+    surface: _m3eLightSurface,
+    onSurface: _m3eLightOnSurface,
+    outline: _m3eLightOutline,
+    outlineVariant: _m3eLightOutlineVariant,
+  );
+
   // M3E Colors - Dark
   static const Color _m3eDarkPrimary = Color(0xFFD0BCFF);
   static const Color _m3eDarkOnPrimary = Color(0xFF381E72);
@@ -419,6 +443,30 @@ class AppTheme {
   static const Color _m3eDarkShadow = Color(0xFF000000);
   static const Color _m3eDarkScrim = Color(0xFF000000);
   static const Color _m3eDarkSurfaceTint = Color(0xFFD0BCFF);
+
+  static const ColorScheme m3eDarkColorScheme = ColorScheme(
+    brightness: Brightness.dark,
+    primary: _m3eDarkPrimary,
+    onPrimary: _m3eDarkOnPrimary,
+    primaryContainer: _m3eDarkPrimaryContainer,
+    onPrimaryContainer: _m3eDarkOnPrimaryContainer,
+    secondary: _m3eDarkSecondary,
+    onSecondary: _m3eDarkOnSecondary,
+    secondaryContainer: _m3eDarkSecondaryContainer,
+    onSecondaryContainer: _m3eDarkOnSecondaryContainer,
+    tertiary: _m3eDarkTertiary,
+    onTertiary: _m3eDarkOnTertiary,
+    tertiaryContainer: _m3eDarkTertiaryContainer,
+    onTertiaryContainer: _m3eDarkOnTertiaryContainer,
+    error: _m3eDarkError,
+    onError: _m3eDarkOnError,
+    errorContainer: _m3eDarkErrorContainer,
+    onErrorContainer: _m3eDarkOnErrorContainer,
+    surface: _m3eDarkSurface,
+    onSurface: _m3eDarkOnSurface,
+    outline: _m3eDarkOutline,
+    outlineVariant: _m3eDarkOutlineVariant,
+  );
 
   // Standard Colors
   static const Color _lightPrimaryColor = Color(0xFF1C6758);
