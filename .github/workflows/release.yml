@@ -77,9 +77,11 @@ jobs:
         run: |
           $path = "windows/flutter/ephemeral/.plugin_symlinks/sentry_flutter/sentry-native/sentry-native.cmake"
           if (Test-Path $path) {
-            $content = Get-Content $path
-            $content = $content -replace 'GIT_TAG \${SENTRY_NATIVE_version}', 'GIT_TAG ${SENTRY_NATIVE_version}`n    GIT_SUBMODULES ""'
-            $content | Set-Content $path
+            $content = Get-Content $path -Raw
+            $old = 'GIT_TAG \${SENTRY_NATIVE_version}'
+            $new = "GIT_TAG `${SENTRY_NATIVE_version}`n    GIT_SUBMODULES `"`""
+            $content = $content -replace $old, $new
+            Set-Content -Path $path -Value $content -NoNewline
             Write-Host "Successfully patched $path to skip submodules"
           } else {
             Write-Warning "Could not find $path"
