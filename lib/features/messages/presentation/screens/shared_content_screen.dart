@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
-import 'package:oasis/features/messages/presentation/providers/chat_provider.dart';
 import 'package:oasis/services/media_download_service.dart';
 import 'package:oasis/services/auth_service.dart';
 
 class SharedContentScreen extends StatefulWidget {
   final String conversationId;
   final String otherUserName;
+  final List<Message> messages;
 
   const SharedContentScreen({
     super.key,
     required this.conversationId,
     required this.otherUserName,
+    required this.messages,
   });
 
   @override
@@ -26,10 +26,7 @@ class _SharedContentScreenState extends State<SharedContentScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final MediaDownloadService _downloadService = MediaDownloadService();
-  final urlRegExp = RegExp(
-    r'(https?:\/\/[^\s]+)',
-    caseSensitive: false,
-  );
+  final urlRegExp = RegExp(r'(https?:\/\/[^\s]+)', caseSensitive: false);
 
   @override
   void initState() {
@@ -56,14 +53,17 @@ class _SharedContentScreenState extends State<SharedContentScreen>
 
   List<Message> _getFileMessages(List<Message> messages) {
     return messages
-        .where((m) => m.messageType == MessageType.document && m.mediaUrl != null)
+        .where(
+          (m) => m.messageType == MessageType.document && m.mediaUrl != null,
+        )
         .toList();
   }
 
   List<Map<String, dynamic>> _getLinks(List<Message> messages) {
     final List<Map<String, dynamic>> links = [];
     for (final m in messages) {
-      if (m.messageType == MessageType.text || m.messageType == MessageType.ripple) {
+      if (m.messageType == MessageType.text ||
+          m.messageType == MessageType.ripple) {
         final matches = urlRegExp.allMatches(m.content);
         for (final match in matches) {
           links.add({
@@ -75,7 +75,10 @@ class _SharedContentScreenState extends State<SharedContentScreen>
       }
     }
     // Sort links by timestamp descending
-    links.sort((a, b) => (b['timestamp'] as DateTime).compareTo(a['timestamp'] as DateTime));
+    links.sort(
+      (a, b) =>
+          (b['timestamp'] as DateTime).compareTo(a['timestamp'] as DateTime),
+    );
     return links;
   }
 
@@ -83,8 +86,7 @@ class _SharedContentScreenState extends State<SharedContentScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final chatProvider = Provider.of<ChatProvider>(context);
-    final messages = chatProvider.state.messages;
+    final messages = widget.messages;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -196,13 +198,15 @@ class _SharedContentScreenState extends State<SharedContentScreen>
                 CachedNetworkImage(
                   imageUrl: msg.mediaUrl!,
                   fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Theme.of(context).colorScheme.surfaceContainer,
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Theme.of(context).colorScheme.errorContainer,
-                    child: const Icon(FluentIcons.error_circle_24_regular),
-                  ),
+                  placeholder:
+                      (context, url) => Container(
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                      ),
+                  errorWidget:
+                      (context, url, error) => Container(
+                        color: Theme.of(context).colorScheme.errorContainer,
+                        child: const Icon(FluentIcons.error_circle_24_regular),
+                      ),
                 ),
                 if (msg.messageType == MessageType.ripple)
                   const Center(
@@ -226,9 +230,17 @@ class _SharedContentScreenState extends State<SharedContentScreen>
                         final currentUserId = AuthService().currentUser?.id;
                         final isOwn = msg.senderId == currentUserId;
                         if (msg.messageType == MessageType.ripple) {
-                          await _downloadService.downloadVideo(msg.mediaUrl!, context, isOwnContent: isOwn);
+                          await _downloadService.downloadVideo(
+                            msg.mediaUrl!,
+                            context,
+                            isOwnContent: isOwn,
+                          );
                         } else {
-                          await _downloadService.downloadImage(msg.mediaUrl!, context, isOwnContent: isOwn);
+                          await _downloadService.downloadImage(
+                            msg.mediaUrl!,
+                            context,
+                            isOwnContent: isOwn,
+                          );
                         }
                       },
                       child: const Icon(
@@ -281,10 +293,7 @@ class _SharedContentScreenState extends State<SharedContentScreen>
                 color: colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                _getFileIcon(fileName),
-                color: colorScheme.primary,
-              ),
+              child: Icon(_getFileIcon(fileName), color: colorScheme.primary),
             ),
             title: Text(
               fileName,
@@ -360,10 +369,7 @@ class _SharedContentScreenState extends State<SharedContentScreen>
               url,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
             subtitle: Text(
               'Shared by ${link['senderName']}',
@@ -393,13 +399,17 @@ class _SharedContentScreenState extends State<SharedContentScreen>
           Icon(
             icon,
             size: 64,
-            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
           ),
           const SizedBox(height: 16),
           Text(
             message,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               fontWeight: FontWeight.w500,
             ),
           ),

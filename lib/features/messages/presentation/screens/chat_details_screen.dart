@@ -262,9 +262,15 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     }
   }
 
-
-
   void _navigateToSharedContent(BuildContext context) {
+    List<Message> messagesToPass;
+    try {
+      final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+      messagesToPass = chatProvider.state.messages;
+    } catch (_) {
+      messagesToPass = _allMessages;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -272,6 +278,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             (context) => SharedContentScreen(
               conversationId: widget.conversationId,
               otherUserName: widget.otherUserName,
+              messages: messagesToPass,
             ),
       ),
     );
@@ -508,7 +515,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating vault: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error updating vault: $e')));
       }
     }
   }

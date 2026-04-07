@@ -474,20 +474,23 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       context,
       MaterialPageRoute(
         builder:
-            (context) => ChatDetailsScreen(
-              conversationId: widget.conversationId,
-              otherUserName:
-                  widget.otherUserName ?? state.otherUserName ?? 'Unknown',
-              otherUserAvatar: widget.otherUserAvatar ?? '',
-              otherUserId: widget.otherUserId ?? state.otherUserId ?? '',
-              whisperMode: state.whisperMode,
-              currentBackground: state.backgroundUrl,
-              onBackgroundSettingsChanged: (opacity, brightness) {
-                _chatProvider.setState(
-                  (s) =>
-                      s.copyWith(bgOpacity: opacity, bgBrightness: brightness),
-                );
-              },
+            (context) => ChangeNotifierProvider.value(
+              value: _chatProvider,
+              child: ChatDetailsScreen(
+                conversationId: widget.conversationId,
+                otherUserName:
+                    widget.otherUserName ?? state.otherUserName ?? 'Unknown',
+                otherUserAvatar: widget.otherUserAvatar ?? '',
+                otherUserId: widget.otherUserId ?? state.otherUserId ?? '',
+                whisperMode: state.whisperMode,
+                currentBackground: state.backgroundUrl,
+                onBackgroundSettingsChanged: (opacity, brightness) {
+                  _chatProvider.setState(
+                    (s) =>
+                        s.copyWith(bgOpacity: opacity, bgBrightness: brightness),
+                  );
+                },
+              ),
             ),
       ),
     );
