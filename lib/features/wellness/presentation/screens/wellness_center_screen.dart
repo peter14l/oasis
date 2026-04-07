@@ -276,27 +276,27 @@ class WellnessCenterScreen extends StatelessWidget {
         _buildActionCard(
           context,
           'Zen Mode',
-          wellness.isZenMode ? 'Active' : 'Quiet all noise',
+          'Quiet all noise (Soon)',
           Icons.spa_rounded,
-          wellness.isZenMode ? Colors.teal : Colors.teal.withValues(alpha: 0.5),
-          () => wellness.toggleZenMode(),
-          isActive: wellness.isZenMode,
+          Colors.teal.withValues(alpha: 0.5),
+          () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Zen Mode is coming soon!')),
+            );
+          },
+          isActive: false,
         ),
         const SizedBox(width: 16),
         _buildActionCard(
           context,
           'Focus Mode',
-          wellness.isFocusModeActive ? 'Active' : 'Lock distractions',
+          wellness.focusModeEnabled ? 'Active' : 'Lock distractions',
           Icons.center_focus_strong_rounded,
-          wellness.isFocusModeActive ? Colors.orange : Colors.orange.withValues(alpha: 0.5),
+          wellness.focusModeEnabled ? Colors.orange : Colors.orange.withValues(alpha: 0.5),
           () {
-            if (wellness.isFocusModeActive) {
-              wellness.stopFocusSession();
-            } else {
-              wellness.startFocusSession(const Duration(minutes: 25));
-            }
+            wellness.setFocusModeEnabled(!wellness.focusModeEnabled);
           },
-          isActive: wellness.isFocusModeActive,
+          isActive: wellness.focusModeEnabled,
         ),
       ],
     );
@@ -396,7 +396,7 @@ class WellnessCenterScreen extends StatelessWidget {
             wellness.isWindDownActive ? 'Wind-down active' : 'Prepare for a restful night',
             Icons.nights_stay_rounded,
             wellness.isWindDownActive ? Colors.indigo : Colors.indigo.withValues(alpha: 0.5),
-            () => wellness.toggleWindDown(),
+            () => wellness.setWindDownEnabled(!wellness.windDownEnabled),
           ),
         ],
       ),

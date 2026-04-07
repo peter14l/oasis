@@ -137,13 +137,6 @@ class _FeedScreenState extends State<FeedScreen>
     super.dispose();
   }
 
-  Future<void> _loadLayoutPreference() async {
-    final layout = await FeedLayoutSwitcher.loadLayoutPreference();
-    setState(() {
-      _currentLayout = layout;
-    });
-  }
-
   void _loadFeed() {
     final userId = _authService.currentUser?.id;
     if (userId == null) return;
