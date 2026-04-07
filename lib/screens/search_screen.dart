@@ -7,6 +7,7 @@ import 'package:oasis/services/search_service.dart';
 import 'package:oasis/features/feed/presentation/widgets/post_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:oasis/widgets/desktop_header.dart';
 
 import 'package:oasis/services/app_initializer.dart'; // For ThemeProvider
 import 'package:provider/provider.dart';
@@ -109,9 +110,10 @@ class _SearchScreenState extends State<SearchScreen>
 
     if (isDesktop && !usePanelLayout) {
       // Full Screen Desktop layout
-      final desktopBgColor = disableTransparency 
-          ? colorScheme.surface 
-          : colorScheme.surface.withValues(alpha: 0.4);
+      final desktopBgColor =
+          disableTransparency
+              ? colorScheme.surface
+              : colorScheme.surface.withValues(alpha: 0.4);
 
       return Padding(
         padding: const EdgeInsets.all(12),
@@ -123,28 +125,29 @@ class _SearchScreenState extends State<SearchScreen>
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
-            child: disableTransparency 
-              ? Scaffold(
-                  backgroundColor: Colors.transparent,
-                  body: Column(
-                    children: [
-                      _buildDesktopHeader(theme, colorScheme, isM3E),
-                      Expanded(child: _buildDesktopLayout(isM3E)),
-                    ],
-                  ),
-                )
-              : BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Scaffold(
-                    backgroundColor: Colors.transparent,
-                    body: Column(
-                      children: [
-                        _buildDesktopHeader(theme, colorScheme, isM3E),
-                        Expanded(child: _buildDesktopLayout(isM3E)),
-                      ],
+            child:
+                disableTransparency
+                    ? Scaffold(
+                      backgroundColor: Colors.transparent,
+                      body: Column(
+                        children: [
+                          _buildNewDesktopHeader(theme, colorScheme, isM3E),
+                          Expanded(child: _buildDesktopLayout(isM3E)),
+                        ],
+                      ),
+                    )
+                    : BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Scaffold(
+                        backgroundColor: Colors.transparent,
+                        body: Column(
+                          children: [
+                            _buildNewDesktopHeader(theme, colorScheme, isM3E),
+                            Expanded(child: _buildDesktopLayout(isM3E)),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ),
           ),
         ),
       );
@@ -152,22 +155,24 @@ class _SearchScreenState extends State<SearchScreen>
 
     // Mobile layout OR Panel layout (Simplified for narrow width)
     return Scaffold(
-      backgroundColor: usePanelLayout ? colorScheme.surface : theme.scaffoldBackgroundColor,
+      backgroundColor:
+          usePanelLayout ? colorScheme.surface : theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: colorScheme.surface,
         automaticallyImplyLeading: !usePanelLayout,
         flexibleSpace: ClipRRect(
-          child: disableTransparency
-            ? Container(color: Colors.transparent)
-            : BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(color: Colors.transparent),
-              ),
+          child:
+              disableTransparency
+                  ? Container(color: Colors.transparent)
+                  : BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(color: Colors.transparent),
+                  ),
         ),
         elevation: 0,
-        toolbarHeight: 80, 
+        toolbarHeight: 80,
         title: Container(
-          height: 52, 
+          height: 52,
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(isM3E ? 16 : 26),
@@ -211,10 +216,10 @@ class _SearchScreenState extends State<SearchScreen>
               },
             ),
           if (usePanelLayout)
-             IconButton(
-               icon: const Icon(Icons.filter_list_rounded),
-               onPressed: () => _showPanelFilters(context, isM3E),
-             ),
+            IconButton(
+              icon: const Icon(Icons.filter_list_rounded),
+              onPressed: () => _showPanelFilters(context, isM3E),
+            ),
           const SizedBox(width: 8),
         ],
         bottom: PreferredSize(
@@ -223,10 +228,13 @@ class _SearchScreenState extends State<SearchScreen>
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             child: TabBar(
               controller: _tabController,
-              indicator: const BoxDecoration(), 
+              indicator: const BoxDecoration(),
               dividerColor: Colors.transparent,
               labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-              tabs: [_buildTab('People', 0, isM3E), _buildTab('Posts', 1, isM3E)],
+              tabs: [
+                _buildTab('People', 0, isM3E),
+                _buildTab('Posts', 1, isM3E),
+              ],
             ),
           ),
         ),
@@ -235,31 +243,53 @@ class _SearchScreenState extends State<SearchScreen>
     );
   }
 
-  Widget _buildDesktopHeader(ThemeData theme, ColorScheme colorScheme, bool isM3E) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.2),
-        border: Border(
-          bottom: BorderSide(
-            color: theme.dividerColor.withValues(alpha: 0.1),
-            width: 1,
-          ),
+  Widget _buildNewDesktopHeader(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool isM3E,
+  ) {
+    return Column(
+      children: [
+        DesktopHeader(
+          title: 'Search',
+          subtitle: 'Discover people, posts, and moments',
+          actions: [
+            IconButton.filledTonal(
+              icon: Icon(
+                _showFilters ? Icons.filter_list_off : Icons.filter_list,
+                size: 20,
+              ),
+              onPressed: () => setState(() => _showFilters = !_showFilters),
+              tooltip: _showFilters ? 'Hide Filters' : 'Show Filters',
+              style: IconButton.styleFrom(
+                backgroundColor:
+                    _showFilters
+                        ? colorScheme.primaryContainer
+                        : colorScheme.surfaceContainerHighest,
+                foregroundColor:
+                    _showFilters
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(isM3E ? 12 : 20),
+                ),
+              ),
+            ),
+          ],
         ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
+        Container(
+          padding: const EdgeInsets.fromLTRB(40, 0, 40, 24),
+          child: MaxWidthContainer(
+            maxWidth: 1000,
             child: Container(
-              height: 64, // Thicker search bar
+              height: 64,
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest
-                    .withValues(alpha: 0.3),
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.3,
+                ),
                 borderRadius: BorderRadius.circular(isM3E ? 16 : 32),
                 border: Border.all(
-                  color: theme.dividerColor.withValues(
-                    alpha: 0.3,
-                  ),
+                  color: theme.dividerColor.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -268,15 +298,13 @@ class _SearchScreenState extends State<SearchScreen>
                 onChanged: _onSearchChanged,
                 onSubmitted: _onSearchSubmitted,
                 decoration: InputDecoration(
-                  hintText: 'Search users or posts...',
+                  hintText: 'Search for anything on Oasis...',
                   border: InputBorder.none,
                   hintStyle: TextStyle(
-                    color: colorScheme.onSurfaceVariant,
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                    fontWeight: FontWeight.w500,
                   ),
-                  prefixIcon: const Icon(
-                    Icons.search,
-                    size: 28,
-                  ),
+                  prefixIcon: const Icon(Icons.search, size: 28),
                   suffixIcon:
                       _query.isNotEmpty
                           ? IconButton(
@@ -294,42 +322,15 @@ class _SearchScreenState extends State<SearchScreen>
                 ),
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w600,
                 ),
                 textInputAction: TextInputAction.search,
               ),
             ),
           ),
-          const SizedBox(width: 16),
-          IconButton(
-            icon: Icon(
-              _showFilters
-                  ? Icons.filter_list_off
-                  : Icons.filter_list,
-              size: 24,
-            ),
-            onPressed:
-                () => setState(
-                  () => _showFilters = !_showFilters,
-                ),
-            tooltip:
-                _showFilters ? 'Hide Filters' : 'Show Filters',
-            style: IconButton.styleFrom(
-              backgroundColor:
-                  _showFilters
-                      ? colorScheme.primaryContainer
-                      : colorScheme.surfaceContainerHighest,
-              foregroundColor:
-                  _showFilters
-                      ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant,
-              minimumSize: const Size(64, 64),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(isM3E ? 16 : 32),
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+        const Divider(height: 1),
+      ],
     );
   }
 

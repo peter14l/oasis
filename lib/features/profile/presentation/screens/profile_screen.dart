@@ -13,6 +13,7 @@ import 'package:oasis/features/wellness/presentation/widgets/wellness_badge.dart
 import 'package:oasis/features/auth/presentation/widgets/account_switcher_sheet.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:oasis/widgets/desktop_header.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userId;
@@ -147,154 +148,406 @@ class _ProfileScreenState extends State<ProfileScreen>
           return const Scaffold(body: Center(child: Text('Profile not found')));
         }
 
-        final Widget profileContent = Scaffold(
-          backgroundColor: Colors.transparent,
-          extendBodyBehindAppBar: true,
-          body: CustomScrollView(
-            controller: _scrollController,
-            slivers: [
-              _buildModernAppBar(
-                profile,
-                theme,
-                colorScheme,
-                isDesktop,
-                isM3E,
-                disableTransparency,
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    isDesktop ? 32 : 20,
-                    isDesktop ? 80 : 32,
-                    isDesktop ? 32 : 20,
-                    24,
+        if (isDesktop) {
+          return _buildDesktopLayout(
+            profile,
+            theme,
+            colorScheme,
+            profileProvider,
+            userId,
+            isM3E,
+            disableTransparency,
+          );
+        }
+
+        return _buildMobileLayout(
+          profile,
+          theme,
+          colorScheme,
+          isM3E,
+          disableTransparency,
+          userId,
+        );
+      },
+    );
+  }
+
+  Widget _buildDesktopLayout(
+    UserProfileEntity profile,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    ProfileProvider profileProvider,
+    String? userId,
+    bool isM3E,
+    bool disableTransparency,
+  ) {
+    final desktopBgColor =
+        disableTransparency
+            ? colorScheme.surface
+            : colorScheme.surface.withValues(alpha: 0.4);
+
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: desktopBgColor,
+          borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
+          child:
+              disableTransparency
+                  ? _buildDesktopContent(
+                    profile,
+                    theme,
+                    colorScheme,
+                    profileProvider,
+                    userId,
+                    isM3E,
+                    disableTransparency,
+                  )
+                  : BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: _buildDesktopContent(
+                      profile,
+                      theme,
+                      colorScheme,
+                      profileProvider,
+                      userId,
+                      isM3E,
+                      disableTransparency,
+                    ),
                   ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDesktopContent(
+    UserProfileEntity profile,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    ProfileProvider profileProvider,
+    String? userId,
+    bool isM3E,
+    bool disableTransparency,
+  ) {
+    return Column(
+      children: [
+        DesktopHeader(
+          title: profile.username,
+          subtitle: profile.fullName ?? 'Oasis Member',
+          actions: [
+            if (isOwnProfile)
+              IconButton(
+                icon: const Icon(Icons.settings_outlined),
+                onPressed: () => context.push('/settings'),
+                tooltip: 'Settings',
+              ),
+          ],
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left Pane: Profile Info
+              Container(
+                width: 350,
+                decoration: BoxDecoration(
+                  border: Border(
+                    right: BorderSide(
+                      color: colorScheme.onSurface.withValues(alpha: 0.05),
+                    ),
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(32),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (isDesktop)
-                        _buildDesktopProfileHeader(
-                          profile,
-                          theme,
-                          colorScheme,
-                          profileProvider,
-                          userId,
-                          isM3E,
-                        )
-                      else
-                        _buildProfileHeader(profile, theme, colorScheme, isM3E),
-
+                      _buildDesktopAvatar(profile, colorScheme, isM3E),
                       const SizedBox(height: 32),
-
-                      if (!isDesktop) ...[
-                        _buildStatsBar(
-                          profile,
-                          theme,
-                          colorScheme,
-                          isM3E,
-                          disableTransparency,
-                        ),
-                        const SizedBox(height: 24),
-                        _buildActionButtons(
-                          profile,
-                          profileProvider,
-                          theme,
-                          colorScheme,
-                          userId,
-                          isM3E,
-                        ),
-                      ] else
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              flex: 1,
-                              child: _buildDesktopInfoCard(
-                                profile,
-                                theme,
-                                colorScheme,
-                                isM3E,
-                                disableTransparency,
-                              ),
-                            ),
-                          ],
-                        ),
+                      _buildDesktopInfoSection(
+                        profile,
+                        theme,
+                        colorScheme,
+                        profileProvider,
+                        userId,
+                        isM3E,
+                      ),
+                      const SizedBox(height: 40),
+                      _buildDesktopInfoCard(
+                        profile,
+                        theme,
+                        colorScheme,
+                        isM3E,
+                        disableTransparency,
+                      ),
                     ],
                   ),
                 ),
               ),
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: _SliverAppBarDelegate(
-                  PreferredSize(
-                    preferredSize: const Size.fromHeight(64),
-                    child: ClipRRect(
-                      child:
-                          disableTransparency
-                              ? Container(
-                                color: colorScheme.surface,
-                                child: _buildTabBar(colorScheme),
-                              )
-                              : BackdropFilter(
-                                filter: ImageFilter.blur(
-                                  sigmaX: 10,
-                                  sigmaY: 10,
-                                ),
-                                child: Container(
-                                  color: colorScheme.surface.withValues(
-                                    alpha: 0.7,
-                                  ),
-                                  child: _buildTabBar(colorScheme),
-                                ),
-                              ),
-                    ),
-                  ),
-                  colorScheme.surface,
-                ),
-              ),
-              SliverFillRemaining(
-                child: TabBarView(
-                  controller: _tabController,
+              // Right Pane: Tabs & Grid
+              Expanded(
+                child: Column(
                   children: [
-                    _buildPostsTab(userId, isDesktop, isM3E),
-                    if (isOwnProfile) _buildSavedTab(userId, isDesktop, isM3E),
+                    _buildTabBar(colorScheme),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildPostsTab(userId, true, isM3E),
+                          if (isOwnProfile) _buildSavedTab(userId, true, isM3E),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
-              const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
             ],
           ),
-        );
+        ),
+      ],
+    );
+  }
 
-        if (isDesktop) {
-          final desktopBgColor =
-              disableTransparency
-                  ? colorScheme.surface
-                  : colorScheme.surface.withValues(alpha: 0.4);
-
-          return Padding(
-            padding: const EdgeInsets.all(12),
-            child: Container(
-              decoration: BoxDecoration(
-                color: desktopBgColor,
-                borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+  Widget _buildDesktopAvatar(
+    UserProfileEntity profile,
+    ColorScheme colorScheme,
+    bool isM3E,
+  ) {
+    return Center(
+      child: Stack(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+              borderRadius: isM3E ? BorderRadius.circular(32) : null,
+              gradient: LinearGradient(
+                colors: [colorScheme.primary, colorScheme.tertiary],
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
+            ),
+            child: ClipRRect(
+              borderRadius:
+                  isM3E ? BorderRadius.circular(28) : BorderRadius.circular(60),
+              child: Container(
+                width: 120,
+                height: 120,
+                color: colorScheme.surface,
                 child:
-                    disableTransparency
-                        ? profileContent
-                        : BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: profileContent,
+                    profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
+                        ? CachedNetworkImage(
+                          imageUrl: profile.avatarUrl!,
+                          fit: BoxFit.cover,
+                        )
+                        : Center(
+                          child: Text(
+                            profile.username[0].toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 32,
+                              color: colorScheme.primary,
+                            ),
+                          ),
                         ),
               ),
             ),
-          );
-        }
+          ),
+          if (profile.isPro)
+            Positioned(
+              bottom: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.amber,
+                  borderRadius: BorderRadius.circular(isM3E ? 8 : 12),
+                  border: Border.all(color: colorScheme.surface, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 5,
+                    ),
+                  ],
+                ),
+                child: const Text(
+                  'PRO MEMBER',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 
-        return profileContent;
-      },
+  Widget _buildDesktopInfoSection(
+    UserProfileEntity profile,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    ProfileProvider profileProvider,
+    String? currentUserId,
+    bool isM3E,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                profile.username,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildDesktopActionButtons(
+          profile,
+          profileProvider,
+          theme,
+          colorScheme,
+          currentUserId,
+          isM3E,
+        ),
+        const SizedBox(height: 24),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildDesktopStatItem('${profile.postsCount}', 'posts'),
+            _buildDesktopStatItem(
+              '${profile.followersCount}',
+              'followers',
+              onTap: () => context.push('/profile/${profile.id}/followers'),
+            ),
+            _buildDesktopStatItem(
+              '${profile.followingCount}',
+              'following',
+              onTap: () => context.push('/profile/${profile.id}/following'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        Text(
+          profile.fullName ?? profile.username,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (profile.bio != null)
+          Text(
+            profile.bio!,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
+        const SizedBox(height: 16),
+        WellnessBadge(xp: profile.xp),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout(
+    UserProfileEntity profile,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool isM3E,
+    bool disableTransparency,
+    String? userId,
+  ) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          _buildModernAppBar(
+            profile,
+            theme,
+            colorScheme,
+            false,
+            isM3E,
+            disableTransparency,
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
+              child: Column(
+                children: [
+                  _buildProfileHeader(profile, theme, colorScheme, isM3E),
+                  const SizedBox(height: 32),
+                  _buildStatsBar(
+                    profile,
+                    theme,
+                    colorScheme,
+                    isM3E,
+                    disableTransparency,
+                  ),
+                  const SizedBox(height: 24),
+                  _buildActionButtons(
+                    profile,
+                    context.read<ProfileProvider>(),
+                    theme,
+                    colorScheme,
+                    userId,
+                    isM3E,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _SliverAppBarDelegate(
+              PreferredSize(
+                preferredSize: const Size.fromHeight(64),
+                child: ClipRRect(
+                  child:
+                      disableTransparency
+                          ? Container(
+                            color: colorScheme.surface,
+                            child: _buildTabBar(colorScheme),
+                          )
+                          : BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                            child: Container(
+                              color: colorScheme.surface.withValues(alpha: 0.7),
+                              child: _buildTabBar(colorScheme),
+                            ),
+                          ),
+                ),
+              ),
+              colorScheme.surface,
+            ),
+          ),
+          SliverFillRemaining(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildPostsTab(userId, false, isM3E),
+                if (isOwnProfile) _buildSavedTab(userId, false, isM3E),
+              ],
+            ),
+          ),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+        ],
+      ),
     );
   }
 
@@ -344,157 +597,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildDesktopProfileHeader(
-    UserProfileEntity profile,
-    ThemeData theme,
-    ColorScheme colorScheme,
-    ProfileProvider profileProvider,
-    String? currentUserId,
-    bool isM3E,
-  ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Stack(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
-                borderRadius: isM3E ? BorderRadius.circular(32) : null,
-                gradient: LinearGradient(
-                  colors: [colorScheme.primary, colorScheme.tertiary],
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius:
-                    isM3E
-                        ? BorderRadius.circular(28)
-                        : BorderRadius.circular(60),
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  color: colorScheme.surface,
-                  child:
-                      profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
-                          ? CachedNetworkImage(
-                            imageUrl: profile.avatarUrl!,
-                            fit: BoxFit.cover,
-                          )
-                          : Center(
-                            child: Text(
-                              profile.username[0].toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 32,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                          ),
-                ),
-              ),
-            ),
-            if (profile.isPro)
-              Positioned(
-                bottom: 8,
-                right: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.amber,
-                    borderRadius: BorderRadius.circular(isM3E ? 8 : 12),
-                    border: Border.all(color: colorScheme.surface, width: 3),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        blurRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: const Text(
-                    'PRO MEMBER',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(width: 32),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    profile.username,
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  _buildDesktopActionButtons(
-                    profile,
-                    profileProvider,
-                    theme,
-                    colorScheme,
-                    currentUserId,
-                    isM3E,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  _buildDesktopStatItem('${profile.postsCount}', 'posts'),
-                  const SizedBox(width: 24),
-                  _buildDesktopStatItem(
-                    '${profile.followersCount}',
-                    'followers',
-                    onTap:
-                        () => context.push('/profile/${profile.id}/followers'),
-                  ),
-                  const SizedBox(width: 24),
-                  _buildDesktopStatItem(
-                    '${profile.followingCount}',
-                    'following',
-                    onTap:
-                        () => context.push('/profile/${profile.id}/following'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                profile.fullName ?? profile.username,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              if (profile.bio != null)
-                Text(
-                  profile.bio!,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                ),
-              const SizedBox(height: 12),
-              WellnessBadge(xp: profile.xp),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildDesktopStatItem(
     String value,
     String label, {
@@ -503,21 +605,23 @@ class _ProfileScreenState extends State<ProfileScreen>
     final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
-      child: RichText(
-        text: TextSpan(
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Column(
           children: [
-            TextSpan(
-              text: value,
-              style: theme.textTheme.titleSmall?.copyWith(
+            Text(
+              value,
+              style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w900,
                 color: theme.colorScheme.onSurface,
               ),
             ),
-            const TextSpan(text: ' '),
-            TextSpan(
-              text: label,
-              style: theme.textTheme.labelMedium?.copyWith(
+            Text(
+              label,
+              style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
@@ -536,80 +640,68 @@ class _ProfileScreenState extends State<ProfileScreen>
   ) {
     final radius = isM3E ? 16.0 : 10.0;
     if (isOwnProfile) {
-      return Row(
-        children: [
-          OutlinedButton(
-            onPressed: () => context.push('/edit-profile'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(radius),
-              ),
-            ),
-            child: const Text(
-              'Edit Profile',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+      return SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: () => context.push('/edit-profile'),
+          icon: const Icon(Icons.edit_note_rounded, size: 18),
+          label: const Text('Edit Profile'),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(radius),
             ),
           ),
-          const SizedBox(width: 8),
-          IconButton.filledTonal(
-            onPressed: () => context.push('/settings'),
-            icon: const Icon(Icons.settings_outlined, size: 18),
-            style: IconButton.styleFrom(
-              padding: const EdgeInsets.all(10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(radius),
-              ),
-            ),
-          ),
-        ],
+        ),
       );
     }
 
     return Row(
       children: [
-        FilledButton(
-          onPressed: () {
-            if (currentUserId != null) {
-              if (profileProvider.isFollowing) {
-                profileProvider.unfollowUser(
-                  followerId: currentUserId,
-                  followingId: profile.id,
-                );
-              } else {
-                profileProvider.followUser(
-                  followerId: currentUserId,
-                  followingId: profile.id,
-                );
+        Expanded(
+          child: FilledButton(
+            onPressed: () {
+              if (currentUserId != null) {
+                if (profileProvider.isFollowing) {
+                  profileProvider.unfollowUser(
+                    followerId: currentUserId,
+                    followingId: profile.id,
+                  );
+                } else {
+                  profileProvider.followUser(
+                    followerId: currentUserId,
+                    followingId: profile.id,
+                  );
+                }
               }
-            }
-          },
-          style: FilledButton.styleFrom(
-            backgroundColor:
-                profileProvider.isFollowing
-                    ? colorScheme.surfaceContainerHighest
-                    : colorScheme.primary,
-            foregroundColor:
-                profileProvider.isFollowing
-                    ? colorScheme.onSurface
-                    : colorScheme.onPrimary,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(radius),
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor:
+                  profileProvider.isFollowing
+                      ? colorScheme.surfaceContainerHighest
+                      : colorScheme.primary,
+              foregroundColor:
+                  profileProvider.isFollowing
+                      ? colorScheme.onSurface
+                      : colorScheme.onPrimary,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(radius),
+              ),
             ),
-          ),
-          child: Text(
-            profileProvider.isFollowing ? 'Following' : 'Follow',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+            child: Text(
+              profileProvider.isFollowing ? 'Following' : 'Follow',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ),
         const SizedBox(width: 8),
         if (currentUserId != null)
           IconButton.filledTonal(
             onPressed: () => _handleMessage(currentUserId, profile.id),
-            icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+            icon: const Icon(Icons.chat_bubble_outline_rounded, size: 20),
             style: IconButton.styleFrom(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(radius),
               ),
@@ -627,7 +719,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     bool disableTransparency,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color:
             disableTransparency
@@ -649,11 +741,11 @@ class _ProfileScreenState extends State<ProfileScreen>
               color: colorScheme.primary,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           _buildInfoRow(Icons.calendar_today_outlined, 'Joined March 2024'),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           _buildInfoRow(Icons.verified_user_outlined, 'Identity Verified'),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           _buildInfoRow(Icons.favorite_outline_rounded, 'Top 5% Contributor'),
         ],
       ),
@@ -945,7 +1037,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       physics: const ClampingScrollPhysics(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.all(2),
+          padding: EdgeInsets.all(isDesktop ? 20 : 2),
           sliver: _buildPostsGrid(_userPosts, userId, isDesktop, isM3E),
         ),
       ],
@@ -957,7 +1049,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       physics: const ClampingScrollPhysics(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.all(2),
+          padding: EdgeInsets.all(isDesktop ? 20 : 2),
           sliver: _buildPostsGrid(_savedPosts, userId, isDesktop, isM3E),
         ),
       ],

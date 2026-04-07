@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/services/auth_service.dart';
@@ -12,6 +13,7 @@ import 'package:oasis/features/feed/presentation/widgets/stories_bar.dart';
 import 'package:oasis/features/capsules/presentation/widgets/capsule_carousel.dart';
 import 'package:oasis/features/ripples/presentation/screens/ripples_screen.dart';
 import 'package:oasis/widgets/comments_modal.dart';
+import 'package:oasis/widgets/desktop_header.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/services/screen_time_service.dart';
@@ -380,78 +382,29 @@ class _FeedScreenState extends State<FeedScreen>
                   child: Center(child: Text('No posts found.')),
                 );
               }
+
+              if (isDesktop) {
+                return SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  sliver: SliverMasonryGrid.count(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 24,
+                    crossAxisSpacing: 24,
+                    itemBuilder: (context, index) {
+                      final post = posts[index];
+                      return _buildPostItem(post, provider, true);
+                    },
+                    childCount: posts.length,
+                  ),
+                );
+              }
+
               return SliverPadding(
-                padding: EdgeInsets.symmetric(horizontal: isDesktop ? 20 : 0),
+                padding: const EdgeInsets.symmetric(horizontal: 0),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate((context, index) {
                     final post = posts[index];
-                    return PostCard(
-                      post: post,
-                      onLike: () async {
-                        final userId = _authService.currentUser?.id;
-                        if (userId == null) return;
-
-                        if (post.isLiked) {
-                          provider.unlikePost(userId: userId, postId: post.id);
-                        } else {
-                          try {
-                            await provider.likePost(
-                              userId: userId,
-                              postId: post.id,
-                            );
-                          } catch (e) {
-                            // Show error snackbar if liking fails
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Failed to like post: ${e.toString()}',
-                                  ),
-                                  backgroundColor:
-                                      Theme.of(context).colorScheme.error,
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                            }
-                          }
-                        }
-                      },
-                      onComment: () {
-                        if (isDesktop) {
-                          setState(() {
-                            if (_selectedPostId == post.id) {
-                              _showCommentPane = !_showCommentPane;
-                            } else {
-                              _selectedPostId = post.id;
-                              _showCommentPane = true;
-                            }
-                          });
-                        } else {
-                          context.push('/post/${post.id}/comments');
-                        }
-                      },
-                      onBookmark: () {
-                        final userId = _authService.currentUser?.id;
-                        if (userId == null) return;
-
-                        if (post.isBookmarked) {
-                          provider.unbookmarkPost(
-                            userId: userId,
-                            postId: post.id,
-                          );
-                        } else {
-                          provider.bookmarkPost(
-                            userId: userId,
-                            postId: post.id,
-                          );
-                        }
-                      },
-                      onShare: () {
-                        final deepLink =
-                            'https://oasis-web-red.vercel.app/post/${post.id}';
-                        Share.share('Check out this post on Oasis! $deepLink');
-                      },
-                    );
+                    return _buildPostItem(post, provider, false);
                   }, childCount: posts.length),
                 ),
               );
@@ -490,7 +443,14 @@ class _FeedScreenState extends State<FeedScreen>
                         ),
                         child: Column(
                           children: [
-                            _buildDesktopHeader(colorScheme, isM3E),
+                            DesktopHeader(
+                              title: 'Feed',
+                              actions: [
+                                _buildDesktopTabSwitcher(colorScheme, isM3E),
+                                const SizedBox(width: 12),
+                                _buildRipplesButton(colorScheme, isM3E),
+                              ],
+                            ),
                             const Divider(height: 1, thickness: 0.5),
                             Expanded(
                               child: ClipRRect(
@@ -499,19 +459,13 @@ class _FeedScreenState extends State<FeedScreen>
                                 ),
                                 child:
                                     disableTransparency
-                                        ? MaxWidthContainer(
-                                          maxWidth: 600,
-                                          child: feedContent,
-                                        )
+                                        ? feedContent
                                         : BackdropFilter(
                                           filter: ImageFilter.blur(
                                             sigmaX: 10,
                                             sigmaY: 10,
                                           ),
-                                          child: MaxWidthContainer(
-                                            maxWidth: 600,
-                                            child: feedContent,
-                                          ),
+                                          child: feedContent,
                                         ),
                               ),
                             ),
@@ -546,6 +500,66 @@ class _FeedScreenState extends State<FeedScreen>
           if (_showWellbeingNudge) _buildWellbeingNudge(),
         ],
       ),
+    );
+  }
+
+  Widget _buildPostItem(
+    dynamic post,
+    FeedProvider provider,
+    bool isDesktopPadding,
+  ) {
+    return PostCard(
+      post: post,
+      onLike: () async {
+        final userId = _authService.currentUser?.id;
+        if (userId == null) return;
+
+        if (post.isLiked) {
+          provider.unlikePost(userId: userId, postId: post.id);
+        } else {
+          try {
+            await provider.likePost(userId: userId, postId: post.id);
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to like post: ${e.toString()}'),
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          }
+        }
+      },
+      onComment: () {
+        if (ResponsiveLayout.isDesktop(context)) {
+          setState(() {
+            if (_selectedPostId == post.id) {
+              _showCommentPane = !_showCommentPane;
+            } else {
+              _selectedPostId = post.id;
+              _showCommentPane = true;
+            }
+          });
+        } else {
+          context.push('/post/${post.id}/comments');
+        }
+      },
+      onBookmark: () {
+        final userId = _authService.currentUser?.id;
+        if (userId == null) return;
+
+        if (post.isBookmarked) {
+          provider.unbookmarkPost(userId: userId, postId: post.id);
+        } else {
+          provider.bookmarkPost(userId: userId, postId: post.id);
+        }
+      },
+      onShare: () {
+        final deepLink = 'https://oasis-web-red.vercel.app/post/${post.id}';
+        Share.share('Check out this post on Oasis! $deepLink');
+      },
     );
   }
 
@@ -623,24 +637,61 @@ class _FeedScreenState extends State<FeedScreen>
     );
   }
 
-  Widget _buildDesktopHeader(ColorScheme colorScheme, [bool isM3E = false]) {
+  Widget _buildDesktopTabSwitcher(ColorScheme colorScheme, [bool isM3E = false]) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      height: 80,
+      height: 48,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(isM3E ? 14 : 24),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+        ),
+      ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            'Feed',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: isM3E ? FontWeight.w600 : FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
+          _buildDesktopTabButton(
+            'Following',
+            0,
+            colorScheme,
+            isM3E,
           ),
-          const Spacer(),
-          _buildTabSwitcher(colorScheme),
-          const SizedBox(width: 24),
-          _buildRipplesButton(colorScheme),
+          _buildDesktopTabButton(
+            'Explore',
+            1,
+            colorScheme,
+            isM3E,
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopTabButton(
+    String label,
+    int index,
+    ColorScheme colorScheme,
+    bool isM3E,
+  ) {
+    final isSelected = _tabController.index == index;
+    return GestureDetector(
+      onTap: () => setState(() => _tabController.animateTo(index)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? colorScheme.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(isM3E ? 10 : 20),
+        ),
+        child: Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
+            fontWeight: FontWeight.w900,
+            fontSize: 12,
+            letterSpacing: 1.0,
+          ),
+        ),
       ),
     );
   }

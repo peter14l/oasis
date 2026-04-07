@@ -5,6 +5,8 @@ import 'package:oasis/services/app_initializer.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/features/circles/presentation/screens/circles_list_screen.dart';
 import 'package:oasis/features/canvas/presentation/screens/canvas_list_screen.dart';
+import 'package:oasis/widgets/desktop_header.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
 
 /// The Spaces hub replaces the old Communities tab.
 /// It contains two sub-tabs: Circles & Canvas.
@@ -23,6 +25,11 @@ class _SpacesScreenState extends State<SpacesScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -37,34 +44,13 @@ class _SpacesScreenState extends State<SpacesScreen>
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
     final disableTransparency = themeProvider.isM3ETransparencyDisabled;
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
-
-    final Widget spacesContent = Column(
-      children: [
-        // ── Custom top tab bar ───────────────────────────────────────
-        SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-            child: _SpacesTabBar(controller: _tabController, isM3E: isM3E),
-          ),
-        ),
-
-        // ── Tab views ────────────────────────────────────────────────
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            physics: const NeverScrollableScrollPhysics(),
-            children: const [CirclesListScreen(), CanvasListScreen()],
-          ),
-        ),
-      ],
-    );
+    final isDesktop = ResponsiveLayout.isDesktop(context);
 
     if (isDesktop) {
-      final desktopBgColor = disableTransparency 
-          ? theme.colorScheme.surface 
-          : theme.colorScheme.surface.withValues(alpha: 0.4);
+      final desktopBgColor =
+          disableTransparency
+              ? theme.colorScheme.surface
+              : theme.colorScheme.surface.withValues(alpha: 0.4);
 
       return Padding(
         padding: const EdgeInsets.all(12),
@@ -76,18 +62,13 @@ class _SpacesScreenState extends State<SpacesScreen>
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(isM3E ? 32 : 24),
-            child: disableTransparency 
-              ? Scaffold(
-                  backgroundColor: Colors.transparent,
-                  body: spacesContent,
-                )
-              : BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Scaffold(
-                    backgroundColor: Colors.transparent,
-                    body: spacesContent,
-                  ),
-                ),
+            child:
+                disableTransparency
+                    ? _buildDesktopContent(theme, isM3E)
+                    : BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: _buildDesktopContent(theme, isM3E),
+                    ),
           ),
         ),
       );
@@ -95,7 +76,192 @@ class _SpacesScreenState extends State<SpacesScreen>
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: spacesContent,
+      body: Column(
+        children: [
+          // ── Custom top tab bar ───────────────────────────────────────
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: _SpacesTabBar(controller: _tabController, isM3E: isM3E),
+            ),
+          ),
+
+          // ── Tab views ────────────────────────────────────────────────
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: const [CirclesListScreen(), CanvasListScreen()],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopContent(ThemeData theme, bool isM3E) {
+    return Column(
+      children: [
+        DesktopHeader(
+          title: 'Spaces',
+          subtitle: 'Communities & Creative Hub',
+          actions: [
+            _buildDesktopTabSwitcher(theme.colorScheme, isM3E),
+          ],
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: Row(
+            children: [
+              // Left sidebar for navigation
+              Container(
+                width: 240,
+                decoration: BoxDecoration(
+                  border: Border(
+                    right: BorderSide(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                    ),
+                  ),
+                ),
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    _buildSidebarItem(
+                      icon: FluentIcons.people_team_24_regular,
+                      selectedIcon: FluentIcons.people_team_24_filled,
+                      label: 'Circles',
+                      index: 0,
+                      isM3E: isM3E,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildSidebarItem(
+                      icon: FluentIcons.whiteboard_24_regular,
+                      selectedIcon: FluentIcons.whiteboard_24_filled,
+                      label: 'Canvas',
+                      index: 1,
+                      isM3E: isM3E,
+                    ),
+                  ],
+                ),
+              ),
+              // Main content area
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: const [CirclesListScreen(), CanvasListScreen()],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSidebarItem({
+    required IconData icon,
+    required IconData selectedIcon,
+    required String label,
+    required int index,
+    required bool isM3E,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isSelected = _tabController.index == index;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => setState(() => _tabController.animateTo(index)),
+        borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color:
+                isSelected
+                    ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+                    : Colors.transparent,
+            borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
+            border:
+                isSelected
+                    ? Border.all(
+                      color: colorScheme.primary.withValues(alpha: 0.2),
+                    )
+                    : null,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isSelected ? selectedIcon : icon,
+                size: 20,
+                color:
+                    isSelected
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                label,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                  color:
+                      isSelected
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDesktopTabSwitcher(ColorScheme colorScheme, bool isM3E) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(isM3E ? 12 : 20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildTabButton('Circles', 0, colorScheme, isM3E),
+          _buildTabButton('Canvas', 1, colorScheme, isM3E),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabButton(
+    String label,
+    int index,
+    ColorScheme colorScheme,
+    bool isM3E,
+  ) {
+    final isSelected = _tabController.index == index;
+    return GestureDetector(
+      onTap: () => setState(() => _tabController.animateTo(index)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isSelected ? colorScheme.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(isM3E ? 10 : 18),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 12,
+          ),
+        ),
+      ),
     );
   }
 }

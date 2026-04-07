@@ -9,6 +9,8 @@ import 'package:oasis/features/notifications/presentation/providers/notification
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/widgets/desktop_header.dart';
+import 'dart:ui';
 
 class NotificationsScreen extends StatefulWidget {
   final bool isPanel;
@@ -167,90 +169,45 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final usePanelLayout = widget.isPanel;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
 
     if (isDesktop && !usePanelLayout) {
       // Desktop full screen layout
-      return Scaffold(
-        body: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                border: Border(
-                  bottom: BorderSide(color: theme.dividerColor, width: 1),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    'Notifications',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (unreadCount > 0) ...[
-                    const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '$unreadCount',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+      final desktopBgColor =
+          disableTransparency
+              ? colorScheme.surface
+              : colorScheme.surface.withValues(alpha: 0.4);
+
+      return Padding(
+        padding: const EdgeInsets.all(12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: desktopBgColor,
+            borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
+            child:
+                disableTransparency
+                    ? _buildDesktopScaffold(
+                      theme,
+                      colorScheme,
+                      unreadCount,
+                      isM3E,
+                    )
+                    : BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: _buildDesktopScaffold(
+                        theme,
+                        colorScheme,
+                        unreadCount,
+                        isM3E,
                       ),
                     ),
-                  ],
-                  const Spacer(),
-                  if (_filteredNotifications.isNotEmpty) ...[
-                    TextButton.icon(
-                      onPressed: _markAllAsRead,
-                      icon: const Icon(Icons.done_all, size: 18),
-                      label: const Text('Mark all read'),
-                    ),
-                    const SizedBox(width: 8),
-                    TextButton.icon(
-                      onPressed: _clearAll,
-                      icon: const Icon(Icons.delete_sweep_outlined, size: 18),
-                      label: const Text('Clear all'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: colorScheme.error,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(width: 12),
-                  IconButton(
-                    icon: Icon(
-                      _showSidebar ? Icons.filter_list_off : Icons.filter_list,
-                      size: 24,
-                    ),
-                    onPressed:
-                        () => setState(() => _showSidebar = !_showSidebar),
-                    tooltip: _showSidebar ? 'Hide Filters' : 'Show Filters',
-                    style: IconButton.styleFrom(
-                      backgroundColor:
-                          _showSidebar
-                              ? colorScheme.primaryContainer
-                              : colorScheme.surfaceContainerHighest,
-                      foregroundColor:
-                          _showSidebar
-                              ? colorScheme.primary
-                              : colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(child: _buildDesktopLayout()),
-          ],
+          ),
         ),
       );
     }
@@ -328,6 +285,61 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ],
       ),
       body: _buildMobileLayout(),
+    );
+  }
+
+  Widget _buildDesktopScaffold(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    int unreadCount,
+    bool isM3E,
+  ) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Column(
+        children: [
+          DesktopHeader(
+            title: 'Notifications',
+            subtitle:
+                unreadCount > 0
+                    ? 'You have $unreadCount unread notifications'
+                    : 'You\'re all caught up',
+            actions: [
+              if (_filteredNotifications.isNotEmpty) ...[
+                TextButton.icon(
+                  onPressed: _markAllAsRead,
+                  icon: const Icon(Icons.done_all, size: 18),
+                  label: const Text('Mark all read'),
+                ),
+                const SizedBox(width: 8),
+              ],
+              IconButton.filledTonal(
+                icon: Icon(
+                  _showSidebar ? Icons.filter_list_off : Icons.filter_list,
+                  size: 20,
+                ),
+                onPressed: () => setState(() => _showSidebar = !_showSidebar),
+                tooltip: _showSidebar ? 'Hide Filters' : 'Show Filters',
+                style: IconButton.styleFrom(
+                  backgroundColor:
+                      _showSidebar
+                          ? colorScheme.primaryContainer
+                          : colorScheme.surfaceContainerHighest,
+                  foregroundColor:
+                      _showSidebar
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(isM3E ? 12 : 20),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 1),
+          Expanded(child: _buildDesktopLayout()),
+        ],
+      ),
     );
   }
 

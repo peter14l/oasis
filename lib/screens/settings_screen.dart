@@ -27,6 +27,7 @@ import 'package:universal_io/io.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:oasis/widgets/desktop_header.dart';
 import 'dart:ui';
 
 enum SettingsCategory {
@@ -69,7 +70,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
 
     if (isDesktop) {
       return Scaffold(
@@ -79,60 +82,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Container(
             decoration: BoxDecoration(
               color: colorScheme.surface.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(isM3E ? 32 : 24),
               border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(isM3E ? 32 : 24),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Row(
                   children: [
                     // Sidebar
                     Container(
-                      width: 280,
-                      color: colorScheme.surfaceContainer.withValues(
-                        alpha: 0.2,
+                      width: 320,
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainer.withValues(
+                          alpha: 0.2,
+                        ),
+                        border: Border(
+                          right: BorderSide(
+                            color: colorScheme.onSurface.withValues(alpha: 0.05),
+                          ),
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(12, 32, 24, 16),
-                            child: Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.arrow_back),
-                                  onPressed: () {
-                                    if (_selectedSubPage != null) {
-                                      setState(() {
-                                        _selectedSubPage = null;
-                                        _subPageTitle = null;
-                                      });
-                                    } else if (context.canPop()) {
-                                      context.pop();
-                                    } else {
-                                      context.go('/profile');
-                                    }
-                                  },
-                                  tooltip: 'Back',
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Settings',
-                                  style: theme.textTheme.headlineSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.onSurface,
-                                      ),
-                                ),
-                              ],
-                            ),
+                          DesktopHeader(
+                            title: 'Settings',
+                            showBackButton: true,
+                            onBack: () {
+                              if (_selectedSubPage != null) {
+                                setState(() {
+                                  _selectedSubPage = null;
+                                  _subPageTitle = null;
+                                });
+                              } else if (context.canPop()) {
+                                context.pop();
+                              } else {
+                                context.go('/profile');
+                              }
+                            },
                           ),
                           Expanded(
                             child: ListView(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
+                                horizontal: 16,
+                                vertical: 8,
                               ),
                               children: [
                                 _buildSidebarItem(
@@ -183,7 +178,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(24),
                             child: _buildSignOutButton(
                               context,
                               isDesktop: true,
@@ -192,70 +187,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ],
                       ),
                     ),
-                    const VerticalDivider(width: 1),
                     // Content Area
                     Expanded(
-                      child: Container(
-                        color: Colors.transparent,
-                        child: Column(
-                          children: [
-                            // Content Header
-                            Container(
-                              padding: const EdgeInsets.fromLTRB(
-                                24,
-                                32,
-                                24,
-                                16,
-                              ),
-                              child: Row(
-                                children: [
-                                  if (_selectedSubPage != null)
-                                    IconButton(
-                                      icon: const Icon(Icons.arrow_back),
-                                      onPressed:
-                                          () => setState(() {
-                                            _selectedSubPage = null;
-                                            _subPageTitle = null;
-                                          }),
-                                    ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    _selectedSubPage != null
-                                        ? _subPageTitle ?? ''
-                                        : _getCategoryTitle(_selectedCategory),
-                                    style: theme.textTheme.headlineSmall
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: colorScheme.onSurface,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child:
-                                  _selectedSubPage != null
-                                      ? _selectedSubPage!
-                                      : SingleChildScrollView(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 24,
-                                          vertical: 8,
-                                        ),
-                                        child: Center(
-                                          child: Container(
-                                            constraints: const BoxConstraints(
-                                              maxWidth: 800,
-                                            ),
-                                            child:
-                                                _buildSelectedCategoryContent(
-                                                  context,
-                                                ),
-                                          ),
+                      child: Column(
+                        children: [
+                          DesktopHeader(
+                            title:
+                                _selectedSubPage != null
+                                    ? _subPageTitle ?? ''
+                                    : _getCategoryTitle(_selectedCategory),
+                            showBackButton: _selectedSubPage != null,
+                            onBack:
+                                () => setState(() {
+                                  _selectedSubPage = null;
+                                  _subPageTitle = null;
+                                }),
+                          ),
+                          const Divider(height: 1),
+                          Expanded(
+                            child:
+                                _selectedSubPage != null
+                                    ? _selectedSubPage!
+                                    : SingleChildScrollView(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 40,
+                                        vertical: 32,
+                                      ),
+                                      child: MaxWidthContainer(
+                                        maxWidth: 1000,
+                                        child: _buildSelectedCategoryContent(
+                                          context,
                                         ),
                                       ),
-                            ),
-                          ],
-                        ),
+                                    ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -309,7 +275,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _navigateToSubPage(String title, Widget page) {
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
     if (isDesktop) {
       setState(() {
         _selectedSubPage = page;
@@ -329,9 +295,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isSelected = _selectedCategory == category;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -341,32 +309,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _selectedSubPage = null;
                 _subPageTitle = null;
               }),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
               color:
                   isSelected
                       ? colorScheme.primaryContainer.withValues(alpha: 0.3)
                       : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
+              border:
+                  isSelected
+                      ? Border.all(
+                        color: colorScheme.primary.withValues(alpha: 0.2),
+                      )
+                      : null,
             ),
             child: Row(
               children: [
                 Icon(
                   isSelected ? selectedIcon : icon,
-                  size: 20,
+                  size: 22,
                   color:
                       isSelected
                           ? colorScheme.primary
                           : colorScheme.onSurfaceVariant,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Text(
                   label,
-                  style: theme.textTheme.bodyMedium?.copyWith(
+                  style: theme.textTheme.bodyLarge?.copyWith(
                     fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
+                        isSelected ? FontWeight.w900 : FontWeight.w600,
                     color:
                         isSelected
                             ? colorScheme.primary
@@ -1053,7 +1027,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         if (confirmed == true) {
           _clearProviders(context);
           await authService.signOut();
-          if (context.mounted) context.go('/login');
+          if (mounted) {
+            context.go('/login');
+          }
         }
       },
     );
