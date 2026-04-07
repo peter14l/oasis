@@ -183,47 +183,40 @@ class ChatAppBar extends StatelessWidget {
           const SizedBox(width: 8),
 
           // Right: Action buttons
-          _FloatingContainer(
-            isCircular: true,
-            child: isDesktop
-                ? Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(FluentIcons.call_24_regular, size: 20),
-                        onPressed: onCallPressed,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                      const SizedBox(width: 4),
-                      IconButton(
-                        icon: const Icon(FluentIcons.video_24_regular, size: 20),
-                        onPressed: onVideoCallPressed,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                      const SizedBox(width: 4),
-                      IconButton(
-                        icon: Icon(
-                          isDetailsOpen ? FluentIcons.info_24_filled : FluentIcons.info_24_regular,
-                          size: 20,
-                        ),
-                        onPressed: onDetailsToggle,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  )
-                : IconButton(
+          if (isDesktop)
+            _FloatingContainer(
+              isCircular: true,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(FluentIcons.call_24_regular, size: 20),
+                    onPressed: onCallPressed,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    icon: const Icon(FluentIcons.video_24_regular, size: 20),
+                    onPressed: onVideoCallPressed,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton(
                     icon: Icon(
-                      isDetailsOpen ? FluentIcons.info_24_filled : FluentIcons.info_24_regular,
+                      isDetailsOpen
+                          ? FluentIcons.info_24_filled
+                          : FluentIcons.info_24_regular,
                       size: 20,
                     ),
                     onPressed: onDetailsToggle,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
-          ),
+                ],
+              ),
+            ),
         ],
       ),
     );
