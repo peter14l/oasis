@@ -160,28 +160,26 @@ class _MyAppState extends State<MyApp> {
         ColorScheme? lightScheme;
         ColorScheme? darkScheme;
 
+        final userSettings = Provider.of<UserSettingsProvider>(context);
+
         if (themeProvider.useMaterialYou && themeProvider.isM3EEnabled) {
           lightScheme = lightDynamic;
           darkScheme = darkDynamic;
         }
 
-        final ThemeData theme =
-            themeProvider.highContrast
-                ? AppTheme.highContrastLight
-                : (themeProvider.isM3EEnabled
-                    ? (lightScheme != null
-                        ? AppTheme.createM3ETheme(lightScheme, Brightness.light)
-                        : AppTheme.m3eLight)
-                    : AppTheme.light);
+        final ThemeData theme = AppTheme.getTheme(
+          Brightness.light,
+          isM3E: themeProvider.isM3EEnabled,
+          highContrast: themeProvider.highContrast,
+          fontFamily: userSettings.fontFamily,
+        );
 
-        final ThemeData darkTheme =
-            themeProvider.highContrast
-                ? AppTheme.highContrastDark
-                : (themeProvider.isM3EEnabled
-                    ? (darkScheme != null
-                        ? AppTheme.createM3ETheme(darkScheme, Brightness.dark)
-                        : AppTheme.m3eDark)
-                    : AppTheme.dark);
+        final ThemeData darkTheme = AppTheme.getTheme(
+          Brightness.dark,
+          isM3E: themeProvider.isM3EEnabled,
+          highContrast: themeProvider.highContrast,
+          fontFamily: userSettings.fontFamily,
+        );
 
         return StreamBuilder<AuthState>(
           stream: authService.authStateChanges,

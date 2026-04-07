@@ -51,9 +51,9 @@ const Navbar = () => {
 
   // Close mobile menu on route change
   useEffect(() => {
-    if (isOpen) setIsOpen(false);
-    if (downloadDropdownOpen) setDownloadDropdownOpen(false);
-  }, [location, isOpen, downloadDropdownOpen]);
+    setIsOpen(false);
+    setDownloadDropdownOpen(false);
+  }, [location]);
 
   const navLinks = [
     { name: 'Features', path: '/features' },

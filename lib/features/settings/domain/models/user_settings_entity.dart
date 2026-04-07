@@ -9,6 +9,7 @@ class UserSettingsEntity extends Equatable {
   final bool windDownEnabled;
   final bool micaEnabled;
   final String windowEffect;
+  final String fontFamily;
 
   const UserSettingsEntity({
     this.dataSaver = false,
@@ -19,6 +20,7 @@ class UserSettingsEntity extends Equatable {
     this.windDownEnabled = false,
     this.micaEnabled = false,
     this.windowEffect = 'mica',
+    this.fontFamily = 'Comfortaa',
   });
 
   UserSettingsEntity copyWith({
@@ -30,6 +32,7 @@ class UserSettingsEntity extends Equatable {
     bool? windDownEnabled,
     bool? micaEnabled,
     String? windowEffect,
+    String? fontFamily,
   }) {
     return UserSettingsEntity(
       dataSaver: dataSaver ?? this.dataSaver,
@@ -40,6 +43,7 @@ class UserSettingsEntity extends Equatable {
       windDownEnabled: windDownEnabled ?? this.windDownEnabled,
       micaEnabled: micaEnabled ?? this.micaEnabled,
       windowEffect: windowEffect ?? this.windowEffect,
+      fontFamily: fontFamily ?? this.fontFamily,
     );
   }
 
@@ -53,5 +57,6 @@ class UserSettingsEntity extends Equatable {
         windDownEnabled,
         micaEnabled,
         windowEffect,
+        fontFamily,
       ];
 }

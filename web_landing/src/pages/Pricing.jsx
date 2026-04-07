@@ -104,7 +104,8 @@ export default function Pricing() {
             justifyContent: 'center', 
             gap: '32px', 
             flexWrap: 'wrap',
-            alignItems: 'stretch'
+            alignItems: 'stretch',
+            width: '100%'
           }}
         >
           {/* Free Tier */}

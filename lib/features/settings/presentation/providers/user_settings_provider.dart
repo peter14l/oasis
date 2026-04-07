@@ -22,6 +22,7 @@ class UserSettingsProvider with ChangeNotifier {
   bool get windDownEnabled => _settings.windDownEnabled;
   bool get micaEnabled => _settings.micaEnabled;
   String get windowEffect => _settings.windowEffect;
+  String get fontFamily => _settings.fontFamily;
 
   Future<void> loadSettings() async {
     final result = await _getSettingsUseCase();
@@ -83,5 +84,9 @@ class UserSettingsProvider with ChangeNotifier {
 
   Future<void> setHighContrast(bool value) async {
     await _updateAndSave(_settings.copyWith(highContrast: value));
+  }
+
+  Future<void> setFontFamily(String value) async {
+    await _updateAndSave(_settings.copyWith(fontFamily: value));
   }
 }

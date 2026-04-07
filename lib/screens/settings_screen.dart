@@ -746,9 +746,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ]);
   }
 
+  static const List<String> _fonts = [
+    'System',
+    'Comfortaa',
+    'Roboto Flex',
+    'Inter',
+    'Lexend',
+    'Outfit',
+    'Plus Jakarta Sans',
+    'Space Grotesk',
+    'Syne',
+    'Montserrat',
+    'Lora',
+    'Playfair Display',
+    'Work Sans',
+  ];
+
   Widget _buildAppearanceSection(BuildContext context, {int index = 0}) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final userSettingsProvider = Provider.of<UserSettingsProvider>(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return _buildSettingsGroup(context, index: index, [
       _buildSettingsTile(
@@ -759,6 +777,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         iconColor: Colors.blue,
         trailing: DropdownButton<ThemeMode>(
           value: themeProvider.themeMode,
+          dropdownColor: colorScheme.surfaceContainerHigh,
           underline: const SizedBox(),
           onChanged:
               (mode) => mode != null ? themeProvider.setTheme(mode) : null,
@@ -767,6 +786,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
             DropdownMenuItem(value: ThemeMode.light, child: Text('Light')),
             DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
           ],
+        ),
+      ),
+      _buildSettingsTile(
+        context,
+        icon: Icons.font_download_outlined,
+        title: 'App Font',
+        subtitle: userSettingsProvider.fontFamily,
+        iconColor: Colors.teal,
+        trailing: DropdownButton<String>(
+          value: userSettingsProvider.fontFamily,
+          dropdownColor: colorScheme.surfaceContainerHigh,
+          underline: const SizedBox(),
+          onChanged: (font) {
+            if (font != null) {
+              userSettingsProvider.setFontFamily(font);
+            }
+          },
+          items:
+              _fonts.map((font) {
+                return DropdownMenuItem(
+                  value: font,
+                  child: Text(
+                    font,
+                    style: TextStyle(
+                      fontFamily: font == 'System' ? null : font,
+                    ),
+                  ),
+                );
+              }).toList(),
         ),
       ),
       _buildSettingsTile(

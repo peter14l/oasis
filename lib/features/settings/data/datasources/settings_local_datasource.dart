@@ -11,6 +11,7 @@ class SettingsLocalDatasource {
   static const String _windDownKey = 'wind_down_enabled';
   static const String _micaEnabledKey = 'mica_enabled';
   static const String _windowEffectKey = 'window_effect';
+  static const String _fontFamilyKey = 'font_family';
 
   Future<UserSettingsEntity> getSettings() async {
     try {
@@ -24,6 +25,7 @@ class SettingsLocalDatasource {
         windDownEnabled: prefs.getBool(_windDownKey) ?? false,
         micaEnabled: prefs.getBool(_micaEnabledKey) ?? false,
         windowEffect: prefs.getString(_windowEffectKey) ?? 'mica',
+        fontFamily: prefs.getString(_fontFamilyKey) ?? 'Comfortaa',
       );
     } catch (e) {
       throw StorageException('Failed to load settings', code: e.toString());
@@ -43,6 +45,7 @@ class SettingsLocalDatasource {
         prefs.setBool(_windDownKey, settings.windDownEnabled),
         prefs.setBool(_micaEnabledKey, settings.micaEnabled),
         prefs.setString(_windowEffectKey, settings.windowEffect),
+        prefs.setString(_fontFamilyKey, settings.fontFamily),
       ]);
       
       return true;
