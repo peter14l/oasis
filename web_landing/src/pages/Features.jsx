@@ -76,7 +76,7 @@ export default function Features() {
           <div style={{ flex: '1 1 450px' }}>
             <h2 className="heading-large" style={{ marginBottom: '24px' }}><span className="text-gradient">Canvas</span></h2>
             <p className="text-body" style={{ marginBottom: '32px', lineHeight: '1.7' }}>
-              Your shared digital workspace. Whether you're planning a trip, sharing a mood board, or just doodling with your best friend, Canvas gives you real-time collaboration. Oasis Pro unlocks advanced drawing tools and hi-res exports.
+              Your shared digital workspace. Whether you're planning a trip, sharing a mood board, or just doodling with your best friend, Canvas gives you real-time collaboration. Oasis Pro unlocks unlimited canvases and advanced exporting features.
             </p>
             <div style={{ width: '80px', height: '4px', background: 'var(--md-sys-color-primary)', borderRadius: '2px' }}></div>
           </div>
@@ -106,7 +106,7 @@ export default function Features() {
           <div style={{ flex: '1 1 450px' }}>
             <h2 className="heading-large" style={{ marginBottom: '24px' }}>Send a <span className="text-gradient">Ripple</span></h2>
             <p className="text-body" style={{ marginBottom: '32px', lineHeight: '1.7' }}>
-              Ephemeral video and audio clips meant for the moment. Ripples disappear, making room for authentic, unfiltered sharing. Pro users get unlimited daily ripples to stay constantly connected.
+              Ephemeral video and audio clips meant for the moment. Ripples disappear, making room for authentic, unfiltered sharing. Pro users get an ad-free feed and unlimited daily ripples to stay constantly connected.
             </p>
             <div style={{ width: '80px', height: '4px', background: 'var(--md-sys-color-secondary)', borderRadius: '2px' }}></div>
           </div>
@@ -120,7 +120,7 @@ export default function Features() {
           <div style={{ flex: '1 1 450px' }}>
             <h2 className="heading-large" style={{ marginBottom: '24px' }}>Inner <span className="text-gradient">Circles</span></h2>
             <p className="text-body" style={{ marginBottom: '32px', lineHeight: '1.7' }}>
-              We behave differently with family than we do with coworkers. Circles lets you segment your social life naturally. Share your Stories or Canvases specifically to a Circle, keeping everything perfectly organized.
+              We behave differently with family than we do with coworkers. Circles lets you segment your social life naturally. Oasis Pro gives you unlimited circles and collections, keeping your digital sanctuary perfectly organized.
             </p>
             <div style={{ width: '80px', height: '4px', background: 'var(--md-sys-color-tertiary)', borderRadius: '2px' }}></div>
           </div>

@@ -63,6 +63,7 @@ class RoutePaths {
   static const String screenTime = '/settings/screen-time';
   static const String wellnessStats = '/settings/wellness-stats';
   static const String vaultSettings = '/settings/vault';
+  static const String about = '/settings/about';
 
   // Legal routes
   static const String privacyPolicy = '/legal/privacy';

@@ -9,8 +9,7 @@ export default function Pricing() {
   const [pricing, setPricing] = useState({
     currency: 'USD',
     symbol: '$',
-    plusPrice: 4.99,
-    proPrice: 9.99,
+    proPrice: 4.99,
     country: 'US'
   });
 
@@ -64,18 +63,17 @@ export default function Pricing() {
       .then(data => {
         const country = data.country_code;
         const mapping = {
-          'IN': { currency: 'INR', symbol: '₹', plus: 149, pro: 299 },
-          'GB': { currency: 'GBP', symbol: '£', plus: 4.49, pro: 8.99 },
-          'EU': { currency: 'EUR', symbol: '€', plus: 4.99, pro: 9.99 },
-          'DE': { currency: 'EUR', symbol: '€', plus: 4.99, pro: 9.99 },
-          'FR': { currency: 'EUR', symbol: '€', plus: 4.99, pro: 9.99 },
-          'US': { currency: 'USD', symbol: '$', plus: 4.99, pro: 9.99 }
+          'IN': { currency: 'INR', symbol: '₹', pro: 149 },
+          'GB': { currency: 'GBP', symbol: '£', pro: 4.49 },
+          'EU': { currency: 'EUR', symbol: '€', pro: 4.99 },
+          'DE': { currency: 'EUR', symbol: '€', pro: 4.99 },
+          'FR': { currency: 'EUR', symbol: '€', pro: 4.99 },
+          'US': { currency: 'USD', symbol: '$', pro: 4.99 }
         };
         const config = mapping[country] || mapping['US'];
         setPricing({
           currency: config.currency,
           symbol: config.symbol,
-          plusPrice: config.plus,
           proPrice: config.pro,
           country: country
         });
@@ -119,16 +117,16 @@ export default function Pricing() {
             
             <ul className="pricing-list" style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '40px', flex: 1 }}>
               <li style={{ display: 'flex', gap: '12px' }}>
-                 <span style={{ color: 'var(--text-secondary)' }}>✓</span> 1-2 Collaborative Canvases
+                 <span style={{ color: 'var(--text-secondary)' }}>✓</span> 2 Canvases & Circles
               </li>
               <li style={{ display: 'flex', gap: '12px' }}>
-                 <span style={{ color: 'var(--text-secondary)' }}>✓</span> 1-2 Inner Circles
+                 <span style={{ color: 'var(--text-secondary)' }}>✓</span> 10 Vault Items
               </li>
               <li style={{ display: 'flex', gap: '12px' }}>
-                 <span style={{ color: 'var(--text-secondary)' }}>✓</span> 3 Ripples per day
+                 <span style={{ color: 'var(--text-secondary)' }}>✓</span> 7-Day Analytics History
               </li>
               <li style={{ display: 'flex', gap: '12px' }}>
-                 <span style={{ color: 'var(--text-secondary)' }}>✓</span> Standard Encrypted Messaging
+                 <span style={{ color: 'var(--text-secondary)' }}>✓</span> Standard Wellness Tracking
               </li>
             </ul>
 
@@ -145,28 +143,28 @@ export default function Pricing() {
 
             <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--accent-color)' }}>Oasis Pro</h2>
             <div style={{ margin: '24px 0', borderBottom: '1px solid var(--glass-border)', paddingBottom: '24px' }}>
-              <span style={{ fontSize: '3rem', fontWeight: 800 }}>{pricing.symbol}{pricing.plusPrice}</span>
+              <span style={{ fontSize: '3rem', fontWeight: 800 }}>{pricing.symbol}{pricing.proPrice}</span>
               <span style={{ color: 'var(--text-secondary)', marginLeft: '8px' }}>/ month</span>
             </div>
             
             <ul className="pricing-list" style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '40px', flex: 1, zIndex: 2 }}>
               <li style={{ display: 'flex', gap: '12px' }}>
+                 <span style={{ color: 'var(--accent-color)' }}>✦</span> <strong>Ad-Free Experience</strong>
+              </li>
+              <li style={{ display: 'flex', gap: '12px' }}>
+                 <span style={{ color: 'var(--accent-color)' }}>✦</span> <strong>Unlimited Vault & Capsules</strong>
+              </li>
+              <li style={{ display: 'flex', gap: '12px' }}>
                  <span style={{ color: 'var(--accent-color)' }}>✦</span> <strong>Unlimited Canvas & Circles</strong>
               </li>
               <li style={{ display: 'flex', gap: '12px' }}>
-                 <span style={{ color: 'var(--accent-color)' }}>✦</span> <strong>Unlimited Ripples</strong>
+                 <span style={{ color: 'var(--accent-color)' }}>✦</span> 90-Day Analytics & Insights
               </li>
               <li style={{ display: 'flex', gap: '12px' }}>
-                 <span style={{ color: 'var(--accent-color)' }}>✦</span> <strong>Signal Protocol E2E Encryption</strong>
+                 <span style={{ color: 'var(--accent-color)' }}>✦</span> Weekly Wellness Reports
               </li>
               <li style={{ display: 'flex', gap: '12px' }}>
-                 <span style={{ color: 'var(--accent-color)' }}>✦</span> Advanced Canvas Tools & Export
-              </li>
-              <li style={{ display: 'flex', gap: '12px' }}>
-                 <span style={{ color: 'var(--accent-color)' }}>✦</span> Custom App Icons & UI Themes
-              </li>
-              <li style={{ display: 'flex', gap: '12px' }}>
-                 <span style={{ color: 'var(--accent-color)' }}>✦</span> HD Story Uploads (Longer videos)
+                 <span style={{ color: 'var(--accent-color)' }}>✦</span> 2GB+ Large File Sharing
               </li>
             </ul>
 

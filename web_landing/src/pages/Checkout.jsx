@@ -24,13 +24,12 @@ const Checkout = () => {
   const [couponError, setCouponError] = useState(null);
 
   const basePrices = {
-    Plus: { USD: 4.99, INR: 149, EUR: 4.99, GBP: 4.49 },
-    Pro: { USD: 9.99, INR: 299, EUR: 9.99, GBP: 8.99 }
+    Pro: { USD: 4.99, INR: 149, EUR: 4.99, GBP: 4.49 }
   };
 
   const currencySymbols = { USD: '$', INR: '₹', EUR: '€', GBP: '£' };
 
-  const basePrice = basePrices[planName]?.[currency] || 9.99;
+  const basePrice = basePrices[planName]?.[currency] || 4.99;
   const [finalPrice, setFinalPrice] = useState(basePrice);
 
   useEffect(() => {

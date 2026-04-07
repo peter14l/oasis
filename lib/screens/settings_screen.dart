@@ -966,21 +966,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         context,
         icon: Icons.info_outline,
         title: 'About Oasis',
-        subtitle: 'Version 4.0.0',
+        subtitle: 'Version 4.1.0',
         iconColor: Colors.grey,
-        onTap: () {
-          showAboutDialog(
-            context: context,
-            applicationName: 'Oasis',
-            applicationVersion: '4.0.0',
-            applicationIcon: const Icon(Icons.flutter_dash, size: 48),
-            children: [
-              const Text(
-                'A modern social media app for sharing moments and connecting with communities.',
-              ),
-            ],
-          );
-        },
+        onTap: () => context.push('/settings/about'),
       ),
     ]);
   }

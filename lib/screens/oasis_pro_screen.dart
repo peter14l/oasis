@@ -118,19 +118,34 @@ class _OasisProScreenState extends State<OasisProScreen> {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     _buildFeatureItem(
-                      FluentIcons.shield_lock_24_regular,
-                      'Signal Protocol Encryption',
-                      'The gold standard for privacy.',
-                    ),
-                    _buildFeatureItem(
                       FluentIcons.video_clip_24_regular,
-                      'Unlimited Ripples',
-                      'Share your moments without limits.',
+                      'Ad-Free Experience',
+                      'Enjoy a clean feed without any interruptions.',
                     ),
                     _buildFeatureItem(
-                      FluentIcons.storage_24_regular,
-                      '100GB Secure Storage',
-                      'Keep your memories safe in the vault.',
+                      FluentIcons.shield_lock_24_regular,
+                      'Unlimited Vault & Capsules',
+                      'Store unlimited items and active time capsules.',
+                    ),
+                    _buildFeatureItem(
+                      FluentIcons.draw_shape_24_regular,
+                      'Unlimited Canvas & Circles',
+                      'Create as many collaborative spaces as you need.',
+                    ),
+                    _buildFeatureItem(
+                      FluentIcons.heart_pulse_24_regular,
+                      'Advanced Wellness',
+                      'Weekly reports, custom focus modes, and wind-down.',
+                    ),
+                    _buildFeatureItem(
+                      FluentIcons.data_usage_24_regular,
+                      'Creator Analytics',
+                      '90-day history, demographics, and posting heatmaps.',
+                    ),
+                    _buildFeatureItem(
+                      FluentIcons.arrow_download_24_regular,
+                      'Power Features',
+                      '2GB+ file uploads and media downloads.',
                     ),
                     const SizedBox(height: 40),
 
@@ -198,21 +213,14 @@ class _OasisProScreenState extends State<OasisProScreen> {
   }
 
   Widget _buildPricingCard(PricingPlan plan) {
-    final isPro = plan.name == 'Pro';
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color:
-            isPro
-                ? Colors.blueAccent.withValues(alpha: 0.1)
-                : Colors.white.withValues(alpha: 0.05),
+        color: Colors.blueAccent.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color:
-              isPro
-                  ? Colors.blueAccent.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.1),
+          color: Colors.blueAccent.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -221,33 +229,32 @@ class _OasisProScreenState extends State<OasisProScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                plan.name,
-                style: const TextStyle(
+              const Text(
+                'Oasis Pro',
+                style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w800,
                   fontSize: 20,
                 ),
               ),
-              if (isPro)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.blueAccent,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'BEST VALUE',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 10,
-                    ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.blueAccent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'FULL ACCESS',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
                   ),
                 ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -283,16 +290,16 @@ class _OasisProScreenState extends State<OasisProScreen> {
             child: FilledButton(
               onPressed: () => _subscribe(plan),
               style: FilledButton.styleFrom(
-                backgroundColor: isPro ? Colors.blueAccent : Colors.white,
-                foregroundColor: isPro ? Colors.white : Colors.black,
+                backgroundColor: Colors.blueAccent,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              child: Text(
-                'Upgrade to ${plan.name}',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+              child: const Text(
+                'Upgrade to Oasis Pro',
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ),
