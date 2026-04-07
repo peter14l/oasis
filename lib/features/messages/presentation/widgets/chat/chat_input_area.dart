@@ -67,7 +67,19 @@ class ChatInputArea extends StatelessWidget {
             onPressed: onAttachment,
             icon: Icon(Icons.add_circle_outline, color: colorScheme.primary),
           ),
-          const SizedBox(width: 8),
+          IconButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Custom Stickers are coming soon to Oasis Pro!'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+            icon: Icon(Icons.sticky_note_2_outlined, color: colorScheme.primary.withValues(alpha: 0.6)),
+            tooltip: 'Stickers (Coming Soon)',
+          ),
+          const SizedBox(width: 4),
           Expanded(
             child:
                 isRecording

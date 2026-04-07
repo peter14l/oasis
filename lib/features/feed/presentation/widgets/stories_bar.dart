@@ -117,11 +117,12 @@ class _StoriesBarState extends State<StoriesBar> {
                   right: 0,
                   bottom: 0,
                   child: GestureDetector(
-                    onTap: () async {
-                      final result = await context.pushNamed('create_story');
-                      if (result == true && widget.onRefresh != null) {
-                        widget.onRefresh!();
-                      }
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Feature is still undergoing polish. Will be released at the earliest'),
+                        ),
+                      );
                     },
                     child: Container(
                       width: 24,
@@ -168,11 +169,11 @@ class _StoriesBarState extends State<StoriesBar> {
           );
         } else {
           // Create new story
-          final result = await context.pushNamed('create_story');
-
-          if (result == true && widget.onRefresh != null) {
-            widget.onRefresh!();
-          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Feature is still undergoing polish. Will be released at the earliest'),
+            ),
+          );
         }
       },
     );

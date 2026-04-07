@@ -214,25 +214,14 @@ class ChatAppBar extends StatelessWidget {
                       ),
                     ],
                   )
-                : PopupMenuButton<String>(
-                    onSelected: (value) {
-                      if (value == 'details') onDetailsToggle?.call();
-                    },
-                    icon: const Icon(Icons.more_vert, size: 20),
+                : IconButton(
+                    icon: Icon(
+                      isDetailsOpen ? FluentIcons.info_24_filled : FluentIcons.info_24_regular,
+                      size: 20,
+                    ),
+                    onPressed: onDetailsToggle,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'details',
-                        child: Row(
-                          children: [
-                            Icon(Icons.info_outline),
-                            SizedBox(width: 12),
-                            Text('Details'),
-                          ],
-                        ),
-                      ),
-                    ],
                   ),
           ),
         ],

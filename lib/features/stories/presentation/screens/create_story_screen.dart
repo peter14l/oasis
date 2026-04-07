@@ -251,6 +251,21 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Feature is still undergoing polish. Will be released at the earliest'),
+          ),
+        );
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _captionController.dispose();
     _videoController?.dispose();

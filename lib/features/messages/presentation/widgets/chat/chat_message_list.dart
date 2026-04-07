@@ -354,6 +354,7 @@ class MessageBubble extends StatelessWidget {
           audioUrl: message.mediaUrl ?? '',
           duration: message.voiceDuration,
           isMe: isMe,
+          messageId: message.id,
           textColor: textColor,
         );
       case MessageType.postShare:

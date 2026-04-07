@@ -12,7 +12,6 @@ import 'package:universal_io/io.dart';
 import 'package:oasis/firebase_options.dart';
 import 'package:oasis/features/auth/presentation/providers/auth_provider.dart';
 import 'package:oasis/features/auth/data/repositories/auth_repository_impl.dart';
-import 'package:oasis/services/call_service.dart';
 import 'package:oasis/services/desktop_window_service.dart';
 import 'package:oasis/services/energy_meter_service.dart';
 import 'package:oasis/features/messages/data/encryption_service.dart';
@@ -26,6 +25,7 @@ import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/vault_service.dart';
 import 'package:oasis/services/wellness_service.dart';
+import 'package:oasis/services/voice_transcript_service.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
 import 'package:oasis/features/canvas/presentation/providers/canvas_provider.dart';
 import 'package:oasis/features/capsules/presentation/providers/capsule_provider.dart';
@@ -367,7 +367,6 @@ class AppInitializer {
                     ..updatePresenceProvider(presenceProvider),
         ),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
-        ChangeNotifierProvider(create: (_) => CallService()),
         ChangeNotifierProvider(create: (_) => CanvasProvider()),
         ChangeNotifierProvider(
           create: (_) => CircleProvider(repository: CircleRepositoryImpl()),
@@ -392,6 +391,7 @@ class AppInitializer {
           },
         ),
         ChangeNotifierProvider<VaultService>(create: (_) => VaultService()),
+        Provider<VoiceTranscriptService>(create: (_) => VoiceTranscriptService()),
       ],
       child: child,
     );

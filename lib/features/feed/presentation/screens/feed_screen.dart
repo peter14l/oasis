@@ -10,11 +10,7 @@ import 'package:oasis/features/feed/presentation/widgets/post_card.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:oasis/features/feed/presentation/widgets/stories_bar.dart';
 import 'package:oasis/features/capsules/presentation/widgets/capsule_carousel.dart';
-import 'package:oasis/models/feed_layout_strategy.dart';
-import 'package:oasis/features/feed/presentation/widgets/feed_layout_switcher.dart';
 import 'package:oasis/features/ripples/presentation/screens/ripples_screen.dart';
-import 'package:oasis/features/feed/presentation/screens/zen_feed_screen.dart';
-import 'package:oasis/features/feed/presentation/screens/pulse_feed_screen.dart';
 import 'package:oasis/widgets/comments_modal.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
@@ -35,7 +31,6 @@ class _FeedScreenState extends State<FeedScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   final ScrollController _scrollController = ScrollController();
-  FeedLayoutType _currentLayout = FeedLayoutType.standard;
   bool _isScrolled = false;
   Timer? _wellbeingTimer;
   bool _showWellbeingNudge = false;
@@ -55,11 +50,10 @@ class _FeedScreenState extends State<FeedScreen>
     _tabController.addListener(_handleTabSelection);
     _scrollController.addListener(_onScroll);
 
-    // Load initial feed and layout preference
+    // Load initial feed
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadFeed();
       _loadStories();
-      _loadLayoutPreference();
       final userId = _authService.currentUser?.id;
       if (userId != null) {
         context.read<ProfileProvider>().loadFollowing(userId);
@@ -335,16 +329,6 @@ class _FeedScreenState extends State<FeedScreen>
     final disableTransparency = themeProvider.isM3ETransparencyDisabled;
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
-    if (_currentLayout == FeedLayoutType.zenCarousel) {
-      return ZenFeedScreen(
-        onLayoutChanged: (layout) => setState(() => _currentLayout = layout),
-      );
-    } else if (_currentLayout == FeedLayoutType.pulseMap) {
-      return PulseFeedScreen(
-        onLayoutChanged: (layout) => setState(() => _currentLayout = layout),
-      );
-    }
-
     final feedContent = RefreshIndicator(
       onRefresh: _refreshFeed,
       child: CustomScrollView(
@@ -365,14 +349,6 @@ class _FeedScreenState extends State<FeedScreen>
               automaticallyImplyLeading: false,
               centerTitle: true,
               title: _buildMobileHeader(colorScheme, isM3E),
-              actions: [
-                FeedLayoutSwitcher(
-                  currentLayout: _currentLayout,
-                  onLayoutChanged:
-                      (layout) => setState(() => _currentLayout = layout),
-                ),
-                const SizedBox(width: 16),
-              ],
             ),
 
           SliverToBoxAdapter(
@@ -671,12 +647,6 @@ class _FeedScreenState extends State<FeedScreen>
           _buildTabSwitcher(colorScheme),
           const SizedBox(width: 24),
           _buildRipplesButton(colorScheme),
-          const SizedBox(width: 24),
-          FeedLayoutSwitcher(
-            currentLayout: _currentLayout,
-            onLayoutChanged:
-                (layout) => setState(() => _currentLayout = layout),
-          ),
         ],
       ),
     );

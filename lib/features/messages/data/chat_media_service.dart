@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:oasis/core/config/supabase_config.dart';
 import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/services/subscription_service.dart';
 
 /// Service for managing media attachments in chat.
 /// 
@@ -11,10 +12,12 @@ import 'package:oasis/core/network/supabase_client.dart';
 /// including support for uploading encrypted byte arrays.
 class ChatMediaService {
   final SupabaseClient _supabase;
+  final SubscriptionService _subscriptionService;
   final _uuid = const Uuid();
 
-  ChatMediaService({SupabaseClient? client})
-      : _supabase = client ?? SupabaseService().client;
+  ChatMediaService({SupabaseClient? client, SubscriptionService? subscriptionService})
+      : _supabase = client ?? SupabaseService().client,
+        _subscriptionService = subscriptionService ?? SubscriptionService();
 
   /// Uploads media to the message attachments bucket.
   /// 
@@ -32,6 +35,24 @@ class ChatMediaService {
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('Not authenticated');
+
+      // Check for 2GB limit for Free users
+      if (!_subscriptionService.isPro) {
+        final file = File(filePath);
+        if (await file.exists()) {
+          final sizeInBytes = await file.length();
+          const twoGBInBytes = 2 * 1024 * 1024 * 1024;
+          if (sizeInBytes > twoGBInBytes) {
+            throw Exception('Files larger than 2GB require Oasis Pro.');
+          }
+        } else if (encryptedBytes != null) {
+          final sizeInBytes = encryptedBytes.length;
+          const twoGBInBytes = 2 * 1024 * 1024 * 1024;
+          if (sizeInBytes > twoGBInBytes) {
+            throw Exception('Files larger than 2GB require Oasis Pro.');
+          }
+        }
+      }
 
       final fileExt = fileExtension ?? filePath.split('.').last;
       final fileName = '${DateTime.now().millisecondsSinceEpoch}_${_uuid.v4()}.$fileExt';

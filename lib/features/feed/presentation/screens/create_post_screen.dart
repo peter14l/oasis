@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/services/post_service.dart';
-import 'package:oasis/services/ai_content_service.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis/core/utils/haptic_utils.dart';
@@ -29,7 +28,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   final ImagePicker _picker = ImagePicker();
   final PostService _postService = PostService();
   final AuthService _authService = AuthService();
-  // AIContentService is used statically
 
   final List<XFile> _selectedImages = [];
   bool _isLoading = false;
@@ -38,12 +36,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   PostMood? _selectedMood;
   EnhancedPoll? _attachedPoll;
   bool _showPollCreator = false;
-
-  // AI suggestions
-  List<String> _captionSuggestions = [];
-  List<String> _hashtagSuggestions = [];
-  bool _showAiSuggestions = false;
-  bool _isLoadingAi = false;
 
   // Missing variables
   final List<String> _detectedLabels =
@@ -147,49 +139,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _generateAiSuggestions() async {
-    if (_captionController.text.trim().isEmpty && _selectedImages.isEmpty) {
-      return;
-    }
-
-    HapticUtils.lightImpact();
-    setState(() {
-      _isLoadingAi = true;
-      _showAiSuggestions = true;
-    });
-
-    try {
-      // Get suggestions based on current content
-
-      final captions = AIContentService.generateCaptionSuggestions(
-        detectedObjects: _detectedLabels,
-        location: _locationController.text,
-        mood: _selectedMood?.label,
-        timeOfDay: _getTimeOfDay(),
-      );
-
-      final hashtags = AIContentService.generateHashtagSuggestions(
-        detectedObjects: _detectedLabels,
-        location: _locationController.text,
-        mood: _selectedMood?.label,
-      );
-
-      if (mounted) {
-        setState(() {
-          _captionSuggestions = captions;
-          _hashtagSuggestions = hashtags;
-          _isLoadingAi = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingAi = false;
         });
       }
     }
@@ -513,13 +462,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   ),
                   const SizedBox(width: 8),
                   _buildActionButton(
-                    icon: Icons.auto_awesome,
-                    label: 'AI Help',
-                    onPressed: _generateAiSuggestions,
-                    isM3E: isM3E,
-                  ),
-                  const SizedBox(width: 8),
-                  _buildActionButton(
                     icon: Icons.location_on_outlined,
                     label: _locationController.text.isNotEmpty ? 'Change Location' : 'Location',
                     onPressed: _pickLocation,
@@ -603,123 +545,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       icon: const Icon(Icons.close, size: 18),
                       onPressed: () => setState(() => _attachedPoll = null),
                     ),
-                  ],
-                ),
-              ),
-            ],
-
-            // AI suggestions panel
-            if (_showAiSuggestions) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      colorScheme.primaryContainer.withValues(alpha: isM3E ? 0.8 : 0.3),
-                      colorScheme.tertiaryContainer.withValues(alpha: isM3E ? 0.8 : 0.3),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(isM3E ? 32 : 16),
-                  border: isM3E ? Border.all(color: colorScheme.primary.withValues(alpha: 0.2)) : null,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.auto_awesome,
-                          color: colorScheme.primary,
-                          size: 22,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'AI Suggestions',
-                          style: (isM3E ? theme.textTheme.titleMedium : theme.textTheme.titleSmall)?.copyWith(
-                            fontWeight: isM3E ? FontWeight.w800 : FontWeight.w600,
-                          ),
-                        ),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.close, size: 18),
-                          onPressed:
-                              () => setState(() => _showAiSuggestions = false),
-                        ),
-                      ],
-                    ),
-                    if (_isLoadingAi)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24),
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    else ...[
-                      if (_captionSuggestions.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        Text(
-                          'Caption ideas:',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            fontWeight: isM3E ? FontWeight.bold : null,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        ...(_captionSuggestions.map(
-                          (caption) => Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: InkWell(
-                              onTap: () {
-                                _captionController.text = caption;
-                                HapticUtils.selectionClick();
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.surface,
-                                  borderRadius: BorderRadius.circular(isM3E ? 16 : 8),
-                                  border: isM3E ? Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)) : null,
-                                ),
-                                child: Text(
-                                  caption,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        )),
-                      ],
-                      if (_hashtagSuggestions.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        Text(
-                          'Hashtags:', 
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            fontWeight: isM3E ? FontWeight.bold : null,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          children:
-                              _hashtagSuggestions
-                                  .map(
-                                    (tag) => ActionChip(
-                                      label: Text('#$tag'),
-                                      padding: isM3E ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8) : null,
-                                      shape: isM3E ? RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)) : null,
-                                      onPressed: () {
-                                        _captionController.text += ' #$tag';
-                                        HapticUtils.lightImpact();
-                                      },
-                                    ),
-                                  )
-                                  .toList(),
-                        ),
-                      ],
-                    ],
                   ],
                 ),
               ),

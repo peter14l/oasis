@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
+import 'package:oasis/services/wellness_service.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import 'dart:ui';
 
 class WellnessCenterScreen extends StatelessWidget {
@@ -13,6 +15,7 @@ class WellnessCenterScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final wellbeing = context.watch<DigitalWellbeingService>();
+    final wellness = context.watch<WellnessService>();
     final auth = context.read<AuthService>();
     final isPro = auth.currentUser?.isPro ?? false;
 
@@ -53,9 +56,9 @@ class WellnessCenterScreen extends StatelessWidget {
             const SizedBox(height: 24),
             _buildLockoutSection(context, wellbeing, isPro),
             const SizedBox(height: 24),
-            _buildQuickActions(context),
+            _buildQuickActions(context, wellness),
             const SizedBox(height: 24),
-            _buildConsolidatedFeatures(context),
+            _buildConsolidatedFeatures(context, wellness),
           ],
         ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.05),
       ),
@@ -243,7 +246,7 @@ class WellnessCenterScreen extends StatelessWidget {
           ),
           if (isPro)
             Slider(
-              value: threshold.toDouble(),
+              value: threshold.toDouble().clamp(60, 180),
               min: 60,
               max: 180,
               divisions: 12,
@@ -257,7 +260,7 @@ class WellnessCenterScreen extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: LinearProgressIndicator(
-                  value: threshold / 180,
+                  value: (threshold / 180).clamp(0, 1),
                   backgroundColor: colorScheme.outlineVariant,
                 ),
               ),
@@ -267,25 +270,33 @@ class WellnessCenterScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickActions(BuildContext context) {
+  Widget _buildQuickActions(BuildContext context, WellnessService wellness) {
     return Row(
       children: [
         _buildActionCard(
           context,
           'Zen Mode',
-          'Quiet all noise',
+          wellness.isZenMode ? 'Active' : 'Quiet all noise',
           Icons.spa_rounded,
-          Colors.teal,
-          () {},
+          wellness.isZenMode ? Colors.teal : Colors.teal.withValues(alpha: 0.5),
+          () => wellness.toggleZenMode(),
+          isActive: wellness.isZenMode,
         ),
         const SizedBox(width: 16),
         _buildActionCard(
           context,
           'Focus Mode',
-          'Lock distractions',
+          wellness.isFocusModeActive ? 'Active' : 'Lock distractions',
           Icons.center_focus_strong_rounded,
-          Colors.orange,
-          () {},
+          wellness.isFocusModeActive ? Colors.orange : Colors.orange.withValues(alpha: 0.5),
+          () {
+            if (wellness.isFocusModeActive) {
+              wellness.stopFocusSession();
+            } else {
+              wellness.startFocusSession(const Duration(minutes: 25));
+            }
+          },
+          isActive: wellness.isFocusModeActive,
         ),
       ],
     );
@@ -297,8 +308,9 @@ class WellnessCenterScreen extends StatelessWidget {
     String subtitle,
     IconData icon,
     Color color,
-    VoidCallback onTap,
-  ) {
+    VoidCallback onTap, {
+    bool isActive = false,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     return Expanded(
       child: InkWell(
@@ -307,10 +319,15 @@ class WellnessCenterScreen extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHigh,
+            color: isActive 
+                ? color.withValues(alpha: 0.1) 
+                : colorScheme.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+              color: isActive 
+                  ? color.withValues(alpha: 0.5) 
+                  : colorScheme.outlineVariant.withValues(alpha: 0.5),
+              width: isActive ? 2 : 1,
             ),
           ),
           child: Column(
@@ -333,7 +350,7 @@ class WellnessCenterScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildConsolidatedFeatures(BuildContext context) {
+  Widget _buildConsolidatedFeatures(BuildContext context, WellnessService wellness) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -353,6 +370,7 @@ class WellnessCenterScreen extends StatelessWidget {
             'Take a moment to center yourself',
             Icons.air_rounded,
             Colors.lightBlue,
+            () => context.push('/zen-breath'),
           ),
           Divider(
             height: 1,
@@ -365,6 +383,7 @@ class WellnessCenterScreen extends StatelessWidget {
             'Your wellbeing achievements',
             Icons.verified_rounded,
             Colors.amber,
+            () => context.push('/wellness-stats'),
           ),
           Divider(
             height: 1,
@@ -374,9 +393,10 @@ class WellnessCenterScreen extends StatelessWidget {
           _buildListTile(
             context,
             'Sleep Wind-down',
-            'Prepare for a restful night',
+            wellness.isWindDownActive ? 'Wind-down active' : 'Prepare for a restful night',
             Icons.nights_stay_rounded,
-            Colors.indigo,
+            wellness.isWindDownActive ? Colors.indigo : Colors.indigo.withValues(alpha: 0.5),
+            () => wellness.toggleWindDown(),
           ),
         ],
       ),
@@ -389,6 +409,7 @@ class WellnessCenterScreen extends StatelessWidget {
     String subtitle,
     IconData icon,
     Color color,
+    VoidCallback onTap,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
@@ -414,7 +435,7 @@ class WellnessCenterScreen extends StatelessWidget {
         color: colorScheme.outline,
         size: 20,
       ),
-      onTap: () {},
+      onTap: onTap,
     );
   }
 }
