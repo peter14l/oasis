@@ -16,7 +16,7 @@ class CommentsModal extends StatefulWidget {
   final bool isSidePane;
 
   const CommentsModal({
-    super.key, 
+    super.key,
     required this.postId,
     this.isSidePane = false,
   });
@@ -145,7 +145,7 @@ class _CommentsModalState extends State<CommentsModal> {
       });
 
       if (mounted && _replyingTo == null) {
-        context.read<FeedProvider>().updatePostCommentCount(widget.postId, _comments.length);
+        context.read<FeedProvider>().incrementCommentCount(widget.postId);
       }
 
       if (_scrollController.hasClients) {
@@ -360,8 +360,8 @@ class _CommentsModalState extends State<CommentsModal> {
 
     final modalContent = Container(
       decoration: BoxDecoration(
-        color: widget.isSidePane 
-            ? Colors.transparent 
+        color: widget.isSidePane
+            ? Colors.transparent
             : (disableTransparency ? colorScheme.surface : colorScheme.surface.withValues(alpha: 0.85)),
         borderRadius: widget.isSidePane ? null : BorderRadius.vertical(top: Radius.circular(isM3E ? 48 : 32)),
         border: widget.isSidePane ? null : Border.all(
@@ -609,8 +609,8 @@ class _CommentsModalState extends State<CommentsModal> {
                     GestureDetector(
                       onTap: () => _showCommentOptions(comment),
                       child: Icon(
-                        FluentIcons.more_horizontal_20_regular, 
-                        size: 18, 
+                        FluentIcons.more_horizontal_20_regular,
+                        size: 18,
                         color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                       ),
                     ),
@@ -618,7 +618,7 @@ class _CommentsModalState extends State<CommentsModal> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  comment.content, 
+                  comment.content,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     height: 1.4,
                     fontSize: 14,
@@ -640,7 +640,7 @@ class _CommentsModalState extends State<CommentsModal> {
                           if (comment.likes > 0) ...[
                             const SizedBox(width: 6),
                             Text(
-                              '${comment.likes}', 
+                              '${comment.likes}',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: comment.isLiked ? (isM3E ? colorScheme.tertiary : Colors.red) : colorScheme.onSurfaceVariant,
                                 fontWeight: (isM3E || comment.isLiked) ? FontWeight.bold : FontWeight.normal,

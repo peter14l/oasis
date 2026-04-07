@@ -6,7 +6,7 @@ import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/features/messages/data/chat_decryption_service.dart';
 
 /// Service for managing chat conversations and threads.
-/// 
+///
 /// Handles fetching conversations, creating new threads, managing participants,
 /// and updating thread-level metadata like chat themes/backgrounds.
 class ConversationService {
@@ -20,7 +20,7 @@ class ConversationService {
        _decryptionService = decryptionService ?? ChatDecryptionService();
 
   /// Retrieves a list of conversations for a user.
-  /// 
+  ///
   /// Fetches participants, last message previews, and metadata for both
   /// direct and group chats.
   Future<List<Conversation>> getConversations({
@@ -69,22 +69,26 @@ class ConversationService {
         // Decrypt the preview for the last message
         final lastMsgData = conversationMap['last_message_data'];
         if (lastMsgData != null) {
-          final decryptedContent = await _decryptionService.decryptMessageContent(
-            senderId: lastMsgData['sender_id'],
-            currentUserId: userId,
-            content: lastMsgData['content'] ?? '',
-            encryptedKeys: lastMsgData['msg_encrypted_keys'] != null
-                ? Map<String, String>.from(lastMsgData['msg_encrypted_keys'])
-                : null,
-            iv: lastMsgData['msg_iv'],
-            signalMessageType: lastMsgData['msg_signal_type'],
-            signalSenderContent: lastMsgData['msg_signal_sender_content'],
-          );
+          final decryptedContent = await _decryptionService
+              .decryptMessageContent(
+                senderId: lastMsgData['sender_id'],
+                currentUserId: userId,
+                content: lastMsgData['content'] ?? '',
+                encryptedKeys:
+                    lastMsgData['msg_encrypted_keys'] != null
+                        ? Map<String, String>.from(
+                          lastMsgData['msg_encrypted_keys'],
+                        )
+                        : null,
+                iv: lastMsgData['msg_iv'],
+                signalMessageType: lastMsgData['msg_signal_type'],
+                signalSenderContent: lastMsgData['msg_signal_sender_content'],
+              );
 
           conversationMap['last_message'] = decryptedContent;
           conversationMap['last_message_sender_id'] = lastMsgData['sender_id'];
-          conversationMap['last_message_type'] =
-              _decryptionService.determineMessageType(lastMsgData);
+          conversationMap['last_message_type'] = _decryptionService
+              .determineMessageType(lastMsgData);
         }
 
         conversations.add(Conversation.fromJson(conversationMap));
@@ -136,7 +140,8 @@ class ConversationService {
       final lastMsgRows = await _supabase
           .from(SupabaseConfig.messagesTable)
           .select(
-            'id, sender_id, content, message_type, created_at, '
+            'id, sender_id, content, created_at, '
+            'image_url, video_url, voice_url, file_url, '
             'msg_encrypted_keys, msg_iv, msg_signal_type, msg_signal_sender_content',
           )
           .eq('conversation_id', conversationId)
@@ -151,19 +156,22 @@ class ConversationService {
       if (lastMsgRows.isNotEmpty) {
         final lastMsgData = lastMsgRows.first;
         lastMessageSenderId = lastMsgData['sender_id'] as String?;
-        lastMessageTime = lastMsgData['created_at'] != null
-            ? DateTime.tryParse(lastMsgData['created_at'] as String)
-            : null;
+        lastMessageTime =
+            lastMsgData['created_at'] != null
+                ? DateTime.tryParse(lastMsgData['created_at'] as String)
+                : null;
         lastMessageType = _decryptionService.determineMessageType(lastMsgData);
 
         final decrypted = await _decryptionService.decryptMessageContent(
           senderId: lastMsgData['sender_id'] as String? ?? '',
           currentUserId: userId,
           content: lastMsgData['content'] as String? ?? '',
-          encryptedKeys: lastMsgData['msg_encrypted_keys'] != null
-              ? Map<String, String>.from(
-                  lastMsgData['msg_encrypted_keys'] as Map)
-              : null,
+          encryptedKeys:
+              lastMsgData['msg_encrypted_keys'] != null
+                  ? Map<String, String>.from(
+                    lastMsgData['msg_encrypted_keys'] as Map,
+                  )
+                  : null,
           iv: lastMsgData['msg_iv'] as String?,
           signalMessageType: lastMsgData['msg_signal_type'] as int?,
           signalSenderContent:
@@ -176,9 +184,8 @@ class ConversationService {
         'id': conversationId,
         'type': 'direct',
         'other_user_id': other['user_id'],
-        'other_user_name': otherProfile['username'] ??
-            otherProfile['full_name'] ??
-            'Unknown',
+        'other_user_name':
+            otherProfile['username'] ?? otherProfile['full_name'] ?? 'Unknown',
         'other_user_avatar': otherProfile['avatar_url'] ?? '',
         'unread_count': unreadCount,
         'is_muted': me['is_muted'] ?? false,
@@ -191,7 +198,9 @@ class ConversationService {
 
       return Conversation.fromJson(conversationMap);
     } catch (e) {
-      debugPrint('[ConversationService] Error fetching conversation details: $e');
+      debugPrint(
+        '[ConversationService] Error fetching conversation details: $e',
+      );
       rethrow;
     }
   }
@@ -239,10 +248,12 @@ class ConversationService {
           },
         )
         .subscribe((status, [error]) {
-      if (status == RealtimeSubscribeStatus.channelError) {
-        debugPrint('ConversationService: subscribeToConversations error: $error');
-      }
-    });
+          if (status == RealtimeSubscribeStatus.channelError) {
+            debugPrint(
+              'ConversationService: subscribeToConversations error: $error',
+            );
+          }
+        });
 
     return channel;
   }
@@ -256,23 +267,36 @@ class ConversationService {
     final effectiveUserId = userId ?? _supabase.auth.currentUser?.id;
     if (effectiveUserId == null) throw Exception('Not authenticated');
 
-    final channel = _supabase.channel('chat_background:$conversationId:$effectiveUserId');
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.all,
-      schema: 'public',
-      table: 'chat_themes',
-      filter: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'conversation_id', value: conversationId),
-      callback: (payload) {
-        final data = payload.newRecord.isNotEmpty ? payload.newRecord : payload.oldRecord;
-        if (data.isNotEmpty && data['user_id'] == effectiveUserId) {
-          onUpdate(data['background_image_url'] as String?);
-        }
-      },
-    ).subscribe((status, [error]) {
-      if (status == RealtimeSubscribeStatus.channelError) {
-        debugPrint('ConversationService: subscribeToBackgroundChanges error: $error');
-      }
-    });
+    final channel = _supabase.channel(
+      'chat_background:$conversationId:$effectiveUserId',
+    );
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'chat_themes',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'conversation_id',
+            value: conversationId,
+          ),
+          callback: (payload) {
+            final data =
+                payload.newRecord.isNotEmpty
+                    ? payload.newRecord
+                    : payload.oldRecord;
+            if (data.isNotEmpty && data['user_id'] == effectiveUserId) {
+              onUpdate(data['background_image_url'] as String?);
+            }
+          },
+        )
+        .subscribe((status, [error]) {
+          if (status == RealtimeSubscribeStatus.channelError) {
+            debugPrint(
+              'ConversationService: subscribeToBackgroundChanges error: $error',
+            );
+          }
+        });
     return channel;
   }
 
@@ -315,6 +339,92 @@ class ConversationService {
     } catch (e) {
       debugPrint('[ConversationService] Error updating background: $e');
       rethrow;
+    }
+  }
+
+  /// Fetches recent unread messages for the Peek preview feature.
+  /// Returns decrypted message content, NOT the encrypted ciphertext.
+  /// This does NOT mark messages as read - it only reads them for preview.
+  Future<List<String>> getRecentUnreadMessages(
+    String conversationId,
+    int limit,
+  ) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return [];
+
+      // Get unread messages for this conversation (not marked as read by current user)
+      final unreadMessages = await _supabase
+          .from(SupabaseConfig.messagesTable)
+          .select(
+            'id, sender_id, content, created_at, '
+            'image_url, video_url, voice_url, file_url, '
+            'msg_encrypted_keys, msg_iv, msg_signal_type, msg_signal_sender_content',
+          )
+          .eq('conversation_id', conversationId)
+          .neq('sender_id', userId) // Exclude own messages
+          .order('created_at', ascending: false)
+          .limit(limit);
+
+      if (unreadMessages.isEmpty) return [];
+
+      // Decrypt each message content
+      final List<String> decryptedContents = [];
+      for (final msgData in unreadMessages) {
+        // Check if this is a media message type
+        final messageType = _decryptionService.determineMessageType(msgData);
+
+        String content;
+        if (messageType != 'text') {
+          // For media, show appropriate placeholder
+          switch (messageType) {
+            case 'image':
+              content = '📷 Photo';
+              break;
+            case 'video':
+              content = '🎥 Video';
+              break;
+            case 'voice':
+              content = '🎤 Voice message';
+              break;
+            case 'document':
+              content = '📄 Document';
+              break;
+            default:
+              content = 'Sent attachment';
+          }
+        } else {
+          // For text messages, decrypt the content
+          final decrypted = await _decryptionService.decryptMessageContent(
+            senderId: msgData['sender_id'] as String? ?? '',
+            currentUserId: userId,
+            content: msgData['content'] as String? ?? '',
+            encryptedKeys:
+                msgData['msg_encrypted_keys'] != null
+                    ? Map<String, String>.from(
+                      msgData['msg_encrypted_keys'] as Map,
+                    )
+                    : null,
+            iv: msgData['msg_iv'] as String?,
+            signalMessageType: msgData['msg_signal_type'] as int?,
+            signalSenderContent:
+                msgData['msg_signal_sender_content'] as String?,
+          );
+          content = decrypted;
+        }
+
+        // Skip placeholder messages
+        if (content != '🔒 Message encrypted' && content.isNotEmpty) {
+          decryptedContents.add(content);
+        }
+      }
+
+      return decryptedContents;
+    } catch (e) {
+      debugPrint(
+        '[ConversationService] Error fetching recent unread messages: $e',
+      );
+      return [];
     }
   }
 }

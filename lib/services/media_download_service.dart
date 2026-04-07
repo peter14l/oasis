@@ -20,22 +20,6 @@ class MediaDownloadService {
     bool isOwnContent = false,
   }) async {
     try {
-      final user = SupabaseService().client.auth.currentUser;
-      final isPro = user?.userMetadata?['is_pro'] == true;
-      if (!isPro && !isOwnContent) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Upgrade to Oasis Pro to download other users\' content.',
-              ),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-        return false;
-      }
-
       if (kIsWeb) {
         // For web, just launch the URL to trigger browser download
         return await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
@@ -107,21 +91,6 @@ class MediaDownloadService {
     bool isOwnContent = false,
   }) async {
     try {
-      final user = SupabaseService().client.auth.currentUser;
-      final isPro = user?.userMetadata?['is_pro'] == true;
-      if (!isPro && !isOwnContent) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Upgrade to Oasis Pro to download other users\' content.',
-              ),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-        return false;
-      }
       // Request storage permission
       if (!await _requestPermission()) {
         if (context.mounted) {
@@ -187,21 +156,6 @@ class MediaDownloadService {
     bool isOwnContent = false,
   }) async {
     try {
-      final user = SupabaseService().client.auth.currentUser;
-      final isPro = user?.userMetadata?['is_pro'] == true;
-      if (!isPro && !isOwnContent) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Upgrade to Oasis Pro to download other users\' content.',
-              ),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-        return false;
-      }
       // Request storage permission
       if (!await _requestPermission()) {
         if (context.mounted) {

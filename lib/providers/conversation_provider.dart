@@ -11,7 +11,7 @@ import 'package:oasis/providers/presence_provider.dart';
 class ConversationProvider with ChangeNotifier {
   final MessagingService _messagingService = MessagingService();
   PresenceProvider? _presenceProvider;
-  
+
   List<Conversation> _conversations = [];
   Set<String> _pinnedIds = {};
   bool _isLoading = false;
@@ -21,16 +21,17 @@ class ConversationProvider with ChangeNotifier {
     _presenceProvider = presenceProvider;
     _setupPresenceSubscriptions();
   }
-  
+
   // Realtime subscriptions
   RealtimeChannel? _conversationsSubscription;
   final Map<String, RealtimeChannel> _readReceiptSubscriptions = {};
   final Map<String, RealtimeChannel> _typingSubscriptions = {};
-  
+
   // Getters
   List<Conversation> get conversations => _conversations;
   bool get isLoading => _isLoading;
-  int get totalUnreadCount => _conversations.fold<int>(0, (sum, conv) => sum + conv.unreadCount);
+  int get totalUnreadCount =>
+      _conversations.fold<int>(0, (sum, conv) => sum + conv.unreadCount);
 
   /// Initialize and load conversations
   Future<void> initialize(String? userId) async {
@@ -41,24 +42,25 @@ class ConversationProvider with ChangeNotifier {
       notifyListeners();
       return;
     }
-    
+
     if (_currentUserId == userId && _conversations.isNotEmpty) return;
-    
+
     _currentUserId = userId;
-    
+
     // Load pinned IDs first
     final prefs = await SharedPreferences.getInstance();
-    final pinnedList = prefs.getStringList('pinned_conversations_$_currentUserId') ?? [];
+    final pinnedList =
+        prefs.getStringList('pinned_conversations_$_currentUserId') ?? [];
     _pinnedIds = pinnedList.toSet();
 
     // Load cache first
     await _loadCachedConversations();
-    
+
     if (_conversations.isEmpty) {
       _isLoading = true;
       notifyListeners();
     }
-    
+
     await loadConversations();
     _setupRealtimeSubscriptions();
   }
@@ -68,18 +70,23 @@ class ConversationProvider with ChangeNotifier {
     if (_currentUserId == null) return;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final String? cachedData = prefs.getString('cached_conversations_$_currentUserId');
+      final String? cachedData = prefs.getString(
+        'cached_conversations_$_currentUserId',
+      );
       if (cachedData != null) {
         final List<dynamic> decodedData = jsonDecode(cachedData);
-        _conversations = decodedData.map((item) {
-          final c = Conversation.fromJson(item);
-          return c.copyWith(isPinned: _pinnedIds.contains(c.id));
-        }).toList();
-        
+        _conversations =
+            decodedData.map((item) {
+              final c = Conversation.fromJson(item);
+              return c.copyWith(isPinned: _pinnedIds.contains(c.id));
+            }).toList();
+
         // Sort cached conversations
         _conversations.sort((a, b) {
-          final timeA = a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
-          final timeB = b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+          final timeA =
+              a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+          final timeB =
+              b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
           return timeB.compareTo(timeA);
         });
 
@@ -95,8 +102,13 @@ class ConversationProvider with ChangeNotifier {
     if (_currentUserId == null || _conversations.isEmpty) return;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final String encodedData = jsonEncode(_conversations.map((c) => c.toJson()).toList());
-      await prefs.setString('cached_conversations_$_currentUserId', encodedData);
+      final String encodedData = jsonEncode(
+        _conversations.map((c) => c.toJson()).toList(),
+      );
+      await prefs.setString(
+        'cached_conversations_$_currentUserId',
+        encodedData,
+      );
     } catch (e) {
       debugPrint('Error saving conversations to cache: $e');
     }
@@ -105,26 +117,33 @@ class ConversationProvider with ChangeNotifier {
   /// Load conversations from service
   Future<void> loadConversations({bool silent = false}) async {
     if (_currentUserId == null) return;
-    
+
     if (!silent && _conversations.isEmpty) {
       _isLoading = true;
       notifyListeners();
     }
-    
+
     try {
-      final conversations = await _messagingService.getConversations(userId: _currentUserId!);
-      
+      final conversations = await _messagingService.getConversations(
+        userId: _currentUserId!,
+      );
+
       // Ensure they are sorted by last message time
       conversations.sort((a, b) {
-        final timeA = a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final timeB = b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final timeA =
+            a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final timeB =
+            b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
         return timeB.compareTo(timeA);
       });
 
-      _conversations = conversations.map((c) => c.copyWith(isPinned: _pinnedIds.contains(c.id))).toList();
+      _conversations =
+          conversations
+              .map((c) => c.copyWith(isPinned: _pinnedIds.contains(c.id)))
+              .toList();
       await _saveConversationsToCache();
       _setupPresenceSubscriptions();
-      
+
       // Setup individual subscriptions for each conversation
       for (final conversation in _conversations) {
         _listenToConversationDetails(conversation.id);
@@ -140,10 +159,10 @@ class ConversationProvider with ChangeNotifier {
   /// Setup global and conversation-specific subscriptions
   void _setupRealtimeSubscriptions() {
     if (_currentUserId == null) return;
-    
+
     // Stop existing global subscription
     _conversationsSubscription?.unsubscribe();
-    
+
     // Subscribe to unread count changes and participant changes
     _conversationsSubscription = _messagingService.subscribeToConversations(
       userId: _currentUserId!,
@@ -158,7 +177,7 @@ class ConversationProvider with ChangeNotifier {
   /// Listen for read receipts and typing status for a specific conversation
   void _listenToConversationDetails(String conversationId) {
     if (_readReceiptSubscriptions.containsKey(conversationId)) return;
-    
+
     // Subscribe to read receipts (for "Seen" status)
     final readReceiptChannel = _messagingService.subscribeToReadReceipts(
       conversationId: conversationId,
@@ -167,7 +186,7 @@ class ConversationProvider with ChangeNotifier {
       },
     );
     _readReceiptSubscriptions[conversationId] = readReceiptChannel;
-    
+
     // Subscribe to typing status
     final typingChannel = _messagingService.subscribeToTypingStatus(
       conversationId: conversationId,
@@ -185,8 +204,7 @@ class ConversationProvider with ChangeNotifier {
     // 1. Optimistically zero-out locally right away so the badge responds instantly
     final index = _conversations.indexWhere((c) => c.id == conversationId);
     if (index != -1 && _conversations[index].unreadCount > 0) {
-      _conversations[index] =
-          _conversations[index].copyWith(unreadCount: 0);
+      _conversations[index] = _conversations[index].copyWith(unreadCount: 0);
       _conversations = List.from(_conversations);
       notifyListeners();
     }
@@ -198,11 +216,14 @@ class ConversationProvider with ChangeNotifier {
   /// Reload a single conversation's state
   Future<void> refreshConversation(String conversationId) async {
     if (_currentUserId == null) return;
-    
+
     try {
-      final updatedConversation = await _messagingService.getConversationDetails(conversationId);
-      
-      final c = updatedConversation.copyWith(isPinned: _pinnedIds.contains(updatedConversation.id));
+      final updatedConversation = await _messagingService
+          .getConversationDetails(conversationId);
+
+      final c = updatedConversation.copyWith(
+        isPinned: _pinnedIds.contains(updatedConversation.id),
+      );
       final index = _conversations.indexWhere((c) => c.id == conversationId);
       if (index != -1) {
         _conversations[index] = c;
@@ -212,11 +233,13 @@ class ConversationProvider with ChangeNotifier {
 
       // Always re-sort to move the most recent conversation to the top
       _conversations.sort((a, b) {
-        final timeA = a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final timeB = b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final timeA =
+            a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final timeB =
+            b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
         return timeB.compareTo(timeA);
       });
-      
+
       _conversations = List.from(_conversations);
       _setupPresenceSubscriptions();
       notifyListeners();
@@ -260,8 +283,10 @@ class ConversationProvider with ChangeNotifier {
 
       // Resort immediately to move this conversation to the top
       _conversations.sort((a, b) {
-        final timeA = a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final timeB = b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final timeA =
+            a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final timeB =
+            b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
         return timeB.compareTo(timeA);
       });
 
@@ -275,11 +300,13 @@ class ConversationProvider with ChangeNotifier {
   }
 
   /// Mark a conversation as read locally and on server
+  /// Note: This updates the conversation-level unread count. It does NOT
+  /// mark individual messages as read on the server (to preserve the Peek feature behavior).
   Future<void> markAsRead(String conversationId) async {
     if (_currentUserId == null) return;
-    
+
     try {
-      // 1. Optimistic update for responsiveness
+      // 1. Optimistic update for responsiveness - update immediately in UI
       final index = _conversations.indexWhere((c) => c.id == conversationId);
       if (index != -1) {
         _conversations[index] = _conversations[index].copyWith(unreadCount: 0);
@@ -287,16 +314,27 @@ class ConversationProvider with ChangeNotifier {
         notifyListeners();
       }
 
-      // 2. Server update
-      await _messagingService.markConversationAsRead(conversationId, _currentUserId!);
-      
-      // 3. Fetch fresh state from server to ensure perfect synchronization (unread count, last message, etc.)
-      final updatedConversation = await _messagingService.getConversationDetails(conversationId);
-      final c = updatedConversation.copyWith(isPinned: _pinnedIds.contains(updatedConversation.id));
-      
-      final freshIndex = _conversations.indexWhere((conv) => conv.id == conversationId);
+      // 2. Server update - mark conversation as read on server
+      // We intentionally do NOT call markMessagesAsRead here to preserve
+      // the Peek feature behavior (Peek should NOT mark messages as read)
+      await _messagingService.markConversationAsRead(
+        conversationId,
+        _currentUserId!,
+      );
+
+      // 3. Fetch fresh state from server to ensure perfect synchronization
+      final updatedConversation = await _messagingService
+          .getConversationDetails(conversationId);
+      final c = updatedConversation.copyWith(
+        isPinned: _pinnedIds.contains(updatedConversation.id),
+      );
+
+      final freshIndex = _conversations.indexWhere(
+        (conv) => conv.id == conversationId,
+      );
       if (freshIndex >= 0) {
-        _conversations[freshIndex] = c;
+        // Ensure unread count is 0 (server might have stale data)
+        _conversations[freshIndex] = c.copyWith(unreadCount: 0);
         _conversations = List.from(_conversations);
         notifyListeners();
         await _saveConversationsToCache();
@@ -328,8 +366,11 @@ class ConversationProvider with ChangeNotifier {
         _pinnedIds.remove(conversationId);
       }
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList('pinned_conversations_$_currentUserId', _pinnedIds.toList());
-      
+      await prefs.setStringList(
+        'pinned_conversations_$_currentUserId',
+        _pinnedIds.toList(),
+      );
+
       await _saveConversationsToCache();
     } catch (e) {
       // Revert on error
@@ -349,7 +390,9 @@ class ConversationProvider with ChangeNotifier {
     // Unsubscribe from presence
     if (_presenceProvider != null) {
       for (final conversation in _conversations) {
-        _presenceProvider!.unsubscribeFromUserPresence(conversation.otherUserId);
+        _presenceProvider!.unsubscribeFromUserPresence(
+          conversation.otherUserId,
+        );
       }
     }
 
@@ -362,10 +405,10 @@ class ConversationProvider with ChangeNotifier {
     for (final channel in _typingSubscriptions.values) {
       channel.unsubscribe();
     }
-    
+
     _readReceiptSubscriptions.clear();
     _typingSubscriptions.clear();
-    
+
     // Clear cache if we have a user
     if (_currentUserId != null) {
       try {
@@ -375,7 +418,7 @@ class ConversationProvider with ChangeNotifier {
         debugPrint('Error clearing cached conversations: $e');
       }
     }
-    
+
     _conversations = [];
     _currentUserId = null;
     _isLoading = false;
@@ -392,5 +435,14 @@ class ConversationProvider with ChangeNotifier {
       channel.unsubscribe();
     }
     super.dispose();
+  }
+
+  /// Fetches recent unread messages for Peek preview (decrypted, without marking as read).
+  /// Uses the MessagingService which delegates to ConversationService.
+  Future<List<String>> getRecentUnreadMessages(
+    String conversationId,
+    int limit,
+  ) async {
+    return _messagingService.getRecentUnreadMessages(conversationId, limit);
   }
 }

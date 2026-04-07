@@ -51,6 +51,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   final Map<String, int> _conversationSizes = {};
   Conversation? _previewConversation;
   Offset _previewPosition = Offset.zero;
+  List<String> _previewDecryptedMessages = [];
 
   @override
   void initState() {
@@ -310,7 +311,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
     );
   }
 
-  void _showStealthPreview(Conversation conversation, Offset position) {
+  void _showStealthPreview(Conversation conversation, Offset position) async {
     if (!mounted) return;
 
     // If no unread messages, don't show peek (per request)
@@ -322,9 +323,19 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
     }
 
     HapticFeedback.heavyImpact();
+
+    // Fetch decrypted messages for the peek preview (without marking as read)
+    final decryptedMessages = await Provider.of<ConversationProvider>(
+      context,
+      listen: false,
+    ).getRecentUnreadMessages(conversation.id, conversation.unreadCount);
+
+    if (!mounted) return;
+
     setState(() {
       _previewConversation = conversation;
       _previewPosition = position;
+      _previewDecryptedMessages = decryptedMessages;
     });
   }
 
@@ -714,6 +725,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
             conversation: _previewConversation!,
             position: _previewPosition,
             onDismiss: _hideStealthPreview,
+            decryptedMessages: _previewDecryptedMessages,
           ),
       ],
     );
@@ -1518,11 +1530,13 @@ class _StealthPreviewPopup extends StatelessWidget {
   final Conversation conversation;
   final Offset position;
   final VoidCallback onDismiss;
+  final List<String> decryptedMessages;
 
   const _StealthPreviewPopup({
     required this.conversation,
     required this.position,
     required this.onDismiss,
+    required this.decryptedMessages,
   });
 
   @override
@@ -1548,8 +1562,8 @@ class _StealthPreviewPopup extends StatelessWidget {
     if (top < safeTop) top = safeTop;
 
     final messages =
-        conversation.recentMessages.isNotEmpty
-            ? conversation.recentMessages
+        decryptedMessages.isNotEmpty
+            ? decryptedMessages
             : [conversation.lastMessage ?? 'No preview available'];
 
     return GestureDetector(

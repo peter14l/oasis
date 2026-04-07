@@ -92,13 +92,17 @@ class ChatDecryptionService {
 
   /// Extracts message type based on available media URL columns.
   String determineMessageType(Map<String, dynamic> data) {
-    if (data['msg_voice_url'] != null && data['msg_voice_url'].toString().isNotEmpty) {
+    if ((data['msg_voice_url'] ?? data['voice_url']) != null &&
+        (data['msg_voice_url'] ?? data['voice_url']).toString().isNotEmpty) {
       return 'voice';
-    } else if (data['msg_image_url'] != null && data['msg_image_url'].toString().isNotEmpty) {
+    } else if ((data['msg_image_url'] ?? data['image_url']) != null &&
+        (data['msg_image_url'] ?? data['image_url']).toString().isNotEmpty) {
       return 'image';
-    } else if (data['msg_video_url'] != null && data['msg_video_url'].toString().isNotEmpty) {
+    } else if ((data['msg_video_url'] ?? data['video_url']) != null &&
+        (data['msg_video_url'] ?? data['video_url']).toString().isNotEmpty) {
       return 'video';
-    } else if (data['msg_file_url'] != null && data['msg_file_url'].toString().isNotEmpty) {
+    } else if ((data['msg_file_url'] ?? data['file_url']) != null &&
+        (data['msg_file_url'] ?? data['file_url']).toString().isNotEmpty) {
       return 'document';
     }
     return 'text';

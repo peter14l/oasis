@@ -487,7 +487,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                 ),
               const SizedBox(height: 12),
-              const WellnessBadge(),
+              WellnessBadge(xp: profile.xp),
             ],
           ),
         ),
@@ -1012,7 +1012,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         ),
       ),
       actions: [
-        if (!isDesktop)
+        if (!isDesktop && isOwnProfile)
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: IconButton(

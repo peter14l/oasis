@@ -227,6 +227,16 @@ class ChatProvider with ChangeNotifier {
     _messageChannel = _messagingService.subscribeToMessages(
       conversationId: conversationId,
       onNewMessage: (message) async {
+        final currentUserId = _authService.currentUser?.id;
+        final isMe = message.senderId == currentUserId;
+
+        // If message is from me, the optimistic one is already there.
+        // The `sendMessage` function will remove the optimistic message,
+        // and the subscription will add the real one.
+        if (isMe) {
+          return;
+        }
+
         final decryptedMessage = await _decryptSingleMessage(message);
 
         // Apply client-side filtering for whisper mode
@@ -259,7 +269,6 @@ class ChatProvider with ChangeNotifier {
           settingsProvider.saveMessagesToCache(updatedMessages);
 
           // Mark as read if message is from other user
-          final currentUserId = _authService.currentUser?.id;
           if (decryptedMessage.senderId != currentUserId) {
             markAsRead();
           }

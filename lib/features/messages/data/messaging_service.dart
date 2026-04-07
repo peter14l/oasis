@@ -112,6 +112,12 @@ class MessagingService extends ChangeNotifier {
   Future<void> toggleMute(String conversationId, bool mute) =>
       _conversationService.toggleMute(conversationId, mute);
 
+  /// Fetches recent unread messages for Peek preview (decrypted, without marking as read).
+  Future<List<String>> getRecentUnreadMessages(
+    String conversationId,
+    int limit,
+  ) => _conversationService.getRecentUnreadMessages(conversationId, limit);
+
   // --- Messages ---
 
   /// Fetches history of messages for a [conversationId].

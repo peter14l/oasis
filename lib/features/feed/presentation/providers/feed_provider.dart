@@ -323,6 +323,23 @@ class FeedProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Increment comment count for a post.
+  void incrementCommentCount(String postId) {
+    void updateList(List<Post> posts) {
+      for (int i = 0; i < posts.length; i++) {
+        if (posts[i].id == postId) {
+          final post = posts[i];
+          posts[i] = post.copyWith(comments: post.comments + 1);
+          break;
+        }
+      }
+    }
+
+    updateList(_state.forYouPosts);
+    updateList(_state.followingPosts);
+    notifyListeners();
+  }
+
   /// Clear all data.
   void clear() {
     _state = const FeedState();

@@ -2,10 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/services/wellness_service.dart';
 import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/features/profile/data/datasources/profile_remote_datasource.dart';
 import 'dart:ui';
 
 class WellnessStatsScreen extends StatelessWidget {
-  const WellnessStatsScreen({super.key});
+  final String? userId;
+
+  const WellnessStatsScreen({super.key, this.userId});
+
+  bool get isOwnProfile {
+    final currentUserId = AuthService().currentUser?.id;
+    return userId == null || userId == currentUserId;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,73 +23,109 @@ class WellnessStatsScreen extends StatelessWidget {
     final user = AuthService().currentUser;
     final xp = user?.userMetadata?['xp'] ?? 0;
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text('Wellness Achievements'),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        flexibleSpace: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(color: Colors.transparent),
-          ),
-        ),
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              colorScheme.primary.withValues(alpha: 0.1),
-              colorScheme.surface,
-            ],
-          ),
-        ),
-        child: ListView(
-          padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).padding.top + 80, 16, 100),
-          children: [
-            // XP Summary Card
-            _buildXPCard(theme, xp),
-            const SizedBox(height: 24),
+    // For non-own profile, we'll fetch their data
+    return FutureBuilder<Map<String, dynamic>?>(
+      future:
+          isOwnProfile
+              ? Future.value(null)
+              : ProfileRemoteDatasource().getProfile(userId!),
+      builder: (context, snapshot) {
+        final targetUser = snapshot.data;
+        final displayName = targetUser?['username'] ?? 'User';
+        final displayXp = targetUser?['xp'] ?? 0;
 
-            // Focus Session Stats
-            _buildSectionTitle(theme, 'Focus Mode Stats'),
-            const SizedBox(height: 12),
-            _buildStatGrid(theme, wellness),
-            const SizedBox(height: 32),
-
-            // Badges Section
-            _buildSectionTitle(theme, 'Your Badges'),
-            const SizedBox(height: 16),
-            if (wellness.achievements.isEmpty)
-              _buildEmptyState(theme, 'No badges earned yet. Complete a focus session to earn your first one!')
-            else
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  childAspectRatio: 0.8,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                ),
-                itemCount: wellness.achievements.length,
-                itemBuilder: (context, index) {
-                  final achievement = wellness.achievements[index];
-                  return _buildBadgeItem(theme, achievement);
-                },
+        return Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            title: Text(
+              isOwnProfile
+                  ? 'Wellness Achievements'
+                  : "$displayName's Wellness",
+            ),
+            centerTitle: true,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            flexibleSpace: ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(color: Colors.transparent),
               ),
-            
-            const SizedBox(height: 32),
-            
-            // Rules/Rewards Card
-            _buildRulesCard(theme),
-          ],
-        ),
-      ),
+            ),
+          ),
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  colorScheme.primary.withValues(alpha: 0.1),
+                  colorScheme.surface,
+                ],
+              ),
+            ),
+            child: ListView(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                MediaQuery.of(context).padding.top + 80,
+                16,
+                100,
+              ),
+              children: [
+                // XP Summary Card
+                _buildXPCard(theme, isOwnProfile ? xp : displayXp),
+                const SizedBox(height: 24),
+
+                // Focus Session Stats
+                _buildSectionTitle(
+                  theme,
+                  isOwnProfile
+                      ? 'Focus Mode Stats'
+                      : "$displayName's Focus Stats",
+                ),
+                const SizedBox(height: 12),
+                _buildStatGrid(theme, wellness),
+                const SizedBox(height: 32),
+
+                // Badges Section
+                _buildSectionTitle(
+                  theme,
+                  isOwnProfile ? 'Your Badges' : "$displayName's Badges",
+                ),
+                const SizedBox(height: 16),
+                if (wellness.achievements.isEmpty)
+                  _buildEmptyState(
+                    theme,
+                    isOwnProfile
+                        ? 'No badges earned yet. Complete a focus session to earn your first one!'
+                        : 'This user hasn\'t earned any badges yet.',
+                  )
+                else
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          childAspectRatio: 0.8,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
+                    itemCount: wellness.achievements.length,
+                    itemBuilder: (context, index) {
+                      final achievement = wellness.achievements[index];
+                      return _buildBadgeItem(theme, achievement);
+                    },
+                  ),
+
+                const SizedBox(height: 32),
+
+                // Rules/Rewards Card - only show for own profile
+                if (isOwnProfile) _buildRulesCard(theme),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -130,8 +174,9 @@ class WellnessStatsScreen extends StatelessWidget {
   }
 
   Widget _buildStatGrid(ThemeData theme, WellnessService wellness) {
-    final completed = wellness.achievements.where((a) => a.id.startsWith('focus_')).length;
-    
+    final completed =
+        wellness.achievements.where((a) => a.id.startsWith('focus_')).length;
+
     return Row(
       children: [
         Expanded(
@@ -157,20 +202,37 @@ class WellnessStatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(ThemeData theme, String label, String value, IconData icon, Color color) {
+  Widget _buildStatItem(
+    ThemeData theme,
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       child: Column(
         children: [
           Icon(icon, color: color),
           const SizedBox(height: 8),
-          Text(value, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-          Text(label, style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
+          Text(
+            value,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
@@ -184,7 +246,10 @@ class WellnessStatsScreen extends StatelessWidget {
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             shape: BoxShape.circle,
-            border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2), width: 2),
+            border: Border.all(
+              color: theme.colorScheme.primary.withValues(alpha: 0.2),
+              width: 2,
+            ),
             boxShadow: [
               BoxShadow(
                 color: theme.colorScheme.primary.withValues(alpha: 0.1),
@@ -197,7 +262,9 @@ class WellnessStatsScreen extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           achievement.name,
-          style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: theme.textTheme.labelMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
           textAlign: TextAlign.center,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -212,16 +279,25 @@ class WellnessStatsScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3), style: BorderStyle.none),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+          style: BorderStyle.none,
+        ),
       ),
       child: Column(
         children: [
-          Icon(Icons.lock_outline, size: 48, color: theme.colorScheme.onSurfaceVariant),
+          Icon(
+            Icons.lock_outline,
+            size: 48,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(height: 16),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -234,7 +310,9 @@ class WellnessStatsScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: theme.colorScheme.secondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: theme.colorScheme.secondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,11 +331,19 @@ class WellnessStatsScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          _buildRuleRow(Icons.check_circle, 'Complete 30 mins to earn 50 XP', theme),
+          _buildRuleRow(
+            Icons.check_circle,
+            'Complete 30 mins to earn 50 XP',
+            theme,
+          ),
           const SizedBox(height: 8),
           _buildRuleRow(Icons.cancel, 'Stop early and lose 35 XP', theme),
           const SizedBox(height: 8),
-          _buildRuleRow(Icons.block, 'Home and Search are blocked during Focus', theme),
+          _buildRuleRow(
+            Icons.block,
+            'Home and Search are blocked during Focus',
+            theme,
+          ),
         ],
       ),
     );
@@ -266,7 +352,11 @@ class WellnessStatsScreen extends StatelessWidget {
   Widget _buildRuleRow(IconData icon, String text, ThemeData theme) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: theme.colorScheme.secondary.withValues(alpha: 0.7)),
+        Icon(
+          icon,
+          size: 16,
+          color: theme.colorScheme.secondary.withValues(alpha: 0.7),
+        ),
         const SizedBox(width: 10),
         Expanded(child: Text(text, style: theme.textTheme.bodySmall)),
       ],
