@@ -72,6 +72,10 @@ jobs:
           echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
           echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID }}" >> .env
 
+      - name: Disable sentry-native (avoid crashpad 403 error on googlesource.com)
+        run: |
+          echo "SENTRY_NATIVE_BACKEND=none" >> .env
+
       - name: Build Windows
         run: flutter build windows --release --dart-define-from-file=".env"
 
