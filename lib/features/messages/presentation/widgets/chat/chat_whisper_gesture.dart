@@ -33,45 +33,7 @@ class _ChatWhisperGestureState extends State<ChatWhisperGesture> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onVerticalDragStart: (_) {
-        setState(() {
-          _dragProgress = 0.0;
-          _dragOffset = 0.0;
-          _triggered = false;
-        });
-      },
-      onVerticalDragUpdate: (details) {
-        final rawDelta = -details.delta.dy;
-        if (rawDelta <= 0 && _dragOffset == 0) return;
-        
-        setState(() {
-          _dragOffset = (_dragOffset + rawDelta).clamp(0.0, widget.dragThreshold);
-          _dragProgress = _dragOffset / widget.dragThreshold;
-        });
-
-        if (_dragProgress >= 1.0 && !_triggered) {
-          _triggered = true;
-          HapticUtils.heavyImpact();
-          widget.onWhisperToggle();
-        }
-      },
-      onVerticalDragEnd: (_) {
-        setState(() {
-          _dragProgress = 0.0;
-          _dragOffset = 0.0;
-          _triggered = false;
-        });
-      },
-      onVerticalDragCancel: () {
-        setState(() {
-          _dragProgress = 0.0;
-          _dragOffset = 0.0;
-          _triggered = false;
-        });
-      },
-      child: widget.builder(context, _dragProgress, _dragOffset),
-    );
+    // Whisper mode dragging disabled as requested
+    return widget.builder(context, 0.0, 0.0);
   }
 }

@@ -173,13 +173,29 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       }
       // Immediately reset unread badge in the inbox — no delay needed
       context.read<ConversationProvider>().markAsRead(widget.conversationId);
+
+      // Check if vault needs to be unlocked on entry
+      _checkVaultOnEntry();
     });
+  }
+
+  Future<void> _checkVaultOnEntry() async {
+    if (_vaultService.isInVaultSync(widget.conversationId) &&
+        !_vaultService.isItemUnlocked(widget.conversationId)) {
+      final authenticated = await _vaultService.authenticate(
+        itemId: widget.conversationId,
+        context: context,
+      );
+      if (!authenticated && mounted) {
+        Navigator.pop(context);
+      }
+    }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _vaultService = Provider.of<VaultService>(context, listen: false);
+    _vaultService = Provider.of<VaultService>(context);
   }
 
   @override
@@ -801,33 +817,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                                     : 'Type a message...',
                                           ),
                                         ),
-                                        if (dragProgress == 0)
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              top: 4,
-                                            ),
-                                            child: Text(
-                                              state.whisperMode > 0
-                                                  ? '👻  Whisper on — pull up to disable'
-                                                  : 'Pull up to enable Whisper Mode',
-                                              style: theme.textTheme.bodySmall
-                                                  ?.copyWith(
-                                                    color:
-                                                        state.whisperMode > 0
-                                                            ? colorScheme
-                                                                .secondary
-                                                                .withValues(
-                                                                  alpha: 0.8,
-                                                                )
-                                                            : colorScheme
-                                                                .onSurfaceVariant
-                                                                .withValues(
-                                                                  alpha: 0.5,
-                                                                ),
-                                                    fontSize: 10,
-                                                  ),
-                                            ),
-                                          ),
                                       ],
                                     );
                                   },
@@ -859,6 +848,108 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       onVideoCallPressed:
                           () => _showError('Video call feature coming soon'),
                     ),
+
+                    // Vault Lock Overlay
+                    if (_vaultService.isInVaultSync(widget.conversationId) &&
+                        !_vaultService.isItemUnlocked(widget.conversationId))
+                      Positioned.fill(
+                        child: GestureDetector(
+                          onTap: () {}, // Prevent taps reaching chat
+                          child: Container(
+                            color: theme.colorScheme.surface,
+                            child: Stack(
+                              children: [
+                                if (state.backgroundUrl != null)
+                                  ChatBackground(
+                                    backgroundUrl: state.backgroundUrl,
+                                    bgOpacity: 0.1,
+                                    bgBrightness: 0.2,
+                                  ),
+                                BackdropFilter(
+                                  filter: ui.ImageFilter.blur(
+                                    sigmaX: 30,
+                                    sigmaY: 30,
+                                  ),
+                                  child: Container(
+                                    color: colorScheme.surface.withValues(
+                                      alpha: 0.8,
+                                    ),
+                                  ),
+                                ),
+                                SafeArea(
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(24),
+                                          decoration: BoxDecoration(
+                                            color: colorScheme.primary
+                                                .withValues(alpha: 0.1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            FluentIcons.lock_closed_48_filled,
+                                            size: 64,
+                                            color: colorScheme.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 24),
+                                        Text(
+                                          'Chat Locked',
+                                          style: theme.textTheme.headlineSmall
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Authenticate to view this conversation',
+                                          textAlign: TextAlign.center,
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                color: colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
+                                        ),
+                                        const SizedBox(height: 48),
+                                        FilledButton.icon(
+                                          onPressed:
+                                              () => _vaultService.authenticate(
+                                                itemId: widget.conversationId,
+                                                context: context,
+                                              ),
+                                          icon: const Icon(
+                                            FluentIcons.fingerprint_24_regular,
+                                          ),
+                                          label: const Text('Unlock Chat'),
+                                          style: FilledButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 32,
+                                              vertical: 16,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.pop(context),
+                                          child: const Text('Go Back'),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

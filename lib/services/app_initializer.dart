@@ -149,6 +149,7 @@ class InitializedServices {
   final EnergyMeterService energyMeterService;
   final SubscriptionService subscriptionService;
   final DigitalWellbeingService digitalWellbeingService;
+  final VaultService vaultService;
 
   const InitializedServices({
     required this.themeProvider,
@@ -159,6 +160,7 @@ class InitializedServices {
     required this.energyMeterService,
     required this.subscriptionService,
     required this.digitalWellbeingService,
+    required this.vaultService,
   });
 }
 
@@ -294,6 +296,10 @@ class AppInitializer {
     final subscriptionService = SubscriptionService();
     await subscriptionService.init();
 
+    // Vault
+    final vaultService = VaultService();
+    await vaultService.init();
+
     return InitializedServices(
       themeProvider: themeProvider,
       authProvider: authProvider,
@@ -303,6 +309,7 @@ class AppInitializer {
       energyMeterService: energyMeterService,
       subscriptionService: subscriptionService,
       digitalWellbeingService: digitalWellbeingService,
+      vaultService: vaultService,
     );
   }
 
@@ -390,7 +397,9 @@ class AppInitializer {
             );
           },
         ),
-        ChangeNotifierProvider<VaultService>(create: (_) => VaultService()),
+        ChangeNotifierProvider<VaultService>.value(
+          value: services.vaultService,
+        ),
         Provider<VoiceTranscriptService>(create: (_) => VoiceTranscriptService()),
       ],
       child: child,

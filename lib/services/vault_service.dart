@@ -22,10 +22,10 @@ class VaultService with ChangeNotifier {
   final Map<String, Timer?> _lockTimers = {};
 
   VaultService() {
-    _init();
+    init();
   }
 
-  Future<void> _init() async {
+  Future<void> init() async {
     await _loadIntervals();
     await _refreshVaultItemCache();
   }

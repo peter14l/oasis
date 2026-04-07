@@ -15,10 +15,10 @@ class DigitalWellbeingService extends ChangeNotifier {
   int _feedSeconds = 0;
   int _ripplesSeconds = 0;
   Timer? _ticker;
+  int _tickCount = 0;
 
   // Lockout state
   DateTime? _lockoutEndTime;
-
 
   DigitalWellbeingService(this._prefs, this._authService) {
     _loadState();
@@ -32,22 +32,28 @@ class DigitalWellbeingService extends ChangeNotifier {
         _lockoutEndTime = null;
       }
     }
-
   }
 
   // --- Tracking ---
 
   void startTracking(String category) {
     _ticker?.cancel();
-    _ticker = Timer.periodic(const Duration(seconds: 1), (timer) {
+    _tickCount = 0;
+    // Use 5-second interval (80% reduction in CPU) + batch threshold checks
+    _ticker = Timer.periodic(const Duration(seconds: 5), (timer) {
+      _tickCount++;
       if (category == 'feed') {
-        _feedSeconds++;
+        _feedSeconds += 5;
       } else if (category == 'ripples') {
-        _ripplesSeconds++;
+        _ripplesSeconds += 5;
       }
-      
+
+      // Check lockout every 5 seconds (not every second)
       _checkLockoutThreshold();
-      notifyListeners();
+      // Only notify every 3rd tick (every 15 seconds) to reduce UI rebuilds
+      if (_tickCount % 3 == 0) {
+        notifyListeners();
+      }
     });
   }
 
@@ -91,13 +97,13 @@ class DigitalWellbeingService extends ChangeNotifier {
 
   void _triggerLockout(int overspendSeconds) {
     // Adapted lockout: 60 mins base + overspend
-    final lockoutDuration = const Duration(minutes: 60) + Duration(seconds: overspendSeconds);
+    final lockoutDuration =
+        const Duration(minutes: 60) + Duration(seconds: overspendSeconds);
     _lockoutEndTime = DateTime.now().add(lockoutDuration);
-
 
     _prefs.setString(_lockoutEndTimeKey, _lockoutEndTime!.toIso8601String());
     _prefs.setInt(_lastOverspendKey, overspendSeconds);
-    
+
     stopTracking();
     notifyListeners();
     debugPrint('DigitalWellbeing: Lockout triggered until $_lockoutEndTime');
@@ -125,7 +131,7 @@ class DigitalWellbeingService extends ChangeNotifier {
   int get feedMinutes => _feedSeconds ~/ 60;
   int get ripplesMinutes => _ripplesSeconds ~/ 60;
   int get totalMinutes => (_feedSeconds + _ripplesSeconds) ~/ 60;
-  
+
   int get feedSeconds => _feedSeconds;
   int get ripplesSeconds => _ripplesSeconds;
   int get totalSeconds => _feedSeconds + _ripplesSeconds;

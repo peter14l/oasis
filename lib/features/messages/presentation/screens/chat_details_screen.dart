@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:oasis/features/messages/presentation/screens/shared_content_screen.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String conversationId;
@@ -263,67 +264,16 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
 
 
 
-  void _showSharedMedia(BuildContext context) {
-    List<Message> allMessages;
-    try {
-      final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-      allMessages = chatProvider.state.messages;
-    } catch (_) {
-      allMessages = _allMessages;
-    }
-
-    final mediaMessages = allMessages.where((m) => m.messageType == MessageType.image && m.mediaUrl != null).toList();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      useRootNavigator: true,
-      builder: (context) {
-        final theme = Theme.of(context);
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.8,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(2))),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text('Shared Media', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-              ),
-              Expanded(
-                child: mediaMessages.isEmpty
-                    ? const Center(child: Text('No media shared yet.', style: TextStyle(color: Colors.white38)))
-                    : GridView.builder(
-                        padding: const EdgeInsets.all(16),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 8,
-                          mainAxisSpacing: 8,
-                        ),
-                        itemCount: mediaMessages.length,
-                        itemBuilder: (context, index) {
-                          final msg = mediaMessages[index];
-                          return ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: CachedNetworkImage(
-                              imageUrl: msg.mediaUrl!,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(color: Colors.white10),
-                              errorWidget: (context, url, error) => Container(color: Colors.white10, child: const Icon(Icons.error)),
-                            ),
-                          );
-                        },
-                      ),
-              ),
-            ],
-          ),
-        );
-      },
+  void _navigateToSharedContent(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => SharedContentScreen(
+              conversationId: widget.conversationId,
+              otherUserName: widget.otherUserName,
+            ),
+      ),
     );
   }
 
@@ -864,7 +814,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                       icon: FluentIcons.image_24_regular,
                       title: 'Media, Files & Links',
                       subtitle: 'Shared content',
-                      onTap: () => _showSharedMedia(context),
+                      onTap: () => _navigateToSharedContent(context),
                     ),
                   ],
                 ),

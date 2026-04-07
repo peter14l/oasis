@@ -17,7 +17,6 @@ class ScreenTimeService extends ChangeNotifier {
 
   final SharedPreferences _prefs;
 
-
   // Real category tracking
   String? _currentCategory;
   Map<String, int> _categoryMinutes = {};
@@ -116,8 +115,9 @@ class ScreenTimeService extends ChangeNotifier {
 
   void _startWellbeingTicker() {
     _wellbeingTicker?.cancel();
-    _wellbeingTicker = Timer.periodic(const Duration(seconds: 1), (_) {
-      _currentSessionElapsedSeconds++;
+    // Use 10-second interval (90% reduction in CPU) + batch notify
+    _wellbeingTicker = Timer.periodic(const Duration(seconds: 10), (_) {
+      _currentSessionElapsedSeconds += 10;
       notifyListeners();
     });
   }
@@ -162,7 +162,8 @@ class ScreenTimeService extends ChangeNotifier {
 
     // Also record for current category
     if (_currentCategory != null && duration.inMinutes > 0) {
-      _categoryMinutes[_currentCategory!] = (_categoryMinutes[_currentCategory!] ?? 0) + duration.inMinutes;
+      _categoryMinutes[_currentCategory!] =
+          (_categoryMinutes[_currentCategory!] ?? 0) + duration.inMinutes;
       await _saveCategoryData();
     }
 
@@ -270,15 +271,35 @@ class ScreenTimeService extends ChangeNotifier {
       // (The test expects 5 categories for non-zero totalMinutes)
       return [
         {'name': 'Feed', 'minutes': 0, 'icon': Icons.feed, 'color': 0xFF2196F3},
-        {'name': 'Messages', 'minutes': 0, 'icon': Icons.chat, 'color': 0xFF4CAF50},
-        {'name': 'Communities', 'minutes': 0, 'icon': Icons.people, 'color': 0xFFFF9800},
-        {'name': 'Profile', 'minutes': 0, 'icon': Icons.person, 'color': 0xFF9C27B0},
-        {'name': 'Other', 'minutes': totalMinutes, 'icon': Icons.more_horiz, 'color': 0xFF9E9E9E},
+        {
+          'name': 'Messages',
+          'minutes': 0,
+          'icon': Icons.chat,
+          'color': 0xFF4CAF50,
+        },
+        {
+          'name': 'Communities',
+          'minutes': 0,
+          'icon': Icons.people,
+          'color': 0xFFFF9800,
+        },
+        {
+          'name': 'Profile',
+          'minutes': 0,
+          'icon': Icons.person,
+          'color': 0xFF9C27B0,
+        },
+        {
+          'name': 'Other',
+          'minutes': totalMinutes,
+          'icon': Icons.more_horiz,
+          'color': 0xFF9E9E9E,
+        },
       ];
     }
 
     final List<Map<String, dynamic>> categories = [];
-    
+
     // Define standard categories and their styling
     final categoryStyles = {
       'Feed': {'icon': Icons.feed, 'color': 0xFF2196F3},
@@ -289,7 +310,9 @@ class ScreenTimeService extends ChangeNotifier {
 
     int accountedMinutes = 0;
     _categoryMinutes.forEach((name, minutes) {
-      final style = categoryStyles[name] ?? {'icon': Icons.more_horiz, 'color': 0xFF9E9E9E};
+      final style =
+          categoryStyles[name] ??
+          {'icon': Icons.more_horiz, 'color': 0xFF9E9E9E};
       categories.add({
         'name': name,
         'minutes': minutes,
@@ -300,7 +323,8 @@ class ScreenTimeService extends ChangeNotifier {
     });
 
     // Add 'Other' if there are remaining minutes
-    if (accountedMinutes < totalMinutes || !categories.any((c) => c['name'] == 'Other')) {
+    if (accountedMinutes < totalMinutes ||
+        !categories.any((c) => c['name'] == 'Other')) {
       final otherMinutes = math.max(0, totalMinutes - accountedMinutes);
       if (!categories.any((c) => c['name'] == 'Other')) {
         categories.add({
@@ -313,8 +337,10 @@ class ScreenTimeService extends ChangeNotifier {
     }
 
     // Sort by most used
-    categories.sort((a, b) => (b['minutes'] as int).compareTo(a['minutes'] as int));
-    
+    categories.sort(
+      (a, b) => (b['minutes'] as int).compareTo(a['minutes'] as int),
+    );
+
     return categories;
   }
 
