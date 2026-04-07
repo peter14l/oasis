@@ -36,6 +36,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Precache macOS artifacts
+        run: flutter precache --macos
+
       - name: Build macOS App
         run: flutter build macos --release
 
