@@ -9,7 +9,7 @@ platform :osx, '11.0'
 install! 'cocoapods', :deterministic_uuids => false
 
 # Flutter Generated
-load File.join(File.dirname(__FILE__), 'Flutter', 'ephemeral', 'Config.xcconfig')
+load File.join(File.dirname(__FILE__), 'Flutter', 'ephemeral', 'Flutter-Generated.xcconfig')
 
 target 'Runner' do
   use_frameworks!
