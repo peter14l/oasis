@@ -12,13 +12,46 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class AuthRemoteDatasource {
   final SupabaseClient _supabase = SupabaseService().client;
 
+  Future<String?> _getEmailFromUsername(String username) async {
+    try {
+      final response = await _supabase.rpc(
+        SupabaseConfig.getEmailByUsernameFn,
+        params: {'p_username': username},
+      );
+      return response as String?;
+    } catch (e) {
+      debugPrint('[AuthRemoteDatasource] Error resolving username: $e');
+      return null;
+    }
+  }
+
   Future<RegisteredAccount> signInWithEmail(AuthCredentials credentials) async {
     try {
+      String email = credentials.identifier;
+
+      // If not an email, try resolving as username
+      if (!email.contains('@')) {
+        debugPrint(
+          '[AuthRemoteDatasource] Resolving username: ${credentials.identifier}',
+        );
+        final resolvedEmail = await _getEmailFromUsername(
+          credentials.identifier,
+        );
+        if (resolvedEmail == null) {
+          throw const AuthException(
+            'No user found with this username',
+            statusCode: '404',
+          );
+        }
+        email = resolvedEmail;
+        debugPrint('[AuthRemoteDatasource] Resolved to email: $email');
+      }
+
       debugPrint(
-        '[AuthRemoteDatasource] Starting sign in with email: ${credentials.email}',
+        '[AuthRemoteDatasource] Starting sign in with resolved email: $email',
       );
       final response = await _supabase.auth.signInWithPassword(
-        email: credentials.email,
+        email: email,
         password: credentials.password,
       );
 
@@ -155,8 +188,23 @@ class AuthRemoteDatasource {
     }
   }
 
-  Future<void> resetPassword(String email) async {
+  Future<void> resetPassword(String identifier) async {
     try {
+      String email = identifier;
+
+      if (!identifier.contains('@')) {
+        debugPrint('[AuthRemoteDatasource] Resolving username for reset: $identifier');
+        final resolvedEmail = await _getEmailFromUsername(identifier);
+        if (resolvedEmail == null) {
+          throw const AuthException(
+            'No user found with this username',
+            statusCode: '404',
+          );
+        }
+        email = resolvedEmail;
+        debugPrint('[AuthRemoteDatasource] Resolved to email: $email');
+      }
+
       // First try the built-in Supabase email with full URL for redirect
       await _supabase.auth.resetPasswordForEmail(
         email,

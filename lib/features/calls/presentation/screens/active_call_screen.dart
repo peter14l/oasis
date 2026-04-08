@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:oasis/models/call.dart';
+import 'package:oasis/features/calling/domain/models/call_entity.dart';
 import 'package:oasis/services/call_service.dart';
 import 'package:provider/provider.dart';
 
 class ActiveCallScreen extends StatefulWidget {
-  final Call call;
+  final CallEntity call;
 
   const ActiveCallScreen({super.key, required this.call});
 

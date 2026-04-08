@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oasis/models/story_model.dart';
+import 'package:oasis/features/stories/domain/models/story_entity.dart';
 import 'package:oasis/services/spotify_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +20,7 @@ class _MusicPickerSheetState extends State<MusicPickerSheet> {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final TextEditingController _searchController = TextEditingController();
 
-  List<StoryMusic> _tracks = [];
+  List<StoryMusicEntity> _tracks = [];
   bool _isLoading = true;
   String? _playingTrackId;
 
@@ -55,7 +55,7 @@ class _MusicPickerSheetState extends State<MusicPickerSheet> {
     }
   }
 
-  Future<void> _togglePreview(StoryMusic track) async {
+  Future<void> _togglePreview(StoryMusicEntity track) async {
     if (_playingTrackId == track.trackId) {
       await _audioPlayer.stop();
       setState(() => _playingTrackId = null);

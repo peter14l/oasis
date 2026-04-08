@@ -101,6 +101,65 @@ class AppNotification {
       timestamp: timestamp ?? this.timestamp,
     );
   }
+
+  String get displayTitle {
+    if (title != null && title!.isNotEmpty) return title!;
+
+    switch (type) {
+      case 'dm':
+        return actorName ?? 'New Message';
+      case 'like':
+        return 'New Like';
+      case 'comment':
+        return 'New Comment';
+      case 'follow':
+        return 'New Follower';
+      case 'mention':
+        return 'Mentioned You';
+      case 'canvas_pulse':
+        return 'Canvas Pulse';
+      default:
+        return 'New Notification';
+    }
+  }
+
+  String getNotificationText() {
+    switch (type) {
+      case 'like':
+        return '${actorName ?? 'Someone'} liked your post';
+      case 'comment':
+        return '${actorName ?? 'Someone'} commented on your post';
+      case 'follow':
+        return '${actorName ?? 'Someone'} started following you';
+      case 'mention':
+        return '${actorName ?? 'Someone'} mentioned you in a comment';
+      case 'dm':
+        return message ?? 'New message';
+      case 'canvas_pulse':
+        return '${actorName ?? 'Someone'} ${message ?? 'is on the Canvas'}';
+      default:
+        return message ?? 'New notification';
+    }
+  }
+
+  IconData getNotificationIcon() {
+    switch (type) {
+      case 'like':
+        return Icons.favorite;
+      case 'comment':
+        return Icons.chat_bubble;
+      case 'follow':
+        return Icons.person_add;
+      case 'mention':
+        return Icons.alternate_email;
+      case 'dm':
+        return Icons.chat_outlined;
+      case 'canvas_pulse':
+        return Icons.blur_on_rounded;
+      default:
+        return Icons.notifications;
+    }
+  }
 }
 
 enum NotificationType { like, comment, follow, mention, dm, ripple, system }

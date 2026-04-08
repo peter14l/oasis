@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:oasis/models/story_model.dart';
+import 'package:oasis/features/stories/domain/models/story_entity.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -12,8 +12,8 @@ class SpotifyService {
   DateTime? _tokenExpiry;
 
   // Popular tracks for mock/fallback
-  static final List<StoryMusic> _featuredTracks = [
-    StoryMusic(
+  static final List<StoryMusicEntity> _featuredTracks = [
+    StoryMusicEntity(
       trackId: '0VjIj970nyB7S6tc27JpsO',
       title: 'Blinding Lights',
       artist: 'The Weeknd',
@@ -22,7 +22,7 @@ class SpotifyService {
       previewUrl:
           'https://p.scdn.co/mp3-preview/6324268e36785501869811f269a84d413554e4c2',
     ),
-    StoryMusic(
+    StoryMusicEntity(
       trackId: '5Y640pS3K99Z766oXv8p7P',
       title: 'Save Your Tears',
       artist: 'The Weeknd',
@@ -31,7 +31,7 @@ class SpotifyService {
       previewUrl:
           'https://p.scdn.co/mp3-preview/a91901174620585f6738c823f66299b86be0b155',
     ),
-    StoryMusic(
+    StoryMusicEntity(
       trackId: '2693892839283',
       title: 'As It Was',
       artist: 'Harry Styles',
@@ -40,7 +40,7 @@ class SpotifyService {
       previewUrl:
           'https://p.scdn.co/mp3-preview/3e0bd2275841774312017366d9817751f78f6920',
     ),
-    StoryMusic(
+    StoryMusicEntity(
       trackId: '7K3165q8u6mZfX2K8T2K6K',
       title: 'Cruel Summer',
       artist: 'Taylor Swift',
@@ -49,7 +49,7 @@ class SpotifyService {
       previewUrl:
           'https://p.scdn.co/mp3-preview/f4f9f214220359f1311099434823483984398439',
     ),
-    StoryMusic(
+    StoryMusicEntity(
       trackId: '1BxfuLsSRmSclS9vunvS8S',
       title: 'Flowers',
       artist: 'Miley Cyrus',
@@ -96,7 +96,7 @@ class SpotifyService {
     return null;
   }
 
-  Future<List<StoryMusic>> searchTracks(String query) async {
+  Future<List<StoryMusicEntity>> searchTracks(String query) async {
     if (query.isEmpty) return _featuredTracks;
 
     final token = await _getAccessToken();
@@ -129,9 +129,9 @@ class SpotifyService {
     return _featuredTracks;
   }
 
-  StoryMusic _parseTrack(Map<String, dynamic> item) {
+  StoryMusicEntity _parseTrack(Map<String, dynamic> item) {
     final images = item['album']['images'] as List;
-    return StoryMusic(
+    return StoryMusicEntity(
       trackId: item['id'],
       title: item['name'],
       artist: (item['artists'] as List).map((a) => a['name']).join(', '),
@@ -140,7 +140,7 @@ class SpotifyService {
     );
   }
 
-  Future<List<StoryMusic>> getFeaturedTracks() async {
+  Future<List<StoryMusicEntity>> getFeaturedTracks() async {
     return _featuredTracks;
   }
 }

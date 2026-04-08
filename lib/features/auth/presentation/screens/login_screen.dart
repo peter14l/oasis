@@ -16,30 +16,32 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoggingIn = false;
   bool _isResettingPassword = false;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _resetPassword() async {
-    final email = _emailController.text.trim();
-    if (email.isEmpty) {
+    final identifier = _identifierController.text.trim();
+    if (identifier.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your email address first')),
+        const SnackBar(
+          content: Text('Please enter your username or email address first'),
+        ),
       );
       return;
     }
 
     setState(() => _isResettingPassword = true);
     try {
-      await context.read<AuthProvider>().resetPassword(email);
+      await context.read<AuthProvider>().resetPassword(identifier);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -69,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
       try {
         debugPrint('[LoginScreen] Starting sign in...');
         await context.read<AuthProvider>().signInWithEmail(
-          email: _emailController.text.trim(),
+          email: _identifierController.text.trim(),
           password: _passwordController.text,
         );
         debugPrint('[LoginScreen] Sign in completed, navigating to /feed');
@@ -283,19 +285,16 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 48.0),
               TextFormField(
-                controller: _emailController,
+                controller: _identifierController,
                 decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email_outlined),
+                  labelText: 'Username or Email',
+                  prefixIcon: Icon(Icons.person_outline),
                   border: OutlineInputBorder(),
                 ),
-                keyboardType: TextInputType.emailAddress,
+                keyboardType: TextInputType.text,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  if (!value.contains('@')) {
-                    return 'Please enter a valid email';
+                    return 'Please enter your username or email';
                   }
                   return null;
                 },

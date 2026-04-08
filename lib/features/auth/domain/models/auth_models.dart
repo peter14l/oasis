@@ -1,6 +1,6 @@
 class AuthCredentials {
-  final String email;
+  final String identifier; // email or username
   final String password;
 
-  const AuthCredentials({required this.email, required this.password});
+  const AuthCredentials({required this.identifier, required this.password});
 }

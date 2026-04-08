@@ -59,6 +59,7 @@ class SupabaseConfig {
       'get_or_create_direct_conversation';
   static const String resetUnreadCountFn = 'reset_unread_count';
   static const String deleteUserAccountFn = 'delete_user_account';
+  static const String getEmailByUsernameFn = 'get_email_by_username';
 
   // Channel names for realtime
   static const String postsChannel = 'public:posts';

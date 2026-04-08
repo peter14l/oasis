@@ -30,7 +30,7 @@ import 'package:oasis/features/messages/data/encryption_service.dart';
 import 'package:oasis/widgets/security_upgrade_banner.dart';
 import 'package:oasis/widgets/security_pin_sheet.dart';
 import 'package:oasis/features/calls/presentation/screens/active_call_screen.dart';
-import 'package:oasis/models/call.dart';
+import 'package:oasis/features/calling/domain/models/call_entity.dart';
 import 'package:oasis/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:oasis/screens/settings_screen.dart';
 import 'package:oasis/features/settings/presentation/screens/subscription_screen.dart';
@@ -1198,7 +1198,7 @@ class AppRouter {
           path: '/call/:callId',
           name: 'active_call',
           pageBuilder: (context, state) {
-            final call = state.extra as Call;
+            final call = state.extra as CallEntity;
             return MaterialPage(
               key: state.pageKey,
               fullscreenDialog: true,

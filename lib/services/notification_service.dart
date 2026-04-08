@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:universal_io/io.dart';
 import 'package:oasis/core/config/supabase_config.dart';
-import 'package:oasis/models/notification.dart';
+import 'package:oasis/features/notifications/domain/models/notification_entity.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';

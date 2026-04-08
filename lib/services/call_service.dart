@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:oasis/models/call.dart';
+import 'package:oasis/features/calling/domain/models/call_entity.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:uuid/uuid.dart';
 
@@ -50,7 +50,7 @@ class CallService extends ChangeNotifier {
     };
   }
 
-  Future<Call> initiateCall({
+  Future<CallEntity> initiateCall({
     required String conversationId,
     required CallType type,
     required String channelName,
@@ -83,16 +83,16 @@ class CallService extends ChangeNotifier {
         .single();
     
     _currentCallId = callData['id'];
-    final call = Call.fromJson(response);
+    final call = CallEntity.fromJson(response);
     _subscribeToSignaling(call.id);
     
     return call;
   }
 
-  Future<void> answerCall(Call call) async {
+  Future<void> answerCall(CallEntity call) async {
     await initWebRTC(call.type == CallType.video);
 
-    final RTCSessionDescription offer = RTCSessionDescription(call.sdp, call.sdpType);
+    final RTCSessionDescription offer = RTCSessionDescription(call.sdp!, call.sdpType!);
     await _peerConnection!.setRemoteDescription(offer);
 
     final RTCSessionDescription answer = await _peerConnection!.createAnswer();
@@ -119,14 +119,14 @@ class CallService extends ChangeNotifier {
         .eq('id', callId)
         .listen((data) async {
           if (data.isEmpty) return;
-          final updatedCall = Call.fromJson(data.first);
+          final updatedCall = CallEntity.fromJson(data.first);
 
           if (updatedCall.status == CallStatus.active && 
               _peerConnection?.getRemoteDescription() == null &&
               updatedCall.sdpType == 'answer') {
             final RTCSessionDescription answer = RTCSessionDescription(
-              updatedCall.sdp,
-              updatedCall.sdpType,
+              updatedCall.sdp!,
+              updatedCall.sdpType!,
             );
             await _peerConnection!.setRemoteDescription(answer);
           }

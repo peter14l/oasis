@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:oasis/models/call.dart';
+import 'package:oasis/features/calling/domain/models/call_entity.dart';
 import 'package:oasis/services/call_service.dart';
 import 'package:provider/provider.dart';
 
 class IncomingCallOverlay extends StatelessWidget {
-  final Call call;
+  final CallEntity call;
 
   const IncomingCallOverlay({super.key, required this.call});
 

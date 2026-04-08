@@ -16,7 +16,6 @@ import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/services/stories_service.dart';
 
 import 'package:oasis/widgets/stories/music_picker_sheet.dart';
-import 'package:oasis/models/story_model.dart' as old_models;
 import 'package:oasis/features/stories/domain/models/story_entity.dart';
 import 'package:oasis/features/stories/presentation/providers/stories_provider.dart';
 
@@ -493,8 +492,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }
 
   void _openMusicPicker() async {
-    final old_models.StoryMusic? result =
-        await showModalBottomSheet<old_models.StoryMusic>(
+    final StoryMusicEntity? result =
+        await showModalBottomSheet<StoryMusicEntity>(
           context: context,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
@@ -503,13 +502,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
 
     if (result != null) {
       setState(() {
-        _selectedMusic = StoryMusicEntity(
-          trackId: result.trackId,
-          title: result.title,
-          artist: result.artist,
-          albumArtUrl: result.albumArtUrl,
-          previewUrl: result.previewUrl,
-        );
+        _selectedMusic = result;
       });
       HapticUtils.success();
     }
