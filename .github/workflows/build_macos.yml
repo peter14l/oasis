@@ -39,8 +39,9 @@ jobs:
       - name: Precache macOS artifacts
         run: flutter precache --macos
 
-      - name: Generate macOS Pod helpers
-        run: flutter build macos --config-only
+      # Regenerate macOS project to ensure ephemeral files exist
+      - name: Regenerate macOS project
+        run: flutter create . --platforms=macos
 
       - name: Build macOS App
         run: flutter build macos --release
