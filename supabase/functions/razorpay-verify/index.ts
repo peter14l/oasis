@@ -48,9 +48,23 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
     if (userError || !user) throw new Error('Unauthorized')
 
-    // 4. Update Pro Status
-    await supabase.from('profiles').update({ is_pro: true }).eq('id', user.id)
-    await supabase.auth.admin.updateUserById(user.id, { user_metadata: { is_pro: true } })
+    // 4. Record the subscription (this will trigger is_pro updates in DB)
+    const periodEnd = new Date()
+    periodEnd.setDate(periodEnd.getDate() + 30) // 30 days from now
+
+    // We can extract the plan from the request if we update the frontend, 
+    // for now we'll check if it was provided in the body or default to Pro
+    const { plan = 'Pro' } = await req.json()
+
+    await supabase.from('subscriptions').upsert({
+      user_id: user.id,
+      status: 'active',
+      plan_id: plan,
+      payment_provider: 'razorpay',
+      provider_subscription_id: razorpay_payment_id,
+      current_period_start: new Date().toISOString(),
+      current_period_end: periodEnd.toISOString(),
+    }, { onConflict: 'user_id' })
 
     return new Response(
       JSON.stringify({ success: true }),

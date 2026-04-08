@@ -73,8 +73,25 @@ serve(async (req) => {
       const token = authHeader.replace('Bearer ', '')
       const { data: { user }, error: userError } = await supabase.auth.getUser(token)
       if (user && !userError) {
-          // Adjust table and columns based on your schema
-          await supabase.from('profiles').update({ plan: plan, updated_at: new Date().toISOString() }).eq('id', user.id)
+          // 3. Record the subscription (this will trigger is_pro updates in DB)
+          const periodEnd = new Date()
+          periodEnd.setDate(periodEnd.getDate() + 30) // 30 days from now
+
+          await supabase.from('subscriptions').upsert({
+            user_id: user.id,
+            status: 'active',
+            plan_id: plan,
+            payment_provider: 'paypal',
+            provider_subscription_id: orderId, // Use order ID as subscription ID for now
+            current_period_start: new Date().toISOString(),
+            current_period_end: periodEnd.toISOString(),
+          }, { onConflict: 'user_id' })
+
+          // Also update profile plan name
+          await supabase.from('profiles').update({ 
+            plan: plan, 
+            updated_at: new Date().toISOString() 
+          }).eq('id', user.id)
       }
     }
 
