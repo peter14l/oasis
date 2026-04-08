@@ -1,6 +1,5 @@
 platform :osx, '11.0'
 
-# Disable CocoaPods analytics
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
 install! 'cocoapods', :deterministic_uuids => false
@@ -11,7 +10,7 @@ project 'Runner', {
   'Release' => :release,
 }
 
-# Load Flutter Pod helper instead of .xcconfig
+# Load Flutter Pod helper
 require File.expand_path(File.join('Flutter', 'ephemeral', 'podhelper.rb'), __dir__)
 
 target 'Runner' do
