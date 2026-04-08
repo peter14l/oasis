@@ -39,6 +39,9 @@ jobs:
       - name: Precache macOS artifacts
         run: flutter precache --macos
 
+      - name: Generate macOS Pod helpers
+        run: flutter build macos --config-only
+
       - name: Build macOS App
         run: flutter build macos --release
 

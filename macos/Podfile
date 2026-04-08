@@ -1,21 +1,25 @@
 platform :osx, '11.0'
 
-# CocoaPods analytics sends network stats synchronous to update and install operations.
-# If you would like to disable this into any future cocoa-pods software updates, please run:
-# $ pod lib lint --no-clean
-#
-# For more information see https://github.com/CocoaPods/CocoaPods/issues/4115
-# and https://guides.cocoapods.org/terminal/commands.html#pod_install
+# Disable CocoaPods analytics
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
 install! 'cocoapods', :deterministic_uuids => false
 
-# Flutter Generated
-load File.join(File.dirname(__FILE__), 'Flutter', 'ephemeral', 'Flutter-Generated.xcconfig')
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+# Load Flutter Pod helper instead of .xcconfig
+require File.expand_path(File.join('Flutter', 'ephemeral', 'podhelper.rb'), __dir__)
 
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
-  flutter_install_all_macos_pods File.dirname(File.expand_path(__FILE__))
+  flutter_application_path = File.join(__dir__, 'Flutter')
+  eval(File.read(File.join(flutter_application_path, 'ephemeral', 'podhelper.rb')), binding)
 end
 
 target 'RunnerTests' do
