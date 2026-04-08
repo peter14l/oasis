@@ -23,8 +23,8 @@ class SubscriptionService extends ChangeNotifier {
     final user = _supabase.auth.currentUser;
     if (user != null) {
       // Check metadata first (fastest)
-      final userMetadata = user.userMetadata ?? {};
-      bool status = userMetadata['is_pro'] as bool? ?? false;
+      final appMetadata = user.appMetadata ?? {};
+      bool status = appMetadata['is_pro'] as bool? ?? false;
       
       // If metadata is false, double check the profiles table (more reliable)
       if (!status) {
@@ -47,24 +47,5 @@ class SubscriptionService extends ChangeNotifier {
       _isPro = false;
     }
     notifyListeners();
-  }
-
-  /// Toggle Pro status for testing purposes.
-  /// 
-  /// ⚠️ WARNING: In production, this should be handled by a secure backend 
-  /// webhook triggered by the payment provider. Direct client-side updates 
-  /// to 'is_pro' are a security risk.
-  Future<void> debugToggleProStatus(bool isPro) async {
-    if (!kDebugMode) return;
-
-    final user = _supabase.auth.currentUser;
-    if (user != null) {
-      // We only update the local state for debugging UI flows.
-      // Do NOT update the 'profiles' table or Auth metadata directly from the client in production.
-      _isPro = isPro;
-      notifyListeners();
-      
-      debugPrint('SubscriptionService: [DEBUG] Pro status toggled locally to: $isPro');
-    }
   }
 }

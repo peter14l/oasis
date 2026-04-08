@@ -335,6 +335,7 @@ class AuthService with ChangeNotifier {
 
   app_models.AppUser _userFromSupabaseUser(User user) {
     final userMetadata = user.userMetadata ?? {};
+    final appMetadata = user.appMetadata ?? {};
     return app_models.AppUser(
       id: user.id,
       email: user.email ?? '',
@@ -344,7 +345,7 @@ class AuthService with ChangeNotifier {
       displayName: userMetadata['full_name'] as String?,
       photoUrl: userMetadata['avatar_url'] as String?,
       isVerified: user.emailConfirmedAt != null,
-      isPro: userMetadata['is_pro'] as bool? ?? false,
+      isPro: appMetadata['is_pro'] as bool? ?? false,
       userMetadata: userMetadata,
     );
   }
