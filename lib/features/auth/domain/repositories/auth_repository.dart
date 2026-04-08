@@ -20,7 +20,7 @@ abstract class AuthRepository {
 
   Future<RegisteredAccount?> restoreSession();
 
-  Future<void> resetPassword(String email);
+  Future<void> resetPassword(String identifier);
 
   Future<void> updatePassword(String password);
 

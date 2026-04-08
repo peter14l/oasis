@@ -47,7 +47,7 @@ class AuthProvider with ChangeNotifier {
     try {
       debugPrint('[AuthProvider] Calling repository signInWithEmail');
       final account = await _repository.signInWithEmail(
-        AuthCredentials(email: email, password: password),
+        AuthCredentials(identifier: email, password: password),
       );
       debugPrint(
         '[AuthProvider] Repository returned account: ${account.userId}',
@@ -130,9 +130,9 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> resetPassword(String email) async {
+  Future<void> resetPassword(String identifier) async {
     try {
-      await _repository.resetPassword(email);
+      await _repository.resetPassword(identifier);
     } catch (e) {
       _state = _state.copyWith(error: e.toString());
       notifyListeners();
