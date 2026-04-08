@@ -146,6 +146,10 @@ class ProfileRemoteDatasource {
     required String followerId,
     required String followingId,
   }) async {
+    if (followerId == followingId) {
+      debugPrint('[ProfileRemoteDatasource] Blocking self-follow attempt: $followerId');
+      return;
+    }
     try {
       await _supabase.from(SupabaseConfig.followsTable).insert({
         'follower_id': followerId,

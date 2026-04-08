@@ -45,8 +45,20 @@ class _OasisProScreenState extends State<OasisProScreen> {
         '/checkout?user_id=$userId&plan=${plan.name}&currency=${plan.currency.name.toUpperCase()}',
       ),
     );
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        // Fallback: try launching anyway, as canLaunchUrl can be unreliable
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('Could not launch $url: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open checkout page. Please try again.')),
+        );
+      }
     }
   }
 

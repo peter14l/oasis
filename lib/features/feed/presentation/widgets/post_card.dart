@@ -592,7 +592,7 @@ class _PostCardState extends State<PostCard>
                                 color: colorScheme.primary,
                               ),
                             ],
-                            if (!widget.isOwnPost)
+                            if (!widget.isOwnPost && widget.post.userId != AuthService().currentUser?.id)
                               Consumer<ProfileProvider>(
                                 builder: (context, profileProvider, child) {
                                   final isFollowing = profileProvider.following

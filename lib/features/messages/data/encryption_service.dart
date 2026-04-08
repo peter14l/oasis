@@ -105,7 +105,7 @@ class EncryptionService {
           await _supabase
               .from('profiles')
               .select(
-                'encrypted_private_key, encrypted_private_key_v2, key_salt, public_key, has_upgraded_security',
+                'encrypted_private_key, encrypted_private_key_v2, encrypted_private_key_recovery, key_salt, public_key, has_upgraded_security',
               )
               .eq('id', userId)
               .maybeSingle();
