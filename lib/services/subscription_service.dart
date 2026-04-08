@@ -49,22 +49,22 @@ class SubscriptionService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Toggle Pro status for testing purposes
+  /// Toggle Pro status for testing purposes.
+  /// 
+  /// ⚠️ WARNING: In production, this should be handled by a secure backend 
+  /// webhook triggered by the payment provider. Direct client-side updates 
+  /// to 'is_pro' are a security risk.
   Future<void> debugToggleProStatus(bool isPro) async {
+    if (!kDebugMode) return;
+
     final user = _supabase.auth.currentUser;
     if (user != null) {
-      // Update the user metadata in Supabase
-      await _supabase.auth.updateUser(UserAttributes(data: {'is_pro': isPro}));
-      
-      // Also update the public profiles table directly to ensure it's in sync
-      // The trigger should handle this, but direct update is safer for debug
-      await _supabase
-          .from('profiles')
-          .update({'is_pro': isPro})
-          .eq('id', user.id);
-          
+      // We only update the local state for debugging UI flows.
+      // Do NOT update the 'profiles' table or Auth metadata directly from the client in production.
       _isPro = isPro;
       notifyListeners();
+      
+      debugPrint('SubscriptionService: [DEBUG] Pro status toggled locally to: $isPro');
     }
   }
 }

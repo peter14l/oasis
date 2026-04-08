@@ -12,6 +12,7 @@ enum EncryptionStatus {
   needsSetup,
   needsRestore,
   needsSecurityUpgrade,
+  needsRecoveryBackup, // PIN set but no recovery key backup
   error,
 }
 

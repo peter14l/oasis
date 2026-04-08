@@ -1,3 +1,4 @@
+import 'package:oasis/core/config/app_config.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -176,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       .resetPasswordForEmail(
                                         email,
                                         redirectTo:
-                                            'https://oasis-web-red.vercel.app/reset-password',
+                                            AppConfig.getWebUrl('/reset-password'),
                                       );
 
                                   setDialogState(() {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/providers/community_provider.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/features/feed/presentation/widgets/post_card.dart';
@@ -323,7 +324,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                         );
                       },
                       onShare: () {
-                        final deepLink = 'https://oasis-web-red.vercel.app/post/${post.id}';
+                        final deepLink = AppConfig.getWebUrl('/post/${post.id}');
                         Share.share('Check out this post on Oasis! $deepLink');
                       },
                       onDelete: () async {

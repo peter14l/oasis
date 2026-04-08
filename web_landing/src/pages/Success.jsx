@@ -45,7 +45,8 @@ const Success = () => {
 
         <h1 className="heading-medium" style={{ marginBottom: '16px', color: 'var(--md-sys-color-on-background)' }}>Payment Successful!</h1>
         <p className="text-body" style={{ marginBottom: '40px', fontSize: '1rem', color: 'var(--md-sys-color-on-surface-variant)' }}>
-          Thank you for subscribing to Oasis Pro. Your account has been upgraded and you now have full access to all premium features.
+          Thank you for subscribing to Oasis Pro. Your account has been upgraded and you now have full access to all premium features. 
+          Please return to the app and check your plan status, it might take a moment to refresh.
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

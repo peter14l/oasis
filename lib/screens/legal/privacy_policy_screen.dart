@@ -1,3 +1,4 @@
+import 'package:oasis/core/config/app_config.dart';
 import 'package:flutter/material.dart';
 
 /// Privacy Policy Screen
@@ -19,6 +20,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final webDomain = AppConfig.webBaseUrl.replaceAll('https://', '').replaceAll('http://', '');
 
     return Scaffold(
       appBar: AppBar(
@@ -156,7 +158,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                     '10. Contact Us',
                     '''If you have questions about this privacy policy:
 
-• Email: privacy@oasis-web-red.vercel.app
+• Email: privacy@$webDomain
 • In-app: Settings → Help & Support
 
 We aim to respond to all inquiries within 48 hours.''',
@@ -220,3 +222,4 @@ We aim to respond to all inquiries within 48 hours.''',
     );
   }
 }
+

@@ -98,12 +98,34 @@ class _VoiceBubbleState extends State<VoiceBubble> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: color.withValues(alpha: 0.1)),
             ),
-            child: Text(
-              _transcript!.text,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: color.withValues(alpha: 0.8),
-                fontStyle: FontStyle.italic,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _transcript!.text,
+                  textDirection: _transcript!.isRTL ? TextDirection.rtl : TextDirection.ltr,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: color.withValues(alpha: 0.8),
+                    fontStyle: FontStyle.italic,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      _transcript!.language.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                        color: color.withValues(alpha: 0.4),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           )
         else

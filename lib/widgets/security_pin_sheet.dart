@@ -80,8 +80,9 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
       bool success = false;
 
       if (widget.status == EncryptionStatus.needsSetup ||
-          widget.status == EncryptionStatus.needsSecurityUpgrade) {
-        if (!_isConfirming) {
+          widget.status == EncryptionStatus.needsSecurityUpgrade ||
+          widget.status == EncryptionStatus.needsRecoveryBackup) {
+        if (!_isConfirming && widget.status != EncryptionStatus.needsRecoveryBackup) {
           setState(() {
             _firstPin = pin;
             _isConfirming = true;
@@ -93,7 +94,10 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
           });
           return;
         } else {
-          if (pin != _firstPin) {
+          if (!_isConfirming && widget.status == EncryptionStatus.needsRecoveryBackup) {
+             // For recovery backup, we just need to verify the existing PIN
+             // So no double-entry needed if they are just backing up.
+          } else if (pin != _firstPin) {
             setState(() {
               _error = 'PINs do not match. Try again.';
               _isConfirming = false;
@@ -113,9 +117,23 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
             success = result.success;
             recoveryKey = result.recoveryKey;
           } else {
+            // Both needsSecurityUpgrade and needsRecoveryBackup use upgradeSecurity
+            // upgradeSecurity will verify the PIN by attempting to decrypt the backup Slot
             final result = await encryptionService.upgradeSecurity(pin);
             success = result.success;
             recoveryKey = result.recoveryKey;
+            
+            if (!success) {
+              setState(() {
+                _isLoading = false;
+                _error = 'Incorrect PIN. Please try again.';
+                for (var c in _controllers) {
+                  c.clear();
+                }
+                _focusNodes[0].requestFocus();
+              });
+              return;
+            }
           }
 
           if (success && recoveryKey != null) {

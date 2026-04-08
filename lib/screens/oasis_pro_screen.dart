@@ -1,3 +1,4 @@
+import 'package:oasis/core/config/app_config.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -40,7 +41,9 @@ class _OasisProScreenState extends State<OasisProScreen> {
 
     // Directing to checkout page on web as requested
     final url = Uri.parse(
-      'https://oasis-web-red.vercel.app/checkout?user_id=$userId&plan=${plan.name}&currency=${plan.currency.name.toUpperCase()}',
+      AppConfig.getWebUrl(
+        '/checkout?user_id=$userId&plan=${plan.name}&currency=${plan.currency.name.toUpperCase()}',
+      ),
     );
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -308,3 +311,4 @@ class _OasisProScreenState extends State<OasisProScreen> {
     );
   }
 }
+

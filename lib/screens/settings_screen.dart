@@ -578,10 +578,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
         const SizedBox(height: 24),
-        _buildPremiumTile(context),
+        profile?.isPro == true ? _buildProMemberTile(context) : _buildPremiumTile(context),
       ],
     );
   }
+
+  Widget _buildProMemberTile(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(isM3E ? 28 : 16),
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.primary,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.stars_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Pro Member',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  'Thank you for upgrading to Oasis Pro. You are a Pro member now.',
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _buildPremiumTile(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);

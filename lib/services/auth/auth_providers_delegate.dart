@@ -1,3 +1,4 @@
+import 'package:oasis/core/config/app_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -47,7 +48,7 @@ class AuthProvidersDelegate {
       email: email,
       password: password,
       data: data,
-      emailRedirectTo: 'https://oasis-web-red.vercel.app/auth/callback',
+      emailRedirectTo: AppConfig.getWebUrl('/auth/callback'),
     );
   }
 
@@ -97,7 +98,7 @@ class AuthProvidersDelegate {
           defaultValue: 'com.oasis.service',
         ),
         redirectUri: Uri.parse(
-          'https://oasis-web-red.vercel.app/auth/apple/callback',
+          AppConfig.getWebUrl('/auth/apple/callback'),
         ),
       ),
     );
@@ -117,3 +118,4 @@ class AuthProvidersDelegate {
     await _supabase.auth.signOut();
   }
 }
+

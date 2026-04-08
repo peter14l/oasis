@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/services/auth_service.dart';
@@ -557,7 +558,7 @@ class _FeedScreenState extends State<FeedScreen>
         }
       },
       onShare: () {
-        final deepLink = 'https://oasis-web-red.vercel.app/post/${post.id}';
+        final deepLink = AppConfig.getWebUrl('/post/${post.id}');
         Share.share('Check out this post on Oasis! $deepLink');
       },
     );

@@ -1,3 +1,4 @@
+import 'package:oasis/core/config/app_config.dart';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -159,7 +160,7 @@ class AuthRemoteDatasource {
       // First try the built-in Supabase email with full URL for redirect
       await _supabase.auth.resetPasswordForEmail(
         email,
-        redirectTo: 'https://oasis-web-red.vercel.app/reset-password',
+        redirectTo: AppConfig.getWebUrl('/reset-password'),
       );
     } on AuthException catch (e) {
       // If Supabase fails (rate limit, etc.), try the custom Edge Function with Resend
@@ -268,3 +269,4 @@ class AuthRemoteDatasource {
     );
   }
 }
+

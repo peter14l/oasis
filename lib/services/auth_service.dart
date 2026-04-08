@@ -1,3 +1,4 @@
+import 'package:oasis/core/config/app_config.dart';
 import 'dart:async';
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
@@ -320,7 +321,7 @@ class AuthService with ChangeNotifier {
   // Auth Utilities
   Future<void> sendPasswordResetEmail(String email) async {
     await _supabase.auth.resetPasswordForEmail(email,
-        redirectTo: 'https://oasis-web-red.vercel.app/auth/reset-password');
+        redirectTo: AppConfig.getWebUrl('/auth/reset-password'));
   }
 
   Future<void> updatePassword(String newPassword) async {
@@ -348,3 +349,4 @@ class AuthService with ChangeNotifier {
     );
   }
 }
+

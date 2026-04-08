@@ -1,3 +1,4 @@
+import 'package:oasis/core/config/app_config.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -398,7 +399,7 @@ class _PulseFeedScreenState extends State<PulseFeedScreen>
                                     builder: (context) => CommentsModal(postId: post.id),
                                   );
                                 },                                onShare: () {
-                                  final deepLink = 'https://oasis-web-red.vercel.app/post/${post.id}';
+                                  final deepLink = AppConfig.getWebUrl('/post/${post.id}');
                                   Share.share('Check out this post on Oasis! $deepLink');
                                 },
                               ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:provider/provider.dart';
@@ -426,7 +427,7 @@ class _PostCardState extends State<PostCard>
   }
 
   void _copyPostLink() {
-    final postLink = 'https://oasis-web-red.vercel.app/post/${widget.post.id}';
+    final postLink = AppConfig.getWebUrl('/post/${widget.post.id}');
     Clipboard.setData(ClipboardData(text: postLink));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(

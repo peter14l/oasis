@@ -115,14 +115,23 @@ class EncryptionService {
           CryptoUtils.rsaPrivateKeyFromPem(privateKeyPem);
 
           // Check if this user needs an upgrade (they have local keys, but are still on v1)
-          if (response != null &&
-              response['has_upgraded_security'] != true &&
-              response['encrypted_private_key'] != null) {
-            _isInitialized =
-                true; // Still initialized (can decrypt), but needs upgrade
-            _isInitializing = false;
-            _lastStatus = EncryptionStatus.needsSecurityUpgrade;
-            return EncryptionStatus.needsSecurityUpgrade;
+          if (response != null) {
+            if (response['has_upgraded_security'] != true &&
+                response['encrypted_private_key'] != null) {
+              _isInitialized = true;
+              _isInitializing = false;
+              _lastStatus = EncryptionStatus.needsSecurityUpgrade;
+              return EncryptionStatus.needsSecurityUpgrade;
+            }
+
+            // Case: User has PIN (v2) but no recovery key backup on server
+            if (response['has_upgraded_security'] == true &&
+                response['encrypted_private_key_recovery'] == null) {
+              _isInitialized = true;
+              _isInitializing = false;
+              _lastStatus = EncryptionStatus.needsRecoveryBackup;
+              return EncryptionStatus.needsRecoveryBackup;
+            }
           }
 
           _isInitialized = true;
