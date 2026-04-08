@@ -41,22 +41,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 48),
-            OutlinedButton(
-              onPressed: () async {
-                setState(() => _isProcessing = true);
-                await subService.debugToggleProStatus(false);
-                setState(() => _isProcessing = false);
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Pro status reset to Free tier.'),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Reset to Free Tier (Debug)'),
-            ),
           ],
         ),
       );
@@ -247,18 +231,16 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       ? null
                       : () async {
                         setState(() => _isProcessing = true);
-                        // Placeholder for actual revenuecat purchase flow
+                        // TODO: Implement actual revenuecat purchase flow here
+                        // The backend webhook should handle granting pro status
                         await Future.delayed(const Duration(seconds: 2));
-
-                        // Call service to update pro status
-                        await subService.debugToggleProStatus(true);
 
                         setState(() => _isProcessing = false);
 
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Welcome to Oasis Pro!'),
+                              content: Text('Purchase flow not yet implemented.'),
                             ),
                           );
                         }
