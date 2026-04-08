@@ -728,6 +728,152 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
+  /// Send a GIF message.
+  Future<void> sendGif(String gifUrl, {Message? replyMessage}) async {
+    final userId = _authService.currentUser?.id;
+    if (userId == null) return;
+
+    setState((s) => s.copyWith(isSending: true, replyMessage: null));
+
+    try {
+      String content = '[GIF]';
+      String? finalContent;
+      Map<String, String>? encryptedKeys;
+      String? iv;
+      int? signalMessageType;
+      String? signalSenderContent;
+      bool usedSignal = false;
+
+      if (_encryptionService.isInitialized) {
+        final recipientId = otherUserId ?? state.otherUserId;
+        if (recipientId != null) {
+          // Try Signal encryption first
+          if (SignalService().isInitialized) {
+            try {
+              final cipherMessage = await SignalService().encryptMessage(recipientId, content);
+              finalContent = base64Encode(cipherMessage.serialize());
+              signalMessageType = cipherMessage.getType();
+              usedSignal = true;
+            } catch (e) {
+              debugPrint('Signal encryption failed for GIF: $e');
+            }
+          }
+
+          if (!usedSignal) {
+            String? recipientPublicKey = _publicKeyCache[recipientId];
+            if (recipientPublicKey != null) {
+              final encrypted = await _encryptionService.encryptMessage(content, [recipientPublicKey]);
+              finalContent = encrypted.encryptedContent;
+              encryptedKeys = encrypted.encryptedKeys;
+              iv = encrypted.iv;
+            }
+          }
+        }
+      } else {
+        finalContent = content;
+      }
+
+      final sentMessage = await _messagingService.sendMessage(
+        conversationId: conversationId,
+        senderId: userId,
+        content: finalContent ?? content,
+        messageType: MessageType.gif,
+        mediaUrl: gifUrl,
+        whisperMode: state.whisperMode,
+        replyToId: replyMessage?.id,
+        encryptedKeys: encryptedKeys,
+        iv: iv,
+        signalMessageType: signalMessageType,
+      );
+
+      final decrypted = await _decryptSingleMessage(sentMessage);
+      setState(
+        (s) => s.copyWith(
+          messages: [...s.messages, decrypted],
+          isSending: false,
+        ),
+      );
+      scrollToBottom();
+      await settingsProvider.saveMessagesToCache(state.messages);
+    } catch (e) {
+      debugPrint('Error sending GIF: $e');
+      setState((s) => s.copyWith(isSending: false));
+      onError?.call('Failed to send GIF: $e');
+    }
+  }
+
+  /// Send a sticker message.
+  Future<void> sendSticker(String stickerUrl, {Message? replyMessage}) async {
+    final userId = _authService.currentUser?.id;
+    if (userId == null) return;
+
+    setState((s) => s.copyWith(isSending: true, replyMessage: null));
+
+    try {
+      String content = '[STICKER]';
+      String? finalContent;
+      Map<String, String>? encryptedKeys;
+      String? iv;
+      int? signalMessageType;
+      bool usedSignal = false;
+
+      if (_encryptionService.isInitialized) {
+        final recipientId = otherUserId ?? state.otherUserId;
+        if (recipientId != null) {
+          if (SignalService().isInitialized) {
+            try {
+              final cipherMessage = await SignalService().encryptMessage(recipientId, content);
+              finalContent = base64Encode(cipherMessage.serialize());
+              signalMessageType = cipherMessage.getType();
+              usedSignal = true;
+            } catch (e) {
+              debugPrint('Signal encryption failed for Sticker: $e');
+            }
+          }
+
+          if (!usedSignal) {
+            String? recipientPublicKey = _publicKeyCache[recipientId];
+            if (recipientPublicKey != null) {
+              final encrypted = await _encryptionService.encryptMessage(content, [recipientPublicKey]);
+              finalContent = encrypted.encryptedContent;
+              encryptedKeys = encrypted.encryptedKeys;
+              iv = encrypted.iv;
+            }
+          }
+        }
+      } else {
+        finalContent = content;
+      }
+
+      final sentMessage = await _messagingService.sendMessage(
+        conversationId: conversationId,
+        senderId: userId,
+        content: finalContent ?? content,
+        messageType: MessageType.sticker,
+        mediaUrl: stickerUrl,
+        whisperMode: state.whisperMode,
+        replyToId: replyMessage?.id,
+        encryptedKeys: encryptedKeys,
+        iv: iv,
+        signalMessageType: signalMessageType,
+      );
+
+      final decrypted = await _decryptSingleMessage(sentMessage);
+      setState(
+        (s) => s.copyWith(
+          messages: [...s.messages, decrypted],
+          isSending: false,
+        ),
+      );
+      scrollToBottom();
+      await settingsProvider.saveMessagesToCache(state.messages);
+    } catch (e) {
+      debugPrint('Error sending sticker: $e');
+      setState((s) => s.copyWith(isSending: false));
+      onError?.call('Failed to send sticker: $e');
+    }
+  }
+
   /// Update reactions on a specific message (optimistic UI update).
   void updateMessageReactions(
     String messageId,

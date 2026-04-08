@@ -4,7 +4,7 @@ import 'package:oasis/features/messages/domain/models/message_reaction.dart';
 part 'message.freezed.dart';
 part 'message.g.dart';
 
-enum MessageType { text, image, document, voice, poll, location, ripple, storyReply, postShare, system }
+enum MessageType { text, image, document, voice, poll, location, ripple, storyReply, postShare, system, gif, sticker }
 
 @freezed
 abstract class Message with _$Message {
@@ -68,7 +68,15 @@ abstract class Message with _$Message {
       if (json['voice_url'] != null && json['voice_url'].toString().isNotEmpty) {
         type = MessageType.voice;
       } else if (json['image_url'] != null && json['image_url'].toString().isNotEmpty) {
-        type = MessageType.image;
+        // Check if it's a sticker or gif based on some metadata or content
+        final String? content = json['content'];
+        if (content == '[STICKER]') {
+          type = MessageType.sticker;
+        } else if (content == '[GIF]') {
+          type = MessageType.gif;
+        } else {
+          type = MessageType.image;
+        }
       } else if (json['video_url'] != null && json['video_url'].toString().isNotEmpty) {
         type = MessageType.image;
       } else if (json['file_url'] != null && json['file_url'].toString().isNotEmpty) {

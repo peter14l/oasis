@@ -36,6 +36,7 @@ import 'package:oasis/features/messages/presentation/widgets/modals/attachment_o
 import 'package:oasis/features/messages/presentation/widgets/modals/message_options_sheet.dart';
 import 'package:oasis/features/messages/presentation/widgets/modals/message_options_menu.dart';
 import 'package:oasis/features/messages/data/datasources/chat_media_picker.dart';
+import 'package:oasis/features/messages/presentation/widgets/modals/giphy_picker_sheet.dart';
 
 /// Fully wired ChatScreen — thin orchestrator composing extracted widgets.
 /// Replaces the 4,682-line legacy chat_screen.dart.
@@ -337,6 +338,25 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   // =========================================================================
   // Message Actions
   // =========================================================================
+
+  void _showGiphyPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (context) => GiphyPickerSheet(
+        onSelected: (url, isSticker) {
+          Navigator.pop(context);
+          if (isSticker) {
+            _chatProvider.sendSticker(url, replyMessage: _chatProvider.state.replyMessage);
+          } else {
+            _chatProvider.sendGif(url, replyMessage: _chatProvider.state.replyMessage);
+          }
+        },
+      ),
+    );
+  }
 
   void _sendMessage() async {
     final content = _messageController.text.trim();
@@ -804,6 +824,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                             onSend: _sendMessage,
                                             onAttachment:
                                                 _showAttachmentOptions,
+                                            onSticker: _showGiphyPicker,
                                             isRecording: state.isRecording,
                                             recordDuration: state.recordDuration,
                                             isSending: state.isSending,

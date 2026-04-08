@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/features/messages/presentation/widgets/bubbles/bubbles.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_reactions_provider.dart';
@@ -180,6 +181,7 @@ class MessageBubble extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final isSticker = message.messageType == MessageType.sticker;
 
     final bubbleColor =
         isMe
@@ -192,33 +194,35 @@ class MessageBubble extends StatelessWidget {
 
     final Widget content = _buildContent(context, textColor);
 
-    final bubbleDecoration = BoxDecoration(
-      color: bubbleColor,
-      borderRadius: BorderRadius.circular(24).copyWith(
-        bottomRight: isMe ? const Radius.circular(8) : null,
-        bottomLeft: !isMe ? const Radius.circular(8) : null,
-      ),
-      border: Border.all(
-        color: Colors.white.withValues(alpha: 0.1),
-        width: 0.1,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.1),
-          blurRadius: 8,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    );
+    final bubbleDecoration = isSticker
+        ? null
+        : BoxDecoration(
+          color: bubbleColor,
+          borderRadius: BorderRadius.circular(24).copyWith(
+            bottomRight: isMe ? const Radius.circular(8) : null,
+            bottomLeft: !isMe ? const Radius.circular(8) : null,
+          ),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.1),
+            width: 0.1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        );
 
     final Widget bubble = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: isSticker ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: bubbleDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (message.replyToId != null)
+          if (message.replyToId != null && !isSticker)
             Container(
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(8),
@@ -270,7 +274,7 @@ class MessageBubble extends StatelessWidget {
               ),
             ),
           content,
-          if (isMe)
+          if (isMe && !isSticker)
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Align(
@@ -320,6 +324,33 @@ class MessageBubble extends StatelessWidget {
           content: message.content,
           isMe: isMe,
           textColor: textColor,
+        );
+      case MessageType.gif:
+        return ImageBubble(
+          imageUrl: message.mediaUrl ?? '',
+          caption: '',
+          isMe: isMe,
+          mediaViewMode: 'unlimited',
+          currentUserViewCount: 0,
+          messageId: message.id,
+          textColor: textColor,
+        );
+      case MessageType.sticker:
+        return SizedBox(
+          width: 140,
+          height: 140,
+          child: CachedNetworkImage(
+            imageUrl: message.mediaUrl ?? '',
+            placeholder: (context, url) => const Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+            errorWidget: (context, url, error) => const Icon(Icons.error),
+            fit: BoxFit.contain,
+          ),
         );
       case MessageType.image:
         return ImageBubble(

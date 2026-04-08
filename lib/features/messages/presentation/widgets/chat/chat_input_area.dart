@@ -13,6 +13,7 @@ class ChatInputArea extends StatelessWidget {
     required this.focusNode,
     required this.onSend,
     required this.onAttachment,
+    required this.onSticker,
     required this.isRecording,
     required this.recordDuration,
     required this.isSending,
@@ -28,6 +29,7 @@ class ChatInputArea extends StatelessWidget {
   final FocusNode focusNode;
   final VoidCallback onSend;
   final VoidCallback onAttachment;
+  final VoidCallback onSticker;
   final bool isRecording;
   final int recordDuration;
   final bool isSending;
@@ -76,16 +78,9 @@ class ChatInputArea extends StatelessWidget {
             icon: Icon(Icons.add_circle_outline, color: colorScheme.primary),
           ),
           IconButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Custom Stickers are coming soon to Oasis Pro!'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
+            onPressed: onSticker,
             icon: Icon(Icons.sticky_note_2_outlined, color: colorScheme.primary.withValues(alpha: 0.6)),
-            tooltip: 'Stickers (Coming Soon)',
+            tooltip: 'Stickers & GIFs',
           ),
           const SizedBox(width: 4),
           Expanded(

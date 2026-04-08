@@ -37,6 +37,16 @@ jobs:
           echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
           echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
           echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID }}" >> .env
+          echo "GIPHY_WEB_KEY=${{ secrets.GIPHY_WEB_KEY }}" >> .env
+          echo "GIPHY_ANDROID_KEY=${{ secrets.GIPHY_ANDROID_KEY }}" >> .env
+          echo "GIPHY_IOS_KEY=${{ secrets.GIPHY_IOS_KEY }}" >> .env
+          echo "GIPHY_WINDOWS_KEY=${{ secrets.GIPHY_WINDOWS_KEY }}" >> .env
+          echo "GIPHY_MACOS_KEY=${{ secrets.GIPHY_MACOS_KEY }}" >> .env
+          echo "WEB_KEY=${{ secrets.WEB_KEY }}" >> .env
+          echo "ANDROID_KEY=${{ secrets.ANDROID_KEY }}" >> .env
+          echo "IOS_KEY=${{ secrets.IOS_KEY }}" >> .env
+          echo "WINDOWS_KEY=${{ secrets.WINDOWS_KEY }}" >> .env
+          echo "MACOS_KEY=${{ secrets.MACOS_KEY }}" >> .env
 
       - name: Build Release APK
         run: |
@@ -71,6 +81,16 @@ jobs:
           echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
           echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
           echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID }}" >> .env
+          echo "GIPHY_WEB_KEY=${{ secrets.GIPHY_WEB_KEY }}" >> .env
+          echo "GIPHY_ANDROID_KEY=${{ secrets.GIPHY_ANDROID_KEY }}" >> .env
+          echo "GIPHY_IOS_KEY=${{ secrets.GIPHY_IOS_KEY }}" >> .env
+          echo "GIPHY_WINDOWS_KEY=${{ secrets.GIPHY_WINDOWS_KEY }}" >> .env
+          echo "GIPHY_MACOS_KEY=${{ secrets.GIPHY_MACOS_KEY }}" >> .env
+          echo "WEB_KEY=${{ secrets.WEB_KEY }}" >> .env
+          echo "ANDROID_KEY=${{ secrets.ANDROID_KEY }}" >> .env
+          echo "IOS_KEY=${{ secrets.IOS_KEY }}" >> .env
+          echo "WINDOWS_KEY=${{ secrets.WINDOWS_KEY }}" >> .env
+          echo "MACOS_KEY=${{ secrets.MACOS_KEY }}" >> .env
 
       - name: Patch sentry_flutter to skip submodules
         shell: pwsh
