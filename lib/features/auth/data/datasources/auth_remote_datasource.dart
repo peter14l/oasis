@@ -189,9 +189,8 @@ class AuthRemoteDatasource {
   }
 
   Future<void> resetPassword(String identifier) async {
+    String email = identifier;
     try {
-      String email = identifier;
-
       if (!identifier.contains('@')) {
         debugPrint('[AuthRemoteDatasource] Resolving username for reset: $identifier');
         final resolvedEmail = await _getEmailFromUsername(identifier);
