@@ -262,13 +262,15 @@ class EncryptionService {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) return false;
 
-      final response = await _supabase
-          .from('profiles')
-          .select('encrypted_private_key_recovery, key_salt, public_key')
-          .eq('id', userId)
-          .single();
+      final response =
+          await _supabase
+              .from('profiles')
+              .select('encrypted_private_key_recovery, key_salt, public_key')
+              .eq('id', userId)
+              .single();
 
-      final encryptedPrivateKey = response['encrypted_private_key_recovery'] as String?;
+      final encryptedPrivateKey =
+          response['encrypted_private_key_recovery'] as String?;
       final salt = response['key_salt'] as String?;
       final publicKeyPem = response['public_key'] as String?;
 
@@ -276,12 +278,15 @@ class EncryptionService {
         return false;
       }
 
-      final recoveryDerivedKey = _keyManager.deriveRecoveryKey(recoveryKey, salt);
+      final recoveryDerivedKey = _keyManager.deriveRecoveryKey(
+        recoveryKey,
+        salt,
+      );
       final privateKeyPem = _keyManager.decryptWithKey(
         encryptedPrivateKey,
         recoveryDerivedKey,
       );
-      
+
       if (privateKeyPem == null) return false;
 
       await _secureStorage.write(
@@ -319,7 +324,9 @@ class EncryptionService {
   }
 
   /// Upgrades a user from v1 (legacy) to v2 (PIN-based) security.
-  Future<({bool success, String? recoveryKey})> upgradeSecurity(String pin) async {
+  Future<({bool success, String? recoveryKey})> upgradeSecurity(
+    String pin,
+  ) async {
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) return (success: false, recoveryKey: null);
@@ -333,10 +340,13 @@ class EncryptionService {
       // 2. Generate new salt and recovery key
       final salt = _keyManager.generateSalt();
       final recoveryKey = _keyManager.generateRecoveryKey();
-      
+
       // 3. Derive keys
       final secureKey = _keyManager.deriveSecureBackupKey(pin, salt);
-      final recoveryDerivedKey = _keyManager.deriveRecoveryKey(recoveryKey, salt);
+      final recoveryDerivedKey = _keyManager.deriveRecoveryKey(
+        recoveryKey,
+        salt,
+      );
 
       // 4. Encrypt private key with both keys
       final encryptedPrivateKeyV2 = _keyManager.encryptWithKey(
@@ -374,8 +384,19 @@ class EncryptionService {
     return result.success;
   }
 
+  /// Generates new encryption keys with PIN protection.
+  /// Used for PIN reset flow where user has lost both PIN and recovery code.
+  /// This creates NEW encryption keys - old messages will be inaccessible.
+  Future<({bool success, String? recoveryKey})> generateNewKeysWithPin(
+    String pin,
+  ) async {
+    return await setupEncryption(pin: pin);
+  }
+
   /// Sets up a new encryption identity (RSA keys) and backs them up to the server.
-  Future<({bool success, String? recoveryKey})> setupEncryption({String? pin}) async {
+  Future<({bool success, String? recoveryKey})> setupEncryption({
+    String? pin,
+  }) async {
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) return (success: false, recoveryKey: null);
@@ -397,7 +418,10 @@ class EncryptionService {
         recoveryKey = _keyManager.generateRecoveryKey();
 
         final secureKey = _keyManager.deriveSecureBackupKey(pin, salt);
-        final recoveryDerivedKey = _keyManager.deriveRecoveryKey(recoveryKey, salt);
+        final recoveryDerivedKey = _keyManager.deriveRecoveryKey(
+          recoveryKey,
+          salt,
+        );
 
         final encryptedPrivateKeyV2 = _keyManager.encryptWithKey(
           privateKeyPem,

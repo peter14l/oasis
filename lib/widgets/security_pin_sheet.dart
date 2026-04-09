@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/features/messages/data/encryption_service.dart';
 import 'package:oasis/widgets/recovery_key_sheet.dart';
+import 'package:oasis/features/auth/presentation/screens/pin_reset_screen.dart';
 
 class SecurityPinSheet extends StatefulWidget {
   final EncryptionStatus status;
@@ -82,7 +83,8 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
       if (widget.status == EncryptionStatus.needsSetup ||
           widget.status == EncryptionStatus.needsSecurityUpgrade ||
           widget.status == EncryptionStatus.needsRecoveryBackup) {
-        if (!_isConfirming && widget.status != EncryptionStatus.needsRecoveryBackup) {
+        if (!_isConfirming &&
+            widget.status != EncryptionStatus.needsRecoveryBackup) {
           setState(() {
             _firstPin = pin;
             _isConfirming = true;
@@ -94,9 +96,10 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
           });
           return;
         } else {
-          if (!_isConfirming && widget.status == EncryptionStatus.needsRecoveryBackup) {
-             // For recovery backup, we just need to verify the existing PIN
-             // So no double-entry needed if they are just backing up.
+          if (!_isConfirming &&
+              widget.status == EncryptionStatus.needsRecoveryBackup) {
+            // For recovery backup, we just need to verify the existing PIN
+            // So no double-entry needed if they are just backing up.
           } else if (pin != _firstPin) {
             setState(() {
               _error = 'PINs do not match. Try again.';
@@ -122,7 +125,7 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
             final result = await encryptionService.upgradeSecurity(pin);
             success = result.success;
             recoveryKey = result.recoveryKey;
-            
+
             if (!success) {
               setState(() {
                 _isLoading = false;
@@ -178,7 +181,9 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
 
     try {
       final encryptionService = context.read<EncryptionService>();
-      final success = await encryptionService.restoreWithRecoveryKey(recoveryKey);
+      final success = await encryptionService.restoreWithRecoveryKey(
+        recoveryKey,
+      );
 
       if (success) {
         if (mounted) {
@@ -193,17 +198,21 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
             // Temporarily change status to setup so the UI prompts for a new PIN
             // but we need to ensure it's handled as an upgrade/reset.
           });
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Recovery successful! Please set a new 6-digit PIN.')),
+            const SnackBar(
+              content: Text(
+                'Recovery successful! Please set a new 6-digit PIN.',
+              ),
+            ),
           );
-          
-          // Re-running handle submit with setup context is tricky, 
+
+          // Re-running handle submit with setup context is tricky,
           // let's just pop and show the setup screen again or similar.
           // For now, let's stay in the sheet but change internal mode.
           // Actually, the simplest is to pop with success and let the parent handle it,
           // but we want to be sure they set a PIN.
-          
+
           // Better: stay in sheet, change state to needsSecurityUpgrade
           // so they set a PIN immediately.
           Navigator.pop(context, true);
@@ -324,10 +333,17 @@ class _SecurityPinSheetState extends State<SecurityPinSheet> {
             const SizedBox(height: 16),
             Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
           ],
-          if (widget.status == EncryptionStatus.needsRestore && !_isLoading) ...[
+          if (widget.status == EncryptionStatus.needsRestore &&
+              !_isLoading) ...[
             const SizedBox(height: 8),
             TextButton(
-              onPressed: _handleForgotPin,
+              onPressed: () async {
+                Navigator.pop(context);
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PINResetScreen()),
+                );
+              },
               child: const Text('Forgot PIN?'),
             ),
           ],

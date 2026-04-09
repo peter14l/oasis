@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:oasis/features/auth/presentation/screens/pin_reset_screen.dart';
 
 class RecoveryKeySheet extends StatefulWidget {
-  final String? recoveryKey; // If provided, shows the key (Mode 1). If null, prompts for entry (Mode 2).
+  final String?
+  recoveryKey; // If provided, shows the key (Mode 1). If null, prompts for entry (Mode 2).
   final bool isConfirmMode;
 
   const RecoveryKeySheet({
@@ -11,12 +13,20 @@ class RecoveryKeySheet extends StatefulWidget {
     this.isConfirmMode = false,
   });
 
-  static Future<String?> show(BuildContext context, {String? recoveryKey, bool isConfirmMode = false}) {
+  static Future<String?> show(
+    BuildContext context, {
+    String? recoveryKey,
+    bool isConfirmMode = false,
+  }) {
     return showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => RecoveryKeySheet(recoveryKey: recoveryKey, isConfirmMode: isConfirmMode),
+      builder:
+          (context) => RecoveryKeySheet(
+            recoveryKey: recoveryKey,
+            isConfirmMode: isConfirmMode,
+          ),
     );
   }
 
@@ -110,7 +120,9 @@ class _RecoveryKeySheetState extends State<RecoveryKeySheet> {
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: widget.recoveryKey!));
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Recovery key copied to clipboard')),
+                  const SnackBar(
+                    content: Text('Recovery key copied to clipboard'),
+                  ),
                 );
               },
               icon: const Icon(Icons.copy),
@@ -120,7 +132,9 @@ class _RecoveryKeySheetState extends State<RecoveryKeySheet> {
             CheckboxListTile(
               value: _hasSaved,
               onChanged: (val) => setState(() => _hasSaved = val ?? false),
-              title: const Text('I have saved this recovery key in a safe place'),
+              title: const Text(
+                'I have saved this recovery key in a safe place',
+              ),
               controlAffinity: ListTileControlAffinity.leading,
               contentPadding: EdgeInsets.zero,
             ),
@@ -128,7 +142,10 @@ class _RecoveryKeySheetState extends State<RecoveryKeySheet> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: _hasSaved ? () => Navigator.pop(context, widget.recoveryKey) : null,
+                onPressed:
+                    _hasSaved
+                        ? () => Navigator.pop(context, widget.recoveryKey)
+                        : null,
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -154,9 +171,10 @@ class _RecoveryKeySheetState extends State<RecoveryKeySheet> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: _controller.text.length >= 24
-                    ? () => Navigator.pop(context, _controller.text)
-                    : null,
+                onPressed:
+                    _controller.text.length >= 24
+                        ? () => Navigator.pop(context, _controller.text)
+                        : null,
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -166,6 +184,17 @@ class _RecoveryKeySheetState extends State<RecoveryKeySheet> {
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PINResetScreen()),
+                );
+              },
+              child: const Text('Lost your recovery code?'),
             ),
           ],
         ],
