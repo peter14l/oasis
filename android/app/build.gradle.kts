@@ -43,9 +43,9 @@ android {
             val envKeyPass = System.getenv("RELEASE_KEY_PASSWORD")
 
             if (!envFile.isNullOrEmpty()) {
-                // Support both relative (to android/app) and absolute paths
-                val keystoreFile = file(envFile)
-                storeFile = if (keystoreFile.exists()) keystoreFile else file(rootDir, envFile)
+                // Try relative to android/app first, then relative to repo root
+                val appKeystore = file(envFile)
+                storeFile = if (appKeystore.exists()) appKeystore else file("../${envFile}")
                 storePassword = envStorePass
                 keyAlias = envKeyAlias
                 keyPassword = envKeyPass
