@@ -43,8 +43,7 @@ android {
             val envKeyPass = System.getenv("RELEASE_KEY_PASSWORD")
 
             if (!envFile.isNullOrEmpty()) {
-                // Resolve relative to android/app directory
-                storeFile = file("../${envFile}")
+                storeFile = file(envFile)
                 storePassword = envStorePass
                 keyAlias = envKeyAlias
                 keyPassword = envKeyPass
