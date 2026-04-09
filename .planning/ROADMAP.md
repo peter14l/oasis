@@ -23,3 +23,16 @@
 
 **Requirements:**
 [CLEANUP-01, CLEANUP-02, CALL-01, CALL-02, CALL-03]
+
+## Phase 4: Scalability Improvements
+**Goal:** Implement scalability patterns including pagination, offline caching, lazy loading, and retry logic to support platform growth.
+**Status:** Planned
+**Plans:** None (TBD)
+
+## Phase 5: PIN Recovery Mechanism
+**Goal:** Set New Pin mechanism for users who have Both Forgot their pin and lost their recovery codes as well. The previous texts can't be accessed anymore but set up a mechanism for setting new pin so that the new texts are not lost anymore.
+**Status:** Planned
+**Plans:** 1 plan
+
+### Plans:
+- [ ] 05-01-PLAN.md — Implement PIN reset via email/password with warning and new PIN setup.
