@@ -88,6 +88,24 @@ serve(async (req) => {
         title = "New Follower";
         body = `${actorName} started following you`;
         break;
+      case 'call':
+        // Parse call details from content (stored as JSON string)
+        let callDetails = {};
+        try {
+          if (record.content) {
+            callDetails = JSON.parse(record.content);
+          }
+        } catch (e) {
+          // ignore parse error
+        }
+        const callType = callDetails['type'] || 'voice';
+        const callId = callDetails['call_id'] || '';
+        title = "Incoming ${callType === 'video' ? 'Video' : 'Voice'} Call";
+        body = `${actorName} is calling you`;
+        // Add call-specific data for navigation
+        record.call_id = callId;
+        record.call_type = callType;
+        break;
     }
 
     // 4. Get Google OAuth2 access token for FCM
@@ -113,6 +131,7 @@ serve(async (req) => {
               type: record.type,
               actor_id: record.actor_id,
               click_action: "FLUTTER_NOTIFICATION_CLICK",
+              ...(record.call_id ? { call_id: record.call_id, call_type: record.call_type } : {}),
             },
             android: {
               priority: "high",
@@ -142,7 +161,7 @@ serve(async (req) => {
 });
 
 async function getGoogleAccessToken(serviceAccount: any) {
-  // Simple JWT implementation for Deno
+  // Create JWT for Google OAuth2
   const header = { alg: "RS256", typ: "JWT" };
   const now = Math.floor(Date.now() / 1000);
   const claim = {
@@ -153,19 +172,64 @@ async function getGoogleAccessToken(serviceAccount: any) {
     iat: now,
   };
 
-  const encodedHeader = b64(JSON.stringify(header));
-  const encodedClaim = b64(JSON.stringify(claim));
-  const signatureInput = `${encodedHeader}.${encodedClaim}`;
-  
-  // This requires a subtle crypto polyfill or library in Deno
-  // For simplicity in this prompt, assume we have a helper or use a library
-  // In real deployment, you'd use 'https://deno.land/x/djwt/mod.ts'
-  
-  // MOCK for instruction: 
-  // return await signJwt(signatureInput, serviceAccount.private_key);
-  return "TOKEN_PLACEHOLDER"; 
+  // Encode header and claim
+  const encodedHeader = b64url(JSON.stringify(header));
+  const encodedClaim = b64url(JSON.stringify(claim));
+  const payload = `${encodedHeader}.${encodedClaim}`;
+
+  // Sign the JWT using Web Crypto API
+  const signature = await signJwt(payload, serviceAccount.private_key);
+  const jwt = `${payload}.${signature}`;
+
+  // Exchange JWT for access token
+  const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion: jwt,
+    }),
+  });
+
+  const tokenData = await tokenResponse.json();
+  return tokenData.access_token;
 }
 
-function b64(str: string) {
+async function signJwt(payload: string, privateKeyPem: string): Promise<string> {
+  // Import the private key
+  const privateKey = await crypto.subtle.importKey(
+    "pkcs8",
+    pemToArrayBuffer(privateKeyPem),
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+
+  // Sign the payload
+  const signature = await crypto.subtle.sign(
+    { name: "RSASSA-PKCS1-v1_5" },
+    privateKey,
+    new TextEncoder().encode(payload)
+  );
+
+  // Convert to base64url
+  return b64url(Array.from(new Uint8Array(signature)));
+}
+
+function pemToArrayBuffer(pem: string): ArrayBuffer {
+  // Remove PEM header/footer and decode base64
+  const base64 = pem
+    .replace(/-----BEGIN PRIVATE KEY-----/, "")
+    .replace(/-----END PRIVATE KEY-----/, "")
+    .replace(/\s/g, "");
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
+function b64url(str: string): string {
   return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }

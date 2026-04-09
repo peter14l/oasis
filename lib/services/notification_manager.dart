@@ -29,14 +29,16 @@ class NotificationManager {
   /// Set whether notifications should be suppressed (e.g. during Focus Mode)
   void setPaused(bool paused) {
     _isPaused = paused;
-    debugPrint('NotificationManager: Notifications ${paused ? 'paused' : 'resumed'}');
+    debugPrint(
+      'NotificationManager: Notifications ${paused ? 'paused' : 'resumed'}',
+    );
   }
 
   bool get isPaused => _isPaused;
 
   /// Initialize the notification manager
   Future<bool> initialize() async {
-    // If already initialized, we still want to ensure channels are created 
+    // If already initialized, we still want to ensure channels are created
     // especially if called from a background isolate
     try {
       if (_isDesktop) {
@@ -50,7 +52,7 @@ class NotificationManager {
         } else if (Platform.isMacOS) {
           await _initLocalNotifications();
         }
-        
+
         _isInitialized = true;
         debugPrint(
           'NotificationManager: Initialized for desktop (${Platform.operatingSystem})',
@@ -58,14 +60,17 @@ class NotificationManager {
         return true;
       } else if (_isMobile) {
         await _initLocalNotifications();
-        // FCM initialization usually happens in the main isolate, 
+        // FCM initialization usually happens in the main isolate,
         // but the background handler needs local notifications setup.
-        if (kDebugMode) debugPrint('NotificationManager: Mobile local notifications initialized');
-        
+        if (kDebugMode)
+          debugPrint(
+            'NotificationManager: Mobile local notifications initialized',
+          );
+
         // Only init FCM if we are in the main isolate (where Firebase.initializeApp was likely called without options)
         // or if we explicitly want to (the background handler initializes Firebase itself)
         await _initFCM();
-        
+
         _isInitialized = true;
         return true;
       }
@@ -99,7 +104,9 @@ class NotificationManager {
     }
 
     if (_isPaused) {
-      debugPrint('NotificationManager: Notification suppressed due to Focus Mode: [$title]');
+      debugPrint(
+        'NotificationManager: Notification suppressed due to Focus Mode: [$title]',
+      );
       return;
     }
 
@@ -139,7 +146,10 @@ class NotificationManager {
         String? iconPath;
         if (senderAvatar != null && senderAvatar.isNotEmpty) {
           try {
-            iconPath = await _downloadAndSaveImage(senderAvatar, 'noti_icon_${DateTime.now().millisecondsSinceEpoch}.png');
+            iconPath = await _downloadAndSaveImage(
+              senderAvatar,
+              'noti_icon_${DateTime.now().millisecondsSinceEpoch}.png',
+            );
           } catch (e) {
             debugPrint('Error preparing Windows notification icon: $e');
           }
@@ -166,7 +176,11 @@ class NotificationManager {
     } else if (Platform.isMacOS) {
       try {
         // Use flutter_local_notifications for macOS as it supports images better than osascript
-        await _showMobileNotification(title: title, body: body, senderAvatar: senderAvatar);
+        await _showMobileNotification(
+          title: title,
+          body: body,
+          senderAvatar: senderAvatar,
+        );
       } catch (e) {
         // Fallback to simple osascript
         await Process.run('osascript', [
@@ -195,8 +209,11 @@ class NotificationManager {
 
     if (senderAvatar != null && senderAvatar.isNotEmpty) {
       try {
-        final String largeIconPath = await _downloadAndSaveImage(senderAvatar, 'notification_icon');
-        
+        final String largeIconPath = await _downloadAndSaveImage(
+          senderAvatar,
+          'notification_icon',
+        );
+
         androidDetails = AndroidNotificationDetails(
           'oasis_channel',
           'Oasis Notifications',
@@ -278,10 +295,12 @@ class NotificationManager {
 
     // Create the default channel for Android
     if (Platform.isAndroid) {
-      final androidPlugin = _localNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
-      
+      final androidPlugin =
+          _localNotificationsPlugin
+              .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin
+              >();
+
       await androidPlugin?.createNotificationChannel(
         const AndroidNotificationChannel(
           'oasis_channel',
@@ -307,14 +326,20 @@ class NotificationManager {
       if (token != null) {
         final userId = Supabase.instance.client.auth.currentUser?.id;
         if (userId != null) {
-          await Supabase.instance.client.from('profiles').update({'fcm_token': token}).eq('id', userId);
+          await Supabase.instance.client
+              .from('profiles')
+              .update({'fcm_token': token})
+              .eq('id', userId);
         }
       }
       messaging.onTokenRefresh.listen((newToken) async {
         final userId = Supabase.instance.client.auth.currentUser?.id;
         if (userId != null) {
           try {
-            await Supabase.instance.client.from('profiles').update({'fcm_token': newToken}).eq('id', userId);
+            await Supabase.instance.client
+                .from('profiles')
+                .update({'fcm_token': newToken})
+                .eq('id', userId);
           } catch (e) {
             debugPrint('Error updating refreshed FCM token: $e');
           }
@@ -338,7 +363,7 @@ class NotificationManager {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       _handleNotificationTap(jsonEncode(message.data));
     });
-    
+
     // Check if app was opened from terminated state
     final RemoteMessage? initialMessage = await messaging.getInitialMessage();
     if (initialMessage != null) {
@@ -348,11 +373,25 @@ class NotificationManager {
 
   void _handleNotificationTap(String? payload) {
     if (payload == null) return;
-    
+
     try {
       final data = jsonDecode(payload) as Map<String, dynamic>;
       final type = data['type'] as String?;
-      
+
+      if (type == 'call') {
+        // Handle incoming call notification - navigate to call screen
+        final callId = data['call_id'] as String?;
+        final senderId = data['actor_id'] as String?;
+        if (callId != null) {
+          AppRouter.router.pushNamed(
+            'active_call',
+            pathParameters: {'callId': callId},
+            extra: {'isIncoming': true, 'callerId': senderId},
+          );
+        }
+        return;
+      }
+
       if (type == 'dm' || type == 'message') {
         final conversationId = data['conversation_id'] as String?;
         if (conversationId != null) {
@@ -367,10 +406,10 @@ class NotificationManager {
           );
         }
       } else if (data.containsKey('post_id')) {
-         AppRouter.router.pushNamed(
-            'post_details',
-            pathParameters: {'postId': data['post_id']},
-          );
+        AppRouter.router.pushNamed(
+          'post_details',
+          pathParameters: {'postId': data['post_id']},
+        );
       }
     } catch (e) {
       debugPrint('Error handling notification tap: $e');

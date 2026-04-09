@@ -16,6 +16,7 @@ import 'package:oasis/services/desktop_window_service.dart';
 import 'package:oasis/services/energy_meter_service.dart';
 import 'package:oasis/features/messages/data/encryption_service.dart';
 import 'package:oasis/services/notification_manager.dart';
+import 'package:oasis/services/notification_service.dart';
 
 import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/services/screen_time_service.dart';
@@ -282,11 +283,16 @@ class AppInitializer {
     // Wellness & tracking services
     final screenTimeService = await ScreenTimeService.init();
     final wellnessService = await WellnessService.init();
-    final digitalWellbeingService = await DigitalWellbeingService.init(AuthService());
+    final digitalWellbeingService = await DigitalWellbeingService.init(
+      AuthService(),
+    );
     final energyMeterService = await EnergyMeterService.init();
 
     // Notifications
     await NotificationManager.instance.initialize();
+
+    // Subscribe to DM notifications for local notifications
+    _subscribeToDmNotifications();
 
     // Encryption (fire-and-forget, non-blocking)
     unawaited(
@@ -318,6 +324,36 @@ class AppInitializer {
       digitalWellbeingService: digitalWellbeingService,
       vaultService: vaultService,
     );
+  }
+
+  /// Subscribe to DM notifications and display local notifications
+  static void _subscribeToDmNotifications() {
+    final supabase = SupabaseService().client;
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
+    final notificationService = NotificationService();
+    notificationService.subscribeToNotifications(
+      userId: userId,
+      onNewNotification: (notification) {
+        // Only handle DM notifications - other types are handled elsewhere
+        if (notification.type == 'dm') {
+          // Get sender info for the notification
+          final senderName = notification.actorName ?? 'Someone';
+          final senderAvatar = notification.actorAvatar;
+
+          // Show local notification
+          NotificationManager.instance.showNotification(
+            title: senderName,
+            body: notification.message ?? 'New message',
+            senderAvatar: senderAvatar,
+            messageType: 'dm',
+            payload: notification.id,
+          );
+        }
+      },
+    );
+    debugPrint('AppInitializer: Subscribed to DM notifications');
   }
 
   /// Step 5 — Build the MultiProvider tree with all initialized services.
@@ -352,9 +388,7 @@ class AppInitializer {
         ChangeNotifierProvider<SubscriptionService>.value(
           value: services.subscriptionService,
         ),
-        Provider<EncryptionService>(
-          create: (_) => EncryptionService(),
-        ),
+        Provider<EncryptionService>(create: (_) => EncryptionService()),
         ChangeNotifierProvider(
           create:
               (_) => FeedProvider(
@@ -407,7 +441,9 @@ class AppInitializer {
         ChangeNotifierProvider<VaultService>.value(
           value: services.vaultService,
         ),
-        Provider<VoiceTranscriptService>(create: (_) => VoiceTranscriptService()),
+        Provider<VoiceTranscriptService>(
+          create: (_) => VoiceTranscriptService(),
+        ),
         ChangeNotifierProvider<CallService>(create: (_) => CallService()),
         ChangeNotifierProxyProvider<CallService, CallProvider>(
           create: (context) => CallProvider(context.read<CallService>()),
