@@ -31,8 +31,6 @@ import 'package:oasis/widgets/security_upgrade_banner.dart';
 import 'package:oasis/widgets/security_pin_sheet.dart';
 import 'package:oasis/features/calling/presentation/screens/calling_screen.dart';
 import 'package:oasis/features/calling/domain/models/call_entity.dart';
-import 'package:oasis/features/calls/presentation/screens/incoming_call_screen.dart';
-import 'package:oasis/features/calls/presentation/screens/incoming_call_overlay.dart';
 import 'package:oasis/features/calling/presentation/providers/call_provider.dart';
 import 'package:oasis/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:oasis/screens/settings_screen.dart';
@@ -224,203 +222,58 @@ class _MainLayoutState extends State<MainLayout> {
         }
 
         Widget mainContent = widget.child;
-        
-        // Add Security Upgrade Banner if needed
-        if (_encryptionStatus == EncryptionStatus.needsSecurityUpgrade) {
-          mainContent = Column(
-            children: [
-              const SecurityUpgradeBanner(),
-              Expanded(child: mainContent),
-            ],
-          );
-        }
 
-        if (isDesktop) {
-          return Scaffold(
-            backgroundColor: Colors.transparent,
-            body: Stack(
-              children: [
-                // Background Main Content (Remains stable)
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      SizedBox(width: (_isRailExtended ? 240 : 120) + 12),
-                      Expanded(child: mainContent),
-                    ],
-                  ),
-                ),
-
-                // Dimmer/Dismiss Layer
-                if (_activePanel != null)
-                  Positioned.fill(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _activePanel = null),
-                      child: Container(
-                        color: Colors.black.withValues(alpha: 0.4),
-                      ),
-                    ),
-                  ),
-
-                // Navigation Rail
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Container(
-                    width: _isRailExtended ? 240 : 120,
-                    decoration: BoxDecoration(
-                      color:
-                          disableTransparency
-                              ? theme.colorScheme.surfaceContainer
-                              : panelColor,
-                      borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
-                      border: Border.all(
-                        color:
-                            isM3E
-                                ? theme.colorScheme.outlineVariant.withValues(
-                                  alpha: 0.3,
-                                )
-                                : Colors.white.withValues(alpha: 0.05),
-                        width: isM3E ? 1 : 1,
-                      ),
-                      boxShadow:
-                          isM3E && disableTransparency
-                              ? [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.15),
-                                  blurRadius: 16,
-                                  offset: const Offset(4, 0),
-                                ),
-                              ]
-                              : null,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(isM3E ? 24 : 12),
-                      child:
-                          disableTransparency
-                              ? _buildNavigationRail(
-                                context,
-                                currentIndex,
-                                theme,
-                                killSwitchActive: killSwitchActive,
-                                isMica: isMica,
-                                disableTransparency: disableTransparency,
-                              )
-                              : BackdropFilter(
-                                filter: ui.ImageFilter.blur(
-                                  sigmaX: isMica ? 0 : 10,
-                                  sigmaY: isMica ? 0 : 10,
-                                ),
-                                child: _buildNavigationRail(
-                                  context,
-                                  currentIndex,
-                                  theme,
-                                  killSwitchActive: killSwitchActive,
-                                  isMica: isMica,
-                                  disableTransparency: disableTransparency,
-                                ),
-                              ),
-                    ),
-                  ),
-                ),
-
-                // Incoming Call Overlay (Desktop)
-                Consumer<CallProvider>(
-                  builder: (context, provider, _) {
-                    final incomingCall = provider.state.incomingCall;
-                    if (incomingCall == null) return const SizedBox.shrink();
-                    return Positioned(
-                      top: 40,
-                      right: 40,
-                      child: IncomingCallOverlay(call: incomingCall),
-                    );
-                  },
-                ),
-
-                // Sliding Panels - Truly opaque now
-                if (_activePanel != null)
-                  Positioned(
-                    top: 12,
-                    bottom: 12,
-                    left: (_isRailExtended ? 240 : 120) + 24,
-                    child: motion.Animate(
-                      effects: const [
-                        motion.MoveEffect(
-                          begin: Offset(-50, 0),
-                          end: Offset(0, 0),
-                          curve: Curves.easeOutCubic,
-                        ),
-                        motion.FadeEffect(),
-                      ],
-                      child: Container(
-                        width: 450,
-                        decoration: BoxDecoration(
-                          color: slidingPanelColor,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.6),
-                              blurRadius: 60,
-                              offset: const Offset(20, 0),
-                            ),
-                          ],
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
-                          ),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child:
-                              _activePanel == 'search'
-                                  ? const SearchScreen(isPanel: true)
-                                  : const NotificationsScreen(isPanel: true),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            floatingActionButton: _buildFloatingActionButton(
-              context,
-              currentIndex,
-              theme,
-              killSwitchActive: killSwitchActive,
-            ),
-          );
-        }
-
-        // Mobile/Tablet layout with bottom navigation
         return Scaffold(
           extendBody: true,
-          body: Stack(
+          body: Column(
             children: [
-              AnimatedPadding(
-                duration: const Duration(milliseconds: 200),
-                padding: EdgeInsets.zero,
-                child: widget.child,
-              ),
-              Consumer<CallProvider>(
-                builder: (context, provider, _) {
-                  final incomingCall = provider.state.incomingCall;
-                  if (incomingCall == null) return const SizedBox.shrink();
-                  return IncomingCallScreen(call: incomingCall);
-                },
+              if (_encryptionStatus == EncryptionStatus.needsRestore)
+                const SecurityUpgradeBanner(),
+              Expanded(
+                child: Row(
+                  children: [
+                    if (isDesktop)
+                      _buildNavigationRail(
+                        context,
+                        currentIndex,
+                        theme,
+                        killSwitchActive: killSwitchActive,
+                        isMica: isMica,
+                        disableTransparency: disableTransparency,
+                      ),
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          mainContent,
+                          // Sliding panels for desktop (search/notifications)
+                          if (isDesktop && _activePanel != null)
+                            Positioned(
+                              left: 0,
+                              top: 0,
+                              bottom: 0,
+                              width: 400,
+                              child: Container(
+                                color: panelColor,
+                                child: _activePanel == 'search'
+                                    ? const SearchScreen()
+                                    : const NotificationsScreen(),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
+          bottomNavigationBar: !isDesktop
+              ? _buildBottomNavigationBar(context, currentIndex, theme,
+                  killSwitchActive: killSwitchActive)
+              : null,
           floatingActionButton: _buildFloatingActionButton(
-            context,
-            currentIndex,
-            theme,
-            killSwitchActive: killSwitchActive,
-          ),
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
-          bottomNavigationBar: _buildBottomNavigationBar(
-            context,
-            currentIndex,
-            theme,
-            killSwitchActive: killSwitchActive,
-          ),
+              context, currentIndex, theme,
+              killSwitchActive: killSwitchActive),
         );
       },
     );
@@ -914,9 +767,9 @@ class _MainLayoutState extends State<MainLayout> {
 }
 
 class AppRouter {
-  static final GlobalKey<NavigatorState> _rootNavigatorKey =
+  static final GlobalKey<NavigatorState> rootNavigatorKey =
       GlobalKey<NavigatorState>();
-  static final GlobalKey<NavigatorState> _shellNavigatorKey =
+  static final GlobalKey<NavigatorState> shellNavigatorKey =
       GlobalKey<NavigatorState>();
 
   /// Routes that do NOT require authentication — unauthenticated users can visit
@@ -942,7 +795,7 @@ class AppRouter {
 
   static GoRouter get router {
     _router ??= GoRouter(
-      navigatorKey: _rootNavigatorKey,
+      navigatorKey: rootNavigatorKey,
       initialLocation: '/feed',
       refreshListenable: AuthService(),
       debugLogDiagnostics: true,
@@ -1023,7 +876,7 @@ class AppRouter {
 
         // Main App Shell (Tab Navigation)
         ShellRoute(
-          navigatorKey: _shellNavigatorKey,
+          navigatorKey: shellNavigatorKey,
           builder: (context, state, child) => MainLayout(child: child),
           routes: [
             // Feed Screen
@@ -1055,7 +908,7 @@ class AppRouter {
                 GoRoute(
                   path: 'circles/create',
                   name: 'create_circle',
-                  parentNavigatorKey: _rootNavigatorKey,
+                  parentNavigatorKey: rootNavigatorKey,
                   pageBuilder:
                       (context, state) => const MaterialPage(
                         fullscreenDialog: true,
@@ -1065,7 +918,7 @@ class AppRouter {
                 GoRoute(
                   path: 'canvas/create',
                   name: 'create_canvas',
-                  parentNavigatorKey: _rootNavigatorKey,
+                  parentNavigatorKey: rootNavigatorKey,
                   pageBuilder:
                       (context, state) => const MaterialPage(
                         fullscreenDialog: true,
@@ -1075,7 +928,7 @@ class AppRouter {
                 GoRoute(
                   path: 'circles/:circleId',
                   name: 'circle_detail',
-                  parentNavigatorKey: _rootNavigatorKey,
+                  parentNavigatorKey: rootNavigatorKey,
                   builder: (context, state) {
                     final id = state.pathParameters['circleId']!;
                     return CircleDetailScreen(circleId: id);
@@ -1084,7 +937,7 @@ class AppRouter {
                     GoRoute(
                       path: 'add-commitment',
                       name: 'create_commitment',
-                      parentNavigatorKey: _rootNavigatorKey,
+                      parentNavigatorKey: rootNavigatorKey,
                       builder: (context, state) {
                         final id = state.pathParameters['circleId']!;
                         return CreateCommitmentScreen(circleId: id);
@@ -1095,7 +948,7 @@ class AppRouter {
                 GoRoute(
                   path: 'canvas/:canvasId',
                   name: 'canvas_detail',
-                  parentNavigatorKey: _rootNavigatorKey,
+                  parentNavigatorKey: rootNavigatorKey,
                   builder: (context, state) {
                     final id = state.pathParameters['canvasId']!;
                     return TimelineCanvasScreen(canvasId: id);
@@ -1116,7 +969,7 @@ class AppRouter {
                 GoRoute(
                   path: ':conversationId',
                   name: 'chat_nested',
-                  parentNavigatorKey: _rootNavigatorKey,
+                  parentNavigatorKey: rootNavigatorKey,
                   pageBuilder: (context, state) {
                     final conversationId =
                         state.pathParameters['conversationId']!;
@@ -1192,7 +1045,7 @@ class AppRouter {
         GoRoute(
           path: '/create-ripple',
           name: 'create_ripple',
-          parentNavigatorKey: _rootNavigatorKey,
+          parentNavigatorKey: rootNavigatorKey,
           pageBuilder: (context, state) {
             return MaterialPage(
               key: state.pageKey,
@@ -1206,7 +1059,7 @@ class AppRouter {
         GoRoute(
           path: '/oasis-pro',
           name: 'oasis_pro',
-          parentNavigatorKey: _rootNavigatorKey,
+          parentNavigatorKey: rootNavigatorKey,
           pageBuilder: (context, state) {
             return MaterialPage(
               key: state.pageKey,
@@ -1280,7 +1133,7 @@ class AppRouter {
         GoRoute(
           path: '/stories/create',
           name: 'create_story',
-          parentNavigatorKey: _rootNavigatorKey,
+          parentNavigatorKey: rootNavigatorKey,
           pageBuilder: (context, state) {
             return MaterialPage(
               key: state.pageKey,

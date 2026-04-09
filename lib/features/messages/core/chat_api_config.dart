@@ -7,35 +7,65 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 /// Uses a hybrid approach: check String.fromEnvironment first, then fallback to dotenv.
 class ChatApiConfig {
   static String _getEnv(String key) {
-    // Check for --dart-define (fromEnvironment)
-    final fromEnv = String.fromEnvironment(key);
-    if (fromEnv.isNotEmpty) return fromEnv;
-    
     // Fallback to .env file
-    return dotenv.env[key] ?? '';
+    try {
+      return dotenv.env[key]?.trim() ?? '';
+    } catch (_) {
+      return '';
+    }
   }
 
   // ===========================================================================
   // GIPHY API KEYS
   // ===========================================================================
   static String get giphyApiKey {
-    if (kIsWeb) return _getEnv('GIPHY_WEB_KEY');
-    if (Platform.isAndroid) return _getEnv('GIPHY_ANDROID_KEY');
-    if (Platform.isIOS) return _getEnv('GIPHY_IOS_KEY');
-    if (Platform.isWindows) return _getEnv('GIPHY_WINDOWS_KEY');
-    if (Platform.isMacOS) return _getEnv('GIPHY_MACOS_KEY');
-    return _getEnv('GIPHY_WEB_KEY');
+    String key = '';
+    if (kIsWeb) {
+      key = const String.fromEnvironment('GIPHY_WEB_KEY');
+      if (key.isEmpty) key = _getEnv('GIPHY_WEB_KEY');
+    } else if (Platform.isAndroid) {
+      key = const String.fromEnvironment('GIPHY_ANDROID_KEY');
+      if (key.isEmpty) key = _getEnv('GIPHY_ANDROID_KEY');
+    } else if (Platform.isIOS) {
+      key = const String.fromEnvironment('GIPHY_IOS_KEY');
+      if (key.isEmpty) key = _getEnv('GIPHY_IOS_KEY');
+    } else if (Platform.isWindows) {
+      key = const String.fromEnvironment('GIPHY_WINDOWS_KEY');
+      if (key.isEmpty) key = _getEnv('GIPHY_WINDOWS_KEY');
+    } else if (Platform.isMacOS) {
+      key = const String.fromEnvironment('GIPHY_MACOS_KEY');
+      if (key.isEmpty) key = _getEnv('GIPHY_MACOS_KEY');
+    } else {
+      key = const String.fromEnvironment('GIPHY_WEB_KEY');
+      if (key.isEmpty) key = _getEnv('GIPHY_WEB_KEY');
+    }
+    return key.trim();
   }
 
   // ===========================================================================
   // KLIPY API KEYS
   // ===========================================================================
   static String get klipyApiKey {
-    if (kIsWeb) return _getEnv('WEB_KEY');
-    if (Platform.isAndroid) return _getEnv('ANDROID_KEY');
-    if (Platform.isIOS) return _getEnv('IOS_KEY');
-    if (Platform.isWindows) return _getEnv('WINDOWS_KEY');
-    if (Platform.isMacOS) return _getEnv('MACOS_KEY');
-    return _getEnv('WEB_KEY');
+    String key = '';
+    if (kIsWeb) {
+      key = const String.fromEnvironment('WEB_KEY');
+      if (key.isEmpty) key = _getEnv('WEB_KEY');
+    } else if (Platform.isAndroid) {
+      key = const String.fromEnvironment('ANDROID_KEY');
+      if (key.isEmpty) key = _getEnv('ANDROID_KEY');
+    } else if (Platform.isIOS) {
+      key = const String.fromEnvironment('IOS_KEY');
+      if (key.isEmpty) key = _getEnv('IOS_KEY');
+    } else if (Platform.isWindows) {
+      key = const String.fromEnvironment('WINDOWS_KEY');
+      if (key.isEmpty) key = _getEnv('WINDOWS_KEY');
+    } else if (Platform.isMacOS) {
+      key = const String.fromEnvironment('MACOS_KEY');
+      if (key.isEmpty) key = _getEnv('MACOS_KEY');
+    } else {
+      key = const String.fromEnvironment('WEB_KEY');
+      if (key.isEmpty) key = _getEnv('WEB_KEY');
+    }
+    return key.trim();
   }
 }

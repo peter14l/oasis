@@ -536,9 +536,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         type: type,
         participantIds: [otherUserId],
       );
-
       if (call != null && mounted) {
-        context.pushNamed('active_call', extra: call);
+        context.pushNamed('active_call', pathParameters: {'callId': call.id});
       }
     } catch (e) {
       _showError('Failed to initiate call: $e');

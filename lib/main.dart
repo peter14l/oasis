@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -20,8 +21,9 @@ import 'package:oasis/features/circles/presentation/providers/circle_provider.da
 import 'package:oasis/providers/conversation_provider.dart';
 import 'package:oasis/features/notifications/presentation/providers/notification_provider.dart';
 import 'package:oasis/providers/presence_provider.dart';
-import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis/features/calling/presentation/providers/call_provider.dart';
 import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/themes/app_theme.dart';
 import 'package:oasis/widgets/mesh_gradient_background.dart';
 import 'package:dynamic_color/dynamic_color.dart';
@@ -223,8 +225,52 @@ class _MyAppState extends State<MyApp> {
                     textScaler: TextScaler.linear(scale),
                     boldText: false,
                   ),
-                  child: Consumer<UserSettingsProvider>(
-                    builder: (context, userSettings, _) {
+                  child: Consumer2<UserSettingsProvider, CallProvider>(
+                    builder: (context, userSettings, callProvider, _) {
+                      // Global Call Navigation Trigger
+                      final hasActiveCall =
+                          callProvider.hasActiveCall ||
+                          callProvider.hasIncomingCall;
+
+                      // Use the router's current location more reliably
+                      // GoRouter.of(context) should be available here
+                      String location = '';
+                      try {
+                        location = GoRouter.of(context).routeInformationProvider?.value.uri.path ?? '';
+                      } catch (e) {
+                        location = AppRouter.router.routerDelegate.currentConfiguration.uri.path;
+                      }
+                      
+                      final onCallScreen = location.startsWith('/call');
+
+                      if (hasActiveCall && !onCallScreen) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          final activeCallId = callProvider.activeCall?.id;
+                          final incomingCallId = callProvider.incomingCall?.id;
+                          final callId = activeCallId ?? incomingCallId;
+                          
+                          if (callId != null) {
+                            debugPrint('[CallNavigation] Triggering navigation to /call/$callId (Current location: $location)');
+                            
+                            // Use the root navigator context for reliable navigation
+                            final navContext = AppRouter.router.configuration.navigatorKey.currentContext;
+                            if (navContext != null) {
+                              GoRouter.of(navContext).pushNamed(
+                                'active_call',
+                                pathParameters: {'callId': callId},
+                              );
+                            } else {
+                              AppRouter.router.pushNamed(
+                                'active_call',
+                                pathParameters: {'callId': callId},
+                              );
+                            }
+                          } else {
+                            debugPrint('[CallNavigation] hasActiveCall is true but callId is null!');
+                          }
+                        });
+                      }
+
                       Widget childWidget = child!;
 
                       if (Platform.isWindows && userSettings.micaEnabled) {

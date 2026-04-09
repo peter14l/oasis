@@ -16,17 +16,42 @@ class GiphyPickerSheet extends StatefulWidget {
 }
 
 class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  late TabController? _tabController;
   final KlipyService _klipyService = KlipyService();
   final TextEditingController _searchController = TextEditingController();
   List<KlipyMedia> _klipyResults = [];
   bool _isLoadingKlipy = false;
 
+  bool get _hasGiphy => ChatApiConfig.giphyApiKey.isNotEmpty;
+  bool get _hasKlipy => ChatApiConfig.klipyApiKey.isNotEmpty;
+
+  int get _tabCount {
+    int count = 0;
+    if (_hasGiphy) count++;
+    if (_hasKlipy) count++;
+    return count;
+  }
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _loadTrendingKlipy();
+    final count = _tabCount;
+    if (count > 1) {
+      _tabController = TabController(length: count, vsync: this);
+    } else {
+      _tabController = null;
+    }
+    
+    if (_hasKlipy) {
+      _loadTrendingKlipy();
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController?.dispose();
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadTrendingKlipy() async {
@@ -57,6 +82,7 @@ class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final count = _tabCount;
     
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
@@ -66,23 +92,62 @@ class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerPr
       ),
       child: Column(
         children: [
-          TabBar(
-            controller: _tabController,
-            tabs: const [
-              Tab(text: 'Giphy'),
-              Tab(text: 'Klipy'),
-            ],
-          ),
-          Expanded(
-            child: TabBarView(
+          if (count > 1)
+            TabBar(
               controller: _tabController,
-              children: [
-                _buildGiphyTab(),
-                _buildKlipyTab(),
+              tabs: const [
+                Tab(text: 'Giphy'),
+                Tab(text: 'Klipy'),
               ],
             ),
+          Expanded(
+            child: _buildBody(count),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBody(int count) {
+    if (count == 0) {
+      return _buildUnavailableMessage();
+    }
+    
+    if (count == 1) {
+      return _hasGiphy ? _buildGiphyTab() : _buildKlipyTab();
+    }
+
+    return TabBarView(
+      controller: _tabController,
+      children: [
+        _buildGiphyTab(),
+        _buildKlipyTab(),
+      ],
+    );
+  }
+
+  Widget _buildUnavailableMessage() {
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.vpn_key_off_outlined, size: 48, color: theme.colorScheme.onSurfaceVariant),
+            const SizedBox(height: 16),
+            Text(
+              'Services Unavailable',
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Please configure Giphy or Klipy API keys in your .env file to enable GIF and Sticker features.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ],
+        ),
       ),
     );
   }

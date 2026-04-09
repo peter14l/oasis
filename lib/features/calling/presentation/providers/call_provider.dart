@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/services/call_service.dart';
 import '../../domain/models/call_entity.dart';
 import '../../domain/models/call_participant_entity.dart';
@@ -42,26 +43,29 @@ class CallState {
 
   CallState copyWith({
     CallEntity? activeCall,
+    bool clearActiveCall = false,
     CallEntity? incomingCall,
+    bool clearIncomingCall = false,
     List<CallEntity>? activeCalls,
     List<CallParticipantEntity>? participants,
     MediaStream? localStream,
     Map<String, MediaStream>? remoteStreams,
     bool? isLoading,
     String? error,
+    bool clearError = false,
     bool? isMuted,
     bool? isVideoOn,
     bool? isScreenSharing,
   }) {
     return CallState(
-      activeCall: activeCall ?? this.activeCall,
-      incomingCall: incomingCall ?? this.incomingCall,
+      activeCall: clearActiveCall ? null : (activeCall ?? this.activeCall),
+      incomingCall: clearIncomingCall ? null : (incomingCall ?? this.incomingCall),
       activeCalls: activeCalls ?? this.activeCalls,
       participants: participants ?? this.participants,
       localStream: localStream ?? this.localStream,
       remoteStreams: remoteStreams ?? this.remoteStreams,
       isLoading: isLoading ?? this.isLoading,
-      error: error,
+      error: clearError ? null : (error ?? this.error),
       isMuted: isMuted ?? this.isMuted,
       isVideoOn: isVideoOn ?? this.isVideoOn,
       isScreenSharing: isScreenSharing ?? this.isScreenSharing,
@@ -92,6 +96,8 @@ class CallProvider extends ChangeNotifier {
       isVideoOn: _callService.isVideoOn,
       isScreenSharing: _callService.isScreenSharing,
       incomingCall: _callService.incomingCall,
+      clearIncomingCall: _callService.incomingCall == null,
+      clearActiveCall: _callService.currentCallId == null,
     );
     notifyListeners();
   }
@@ -139,17 +145,12 @@ class CallProvider extends ChangeNotifier {
     required List<String> participantIds,
   }) async {
     try {
-      _state = _state.copyWith(isLoading: true);
-      notifyListeners();
-
-      // Initiate via CallService (WebRTC & Signaling)
       final call = await _callService.initiateCall(
         conversationId: conversationId,
         type: type,
         participantIds: participantIds,
       );
-
-      _state = _state.copyWith(isLoading: false, activeCall: call);
+      _state = _state.copyWith(activeCall: call);
       notifyListeners();
       return call;
     } catch (e) {
@@ -165,7 +166,9 @@ class CallProvider extends ChangeNotifier {
       _state = _state.copyWith(isLoading: true);
       notifyListeners();
 
+      // Join via service (which handles WebRTC + DB)
       await _callService.joinCall(call);
+      
       _state = _state.copyWith(isLoading: false, activeCall: call);
       notifyListeners();
     } catch (e) {
@@ -188,11 +191,14 @@ class CallProvider extends ChangeNotifier {
   /// End current call
   Future<void> endCall() async {
     try {
+      if (_state.activeCall == null) return;
+      
       _state = _state.copyWith(isLoading: true);
       notifyListeners();
 
-      await _callService.endCall();
-      _state = _state.copyWith(isLoading: false, activeCall: null);
+      await _endCall.call(_state.activeCall!.id);
+      
+      _state = _state.copyWith(isLoading: false, clearActiveCall: true);
       notifyListeners();
     } catch (e) {
       _state = _state.copyWith(isLoading: false, error: e.toString());

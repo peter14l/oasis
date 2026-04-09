@@ -273,12 +273,11 @@ class SignalService {
   }
 
   /// Force a refresh of a remote user's bundle and rebuild the session.
-  /// Used when a session is corrupted (e.g. Bad MAC) or identity changed.
+  /// Used when a session is corrupted (e.g. Bad MAC).
   Future<void> forceRefreshBundle(String remoteUserId) async {
     debugPrint('[Signal] Force-refreshing bundle for $remoteUserId...');
     final address = SignalProtocolAddress(remoteUserId, 1);
     await _store.deleteSession(address);
-    await _store.deleteIdentity(address);
     await _ensureSession(remoteUserId);
   }
 
@@ -318,7 +317,6 @@ class SignalService {
     String base64Ciphertext,
     int type, {
     int deviceId = 1,
-    bool isRetry = false,
   }) async {
     if (!_isInitialized) {
       final success = await init();
@@ -391,13 +389,6 @@ class SignalService {
         return '🔒 Key mismatch (Establishing new...)';
       } else if (errorStr.contains('UntrustedIdentityException')) {
         debugPrint('[Signal] Untrusted identity for $senderId. Key changed?');
-        
-        if (!isRetry) {
-          debugPrint('[Signal] Retrying decryption after force-refresh for $senderId...');
-          await forceRefreshBundle(senderId);
-          return decryptMessage(senderId, base64Ciphertext, type, deviceId: deviceId, isRetry: true);
-        }
-        
         return '🔒 Identity changed (Verifying...)';
       }
 

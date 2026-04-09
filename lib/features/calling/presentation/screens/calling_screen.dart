@@ -13,6 +13,7 @@ class CallingScreen extends StatefulWidget {
 }
 
 class _CallingScreenState extends State<CallingScreen> {
+  bool _isInitialized = false;
   final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
   final Map<String, RTCVideoRenderer> _remoteRenderers = {};
 
@@ -24,6 +25,11 @@ class _CallingScreenState extends State<CallingScreen> {
 
   Future<void> _initRenderers() async {
     await _localRenderer.initialize();
+    if (mounted) {
+      setState(() {
+        _isInitialized = true;
+      });
+    }
   }
 
   @override
@@ -40,8 +46,16 @@ class _CallingScreenState extends State<CallingScreen> {
     final callProvider = context.watch<CallProvider>();
     final state = callProvider.state;
 
-    // Sync renderers
-    if (state.localStream != null && _localRenderer.srcObject != state.localStream) {
+    // Automatically pop when the call ends
+    if (!callProvider.hasActiveCall && !callProvider.hasIncomingCall) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+      });
+      return const Scaffold(backgroundColor: Colors.black);
+    }
+    if (_isInitialized && state.localStream != null && _localRenderer.srcObject != state.localStream) {
       _localRenderer.srcObject = state.localStream;
     }
 
@@ -208,11 +222,12 @@ class _CallingScreenState extends State<CallingScreen> {
   }
 
   Widget _buildCallHeader(CallState state) {
+    final call = state.activeCall ?? state.incomingCall;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          state.activeCall?.type == CallType.video ? 'Video Call' : 'Voice Call',
+          call?.type == CallType.video ? 'Video Call' : 'Voice Call',
           style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),

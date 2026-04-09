@@ -6,12 +6,15 @@ import 'package:libsignal_protocol_dart/libsignal_protocol_dart.dart';
 import 'package:oasis/features/calling/domain/models/call_entity.dart';
 import 'package:oasis/features/messages/data/signal/signal_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:uuid/uuid.dart';
 
 class CallService extends ChangeNotifier {
   final _supabase = SupabaseService().client;
   final _signal = SignalService();
   final _uuid = const Uuid();
+  final _audioPlayer = AudioPlayer();
+  bool _isPlayingRingtone = false;
 
   // Multi-peer management
   final Map<String, RTCPeerConnection> _peerConnections = {};
@@ -21,6 +24,10 @@ class CallService extends ChangeNotifier {
 
   MediaStream? get localStream => _localStream;
   Map<String, MediaStream> get remoteStreams => _remoteStreams;
+  
+  /// Get the first remote stream for 1-on-1 convenience.
+  MediaStream? get remoteStream => _remoteStreams.isNotEmpty ? _remoteStreams.values.first : null;
+  
   String? get currentCallId => _currentCallId;
 
   final Map<String, dynamic> _configuration = {
@@ -147,6 +154,8 @@ class CallService extends ChangeNotifier {
     _subscribeToSignaling(callId);
     _subscribeToParticipants(callId);
     
+    _playRingtone(); // Start ringing for host
+    
     return CallEntity.fromJson(response);
   }
 
@@ -164,11 +173,9 @@ class CallService extends ChangeNotifier {
       'status': 'joined',
     });
 
+    _stopRingtone();
     _subscribeToSignaling(call.id);
     _subscribeToParticipants(call.id);
-    
-    // In Mesh, new joiner initiates offers to everyone already in the call
-    // Or we wait for notifications. Let's say we notify others via call_participants update.
   }
 
   void _subscribeToSignaling(String callId) {
@@ -254,11 +261,16 @@ class CallService extends ChangeNotifier {
             final pUserId = participant['user_id'];
             final status = participant['status'];
             
-            if (pUserId != userId && status == 'joined') {
-              // If someone joined and we don't have a connection, initiate one if we are "older" in the call
-              // Simple logic: Host or lower UUID initiates
-              if (!_peerConnections.containsKey(pUserId)) {
-                await _initiatePeerConnection(pUserId);
+            if (pUserId != userId) {
+              if (status == 'joined') {
+                _stopRingtone(); // Stop ringing when someone joins
+                if (!_peerConnections.containsKey(pUserId)) {
+                  await _initiatePeerConnection(pUserId);
+                }
+              } else if (status == 'rejected' || status == 'left') {
+                // If everyone except us has left or rejected, stop ringing/cleanup
+                // For now, at least stop the ringtone if it's still playing
+                _stopRingtone();
               }
             }
           }
@@ -393,6 +405,7 @@ class CallService extends ChangeNotifier {
     _peerConnections.clear();
     _remoteStreams.clear();
     _currentCallId = null;
+    _stopRingtone();
     notifyListeners();
   }
 
@@ -423,6 +436,7 @@ class CallService extends ChangeNotifier {
                 .single();
             
             _incomingCall = CallEntity.fromJson(callData);
+            _playRingtone(); // Start ringing for invitee
             notifyListeners();
             return;
           } catch (e) {
@@ -432,18 +446,21 @@ class CallService extends ChangeNotifier {
       }
       if (_incomingCall != null) {
         _incomingCall = null;
+        _stopRingtone();
         notifyListeners();
       }
     });
   }
 
   Future<void> answerCall(CallEntity call) async {
+    _stopRingtone();
     await joinCall(call);
     _incomingCall = null;
     notifyListeners();
   }
 
   Future<void> rejectCall(CallEntity call) async {
+    _stopRingtone();
     final user = _supabase.auth.currentUser;
     if (user == null) return;
 
@@ -456,9 +473,31 @@ class CallService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _playRingtone() async {
+    if (_isPlayingRingtone) return;
+    _isPlayingRingtone = true;
+    try {
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      await _audioPlayer.play(AssetSource('audio/standardringtone.mp3'));
+    } catch (e) {
+      _isPlayingRingtone = false;
+      debugPrint('[CallService] Error playing ringtone: $e');
+    }
+  }
+
+  Future<void> _stopRingtone() async {
+    _isPlayingRingtone = false;
+    try {
+      await _audioPlayer.stop();
+    } catch (e) {
+      debugPrint('[CallService] Error stopping ringtone: $e');
+    }
+  }
+
   @override
   void dispose() {
     _incomingCallSubscription?.cancel();
+    _audioPlayer.dispose();
     super.dispose();
   }
 }
