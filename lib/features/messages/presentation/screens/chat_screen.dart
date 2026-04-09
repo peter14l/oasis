@@ -38,6 +38,9 @@ import 'package:oasis/features/messages/presentation/widgets/modals/message_opti
 import 'package:oasis/features/messages/data/datasources/chat_media_picker.dart';
 import 'package:oasis/features/messages/presentation/widgets/modals/giphy_picker_sheet.dart';
 
+import 'package:oasis/features/calling/presentation/providers/call_provider.dart';
+import 'package:oasis/features/calling/domain/models/call_entity.dart';
+
 /// Fully wired ChatScreen — thin orchestrator composing extracted widgets.
 /// Replaces the 4,682-line legacy chat_screen.dart.
 class ChatScreen extends StatefulWidget {
@@ -516,6 +519,32 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
+  Future<void> _initiateCall(CallType type) async {
+    final callProvider = context.read<CallProvider>();
+    final currentUserId = AuthService().currentUser?.id;
+    final otherUserId = widget.otherUserId ?? _chatProvider.state.otherUserId;
+
+    if (currentUserId == null || otherUserId == null) {
+      _showError('Cannot initiate call: User info missing');
+      return;
+    }
+
+    try {
+      final call = await callProvider.initiateCall(
+        conversationId: widget.conversationId,
+        hostId: currentUserId,
+        type: type,
+        participantIds: [otherUserId],
+      );
+
+      if (call != null && mounted) {
+        context.pushNamed('active_call', extra: call);
+      }
+    } catch (e) {
+      _showError('Failed to initiate call: $e');
+    }
+  }
+
   void _showError(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -869,10 +898,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       isDesktop: isDesktop,
                       isDetailsOpen: widget.isDetailsOpen,
                       onDetailsToggle: _openChatDetails,
-                      onCallPressed:
-                          () => _showError('Call feature coming soon'),
-                      onVideoCallPressed:
-                          () => _showError('Video call feature coming soon'),
+                      onCallPressed: () => _initiateCall(CallType.voice),
+                      onVideoCallPressed: () => _initiateCall(CallType.video),
                     ),
 
                     // Vault Lock Overlay

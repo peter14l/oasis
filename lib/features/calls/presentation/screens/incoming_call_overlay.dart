@@ -1,8 +1,10 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oasis/features/calling/domain/models/call_entity.dart';
 import 'package:oasis/services/call_service.dart';
 import 'package:provider/provider.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class IncomingCallOverlay extends StatelessWidget {
   final CallEntity call;
@@ -11,73 +13,141 @@ class IncomingCallOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Material(
       color: Colors.transparent,
       child: Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        width: 400,
+        margin: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.grey[900],
-          borderRadius: BorderRadius.circular(16),
+          color: colorScheme.surface.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.1),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
             ),
           ],
         ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: Colors.blue.withValues(alpha: 0.2),
-              child: Icon(
-                call.type == CallType.video ? Icons.videocam : Icons.call,
-                color: Colors.blue,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Incoming ${call.type.name} call',
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                  Text(
-                    call.channelName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+        clipBehavior: Clip.antiAlias,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                    overflow: TextOverflow.ellipsis,
+                    Icon(
+                      call.type == CallType.video 
+                        ? FluentIcons.video_24_regular 
+                        : FluentIcons.call_24_regular,
+                      color: colorScheme.primary,
+                      size: 28,
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'INCOMING CALL',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.primary,
+                          letterSpacing: 1.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        call.channelName,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 16),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _ActionButton(
+                      onPressed: () => context.read<CallService>().rejectCall(call),
+                      icon: FluentIcons.call_dismiss_24_regular,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(width: 12),
+                    _ActionButton(
+                      onPressed: () {
+                        context.read<CallService>().answerCall(call);
+                        context.pushNamed(
+                          'active_call',
+                          pathParameters: {'callId': call.id},
+                          extra: call,
+                        );
+                      },
+                      icon: call.type == CallType.video 
+                        ? FluentIcons.video_24_regular 
+                        : FluentIcons.call_24_regular,
+                      color: Colors.green,
+                    ),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            IconButton(
-              onPressed: () {
-                context.read<CallService>().endCall(call.id);
-              },
-              icon: const Icon(Icons.close, color: Colors.red),
-            ),
-            IconButton(
-              onPressed: () {
-                context.read<CallService>().answerCall(call);
-                context.pushNamed(
-                  'active_call',
-                  pathParameters: {'callId': call.id},
-                  extra: call,
-                );
-              },
-              icon: const Icon(Icons.check, color: Colors.green),
-            ),
-          ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final IconData icon;
+  final Color color;
+
+  const _ActionButton({
+    required this.onPressed,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: color, size: 20),
       ),
     );
   }

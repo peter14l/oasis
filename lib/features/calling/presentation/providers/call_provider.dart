@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:oasis/services/call_service.dart';
 import '../../domain/models/call_entity.dart';
 import '../../domain/models/call_participant_entity.dart';
 import '../../domain/usecases/initiate_call.dart';
@@ -9,8 +11,11 @@ import '../../domain/usecases/get_active_calls.dart';
 /// Immutable state for calling feature
 class CallState {
   final CallEntity? activeCall;
+  final CallEntity? incomingCall;
   final List<CallEntity> activeCalls;
   final List<CallParticipantEntity> participants;
+  final MediaStream? localStream;
+  final Map<String, MediaStream> remoteStreams;
   final bool isLoading;
   final String? error;
   final bool isMuted;
@@ -19,8 +24,11 @@ class CallState {
 
   const CallState({
     this.activeCall,
+    this.incomingCall,
     this.activeCalls = const [],
     this.participants = const [],
+    this.localStream,
+    this.remoteStreams = const {},
     this.isLoading = false,
     this.error,
     this.isMuted = false,
@@ -34,8 +42,11 @@ class CallState {
 
   CallState copyWith({
     CallEntity? activeCall,
+    CallEntity? incomingCall,
     List<CallEntity>? activeCalls,
     List<CallParticipantEntity>? participants,
+    MediaStream? localStream,
+    Map<String, MediaStream>? remoteStreams,
     bool? isLoading,
     String? error,
     bool? isMuted,
@@ -44,8 +55,11 @@ class CallState {
   }) {
     return CallState(
       activeCall: activeCall ?? this.activeCall,
+      incomingCall: incomingCall ?? this.incomingCall,
       activeCalls: activeCalls ?? this.activeCalls,
       participants: participants ?? this.participants,
+      localStream: localStream ?? this.localStream,
+      remoteStreams: remoteStreams ?? this.remoteStreams,
       isLoading: isLoading ?? this.isLoading,
       error: error,
       isMuted: isMuted ?? this.isMuted,
@@ -57,40 +71,82 @@ class CallState {
 
 /// Provider for call state management
 class CallProvider extends ChangeNotifier {
-  late final InitiateCall _initiateCall;
-  late final AcceptCall _acceptCall;
-  late final EndCall _endCall;
-  late final GetActiveCalls _getActiveCalls;
+  final CallService _callService;
+  late InitiateCall _initiateCall;
+  late AcceptCall _acceptCall;
+  late EndCall _endCall;
+  late GetActiveCalls _getActiveCalls;
+  bool _isInitialized = false;
 
   CallState _state = CallState.initial();
 
+  CallProvider(this._callService) {
+    _callService.addListener(_onCallServiceUpdate);
+  }
+
+  void _onCallServiceUpdate() {
+    _state = _state.copyWith(
+      localStream: _callService.localStream,
+      remoteStreams: Map.from(_callService.remoteStreams),
+      isMuted: _callService.isMuted,
+      isVideoOn: _callService.isVideoOn,
+      isScreenSharing: _callService.isScreenSharing,
+      incomingCall: _callService.incomingCall,
+    );
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _callService.removeListener(_onCallServiceUpdate);
+    super.dispose();
+  }
+
   CallState get state => _state;
   CallEntity? get activeCall => _state.activeCall;
+  CallEntity? get incomingCall => _state.incomingCall;
   bool get hasActiveCall => _state.activeCall != null;
+  bool get hasIncomingCall => _state.incomingCall != null;
+  MediaStream? get localStream => _state.localStream;
+  Map<String, MediaStream> get remoteStreams => _state.remoteStreams;
   bool get isMuted => _state.isMuted;
   bool get isVideoOn => _state.isVideoOn;
   bool get isScreenSharing => _state.isScreenSharing;
 
-  Future<void> initialize() async {
-    // Initialize use cases (would be injected in real app)
+  Future<void> initialize({
+    required InitiateCall initiateCall,
+    required AcceptCall acceptCall,
+    required EndCall endCall,
+    required GetActiveCalls getActiveCalls,
+  }) async {
+    if (_isInitialized) return;
+
+    _initiateCall = initiateCall;
+    _acceptCall = acceptCall;
+    _endCall = endCall;
+    _getActiveCalls = getActiveCalls;
     _state = _state.copyWith(isLoading: false);
+    _callService.startIncomingCallListener();
+    _isInitialized = true;
     notifyListeners();
   }
 
-  /// Initiate a new call
+  /// Initiate a new multi-participant call
   Future<CallEntity?> initiateCall({
     required String conversationId,
     required String hostId,
     required CallType type,
+    required List<String> participantIds,
   }) async {
     try {
       _state = _state.copyWith(isLoading: true);
       notifyListeners();
 
-      final call = await _initiateCall.call(
+      // Initiate via CallService (WebRTC & Signaling)
+      final call = await _callService.initiateCall(
         conversationId: conversationId,
-        hostId: hostId,
         type: type,
+        participantIds: participantIds,
       );
 
       _state = _state.copyWith(isLoading: false, activeCall: call);
@@ -103,13 +159,13 @@ class CallProvider extends ChangeNotifier {
     }
   }
 
-  /// Accept incoming call
-  Future<void> acceptCall(String callId, String userId) async {
+  /// Join an existing call
+  Future<void> joinCall(CallEntity call) async {
     try {
       _state = _state.copyWith(isLoading: true);
       notifyListeners();
 
-      final call = await _acceptCall.call(callId: callId, userId: userId);
+      await _callService.joinCall(call);
       _state = _state.copyWith(isLoading: false, activeCall: call);
       notifyListeners();
     } catch (e) {
@@ -130,12 +186,12 @@ class CallProvider extends ChangeNotifier {
   }
 
   /// End current call
-  Future<void> endCall(String callId) async {
+  Future<void> endCall() async {
     try {
       _state = _state.copyWith(isLoading: true);
       notifyListeners();
 
-      await _endCall.call(callId);
+      await _callService.endCall();
       _state = _state.copyWith(isLoading: false, activeCall: null);
       notifyListeners();
     } catch (e) {
@@ -146,20 +202,17 @@ class CallProvider extends ChangeNotifier {
 
   /// Toggle mute
   void toggleMute() {
-    _state = _state.copyWith(isMuted: !_state.isMuted);
-    notifyListeners();
+    _callService.toggleMute();
   }
 
   /// Toggle video
   void toggleVideo() {
-    _state = _state.copyWith(isVideoOn: !_state.isVideoOn);
-    notifyListeners();
+    _callService.toggleVideo();
   }
 
   /// Toggle screen sharing
-  void toggleScreenShare() {
-    _state = _state.copyWith(isScreenSharing: !_state.isScreenSharing);
-    notifyListeners();
+  Future<void> toggleScreenShare() async {
+    await _callService.toggleScreenShare();
   }
 
   /// Load active calls

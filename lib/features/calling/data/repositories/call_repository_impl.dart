@@ -13,6 +13,7 @@ class CallRepositoryImpl implements CallRepository {
     required String conversationId,
     required String hostId,
     required CallType type,
+    required List<String> participantIds,
   }) async {
     final now = DateTime.now();
     final channelName = 'call_${now.millisecondsSinceEpoch}';
@@ -31,6 +32,27 @@ class CallRepositoryImpl implements CallRepository {
             })
             .select()
             .single();
+
+    final callId = response['id'] as String;
+
+    // Add participants
+    final participantsData = participantIds.map((id) => {
+      'call_id': callId,
+      'user_id': id,
+      'status': 'invited',
+      'created_at': now.toIso8601String(),
+    }).toList();
+
+    // Add host as joined
+    participantsData.add({
+      'call_id': callId,
+      'user_id': hostId,
+      'status': 'joined',
+      'joined_at': now.toIso8601String(),
+      'created_at': now.toIso8601String(),
+    });
+
+    await _supabase.client.from('call_participants').insert(participantsData);
 
     return CallEntity.fromJson(response);
   }

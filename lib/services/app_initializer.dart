@@ -57,6 +57,13 @@ import 'package:oasis/features/collections/domain/usecases/remove_from_collectio
 import 'package:oasis/features/collections/domain/usecases/get_collection_detail.dart';
 import 'package:oasis/features/collections/domain/usecases/check_post_in_collection.dart';
 import 'package:oasis/features/collections/domain/usecases/get_collections_for_post.dart';
+import 'package:oasis/features/calling/data/repositories/call_repository_impl.dart';
+import 'package:oasis/features/calling/domain/usecases/initiate_call.dart';
+import 'package:oasis/features/calling/domain/usecases/accept_call.dart';
+import 'package:oasis/features/calling/domain/usecases/end_call.dart';
+import 'package:oasis/features/calling/domain/usecases/get_active_calls.dart';
+import 'package:oasis/features/calling/presentation/providers/call_provider.dart';
+import 'package:oasis/services/call_service.dart';
 import 'package:oasis/core/storage/prefs_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -401,6 +408,20 @@ class AppInitializer {
           value: services.vaultService,
         ),
         Provider<VoiceTranscriptService>(create: (_) => VoiceTranscriptService()),
+        ChangeNotifierProvider<CallService>(create: (_) => CallService()),
+        ChangeNotifierProxyProvider<CallService, CallProvider>(
+          create: (context) => CallProvider(context.read<CallService>()),
+          update: (context, service, provider) {
+            final repo = CallRepositoryImpl();
+            provider!.initialize(
+              initiateCall: InitiateCall(repo),
+              acceptCall: AcceptCall(repo),
+              endCall: EndCall(repo),
+              getActiveCalls: GetActiveCalls(repo),
+            );
+            return provider;
+          },
+        ),
       ],
       child: child,
     );

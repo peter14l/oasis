@@ -241,6 +241,24 @@ class PersistentSignalStore implements SignalProtocolStore {
     return _inMemoryStore.getIdentity(address);
   }
 
+  /// Delete an identity key for a specific address.
+  /// Used to clear untrusted identities.
+  Future<void> deleteIdentity(SignalProtocolAddress address) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    // We can't directly delete from InMemorySignalProtocolStore as it doesn't expose it,
+    // but we can save null to overwrite it if the implementation allows, 
+    // or just rely on the next saveIdentity.
+    // However, looking at InMemorySignalProtocolStore source, it doesn't have deleteIdentity.
+    // The best we can do is remove it from Persistent storage.
+    final key = 'signal_identity_${userId}_${address.getName()}';
+    await _prefs.remove(key);
+    
+    // To clear from memory, we'd need to re-init or use a hack.
+    // But since we are likely about to process a new bundle, saveIdentity will be called.
+  }
+
   // --- SessionStore ---
 
   @override

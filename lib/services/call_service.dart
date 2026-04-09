@@ -1,20 +1,27 @@
+import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:libsignal_protocol_dart/libsignal_protocol_dart.dart';
 import 'package:oasis/features/calling/domain/models/call_entity.dart';
+import 'package:oasis/features/messages/data/signal/signal_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:uuid/uuid.dart';
 
 class CallService extends ChangeNotifier {
   final _supabase = SupabaseService().client;
+  final _signal = SignalService();
   final _uuid = const Uuid();
 
-  RTCPeerConnection? _peerConnection;
+  // Multi-peer management
+  final Map<String, RTCPeerConnection> _peerConnections = {};
+  final Map<String, MediaStream> _remoteStreams = {};
   MediaStream? _localStream;
-  MediaStream? _remoteStream;
   String? _currentCallId;
 
   MediaStream? get localStream => _localStream;
-  MediaStream? get remoteStream => _remoteStream;
+  Map<String, MediaStream> get remoteStreams => _remoteStreams;
+  String? get currentCallId => _currentCallId;
 
   final Map<String, dynamic> _configuration = {
     'iceServers': [
@@ -23,122 +30,150 @@ class CallService extends ChangeNotifier {
     ]
   };
 
-  Future<void> initWebRTC(bool isVideo) async {
+  // Media state
+  bool _isMuted = false;
+  bool _isVideoOn = true;
+  bool _isScreenSharing = false;
+
+  bool get isMuted => _isMuted;
+  bool get isVideoOn => _isVideoOn;
+  bool get isScreenSharing => _isScreenSharing;
+
+  Future<void> initLocalStream(bool isVideo) async {
     final Map<String, dynamic> constraints = {
       'audio': true,
       'video': isVideo ? {'facingMode': 'user'} : false,
     };
 
     _localStream = await navigator.mediaDevices.getUserMedia(constraints);
-    
-    _peerConnection = await createPeerConnection(_configuration);
+    _isVideoOn = isVideo;
+    _isMuted = false;
+    notifyListeners();
+  }
 
-    _localStream!.getTracks().forEach((track) {
-      _peerConnection!.addTrack(track, _localStream!);
+  Future<RTCPeerConnection> _createPeerConnection(String remoteUserId, CallType type) async {
+    final pc = await createPeerConnection(_configuration);
+    
+    _localStream?.getTracks().forEach((track) {
+      pc.addTrack(track, _localStream!);
     });
 
-    _peerConnection!.onIceCandidate = (candidate) {
-      // Send candidate to Supabase
-      _sendIceCandidate(candidate);
+    pc.onIceCandidate = (candidate) {
+      _sendEncryptedSignaling(remoteUserId, {
+        'type': 'candidate',
+        'candidate': candidate.candidate,
+        'sdpMid': candidate.sdpMid,
+        'sdpMLineIndex': candidate.sdpMLineIndex,
+      });
     };
 
-    _peerConnection!.onTrack = (event) {
+    pc.onTrack = (event) {
       if (event.streams.isNotEmpty) {
-        _remoteStream = event.streams[0];
+        _remoteStreams[remoteUserId] = event.streams[0];
         notifyListeners();
       }
     };
+
+    pc.onConnectionState = (state) {
+      if (state == RTCPeerConnectionState.RTCPeerConnectionStateDisconnected ||
+          state == RTCPeerConnectionState.RTCPeerConnectionStateFailed ||
+          state == RTCPeerConnectionState.RTCPeerConnectionStateClosed) {
+        _removePeer(remoteUserId);
+      }
+    };
+
+    _peerConnections[remoteUserId] = pc;
+    return pc;
+  }
+
+  Future<void> _sendEncryptedSignaling(String recipientId, Map<String, dynamic> data) async {
+    if (_currentCallId == null) return;
+    
+    final jsonStr = jsonEncode(data);
+    final encrypted = await _signal.encryptMessage(recipientId, jsonStr);
+    
+    await _supabase.from('call_signaling').insert({
+      'call_id': _currentCallId,
+      'sender_id': _supabase.auth.currentUser!.id,
+      'recipient_id': recipientId, // Add recipient_id to schema if needed or filter in stream
+      'candidate': base64Encode(encrypted.serialize()),
+      'signal_message_type': encrypted.getType(),
+    });
   }
 
   Future<CallEntity> initiateCall({
     required String conversationId,
     required CallType type,
-    required String channelName,
+    required List<String> participantIds,
   }) async {
     final user = _supabase.auth.currentUser;
     if (user == null) throw Exception('User not authenticated');
 
-    await initWebRTC(type == CallType.video);
+    await initLocalStream(type == CallType.video);
 
-    final RTCSessionDescription offer = await _peerConnection!.createOffer();
-    await _peerConnection!.setLocalDescription(offer);
+    final callId = _uuid.v4();
+    _currentCallId = callId;
 
     final callData = {
-      'id': _uuid.v4(),
+      'id': callId,
       'conversation_id': conversationId,
       'host_id': user.id,
-      'channel_name': channelName,
+      'channel_name': 'oasis_$callId',
       'type': type.name,
       'status': CallStatus.pinging.name,
       'started_at': DateTime.now().toIso8601String(),
-      'sdp': offer.sdp,
-      'sdp_type': offer.type,
       'created_at': DateTime.now().toIso8601String(),
     };
 
-    final response = await _supabase
-        .from('calls')
-        .insert(callData)
-        .select()
-        .single();
+    final response = await _supabase.from('calls').insert(callData).select().single();
     
-    _currentCallId = callData['id'];
-    final call = CallEntity.fromJson(response);
-    _subscribeToSignaling(call.id);
+    // Add participants
+    final participantsData = participantIds.map((id) => {
+      'call_id': callId,
+      'user_id': id,
+      'status': 'invited',
+    }).toList();
     
-    return call;
+    // Also add self as joined
+    participantsData.add({
+      'call_id': callId,
+      'user_id': user.id,
+      'status': 'joined',
+      'joined_at': DateTime.now().toIso8601String(),
+    });
+
+    await _supabase.from('call_participants').insert(participantsData);
+    
+    _subscribeToSignaling(callId);
+    _subscribeToParticipants(callId);
+    
+    return CallEntity.fromJson(response);
   }
 
-  Future<void> answerCall(CallEntity call) async {
-    await initWebRTC(call.type == CallType.video);
+  Future<void> joinCall(CallEntity call) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) throw Exception('User not authenticated');
 
-    final RTCSessionDescription offer = RTCSessionDescription(call.sdp!, call.sdpType!);
-    await _peerConnection!.setRemoteDescription(offer);
-
-    final RTCSessionDescription answer = await _peerConnection!.createAnswer();
-    await _peerConnection!.setLocalDescription(answer);
-    
     _currentCallId = call.id;
+    await initLocalStream(call.type == CallType.video);
 
-    await _supabase
-        .from('calls')
-        .update({
-          'sdp': answer.sdp,
-          'sdp_type': answer.type,
-          'status': CallStatus.active.name,
-        })
-        .eq('id', call.id);
+    await _supabase.from('call_participants').upsert({
+      'call_id': call.id,
+      'user_id': user.id,
+      'joined_at': DateTime.now().toIso8601String(),
+      'status': 'joined',
+    });
 
     _subscribeToSignaling(call.id);
+    _subscribeToParticipants(call.id);
+    
+    // In Mesh, new joiner initiates offers to everyone already in the call
+    // Or we wait for notifications. Let's say we notify others via call_participants update.
   }
 
   void _subscribeToSignaling(String callId) {
-    _supabase
-        .from('calls')
-        .stream(primaryKey: ['id'])
-        .eq('id', callId)
-        .listen((data) async {
-          if (data.isEmpty) return;
-          final updatedCall = CallEntity.fromJson(data.first);
-
-          if (updatedCall.status == CallStatus.active && 
-              _peerConnection?.getRemoteDescription() == null &&
-              updatedCall.sdpType == 'answer') {
-            final RTCSessionDescription answer = RTCSessionDescription(
-              updatedCall.sdp!,
-              updatedCall.sdpType!,
-            );
-            await _peerConnection!.setRemoteDescription(answer);
-          }
-
-          if (updatedCall.status == CallStatus.ended) {
-            _handleCallEnd();
-          }
-        }, onError: (error) {
-          debugPrint('[CallService] Signaling stream error (calls): $error');
-        });
-
-    // Handle ICE candidates
+    final userId = _supabase.auth.currentUser!.id;
+    
     _supabase
         .from('call_signaling')
         .stream(primaryKey: ['id'])
@@ -146,66 +181,284 @@ class CallService extends ChangeNotifier {
         .listen((data) async {
           for (var item in data) {
             final senderId = item['sender_id'];
-            if (senderId != _supabase.auth.currentUser?.id) {
-              final candidate = RTCIceCandidate(
-                item['candidate'],
-                item['sdpMid'],
-                item['sdpMLineIndex'],
-              );
-              await _peerConnection!.addCandidate(candidate);
+            final recipientId = item['recipient_id'];
+            
+            // Only process if it's meant for us and not from us
+            if (recipientId == userId && senderId != userId) {
+              try {
+                final decryptedJson = await _signal.decryptMessage(
+                  senderId,
+                  item['candidate'],
+                  item['signal_message_type'],
+                );
+                
+                final signalData = jsonDecode(decryptedJson);
+                await _handleSignalingData(senderId, signalData);
+              } catch (e) {
+                debugPrint('[CallService] Signaling decryption error: $e');
+              }
             }
           }
-        }, onError: (error) {
-          debugPrint('[CallService] Signaling stream error (ICE): $error');
         });
   }
 
-  Future<void> _sendIceCandidate(RTCIceCandidate candidate) async {
-    final user = _supabase.auth.currentUser;
-    if (user == null || _peerConnection == null || _currentCallId == null) return;
+  Future<void> _handleSignalingData(String senderId, Map<String, dynamic> data) async {
+    final type = data['type'];
+    
+    if (type == 'offer') {
+      final pc = await _getOrCreatePeerConnection(senderId);
+      await pc.setRemoteDescription(RTCSessionDescription(data['sdp'], data['sdp_type']));
+      final answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      
+      _sendEncryptedSignaling(senderId, {
+        'type': 'answer',
+        'sdp': answer.sdp,
+        'sdp_type': answer.type,
+      });
+    } else if (type == 'answer') {
+      final pc = _peerConnections[senderId];
+      if (pc != null) {
+        await pc.setRemoteDescription(RTCSessionDescription(data['sdp'], data['sdp_type']));
+      }
+    } else if (type == 'candidate') {
+      final pc = _peerConnections[senderId];
+      if (pc != null) {
+        await pc.addCandidate(RTCIceCandidate(
+          data['candidate'],
+          data['sdpMid'],
+          data['sdpMLineIndex'],
+        ));
+      }
+    }
+  }
 
-    await _supabase.from('call_signaling').insert({
-      'call_id': _currentCallId,
-      'sender_id': user.id,
-      'candidate': candidate.candidate,
-      'sdpMid': candidate.sdpMid,
-      'sdpMLineIndex': candidate.sdpMLineIndex,
+  Future<RTCPeerConnection> _getOrCreatePeerConnection(String remoteUserId) async {
+    if (_peerConnections.containsKey(remoteUserId)) {
+      return _peerConnections[remoteUserId]!;
+    }
+    // We need to know the call type here, let's assume stored or passed
+    // For now, default to video if local stream has video
+    final hasVideo = _localStream?.getVideoTracks().isNotEmpty ?? false;
+    return _createPeerConnection(remoteUserId, hasVideo ? CallType.video : CallType.voice);
+  }
+
+  void _subscribeToParticipants(String callId) {
+    _supabase
+        .from('call_participants')
+        .stream(primaryKey: ['id'])
+        .eq('call_id', callId)
+        .listen((data) async {
+          final userId = _supabase.auth.currentUser!.id;
+          for (var participant in data) {
+            final pUserId = participant['user_id'];
+            final status = participant['status'];
+            
+            if (pUserId != userId && status == 'joined') {
+              // If someone joined and we don't have a connection, initiate one if we are "older" in the call
+              // Simple logic: Host or lower UUID initiates
+              if (!_peerConnections.containsKey(pUserId)) {
+                await _initiatePeerConnection(pUserId);
+              }
+            }
+          }
+        });
+  }
+
+  Future<void> _initiatePeerConnection(String remoteUserId) async {
+    final hasVideo = _localStream?.getVideoTracks().isNotEmpty ?? false;
+    final pc = await _createPeerConnection(remoteUserId, hasVideo ? CallType.video : CallType.voice);
+    
+    final offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    
+    _sendEncryptedSignaling(remoteUserId, {
+      'type': 'offer',
+      'sdp': offer.sdp,
+      'sdp_type': offer.type,
     });
   }
 
-  void _handleCallEnd() {
+  void _removePeer(String userId) {
+    _peerConnections[userId]?.close();
+    _peerConnections.remove(userId);
+    _remoteStreams.remove(userId);
+    notifyListeners();
+  }
+
+  // Media Controls
+  void toggleMute() {
+    if (_localStream == null) return;
+    _isMuted = !_isMuted;
+    _localStream!.getAudioTracks().forEach((track) {
+      track.enabled = !_isMuted;
+    });
+    _updateParticipantMediaState();
+    notifyListeners();
+  }
+
+  void toggleVideo() {
+    if (_localStream == null) return;
+    _isVideoOn = !_isVideoOn;
+    _localStream!.getVideoTracks().forEach((track) {
+      track.enabled = _isVideoOn;
+    });
+    _updateParticipantMediaState();
+    notifyListeners();
+  }
+
+  Future<void> toggleScreenShare() async {
+    if (_isScreenSharing) {
+      // Switch back to camera
+      await _localStream?.dispose();
+      await initLocalStream(_isVideoOn);
+      // Update tracks for all peer connections
+      for (var pc in _peerConnections.values) {
+        final senders = await pc.getSenders();
+        for (var sender in senders) {
+          if (sender.track?.kind == 'video') {
+            sender.replaceTrack(_localStream!.getVideoTracks().first);
+          } else if (sender.track?.kind == 'audio') {
+            sender.replaceTrack(_localStream!.getAudioTracks().first);
+          }
+        }
+      }
+      _isScreenSharing = false;
+    } else {
+      try {
+        final MediaStream screenStream = await navigator.mediaDevices.getDisplayMedia({
+          'video': true,
+          'audio': true,
+        });
+        
+        // Replace tracks in all peer connections
+        for (var pc in _peerConnections.values) {
+          final senders = await pc.getSenders();
+          final screenVideoTrack = screenStream.getVideoTracks().first;
+          for (var sender in senders) {
+            if (sender.track?.kind == 'video') {
+              sender.replaceTrack(screenVideoTrack);
+            }
+          }
+        }
+        
+        // Update local display if needed (maybe keep local camera preview separate?)
+        // For simplicity, replace local stream's video track
+        _isScreenSharing = true;
+      } catch (e) {
+        debugPrint('Error starting screen share: $e');
+      }
+    }
+    _updateParticipantMediaState();
+    notifyListeners();
+  }
+
+  Future<void> _updateParticipantMediaState() async {
+    if (_currentCallId == null) return;
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
+    await _supabase
+        .from('call_participants')
+        .update({
+          'is_muted': _isMuted,
+          'is_video_on': _isVideoOn,
+          'is_screen_sharing': _isScreenSharing,
+        })
+        .match({'call_id': _currentCallId!, 'user_id': userId});
+  }
+
+  Future<void> endCall() async {
+    if (_currentCallId == null) return;
+    
+    await _supabase
+        .from('call_participants')
+        .update({
+          'status': 'left',
+          'left_at': DateTime.now().toIso8601String(),
+        })
+        .match({'call_id': _currentCallId!, 'user_id': _supabase.auth.currentUser!.id});
+
+    _cleanup();
+  }
+
+  void _cleanup() {
     _localStream?.getTracks().forEach((track) => track.stop());
-    _remoteStream?.getTracks().forEach((track) => track.stop());
-    _peerConnection?.close();
-    _peerConnection = null;
+    _localStream?.dispose();
     _localStream = null;
-    _remoteStream = null;
+
+    for (var pc in _peerConnections.values) {
+      pc.close();
+    }
+    _peerConnections.clear();
+    _remoteStreams.clear();
     _currentCallId = null;
     notifyListeners();
   }
 
-  Future<void> endCall(String callId) async {
-    await _supabase
-        .from('calls')
-        .update({
-          'status': CallStatus.ended.name,
-          'ended_at': DateTime.now().toIso8601String(),
-        })
-        .eq('id', callId);
-    _handleCallEnd();
+  // Global listener for incoming calls
+  StreamSubscription? _incomingCallSubscription;
+  CallEntity? _incomingCall;
+  CallEntity? get incomingCall => _incomingCall;
+
+  void startIncomingCallListener() {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+
+    _incomingCallSubscription?.cancel();
+    _incomingCallSubscription = _supabase
+        .from('call_participants')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', user.id)
+        .listen((data) async {
+      for (var participant in data) {
+        if (participant['status'] == 'invited') {
+          final callId = participant['call_id'];
+          // Fetch call details
+          try {
+            final callData = await _supabase
+                .from('calls')
+                .select()
+                .eq('id', callId)
+                .single();
+            
+            _incomingCall = CallEntity.fromJson(callData);
+            notifyListeners();
+            return;
+          } catch (e) {
+            debugPrint('Error fetching incoming call details: $e');
+          }
+        }
+      }
+      if (_incomingCall != null) {
+        _incomingCall = null;
+        notifyListeners();
+      }
+    });
   }
 
-  Future<void> joinCall(String callId) async {
+  Future<void> answerCall(CallEntity call) async {
+    await joinCall(call);
+    _incomingCall = null;
+    notifyListeners();
+  }
+
+  Future<void> rejectCall(CallEntity call) async {
     final user = _supabase.auth.currentUser;
-    if (user == null) throw Exception('User not authenticated');
+    if (user == null) return;
 
     await _supabase
         .from('call_participants')
-        .upsert({
-          'call_id': callId,
-          'user_id': user.id,
-          'joined_at': DateTime.now().toIso8601String(),
-          'status': 'joined',
-        });
+        .update({'status': 'rejected'})
+        .match({'call_id': call.id, 'user_id': user.id});
+    
+    _incomingCall = null;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _incomingCallSubscription?.cancel();
+    super.dispose();
   }
 }

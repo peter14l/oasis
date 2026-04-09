@@ -12,11 +12,13 @@ class InitiateCall {
     required String conversationId,
     required String hostId,
     required CallType type,
+    required List<String> participantIds,
   }) {
     return _repository.createCall(
       conversationId: conversationId,
       hostId: hostId,
       type: type,
+      participantIds: participantIds,
     );
   }
 

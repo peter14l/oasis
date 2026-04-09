@@ -8,6 +8,7 @@ abstract class CallRepository {
     required String conversationId,
     required String hostId,
     required CallType type,
+    required List<String> participantIds,
   });
 
   /// Get call by ID

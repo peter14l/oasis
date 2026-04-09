@@ -29,8 +29,11 @@ import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/features/messages/data/encryption_service.dart';
 import 'package:oasis/widgets/security_upgrade_banner.dart';
 import 'package:oasis/widgets/security_pin_sheet.dart';
-import 'package:oasis/features/calls/presentation/screens/active_call_screen.dart';
+import 'package:oasis/features/calling/presentation/screens/calling_screen.dart';
 import 'package:oasis/features/calling/domain/models/call_entity.dart';
+import 'package:oasis/features/calls/presentation/screens/incoming_call_screen.dart';
+import 'package:oasis/features/calls/presentation/screens/incoming_call_overlay.dart';
+import 'package:oasis/features/calling/presentation/providers/call_provider.dart';
 import 'package:oasis/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:oasis/screens/settings_screen.dart';
 import 'package:oasis/features/settings/presentation/screens/subscription_screen.dart';
@@ -320,6 +323,19 @@ class _MainLayoutState extends State<MainLayout> {
                   ),
                 ),
 
+                // Incoming Call Overlay (Desktop)
+                Consumer<CallProvider>(
+                  builder: (context, provider, _) {
+                    final incomingCall = provider.state.incomingCall;
+                    if (incomingCall == null) return const SizedBox.shrink();
+                    return Positioned(
+                      top: 40,
+                      right: 40,
+                      child: IncomingCallOverlay(call: incomingCall),
+                    );
+                  },
+                ),
+
                 // Sliding Panels - Truly opaque now
                 if (_activePanel != null)
                   Positioned(
@@ -381,6 +397,13 @@ class _MainLayoutState extends State<MainLayout> {
                 duration: const Duration(milliseconds: 200),
                 padding: EdgeInsets.zero,
                 child: widget.child,
+              ),
+              Consumer<CallProvider>(
+                builder: (context, provider, _) {
+                  final incomingCall = provider.state.incomingCall;
+                  if (incomingCall == null) return const SizedBox.shrink();
+                  return IncomingCallScreen(call: incomingCall);
+                },
               ),
             ],
           ),
@@ -1198,11 +1221,10 @@ class AppRouter {
           path: '/call/:callId',
           name: 'active_call',
           pageBuilder: (context, state) {
-            final call = state.extra as CallEntity;
             return MaterialPage(
               key: state.pageKey,
               fullscreenDialog: true,
-              child: ActiveCallScreen(call: call),
+              child: const CallingScreen(),
             );
           },
         ),
