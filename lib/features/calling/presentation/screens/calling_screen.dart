@@ -170,6 +170,33 @@ class _CallingScreenState extends State<CallingScreen> {
   }
 
   Widget _buildControlBar(CallProvider provider) {
+    // Show Accept/Decline if it's an incoming call that hasn't been joined
+    if (provider.hasIncomingCall && !provider.hasActiveCall) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildControlButton(
+            onPressed: provider.endCall, // This will decline as per our update
+            icon: Icons.call_end,
+            color: Colors.red,
+            isLarge: true,
+          ),
+          const SizedBox(width: 60),
+          _buildControlButton(
+            onPressed: () {
+              final call = provider.incomingCall;
+              if (call != null) {
+                provider.joinCall(call);
+              }
+            },
+            icon: Icons.call,
+            color: Colors.green,
+            isLarge: true,
+          ),
+        ],
+      );
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

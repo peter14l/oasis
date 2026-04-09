@@ -145,12 +145,24 @@ class CallProvider extends ChangeNotifier {
     required List<String> participantIds,
   }) async {
     try {
-      final call = await _callService.initiateCall(
+      _state = _state.copyWith(isLoading: true, clearError: true);
+      notifyListeners();
+
+      final call = await _initiateCall.call(
         conversationId: conversationId,
+        hostId: hostId,
         type: type,
         participantIds: participantIds,
       );
-      _state = _state.copyWith(activeCall: call);
+
+      if (call != null) {
+        // Now that the call is created in DB, join it to start WebRTC
+        await _callService.joinCall(call);
+        _state = _state.copyWith(activeCall: call, isLoading: false);
+      } else {
+        _state = _state.copyWith(isLoading: false, error: 'Failed to create call');
+      }
+
       notifyListeners();
       return call;
     } catch (e) {
@@ -163,7 +175,7 @@ class CallProvider extends ChangeNotifier {
   /// Join an existing call
   Future<void> joinCall(CallEntity call) async {
     try {
-      _state = _state.copyWith(isLoading: true);
+      _state = _state.copyWith(isLoading: true, clearError: true);
       notifyListeners();
 
       // Join via service (which handles WebRTC + DB)
@@ -180,10 +192,16 @@ class CallProvider extends ChangeNotifier {
   /// Decline incoming call
   Future<void> declineCall(String callId, String userId) async {
     try {
+      _state = _state.copyWith(isLoading: true, clearError: true);
+      notifyListeners();
+
       await _endCall.decline(callId, userId);
+      await _callService.endCall(); // Clean up WebRTC if needed
+
+      _state = _state.copyWith(isLoading: false, clearIncomingCall: true);
       notifyListeners();
     } catch (e) {
-      _state = _state.copyWith(error: e.toString());
+      _state = _state.copyWith(isLoading: false, error: e.toString());
       notifyListeners();
     }
   }
@@ -191,14 +209,23 @@ class CallProvider extends ChangeNotifier {
   /// End current call
   Future<void> endCall() async {
     try {
-      if (_state.activeCall == null) return;
+      final callId = _state.activeCall?.id ?? _state.incomingCall?.id;
+      if (callId == null) return;
       
-      _state = _state.copyWith(isLoading: true);
+      _state = _state.copyWith(isLoading: true, clearError: true);
       notifyListeners();
 
-      await _endCall.call(_state.activeCall!.id);
+      // End in repository
+      await _endCall.call(callId);
       
-      _state = _state.copyWith(isLoading: false, clearActiveCall: true);
+      // End in WebRTC service
+      await _callService.endCall();
+      
+      _state = _state.copyWith(
+        isLoading: false, 
+        clearActiveCall: true,
+        clearIncomingCall: true,
+      );
       notifyListeners();
     } catch (e) {
       _state = _state.copyWith(isLoading: false, error: e.toString());

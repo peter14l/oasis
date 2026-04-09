@@ -348,16 +348,23 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       useRootNavigator: true,
-      builder: (context) => GiphyPickerSheet(
-        onSelected: (url, isSticker) {
-          Navigator.pop(context);
-          if (isSticker) {
-            _chatProvider.sendSticker(url, replyMessage: _chatProvider.state.replyMessage);
-          } else {
-            _chatProvider.sendGif(url, replyMessage: _chatProvider.state.replyMessage);
-          }
-        },
-      ),
+      builder:
+          (context) => GiphyPickerSheet(
+            onSelected: (url, isSticker) {
+              Navigator.pop(context);
+              if (isSticker) {
+                _chatProvider.sendSticker(
+                  url,
+                  replyMessage: _chatProvider.state.replyMessage,
+                );
+              } else {
+                _chatProvider.sendGif(
+                  url,
+                  replyMessage: _chatProvider.state.replyMessage,
+                );
+              }
+            },
+          ),
     );
   }
 
@@ -509,8 +516,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 currentBackground: state.backgroundUrl,
                 onBackgroundSettingsChanged: (opacity, brightness) {
                   _chatProvider.setState(
-                    (s) =>
-                        s.copyWith(bgOpacity: opacity, bgBrightness: brightness),
+                    (s) => s.copyWith(
+                      bgOpacity: opacity,
+                      bgBrightness: brightness,
+                    ),
                   );
                 },
               ),
@@ -538,6 +547,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       );
       if (call != null && mounted) {
         context.pushNamed('active_call', pathParameters: {'callId': call.id});
+      } else if (mounted && callProvider.state.error != null) {
+        _showError(callProvider.state.error!);
       }
     } catch (e) {
       _showError('Failed to initiate call: $e');
@@ -854,7 +865,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                                 _showAttachmentOptions,
                                             onSticker: _showGiphyPicker,
                                             isRecording: state.isRecording,
-                                            recordDuration: state.recordDuration,
+                                            recordDuration:
+                                                state.recordDuration,
                                             isSending: state.isSending,
                                             isWhisperMode: state.whisperMode,
                                             onToggleRecording: _toggleRecording,
@@ -961,8 +973,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                           textAlign: TextAlign.center,
                                           style: theme.textTheme.bodyMedium
                                               ?.copyWith(
-                                                color: colorScheme
-                                                    .onSurfaceVariant,
+                                                color:
+                                                    colorScheme
+                                                        .onSurfaceVariant,
                                               ),
                                         ),
                                         const SizedBox(height: 48),

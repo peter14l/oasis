@@ -135,10 +135,12 @@ class CallService extends ChangeNotifier {
     final response = await _supabase.from('calls').insert(callData).select().single();
     
     // Add participants
+    final now = DateTime.now().toIso8601String();
     final participantsData = participantIds.map((id) => {
       'call_id': callId,
       'user_id': id,
       'status': 'invited',
+      'created_at': now,
     }).toList();
     
     // Also add self as joined
@@ -146,7 +148,8 @@ class CallService extends ChangeNotifier {
       'call_id': callId,
       'user_id': user.id,
       'status': 'joined',
-      'joined_at': DateTime.now().toIso8601String(),
+      'joined_at': now,
+      'created_at': now,
     });
 
     await _supabase.from('call_participants').insert(participantsData);
