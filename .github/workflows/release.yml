@@ -24,10 +24,10 @@ jobs:
       - name: Decode Keystore
         run: |
           if [ -n "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ]; then
-            mkdir -p android
-            echo '${{ secrets.RELEASE_KEYSTORE_BASE64 }}' | base64 -d > android/release.keystore
-            ls -la android/release.keystore
-            echo "Keystore decoded to android/"
+            mkdir -p android/app
+            echo '${{ secrets.RELEASE_KEYSTORE_BASE64 }}' | base64 -d > android/app/release.keystore
+            ls -la android/app/release.keystore
+            echo "Keystore decoded"
           else
             echo "No keystore configured - using debug signing"
           fi
@@ -35,8 +35,8 @@ jobs:
 
       - name: Configure Signing
         run: |
-          if [ -n "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ] && [ -f "android/release.keystore" ]; then
-            echo "RELEASE_STORE_FILE=android/release.keystore" >> $GITHUB_ENV
+          if [ -n "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ] && [ -f "android/app/release.keystore" ]; then
+            echo "RELEASE_STORE_FILE=release.keystore" >> $GITHUB_ENV
             echo "RELEASE_STORE_PASSWORD=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
             echo "RELEASE_KEY_ALIAS=${{ secrets.RELEASE_KEYSTORE_ALIAS }}" >> $GITHUB_ENV
             echo "RELEASE_KEY_PASSWORD=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
