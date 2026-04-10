@@ -553,7 +553,7 @@ class CallService extends ChangeNotifier {
           contentType: AndroidContentType.music,
           audioFocus: AndroidAudioFocus.gainTransient,
         ),
-        iOS: const AudioContextIOS(
+        iOS: AudioContextIOS(
           category: AVAudioSessionCategory.playAndRecord,
           options: {
             AVAudioSessionOptions.allowBluetooth,
