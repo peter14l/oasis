@@ -22,6 +22,13 @@ allprojects {
 
 // Configure Java and Kotlin versions for all subprojects
 subprojects {
+    configurations.all {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "org.jetbrains.kotlin") {
+                useVersion("2.3.20")
+            }
+        }
+    }
     afterEvaluate {
         // Configure Java compilation
         extensions.findByType<JavaPluginExtension>()?.apply {
