@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/services/call_service.dart';
 import '../../domain/models/call_entity.dart';
 import '../../domain/models/call_participant_entity.dart';
@@ -81,6 +80,7 @@ class CallProvider extends ChangeNotifier {
   late EndCall _endCall;
   late GetActiveCalls _getActiveCalls;
   bool _isInitialized = false;
+  bool _isEnding = false;
 
   CallState _state = CallState.initial();
 
@@ -89,9 +89,12 @@ class CallProvider extends ChangeNotifier {
   }
 
   void _onCallServiceUpdate() {
+    if (_isEnding) return; // Ignore updates while we are trying to end the call
+
     _state = _state.copyWith(
       localStream: _callService.localStream,
       remoteStreams: Map.from(_callService.remoteStreams),
+      participants: List.from(_callService.participants),
       isMuted: _callService.isMuted,
       isVideoOn: _callService.isVideoOn,
       isScreenSharing: _callService.isScreenSharing,
@@ -134,6 +137,7 @@ class CallProvider extends ChangeNotifier {
     _state = _state.copyWith(isLoading: false);
     _callService.startIncomingCallListener();
     _isInitialized = true;
+    _isEnding = false;
     notifyListeners();
   }
 
@@ -145,6 +149,7 @@ class CallProvider extends ChangeNotifier {
     required List<String> participantIds,
   }) async {
     try {
+      _isEnding = false;
       _state = _state.copyWith(isLoading: true, clearError: true);
       notifyListeners();
 
@@ -158,6 +163,7 @@ class CallProvider extends ChangeNotifier {
       if (call != null) {
         // Now that the call is created in DB, join it to start WebRTC
         await _callService.joinCall(call);
+        await _callService.startRingtone(); // Start ringing for host
         _state = _state.copyWith(activeCall: call, isLoading: false);
       } else {
         _state = _state.copyWith(isLoading: false, error: 'Failed to create call');
@@ -175,6 +181,7 @@ class CallProvider extends ChangeNotifier {
   /// Join an existing call
   Future<void> joinCall(CallEntity call) async {
     try {
+      _isEnding = false;
       _state = _state.copyWith(isLoading: true, clearError: true);
       notifyListeners();
 
@@ -192,15 +199,18 @@ class CallProvider extends ChangeNotifier {
   /// Decline incoming call
   Future<void> declineCall(String callId, String userId) async {
     try {
+      _isEnding = true;
       _state = _state.copyWith(isLoading: true, clearError: true);
       notifyListeners();
 
       await _endCall.decline(callId, userId);
       await _callService.endCall(); // Clean up WebRTC if needed
 
-      _state = _state.copyWith(isLoading: false, clearIncomingCall: true);
+      _state = _state.copyWith(isLoading: false, clearIncomingCall: true, clearActiveCall: true);
+      _isEnding = false;
       notifyListeners();
     } catch (e) {
+      _isEnding = false;
       _state = _state.copyWith(isLoading: false, error: e.toString());
       notifyListeners();
     }
@@ -212,7 +222,14 @@ class CallProvider extends ChangeNotifier {
       final callId = _state.activeCall?.id ?? _state.incomingCall?.id;
       if (callId == null) return;
       
-      _state = _state.copyWith(isLoading: true, clearError: true);
+      // Clear state immediately to avoid navigation loops
+      _isEnding = true;
+      _state = _state.copyWith(
+        isLoading: true, 
+        clearError: true,
+        clearActiveCall: true,
+        clearIncomingCall: true,
+      );
       notifyListeners();
 
       // End in repository
@@ -221,13 +238,11 @@ class CallProvider extends ChangeNotifier {
       // End in WebRTC service
       await _callService.endCall();
       
-      _state = _state.copyWith(
-        isLoading: false, 
-        clearActiveCall: true,
-        clearIncomingCall: true,
-      );
+      _state = _state.copyWith(isLoading: false);
+      _isEnding = false;
       notifyListeners();
     } catch (e) {
+      _isEnding = false;
       _state = _state.copyWith(isLoading: false, error: e.toString());
       notifyListeners();
     }

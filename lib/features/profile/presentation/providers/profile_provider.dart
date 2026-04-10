@@ -259,6 +259,10 @@ class ProfileProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<UserProfileEntity> getProfile(String userId) async {
+    return await _profileRepository.getProfile(userId);
+  }
+
   Future<String> getOrCreateConversation({
     required String user1Id,
     required String user2Id,

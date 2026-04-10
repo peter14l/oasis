@@ -3,7 +3,11 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/features/calling/presentation/providers/call_provider.dart';
 import 'package:oasis/features/calling/domain/models/call_entity.dart';
+import 'package:oasis/features/calling/domain/models/call_participant_entity.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis/features/profile/domain/models/user_profile_entity.dart';
 import 'package:oasis/themes/app_theme.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
 
 class CallingScreen extends StatefulWidget {
   const CallingScreen({super.key});
@@ -55,6 +59,7 @@ class _CallingScreenState extends State<CallingScreen> {
       });
       return const Scaffold(backgroundColor: Colors.black);
     }
+    
     if (_isInitialized && state.localStream != null && _localRenderer.srcObject != state.localStream) {
       _localRenderer.srcObject = state.localStream;
     }
@@ -64,9 +69,11 @@ class _CallingScreenState extends State<CallingScreen> {
         final renderer = RTCVideoRenderer();
         renderer.initialize().then((_) {
           renderer.srcObject = stream;
-          setState(() {
-            _remoteRenderers[userId] = renderer;
-          });
+          if (mounted) {
+            setState(() {
+              _remoteRenderers[userId] = renderer;
+            });
+          }
         });
       } else if (_remoteRenderers[userId]!.srcObject != stream) {
         _remoteRenderers[userId]!.srcObject = stream;
@@ -82,60 +89,125 @@ class _CallingScreenState extends State<CallingScreen> {
       return false;
     });
 
+    // Determine if we should show the waiting screen
+    final isWaiting = state.remoteStreams.isEmpty && 
+                     (state.activeCall?.status == CallStatus.pinging || 
+                      !state.participants.any((p) => p.userId != (state.localStream?.id ?? '') && p.isJoined));
+
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // Participant Grid
-          _buildParticipantGrid(state),
-
-          // Control Bar
-          Positioned(
-            bottom: 40,
-            left: 0,
-            right: 0,
-            child: _buildControlBar(callProvider),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.black,
+              Colors.blueGrey.withValues(alpha: 0.2),
+              Colors.black,
+            ],
           ),
+        ),
+        child: Stack(
+          children: [
+            // Participant Grid or Waiting Screen
+            if (isWaiting)
+              _buildWaitingScreen(callProvider)
+            else
+              _buildParticipantGrid(callProvider),
 
-          // Call Info
-          Positioned(
-            top: 60,
-            left: 20,
-            child: _buildCallHeader(state),
+            // Control Bar
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: _buildControlBar(callProvider),
+            ),
+
+            // Call Info
+            Positioned(
+              top: 60,
+              left: 20,
+              child: _buildCallHeader(state),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWaitingScreen(CallProvider provider) {
+    final state = provider.state;
+    final currentUserId = Provider.of<ProfileProvider>(context, listen: false).currentProfile?.id;
+    final otherParticipant = state.participants.firstWhere(
+      (p) => p.userId != currentUserId,
+      orElse: () => state.participants.isNotEmpty ? state.participants.first : CallParticipantEntity(
+        id: '', callId: '', userId: '', createdAt: DateTime.now())
+    );
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          PulsatingParticipant(
+            userId: otherParticipant.userId,
+            isLocal: false,
+            size: 200,
+          ),
+          const SizedBox(height: 40),
+          Text(
+            state.activeCall?.status == CallStatus.pinging ? 'Calling...' : 'Waiting for others to join...',
+            style: const TextStyle(color: Colors.white70, fontSize: 18, letterSpacing: 1.2),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildParticipantGrid(CallState state) {
-    final participants = _remoteRenderers.entries.toList();
-    final totalCount = participants.length + 1; // +1 for local
+  Widget _buildParticipantGrid(CallProvider provider) {
+    final state = provider.state;
+    final currentUserId = Provider.of<ProfileProvider>(context, listen: false).currentProfile?.id;
+    
+    // Remote IDs that have streams
+    final remoteIds = state.remoteStreams.keys.toList();
+    
+    // Total count: 1 local + all remote streams
+    final totalCount = remoteIds.length + 1;
 
     if (totalCount == 1) {
-      return RTCVideoView(_localRenderer, mirror: true, objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover);
+      return _buildVideoTile('You', _localRenderer, isLocal: true, isVideoOn: provider.isVideoOn);
     }
 
     return GridView.builder(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.fromLTRB(4, 100, 4, 120),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: totalCount <= 2 ? 1 : 2,
-        childAspectRatio: totalCount <= 2 ? 0.7 : 1,
-        crossAxisSpacing: 4,
-        mainAxisSpacing: 4,
+        childAspectRatio: totalCount <= 2 ? 0.8 : 1,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
       ),
       itemCount: totalCount,
       itemBuilder: (context, index) {
         if (index == 0) {
-          return _buildVideoTile('You', _localRenderer, isLocal: true);
+          return _buildVideoTile('You', _localRenderer, isLocal: true, isVideoOn: provider.isVideoOn);
         }
-        final peer = participants[index - 1];
-        return _buildVideoTile('User ${peer.key.substring(0, 4)}', peer.value);
+        final userId = remoteIds[index - 1];
+        final renderer = _remoteRenderers[userId];
+        final participant = state.participants.firstWhere((p) => p.userId == userId, 
+            orElse: () => CallParticipantEntity(
+              id: '', callId: '', userId: userId, createdAt: DateTime.now(), isVideoOn: true));
+        
+        return _buildVideoTile('User ${userId.substring(0, 4)}', renderer, 
+            userId: userId, isVideoOn: participant.isVideoOn);
       },
     );
   }
 
-  Widget _buildVideoTile(String name, RTCVideoRenderer renderer, {bool isLocal = false}) {
+  Widget _buildVideoTile(String name, RTCVideoRenderer? renderer, {
+    bool isLocal = false, 
+    String? userId, 
+    required bool isVideoOn
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey[900],
@@ -144,11 +216,19 @@ class _CallingScreenState extends State<CallingScreen> {
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          RTCVideoView(
-            renderer,
-            mirror: isLocal,
-            objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-          ),
+          if (isVideoOn && renderer != null)
+            RTCVideoView(
+              renderer,
+              mirror: isLocal,
+              objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+            )
+          else
+            Positioned.fill(
+              child: PulsatingParticipant(
+                userId: userId, // null for local
+                isLocal: isLocal,
+              ),
+            ),
           Positioned(
             bottom: 8,
             left: 8,
@@ -269,6 +349,100 @@ class _CallingScreenState extends State<CallingScreen> {
           ],
         ),
       ],
+    );
+  }
+}
+
+class PulsatingParticipant extends StatefulWidget {
+  final String? userId;
+  final bool isLocal;
+  final double size;
+
+  const PulsatingParticipant({
+    super.key,
+    this.userId,
+    this.isLocal = false,
+    this.size = 100,
+  });
+
+  @override
+  State<PulsatingParticipant> createState() => _PulsatingParticipantState();
+}
+
+class _PulsatingParticipantState extends State<PulsatingParticipant> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  UserProfileEntity? _profile;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+    _animation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final profileProvider = context.read<ProfileProvider>();
+    if (widget.isLocal) {
+      _profile = profileProvider.currentProfile;
+    } else if (widget.userId != null) {
+      try {
+        final profile = await profileProvider.getProfile(widget.userId!);
+        if (mounted) {
+          setState(() {
+            _profile = profile;
+          });
+        }
+      } catch (e) {
+        debugPrint('Error loading participant profile: $e');
+      }
+    }
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ScaleTransition(
+        scale: _animation,
+        child: Container(
+          width: widget.size,
+          height: widget.size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.withValues(alpha: 0.2),
+                blurRadius: widget.size / 4,
+                spreadRadius: widget.size / 20,
+              ),
+            ],
+          ),
+          child: CircleAvatar(
+            radius: widget.size / 2,
+            backgroundColor: Colors.grey[800],
+            backgroundImage: _profile?.avatarUrl != null 
+              ? NetworkImage(_profile!.avatarUrl!) 
+              : null,
+            child: _profile?.avatarUrl == null 
+              ? Icon(Icons.person, size: widget.size / 2, color: Colors.white54)
+              : null,
+          ),
+        ),
+      ),
     );
   }
 }

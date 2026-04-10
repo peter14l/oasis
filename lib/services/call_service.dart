@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:libsignal_protocol_dart/libsignal_protocol_dart.dart';
 import 'package:oasis/features/calling/domain/models/call_entity.dart';
+import 'package:oasis/features/calling/domain/models/call_participant_entity.dart';
 import 'package:oasis/features/messages/data/signal/signal_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -19,11 +19,13 @@ class CallService extends ChangeNotifier {
   // Multi-peer management
   final Map<String, RTCPeerConnection> _peerConnections = {};
   final Map<String, MediaStream> _remoteStreams = {};
+  final List<CallParticipantEntity> _participants = [];
   MediaStream? _localStream;
   String? _currentCallId;
 
   MediaStream? get localStream => _localStream;
   Map<String, MediaStream> get remoteStreams => _remoteStreams;
+  List<CallParticipantEntity> get participants => _participants;
   
   /// Get the first remote stream for 1-on-1 convenience.
   MediaStream? get remoteStream => _remoteStreams.isNotEmpty ? _remoteStreams.values.first : null;
@@ -176,7 +178,6 @@ class CallService extends ChangeNotifier {
       'status': 'joined',
     }, onConflict: 'call_id,user_id');
 
-    _stopRingtone();
     _subscribeToSignaling(call.id);
     _subscribeToParticipants(call.id);
   }
@@ -259,6 +260,10 @@ class CallService extends ChangeNotifier {
         .stream(primaryKey: ['id'])
         .eq('call_id', callId)
         .listen((data) async {
+          _participants.clear();
+          _participants.addAll(data.map((p) => CallParticipantEntity.fromJson(p)));
+          notifyListeners();
+
           final userId = _supabase.auth.currentUser!.id;
           for (var participant in data) {
             final pUserId = participant['user_id'];
@@ -272,7 +277,6 @@ class CallService extends ChangeNotifier {
                 }
               } else if (status == 'rejected' || status == 'left') {
                 // If everyone except us has left or rejected, stop ringing/cleanup
-                // For now, at least stop the ringtone if it's still playing
                 _stopRingtone();
               }
             }
@@ -312,14 +316,74 @@ class CallService extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleVideo() {
+  Future<void> toggleVideo() async {
     if (_localStream == null) return;
-    _isVideoOn = !_isVideoOn;
-    _localStream!.getVideoTracks().forEach((track) {
-      track.enabled = _isVideoOn;
-    });
+
+    if (!_isVideoOn && _localStream!.getVideoTracks().isEmpty) {
+      // If we're turning video ON but don't have a track (started as voice call)
+      try {
+        final Map<String, dynamic> constraints = {
+          'audio': false, // Only need video
+          'video': {'facingMode': 'user'},
+        };
+        final videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+        final videoTrack = videoStream.getVideoTracks().first;
+        
+        _localStream!.addTrack(videoTrack);
+        _isVideoOn = true;
+        
+        // Update tracks for all peer connections
+        for (var entry in _peerConnections.entries) {
+          final remoteUserId = entry.key;
+          final pc = entry.value;
+          final senders = await pc.getSenders();
+          
+          bool foundVideoSender = false;
+          for (var sender in senders) {
+            if (sender.track?.kind == 'video') {
+              await sender.replaceTrack(videoTrack);
+              foundVideoSender = true;
+              break;
+            }
+          }
+
+          if (!foundVideoSender) {
+            // If no video sender exists, add the track and renegotiate
+            await pc.addTrack(videoTrack, _localStream!);
+            await _renegotiate(remoteUserId);
+          }
+        }
+      } catch (e) {
+        debugPrint('[CallService] Error acquiring video track: $e');
+        return;
+      }
+    } else {
+      _isVideoOn = !_isVideoOn;
+      _localStream!.getVideoTracks().forEach((track) {
+        track.enabled = _isVideoOn;
+      });
+    }
+    
     _updateParticipantMediaState();
     notifyListeners();
+  }
+
+  Future<void> _renegotiate(String remoteUserId) async {
+    final pc = _peerConnections[remoteUserId];
+    if (pc == null) return;
+    
+    try {
+      final offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      
+      _sendEncryptedSignaling(remoteUserId, {
+        'type': 'offer',
+        'sdp': offer.sdp,
+        'sdp_type': offer.type,
+      });
+    } catch (e) {
+      debugPrint('[CallService] Renegotiation error for $remoteUserId: $e');
+    }
   }
 
   Future<void> toggleScreenShare() async {
@@ -386,15 +450,16 @@ class CallService extends ChangeNotifier {
   Future<void> endCall() async {
     if (_currentCallId == null) return;
     
+    final callId = _currentCallId!;
+    _cleanup(); // Clear local state immediately to avoid races
+
     await _supabase
         .from('call_participants')
         .update({
           'status': 'left',
           'left_at': DateTime.now().toIso8601String(),
         })
-        .match({'call_id': _currentCallId!, 'user_id': _supabase.auth.currentUser!.id});
-
-    _cleanup();
+        .match({'call_id': callId, 'user_id': _supabase.auth.currentUser!.id});
   }
 
   void _cleanup() {
@@ -408,6 +473,7 @@ class CallService extends ChangeNotifier {
     _peerConnections.clear();
     _remoteStreams.clear();
     _currentCallId = null;
+    _incomingCall = null; // Clear incoming call as well
     _stopRingtone();
     notifyListeners();
   }
@@ -480,6 +546,22 @@ class CallService extends ChangeNotifier {
     if (_isPlayingRingtone) return;
     _isPlayingRingtone = true;
     try {
+      // Set audio context for calling
+      await AudioPlayer.global.setAudioContext(AudioContext(
+        android: AudioContextAndroid(
+          usageType: AndroidUsageType.voiceCommunicationSignalling,
+          contentType: AndroidContentType.music,
+          audioFocus: AndroidAudioFocus.gainTransient,
+        ),
+        iOS: const AudioContextIOS(
+          category: AVAudioSessionCategory.playAndRecord,
+          options: {
+            AVAudioSessionOptions.allowBluetooth,
+            AVAudioSessionOptions.defaultToSpeaker,
+          },
+        ),
+      ));
+
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
       await _audioPlayer.play(AssetSource('audio/standardringtone.mp3'));
     } catch (e) {
@@ -496,6 +578,10 @@ class CallService extends ChangeNotifier {
       debugPrint('[CallService] Error stopping ringtone: $e');
     }
   }
+
+  /// Public access to control ringtone from provider if needed
+  Future<void> startRingtone() => _playRingtone();
+  Future<void> stopRingtone() => _stopRingtone();
 
   @override
   void dispose() {
