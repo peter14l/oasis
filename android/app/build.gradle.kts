@@ -10,7 +10,7 @@ buildDir = File(rootDir, "../build/app")
 
 android {
     namespace = "com.example.morrow_v2"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = "28.2.13676358"
 
     compileOptions {
@@ -29,7 +29,7 @@ android {
     defaultConfig {
         applicationId = "com.example.morrow_v2"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
