@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// For sensitive data (tokens, passwords), use [SecureStorage] instead.
 class PrefsStorage {
   static PrefsStorage? _instance;
-  late SharedPreferences _prefs;
+  SharedPreferences? _prefs;
 
   PrefsStorage._internal();
 
@@ -21,7 +21,7 @@ class PrefsStorage {
 
   factory PrefsStorage() {
     final instance = _instance;
-    if (instance == null) {
+    if (instance == null || instance._prefs == null) {
       throw StateError(
         'PrefsStorage not initialized. Call PrefsStorage.init() first.',
       );
@@ -29,48 +29,50 @@ class PrefsStorage {
     return instance;
   }
 
+  SharedPreferences get _prefsInstance => _prefs!;
+
   /// Read a string value. Returns null if not found.
-  String? readString(String key) => _prefs.getString(key);
+  String? readString(String key) => _prefsInstance.getString(key);
 
   /// Read an int value. Returns null if not found.
-  int? readInt(String key) => _prefs.getInt(key);
+  int? readInt(String key) => _prefsInstance.getInt(key);
 
   /// Read a double value. Returns null if not found.
-  double? readDouble(String key) => _prefs.getDouble(key);
+  double? readDouble(String key) => _prefsInstance.getDouble(key);
 
   /// Read a bool value. Returns null if not found.
-  bool? readBool(String key) => _prefs.getBool(key);
+  bool? readBool(String key) => _prefsInstance.getBool(key);
 
   /// Read a list of strings. Returns null if not found.
-  List<String>? readStringList(String key) => _prefs.getStringList(key);
+  List<String>? readStringList(String key) => _prefsInstance.getStringList(key);
 
   /// Write a string value.
   Future<bool> writeString(String key, String value) =>
-      _prefs.setString(key, value);
+      _prefsInstance.setString(key, value);
 
   /// Write an int value.
-  Future<bool> writeInt(String key, int value) => _prefs.setInt(key, value);
+  Future<bool> writeInt(String key, int value) => _prefsInstance.setInt(key, value);
 
   /// Write a double value.
   Future<bool> writeDouble(String key, double value) =>
-      _prefs.setDouble(key, value);
+      _prefsInstance.setDouble(key, value);
 
   /// Write a bool value.
-  Future<bool> writeBool(String key, bool value) => _prefs.setBool(key, value);
+  Future<bool> writeBool(String key, bool value) => _prefsInstance.setBool(key, value);
 
   /// Write a list of strings.
   Future<bool> writeStringList(String key, List<String> value) =>
-      _prefs.setStringList(key, value);
+      _prefsInstance.setStringList(key, value);
 
   /// Delete a value by key.
-  Future<bool> delete(String key) => _prefs.remove(key);
+  Future<bool> delete(String key) => _prefsInstance.remove(key);
 
   /// Check if a key exists.
-  bool contains(String key) => _prefs.containsKey(key);
+  bool contains(String key) => _prefsInstance.containsKey(key);
 
   /// Clear all stored values.
-  Future<bool> clear() => _prefs.clear();
+  Future<bool> clear() => _prefsInstance.clear();
 
   /// Get all keys.
-  Set<String> get keys => _prefs.getKeys();
+  Set<String> get keys => _prefsInstance.getKeys();
 }

@@ -11,7 +11,7 @@ class SupabaseService {
   static bool isInitialized = false;
 
   SupabaseClient? _mockClient;
-  late SupabaseClient _client;
+  SupabaseClient? _clientInstance;
 
   factory SupabaseService() {
     if (!isInitialized) {
@@ -23,7 +23,13 @@ class SupabaseService {
   }
 
   // Getter for the Supabase client
-  SupabaseClient get client => _mockClient ?? _client;
+  SupabaseClient get client {
+    final client = _mockClient ?? _clientInstance;
+    if (client == null) {
+      throw Exception('Supabase client not initialized.');
+    }
+    return client;
+  }
 
   @visibleForTesting
   static void setMockClient(SupabaseClient mockClient) {
@@ -47,7 +53,7 @@ class SupabaseService {
         ),
       );
 
-      _instance._client = Supabase.instance.client;
+      _instance._clientInstance = Supabase.instance.client;
       isInitialized = true;
     } catch (e) {
       throw Exception('Failed to initialize Supabase: $e');

@@ -10,7 +10,7 @@ class IAPService extends ChangeNotifier {
   IAPService._internal();
 
   final InAppPurchase _iap = InAppPurchase.instance;
-  late StreamSubscription<List<PurchaseDetails>> _subscription;
+  StreamSubscription<List<PurchaseDetails>>? _subscription;
   
   List<ProductDetails> _products = [];
   List<ProductDetails> get products => _products;
@@ -27,7 +27,7 @@ class IAPService extends ChangeNotifier {
     final Stream<List<PurchaseDetails>> purchaseUpdated = _iap.purchaseStream;
     _subscription = purchaseUpdated.listen(
       _onPurchaseUpdate,
-      onDone: () => _subscription.cancel(),
+      onDone: () => _subscription?.cancel(),
       onError: (error) => debugPrint('IAP Error: $error'),
     );
 
@@ -100,7 +100,7 @@ class IAPService extends ChangeNotifier {
 
   @override
   void dispose() {
-    _subscription.cancel();
+    _subscription?.cancel();
     super.dispose();
   }
 }
