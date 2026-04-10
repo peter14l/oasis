@@ -224,16 +224,6 @@ class _FeedScreenState extends State<FeedScreen>
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  Icon(
-                        Icons.waves_rounded,
-                        size: 48,
-                        color: colorScheme.primary,
-                      )
-                      .animate(
-                        onPlay:
-                            (controller) => controller.repeat(reverse: true),
-                      )
-                      .scale(duration: 1.seconds, curve: Curves.easeInOut),
                   const SizedBox(height: 24),
                   Text(
                     'Enter Ripples',
@@ -250,6 +240,28 @@ class _FeedScreenState extends State<FeedScreen>
                     ),
                   ),
                   const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [15, 30, 45].map((mins) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: ChoiceChip(
+                          label: Text('$mins min'),
+                          selected: false,
+                          onSelected: (_) {
+                            service.startSession(Duration(minutes: mins));
+                            Navigator.pop(context);
+                            if (ResponsiveLayout.isDesktop(context)) {
+                              setState(() => _showRipplesOverlay = true);
+                            } else {
+                              context.push('/ripples');
+                            }
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
@@ -785,15 +797,6 @@ class _FeedScreenState extends State<FeedScreen>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.waves_rounded,
-              size: 18,
-              color:
-                  isM3E
-                      ? colorScheme.onTertiaryContainer
-                      : colorScheme.secondary,
-            ),
-            const SizedBox(width: 8),
             Text(
               'Ripples',
               style: TextStyle(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/notification_manager.dart';
+import 'package:oasis/services/subscription_service.dart';
 
 /// Wellness achievement types
 enum AchievementType {
@@ -168,8 +169,7 @@ class WellnessService extends ChangeNotifier {
   }
 
   bool _isUserPro() {
-    final user = SupabaseService().client.auth.currentUser;
-    return user?.userMetadata?['is_pro'] == true;
+    return SubscriptionService().isPro;
   }
 
   // Getters

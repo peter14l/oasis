@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:oasis/services/subscription_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 
 /// Cross-posting service for sharing content to other platforms
@@ -81,8 +82,7 @@ class CrossPostingService {
         shareText = '$shareText\n\n$postUrl';
       }
 
-      final user = SupabaseService().client.auth.currentUser;
-      final isPro = user?.userMetadata?['is_pro'] == true;
+      final isPro = SubscriptionService().isPro;
 
       switch (platformId) {
         case 'twitter':

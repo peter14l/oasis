@@ -75,11 +75,11 @@
 - Deploy to production
 
 **Status:** In Progress
-**Plans:** 1 plan
+**Plans:** 2 plans
 
 **Plan list:**
 - [x] 05-01-PLAN.md — Implement HTTPS enforcement and CSP headers
-- [ ] 05-02-PLAN.md — Implement rate limiting
+- [x] 05-02-PLAN.md — Implement rate limiting
 - [ ] 05-03-PLAN.md — Deploy to production
 
 **Depends on:** Phase 4

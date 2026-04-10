@@ -1030,20 +1030,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       _buildSettingsTile(
         context,
-        icon: Icons.description_outlined,
-        title: 'Terms of Service',
-        iconColor: Colors.grey,
-        onTap: () => context.push('/terms-of-service'),
-      ),
-      _buildSettingsTile(
-        context,
-        icon: Icons.privacy_tip_outlined,
-        title: 'Privacy Policy',
-        iconColor: Colors.grey,
-        onTap: () => context.push('/privacy-policy'),
-      ),
-      _buildSettingsTile(
-        context,
         icon: Icons.info_outline,
         title: 'About Oasis',
         subtitle: 'Version 4.1.0',

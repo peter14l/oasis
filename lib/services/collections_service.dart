@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:oasis/models/collection.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/services/subscription_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 
 class CollectionsService {
@@ -38,8 +39,7 @@ class CollectionsService {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('Not authenticated');
 
-      final user = _supabase.auth.currentUser;
-      final isPro = user?.userMetadata?['is_pro'] == true;
+      final isPro = SubscriptionService().isPro;
       if (!isPro) {
         final collections = await getUserCollections();
         if (collections.length >= 3) {
@@ -112,8 +112,7 @@ class CollectionsService {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) return false;
 
-      final user = _supabase.auth.currentUser;
-      final isPro = user?.userMetadata?['is_pro'] == true;
+      final isPro = SubscriptionService().isPro;
       if (!isPro) {
         final items = await getCollectionItems(collectionId);
         if (items.length >= 50) {

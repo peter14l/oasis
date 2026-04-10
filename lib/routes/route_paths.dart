@@ -66,8 +66,9 @@ class RoutePaths {
   static const String about = '/settings/about';
 
   // Legal routes
-  static const String privacyPolicy = '/legal/privacy';
-  static const String termsOfService = '/legal/terms';
+  static const String privacyPolicy = '/settings/about/privacy-policy';
+  static const String termsOfService = '/settings/about/terms-of-service';
+  static const String changelog = '/settings/about/changelog';
 
   // Pro routes
   static const String oasisPro = '/pro';

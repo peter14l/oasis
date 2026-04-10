@@ -2,6 +2,7 @@ import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:oasis/core/config/supabase_config.dart';
 import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/services/subscription_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -55,8 +56,7 @@ class ProfileRemoteDatasource {
     String? bannerFilePath,
   }) async {
     try {
-      final user = _supabase.auth.currentUser;
-      final isPro = user?.userMetadata?['is_pro'] == true;
+      final isPro = SubscriptionService().isPro;
       if (!isPro && bannerColor != null) {
         throw Exception(
           'Upgrade to Oasis Pro to use custom banner colors and themes.',

@@ -100,7 +100,7 @@ serve(async (req) => {
         }
         const callType = callDetails['type'] || 'voice';
         const callId = callDetails['call_id'] || '';
-        title = "Incoming ${callType === 'video' ? 'Video' : 'Voice'} Call";
+        title = `Incoming ${callType === 'video' ? 'Video' : 'Voice'} Call`;
         body = `${actorName} is calling you`;
         // Add call-specific data for navigation
         record.call_id = callId;
@@ -192,6 +192,7 @@ async function getGoogleAccessToken(serviceAccount: any) {
   });
 
   const tokenData = await tokenResponse.json();
+  if (!tokenResponse.ok) throw new Error(`Failed to get Google token: ${JSON.stringify(tokenData)}`);
   return tokenData.access_token;
 }
 
@@ -230,6 +231,12 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
   return bytes.buffer;
 }
 
-function b64url(str: string): string {
-  return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+function b64url(input: string | number[]): string {
+  let base64: string;
+  if (typeof input === 'string') {
+    base64 = btoa(input);
+  } else {
+    base64 = btoa(String.fromCharCode(...input));
+  }
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 }

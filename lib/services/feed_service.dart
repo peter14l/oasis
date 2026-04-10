@@ -3,6 +3,7 @@ import 'package:oasis/core/config/supabase_config.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/notification_service.dart';
+import 'package:oasis/services/subscription_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FeedService {
@@ -35,8 +36,7 @@ class FeedService {
             return Post.fromJson(map);
           }).toList();
 
-      final user = _supabase.auth.currentUser;
-      final isPro = user?.userMetadata?['is_pro'] == true;
+      final isPro = SubscriptionService().isPro;
 
       if (!isPro) {
         final List<Post> feedWithAds = [];
@@ -93,8 +93,7 @@ class FeedService {
             return Post.fromJson(map);
           }).toList();
 
-      final user = _supabase.auth.currentUser;
-      final isPro = user?.userMetadata?['is_pro'] == true;
+      final isPro = SubscriptionService().isPro;
 
       if (!isPro) {
         final List<Post> feedWithAds = [];

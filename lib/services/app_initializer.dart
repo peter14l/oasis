@@ -22,6 +22,7 @@ import 'package:oasis/features/ripples/presentation/providers/ripples_provider.d
 import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/features/messages/data/signal/signal_service.dart';
 import 'package:oasis/services/subscription_service.dart';
+import 'package:oasis/services/iap_service.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/vault_service.dart';
@@ -156,6 +157,7 @@ class InitializedServices {
   final WellnessService wellnessService;
   final EnergyMeterService energyMeterService;
   final SubscriptionService subscriptionService;
+  final IAPService iapService;
   final DigitalWellbeingService digitalWellbeingService;
   final VaultService vaultService;
 
@@ -306,6 +308,9 @@ class AppInitializer {
     );
 
     // Subscription
+    final iapService = IAPService();
+    await iapService.init();
+
     final subscriptionService = SubscriptionService();
     await subscriptionService.init();
 
@@ -321,6 +326,7 @@ class AppInitializer {
       wellnessService: wellnessService,
       energyMeterService: energyMeterService,
       subscriptionService: subscriptionService,
+      iapService: iapService,
       digitalWellbeingService: digitalWellbeingService,
       vaultService: vaultService,
     );
@@ -387,6 +393,9 @@ class AppInitializer {
         ),
         ChangeNotifierProvider<SubscriptionService>.value(
           value: services.subscriptionService,
+        ),
+        ChangeNotifierProvider<IAPService>.value(
+          value: services.iapService,
         ),
         Provider<EncryptionService>(create: (_) => EncryptionService()),
         ChangeNotifierProvider(

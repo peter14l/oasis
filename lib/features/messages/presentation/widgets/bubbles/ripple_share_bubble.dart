@@ -108,7 +108,7 @@ class RippleShareBubble extends StatelessWidget {
                     Row(
                       children: [
                         Icon(
-                          Icons.waves_rounded,
+                          Icons.blur_on_rounded,
                           size: 14,
                           color: colorScheme.secondary,
                         ),

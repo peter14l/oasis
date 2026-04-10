@@ -1,3 +1,4 @@
+import 'package:oasis/services/subscription_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:oasis/features/feed/domain/repositories/feed_repository.dart';
@@ -56,9 +57,7 @@ class FeedRepositoryImpl implements FeedRepository {
 
   /// Inject ad posts every 5th position for non-Pro users.
   List<Post> _injectAdsIfFreeUser(List<Post> posts) {
-    final supabase = SupabaseService().client;
-    final user = supabase.auth.currentUser;
-    final isPro = user?.userMetadata?['is_pro'] == true;
+    final isPro = SubscriptionService().isPro;
 
     if (isPro) return posts;
 

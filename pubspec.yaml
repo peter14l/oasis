@@ -129,6 +129,9 @@ dependencies:
   json_annotation: ^4.11.0
   integration_test:
     sdk: flutter
+  in_app_purchase: ^3.2.3
+  webview_flutter: ^4.10.0
+  webview_windows: ^0.4.0
 
 dev_dependencies:
   msix: ^3.16.1

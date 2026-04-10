@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:oasis/features/stories/domain/models/story_entity.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:oasis/services/subscription_service.dart';
 import 'package:uuid/uuid.dart';
 
 class StoriesService {
@@ -78,8 +79,7 @@ class StoriesService {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('Not authenticated');
 
-      final user = _supabase.auth.currentUser;
-      final isPro = user?.userMetadata?['is_pro'] == true;
+      final isPro = SubscriptionService().isPro;
 
       if (!isPro) {
         if (autoPostToSocial) {

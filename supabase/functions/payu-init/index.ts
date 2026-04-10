@@ -1,10 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 import { crypto } from "https://deno.land/std@0.168.0/crypto/mod.ts"
-
-const PAYU_KEY = Deno.env.get('PAYU_KEY') || 'YOUR_PAYU_KEY'
-const PAYU_SALT = Deno.env.get('PAYU_SALT') || 'YOUR_PAYU_SALT'
-const PAYU_URL = Deno.env.get('PAYU_URL') || 'https://test.payu.in/_payment' // Use https://secure.payu.in/_payment for prod
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,6 +13,14 @@ serve(async (req) => {
 
   try {
     const { plan, amount, currency, email, firstname, phone } = await req.json()
+    
+    const PAYU_KEY = Deno.env.get('PAYU_KEY')
+    const PAYU_SALT = Deno.env.get('PAYU_SALT')
+    const PAYU_URL = Deno.env.get('PAYU_URL') || 'https://secure.payu.in/_payment'
+
+    if (!PAYU_KEY || !PAYU_SALT) {
+      throw new Error('PayU credentials are not configured on the server.')
+    }
 
     // 1. Generate unique transaction ID
     const txnid = `txn_${Date.now()}_${Math.floor(Math.random() * 1000)}`
@@ -45,8 +48,8 @@ serve(async (req) => {
       firstname,
       email,
       phone,
-      surl: `${Deno.env.get('SITE_URL') || 'https://oasis-web-red.vercel.app'}/payment-success`,
-      furl: `${Deno.env.get('SITE_URL') || 'https://oasis-web-red.vercel.app'}/payment-failure`,
+      surl: `${Deno.env.get('SITE_URL')}/payment-success`,
+      furl: `${Deno.env.get('SITE_URL')}/payment-failure`,
       hash: hashHex,
       payu_url: PAYU_URL
     }

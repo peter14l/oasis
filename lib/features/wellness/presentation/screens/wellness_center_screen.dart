@@ -115,7 +115,7 @@ class WellnessCenterScreen extends StatelessWidget {
                 context,
                 'Ripples',
                 '${wellbeing.ripplesMinutes}m',
-                Icons.waves_rounded,
+                Icons.blur_on_rounded,
                 Colors.purple,
               ),
               Container(

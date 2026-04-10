@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/services/subscription_service.dart';
 
 /// Vault mode service for biometric protection of sensitive content
 class VaultService with ChangeNotifier {
@@ -203,7 +204,7 @@ class VaultService with ChangeNotifier {
     }
 
     // Check if user is Pro for biometric
-    final isPro = _supabase.auth.currentUser?.userMetadata?['is_pro'] == true;
+    final isPro = SubscriptionService().isPro;
     if (isPro) {
       final localAuth = LocalAuthentication();
       try {
@@ -304,7 +305,7 @@ class VaultService with ChangeNotifier {
 
     // Pro check for limits
     final user = _supabase.auth.currentUser;
-    final isPro = user?.userMetadata?['is_pro'] == true;
+    final isPro = SubscriptionService().isPro;
     if (!isPro && items.length >= 10) {
       throw Exception(
         'Free tier is limited to 10 vault items. Upgrade to Oasis Pro for unlimited vault storage.',
@@ -357,7 +358,7 @@ class VaultService with ChangeNotifier {
     // Sync to server (Pro only)
     try {
       final user = _supabase.auth.currentUser;
-      final isPro = user?.userMetadata?['is_pro'] == true;
+      final isPro = SubscriptionService().isPro;
       if (isPro) {
         final userId = user?.id;
         if (userId != null) {
@@ -420,7 +421,7 @@ class VaultService with ChangeNotifier {
     try {
       final user = _supabase.auth.currentUser;
       final userId = user?.id;
-      final isPro = user?.userMetadata?['is_pro'] == true;
+      final isPro = SubscriptionService().isPro;
       if (userId == null || !isPro) return;
 
       final response = await _supabase

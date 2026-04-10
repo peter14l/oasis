@@ -1,10 +1,16 @@
 import 'package:oasis/core/config/app_config.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/services/pricing_service.dart';
+import 'package:oasis/services/iap_service.dart';
+import 'package:oasis/services/subscription_service.dart';
+import 'package:oasis/widgets/subscription/razorpay_windows_view.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oasis/core/network/supabase_client.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 
 class OasisProScreen extends StatefulWidget {
   const OasisProScreen({super.key});
@@ -36,10 +42,85 @@ class _OasisProScreenState extends State<OasisProScreen> {
   }
 
   Future<void> _subscribe(PricingPlan plan) async {
+    if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) {
+      // Use Native IAP
+      final iapService = context.read<IAPService>();
+      if (!iapService.isAvailable) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('In-App Purchase is not available on this device.')),
+        );
+        return;
+      }
+
+      final product = iapService.products.firstWhere(
+        (p) => p.id == 'oasis_pro_monthly',
+        orElse: () => throw Exception('Product not found'),
+      );
+      
+      await iapService.buyProduct(product);
+    } else if (Platform.isWindows) {
+      // Use Razorpay Flow for Windows (Phase 4)
+      _startRazorpayWindowsFlow(plan);
+    } else {
+      // Fallback for Web/Other
+      _launchWebCheckout(plan);
+    }
+  }
+
+  void _startRazorpayWindowsFlow(PricingPlan plan) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: const EdgeInsets.all(20),
+        child: Container(
+          width: 800,
+          height: 600,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white10),
+          ),
+          child: Column(
+            children: [
+              AppBar(
+                backgroundColor: Colors.white.withValues(alpha: 0.05),
+                title: const Text('Secure Checkout', style: TextStyle(fontSize: 16)),
+                leading: IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+              Expanded(
+                child: RazorpayWindowsView(
+                  plan: plan,
+                  onSuccess: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(this.context).showSnackBar(
+                      const SnackBar(content: Text('Payment Successful! Your Pro status will be updated shortly.')),
+                    );
+                    context.read<SubscriptionService>().refresh();
+                  },
+                  onCancel: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(this.context).showSnackBar(
+                      const SnackBar(content: Text('Payment Cancelled.')),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchWebCheckout(PricingPlan plan) async {
     final userId = SupabaseService().client.auth.currentUser?.id;
     if (userId == null) return;
 
-    // Directing to checkout page on web as requested
     final url = Uri.parse(
       AppConfig.getWebUrl(
         '/checkout?user_id=$userId&plan=${plan.name}&currency=${plan.currency.name.toUpperCase()}',
@@ -49,7 +130,6 @@ class _OasisProScreenState extends State<OasisProScreen> {
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
       } else {
-        // Fallback: try launching anyway, as canLaunchUrl can be unreliable
         await launchUrl(url, mode: LaunchMode.externalApplication);
       }
     } catch (e) {

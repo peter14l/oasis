@@ -51,7 +51,10 @@ serve(async (req) => {
     // This creates a valid reset token without sending email
     // IMPORTANT: Use the Supabase auth callback URL, not the app URL directly
     // The auth callback will validate the token and redirect to the app
-    const callbackUrl = `${supabaseUrl}/auth/v1/callback?redirect_to=https://oasis-web-red.vercel.app/reset-password`
+    const siteUrl = Deno.env.get("SITE_URL") || "https://oasis-web-red.vercel.app"
+    const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "Oasis <noreply@oasis.app>"
+    
+    const callbackUrl = `${supabaseUrl}/auth/v1/callback?redirect_to=${siteUrl}/reset-password`
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: "recovery",
       email: email,
@@ -120,7 +123,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Oasis <noreply@yourdomain.com>",
+        from: fromEmail,
         to: email,
         subject: emailSubject,
         html: emailHtml,

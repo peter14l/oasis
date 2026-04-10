@@ -1,3 +1,4 @@
+import 'package:oasis/services/subscription_service.dart';
 import 'package:oasis/core/config/supabase_config.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/features/capsules/domain/models/time_capsule_entity.dart';
@@ -80,8 +81,7 @@ class CapsuleRepositoryImpl implements CapsuleRepository {
     String? mediaUrl,
     String mediaType = 'none',
   }) async {
-    final user = _supabase.auth.currentUser;
-    final isPro = user?.userMetadata?['is_pro'] == true;
+    final isPro = SubscriptionService().isPro;
 
     if (!isPro) {
       final activeCapsulesResponse = await _supabase

@@ -1,3 +1,4 @@
+import 'package:oasis/services/subscription_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 
@@ -59,8 +60,7 @@ class CreatorAnalyticsService {
     int days = 30,
   }) async {
     try {
-      final user = _supabase.auth.currentUser;
-      final isPro = user?.userMetadata?['is_pro'] == true;
+      final isPro = SubscriptionService().isPro;
       final effectiveDays = isPro ? days : (days > 7 ? 7 : days);
       final startDate = DateTime.now().subtract(Duration(days: effectiveDays));
 
@@ -88,8 +88,7 @@ class CreatorAnalyticsService {
     int days = 30,
   }) async {
     try {
-      final user = _supabase.auth.currentUser;
-      final isPro = user?.userMetadata?['is_pro'] == true;
+      final isPro = SubscriptionService().isPro;
       final effectiveDays = isPro ? days : (days > 7 ? 7 : days);
       final startDate = DateTime.now().subtract(Duration(days: effectiveDays));
 
@@ -136,8 +135,7 @@ class CreatorAnalyticsService {
 
   /// Get best posting times based on engagement
   Future<Map<String, double>> getBestPostingTimes(String userId) async {
-    final user = _supabase.auth.currentUser;
-    final isPro = user?.userMetadata?['is_pro'] == true;
+    final isPro = SubscriptionService().isPro;
     if (!isPro) {
       throw Exception(
         'Upgrade to Oasis Pro to access personalized best posting times heatmap.',
@@ -179,8 +177,7 @@ class CreatorAnalyticsService {
 
   /// Get audience demographics (simplified)
   Future<AudienceDemographics> getAudienceDemographics(String userId) async {
-    final user = _supabase.auth.currentUser;
-    final isPro = user?.userMetadata?['is_pro'] == true;
+    final isPro = SubscriptionService().isPro;
     if (!isPro) {
       throw Exception('Upgrade to Oasis Pro to access audience demographics.');
     }
@@ -226,8 +223,7 @@ class CreatorAnalyticsService {
   Future<Map<String, ContentTypeStats>> getContentTypeStats(
     String userId,
   ) async {
-    final user = _supabase.auth.currentUser;
-    final isPro = user?.userMetadata?['is_pro'] == true;
+    final isPro = SubscriptionService().isPro;
     if (!isPro) {
       throw Exception(
         'Upgrade to Oasis Pro to access content-type performance breakdown.',

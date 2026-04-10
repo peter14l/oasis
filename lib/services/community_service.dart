@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:oasis/core/config/supabase_config.dart';
 import 'package:oasis/models/community.dart';
+import 'package:oasis/services/subscription_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:uuid/uuid.dart';
 
@@ -91,8 +92,7 @@ class CommunityService {
     bool isPrivate = false,
   }) async {
     try {
-      final user = _supabase.auth.currentUser;
-      final isPro = user?.userMetadata?['is_pro'] == true;
+      final isPro = SubscriptionService().isPro;
       if (!isPro) {
         final createdCommunities = await _supabase
             .from(SupabaseConfig.communitiesTable)
@@ -147,8 +147,7 @@ class CommunityService {
     required String communityId,
   }) async {
     try {
-      final user = _supabase.auth.currentUser;
-      final isPro = user?.userMetadata?['is_pro'] == true;
+      final isPro = SubscriptionService().isPro;
       if (!isPro) {
         final userCommunities = await getUserCommunities(userId: userId);
         if (userCommunities.length >= 5) {

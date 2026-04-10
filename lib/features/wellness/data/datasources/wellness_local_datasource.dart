@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/services/subscription_service.dart';
 import '../../domain/models/energy_meter_entity.dart';
 import '../../domain/models/wellness_entity.dart';
 
@@ -180,8 +181,7 @@ class WellnessLocalDatasource {
 
   // XP methods
   bool _isUserPro() {
-    final user = SupabaseService().client.auth.currentUser;
-    return user?.userMetadata?['is_pro'] == true;
+    return SubscriptionService().isPro;
   }
 
   bool get isUserPro => _isUserPro();

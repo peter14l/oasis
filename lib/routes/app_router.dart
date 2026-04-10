@@ -72,9 +72,9 @@ import '../screens/oasis_pro_screen.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 
-import 'package:oasis/features/settings/presentation/screens/wellness_stats_screen.dart';
-
-import 'package:oasis/features/auth/presentation/widgets/account_switcher_sheet.dart';
+import 'package:oasis/features/wellness/presentation/screens/wellness_center_screen.dart';
+import 'package:oasis/features/wellness/presentation/screens/zen_breath_screen.dart';
+import 'package:oasis/features/settings/presentation/screens/changelog_screen.dart';
 
 class UnreadMessagesBadge extends StatelessWidget {
   final Widget child;
@@ -1271,6 +1271,46 @@ class AppRouter {
               (context, state) => MaterialPage(
                 key: state.pageKey,
                 child: const AboutAppScreen(),
+              ),
+          routes: [
+            GoRoute(
+              path: 'privacy-policy',
+              name: 'privacy_policy_sub',
+              pageBuilder:
+                  (context, state) => MaterialPage(
+                    key: state.pageKey,
+                    child: const PrivacyPolicyScreen(),
+                  ),
+            ),
+            GoRoute(
+              path: 'terms-of-service',
+              name: 'terms_of_service_sub',
+              pageBuilder:
+                  (context, state) => MaterialPage(
+                    key: state.pageKey,
+                    child: const TermsOfServiceScreen(),
+                  ),
+            ),
+            GoRoute(
+              path: 'changelog',
+              name: 'changelog',
+              pageBuilder:
+                  (context, state) => MaterialPage(
+                    key: state.pageKey,
+                    child: const ChangelogScreen(),
+                  ),
+            ),
+          ],
+        ),
+
+        // Zen Breath Screen
+        GoRoute(
+          path: '/zen-breath',
+          name: 'zen_breath',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const ZenBreathScreen(),
               ),
         ),
 

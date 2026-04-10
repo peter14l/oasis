@@ -106,10 +106,8 @@ class AboutAppScreen extends StatelessWidget {
                         _buildInfoTile(
                           context,
                           icon: Icons.history_rounded,
-                          title: 'What\'s New',
-                          onTap: () {
-                             // This could open a changelog dialog or screen
-                          },
+                          title: 'Changelog',
+                          onTap: () => context.push(RoutePaths.changelog),
                         ),
                       ],
                     ),

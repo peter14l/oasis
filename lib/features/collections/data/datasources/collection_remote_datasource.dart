@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:oasis/services/subscription_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/features/collections/domain/models/collection_entity.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
@@ -34,8 +35,7 @@ class CollectionRemoteDatasource {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) throw const AuthenticationException('Not authenticated');
 
-    final user = _supabase.auth.currentUser;
-    final isPro = user?.userMetadata?['is_pro'] == true;
+    final isPro = SubscriptionService().isPro;
     if (!isPro) {
       final collections = await getUserCollections();
       if (collections.length >= 3) {
@@ -86,8 +86,7 @@ class CollectionRemoteDatasource {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) throw const AuthenticationException('Not authenticated');
 
-    final user = _supabase.auth.currentUser;
-    final isPro = user?.userMetadata?['is_pro'] == true;
+    final isPro = SubscriptionService().isPro;
     if (!isPro) {
       final items = await getCollectionItems(collectionId);
       if (items.length >= 50) {

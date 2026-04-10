@@ -31,6 +31,7 @@ serve(async (req) => {
       .delete()
       .lt('expires_at', new Date().toISOString())
       .not('expires_at', 'is', null)
+      .select()
 
     if (error) {
       console.error('Error deleting expired messages:', error)
