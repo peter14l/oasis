@@ -75,6 +75,8 @@ import 'package:flutter_animate/flutter_animate.dart' as motion;
 import 'package:oasis/features/wellness/presentation/screens/wellness_center_screen.dart';
 import 'package:oasis/features/wellness/presentation/screens/zen_breath_screen.dart';
 import 'package:oasis/features/settings/presentation/screens/changelog_screen.dart';
+import 'package:oasis/features/auth/presentation/widgets/account_switcher_sheet.dart';
+import 'package:oasis/features/settings/presentation/screens/wellness_stats_screen.dart';
 
 class UnreadMessagesBadge extends StatelessWidget {
   final Widget child;

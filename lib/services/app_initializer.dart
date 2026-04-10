@@ -169,6 +169,7 @@ class InitializedServices {
     required this.wellnessService,
     required this.energyMeterService,
     required this.subscriptionService,
+    required this.iapService,
     required this.digitalWellbeingService,
     required this.vaultService,
   });
