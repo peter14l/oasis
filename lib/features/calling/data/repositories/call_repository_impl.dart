@@ -35,13 +35,14 @@ class CallRepositoryImpl implements CallRepository {
 
     final callId = response['id'] as String;
 
-    // Add participants
-    final participantsData = participantIds.map((id) => {
-      'call_id': callId,
-      'user_id': id,
-      'status': 'invited',
-      'created_at': now.toIso8601String(),
-    }).toList();
+    // Add participants (excluding host if present in participantIds)
+    final participantsData =
+        participantIds.where((id) => id != hostId).map((id) => {
+          'call_id': callId,
+          'user_id': id,
+          'status': 'invited',
+          'created_at': now.toIso8601String(),
+        }).toList();
 
     // Add host as joined
     participantsData.add({

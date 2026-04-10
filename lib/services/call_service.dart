@@ -174,7 +174,7 @@ class CallService extends ChangeNotifier {
       'user_id': user.id,
       'joined_at': DateTime.now().toIso8601String(),
       'status': 'joined',
-    });
+    }, onConflict: 'call_id,user_id');
 
     _stopRingtone();
     _subscribeToSignaling(call.id);
