@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
+import 'package:oasis/themes/app_colors.dart';
 
 class AppTheme {
   // Make constructor private to prevent instantiation
@@ -221,6 +222,9 @@ class AppTheme {
             color: colorScheme.error,
           ),
         ),
+        extensions: [
+          isDark ? AppThemeExtension.dark : AppThemeExtension.light,
+        ],
       );
     }
 
@@ -318,6 +322,9 @@ class AppTheme {
           );
         }),
       ),
+      extensions: [
+        isDark ? AppThemeExtension.dark : AppThemeExtension.light,
+      ],
     );
   }
 

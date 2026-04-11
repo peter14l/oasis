@@ -973,6 +973,43 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
+  /// Scroll to a specific message and highlight it briefly.
+  void scrollToMessage(String messageId) {
+    final index = _state.messages.indexWhere((m) => m.id == messageId);
+    if (index == -1) return;
+
+    // ListView is reversed, so index 0 is at the bottom (latest message).
+    // The message at messages[index] corresponds to ListView index:
+    // listIndex = messages.length - 1 - index
+    final listIndex = _state.messages.length - 1 - index;
+
+    if (scrollController != null && scrollController!.hasClients) {
+      // Basic approximation of item height. Since messages vary, this is a best-effort scroll.
+      // For more precision, ScrollablePositionedList would be needed.
+      double offset = listIndex * 120.0;
+      
+      if (offset > scrollController!.position.maxScrollExtent) {
+        offset = scrollController!.position.maxScrollExtent;
+      }
+
+      scrollController!.animateTo(
+        offset,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeOutCubic,
+      );
+
+      // Highlight the message
+      setState((s) => s.copyWith(highlightedMessageId: messageId));
+
+      // Remove highlight after 2 seconds
+      Future.delayed(const Duration(seconds: 2), () {
+        if (_state.highlightedMessageId == messageId) {
+          setState((s) => s.copyWith(highlightedMessageId: null));
+        }
+      });
+    }
+  }
+
   // =========================================================================
   // Lifecycle
   // =========================================================================

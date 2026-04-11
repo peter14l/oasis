@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/widgets/messages/forward_message_modal.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:oasis/widgets/moderation_dialogs.dart';
 
 /// Desktop context menu for message options.
 /// Extracted from the desktop branch of _showMessageOptions() in chat_screen.dart.
@@ -94,6 +95,27 @@ class MessageOptionsMenu extends StatelessWidget {
             ),
           ),
         const PopupMenuDivider(),
+        if (!isOwnMessage)
+          PopupMenuItem(
+            onTap: () {
+              ReportDialog.show(
+                context,
+                messageId: message.id,
+                userId: message.senderId,
+              );
+            },
+            child: Row(
+              children: [
+                Icon(
+                  FluentIcons.flag_24_regular,
+                  size: 20,
+                  color: colorScheme.error,
+                ),
+                const SizedBox(width: 12),
+                const Text('Report', style: TextStyle(color: Colors.red)),
+              ],
+            ),
+          ),
         if (isOwnMessage)
           PopupMenuItem(
             onTap: onUnsend,

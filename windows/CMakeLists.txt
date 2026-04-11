@@ -82,13 +82,9 @@ install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
 if(PLUGIN_BUNDLED_LIBRARIES)
-  foreach(library ${PLUGIN_BUNDLED_LIBRARIES})
-    if(NOT library MATCHES "\\.lib$")
-      install(FILES "${library}"
-        DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-        COMPONENT Runtime)
-    endif()
-  endforeach()
+  install(FILES "${PLUGIN_BUNDLED_LIBRARIES}"
+    DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+    COMPONENT Runtime)
 endif()
 
 # Copy the native assets provided by the build.dart from all packages.

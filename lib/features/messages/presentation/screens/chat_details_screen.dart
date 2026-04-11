@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/features/messages/data/messaging_service.dart';
 import 'package:oasis/services/vault_service.dart';
@@ -15,6 +16,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/features/messages/presentation/screens/shared_content_screen.dart';
+import 'package:oasis/widgets/moderation_dialogs.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String conversationId;
@@ -313,18 +315,20 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   }
 
   void _showSearchModal() {
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       useRootNavigator: true,
       builder:
-          (context) => SafeArea(
+          (modalContext) => SafeArea(
             child: StatefulBuilder(
-              builder: (context, setModalState) {
-                final theme = Theme.of(context);
+              builder: (statefulContext, setModalState) {
+                final theme = Theme.of(statefulContext);
                 return Container(
-                  height: MediaQuery.of(context).size.height * 0.8,
+                  height: MediaQuery.of(statefulContext).size.height * 0.8,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
                     borderRadius: const BorderRadius.vertical(
@@ -410,7 +414,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                                     horizontal: 16,
                                   ),
                                   itemCount: _searchResults.length,
-                                  itemBuilder: (context, index) {
+                                  itemBuilder: (listContext, index) {
                                     final msg = _searchResults[index];
                                     return ListTile(
                                       leading: const Icon(
@@ -428,7 +432,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                                         style: const TextStyle(fontSize: 11),
                                       ),
                                       onTap: () {
-                                        Navigator.pop(context);
+                                        chatProvider.scrollToMessage(msg.id);
+                                        Navigator.pop(modalContext); // Close bottom sheet
+                                        Navigator.pop(this.context); // Close ChatDetailsScreen
                                       },
                                     );
                                   },
@@ -444,12 +450,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   }
 
   String _formatTimestamp(DateTime timestamp) {
-    final now = DateTime.now();
-    final difference = now.difference(timestamp);
-    if (difference.inDays < 1) {
-      return '${timestamp.hour}:${timestamp.minute.toString().padLeft(2, "0")}';
-    }
-    return '${timestamp.day}/${timestamp.month}/${timestamp.year % 100}';
+    return DateFormat('E, d MMM').format(timestamp);
   }
 
   Future<void> _checkLockStatus() async {
@@ -946,6 +947,18 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                       titleColor: colorScheme.error,
                       iconColor: colorScheme.error,
                       onTap: _toggleBlock,
+                    ),
+                    _buildActionTile(
+                      icon: FluentIcons.flag_24_regular,
+                      title: 'Report ${widget.otherUserName}',
+                      titleColor: colorScheme.error,
+                      iconColor: colorScheme.error,
+                      onTap: () {
+                        ReportDialog.show(
+                          context,
+                          userId: widget.otherUserId,
+                        );
+                      },
                     ),
                   ],
                 ),

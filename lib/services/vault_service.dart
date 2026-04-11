@@ -21,14 +21,28 @@ class VaultService with ChangeNotifier {
   final Set<String> _vaultItemIds = {};
   final Map<String, String> _itemIntervals = {};
   final Map<String, Timer?> _lockTimers = {};
+  
+  Completer<void>? _initCompleter;
+  bool _isInitDone = false;
 
   VaultService() {
     init();
   }
 
+  Future<void> get isReady async {
+    if (_isInitDone) return;
+    return _initCompleter?.future;
+  }
+
   Future<void> init() async {
+    if (_initCompleter != null) return;
+    _initCompleter = Completer<void>();
+    
     await _loadIntervals();
     await _refreshVaultItemCache();
+    
+    _isInitDone = true;
+    _initCompleter!.complete();
   }
 
   Future<void> _refreshVaultItemCache() async {
@@ -151,16 +165,29 @@ class VaultService with ChangeNotifier {
     scheduleMicrotask(() => notifyListeners());
   }
 
+  /// Specialized lock for chat exit
+  void lockOnChatClose(String itemId) {
+    if (getLockInterval(itemId) == 'chat_close') {
+      lockItem(itemId);
+    }
+  }
+
   /// Lock items with a specific interval (e.g. 'app_close')
   void lockItemsWithInterval(String interval) {
+    // Collect IDs first to avoid concurrent modification if any listeners
+    // were to trigger state changes (though remove doesn't usually cause this)
     final itemsToLock =
-        _unlockedItemIds.where((id) => _itemIntervals[id] == interval).toList();
+        _unlockedItemIds.where((id) => getLockInterval(id) == interval).toList();
+    
     for (final id in itemsToLock) {
       _unlockedItemIds.remove(id);
       _lockTimers[id]?.cancel();
       _lockTimers[id] = null;
     }
-    scheduleMicrotask(() => notifyListeners());
+    
+    if (itemsToLock.isNotEmpty) {
+      scheduleMicrotask(() => notifyListeners());
+    }
   }
 
   /// Set lock interval for an item

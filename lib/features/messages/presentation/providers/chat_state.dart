@@ -40,6 +40,7 @@ class ChatState {
   final String? otherUserName;
   final String? otherUserId;
   final String? otherUserAvatar;
+  final String? highlightedMessageId;
 
   const ChatState({
     this.messages = const [],
@@ -73,6 +74,7 @@ class ChatState {
     this.otherUserName,
     this.otherUserId,
     this.otherUserAvatar,
+    this.highlightedMessageId,
   });
 
   ChatState copyWith({
@@ -107,6 +109,7 @@ class ChatState {
     String? otherUserName,
     String? otherUserId,
     String? otherUserAvatar,
+    String? highlightedMessageId,
   }) {
     return ChatState(
       messages: messages ?? this.messages,
@@ -141,6 +144,7 @@ class ChatState {
       otherUserName: otherUserName ?? this.otherUserName,
       otherUserId: otherUserId ?? this.otherUserId,
       otherUserAvatar: otherUserAvatar ?? this.otherUserAvatar,
+      highlightedMessageId: highlightedMessageId ?? this.highlightedMessageId,
     );
   }
 }

@@ -21,6 +21,7 @@ class ChatMessageList extends StatelessWidget {
     this.textColorReceived,
     this.scrollController,
     this.onReactionsTap,
+    this.highlightedMessageId,
   });
 
   final List<Message> messages;
@@ -35,6 +36,7 @@ class ChatMessageList extends StatelessWidget {
   final Color? textColorReceived;
   final ScrollController? scrollController;
   final VoidCallback? onReactionsTap;
+  final String? highlightedMessageId;
 
   @override
   Widget build(BuildContext context) {
@@ -60,12 +62,18 @@ class ChatMessageList extends StatelessWidget {
       itemBuilder: (context, index) {
         final message = messages[messages.length - 1 - index];
         final isMe = message.senderId == currentUserId;
-        return _buildMessageItem(context, message, isMe);
+        final isHighlighted = message.id == highlightedMessageId;
+        return _buildMessageItem(context, message, isMe, isHighlighted);
       },
     );
   }
 
-  Widget _buildMessageItem(BuildContext context, Message message, bool isMe) {
+  Widget _buildMessageItem(
+    BuildContext context,
+    Message message,
+    bool isMe,
+    bool isHighlighted,
+  ) {
     if (message.messageType == MessageType.system) {
       return SystemMessageBubble(content: message.content);
     }
@@ -82,6 +90,7 @@ class ChatMessageList extends StatelessWidget {
     return MessageBubble(
       message: message,
       isMe: isMe,
+      isHighlighted: isHighlighted,
       bubbleColorSent: bubbleColorSent,
       bubbleColorReceived: bubbleColorReceived,
       textColorSent: textColorSent,
@@ -159,6 +168,7 @@ class MessageBubble extends StatelessWidget {
     required this.isMe,
     required this.onLongPress,
     required this.onDoubleTap,
+    this.isHighlighted = false,
     this.bubbleColorSent,
     this.bubbleColorReceived,
     this.textColorSent,
@@ -170,6 +180,7 @@ class MessageBubble extends StatelessWidget {
   final bool isMe;
   final VoidCallback onLongPress;
   final VoidCallback onDoubleTap;
+  final bool isHighlighted;
   final Color? bubbleColorSent;
   final Color? bubbleColorReceived;
   final Color? textColorSent;
@@ -183,40 +194,57 @@ class MessageBubble extends StatelessWidget {
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
     final isSticker = message.messageType == MessageType.sticker;
 
-    final bubbleColor =
-        isMe
+    final bubbleColor = isHighlighted
+        ? colorScheme.primary
+        : isMe
             ? (bubbleColorSent ?? colorScheme.primary)
             : (bubbleColorReceived ?? colorScheme.surfaceContainerHighest);
-    final textColor =
-        isMe
+    final textColor = isHighlighted
+        ? colorScheme.onPrimary
+        : isMe
             ? (textColorSent ?? colorScheme.onPrimaryContainer)
             : (textColorReceived ?? colorScheme.onSurface);
 
     final Widget content = _buildContent(context, textColor);
 
-    final bubbleDecoration = isSticker
-        ? null
-        : BoxDecoration(
-          color: bubbleColor,
-          borderRadius: BorderRadius.circular(24).copyWith(
-            bottomRight: isMe ? const Radius.circular(8) : null,
-            bottomLeft: !isMe ? const Radius.circular(8) : null,
-          ),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.1),
-            width: 0.1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        );
+    final bubbleDecoration =
+        isSticker
+            ? null
+            : BoxDecoration(
+              color: bubbleColor,
+              borderRadius: BorderRadius.circular(24).copyWith(
+                bottomRight: isMe ? const Radius.circular(8) : null,
+                bottomLeft: !isMe ? const Radius.circular(8) : null,
+              ),
+              border: Border.all(
+                color:
+                    isHighlighted
+                        ? colorScheme.primaryContainer
+                        : Colors.white.withValues(alpha: 0.1),
+                width: isHighlighted ? 2.0 : 0.1,
+              ),
+              boxShadow: [
+                if (isHighlighted)
+                  BoxShadow(
+                    color: colorScheme.primary.withValues(alpha: 0.5),
+                    blurRadius: 15,
+                    spreadRadius: 4,
+                  )
+                else
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+              ],
+            );
 
-    final Widget bubble = Container(
-      padding: isSticker ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    final Widget bubble = AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding:
+          isSticker
+              ? EdgeInsets.zero
+              : const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: bubbleDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

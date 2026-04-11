@@ -604,13 +604,10 @@ class _StoryViewScreenState extends State<StoryViewScreen>
                     title: const Text('Report Story'),
                     onTap: () {
                       Navigator.pop(context);
-                      showDialog(
-                        context: context,
-                        builder:
-                            (context) => ReportDialog(
-                              postId: story.id, // Stories are treated like posts in moderation
-                              userId: story.userId,
-                            ),
+                      ReportDialog.show(
+                        context,
+                        postId: story.id, // Stories are treated like posts in moderation
+                        userId: story.userId,
                       );
                     },
                   ),

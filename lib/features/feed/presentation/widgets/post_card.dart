@@ -367,13 +367,10 @@ class _PostCardState extends State<PostCard>
   }
 
   void _showReportDialog() {
-    showDialog(
-      context: context,
-      builder:
-          (context) => ReportDialog(
-            postId: widget.post.id,
-            userId: widget.post.userId,
-          ),
+    ReportDialog.show(
+      context,
+      postId: widget.post.id,
+      userId: widget.post.userId,
     );
   }
 

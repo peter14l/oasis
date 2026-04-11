@@ -100,10 +100,7 @@ class CommunityGuidelinesScreen extends StatelessWidget {
                   context,
                   title: 'Report a Post',
                   onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => const ReportDialog(),
-                    );
+                    ReportDialog.show(context);
                   },
                 ),
                 const Divider(height: 1, color: Color(0xFF282E39)),
@@ -111,10 +108,7 @@ class CommunityGuidelinesScreen extends StatelessWidget {
                   context,
                   title: 'Report a User',
                   onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => const ReportDialog(),
-                    );
+                    ReportDialog.show(context);
                   },
                 ),
                 const Divider(height: 1, color: Color(0xFF282E39)),

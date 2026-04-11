@@ -291,16 +291,12 @@ class _CommentsModalState extends State<CommentsModal> {
                           titleColor: colorScheme.error,
                           onTap: () {
                             Navigator.pop(context);
-                            showDialog(
-                              context: context,
-                              builder:
-                                  (context) => ReportDialog(
-                                    commentId: comment.id,
-                                    userId: comment.userId,
-                                  ),
+                            ReportDialog.show(
+                              context,
+                              commentId: comment.id,
+                              userId: comment.userId,
                             );
-                          },
-                        ),
+                          },                        ),
                       ],
                       _buildOptionTile(
                         icon: FluentIcons.dismiss_24_regular,

@@ -133,13 +133,10 @@ class MessageOptionsSheet extends StatelessWidget {
                     isDestructive: true,
                     onTap: () {
                       Navigator.pop(context);
-                      showDialog(
-                        context: context,
-                        builder:
-                            (context) => ReportDialog(
-                              messageId: message.id,
-                              userId: message.senderId,
-                            ),
+                      ReportDialog.show(
+                        context,
+                        messageId: message.id,
+                        userId: message.senderId,
                       );
                     },
                   ),

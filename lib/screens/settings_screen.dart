@@ -29,6 +29,7 @@ import 'package:universal_io/io.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:oasis/features/profile/presentation/screens/account_management_screen.dart';
 import 'package:oasis/widgets/desktop_header.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oasis/core/config/app_config.dart';
@@ -252,7 +253,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             _buildSupportEmailNote(),
-            _buildProfileSection(context),
+            _buildSettingsGroup(context, [
+              _buildSettingsTile(
+                context,
+                icon: Icons.person_outline,
+                title: 'Account Details',
+                subtitle: 'Manage profile, subscription and account',
+                onTap: () => context.push('/settings/account'),
+              ),
+            ]),
             const SizedBox(height: 24),
             _buildSectionHeader(context, 'General'),
             _buildGeneralSection(context, index: 0),
@@ -458,7 +467,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildSelectedCategoryContent(BuildContext context) {
     switch (_selectedCategory) {
       case SettingsCategory.account:
-        return _buildProfileSection(context);
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.account_circle_outlined,
+                size: 64,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Account Management',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Manage your profile, subscription, and account security in a dedicated view.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                onPressed: () => context.push('/settings/account'),
+                icon: const Icon(Icons.open_in_new),
+                label: const Text('Open Account Details'),
+              ),
+            ],
+          ),
+        );
       case SettingsCategory.general:
         return _buildGeneralSection(context, index: 0);
       case SettingsCategory.privacy:
@@ -472,423 +508,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       case SettingsCategory.support:
         return _buildSupportSection(context, index: 5);
     }
-  }
-
-  Widget _buildProfileSection(BuildContext context) {
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final profileProvider = Provider.of<ProfileProvider>(context);
-    final profile = profileProvider.currentProfile;
-    final user = authService.currentUser;
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isM3E = themeProvider.isM3EEnabled;
-
-    if (user == null) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (profileProvider.isLoading && profile == null)
-          const Center(child: CircularProgressIndicator())
-        else if (profile != null)
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient:
-                  isM3E
-                      ? LinearGradient(
-                        colors: [
-                          colorScheme.primaryContainer,
-                          colorScheme.tertiaryContainer,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                      : LinearGradient(
-                        colors: [
-                          colorScheme.primaryContainer,
-                          colorScheme.secondaryContainer,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-              borderRadius: BorderRadius.circular(isM3E ? 32 : 20),
-              border:
-                  isM3E
-                      ? Border.all(
-                        color: colorScheme.outlineVariant.withValues(
-                          alpha: 0.3,
-                        ),
-                        width: 1,
-                      )
-                      : null,
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: isM3E ? const EdgeInsets.all(3) : EdgeInsets.zero,
-                      decoration:
-                          isM3E
-                              ? BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: colorScheme.onPrimaryContainer,
-                                  width: 2,
-                                ),
-                              )
-                              : null,
-                      child: CircleAvatar(
-                        radius: 40,
-                        backgroundImage:
-                            profile.avatarUrl != null
-                                ? CachedNetworkImageProvider(profile.avatarUrl!)
-                                : null,
-                        child:
-                            profile.avatarUrl == null
-                                ? Text(
-                                  profile.username
-                                      .substring(0, 1)
-                                      .toUpperCase(),
-                                  style: theme.textTheme.headlineMedium
-                                      ?.copyWith(
-                                        fontWeight:
-                                            isM3E ? FontWeight.w600 : null,
-                                      ),
-                                )
-                                : null,
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  profile.username,
-                                  style: theme.textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.onPrimaryContainer,
-                                  ),
-                                ),
-                              ),
-                              if (profile.isPro)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.amber,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Text(
-                                    'PRO',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          if (profile.fullName != null)
-                            Text(
-                              profile.fullName!,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onPrimaryContainer
-                                    .withValues(alpha: 0.8),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.edit_outlined),
-                      color: colorScheme.onPrimaryContainer,
-                      onPressed:
-                          () => _navigateToSubPage(
-                            'Edit Profile',
-                            const EditProfileScreen(),
-                          ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: colorScheme.onPrimaryContainer.withValues(
-                      alpha: 0.15,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildStatItem(
-                        context,
-                        '${profile.postsCount}',
-                        'Posts',
-                        colorScheme.onPrimaryContainer,
-                      ),
-                      _buildDivider(colorScheme.onPrimaryContainer),
-                      _buildStatItem(
-                        context,
-                        '${profile.followersCount}',
-                        'Followers',
-                        colorScheme.onPrimaryContainer,
-                      ),
-                      _buildDivider(colorScheme.onPrimaryContainer),
-                      _buildStatItem(
-                        context,
-                        '${profile.followingCount}',
-                        'Following',
-                        colorScheme.onPrimaryContainer,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        const SizedBox(height: 24),
-        profile?.isPro == true ? _buildProMemberTile(context) : _buildPremiumTile(context),
-        const SizedBox(height: 24),
-        _buildDangerZone(context),
-      ],
-    );
-  }
-
-  Widget _buildDangerZone(BuildContext context) {
-    final theme = Theme.of(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isM3E = themeProvider.isM3EEnabled;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(isM3E ? 28 : 16),
-        border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
-      ),
-      child: ListTile(
-        leading: const Icon(Icons.delete_forever_outlined, color: Colors.red),
-        title: const Text(
-          'Delete Account',
-          style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-        ),
-        subtitle: const Text('Permanently remove your account and data'),
-        trailing: const Icon(Icons.chevron_right, color: Colors.red),
-        onTap: () => context.push('/settings/delete-account'),
-      ),
-    );
-  }
-
-  Future<void> _handleCancelSubscription() async {
-    final theme = Theme.of(context);
-    
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel Subscription?'),
-        content: const Text(
-          'Your Pro features will remain active until the end of your current billing period. Automatic renewal will be disabled.'
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Keep Pro'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Cancel Subscription'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      if (!mounted) return;
-      
-      // Show loading
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Processing cancellation...')),
-      );
-
-      try {
-        final supabase = SupabaseService().client;
-        final response = await supabase.functions.invoke('razorpay-cancel-subscription');
-        
-        if (response.status != 200) {
-          throw Exception(response.data['error'] ?? 'Failed to cancel subscription');
-        }
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Subscription cancelled. Auto-renewal disabled.'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-          
-          // Refresh profile to update UI if needed
-          final authService = Provider.of<AuthService>(context, listen: false);
-          if (authService.currentUser != null) {
-            Provider.of<ProfileProvider>(context, listen: false)
-                .loadCurrentProfile(authService.currentUser!.id);
-          }
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    }
-  }
-
-  Widget _buildProMemberTile(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isM3E = themeProvider.isM3EEnabled;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(isM3E ? 28 : 16),
-        border: Border.all(
-          color: colorScheme.primary.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: colorScheme.primary,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.stars_rounded,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Pro Member',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                    fontSize: 16,
-                  ),
-                ),
-                Text(
-                  'Thank you for upgrading to Oasis Pro. You are a Pro member now.',
-                  style: TextStyle(
-                    color: colorScheme.onSurfaceVariant,
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: () => launchUrl(Uri.parse(AppConfig.getWebUrl('/profile'))),
-                      icon: const Icon(Icons.manage_accounts_rounded, size: 18),
-                      label: const Text('Web Profile'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: colorScheme.primary,
-                        side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ),
-                    TextButton.icon(
-                      onPressed: _handleCancelSubscription,
-                      icon: const Icon(Icons.cancel_outlined, size: 18),
-                      label: const Text('Cancel Subscription'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-
-  Widget _buildPremiumTile(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isM3E = themeProvider.isM3EEnabled;
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors:
-              isM3E
-                  ? [Colors.amber.shade600, Colors.deepOrange.shade700]
-                  : [Colors.amber.shade700, Colors.orange.shade900],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(isM3E ? 28 : 16),
-        border:
-            isM3E
-                ? Border.all(
-                  color: Colors.amber.withValues(alpha: 0.3),
-                  width: 1,
-                )
-                : null,
-      ),
-      child: ListTile(
-        leading: const Icon(
-          Icons.workspace_premium,
-          color: Colors.white,
-          size: 32,
-        ),
-        title: const Text(
-          'Oasis Pro',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        subtitle: const Text(
-          'Unlock premium features & go ad-free',
-          style: TextStyle(color: Colors.white70),
-        ),
-        trailing: const Icon(
-          Icons.arrow_forward_ios,
-          color: Colors.white,
-          size: 16,
-        ),
-        onTap:
-            () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (context) => const OasisProScreen())),
-      ),
-    );
   }
 
   Widget _buildGeneralSection(BuildContext context, {int index = 0}) {

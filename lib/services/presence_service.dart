@@ -61,37 +61,29 @@ class PresenceService {
   // Update current user's presence
   Future<void> updateUserPresence(String userId, String status) async {
     final channelName = 'user_presence:$userId';
-
     RealtimeChannel channel;
+
     if (_presenceChannels.containsKey(channelName)) {
       channel = _presenceChannels[channelName]!;
-      try {
-        await channel.track({
-          'status': status,
-          'last_seen': DateTime.now().toIso8601String(),
-        });
-      } catch (e) {
-        debugPrint(
-          'PresenceService: Failed to track presence - ${e.toString()}',
-        );
-      }
-      return;
+    } else {
+      channel = _supabase.channel(channelName);
+      _presenceChannels[channelName] = channel;
+      // We must subscribe before we can track
+      // Not awaiting this because it can take a while and we want the app to be responsive
+      channel.subscribe();
     }
-
-    channel = _supabase.channel(channelName);
-    _presenceChannels[channelName] = channel;
-
-    channel.subscribe((subscribeStatus, [error]) async {
-      if (subscribeStatus == RealtimeSubscribeStatus.channelError) {
-        debugPrint('PresenceService: updateUserPresence error: $error');
-      }
-      if (subscribeStatus == RealtimeSubscribeStatus.subscribed) {
-        await channel.track({
-          'status': status,
-          'last_seen': DateTime.now().toIso8601String(),
-        });
-      }
-    });
+    
+    try {
+      // The presence update will be queued by the channel and sent once the channel is subscribed
+      await channel.track({
+        'status': status,
+        'last_seen': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      debugPrint(
+        'PresenceService: Failed to track presence - ${e.toString()}',
+      );
+    }
   }
 
   void unsubscribeFromPresence(String userId) {

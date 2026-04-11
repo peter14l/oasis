@@ -976,6 +976,10 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
 
   void _handleConversationTap(Conversation conversation, bool isDesktop) async {
     final vaultService = Provider.of<VaultService>(context, listen: false);
+    
+    // Ensure vault service is initialized
+    await vaultService.isReady;
+
     if (vaultService.isInVaultSync(conversation.id) &&
         !vaultService.isItemUnlocked(conversation.id)) {
       final authorized = await vaultService.authenticate(
@@ -999,7 +1003,8 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
       }
     } else {
       if (mounted) {
-        context.push(
+        // Await the push so that we can handle state changes upon return
+        await context.push(
           '/messages/${conversation.id}',
           extra: {
             'otherUserName': conversation.otherUserName,
@@ -1007,6 +1012,8 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
             'otherUserId': conversation.otherUserId,
           },
         );
+        // Refresh UI state when returning from chat
+        if (mounted) setState(() {});
       }
     }
   }

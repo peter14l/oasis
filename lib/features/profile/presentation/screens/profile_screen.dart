@@ -1137,12 +1137,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                               ),
                               onTap: () {
                                 Navigator.pop(context);
-                                showDialog(
-                                  context: context,
-                                  builder:
-                                      (context) => ReportDialog(
-                                        userId: profile.id,
-                                      ),
+                                ReportDialog.show(
+                                  context,
+                                  userId: widget.userId,
                                 );
                               },
                             ),

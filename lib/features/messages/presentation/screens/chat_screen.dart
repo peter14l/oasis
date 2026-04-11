@@ -232,9 +232,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     typingProvider.unsubscribeFromTypingStatus(convId);
 
     // Lock chat if interval is set to On Chat Close
-    if (_vaultService.getLockInterval(widget.conversationId) == 'chat_close') {
-      _vaultService.lockItem(widget.conversationId);
-    }
+    _vaultService.lockOnChatClose(widget.conversationId);
 
     _chatProvider.dispose();
     _encryptionProvider.dispose();
@@ -645,6 +643,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                             textColorSent: state.textColorSent,
                             textColorReceived: state.textColorReceived,
                             scrollController: _scrollController,
+                            highlightedMessageId: state.highlightedMessageId,
                           ),
                         ),
 

@@ -285,13 +285,10 @@ class _CommentsScreenState extends State<CommentsScreen> {
   }
 
   void _showReportDialog(Comment comment) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => ReportDialog(
-            commentId: comment.id,
-            userId: comment.userId,
-          ),
+    ReportDialog.show(
+      context,
+      commentId: comment.id,
+      userId: comment.userId,
     );
   }
 
