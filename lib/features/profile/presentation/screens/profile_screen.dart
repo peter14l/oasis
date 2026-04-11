@@ -14,6 +14,7 @@ import 'package:oasis/features/auth/presentation/widgets/account_switcher_sheet.
 import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/widgets/desktop_header.dart';
+import 'package:oasis/widgets/moderation_dialogs.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userId;
@@ -1110,6 +1111,46 @@ class _ProfileScreenState extends State<ProfileScreen>
             child: IconButton(
               icon: const Icon(Icons.more_vert_rounded),
               onPressed: () => context.push('/settings'),
+            ),
+          ),
+        if (!isDesktop && !isOwnProfile)
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: IconButton(
+              icon: const Icon(Icons.more_vert_rounded),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder:
+                      (context) => SafeArea(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(
+                                Icons.flag_outlined,
+                                color: Colors.red,
+                              ),
+                              title: const Text(
+                                'Report Profile',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                              onTap: () {
+                                Navigator.pop(context);
+                                showDialog(
+                                  context: context,
+                                  builder:
+                                      (context) => ReportDialog(
+                                        userId: profile.id,
+                                      ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                );
+              },
             ),
           ),
       ],

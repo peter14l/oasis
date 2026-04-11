@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oasis/widgets/moderation_dialogs.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CommunityGuidelinesScreen extends StatelessWidget {
   final String name;
@@ -98,7 +100,10 @@ class CommunityGuidelinesScreen extends StatelessWidget {
                   context,
                   title: 'Report a Post',
                   onTap: () {
-                    // Handle report post
+                    showDialog(
+                      context: context,
+                      builder: (context) => const ReportDialog(),
+                    );
                   },
                 ),
                 const Divider(height: 1, color: Color(0xFF282E39)),
@@ -106,15 +111,25 @@ class CommunityGuidelinesScreen extends StatelessWidget {
                   context,
                   title: 'Report a User',
                   onTap: () {
-                    // Handle report user
+                    showDialog(
+                      context: context,
+                      builder: (context) => const ReportDialog(),
+                    );
                   },
                 ),
                 const Divider(height: 1, color: Color(0xFF282E39)),
                 _buildMenuItem(
                   context,
                   title: 'Contact Support',
-                  onTap: () {
-                    // Handle contact support
+                  onTap: () async {
+                    final Uri emailUri = Uri(
+                      scheme: 'mailto',
+                      path: 'oasis.officialsupport@outlook.com',
+                      query: 'subject=Community Support Request',
+                    );
+                    if (await canLaunchUrl(emailUri)) {
+                      await launchUrl(emailUri);
+                    }
                   },
                 ),
                 const SizedBox(height: 32),

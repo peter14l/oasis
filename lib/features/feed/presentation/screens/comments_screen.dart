@@ -11,6 +11,8 @@ import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'package:oasis/widgets/moderation_dialogs.dart';
+
 class CommentsScreen extends StatefulWidget {
   final String postId;
 
@@ -286,59 +288,10 @@ class _CommentsScreenState extends State<CommentsScreen> {
     showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
-            title: const Text('Report Comment'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Why are you reporting this comment?'),
-                const SizedBox(height: 16),
-                ListTile(
-                  title: const Text('Spam'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _submitReport('spam');
-                  },
-                ),
-                ListTile(
-                  title: const Text('Inappropriate content'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _submitReport('inappropriate');
-                  },
-                ),
-                ListTile(
-                  title: const Text('Harassment'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _submitReport('harassment');
-                  },
-                ),
-                ListTile(
-                  title: const Text('Other'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _submitReport('other');
-                  },
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-            ],
+          (context) => ReportDialog(
+            commentId: comment.id,
+            userId: comment.userId,
           ),
-    );
-  }
-
-  void _submitReport(String reason) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Thank you for your report. We will review it shortly.'),
-      ),
     );
   }
 

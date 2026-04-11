@@ -197,7 +197,7 @@ You may not copy, modify, or distribute our app or branding without permission.'
                     '14. Contact Information',
                     '''For questions about these terms:
 
-• Email: legal@Oasispp
+• Email: oasis.officialsupport@outlook.com
 • In-app: Settings → Help & Support
 
 We welcome your feedback and questions.''',

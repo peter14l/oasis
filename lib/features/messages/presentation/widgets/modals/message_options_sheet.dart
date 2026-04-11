@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/widgets/messages/forward_message_modal.dart';
 import 'package:oasis/widgets/messages/message_reactions.dart';
+import 'package:oasis/widgets/moderation_dialogs.dart';
 
 /// Message reactions picker sheet.
 class MessageOptionsSheet extends StatelessWidget {
@@ -123,6 +124,23 @@ class MessageOptionsSheet extends StatelessWidget {
                     onTap: () {
                       Navigator.pop(context);
                       onUnsend();
+                    },
+                  ),
+                if (!isOwnMessage)
+                  _ModalAction(
+                    icon: Icons.flag_outlined,
+                    label: 'Report Message',
+                    isDestructive: true,
+                    onTap: () {
+                      Navigator.pop(context);
+                      showDialog(
+                        context: context,
+                        builder:
+                            (context) => ReportDialog(
+                              messageId: message.id,
+                              userId: message.senderId,
+                            ),
+                      );
                     },
                   ),
                 const SizedBox(height: 16),

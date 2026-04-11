@@ -14,6 +14,7 @@ class ModerationService {
     String? reportedUserId,
     String? postId,
     String? commentId,
+    String? messageId,
     required String category,
     required String reason,
     String? description,
@@ -31,6 +32,7 @@ class ModerationService {
           'reported_user': reportedUserId,
           'reported_post': postId,
           'reported_comment': commentId,
+          'reported_message': messageId,
           'report_description': description,
         },
       );

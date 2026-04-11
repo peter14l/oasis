@@ -11,6 +11,8 @@ import 'package:provider/provider.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:async';
 
+import 'package:oasis/widgets/moderation_dialogs.dart';
+
 class StoryViewScreen extends StatefulWidget {
   final String initialStoryId;
   final List<StoryEntity> stories;
@@ -602,7 +604,14 @@ class _StoryViewScreenState extends State<StoryViewScreen>
                     title: const Text('Report Story'),
                     onTap: () {
                       Navigator.pop(context);
-                      // Implement reporting
+                      showDialog(
+                        context: context,
+                        builder:
+                            (context) => ReportDialog(
+                              postId: story.id, // Stories are treated like posts in moderation
+                              userId: story.userId,
+                            ),
+                      );
                     },
                   ),
                 ListTile(

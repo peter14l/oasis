@@ -40,11 +40,11 @@ class HelpSupportScreen extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.email_outlined),
                 title: const Text('Email Support'),
-                subtitle: const Text('support@Oasisapp.com'),
+                subtitle: const Text('oasis.officialsupport@outlook.com'),
                 onTap: () async {
                   final Uri emailUri = Uri(
                     scheme: 'mailto',
-                    path: 'support@Oasisapp.com',
+                    path: 'oasis.officialsupport@outlook.com',
                   );
                   if (await canLaunchUrl(emailUri)) {
                     await launchUrl(emailUri);

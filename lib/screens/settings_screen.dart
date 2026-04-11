@@ -28,6 +28,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/widgets/desktop_header.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:oasis/core/config/app_config.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 import 'dart:ui';
 
 enum SettingsCategory {
@@ -246,6 +249,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            _buildSupportEmailNote(),
             _buildProfileSection(context),
             const SizedBox(height: 24),
             _buildSectionHeader(context, 'General'),
@@ -270,6 +274,81 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 32),
           ],
         ),
+      ),
+    );
+  }
+
+  bool _showSupportEmailNote = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadSupportEmailNoteState();
+  }
+
+  Future<void> _loadSupportEmailNoteState() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _showSupportEmailNote = !(prefs.getBool('support_email_note_dismissed') ?? false);
+      });
+    }
+  }
+
+  Future<void> _dismissSupportEmailNote() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('support_email_note_dismissed', true);
+    if (mounted) {
+      setState(() {
+        _showSupportEmailNote = false;
+      });
+    }
+  }
+
+  Widget _buildSupportEmailNote() {
+    if (!_showSupportEmailNote) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.secondary.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.info_outline, color: colorScheme.secondary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Important Note',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.secondary,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, size: 20),
+                onPressed: _dismissSupportEmailNote,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'All feedback, bugs, and reports will be sent to oasis.officialsupport@outlook.com. This is subject to change when our official domain is available.',
+            style: TextStyle(fontSize: 13),
+          ),
+        ],
       ),
     );
   }
@@ -579,7 +658,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         const SizedBox(height: 24),
         profile?.isPro == true ? _buildProMemberTile(context) : _buildPremiumTile(context),
+        const SizedBox(height: 24),
+        _buildDangerZone(context),
       ],
+    );
+  }
+
+  Widget _buildDangerZone(BuildContext context) {
+    final theme = Theme.of(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.red.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(isM3E ? 28 : 16),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+      ),
+      child: ListTile(
+        leading: const Icon(Icons.delete_forever_outlined, color: Colors.red),
+        title: const Text(
+          'Delete Account',
+          style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+        ),
+        subtitle: const Text('Permanently remove your account and data'),
+        trailing: const Icon(Icons.chevron_right, color: Colors.red),
+        onTap: () => context.push('/settings/delete-account'),
+      ),
     );
   }
 
@@ -1441,7 +1546,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final Uri emailLaunchUri = Uri(
       scheme: 'mailto',
-      path: 'support@Oasisapp.com',
+      path: 'oasis.officialsupport@outlook.com',
       query:
           'subject=${Uri.encodeComponent('${prefix}Oasis App Feedback: $label')}',
     );

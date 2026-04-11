@@ -4,6 +4,7 @@ class Report {
   final String? reportedUserId;
   final String? postId;
   final String? commentId;
+  final String? messageId;
   final String reason;
   final String category;
   final String? description;
@@ -14,6 +15,7 @@ class Report {
   final String? reportedUsername;
   final String? postContent;
   final String? commentContent;
+  final String? messageContent;
 
   Report({
     required this.id,
@@ -21,6 +23,7 @@ class Report {
     this.reportedUserId,
     this.postId,
     this.commentId,
+    this.messageId,
     required this.reason,
     required this.category,
     this.description,
@@ -29,6 +32,7 @@ class Report {
     this.reportedUsername,
     this.postContent,
     this.commentContent,
+    this.messageContent,
   });
 
   factory Report.fromJson(Map<String, dynamic> json) {
@@ -38,6 +42,7 @@ class Report {
       reportedUserId: json['reported_user_id'] as String?,
       postId: json['post_id'] as String?,
       commentId: json['comment_id'] as String?,
+      messageId: json['message_id'] as String?,
       reason: json['reason'] as String,
       category: json['category'] as String,
       description: json['description'] as String?,
@@ -46,6 +51,7 @@ class Report {
       reportedUsername: json['reported_user_username'] as String?,
       postContent: json['post_content'] as String?,
       commentContent: json['comment_content'] as String?,
+      messageContent: json['message_content'] as String?,
     );
   }
 
@@ -56,6 +62,7 @@ class Report {
       'reported_user_id': reportedUserId,
       'post_id': postId,
       'comment_id': commentId,
+      'message_id': messageId,
       'reason': reason,
       'category': category,
       'description': description,
@@ -188,15 +195,25 @@ class ReportCategory {
   static const String nudity = 'nudity';
   static const String misinformation = 'misinformation';
   static const String copyright = 'copyright';
+  static const String illegalGoods = 'illegal_goods';
+  static const String selfHarm = 'self_harm';
+  static const String impersonation = 'impersonation';
+  static const String scamFraud = 'scam_fraud';
+  static const String bullying = 'bullying';
   static const String other = 'other';
 
   static const List<String> all = [
     spam,
     harassment,
     hateSpeech,
+    bullying,
     violence,
+    selfHarm,
     nudity,
     misinformation,
+    impersonation,
+    scamFraud,
+    illegalGoods,
     copyright,
     other,
   ];
@@ -209,12 +226,22 @@ class ReportCategory {
         return 'Harassment';
       case hateSpeech:
         return 'Hate Speech';
+      case bullying:
+        return 'Bullying';
       case violence:
         return 'Violence';
+      case selfHarm:
+        return 'Self-Harm or Suicide';
       case nudity:
         return 'Nudity or Sexual Content';
       case misinformation:
         return 'False Information';
+      case impersonation:
+        return 'Impersonation';
+      case scamFraud:
+        return 'Scam or Fraud';
+      case illegalGoods:
+        return 'Illegal Goods';
       case copyright:
         return 'Copyright Violation';
       case other:

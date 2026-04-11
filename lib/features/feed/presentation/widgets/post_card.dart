@@ -13,6 +13,7 @@ import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/widgets/messages/share_to_dm_modal.dart';
 import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/widgets/moderation_dialogs.dart';
 
 class PostCard extends StatefulWidget {
   final Post post;
@@ -369,60 +370,10 @@ class _PostCardState extends State<PostCard>
     showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
-            title: const Text('Report Post'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Why are you reporting this post?'),
-                const SizedBox(height: 16),
-                ListTile(
-                  title: const Text('Spam'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _submitReport('spam');
-                  },
-                ),
-                ListTile(
-                  title: const Text('Inappropriate content'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _submitReport('inappropriate');
-                  },
-                ),
-                ListTile(
-                  title: const Text('Harassment'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _submitReport('harassment');
-                  },
-                ),
-                ListTile(
-                  title: const Text('Other'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _submitReport('other');
-                  },
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-            ],
+          (context) => ReportDialog(
+            postId: widget.post.id,
+            userId: widget.post.userId,
           ),
-    );
-  }
-
-  void _submitReport(String reason) {
-    // In a real app, this would send the report to your backend
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Thank you for your report. We will review it shortly.'),
-      ),
     );
   }
 

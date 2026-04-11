@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:oasis/services/moderation_service.dart';
 import 'package:oasis/models/moderation.dart';
+import 'package:oasis/themes/app_colors.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ReportDialog extends StatefulWidget {
   final String? userId;
   final String? postId;
   final String? commentId;
+  final String? messageId;
 
-  const ReportDialog({super.key, this.userId, this.postId, this.commentId});
+  const ReportDialog({
+    super.key,
+    this.userId,
+    this.postId,
+    this.commentId,
+    this.messageId,
+  });
 
   @override
   State<ReportDialog> createState() => _ReportDialogState();
@@ -30,23 +39,29 @@ class _ReportDialogState extends State<ReportDialog> {
     setState(() => _isSubmitting = true);
 
     try {
+      final categoryName = ReportCategory.getDisplayName(_selectedCategory);
+      final details = _descriptionController.text.trim();
+
       final reportId = await _moderationService.submitReport(
         reportedUserId: widget.userId,
         postId: widget.postId,
         commentId: widget.commentId,
+        messageId: widget.messageId,
         category: _selectedCategory,
-        reason: ReportCategory.getDisplayName(_selectedCategory),
-        description:
-            _descriptionController.text.trim().isEmpty
-                ? null
-                : _descriptionController.text.trim(),
+        reason: categoryName,
+        description: details.isEmpty ? null : details,
       );
 
       if (reportId != null && mounted) {
-        Navigator.of(context).pop(true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Report submitted successfully')),
-        );
+        // Launch email for support notification as requested
+        await _launchSupportEmail(categoryName, details);
+
+        if (mounted) {
+          Navigator.of(context).pop(true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Report submitted successfully')),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -61,8 +76,57 @@ class _ReportDialogState extends State<ReportDialog> {
     }
   }
 
+  Future<void> _launchSupportEmail(String category, String details) async {
+    final type =
+        widget.messageId != null
+            ? 'Message'
+            : widget.postId != null
+            ? 'Post'
+            : widget.commentId != null
+            ? 'Comment'
+            : 'User';
+
+    final id =
+        widget.messageId ??
+        widget.postId ??
+        widget.commentId ??
+        widget.userId ??
+        'N/A';
+
+    final body = '''
+New Report Submitted:
+--------------------
+Type: $type
+Target ID: $id
+Reported User ID: ${widget.userId ?? 'N/A'}
+Category: $category
+Details: ${details.isEmpty ? 'None provided' : details}
+
+This report was also submitted to our moderation system.
+''';
+
+    final Uri emailLaunchUri = Uri(
+      scheme: 'mailto',
+      path: 'oasis.officialsupport@outlook.com',
+      query:
+          'subject=${Uri.encodeComponent('New Report: $category ($type)')}&body=${Uri.encodeComponent(body)}',
+    );
+
+    try {
+      if (await canLaunchUrl(emailLaunchUri)) {
+        await launchUrl(emailLaunchUri);
+      }
+    } catch (e) {
+      debugPrint('Could not launch email client: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final appTheme = theme.extension<AppThemeExtension>()!;
+
     return AlertDialog(
       title: const Text('Report'),
       content: SingleChildScrollView(
@@ -75,33 +139,51 @@ class _ReportDialogState extends State<ReportDialog> {
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
-            RadioGroup<String>(
-              groupValue: _selectedCategory,
-              onChanged: (value) {
-                setState(() => _selectedCategory = value!);
-              },
-              child: Column(
-                children:
-                    ReportCategory.all.map((category) {
-                      return RadioListTile<String>(
-                        value: category,
-                        title: Text(ReportCategory.getDisplayName(category)),
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                      );
-                    }).toList(),
-              ),
-            ),
+            ...ReportCategory.all.map((category) {
+              return RadioListTile<String>(
+                value: category,
+                groupValue: _selectedCategory,
+                title: Text(ReportCategory.getDisplayName(category)),
+                onChanged: (value) {
+                  setState(() => _selectedCategory = value!);
+                },
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+              );
+            }),
             const SizedBox(height: 16),
             TextField(
               controller: _descriptionController,
               decoration: const InputDecoration(
-                labelText: 'Additional details (optional)',
-                hintText: 'Provide more context...',
+                labelText: 'Details',
+                hintText: 'Provide more context for our team...',
                 border: OutlineInputBorder(),
               ),
               maxLines: 3,
               maxLength: 500,
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: appTheme.info.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: appTheme.info.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 16, color: appTheme.info),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Note: Report details will be shared with Oasis Support via email for further review.',
+                      style: TextStyle(fontSize: 11),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

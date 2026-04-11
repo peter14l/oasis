@@ -11,6 +11,8 @@ import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:provider/provider.dart';
 
+import 'package:oasis/widgets/moderation_dialogs.dart';
+
 class CommentsModal extends StatefulWidget {
   final String postId;
   final bool isSidePane;
@@ -289,8 +291,13 @@ class _CommentsModalState extends State<CommentsModal> {
                           titleColor: colorScheme.error,
                           onTap: () {
                             Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Report submitted')),
+                            showDialog(
+                              context: context,
+                              builder:
+                                  (context) => ReportDialog(
+                                    commentId: comment.id,
+                                    userId: comment.userId,
+                                  ),
                             );
                           },
                         ),
