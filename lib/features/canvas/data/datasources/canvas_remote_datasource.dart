@@ -19,7 +19,7 @@ class CanvasRemoteDatasource {
     : _supabase = client ?? SupabaseService().client;
 
   /// Fetch all canvases the user is a member of.
-  Future<List<OasisCanvasEntity>> fetchUserCanvases(String userId) async {
+  Future<List<OasisCanvas>> fetchUserCanvases(String userId) async {
     try {
       final response = await _supabase
           .from('canvases')
@@ -35,7 +35,7 @@ class CanvasRemoteDatasource {
             [];
         canvasMap['member_ids'] =
             memberRows.map((m) => m['user_id'] as String).toList();
-        return OasisCanvasEntity.fromJson(canvasMap);
+        return OasisCanvas.fromJson(canvasMap);
       }).toList();
     } catch (e) {
       debugPrint('CanvasRemoteDatasource.fetchUserCanvases error: $e');
@@ -44,7 +44,7 @@ class CanvasRemoteDatasource {
   }
 
   /// Create a new canvas with optional initial members.
-  Future<OasisCanvasEntity> createCanvas({
+  Future<OasisCanvas> createCanvas({
     required String createdBy,
     required String title,
     required String coverColor,
@@ -62,7 +62,7 @@ class CanvasRemoteDatasource {
               .select()
               .single();
 
-      final canvas = OasisCanvasEntity.fromJson(canvasData);
+      final canvas = OasisCanvas.fromJson(canvasData);
 
       final List<Map<String, dynamic>> membersToInsert = [
         {'canvas_id': canvas.id, 'user_id': createdBy, 'role': 'owner'},
@@ -120,7 +120,7 @@ class CanvasRemoteDatasource {
   }
 
   /// Fetch a single canvas by ID
-  Future<OasisCanvasEntity> getCanvas(String canvasId) async {
+  Future<OasisCanvas> getCanvas(String canvasId) async {
     try {
       final response =
           await _supabase
@@ -137,7 +137,7 @@ class CanvasRemoteDatasource {
       canvasMap['member_ids'] =
           memberRows.map((m) => m['user_id'] as String).toList();
 
-      return OasisCanvasEntity.fromJson(canvasMap);
+      return OasisCanvas.fromJson(canvasMap);
     } catch (e) {
       debugPrint('CanvasRemoteDatasource.getCanvas error: $e');
       rethrow;
@@ -145,7 +145,7 @@ class CanvasRemoteDatasource {
   }
 
   /// Update canvas details.
-  Future<OasisCanvasEntity> updateCanvas({
+  Future<OasisCanvas> updateCanvas({
     required String canvasId,
     String? title,
     String? coverColor,
@@ -164,7 +164,7 @@ class CanvasRemoteDatasource {
               .select()
               .single();
 
-      return OasisCanvasEntity.fromJson(response);
+      return OasisCanvas.fromJson(response);
     } catch (e) {
       debugPrint('CanvasRemoteDatasource.updateCanvas error: $e');
       rethrow;
@@ -493,3 +493,4 @@ class CanvasRemoteDatasource {
     }
   }
 }
+

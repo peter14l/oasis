@@ -7,7 +7,8 @@ class OpenCapsule {
 
   OpenCapsule(this._repository);
 
-  Future<TimeCapsuleEntity> call(String capsuleId) {
+  Future<TimeCapsule> call(String capsuleId) {
     return _repository.openCapsule(capsuleId);
   }
 }
+

@@ -40,8 +40,8 @@ class CanvasProvider extends ChangeNotifier {
 
   // ─── Getters ──────────────────────────────────────────────────────────────────
   CanvasState get state => _state;
-  List<OasisCanvasEntity> get canvases => _state.canvases;
-  OasisCanvasEntity? get activeCanvas => _state.activeCanvas;
+  List<OasisCanvas> get canvases => _state.canvases;
+  OasisCanvas? get activeCanvas => _state.activeCanvas;
   List<CanvasItemEntity> get activeItems => _state.activeItems;
   bool get isLoading => _state.isLoading;
   String? get error => _state.error;
@@ -64,7 +64,7 @@ class CanvasProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<OasisCanvasEntity?> createCanvas({
+  Future<OasisCanvas?> createCanvas({
     required String createdBy,
     required String title,
     required String coverColor,
@@ -390,3 +390,4 @@ class CanvasProvider extends ChangeNotifier {
     super.dispose();
   }
 }
+

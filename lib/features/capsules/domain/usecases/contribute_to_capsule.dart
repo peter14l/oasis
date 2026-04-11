@@ -7,7 +7,7 @@ class ContributeToCapsule {
 
   ContributeToCapsule(this._repository);
 
-  Future<TimeCapsuleEntity> call({
+  Future<TimeCapsule> call({
     required String capsuleId,
     required String content,
     String? mediaUrl,
@@ -21,3 +21,4 @@ class ContributeToCapsule {
     );
   }
 }
+

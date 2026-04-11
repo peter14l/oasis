@@ -4,7 +4,7 @@ import 'package:oasis/features/capsules/domain/models/time_capsule_entity.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class CapsuleFeedItem extends StatelessWidget {
-  final TimeCapsuleEntity capsule;
+  final TimeCapsule capsule;
 
   const CapsuleFeedItem({super.key, required this.capsule});
 
@@ -166,3 +166,4 @@ class CapsuleFeedItem extends StatelessWidget {
     }
   }
 }
+

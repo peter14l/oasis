@@ -7,7 +7,7 @@ class GetCapsules {
 
   GetCapsules(this._repository);
 
-  Future<List<TimeCapsuleEntity>> call({
+  Future<List<TimeCapsule>> call({
     required String userId,
     int limit = 20,
     int offset = 0,
@@ -19,3 +19,4 @@ class GetCapsules {
     );
   }
 }
+

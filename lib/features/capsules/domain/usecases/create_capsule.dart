@@ -7,7 +7,7 @@ class CreateCapsule {
 
   CreateCapsule(this._repository);
 
-  Future<TimeCapsuleEntity> call({
+  Future<TimeCapsule> call({
     required String userId,
     required String content,
     required DateTime unlockDate,
@@ -23,3 +23,4 @@ class CreateCapsule {
     );
   }
 }
+

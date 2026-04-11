@@ -10,17 +10,17 @@ class CanvasRepositoryImpl implements CanvasRepository {
     : _remoteDatasource = remoteDatasource ?? CanvasRemoteDatasource();
 
   @override
-  Future<List<OasisCanvasEntity>> getCanvases(String userId) {
+  Future<List<OasisCanvas>> getCanvases(String userId) {
     return _remoteDatasource.fetchUserCanvases(userId);
   }
 
   @override
-  Future<OasisCanvasEntity> getCanvas(String canvasId) {
+  Future<OasisCanvas> getCanvas(String canvasId) {
     return _remoteDatasource.getCanvas(canvasId);
   }
 
   @override
-  Future<OasisCanvasEntity> createCanvas({
+  Future<OasisCanvas> createCanvas({
     required String createdBy,
     required String title,
     required String coverColor,
@@ -35,7 +35,7 @@ class CanvasRepositoryImpl implements CanvasRepository {
   }
 
   @override
-  Future<OasisCanvasEntity> updateCanvas({
+  Future<OasisCanvas> updateCanvas({
     required String canvasId,
     String? title,
     String? coverColor,
@@ -179,3 +179,4 @@ class CanvasRepositoryImpl implements CanvasRepository {
     return _remoteDatasource.sendPulse(canvasId, userId, intensity: intensity);
   }
 }
+

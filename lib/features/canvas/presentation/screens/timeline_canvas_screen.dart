@@ -239,7 +239,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     );
   }
 
-  Widget _buildMobileAppBar(OasisCanvasEntity? canvas, bool isOwner) {
+  Widget _buildMobileAppBar(OasisCanvas? canvas, bool isOwner) {
     return SliverAppBar(
       floating: true,
       backgroundColor: Colors.transparent,
@@ -281,7 +281,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
   }
 
   Widget _buildDesktopHeader(
-    OasisCanvasEntity? canvas,
+    OasisCanvas? canvas,
     CanvasProvider provider,
   ) {
     final theme = Theme.of(context);
@@ -416,7 +416,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     return cursors;
   }
 
-  void _showInviteSheet(OasisCanvasEntity? canvas) {
+  void _showInviteSheet(OasisCanvas? canvas) {
     if (canvas == null) return;
     showModalBottomSheet(
       context: context,
@@ -1510,3 +1510,4 @@ class _TimelineAddItemTrayState extends State<_TimelineAddItemTray> {
     );
   }
 }
+

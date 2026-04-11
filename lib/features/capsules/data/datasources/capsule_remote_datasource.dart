@@ -11,7 +11,7 @@ class CapsuleRemoteDatasource {
   final _uuid = const Uuid();
 
   /// Get all capsules for a user
-  Future<List<TimeCapsuleEntity>> getCapsules({
+  Future<List<TimeCapsule>> getCapsules({
     required String userId,
     int limit = 20,
     int offset = 0,
@@ -44,7 +44,7 @@ class CapsuleRemoteDatasource {
         final unlockDate = DateTime.parse(mergedData['unlock_date']);
         mergedData['is_locked'] = DateTime.now().isBefore(unlockDate);
         
-        return TimeCapsuleEntity.fromJson(mergedData);
+        return TimeCapsule.fromJson(mergedData);
       }).toList();
     } catch (e) {
       debugPrint('Error getting capsules: $e');
@@ -53,7 +53,7 @@ class CapsuleRemoteDatasource {
   }
 
   /// Get a single capsule by ID
-  Future<TimeCapsuleEntity?> getCapsuleById(String capsuleId) async {
+  Future<TimeCapsule?> getCapsuleById(String capsuleId) async {
     try {
       final response = await _supabase
           .from(SupabaseConfig.timeCapsulesTable)
@@ -79,7 +79,7 @@ class CapsuleRemoteDatasource {
       final unlockDate = DateTime.parse(mergedData['unlock_date']);
       mergedData['is_locked'] = DateTime.now().isBefore(unlockDate);
 
-      return TimeCapsuleEntity.fromJson(mergedData);
+      return TimeCapsule.fromJson(mergedData);
     } catch (e) {
       debugPrint('Error getting capsule: $e');
       rethrow;
@@ -87,7 +87,7 @@ class CapsuleRemoteDatasource {
   }
 
   /// Create a new time capsule
-  Future<TimeCapsuleEntity> createCapsule({
+  Future<TimeCapsule> createCapsule({
     required String userId,
     required String content,
     required DateTime unlockDate,
@@ -148,7 +148,7 @@ class CapsuleRemoteDatasource {
       final actualUnlockDate = DateTime.parse(mergedData['unlock_date']);
       mergedData['is_locked'] = DateTime.now().isBefore(actualUnlockDate);
 
-      return TimeCapsuleEntity.fromJson(mergedData);
+      return TimeCapsule.fromJson(mergedData);
     } catch (e) {
       debugPrint('Error creating time capsule: $e');
       rethrow;
@@ -156,7 +156,7 @@ class CapsuleRemoteDatasource {
   }
 
   /// Open/unlock a capsule
-  Future<TimeCapsuleEntity> openCapsule(String capsuleId) async {
+  Future<TimeCapsule> openCapsule(String capsuleId) async {
     final capsule = await getCapsuleById(capsuleId);
     if (capsule == null) throw Exception('Capsule not found');
     
@@ -173,7 +173,7 @@ class CapsuleRemoteDatasource {
   }
 
   /// Contribute to an existing capsule
-  Future<TimeCapsuleEntity> contributeToCapsule({
+  Future<TimeCapsule> contributeToCapsule({
     required String capsuleId,
     required String content,
     String? mediaUrl,
@@ -195,3 +195,4 @@ class CapsuleRemoteDatasource {
     }
   }
 }
+

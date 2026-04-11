@@ -7,7 +7,7 @@ class UpdateCanvas {
 
   UpdateCanvas(this._repository);
 
-  Future<OasisCanvasEntity> call({
+  Future<OasisCanvas> call({
     required String canvasId,
     String? title,
     String? coverColor,
@@ -19,3 +19,4 @@ class UpdateCanvas {
     );
   }
 }
+

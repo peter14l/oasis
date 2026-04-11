@@ -7,7 +7,8 @@ class GetCanvases {
 
   GetCanvases(this._repository);
 
-  Future<List<OasisCanvasEntity>> call(String userId) {
+  Future<List<OasisCanvas>> call(String userId) {
     return _repository.getCanvases(userId);
   }
 }
+

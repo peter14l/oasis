@@ -6,7 +6,7 @@ import 'package:oasis/services/app_initializer.dart'; // For ThemeProvider
 import 'package:provider/provider.dart';
 
 class CanvasListTile extends StatelessWidget {
-  final OasisCanvasEntity canvas;
+  final OasisCanvas canvas;
   final VoidCallback onTap;
 
   const CanvasListTile({super.key, required this.canvas, required this.onTap});
@@ -94,3 +94,4 @@ class CanvasListTile extends StatelessWidget {
     );
   }
 }
+

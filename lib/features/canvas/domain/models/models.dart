@@ -1,7 +1,7 @@
 export 'canvas_models.dart';
 
 /// Canvas entity representing a collaborative canvas space.
-class OasisCanvasEntity {
+class OasisCanvas {
   final String id;
   final String title;
   final String createdBy;
@@ -10,7 +10,7 @@ class OasisCanvasEntity {
   final String coverColor; // hex string, e.g. '#3B82F6'
   final List<String> memberIds;
 
-  const OasisCanvasEntity({
+  const OasisCanvas({
     required this.id,
     required this.title,
     required this.createdBy,
@@ -20,8 +20,8 @@ class OasisCanvasEntity {
     required this.memberIds,
   });
 
-  factory OasisCanvasEntity.fromJson(Map<String, dynamic> json) {
-    return OasisCanvasEntity(
+  factory OasisCanvas.fromJson(Map<String, dynamic> json) {
+    return OasisCanvas(
       id: json['id'] as String,
       title: json['title'] as String? ?? 'Our Canvas',
       createdBy: json['created_by'] as String,
@@ -48,7 +48,7 @@ class OasisCanvasEntity {
     };
   }
 
-  OasisCanvasEntity copyWith({
+  OasisCanvas copyWith({
     String? id,
     String? title,
     String? createdBy,
@@ -57,7 +57,7 @@ class OasisCanvasEntity {
     String? coverColor,
     List<String>? memberIds,
   }) {
-    return OasisCanvasEntity(
+    return OasisCanvas(
       id: id ?? this.id,
       title: title ?? this.title,
       createdBy: createdBy ?? this.createdBy,
@@ -71,9 +71,10 @@ class OasisCanvasEntity {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is OasisCanvasEntity && other.id == id;
+    return other is OasisCanvas && other.id == id;
   }
 
   @override
   int get hashCode => id.hashCode;
 }
+

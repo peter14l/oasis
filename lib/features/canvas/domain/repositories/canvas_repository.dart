@@ -4,13 +4,13 @@ import 'package:oasis/features/canvas/domain/models/canvas_models.dart';
 /// This defines the contract that the data layer must implement.
 abstract class CanvasRepository {
   /// Fetch all canvases the user is a member of.
-  Future<List<OasisCanvasEntity>> getCanvases(String userId);
+  Future<List<OasisCanvas>> getCanvases(String userId);
 
   /// Fetch a single canvas by ID.
-  Future<OasisCanvasEntity> getCanvas(String canvasId);
+  Future<OasisCanvas> getCanvas(String canvasId);
 
   /// Create a new canvas with optional initial members.
-  Future<OasisCanvasEntity> createCanvas({
+  Future<OasisCanvas> createCanvas({
     required String createdBy,
     required String title,
     required String coverColor,
@@ -18,7 +18,7 @@ abstract class CanvasRepository {
   });
 
   /// Update canvas details (title, cover color).
-  Future<OasisCanvasEntity> updateCanvas({
+  Future<OasisCanvas> updateCanvas({
     required String canvasId,
     String? title,
     String? coverColor,
@@ -79,3 +79,4 @@ abstract class CanvasRepository {
   /// Upload a voice memo to Supabase Storage for use on the canvas.
   Future<String> uploadCanvasAudio(String canvasId, String filePath);
 }
+

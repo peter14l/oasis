@@ -7,7 +7,7 @@ class CreateCanvas {
 
   CreateCanvas(this._repository);
 
-  Future<OasisCanvasEntity> call({
+  Future<OasisCanvas> call({
     required String createdBy,
     required String title,
     required String coverColor,
@@ -21,3 +21,4 @@ class CreateCanvas {
     );
   }
 }
+

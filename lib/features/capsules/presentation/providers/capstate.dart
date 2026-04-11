@@ -2,9 +2,9 @@ import 'package:oasis/features/capsules/domain/models/time_capsule_entity.dart';
 
 /// Immutable state for Capsule feature
 class CapsuleState {
-  final List<TimeCapsuleEntity> capsules;
-  final List<TimeCapsuleEntity> unlockedCapsules;
-  final TimeCapsuleEntity? selectedCapsule;
+  final List<TimeCapsule> capsules;
+  final List<TimeCapsule> unlockedCapsules;
+  final TimeCapsule? selectedCapsule;
   final bool isLoading;
   final bool isCreating;
   final String? error;
@@ -19,9 +19,9 @@ class CapsuleState {
   });
 
   CapsuleState copyWith({
-    List<TimeCapsuleEntity>? capsules,
-    List<TimeCapsuleEntity>? unlockedCapsules,
-    TimeCapsuleEntity? selectedCapsule,
+    List<TimeCapsule>? capsules,
+    List<TimeCapsule>? unlockedCapsules,
+    TimeCapsule? selectedCapsule,
     bool? isLoading,
     bool? isCreating,
     String? error,
@@ -41,3 +41,4 @@ class CapsuleState {
     );
   }
 }
+

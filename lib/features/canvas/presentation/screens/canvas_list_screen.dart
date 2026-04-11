@@ -208,7 +208,7 @@ class _EmptyCanvasState extends StatelessWidget {
 }
 
 class _CanvasTileWrapper extends StatelessWidget {
-  final OasisCanvasEntity canvas;
+  final OasisCanvas canvas;
   final VoidCallback onTap;
 
   const _CanvasTileWrapper({required this.canvas, required this.onTap});
@@ -358,3 +358,4 @@ class _CanvasTileWrapper extends StatelessWidget {
     );
   }
 }
+

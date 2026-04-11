@@ -20,9 +20,9 @@ class CapsuleProvider extends ChangeNotifier {
   CapsuleState _state = const CapsuleState();
 
   CapsuleState get state => _state;
-  List<TimeCapsuleEntity> get capsules => _state.capsules;
-  List<TimeCapsuleEntity> get unlockedCapsules => _state.unlockedCapsules;
-  TimeCapsuleEntity? get selectedCapsule => _state.selectedCapsule;
+  List<TimeCapsule> get capsules => _state.capsules;
+  List<TimeCapsule> get unlockedCapsules => _state.unlockedCapsules;
+  TimeCapsule? get selectedCapsule => _state.selectedCapsule;
   bool get isLoading => _state.isLoading;
   bool get isCreating => _state.isCreating;
   String? get error => _state.error;
@@ -58,7 +58,7 @@ class CapsuleProvider extends ChangeNotifier {
   }
 
   /// Create a new capsule
-  Future<TimeCapsuleEntity?> createCapsule({
+  Future<TimeCapsule?> createCapsule({
     required String userId,
     required String content,
     required DateTime unlockDate,
@@ -113,7 +113,7 @@ class CapsuleProvider extends ChangeNotifier {
   }
 
   /// Select a capsule for viewing
-  void selectCapsule(TimeCapsuleEntity capsule) {
+  void selectCapsule(TimeCapsule capsule) {
     _state = _state.copyWith(selectedCapsule: capsule);
     notifyListeners();
   }
@@ -130,3 +130,4 @@ class CapsuleProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+

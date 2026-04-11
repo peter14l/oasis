@@ -2,8 +2,8 @@ import 'package:oasis/features/canvas/domain/models/canvas_models.dart';
 
 /// Immutable state class for Canvas feature.
 class CanvasState {
-  final List<OasisCanvasEntity> canvases;
-  final OasisCanvasEntity? activeCanvas;
+  final List<OasisCanvas> canvases;
+  final OasisCanvas? activeCanvas;
   final List<CanvasItemEntity> activeItems;
   final bool isLoading;
   final String? error;
@@ -19,8 +19,8 @@ class CanvasState {
   });
 
   CanvasState copyWith({
-    List<OasisCanvasEntity>? canvases,
-    OasisCanvasEntity? activeCanvas,
+    List<OasisCanvas>? canvases,
+    OasisCanvas? activeCanvas,
     bool clearActiveCanvas = false,
     List<CanvasItemEntity>? activeItems,
     bool? isLoading,
@@ -51,3 +51,4 @@ class CanvasState {
   @override
   int get hashCode => Object.hash(isLoading, error, activeCanvas);
 }
+

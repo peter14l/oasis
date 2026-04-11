@@ -11,7 +11,7 @@ class CapsuleRepositoryImpl implements CapsuleRepository {
   final _uuid = const Uuid();
 
   @override
-  Future<List<TimeCapsuleEntity>> getCapsules({
+  Future<List<TimeCapsule>> getCapsules({
     required String userId,
     int limit = 20,
     int offset = 0,
@@ -47,7 +47,7 @@ class CapsuleRepositoryImpl implements CapsuleRepository {
   }
 
   @override
-  Future<TimeCapsuleEntity?> getCapsuleById(String capsuleId) async {
+  Future<TimeCapsule?> getCapsuleById(String capsuleId) async {
     try {
       final response =
           await _supabase
@@ -74,7 +74,7 @@ class CapsuleRepositoryImpl implements CapsuleRepository {
   }
 
   @override
-  Future<TimeCapsuleEntity> createCapsule({
+  Future<TimeCapsule> createCapsule({
     required String userId,
     required String content,
     required DateTime unlockDate,
@@ -134,7 +134,7 @@ class CapsuleRepositoryImpl implements CapsuleRepository {
   }
 
   @override
-  Future<TimeCapsuleEntity> openCapsule(String capsuleId) async {
+  Future<TimeCapsule> openCapsule(String capsuleId) async {
     // Get the capsule to check unlock date
     final capsule = await getCapsuleById(capsuleId);
     if (capsule == null) {
@@ -162,7 +162,7 @@ class CapsuleRepositoryImpl implements CapsuleRepository {
   }
 
   @override
-  Future<TimeCapsuleEntity> contributeToCapsule({
+  Future<TimeCapsule> contributeToCapsule({
     required String capsuleId,
     required String content,
     String? mediaUrl,
@@ -179,7 +179,7 @@ class CapsuleRepositoryImpl implements CapsuleRepository {
         .eq('id', capsuleId);
   }
 
-  TimeCapsuleEntity _transformResponse(Map<String, dynamic> data) {
+  TimeCapsule _transformResponse(Map<String, dynamic> data) {
     final map = Map<String, dynamic>.from(data);
     final profile = map[SupabaseConfig.profilesTable];
 
@@ -192,6 +192,7 @@ class CapsuleRepositoryImpl implements CapsuleRepository {
     final unlockDate = DateTime.parse(map['unlock_date']);
     map['is_locked'] = DateTime.now().isBefore(unlockDate);
 
-    return TimeCapsuleEntity.fromJson(map);
+    return TimeCapsule.fromJson(map);
   }
 }
+
