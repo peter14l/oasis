@@ -36,3 +36,16 @@
 
 ### Plans:
 - [ ] 05-01-PLAN.md — Implement PIN reset via email/password with warning and new PIN setup.
+
+## Phase 7: Monetization and Privacy Infrastructure
+**Goal:** Implement ethical monetization via House Ads and reinforce privacy through security auditing and transparency.
+**Status:** Planned
+**Plans:** 3 plans
+
+### Plans:
+- [ ] 07-01-PLAN.md — Security Audit, RLS reinforcement, and Privacy Heartbeat.
+- [ ] 07-02-PLAN.md — Curation Tracking Service and Privacy Transparency UI.
+- [ ] 07-03-PLAN.md — House Ads integration and Pro-member ad removal.
+
+**Requirements:**
+[PRIVACY-01, PRIVACY-02, MONETIZATION-01, MONETIZATION-02]
