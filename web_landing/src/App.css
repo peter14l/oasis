@@ -1,6 +1,0 @@
-/* Reset App.css to not interfere with Material 3 Expressive layout */
-#root {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-}

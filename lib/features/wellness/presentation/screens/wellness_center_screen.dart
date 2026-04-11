@@ -5,6 +5,7 @@ import 'package:oasis/services/wellness_service.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'dart:ui';
 
 class WellnessCenterScreen extends StatelessWidget {
@@ -16,8 +17,8 @@ class WellnessCenterScreen extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final wellbeing = context.watch<DigitalWellbeingService>();
     final wellness = context.watch<WellnessService>();
-    final auth = context.read<AuthService>();
-    final isPro = auth.currentUser?.isPro ?? false;
+    final profileProvider = context.watch<ProfileProvider>();
+    final isPro = profileProvider.currentProfile?.isPro ?? false;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -255,14 +256,22 @@ class WellnessCenterScreen extends StatelessWidget {
               },
             )
           else
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: LinearProgressIndicator(
-                  value: (threshold / 180).clamp(0, 1),
-                  backgroundColor: colorScheme.outlineVariant,
-                ),
+            GestureDetector(
+              onTapDown: (_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Limit changing feature is available only for Pro users.',
+                    ),
+                  ),
+                );
+              },
+              child: Slider(
+                value: 60,
+                min: 60,
+                max: 180,
+                divisions: 12,
+                onChanged: (_) {}, // No-op for free users
               ),
             ),
         ],
@@ -276,27 +285,13 @@ class WellnessCenterScreen extends StatelessWidget {
         _buildActionCard(
           context,
           'Zen Mode',
-          'Quiet all noise (Soon)',
+          wellness.zenModeEnabled ? 'Active' : 'Silence everything',
           Icons.spa_rounded,
-          Colors.teal.withValues(alpha: 0.5),
+          wellness.zenModeEnabled ? Colors.teal : Colors.teal.withValues(alpha: 0.5),
           () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Zen Mode is coming soon!')),
-            );
+            wellness.setZenModeEnabled(!wellness.zenModeEnabled);
           },
-          isActive: false,
-        ),
-        const SizedBox(width: 16),
-        _buildActionCard(
-          context,
-          'Focus Mode',
-          wellness.focusModeEnabled ? 'Active' : 'Lock distractions',
-          Icons.center_focus_strong_rounded,
-          wellness.focusModeEnabled ? Colors.orange : Colors.orange.withValues(alpha: 0.5),
-          () {
-            wellness.setFocusModeEnabled(!wellness.focusModeEnabled);
-          },
-          isActive: wellness.focusModeEnabled,
+          isActive: wellness.zenModeEnabled,
         ),
       ],
     );
@@ -366,19 +361,6 @@ class WellnessCenterScreen extends StatelessWidget {
         children: [
           _buildListTile(
             context,
-            'Mindful Breathing',
-            'Take a moment to center yourself',
-            Icons.air_rounded,
-            Colors.lightBlue,
-            () => context.push('/zen-breath'),
-          ),
-          Divider(
-            height: 1,
-            indent: 70,
-            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-          ),
-          _buildListTile(
-            context,
             'Digital Badges',
             'Your wellbeing achievements',
             Icons.verified_rounded,
@@ -397,6 +379,32 @@ class WellnessCenterScreen extends StatelessWidget {
             Icons.nights_stay_rounded,
             wellness.isWindDownActive ? Colors.indigo : Colors.indigo.withValues(alpha: 0.5),
             () => wellness.setWindDownEnabled(!wellness.windDownEnabled),
+          ),
+          Divider(
+            height: 1,
+            indent: 70,
+            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+          ),
+          SwitchListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            secondary: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.phone_enabled_rounded, color: Colors.green, size: 22),
+            ),
+            title: const Text(
+              'Allow Calls in Zen',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            subtitle: Text(
+              'Incoming calls will still ring',
+              style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+            ),
+            value: wellness.allowCallsDuringZen,
+            onChanged: (v) => wellness.setAllowCallsDuringZen(v),
           ),
         ],
       ),

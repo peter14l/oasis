@@ -174,6 +174,7 @@ class _MyAppState extends State<MyApp> {
           isM3E: themeProvider.isM3EEnabled,
           highContrast: themeProvider.highContrast,
           fontFamily: userSettings.fontFamily,
+          dynamicColorScheme: lightScheme,
         );
 
         final ThemeData darkTheme = AppTheme.getTheme(
@@ -181,6 +182,7 @@ class _MyAppState extends State<MyApp> {
           isM3E: themeProvider.isM3EEnabled,
           highContrast: themeProvider.highContrast,
           fontFamily: userSettings.fontFamily,
+          dynamicColorScheme: darkScheme,
         );
 
         return StreamBuilder<AuthState>(

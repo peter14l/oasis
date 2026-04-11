@@ -1,462 +1,394 @@
- flutter run --dart-define-from-file=.env -d adb-RZCY51Z5NBV-PoTHky._adb-tls-connect._tcp                               
-Launching lib\main.dart on SM M366B (wireless) in debug mode...                                                          
-Running Gradle task 'assembleDebug'...                             60.6s
-√ Built build\app\outputs\flutter-apk\app-debug.apk
-Installing build\app\outputs\flutter-apk\app-debug.apk...          59.1s
-D/FlutterJNI(30718): Beginning load of flutter...
-D/FlutterJNI(30718): flutter (null) was loaded normally!
-I/flutter (30718): [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
-D/FlutterGeolocator(30718): Attaching Geolocator to activity
-D/FlutterRenderer(30718): Width is zero. 0,0
-I/flutter (30718): Could not load .env file: Instance of 'FileNotFoundError'
-D/FlutterGeolocator(30718): Creating service.
-D/FlutterGeolocator(30718): Binding to location service.
-D/FlutterRenderer(30718): Width is zero. 0,0
-D/FlutterJNI(30718): Sending viewport metrics to the engine.
-D/SurfaceView(30718): 226372374 updateSurface: has no frame
-I/SV[226372374 MainActivity](30718): windowStopped(false) true io.flutter.embedding.android.FlutterSurfaceView{d7e2b16 V.E...... ......ID 0,0-1080,2340} of VRI[MainActivity]@d7b4311
-D/SurfaceView(30718): 226372374 updateSurface: has no frame
-D/VRI[MainActivity]@d7b4311(30718): reportNextDraw android.view.ViewRootImpl.performTraversals:5443 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 android.view.Choreographer$CallbackRecord.run:1910 
-I/SurfaceView(30718): 226372374 Changes: creating=true format=true size=true visible=true alpha=false hint=false left=true top=true z=false attached=true lifecycleStrategy=false
-I/BLASTBufferQueue_Java(30718): new BLASTBufferQueue, mName= d7e2b16 SurfaceView[com.example.morrow_v2/com.example.morrow_v2.MainActivity]@0 mNativeObject= 0xb400007ba115c8c0 caller= android.view.SurfaceView.createBlastSurfaceControls:1781 android.view.SurfaceView.updateSurface:1450 android.view.SurfaceView.lambda$new$0:280 android.view.SurfaceView.$r8$lambda$NfZyM_TG8F8lqzaOVZ7noREFjzU:0 android.view.SurfaceView$$ExternalSyntheticLambda1.onPreDraw:0 android.view.ViewTreeObserver.dispatchOnPreDraw:1229 android.view.ViewRootImpl.performTraversals:5448 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 
-I/BLASTBufferQueue_Java(30718): update, w= 1080 h= 2340 mName = d7e2b16 SurfaceView[com.example.morrow_v2/com.example.morrow_v2.MainActivity]@0 mNativeObject= 0xb400007ba115c8c0 sc.mNativeObject= 0xb400007a710f0390 format= 4 caller= android.view.SurfaceView.createBlastSurfaceControls:1782 android.view.SurfaceView.updateSurface:1450 android.view.SurfaceView.lambda$new$0:280 android.view.SurfaceView.$r8$lambda$NfZyM_TG8F8lqzaOVZ7noREFjzU:0 android.view.SurfaceView$$ExternalSyntheticLambda1.onPreDraw:0 android.view.ViewTreeObserver.dispatchOnPreDraw:1229 
-I/SurfaceView(30718): 226372374 Cur surface: Surface(name=null mNativeObject=0)/@0xf04c2dc
-D/SurfaceComposerClient(30718): setCornerRadius ## d7e2b16 SurfaceView[com.example.morrow_v2/com.example.morrow_v2.MainActivity]@0#72955 cornerRadius=0.000000
-I/SV[226372374 MainActivity](30718): pST: sr = Rect(0, 0 - 1080, 2340) sw = 1080 sh = 2340
-D/SurfaceView(30718): 226372374 performSurfaceTransaction RenderWorker position = [0, 0, 1080, 2340] surfaceSize = 1080x2340
-I/SV[226372374 MainActivity](30718): updateSurface: mVisible = true mSurface.isValid() = true
-I/SV[226372374 MainActivity](30718): updateSurface: mSurfaceCreated = false surfaceChanged = true visibleChanged = true  
-I/SurfaceView(30718): 226372374 visibleChanged -- surfaceCreated
-I/SV[226372374 MainActivity](30718): surfaceCreated 1 #8 io.flutter.embedding.android.FlutterSurfaceView{d7e2b16 V.E...... ......ID 0,0-1080,2340}
-E/gralloc4(30718): ERROR: Format allocation info not found for format: 3b
-E/gralloc4(30718): ERROR: Format allocation info not found for format: 0
-E/gralloc4(30718): Invalid base format! req_base_format = 0x0, req_format = 0x3b, type = 0x0
-E/gralloc4(30718): ERROR: Unrecognized and/or unsupported format 0x3b and usage 0xb00
-E/Gralloc4(30718): isSupported(1, 1, 59, 1, ...) failed with 5
-E/GraphicBufferAllocator(30718): Failed to allocate (4 x 4) layerCount 1 format 59 usage b00: 5
-E/AHardwareBuffer(30718): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -5), handle=0x0
-E/gralloc4(30718): ERROR: Format allocation info not found for format: 3b
-E/gralloc4(30718): ERROR: Format allocation info not found for format: 0
-E/gralloc4(30718): Invalid base format! req_base_format = 0x0, req_format = 0x3b, type = 0x0
-E/gralloc4(30718): ERROR: Unrecognized and/or unsupported format 0x3b and usage 0xb00
-E/Gralloc4(30718): isSupported(1, 1, 59, 1, ...) failed with 5
-E/GraphicBufferAllocator(30718): Failed to allocate (4 x 4) layerCount 1 format 59 usage b00: 5
-E/AHardwareBuffer(30718): GraphicBuffer(w=4, h=4, lc=1) failed (Unknown error -5), handle=0x0
-I/ample.morrow_v2(30718): Compiler allocated 5066KB to compile void android.view.ViewRootImpl.performTraversals()
-I/SurfaceView(30718): 226372374 surfaceChanged -- format=4 w=1080 h=2340
-I/SV[226372374 MainActivity](30718): surfaceChanged (1080,2340) 1 #8 io.flutter.embedding.android.FlutterSurfaceView{d7e2b16 V.E...... ......ID 0,0-1080,2340}
-I/SurfaceView(30718): 226372374 surfaceRedrawNeeded
-V/SurfaceView(30718): Layout: x=0 y=0 w=1080 h=2340, frame=Rect(0, 0 - 1080, 2340)
-D/VRI[MainActivity]@d7b4311(30718): Canceling draw. cancelDueToPreDrawListener=true cancelDueToSync=false
-I/Choreographer(30718): Skipped 41 frames!  The application may be doing too much work on its main thread.
-W/FlutterWebRTCPlugin(30718): audioFocusChangeListener [Earpiece(name=Earpiece)] Earpiece(name=Earpiece)
-W/FlutterWebRTCPlugin(30718): audioFocusChangeListener [Speakerphone(name=Speakerphone), Earpiece(name=Earpiece)] Speakerphone(name=Speakerphone)
-W/FlutterWebRTCPlugin(30718): audioFocusChangeListener [BluetoothHeadset(name=Rockerz 111), Speakerphone(name=Speakerphone), Earpiece(name=Earpiece)] BluetoothHeadset(name=Rockerz 111)
-I/ample.morrow_v2(30718): hiddenapi: Accessing hidden field Landroid/view/Choreographer;->mLastFrameTimeNanos:J (runtime_flags=0, domain=platform, api=unsupported) from Lio/sentry/android/core/internal/util/SentryFrameMetricsCollector; (domain=app, TargetSdkVersion=36) using reflection: allowed
-D/nativeloader(30718): Load /system/lib64/liblog.so using class loader ns clns-9 (caller=/data/app/~~8JItDU3yYCJY3wt9jthMcw==/com.example.morrow_v2-0CSca1ThjMKRZ56ug-_WaA==/base.apk!classes23.dex): ok
-D/nativeloader(30718): Load /data/app/~~8JItDU3yYCJY3wt9jthMcw==/com.example.morrow_v2-0CSca1ThjMKRZ56ug-_WaA==/base.apk!/lib/arm64-v8a/libsentry.so using class loader ns clns-9 (caller=/data/app/~~8JItDU3yYCJY3wt9jthMcw==/com.example.morrow_v2-0CSca1ThjMKRZ56ug-_WaA==/base.apk!classes23.dex): ok
-D/nativeloader(30718): Load /data/app/~~8JItDU3yYCJY3wt9jthMcw==/com.example.morrow_v2-0CSca1ThjMKRZ56ug-_WaA==/base.apk!/lib/arm64-v8a/libsentry-android.so using class loader ns clns-9 (caller=/data/app/~~8JItDU3yYCJY3wt9jthMcw==/com.example.morrow_v2-0CSca1ThjMKRZ56ug-_WaA==/base.apk!classes23.dex): ok
-D/ConnectivityManager(30718): StackLog: [android.net.ConnectivityManager.sendRequestForNetwork(ConnectivityManager.java:4743)] [android.net.ConnectivityManager.registerDefaultNetworkCallbackForUid(ConnectivityManager.java:5468)] [android.net.ConnectivityManager.registerDefaultNetworkCallback(ConnectivityManager.java:5435)] [android.net.ConnectivityManager.registerDefaultNetworkCallback(ConnectivityManager.java:5409)] [io.sentry.android.core.internal.util.AndroidConnectionStatusProvider.registerNetworkCallback(AndroidConnectionStatusProvider.java:778)] [io.sentry.android.core.internal.util.AndroidConnectionStatusProvider.ensureNetworkCallbackRegistered(AndroidConnectionStatusProvider.java:341)] [io.sentry.android.core.internal.util.AndroidConnectionStatusProvider.lambda$new$0$io-sentry-android-core-internal-util-AndroidConnectionStatusProvider(AndroidConnectionStatusProvider.java:102)] [io.sentry.android.core.internal.util.AndroidConnectionStatusProvider$$ExternalSyntheticLambda3.run(D8$$SyntheticClass:0)] [java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:520)] [java.util.concurrent.FutureTask.run(FutureTask.java:317)] [java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:348)] [java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1154)] [java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:652)] [java.lang.Thread.run(Thread.java:1564)]
-I/sentry-native(30718): using database path "/data/data/com.example.morrow_v2/cache/sentry/77ac46aff4fac28ef084d331a1f959d43f768db5/.sentry-native"
-D/sentry-native(30718): starting backend
-D/sentry-native(30718): using existing signal stack (size: 32768, flags: 0)
-D/sentry-native(30718): using existing signal stack (size: 32768, flags: 0)
-D/sentry-native(30718): processing and pruning old runs
-W/Sentry  (30718): Current session is not ended, we'd need to end it.
-D/FlutterGeolocator(30718): Geolocator foreground service connected
-D/FlutterGeolocator(30718): Initializing Geolocator services
-D/FlutterGeolocator(30718): Flutter engine connected. Connected engine count 1
-I/Choreographer(30718): Skipped 41 frames!  The application may be doing too much work on its main thread.
-I/InsetsSourceConsumer(30718): applyRequestedVisibilityToControl: visible=true, type=statusBars, host=com.example.morrow_v2/com.example.morrow_v2.MainActivity
-I/InsetsSourceConsumer(30718): applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=com.example.morrow_v2/com.example.morrow_v2.MainActivity
-I/Choreographer(30718): Skipped 41 frames!  The application may be doing too much work on its main thread.
-D/WindowLayoutComponentImpl(30718): Register WindowLayoutInfoListener on Context=com.example.morrow_v2.MainActivity@3a99bb0, of which baseContext=android.app.ContextImpl@ae73c61
-D/FlutterJNI(30718): Sending viewport metrics to the engine.
-I/flutter (30718): Firebase initialized successfully
-I/flutter (30718): supabase.supabase_flutter: INFO: ***** Supabase init completed *****
-I/flutter (30718): Supabase initialized successfully
-I/flutter (30718): PrefsStorage initialized successfully
-I/FLTFireBGExecutor(30718): Creating background FlutterEngine instance, with args: [--enable-dart-profiling]
-D/FLTFireContextHolder(30718): received application context.
-I/flutter (30718): [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
-Syncing files to device SM M366B (wireless)...                     686ms
+ flutter run --dart-define-from-file=.env -d adb-RZCY51Z5NBV-PoTHky._adb-tls-connect._tcp
+Launching lib\main.dart on SM M366B (wireless) in debug mode...
+Running Gradle task 'assembleDebug'...                            174.5s
+✓ Built build\app\outputs\flutter-apk\app-debug.apk
+Installing build\app\outputs\flutter-apk\app-debug.apk...          59.7s
+D/FlutterJNI(17920): Beginning load of flutter...
+D/FlutterJNI(17920): flutter (null) was loaded normally!
+I/flutter (17920): [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+D/FlutterGeolocator(17920): Attaching Geolocator to activity
+D/FlutterRenderer(17920): Width is zero. 0,0
+I/flutter (17920): Could not load .env file: Instance of 'FileNotFoundError'
+D/FlutterGeolocator(17920): Creating service.
+D/FlutterGeolocator(17920): Binding to location service.
+D/FlutterRenderer(17920): Width is zero. 0,0
+D/FlutterJNI(17920): Sending viewport metrics to the engine.
+I/SurfaceView(17920): 43697773 surfaceChanged -- format=4 w=1080 h=2340
+I/SV[43697773 MainActivity](17920): surfaceChanged (1080,2340) 1 #8 io.flutter.embedding.android.FlutterSurfaceView{29ac66d V.E...... ......ID 0,0-1080,2340}
+I/SurfaceView(17920): 43697773 surfaceRedrawNeeded
+V/SurfaceView(17920): Layout: x=0 y=0 w=1080 h=2340, frame=Rect(0, 0 - 1080, 2340)
+D/VRI[MainActivity]@3b80ee4(17920): Canceling draw. cancelDueToPreDrawListener=true cancelDueToSync=false
+I/Choreographer(17920): Skipped 63 frames!  The application may be doing too much work on its main thread.
+W/FlutterWebRTCPlugin(17920): audioFocusChangeListener [Earpiece(name=Earpiece)] Earpiece(name=Earpiece)
+W/FlutterWebRTCPlugin(17920): audioFocusChangeListener [Speakerphone(name=Speakerphone), Earpiece(name=Earpiece)] Speakerphone(name=Speakerphone)
+W/FlutterWebRTCPlugin(17920): audioFocusChangeListener [BluetoothHeadset(name=Rockerz 111), Speakerphone(name=Speakerphone), Earpiece(name=Earpiece)] BluetoothHeadset(name=Rockerz 111)
+I/ample.morrow_v2(17920): Compiler allocated 5066KB to compile void android.view.ViewRootImpl.performTraversals()
+I/ample.morrow_v2(17920): hiddenapi: Accessing hidden field Landroid/view/Choreographer;->mLastFrameTimeNanos:J (runtime_flags=0, domain=platform, api=unsupported) from Lio/sentry/android/core/internal/util/SentryFrameMetricsCollector; (domain=app, TargetSdkVersion=36) using reflection: allowed
+D/nativeloader(17920): Load /system/lib64/liblog.so using class loader ns clns-9 (caller=/data/app/~~VfCTvuOSzgE0_Pv9poPkew==/com.example.morrow_v2-sKj5z1cT_6zqmmdKCNgZkQ==/base.apk!classes23.dex): ok
+D/nativeloader(17920): Load /data/app/~~VfCTvuOSzgE0_Pv9poPkew==/com.example.morrow_v2-sKj5z1cT_6zqmmdKCNgZkQ==/base.apk!/lib/arm64-v8a/libsentry.so using class loader ns clns-9 (caller=/data/app/~~VfCTvuOSzgE0_Pv9poPkew==/com.example.morrow_v2-sKj5z1cT_6zqmmdKCNgZkQ==/base.apk!classes23.dex): ok
+D/nativeloader(17920): Load /data/app/~~VfCTvuOSzgE0_Pv9poPkew==/com.example.morrow_v2-sKj5z1cT_6zqmmdKCNgZkQ==/base.apk!/lib/arm64-v8a/libsentry-android.so using class loader ns clns-9 (caller=/data/app/~~VfCTvuOSzgE0_Pv9poPkew==/com.example.morrow_v2-sKj5z1cT_6zqmmdKCNgZkQ==/base.apk!classes23.dex): ok
+I/sentry-native(17920): using database path "/data/data/com.example.morrow_v2/cache/sentry/77ac46aff4fac28ef084d331a1f959d43f768db5/.sentry-native"
+D/sentry-native(17920): starting backend
+D/sentry-native(17920): using existing signal stack (size: 32768, flags: 0)
+D/sentry-native(17920): using existing signal stack (size: 32768, flags: 0)
+D/ConnectivityManager(17920): StackLog: [android.net.ConnectivityManager.sendRequestForNetwork(ConnectivityManager.java:4743)] [android.net.ConnectivityManager.registerDefaultNetworkCallbackForUid(ConnectivityManager.java:5468)] [android.net.ConnectivityManager.registerDefaultNetworkCallback(ConnectivityManager.java:5435)] [android.net.ConnectivityManager.registerDefaultNetworkCallback(ConnectivityManager.java:5409)] [io.sentry.android.core.internal.util.AndroidConnectionStatusProvider.registerNetworkCallback(AndroidConnectionStatusProvider.java:778)] [io.sentry.android.core.internal.util.AndroidConnectionStatusProvider.ensureNetworkCallbackRegistered(AndroidConnectionStatusProvider.java:341)] [io.sentry.android.core.internal.util.AndroidConnectionStatusProvider.lambda$new$0$io-sentry-android-core-internal-util-AndroidConnectionStatusProvider(AndroidConnectionStatusProvider.java:102)] [io.sentry.android.core.internal.util.AndroidConnectionStatusProvider$$ExternalSyntheticLambda3.run(D8$$SyntheticClass:0)] [java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:520)] [java.util.concurrent.FutureTask.run(FutureTask.java:317)] [java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:348)] [java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1154)] [java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:652)] [java.lang.Thread.run(Thread.java:1564)]
+D/sentry-native(17920): processing and pruning old runs
+Syncing files to device SM M366B (wireless)...                   2,245ms
+D/FlutterGeolocator(17920): Geolocator foreground service connected
+D/FlutterGeolocator(17920): Initializing Geolocator services
+D/FlutterGeolocator(17920): Flutter engine connected. Connected engine count 1
+I/Choreographer(17920): Skipped 98 frames!  The application may be doing too much work on its main thread.
+I/InsetsSourceConsumer(17920): applyRequestedVisibilityToControl: visible=true, type=statusBars, host=com.example.morrow_v2/com.example.morrow_v2.MainActivity
+I/InsetsSourceConsumer(17920): applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=com.example.morrow_v2/com.example.morrow_v2.MainActivity
+D/WindowLayoutComponentImpl(17920): Register WindowLayoutInfoListener on Context=com.example.morrow_v2.MainActivity@8f6e561, of which baseContext=android.app.ContextImpl@de062cf
+D/FlutterJNI(17920): Sending viewport metrics to the engine.
 
 Flutter run key commands.
-r Hot reload.
+r Hot reload. 🔥🔥🔥
 R Hot restart.
 h List all available interactive commands.
 d Detach (terminate "flutter run" but leave application running).
 c Clear the screen
 q Quit (terminate the application on the device).
 
-A Dart VM Service on SM M366B is available at: http://127.0.0.1:59695/vuRCdBj-lBw=/
+A Dart VM Service on SM M366B is available at: http://127.0.0.1:59299/qO5g0ubtJbM=/
 The Flutter DevTools debugger and profiler on SM M366B is available at:
-http://127.0.0.1:59695/vuRCdBj-lBw=/devtools/?uri=ws://127.0.0.1:59695/vuRCdBj-lBw=/ws
-I/Choreographer(30718): Skipped 46 frames!  The application may be doing too much work on its main thread.
-D/FlutterGeolocator(30718): Geolocator foreground service connected
-D/FlutterGeolocator(30718): Initializing Geolocator services
-D/FlutterGeolocator(30718): Flutter engine connected. Connected engine count 2
-I/FLTFireMsgService(30718): FlutterFirebaseMessagingBackgroundService started!
-W/FlutterWebRTCPlugin(30718): audioFocusChangeListener [Earpiece(name=Earpiece)] Earpiece(name=Earpiece)
-W/FlutterWebRTCPlugin(30718): audioFocusChangeListener [Speakerphone(name=Speakerphone), Earpiece(name=Earpiece)] Speakerphone(name=Speakerphone)
-W/FlutterWebRTCPlugin(30718): audioFocusChangeListener [BluetoothHeadset(name=Rockerz 111), Speakerphone(name=Speakerphone), Earpiece(name=Earpiece)] BluetoothHeadset(name=Rockerz 111)
-D/ProfileInstaller(30718): Installing profile for com.example.morrow_v2
-I/flutter (30718): NotificationManager: Mobile local notifications initialized
-I/flutter (30718): [SignalStore] Loading existing keys for user 9f8dee97-027a-41be-af95-1bbc5e4c96c9
-I/flutter (30718): ScreenTime: Session started at 2026-04-09 15:12:58.228215
-I/flutter (30718): GoRouter: INFO: Full paths for routes:
-I/flutter (30718):   => /login
-I/flutter (30718):   => /register
-I/flutter (30718):   => /reset-password
-I/flutter (30718):   => /set-password
-I/flutter (30718):   => /feed
-I/flutter (30718):   => /search
-I/flutter (30718):   => /spaces
-I/flutter (30718):   =>   /spaces/circles/create
-I/flutter (30718):   =>   /spaces/canvas/create
-I/flutter (30718):   =>   /spaces/circles/:circleId
-I/flutter (30718):   =>     /spaces/circles/:circleId/add-commitment
-I/flutter (30718):   =>   /spaces/canvas/:canvasId
-I/flutter (30718):   => /messages
-I/flutter (30718):   =>   /messages/:conversationId
-I/flutter (30718):   => /notifications
-I/flutter (30718):   => /profile
-I/flutter (30718):   => /ripples
-I/flutter (30718):   => /create-ripple
-I/flutter (30718):   => /oasis-pro
-I/flutter (30718):   => /call/:callId
-I/flutter (30718):   => /create-post
-I/flutter (30718):   => /create-capsule
-I/flutter (30718):   => /capsule/:capsuleId
-I/flutter (30718):   => /circle/join/:circleId
-I/flutter (30718):   => /stories/create
-I/flutter (30718):   => /post/:postId
-I/flutter (30718):   => /post/:postId/comments
-I/flutter (30718):   => /edit-profile
-I/flutter (30718):   => /settings
-I/flutter (30718):   => /subscription
-I/flutter (30718):   => /settings/account-privacy
-I/flutter (30718):   => /settings/blocked-users
-I/flutter (30718):   => /settings/two-factor-auth
-I/flutter (30718):   => /settings/download-data
-I/flutter (30718):   => /settings/storage-usage
-I/flutter (30718):   => /settings/font-size
-I/flutter (30718):   => /settings/help-support
-I/flutter (30718):   => /settings/about
-I/flutter (30718):   => /story/:storyId
-I/flutter (30718):   => /wellness-stats
-I/flutter (30718):   => /profile/:userId
-I/flutter (30718):   => /profile/:userId/followers
-I/flutter (30718):   => /profile/:userId/following
-I/flutter (30718):   => /new-message
-I/flutter (30718):   => /privacy-policy
-I/flutter (30718):   => /terms-of-service
-I/flutter (30718):   => /onboarding
-I/flutter (30718): known full paths for route names:
-I/flutter (30718):   login => /login
-I/flutter (30718):   register => /register
-I/flutter (30718):   reset_password => /reset-password
-I/flutter (30718):   set_password => /set-password
-I/flutter (30718):   feed => /feed
-I/flutter (30718):   search => /search
-I/flutter (30718):   spaces => /spaces
-I/flutter (30718):   create_circle => /spaces/circles/create
-I/flutter (30718):   create_canvas => /spaces/canvas/create
-I/flutter (30718):   circle_detail => /spaces/circles/:circleId
-I/flutter (30718):   create_commitment => /spaces/circles/:circleId/add-commitment
-I/flutter (30718):   canvas_detail => /spaces/canvas/:canvasId
-I/flutter (30718):   messages => /messages
-I/flutter (30718):   chat_nested => /messages/:conversationId
-I/flutter (30718):   notifications => /notifications
-I/flutter (30718):   profile => /profile
-I/flutter (30718):   ripples => /ripples
-I/flutter (30718):   create_ripple => /create-ripple
-I/flutter (30718):   oasis_pro => /oasis-pro
-I/flutter (30718):   active_call => /call/:callId
-I/flutter (30718):   create_post => /create-post
-I/flutter (30718):   create_capsule => /create-capsule
-I/flutter (30718):   view_capsule => /capsule/:capsuleId
-I/flutter (30718):   join_circle => /circle/join/:circleId
-I/flutter (30718):   create_story => /stories/create
-I/flutter (30718):   post_details => /post/:postId
-I/flutter (30718):   comments => /post/:postId/comments
-I/flutter (30718):   edit_profile => /edit-profile
-I/flutter (30718):   settings => /settings
-I/flutter (30718):   subscription => /subscription
-I/flutter (30718):   account_privacy => /settings/account-privacy
-I/flutter (30718):   blocked_users => /settings/blocked-users
-I/flutter (30718):   two_factor_auth => /settings/two-factor-auth
-I/flutter (30718):   download_data => /settings/download-data
-I/flutter (30718):   storage_usage => /settings/storage-usage
-I/flutter (30718):   font_size => /settings/font-size
-I/flutter (30718):   help_support => /settings/help-support
-I/flutter (30718):   about => /settings/about
-I/flutter (30718):   story_view => /story/:storyId
-I/flutter (30718):   wellness_stats => /wellness-stats
-I/flutter (30718):   user_profile => /profile/:userId
-I/flutter (30718):   followers => /profile/:userId/followers
-I/flutter (30718):   following => /profile/:userId/following
-I/flutter (30718):   new_message => /new-message
-I/flutter (30718):   privacy_policy => /privacy-policy
-I/flutter (30718):   terms_of_service => /terms-of-service
-I/flutter (30718):   onboarding => /onboarding
-I/flutter (30718):
-I/flutter (30718): GoRouter: INFO: setting initial location /feed
-I/flutter (30718): GoRouter: INFO: Using MaterialApp configuration 
-I/BLASTBufferQueue(30718): [d7e2b16 SurfaceView[com.example.morrow_v2/com.example.morrow_v2.MainActivity]@0#1](f:0,a:0,s:0) onFrameAvailable the first frame is available
-W/ample.morrow_v2(30718): userfaultfd: MOVE ioctl seems unsupported: Connection timed out
-I/Choreographer(30718): Skipped 212 frames!  The application may be doing too much work on its main thread.
-I/SurfaceView(30718): 226372374 finishedDrawing
-I/flutter (30718): dynamic_color: Core palette detected.
-I/Choreographer(30718): Skipped 58 frames!  The application may be doing too much work on its main thread.
-D/VRI[MainActivity]@d7b4311(30718): Setup new sync=wmsSync-VRI[MainActivity]@d7b4311#1
-I/VRI[MainActivity]@d7b4311(30718): Creating new active sync group VRI[MainActivity]@d7b4311#2
-D/VRI[MainActivity]@d7b4311(30718): Draw frame after cancel
-D/VRI[MainActivity]@d7b4311(30718): registerCallbacksForSync syncBuffer=false
-D/SurfaceView(30718): 226372374 updateSurfacePosition RenderWorker, frameNr = 1, position = [0, 0, 1080, 2340] surfaceSize = 1080x2340
-I/SV[226372374 MainActivity](30718): uSP: rtp = Rect(0, 0 - 1080, 2340) rtsw = 1080 rtsh = 2340
-I/SV[226372374 MainActivity](30718): onSSPAndSRT: pl = 0 pt = 0 sx = 1.0 sy = 1.0
-I/SV[226372374 MainActivity](30718): aOrMT: VRI[MainActivity]@d7b4311 t = android.view.SurfaceControl$Transaction@9478bc7 fN = 1 android.view.SurfaceView.-$$Nest$mapplyOrMergeTransaction:0 android.view.SurfaceView$SurfaceViewPositionUpdateListener.positionChanged:1932 android.graphics.RenderNode$CompositePositionUpdateListener.positionChanged:401
-I/VRI[MainActivity]@d7b4311(30718): mWNT: t=0xb4000079f1101b50 mBlastBufferQueue=0xb400007ba113b6b0 fn= 1 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SurfaceView.applyOrMergeTransaction:1863 android.view.SurfaceView.-$$Nest$mapplyOrMergeTransaction:0 android.view.SurfaceView$SurfaceViewPositionUpdateListener.positionChanged:1932
-D/VRI[MainActivity]@d7b4311(30718): Received frameDrawingCallback syncResult=0 frameNum=1.
-I/VRI[MainActivity]@d7b4311(30718): mWNT: t=0xb4000079f1137f50 mBlastBufferQueue=0xb400007ba113b6b0 fn= 1 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.ViewRootImpl$12.onFrameDraw:15441 android.view.ThreadedRenderer$1.onFrameDraw:718 <bottom of call stack>
-I/VRI[MainActivity]@d7b4311(30718): Setting up sync and frameCommitCallback
-I/BLASTBufferQueue(30718): [VRI[MainActivity]@d7b4311#0](f:0,a:0,s:0) onFrameAvailable the first frame is available
-I/VRI[MainActivity]@d7b4311(30718): Received frameCommittedCallback lastAttemptedDrawFrameNum=1 didProduceBuffer=true    
-D/HWUI    (30718): CFMS:: SetUp Pid : 30718    Tid : 30773
-D/VRI[MainActivity]@d7b4311(30718): reportDrawFinished seqId=0
-I/flutter (30718): [Signal] Initialization complete.
-I/HWUI    (30718): Davey! duration=997ms; Flags=1, FrameTimelineVsyncId=79401028, IntendedVsync=212620735512679, Vsync=212621702782333, InputEventId=0, HandleInputStart=212621703586689, AnimationStart=212621703588266, PerformTraversalsStart=212621703588920, DrawStart=212621710585805, FrameDeadline=212620752179346, FrameStartTime=212621703234305, FrameInterval=16677063, WorkloadTarget=16666667, SyncQueued=212621714657151, SyncStart=212621714899843, IssueDrawCommandsStart=212621717570266, SwapBuffers=212621730133228, FrameCompleted=212621733433997, DequeueBufferDuration=2266654, QueueBufferDuration=699270, GpuCompleted=212621733433997, SwapBuffersCompleted=212621733413228, DisplayPresentTime=0, CommandSubmissionCompleted=212621730133228,
-D/VRI[MainActivity]@d7b4311(30718): mThreadedRenderer.initializeIfNeeded()#2 mSurface={isValid=true 0xb400007af11620e0}
-D/InputMethodManagerUtils(30718): startInputInner - Id : 0
-I/InputMethodManager(30718): startInputInner - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
-D/InputTransport(30718): Input channel constructed: 'ClientS', fd=226
-I/InputMethodManager(30718): handleMessage: setImeVisibility visible=false
-D/InsetsController(30718): hide(ime(), fromIme=false)
-I/ImeTracker(30718): com.example.morrow_v2:eae8b836: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
-I/GestureDetector(30718): obtain mCurrentDownEvent. id: 356955038 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
-I/VRI[MainActivity]@d7b4311(30718): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@d7b4311
-I/GestureDetector(30718): obtain mCurrentMotionEventRaw. action: 2 id: 992538847
-I/flutter (30718): GoRouter: INFO: going to /messages 
-I/GestureDetector(30718): obtain mCurrentDownEvent. id: 502002081 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
-I/GestureDetector(30718): obtain mCurrentMotionEventRaw. action: 2 id: 924543784
-I/flutter (30718): GoRouter: INFO: pushing /messages/3875178e-4964-4c38-a7b0-38120176ae71 
-V/MediaPlayer-JNI(30718): native_setup
-V/MediaPlayerNative(30718): constructor
-D/AudioSystem(30718): onNewServiceWithAdapter: media.audio_flinger service obtained 0xb400007b6119d170
-D/AudioSystem(30718): getService: checking for service media.audio_flinger: 0xb400007a2113dae0
-V/MediaPlayerNative(30718): setListener
-V/MediaPlayer-JNI(30718): get_session_id()
-V/MediaPlayer-JNI(30718): setParameter: key 1400
-V/MediaPlayerNative(30718): MediaPlayer::setParameter(1400)
-V/MediaPlayer-JNI(30718): reset
-V/MediaPlayerNative(30718): reset
-V/MediaPlayer(30718): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
-V/MediaPlayer(30718): cleanDrmObj: mDrmObj=null mDrmSessionId=null
-I/flutter (30718): [Encryption] Message Decrypt Error: Invalid argument(s): Invalid or corrupted pad block
-I/flutter (30718): [Signal] Decrypting PreKeySignalMessage from 59f49bac-aa81-40ab-8dba-4595ad9075fb
-I/flutter (30718): [Signal] Decryption failed for 59f49bac-aa81-40ab-8dba-4595ad9075fb (Type 3): Instance of 'UntrustedIdentityException'
-I/flutter (30718): [Signal] Untrusted identity for 59f49bac-aa81-40ab-8dba-4595ad9075fb. Key changed?
-I/flutter (30718): [Signal] Decrypting PreKeySignalMessage from 59f49bac-aa81-40ab-8dba-4595ad9075fb
-I/VRI[MainActivity]@d7b4311(30718): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@d7b4311
-I/flutter (30718): [Signal] Decryption failed for 59f49bac-aa81-40ab-8dba-4595ad9075fb (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
-I/flutter (30718): [Signal] Message authentication failed (Bad MAC) with 59f49bac-aa81-40ab-8dba-4595ad9075fb. Resetting session to recover...
-I/flutter (30718): [Signal] Force-refreshing bundle for 59f49bac-aa81-40ab-8dba-4595ad9075fb...
-I/GestureDetector(30718): obtain mCurrentDownEvent. id: 493228466 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
-I/VRI[MainActivity]@d7b4311(30718): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@d7b4311
-I/GestureDetector(30718): obtain mCurrentMotionEventRaw. action: 2 id: 579498525
-I/flutter (30718): [_initiateCall] Initiating call to 59f49bac-aa81-40ab-8dba-4595ad9075fb
-I/flutter (30718): [CallProvider] initiateCall called for conversation: 3875178e-4964-4c38-a7b0-38120176ae71
-I/flutter (30718): [CallService] Initializing local stream (video=false)
-I/org.webrtc.Logging(30718): NativeLibrary: Loading native library: jingle_peerconnection_so
-I/org.webrtc.Logging(30718): NativeLibrary: Loading library: jingle_peerconnection_so
-D/nativeloader(30718): Load /data/app/~~8JItDU3yYCJY3wt9jthMcw==/com.example.morrow_v2-0CSca1ThjMKRZ56ug-_WaA==/base.apk!/lib/arm64-v8a/libjingle_peerconnection_so.so using class loader ns clns-9 (caller=/data/app/~~8JItDU3yYCJY3wt9jthMcw==/com.example.morrow_v2-0CSca1ThjMKRZ56ug-_WaA==/base.apk!classes23.dex): ok
-I/org.webrtc.Logging(30718): PeerConnectionFactory: PeerConnectionFactory was initialized without an injected Loggable. Any existing Loggable will be deleted.
-I/org.webrtc.Logging(30718): WebRtcAudioManagerExternal: Sample rate is set to 48000 Hz
-I/org.webrtc.Logging(30718): WebRtcAudioManagerExternal: Sample rate is set to 48000 Hz
-I/org.webrtc.Logging(30718): JavaAudioDeviceModule: createAudioDeviceModule
-I/org.webrtc.Logging(30718): JavaAudioDeviceModule: HW NS will be used.
-I/org.webrtc.Logging(30718): JavaAudioDeviceModule: HW AEC will be used.
-I/org.webrtc.Logging(30718): JavaAudioDeviceModule: Low latency mode will be used.
-I/org.webrtc.Logging(30718): WebRtcAudioEffectsExternal: ctor@[name=main, id=2]
-I/org.webrtc.Logging(30718): WebRtcAudioRecordExternal: ctor@[name=main, id=2]
-I/org.webrtc.Logging(30718): WebRtcAudioTrackExternal: ctor@[name=main, id=2]
-I/org.webrtc.Logging(30718): JavaAudioDeviceModule: setNoiseSuppressorEnabled: true
-W/org.webrtc.Logging(30718): WebRtcAudioRecordExternal: SetNoiseSuppressorEnabled(true)
-E/org.webrtc.Logging(30718): WebRtcAudioEffectsExternal: Attempting to enable or disable nonexistent NoiseSuppressor.    
-I/org.webrtc.Logging(30718): EglBase14Impl: Using OpenGL ES version 2
-W/AudioCapabilities(30718): Unsupported mediaType audio/x-ima
-W/AudioCapabilities(30718): Unsupported mediaType audio/mpeg-L1
-W/AudioCapabilities(30718): Unsupported mediaType audio/mpeg-L2
-W/VideoCapabilities(30718): Unsupported mime video/wvc1
-W/VideoCapabilities(30718): Unsupported mime video/x-ms-wmv
-W/AudioCapabilities(30718): Unsupported mediaType audio/iamf
-W/VideoCapabilities(30718): Unrecognized profile/level 32768/256 for video/mp4v-es
-W/AudioCapabilities(30718): Unsupported mime audio/x-ima
-W/AudioCapabilities(30718): Unsupported mime audio/mpeg-L1
-W/AudioCapabilities(30718): Unsupported mime audio/mpeg-L2
-W/VideoCapabilities(30718): Unsupported mime video/wvc1
-W/VideoCapabilities(30718): Unsupported mime video/wvc1
-W/VideoCapabilities(30718): Unsupported mime video/x-ms-wmv
-W/AudioCapabilities(30718): Unsupported mime audio/iamf
-W/VideoCapabilities(30718): Unrecognized profile/level 32768/256 for video/mp4v-es
-I/org.webrtc.Logging(30718): WebRtcAudioRecordExternal: enableBuiltInAEC(true)
-I/org.webrtc.Logging(30718): WebRtcAudioEffectsExternal: setAEC(true)
-I/org.webrtc.Logging(30718): WebRtcAudioRecordExternal: enableBuiltInNS(true)
-I/org.webrtc.Logging(30718): WebRtcAudioEffectsExternal: setNS(true)
-I/org.webrtc.Logging(30718): PeerConnectionFactory: onNetworkThreadReady
-I/org.webrtc.Logging(30718): PeerConnectionFactory: onWorkerThreadReady
-I/org.webrtc.Logging(30718): PeerConnectionFactory: onSignalingThreadReady
-I/FlutterWebRTCPlugin(30718): getUserMedia(audio): mandatory: [], optional: [googNoiseSuppression: true, googEchoCancellation: true, echoCancellation: true, googEchoCancellation2: true, googDAEchoCancellation: true]
-D/FlutterWebRTCPlugin(30718): MediaStream id: f9c3f7d1-6d98-48d6-9133-8084b925ea04
-I/flutter (30718): [CallService] Local stream initialized
-I/flutter (30718): [CallService] Inserting call record into DB: e1242803-07cd-47fd-bf37-0a14d201b14c
-I/flutter (30718): [Signal] Recovery failed: Instance of 'UntrustedIdentityException'
-I/flutter (30718): [CallService] Call record inserted successfully
-I/flutter (30718): [CallService] Inserting participants: 2
-I/flutter (30718): [Encryption] Message Decrypt Error: Invalid argument(s): Invalid or corrupted pad block
-I/flutter (30718): [CallService] Participants inserted
-I/flutter (30718): [CallService] Subscribing to signaling and participants
-I/flutter (30718): [CallService] initiateCall returning
-I/flutter (30718): [CallProvider] service.initiateCall returned: e1242803-07cd-47fd-bf37-0a14d201b14c
-I/flutter (30718): [_initiateCall] Call initiated successfully. Navigating to /call/e1242803-07cd-47fd-bf37-0a14d201b14c 
-I/flutter (30718): GoRouter: INFO: getting location for name: "active_call", pathParameters: {callId: e1242803-07cd-47fd-bf37-0a14d201b14c}
-I/flutter (30718): GoRouter: INFO: pushing /call/e1242803-07cd-47fd-bf37-0a14d201b14c 
+http://127.0.0.1:59299/qO5g0ubtJbM=/devtools/?uri=ws://127.0.0.1:59299/qO5g0ubtJbM=/w
+s
+I/flutter (17920): Firebase initialized successfully
+I/flutter (17920): supabase.supabase_flutter: INFO: ***** Supabase init completed *****
+I/flutter (17920): Supabase initialized successfully
+I/flutter (17920): PrefsStorage initialized successfully
+I/Choreographer(17920): Skipped 54 frames!  The application may be doing too much work on its main thread.
+I/FLTFireBGExecutor(17920): Creating background FlutterEngine instance, with args: [--enable-dart-profiling]
+D/FLTFireContextHolder(17920): received application context.
+I/flutter (17920): [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+D/Sentry  (17920): Failed to delete '/data/user/0/com.example.morrow_v2/cache/sentry/77ac46aff4fac28ef084d331a1f959d43f768db5/4588944b93aa4786a8abaab1349f21d6.envelope' after trying to capture it
+W/Sentry  (17920): Current session is not ended, we'd need to end it.
+I/ample.morrow_v2(17920): NativeAlloc concurrent mark compact GC freed 2740KB AllocSpace bytes, 39(876KB) LOS objects, 54% free, 5038KB/10MB, paused 667us,15.992ms total 168.101ms
+I/Choreographer(17920): Skipped 119 frames!  The application may be doing too much work on its main thread.
+D/FlutterGeolocator(17920): Geolocator foreground service connected
+D/FlutterGeolocator(17920): Initializing Geolocator services
+D/FlutterGeolocator(17920): Flutter engine connected. Connected engine count 2
+I/FLTFireMsgService(17920): FlutterFirebaseMessagingBackgroundService started!
+W/FlutterWebRTCPlugin(17920): audioFocusChangeListener [Earpiece(name=Earpiece)] Earpiece(name=Earpiece)
+W/FlutterWebRTCPlugin(17920): audioFocusChangeListener [Speakerphone(name=Speakerphone), Earpiece(name=Earpiece)] Speakerphone(name=Speakerphone)
+W/FlutterWebRTCPlugin(17920): audioFocusChangeListener [BluetoothHeadset(name=Rockerz 111), Speakerphone(name=Speakerphone), Earpiece(name=Earpiece)] BluetoothHeadset(name=Rockerz 111)
+I/flutter (17920): NotificationManager: Mobile local notifications initialized
+D/SharedPreferencesImpl(17920): Time required to fsync /data/user/0/com.example.morrow_v2/shared_prefs/FlutterSharedPreferences.xml: [<1: 0, <2: 0, <4: 0, <8: 0, <16: 0, <32: 0, <64: 0, <128: 1, <256: 0, <512: 1, <1024: 0, <2048: 0, <4096: 0, <8192: 0, <16384: 0, >=16384: 0]
+I/BLASTBufferQueue_Java(17920): update, w= 1080 h= 2340 mName = VRI[MainActivity]@3b80ee4 mNativeObject= 0xb400007ba1165950 sc.mNativeObject= 0xb400007a710db390 format= -3 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3574 android.view.ViewRootImpl.relayoutWindow:11685 android.view.ViewRootImpl.performTraversals:4804 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901
+I/VRI[MainActivity]@3b80ee4(17920): Relayout returned: old=(0,0,1080,2340) new=(0,0,1080,2340) relayoutAsync=false req=(1080,2340)0 dur=58 res=0x1 s={true 0xb400007af1162750} ch=false seqId=0
+I/VRI[MainActivity]@3b80ee4(17920): updateBoundsLayer: t=android.view.SurfaceControl$Transaction@5124ca9 sc=Surface(name=Bounds for - com.example.morrow_v2/com.example.morrow_v2.MainActivity@0)/@0xfdc522e frame=1
+D/VRI[MainActivity]@3b80ee4(17920): reportNextDraw android.view.ViewRootImpl.performTraversals:5443 android.view.ViewRootImpl.doTraversal:3924 android.view.ViewRootImpl$TraversalRunnable.run:12903 android.view.Choreographer$CallbackRecord.run:1901 android.view.Choreographer$CallbackRecord.run:1910
+I/InsetsSourceConsumer(17920): applyRequestedVisibilityToControl: visible=true, type=statusBars, host=com.example.morrow_v2/com.example.morrow_v2.MainActivity
+I/InsetsSourceConsumer(17920): applyRequestedVisibilityToControl: visible=true, type=navigationBars, host=com.example.morrow_v2/com.example.morrow_v2.MainActivity
+I/flutter (17920): AppInitializer: Subscribed to DM notifications
+I/flutter (17920): [SignalStore] Loading existing keys for user 59f49bac-aa81-40ab-8dba-4595ad9075fb
+I/flutter (17920): [Signal] Initialization complete.
+I/flutter (17920): Products not found: [oasis_pro_monthly]
+I/flutter (17920): [NotificationService] Subscription status for user 59f49bac-aa81-40ab-8dba-4595ad9075fb: RealtimeSubscribeStatus.subscribed
+I/flutter (17920): ScreenTime: Session started at 2026-04-11 00:50:08.167532
+I/flutter (17920): GoRouter: INFO: Full paths for routes:
+I/flutter (17920):   => /login
+I/flutter (17920):   => /register
+I/flutter (17920):   => /reset-password
+I/flutter (17920):   => /set-password
+I/flutter (17920):   => /feed
+I/flutter (17920):   => /search
+I/flutter (17920):   => /spaces
+I/flutter (17920):   =>   /spaces/circles/create
+I/flutter (17920):   =>   /spaces/canvas/create
+I/flutter (17920):   =>   /spaces/circles/:circleId
+I/flutter (17920):   =>     /spaces/circles/:circleId/add-commitment
+I/flutter (17920):   =>   /spaces/canvas/:canvasId
+I/flutter (17920):   => /messages
+I/flutter (17920):   =>   /messages/:conversationId
+I/flutter (17920):   => /notifications
+I/flutter (17920):   => /profile
+I/flutter (17920):   => /ripples
+I/flutter (17920):   => /create-ripple
+I/flutter (17920):   => /oasis-pro
+I/flutter (17920):   => /call/:callId
+I/flutter (17920):   => /create-post
+I/flutter (17920):   => /create-capsule
+I/flutter (17920):   => /capsule/:capsuleId
+I/flutter (17920):   => /circle/join/:circleId
+I/flutter (17920):   => /stories/create
+I/flutter (17920):   => /post/:postId
+I/flutter (17920):   => /post/:postId/comments
+I/flutter (17920):   => /edit-profile
+I/flutter (17920):   => /settings
+I/flutter (17920):   => /subscription
+I/flutter (17920):   => /settings/account-privacy
+I/flutter (17920):   => /settings/blocked-users
+I/flutter (17920):   => /settings/two-factor-auth
+I/flutter (17920):   => /settings/download-data
+I/flutter (17920):   => /settings/storage-usage
+I/flutter (17920):   => /settings/font-size
+I/flutter (17920):   => /settings/help-support
+I/flutter (17920):   => /settings/about
+I/flutter (17920):   =>   /settings/about/privacy-policy
+I/flutter (17920):   =>   /settings/about/terms-of-service
+I/flutter (17920):   =>   /settings/about/changelog
+I/flutter (17920):   => /zen-breath
+I/flutter (17920):   => /story/:storyId
+I/flutter (17920):   => /wellness-stats
+I/flutter (17920):   => /profile/:userId
+I/flutter (17920):   => /profile/:userId/followers
+I/flutter (17920):   => /profile/:userId/following
+I/flutter (17920):   => /new-message
+I/flutter (17920):   => /privacy-policy
+I/flutter (17920):   => /terms-of-service
+I/flutter (17920):   => /onboarding
+I/flutter (17920): known full paths for route names:
+I/flutter (17920):   login => /login
+I/flutter (17920):   register => /register
+I/flutter (17920):   reset_password => /reset-password
+I/flutter (17920):   set_password => /set-password
+I/flutter (17920):   feed => /feed
+I/flutter (17920):   search => /search
+I/flutter (17920):   spaces => /spaces
+I/flutter (17920):   create_circle => /spaces/circles/create
+I/flutter (17920):   create_canvas => /spaces/canvas/create
+I/flutter (17920):   circle_detail => /spaces/circles/:circleId
+I/flutter (17920):   create_commitment => /spaces/circles/:circleId/add-commitment
+I/flutter (17920):   canvas_detail => /spaces/canvas/:canvasId
+I/flutter (17920):   messages => /messages
+I/flutter (17920):   chat_nested => /messages/:conversationId
+I/flutter (17920):   notifications => /notifications
+I/flutter (17920):   profile => /profile
+I/flutter (17920):   ripples => /ripples
+I/flutter (17920):   create_ripple => /create-ripple
+I/flutter (17920):   oasis_pro => /oasis-pro
+I/flutter (17920):   active_call => /call/:callId
+I/flutter (17920):   create_post => /create-post
+I/flutter (17920):   create_capsule => /create-capsule
+I/flutter (17920):   view_capsule => /capsule/:capsuleId
+I/flutter (17920):   join_circle => /circle/join/:circleId
+I/flutter (17920):   create_story => /stories/create
+I/flutter (17920):   post_details => /post/:postId
+I/flutter (17920):   comments => /post/:postId/comments
+I/flutter (17920):   edit_profile => /edit-profile
+I/flutter (17920):   settings => /settings
+I/flutter (17920):   subscription => /subscription
+I/flutter (17920):   account_privacy => /settings/account-privacy
+I/flutter (17920):   blocked_users => /settings/blocked-users
+I/flutter (17920):   two_factor_auth => /settings/two-factor-auth
+I/flutter (17920):   download_data => /settings/download-data
+I/flutter (17920):   storage_usage => /settings/storage-usage
+I/flutter (17920):   font_size => /settings/font-size
+I/flutter (17920):   help_support => /settings/help-support
+I/flutter (17920):   about => /settings/about
+I/flutter (17920):   privacy_policy_sub => /settings/about/privacy-policy
+I/flutter (17920):   terms_of_service_sub => /settings/about/terms-of-service
+I/flutter (17920):   changelog => /settings/about/changelog
+I/flutter (17920):   zen_breath => /zen-breath
+I/flutter (17920):   story_view => /story/:storyId
+I/flutter (17920):   wellness_stats => /wellness-stats
+I/flutter (17920):   user_profile => /profile/:userId
+I/flutter (17920):   followers => /profile/:userId/followers
+I/flutter (17920):   following => /profile/:userId/following
+I/flutter (17920):   new_message => /new-message
+I/flutter (17920):   privacy_policy => /privacy-policy
+I/flutter (17920):   terms_of_service => /terms-of-service
+I/flutter (17920):   onboarding => /onboarding
+I/flutter (17920):
+I/flutter (17920): GoRouter: INFO: setting initial location /feed
+I/flutter (17920): GoRouter: INFO: Using MaterialApp configuration
+I/BLASTBufferQueue(17920): [29ac66d SurfaceView[com.example.morrow_v2/com.example.morrow_v2.MainActivity]@0#1](f:0,a:0,s:0) onFrameAvailable the first frame is available
+I/Choreographer(17920): Skipped 378 frames!  The application may be doing too much work on its main thread.
+I/SurfaceView(17920): 43697773 finishedDrawing
+I/flutter (17920): dynamic_color: Core palette detected.
+I/flutter (17920): [CallNavigation] Triggering navigation to /call/e1242803-07cd-47fd-bf37-0a14d201b14c (Current location: /feed)
+I/flutter (17920): GoRouter: INFO: getting location for name: "active_call", pathParameters: {callId: e1242803-07cd-47fd-bf37-0a14d201b14c}
+I/flutter (17920): GoRouter: INFO: pushing /call/e1242803-07cd-47fd-bf37-0a14d201b14c
+I/Choreographer(17920): Skipped 142 frames!  The application may be doing too much work on its main thread.
+D/VRI[MainActivity]@3b80ee4(17920): Setup new sync=wmsSync-VRI[MainActivity]@3b80ee4#1
+I/VRI[MainActivity]@3b80ee4(17920): Creating new active sync group VRI[MainActivity]@3b80ee4#2
+D/VRI[MainActivity]@3b80ee4(17920): Draw frame after cancel
+D/VRI[MainActivity]@3b80ee4(17920): registerCallbacksForSync syncBuffer=false
+D/SurfaceView(17920): 43697773 updateSurfacePosition RenderWorker, frameNr = 1, position = [0, 0, 1080, 2340] surfaceSize = 1080x2340
+I/SV[43697773 MainActivity](17920): uSP: rtp = Rect(0, 0 - 1080, 2340) rtsw = 1080 rtsh = 2340
+I/SV[43697773 MainActivity](17920): onSSPAndSRT: pl = 0 pt = 0 sx = 1.0 sy = 1.0
+I/SV[43697773 MainActivity](17920): aOrMT: VRI[MainActivity]@3b80ee4 t = android.view.SurfaceControl$Transaction@4d1d787 fN = 1 android.view.SurfaceView.-$$Nest$mapplyOrMergeTransaction:0 android.view.SurfaceView$SurfaceViewPositionUpdateListener.positionChanged:1932 android.graphics.RenderNode$CompositePositionUpdateListener.positionChanged:401
+I/VRI[MainActivity]@3b80ee4(17920): mWNT: t=0xb4000079f10eced0 mBlastBufferQueue=0xb400007ba1165950 fn= 1 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.SurfaceView.applyOrMergeTransaction:1863 android.view.SurfaceView.-$$Nest$mapplyOrMergeTransaction:0 android.view.SurfaceView$SurfaceViewPositionUpdateListener.positionChanged:1932
+D/VRI[MainActivity]@3b80ee4(17920): Received frameDrawingCallback syncResult=0 frameNum=1.
+I/VRI[MainActivity]@3b80ee4(17920): mWNT: t=0xb4000079f1135c50 mBlastBufferQueue=0xb400007ba1165950 fn= 1 HdrRenderState mRenderHdrSdrRatio=1.0 caller= android.view.ViewRootImpl$12.onFrameDraw:15441 android.view.ThreadedRenderer$1.onFrameDraw:718 <bottom of call stack>
+I/VRI[MainActivity]@3b80ee4(17920): Setting up sync and frameCommitCallback
+I/BLASTBufferQueue(17920): [VRI[MainActivity]@3b80ee4#0](f:0,a:0,s:0) onFrameAvailable the first frame is available
+I/VRI[MainActivity]@3b80ee4(17920): Received frameCommittedCallback lastAttemptedDrawFrameNum=1 didProduceBuffer=true
+D/HWUI    (17920): CFMS:: SetUp Pid : 17920    Tid : 18025
+D/VRI[MainActivity]@3b80ee4(17920): reportDrawFinished seqId=0
+I/HWUI    (17920): Davey! duration=2548ms; Flags=1, FrameTimelineVsyncId=129849843, IntendedVsync=314080468534730, Vsync=314082836696136, InputEventId=0, HandleInputStart=314082847302234, AnimationStart=314082847304119, PerformTraversalsStart=314082847304926, DrawStart=314082870494196, FrameDeadline=314080485201397, FrameStartTime=314082846793619, FrameInterval=16677193, WorkloadTarget=16666667, SyncQueued=314082889752542, SyncStart=314082892130503, IssueDrawCommandsStart=314082931454888, SwapBuffers=314083014142888, FrameCompleted=314083019384234, DequeueBufferDuration=48076500, QueueBufferDuration=949923, GpuCompleted=314083019333503, SwapBuffersCompleted=314083019384234, DisplayPresentTime=511106395649, CommandSubmissionCompleted=314083014142888,
+I/flutter (17920): [ProfileRemoteDatasource] Error fetching profile: PostgrestException(message: invalid input syntax for type uuid: "", code: 22P02, details: Bad Request, hint: null)
+I/flutter (17920): Error loading participant profile: PostgrestException(message: invalid input syntax for type uuid: "", code: 22P02, details: Bad Request, hint: null)
+I/org.webrtc.Logging(17920): NativeLibrary: Loading native library: jingle_peerconnection_so
+I/org.webrtc.Logging(17920): NativeLibrary: Loading library: jingle_peerconnection_so
+D/nativeloader(17920): Load /data/app/~~VfCTvuOSzgE0_Pv9poPkew==/com.example.morrow_v2-sKj5z1cT_6zqmmdKCNgZkQ==/base.apk!/lib/arm64-v8a/libjingle_peerconnection_so.so using class loader ns clns-9 (caller=/data/app/~~VfCTvuOSzgE0_Pv9poPkew==/com.example.morrow_v2-sKj5z1cT_6zqmmdKCNgZkQ==/base.apk!classes24.dex): ok
+I/org.webrtc.Logging(17920): PeerConnectionFactory: PeerConnectionFactory was initialized without an injected Loggable. Any existing Loggable will be deleted.
+D/AudioSystem(17920): onNewServiceWithAdapter: media.audio_flinger service obtained 0xb400007b61215290
+D/AudioSystem(17920): getService: checking for service media.audio_flinger: 0xb400007a21156c70
+I/org.webrtc.Logging(17920): WebRtcAudioManagerExternal: Sample rate is set to 48000 Hz
+I/org.webrtc.Logging(17920): WebRtcAudioManagerExternal: Sample rate is set to 48000 Hz
+I/org.webrtc.Logging(17920): JavaAudioDeviceModule: createAudioDeviceModule
+I/org.webrtc.Logging(17920): JavaAudioDeviceModule: HW NS will be used.
+I/org.webrtc.Logging(17920): JavaAudioDeviceModule: HW AEC will be used.
+I/org.webrtc.Logging(17920): JavaAudioDeviceModule: Low latency mode will be used.
+I/org.webrtc.Logging(17920): WebRtcAudioEffectsExternal: ctor@[name=main, id=2]
+I/org.webrtc.Logging(17920): WebRtcAudioRecordExternal: ctor@[name=main, id=2]
+I/org.webrtc.Logging(17920): WebRtcAudioTrackExternal: ctor@[name=main, id=2]
+I/org.webrtc.Logging(17920): JavaAudioDeviceModule: setNoiseSuppressorEnabled: true
+W/org.webrtc.Logging(17920): WebRtcAudioRecordExternal: SetNoiseSuppressorEnabled(true)
+E/org.webrtc.Logging(17920): WebRtcAudioEffectsExternal: Attempting to enable or disable nonexistent NoiseSuppressor.
+I/org.webrtc.Logging(17920): EglBase14Impl: Using OpenGL ES version 2
+W/AudioCapabilities(17920): Unsupported mediaType audio/x-ima
+W/AudioCapabilities(17920): Unsupported mediaType audio/mpeg-L1
+W/AudioCapabilities(17920): Unsupported mediaType audio/mpeg-L2
+W/VideoCapabilities(17920): Unsupported mime video/wvc1
+W/VideoCapabilities(17920): Unsupported mime video/x-ms-wmv
+W/AudioCapabilities(17920): Unsupported mediaType audio/iamf
+W/VideoCapabilities(17920): Unrecognized profile/level 32768/256 for video/mp4v-es
+W/AudioCapabilities(17920): Unsupported mime audio/x-ima
+W/AudioCapabilities(17920): Unsupported mime audio/mpeg-L1
+W/AudioCapabilities(17920): Unsupported mime audio/mpeg-L2
+W/VideoCapabilities(17920): Unsupported mime video/wvc1
+W/VideoCapabilities(17920): Unsupported mime video/wvc1
+W/VideoCapabilities(17920): Unsupported mime video/x-ms-wmv
+W/AudioCapabilities(17920): Unsupported mime audio/iamf
+W/VideoCapabilities(17920): Unrecognized profile/level 32768/256 for video/mp4v-es
+I/org.webrtc.Logging(17920): WebRtcAudioRecordExternal: enableBuiltInAEC(true)
+I/org.webrtc.Logging(17920): WebRtcAudioEffectsExternal: setAEC(true)
+I/org.webrtc.Logging(17920): WebRtcAudioRecordExternal: enableBuiltInNS(true)
+I/org.webrtc.Logging(17920): WebRtcAudioEffectsExternal: setNS(true)
+I/org.webrtc.Logging(17920): PeerConnectionFactory: onNetworkThreadReady
+I/org.webrtc.Logging(17920): PeerConnectionFactory: onWorkerThreadReady
+I/org.webrtc.Logging(17920): PeerConnectionFactory: onSignalingThreadReady
+D/VRI[MainActivity]@3b80ee4(17920): mThreadedRenderer.initializeIfNeeded()#2 mSurface={isValid=true 0xb400007af1162750}
+D/InputMethodManagerUtils(17920): startInputInner - Id : 0
+I/InputMethodManager(17920): startInputInner - IInputMethodManagerGlobalInvoker.startInputOrWindowGainedFocus
+I/org.webrtc.Logging(17920): EglBase14Impl: Using OpenGL ES version 2
+D/InputTransport(17920): Input channel constructed: 'ClientS', fd=255
+I/org.webrtc.Logging(17920): EglRenderer: Initializing EglRenderer
+I/InputMethodManager(17920): handleMessage: setImeVisibility visible=false
+D/InsetsController(17920): hide(ime(), fromIme=false)
+I/ImeTracker(17920): com.example.morrow_v2:6ce0fb68: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+V/MediaPlayer-JNI(17920): native_setup
+V/MediaPlayerNative(17920): constructor
+V/MediaPlayerNative(17920): setListener
+V/MediaPlayer-JNI(17920): get_session_id()
+V/MediaPlayer-JNI(17920): setParameter: key 1400
+V/MediaPlayerNative(17920): MediaPlayer::setParameter(1400)
+V/MediaPlayer-JNI(17920): reset
+V/MediaPlayerNative(17920): reset
+V/MediaPlayer(17920): resetDrmState:  mDrmInfo=null mDrmProvisioningThread=null mPrepareDrmInProgress=false mActiveDrmScheme=false
+V/MediaPlayer(17920): cleanDrmObj: mDrmObj=null mDrmSessionId=null
+V/MediaPlayer-JNI(17920): setDataSourceFD: fd 218
+V/MediaPlayerNative(17920): setDataSource(218, 0, 576460752303423487)
+V/MediaPlayer-JNI(17920): setVolume: left 1.000000  right 1.000000
+V/MediaPlayerNative(17920): MediaPlayer::setVolume(1.000000, 1.000000)
+V/MediaPlayer-JNI(17920): setLooping: 1
+V/MediaPlayerNative(17920): MediaPlayer::setLooping
+V/MediaPlayerNative(17920): setVideoSurfaceTexture
+V/MediaPlayerNative(17920): prepareAsync
+V/MediaPlayerNative(17920): invoke 80
+V/MediaPlayerNative(17920): message received msg=200, ext1=10973, ext2=0
+W/MediaPlayerNative(17920): info/warning (10973, 0)
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 377668227 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+V/MediaPlayerNative(17920): message received msg=1, ext1=0, ext2=0
+V/MediaPlayerNative(17920): MediaPlayer::notify() prepared
+I/VRI[MainActivity]@3b80ee4(17920): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@3b80ee4
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 611130253
+V/MediaPlayerNative(17920): invoke 76
+V/MediaPlayerNative(17920): getDuration_l
+V/MediaPlayer-JNI(17920): getDuration: 19879 (msec)
+I/Choreographer(17920): Skipped 86 frames!  The application may be doing too much work on its main thread.
+W/WindowOnBackDispatcher(17920): sendCancelIfRunning: isInProgress=false callback=androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@a405002
+V/MediaPlayer-JNI(17920): getPlaybackSettings: 1.000000 1.000000 2 0
+V/MediaPlayer-JNI(17920): setPlaybackParams: 1:1.000000 1:1.000000 1:2 1:0
+V/MediaPlayerNative(17920): setPlaybackSettings: 1.000000 1.000000 2 0
+I/org.webrtc.Logging(17920): EglRenderer: Releasing.
+I/org.webrtc.Logging(17920): EglRenderer: Duration: 4096 ms. Frames received: 0. Dropped: 0. Rendered: 0. Render fps: .0. Average render time: NA. Average swapBuffer time: NA.
+I/org.webrtc.Logging(17920): EglRenderer: eglBase detach and release.
+I/org.webrtc.Logging(17920): EglRenderer: Releasing done.
+I/VRI[MainActivity]@3b80ee4(17920): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@3b80ee4
+V/MediaPlayerNative(17920): message received msg=6, ext1=0, ext2=0
+V/MediaPlayerNative(17920): Received media started message
+V/MediaPlayerNative(17920): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(17920): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(17920): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(17920): message received msg=211, ext1=0, ext2=0
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 87575734 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/VRI[MainActivity]@3b80ee4(17920): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@3b80ee4
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 798713710
+I/flutter (17920): GoRouter: INFO: going to /profile
+I/Choreographer(17920): Skipped 54 frames!  The application may be doing too much work on its main thread.
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 956427809 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 975525594
+I/flutter (17920): GoRouter: INFO: pushing /settings
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 198603242 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 138750340
+I/VRI[MainActivity]@3b80ee4(17920): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@3b80ee4
+I/VRI[MainActivity]@3b80ee4(17920): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@3b80ee4
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 892279627 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 116365161
+I/VRI[MainActivity]@3b80ee4(17920): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@3b80ee4
+I/VRI[MainActivity]@3b80ee4(17920): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@3b80ee4
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 971975946 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 632793284
+I/ample.morrow_v2(17920): Background concurrent mark compact GC freed 4468KB AllocSpace bytes, 29(900KB) LOS objects, 51% free, 5714KB/11MB, paused 633us,12.706ms total 644.909ms
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 50176930 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 986310869
+I/flutter (17920): GoRouter: INFO: Using MaterialApp configuration
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 425987007 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 988263705
+W/WindowOnBackDispatcher(17920): sendCancelIfRunning: isInProgress=false callback=androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@a405002
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 619890472 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 124644953
+I/Choreographer(17920): Skipped 41 frames!  The application may be doing too much work on its main thread.
+W/WindowOnBackDispatcher(17920): sendCancelIfRunning: isInProgress=false callback=androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@a405002
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 513857361 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 555522103
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 676860575 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 414598182
+V/MediaPlayerNative(17920): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(17920): message received msg=6, ext1=0, ext2=0
+V/MediaPlayerNative(17920): Received media started message
+V/MediaPlayerNative(17920): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(17920): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(17920): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(17920): message received msg=211, ext1=0, ext2=0
+I/VRI[MainActivity]@3b80ee4(17920): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@3b80ee4
+I/VRI[MainActivity]@3b80ee4(17920): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@3b80ee4
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 980055767 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 884586580
+I/TRuntime.CctTransportBackend(17920): Making request to: https://firebaselogging.googleapis.com/v0cc/log/batch?format=json_proto3
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 139959041 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 635590986
+I/TRuntime.CctTransportBackend(17920): Status Code: 200
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 580206537 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 295796265
+I/VRI[MainActivity]@3b80ee4(17920): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@3b80ee4
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 810561611 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/VRI[MainActivity]@3b80ee4(17920): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@3b80ee4
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 563159934
+I/VRI[MainActivity]@3b80ee4(17920): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@3b80ee4
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 434030796 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/VRI[MainActivity]@3b80ee4(17920): call setFrameRateCategory for touch hint category=high hint, reason=touch, vri=VRI[MainActivity]@3b80ee4
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 1059001253
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 917458076 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 802219891
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 318009082 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 49881003
+W/WindowOnBackDispatcher(17920): sendCancelIfRunning: isInProgress=false callback=androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@a405002
+I/GestureDetector(17920): obtain mCurrentDownEvent. id: 15487529 caller: androidx.core.view.GestureDetectorCompat.onTouchEvent:98 io.sentry.android.core.internal.gestures.SentryWindowCallback.handleTouchEvent:70 io.sentry.android.core.internal.gestures.SentryWindowCallback.dispatchTouchEvent:57
+I/GestureDetector(17920): obtain mCurrentMotionEventRaw. action: 2 id: 865572088
+I/flutter (17920): GoRouter: INFO: going to /feed
+V/MediaPlayerNative(17920): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(17920): message received msg=6, ext1=0, ext2=0
+V/MediaPlayerNative(17920): Received media started message
+V/MediaPlayerNative(17920): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(17920): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(17920): message received msg=211, ext1=0, ext2=0
+V/MediaPlayerNative(17920): message received msg=211, ext1=0, ext2=0
 
-══╡ EXCEPTION CAUGHT BY WIDGETS LIBRARY ╞═══════════════════════════════════════════════════════════
-The following message was thrown building CallingScreen(dirty, dependencies:
-[_InheritedProviderScope<CallProvider?>], state: _CallingScreenState#3ed64):
-Call initialize before setting the stream
-
-The relevant error-causing widget was:
-  CallingScreen CallingScreen:file:///F:/oasis/lib/routes/app_router.dart:1080:28
-
-When the exception was thrown, this was the stack:
-#0      RTCVideoRenderer.srcObject= (package:flutter_webrtc/src/native/rtc_video_renderer_impl.dart:61:28)
-#1      _CallingScreenState.build (package:oasis/features/calling/presentation/screens/calling_screen.dart:53:22)        
-#2      StatefulElement.build (package:flutter/src/widgets/framework.dart:5931:27)
-#3      ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5817:15)
-#4      StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
-#5      Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#6      ComponentElement._firstBuild (package:flutter/src/widgets/framework.dart:5799:5)
-#7      StatefulElement._firstBuild (package:flutter/src/widgets/framework.dart:5973:11)
-#8      ComponentElement.mount (package:flutter/src/widgets/framework.dart:5793:5)
-...     Normal element mounting (260 frames)
-#268    Element.inflateWidget (package:flutter/src/widgets/framework.dart:4587:20)
-#269    MultiChildRenderObjectElement.inflateWidget (package:flutter/src/widgets/framework.dart:7264:36)
-#270    Element.updateChild (package:flutter/src/widgets/framework.dart:4059:18)
-#271    Element.updateChildren (package:flutter/src/widgets/framework.dart:4255:32)
-#272    MultiChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7295:17)
-#273    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#274    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#275    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
-#276    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#277    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
-#278    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#279    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#280    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#281    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
-#282    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#283    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#284    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#285    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
-#286    _InheritedNotifierElement.update (package:flutter/src/widgets/inherited_notifier.dart:108:11)
-#287    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#288    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#289    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
-#290    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#291    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
-#292    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#293    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#294    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#295    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
-#296    _InheritedNotifierElement.update (package:flutter/src/widgets/inherited_notifier.dart:108:11)
-#297    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#298    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#299    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
-#300    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#301    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
-#302    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#303    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#304    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
-#305    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#306    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
-#307    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#308    SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7122:14)
-#309    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#310    SingleChildRenderObjectElement.update (package:flutter/src/widgets/framework.dart:7122:14)
-#311    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#312    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#313    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#314    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
-#315    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#316    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#317    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#318    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
-#319    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#320    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#321    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
-#322    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#323    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
-#324    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#325    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#326    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#327    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
-#328    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#329    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#330    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#331    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
-#332    _InheritedNotifierElement.update (package:flutter/src/widgets/inherited_notifier.dart:108:11)
-#333    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#334    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#335    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
-#336    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#337    StatefulElement.update (package:flutter/src/widgets/framework.dart:6007:5)
-#338    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#339    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#340    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#341    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
-#342    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#343    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#344    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#345    StatelessElement.update (package:flutter/src/widgets/framework.dart:5895:5)
-#346    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#347    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#348    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#349    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
-#350    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#351    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#352    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#353    ProxyElement.update (package:flutter/src/widgets/framework.dart:6149:5)
-#354    Element.updateChild (package:flutter/src/widgets/framework.dart:4037:15)
-#355    ComponentElement.performRebuild (package:flutter/src/widgets/framework.dart:5841:16)
-#356    StatefulElement.performRebuild (package:flutter/src/widgets/framework.dart:5982:11)
-#357    Element.rebuild (package:flutter/src/widgets/framework.dart:5529:7)
-#358    BuildScope._tryRebuild (package:flutter/src/widgets/framework.dart:2750:15)
-#359    BuildScope._flushDirtyElements (package:flutter/src/widgets/framework.dart:2807:11)
-#360    BuildOwner.buildScope (package:flutter/src/widgets/framework.dart:3111:18)
-#361    WidgetsBinding.drawFrame (package:flutter/src/widgets/binding.dart:1302:21)
-#362    RendererBinding._handlePersistentFrameCallback (package:flutter/src/rendering/binding.dart:495:5)
-#363    SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
-#364    SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1345:9)
-#365    SchedulerBinding._handleDrawFrame (package:flutter/src/scheduler/binding.dart:1198:5)
-#366    _invoke (dart:ui/hooks.dart:356:13)
-#367    PlatformDispatcher._drawFrame (dart:ui/platform_dispatcher.dart:444:5)
-#368    _drawFrame (dart:ui/hooks.dart:328:31)
-
-════════════════════════════════════════════════════════════════════════════════════════════════════
-
-I/flutter (30718): [CallNavigation] Triggering navigation to /call/e1242803-07cd-47fd-bf37-0a14d201b14c (Current location: /messages)
-I/flutter (30718): GoRouter: INFO: getting location for name: "active_call", pathParameters: {callId: e1242803-07cd-47fd-bf37-0a14d201b14c}
-I/flutter (30718): GoRouter: INFO: pushing /call/e1242803-07cd-47fd-bf37-0a14d201b14c 
-Another exception was thrown: Call initialize before setting the stream
-W/WindowOnBackDispatcher(30718): sendCancelIfRunning: isInProgress=false callback=androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@66e16b4
-I/org.webrtc.Logging(30718): EglBase14Impl: Using OpenGL ES version 2
-I/org.webrtc.Logging(30718): EglRenderer: Initializing EglRenderer
-W/WindowOnBackDispatcher(30718): sendCancelIfRunning: isInProgress=false callback=androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@66e16b4
-I/org.webrtc.Logging(30718): EglBase14Impl: Using OpenGL ES version 2
-I/org.webrtc.Logging(30718): EglRenderer: Initializing EglRenderer
-I/VRI[MainActivity]@d7b4311(30718): call setFrameRateCategory for touch hint category=no preference, reason=boost timeout, vri=VRI[MainActivity]@d7b4311
-I/org.webrtc.Logging(30718): EglRenderer: Duration: 4036 ms. Frames received: 0. Dropped: 0. Rendered: 0. Render fps: .0. Average render time: NA. Average swapBuffer time: NA.
-I/org.webrtc.Logging(30718): EglRenderer: Duration: 4004 ms. Frames received: 0. Dropped: 0. Rendered: 0. Render fps: .0. Average render time: NA. Average swapBuffer time: NA.
-I/org.
+Application finished.

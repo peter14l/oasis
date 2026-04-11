@@ -56,8 +56,9 @@ class WellnessAchievement {
 
 /// Enhanced wellness service with focus mode, wind-down, and achievements
 class WellnessService extends ChangeNotifier {
-  static const String _focusModeKey = 'focus_mode_enabled';
-  static const String _focusModeScheduleKey = 'focus_mode_schedule';
+  static const String _zenModeKey = 'zen_mode_enabled';
+  static const String _zenModeScheduleKey = 'zen_mode_schedule';
+  static const String _allowCallsDuringZenKey = 'allow_calls_during_zen';
   static const String _windDownEnabledKey = 'wind_down_enabled';
   static const String _windDownTimeKey = 'wind_down_time';
   static const String _blockedFeaturesKey = 'focus_blocked_features';
@@ -67,16 +68,17 @@ class WellnessService extends ChangeNotifier {
   final SharedPreferences _prefs;
   Timer? _windDownTimer;
 
-  // Focus Mode
-  bool _focusModeEnabled = false;
-  DateTime? _focusStartTime;
-  Timer? _focusTimer;
-  int _focusRemainingSeconds = 0;
-  static const int _focusSessionDurationMinutes = 30;
-  static const int _focusRewardXP = 50;
-  static const int _focusPenaltyXP = 35;
+  // Zen Mode
+  bool _zenModeEnabled = false;
+  bool _allowCallsDuringZen = true;
+  DateTime? _zenStartTime;
+  Timer? _zenTimer;
+  int _zenRemainingSeconds = 0;
+  static const int _zenSessionDurationMinutes = 30;
+  static const int _zenRewardXP = 50;
+  static const int _zenPenaltyXP = 35;
 
-  Map<String, bool> _focusSchedule = {};
+  Map<String, bool> _zenSchedule = {};
   Set<String> _blockedFeatures = {};
 
   // Wind Down Mode
@@ -98,31 +100,31 @@ class WellnessService extends ChangeNotifier {
   void onPaused() {
     _windDownTimer?.cancel();
     _windDownTimer = null;
-    // Also pause focus timer if active
-    if (_focusTimer != null) {
-      _focusTimer?.cancel();
-      _focusTimer = null;
+    // Also pause zen timer if active
+    if (_zenTimer != null) {
+      _zenTimer?.cancel();
+      _zenTimer = null;
     }
     debugPrint('Wellness: Timers paused (background)');
   }
 
   void onResumed() {
     _startWindDownMonitor();
-    // Restart focus timer if it was active
-    if (_focusModeEnabled && _focusStartTime != null && _focusRemainingSeconds > 0) {
-      _resumeFocusTimer();
+    // Restart zen timer if it was active
+    if (_zenModeEnabled && _zenStartTime != null && _zenRemainingSeconds > 0) {
+      _resumeZenTimer();
     }
     debugPrint('Wellness: Wind-down monitor resumed');
   }
 
-  void _resumeFocusTimer() {
-    _focusTimer?.cancel();
-    _focusTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_focusRemainingSeconds > 0) {
-        _focusRemainingSeconds--;
-        if (_focusRemainingSeconds % 60 == 0) notifyListeners();
+  void _resumeZenTimer() {
+    _zenTimer?.cancel();
+    _zenTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_zenRemainingSeconds > 0) {
+        _zenRemainingSeconds--;
+        if (_zenRemainingSeconds % 60 == 0) notifyListeners();
       } else {
-        _stopFocusSession(manual: false);
+        _stopZenSession(manual: false);
       }
     });
   }
@@ -133,12 +135,13 @@ class WellnessService extends ChangeNotifier {
   }
 
   void _loadSettings() {
-    _focusModeEnabled = _prefs.getBool(_focusModeKey) ?? false;
+    _zenModeEnabled = _prefs.getBool(_zenModeKey) ?? false;
+    _allowCallsDuringZen = _prefs.getBool(_allowCallsDuringZenKey) ?? true;
 
-    final scheduleJson = _prefs.getString(_focusModeScheduleKey);
+    final scheduleJson = _prefs.getString(_zenModeScheduleKey);
     if (scheduleJson != null) {
       final decoded = jsonDecode(scheduleJson) as Map<String, dynamic>;
-      _focusSchedule = decoded.map((k, v) => MapEntry(k, v as bool));
+      _zenSchedule = decoded.map((k, v) => MapEntry(k, v as bool));
     }
 
     final blockedJson = _prefs.getStringList(_blockedFeaturesKey);
@@ -173,10 +176,11 @@ class WellnessService extends ChangeNotifier {
   }
 
   // Getters
-  bool get focusModeEnabled => _focusModeEnabled;
-  int get focusRemainingSeconds => _focusRemainingSeconds;
-  double get focusProgress => _focusStartTime == null ? 0 : (1 - (_focusRemainingSeconds / (_focusSessionDurationMinutes * 60))).clamp(0.0, 1.0);
-  Map<String, bool> get focusSchedule => _focusSchedule;
+  bool get zenModeEnabled => _zenModeEnabled;
+  bool get allowCallsDuringZen => _allowCallsDuringZen;
+  int get zenRemainingSeconds => _zenRemainingSeconds;
+  double get zenProgress => _zenStartTime == null ? 0 : (1 - (_zenRemainingSeconds / (_zenSessionDurationMinutes * 60))).clamp(0.0, 1.0);
+  Map<String, bool> get zenSchedule => _zenSchedule;
   Set<String> get blockedFeatures => _blockedFeatures;
   bool get windDownEnabled => _windDownEnabled;
   TimeOfDay? get windDownTime => _windDownTime;
@@ -185,60 +189,66 @@ class WellnessService extends ChangeNotifier {
   int get dailyGoalMinutes => _dailyGoalMinutes;
   List<WellnessAchievement> get achievements => _achievements;
 
-  // Focus Mode methods
-  Future<void> setFocusModeEnabled(bool enabled) async {
-    if (_focusModeEnabled == enabled) return;
+  // Zen Mode methods
+  Future<void> setZenModeEnabled(bool enabled) async {
+    if (_zenModeEnabled == enabled) return;
     
-    _focusModeEnabled = enabled;
-    await _prefs.setBool(_focusModeKey, enabled);
+    _zenModeEnabled = enabled;
+    await _prefs.setBool(_zenModeKey, enabled);
     
     if (enabled) {
-      _startFocusSession();
+      _startZenSession();
     } else {
-      _stopFocusSession(manual: true);
+      _stopZenSession(manual: true);
     }
     
     notifyListeners();
   }
 
-  void _startFocusSession() {
-    _focusStartTime = DateTime.now();
-    _focusRemainingSeconds = _focusSessionDurationMinutes * 60;
+  Future<void> setAllowCallsDuringZen(bool allow) async {
+    _allowCallsDuringZen = allow;
+    await _prefs.setBool(_allowCallsDuringZenKey, allow);
+    notifyListeners();
+  }
+
+  void _startZenSession() {
+    _zenStartTime = DateTime.now();
+    _zenRemainingSeconds = _zenSessionDurationMinutes * 60;
     
     // Pause notifications
     _setNotificationsPaused(true);
 
-    _focusTimer?.cancel();
-    _focusTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_focusRemainingSeconds > 0) {
-        _focusRemainingSeconds--;
-        if (_focusRemainingSeconds % 60 == 0) notifyListeners();
+    _zenTimer?.cancel();
+    _zenTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_zenRemainingSeconds > 0) {
+        _zenRemainingSeconds--;
+        if (_zenRemainingSeconds % 60 == 0) notifyListeners();
       } else {
-        _stopFocusSession(manual: false);
+        _stopZenSession(manual: false);
       }
     });
   }
 
-  Future<void> _stopFocusSession({required bool manual}) async {
-    _focusTimer?.cancel();
-    _focusTimer = null;
+  Future<void> _stopZenSession({required bool manual}) async {
+    _zenTimer?.cancel();
+    _zenTimer = null;
     
     // Resume notifications
     _setNotificationsPaused(false);
 
-    if (manual && _focusRemainingSeconds > 0) {
+    if (manual && _zenRemainingSeconds > 0) {
       // Penalty for early stop
-      await _updateUserXP(-_focusPenaltyXP);
-    } else if (!manual && _focusRemainingSeconds == 0) {
+      await _updateUserXP(-_zenPenaltyXP);
+    } else if (!manual && _zenRemainingSeconds == 0) {
       // Reward for completion
-      await _updateUserXP(_focusRewardXP);
-      _awardFocusAchievement();
+      await _updateUserXP(_zenRewardXP);
+      _awardZenAchievement();
     }
 
-    _focusStartTime = null;
-    _focusRemainingSeconds = 0;
-    _focusModeEnabled = false;
-    await _prefs.setBool(_focusModeKey, false);
+    _zenStartTime = null;
+    _zenRemainingSeconds = 0;
+    _zenModeEnabled = false;
+    await _prefs.setBool(_zenModeKey, false);
     notifyListeners();
   }
 
@@ -261,13 +271,13 @@ class WellnessService extends ChangeNotifier {
     }
   }
 
-  void _awardFocusAchievement() {
+  void _awardZenAchievement() {
     final today = DateTime.now();
     final achievement = WellnessAchievement(
-      id: 'focus_${today.millisecondsSinceEpoch}',
+      id: 'zen_${today.millisecondsSinceEpoch}',
       type: AchievementType.challenge,
-      name: 'Focus Master',
-      description: 'Completed a 30-minute focus session!',
+      name: 'Zen Master',
+      description: 'Completed a 30-minute zen session!',
       icon: '🧘',
       earnedAt: today,
     );
@@ -277,7 +287,7 @@ class WellnessService extends ChangeNotifier {
 
   Future<void> setBlockedFeatures(Set<String> features) async {
     if (!_isUserPro()) {
-      throw Exception('Upgrade to Oasis Pro to customize Focus Mode blocklist.');
+      throw Exception('Upgrade to Oasis Pro to customize Zen Mode blocklist.');
     }
     _blockedFeatures = features;
     await _prefs.setStringList(_blockedFeaturesKey, features.toList());
@@ -285,7 +295,7 @@ class WellnessService extends ChangeNotifier {
   }
 
   bool isFeatureBlocked(String feature) {
-    if (!_focusModeEnabled) return false;
+    if (!_zenModeEnabled) return false;
     return _blockedFeatures.contains(feature);
   }
 

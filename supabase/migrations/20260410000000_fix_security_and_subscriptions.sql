@@ -68,16 +68,16 @@ CREATE TRIGGER on_subscription_sync_pro
 -- 4. HARDEN PROFILES TABLE (is_pro protection)
 -- Ensure the is_pro column cannot be updated directly by users via Supabase client.
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile except pro status" ON public.profiles;
 CREATE POLICY "Users can update own profile except pro status"
 ON public.profiles FOR UPDATE
 USING (auth.uid() = id)
 WITH CHECK (
     auth.uid() = id 
     AND (
-        CASE 
-            WHEN (OLD.is_pro IS DISTINCT FROM NEW.is_pro) THEN FALSE 
-            ELSE TRUE 
-        END
+        -- Protect is_pro from being updated by the user directly.
+        -- Since OLD/NEW are not available in RLS, we compare the new value with the current value in the database.
+        is_pro = (SELECT p.is_pro FROM public.profiles p WHERE p.id = id)
     )
 );
 

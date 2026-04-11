@@ -24,6 +24,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   tray_manager
   url_launcher_windows
   video_player_win
+  webview_windows
   win_toast
   window_manager
 )

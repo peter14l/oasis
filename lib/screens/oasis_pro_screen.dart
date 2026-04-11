@@ -42,29 +42,53 @@ class _OasisProScreenState extends State<OasisProScreen> {
   }
 
   Future<void> _subscribe(PricingPlan plan) async {
-    if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) {
-      // Use Native IAP
-      final iapService = context.read<IAPService>();
-      if (!iapService.isAvailable) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('In-App Purchase is not available on this device.')),
-        );
-        return;
-      }
-
-      final product = iapService.products.firstWhere(
-        (p) => p.id == 'oasis_pro_monthly',
-        orElse: () => throw Exception('Product not found'),
-      );
-      
-      await iapService.buyProduct(product);
-    } else if (Platform.isWindows) {
+    if (Platform.isWindows) {
       // Use Razorpay Flow for Windows (Phase 4)
       _startRazorpayWindowsFlow(plan);
     } else {
-      // Fallback for Web/Other
+      // Use Web Checkout for all other platforms (Android, iOS, MacOS, Web)
+      // to handle checkout outside of standard App Store/Play Store IAP
       _launchWebCheckout(plan);
     }
+  }
+
+  Widget _buildWebRedirectBanner(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blueAccent.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(FluentIcons.info_24_regular, color: Colors.blueAccent),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Web Checkout',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'Payments are currently handled via our secure web portal. You will be redirected to complete your purchase.',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _startRazorpayWindowsFlow(PricingPlan plan) {
@@ -244,7 +268,7 @@ class _OasisProScreenState extends State<OasisProScreen> {
                     ),
                     const SizedBox(height: 40),
 
-                    // Detected region row removed as requested
+                    _buildWebRedirectBanner(context),
 
                     ..._plans.map((plan) => _buildPricingCard(plan)),
 

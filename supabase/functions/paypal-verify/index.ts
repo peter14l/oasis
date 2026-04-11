@@ -9,7 +9,7 @@ const corsHeaders = {
 // SECURE PRICE MAP (The "Truth")
 // Users cannot edit these amounts as they are enforced on the server.
 const PLAN_PRICES: Record<string, { USD: number; INR: number }> = {
-  'Pro': { USD: 4.99, INR: 149.00 }
+  'Pro': { USD: 4.99, INR: 5.00 } // Temporarily Rs 5 for testing
 };
 
 serve(async (req) => {

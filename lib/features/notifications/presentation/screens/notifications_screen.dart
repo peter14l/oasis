@@ -121,6 +121,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       filtered = filtered.where((n) => n.type == _filterType).toList();
     }
 
+    // Always filter out calls from this page
+    filtered = filtered.where((n) => n.type != 'call').toList();
+
     return filtered;
   }
 

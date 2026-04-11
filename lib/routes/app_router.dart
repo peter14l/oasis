@@ -73,7 +73,6 @@ import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 
 import 'package:oasis/features/wellness/presentation/screens/wellness_center_screen.dart';
-import 'package:oasis/features/wellness/presentation/screens/zen_breath_screen.dart';
 import 'package:oasis/features/settings/presentation/screens/changelog_screen.dart';
 import 'package:oasis/features/auth/presentation/widgets/account_switcher_sheet.dart';
 import 'package:oasis/features/settings/presentation/screens/wellness_stats_screen.dart';
@@ -194,7 +193,7 @@ class _MainLayoutState extends State<MainLayout> {
 
     return Consumer3<ScreenTimeService, WellnessService, UserSettingsProvider>(
       builder: (context, svc, wellness, userSettings, _) {
-        final killSwitchActive = wellness.focusModeEnabled;
+        final killSwitchActive = wellness.zenModeEnabled;
         final isMica = userSettings.micaEnabled && Platform.isWindows;
 
         final panelColor =
@@ -1041,6 +1040,16 @@ class AppRouter {
                 fullscreenDialog: true,
                 child: RipplesScreen(),
               ),
+          routes: [
+            GoRoute(
+              path: ':rippleId',
+              name: 'ripple_details',
+              builder: (context, state) {
+                final id = state.pathParameters['rippleId'];
+                return RipplesScreen(initialRippleId: id);
+              },
+            ),
+          ],
         ),
 
         // Create Ripple Screen
@@ -1305,18 +1314,8 @@ class AppRouter {
           ],
         ),
 
-        // Zen Breath Screen
-        GoRoute(
-          path: '/zen-breath',
-          name: 'zen_breath',
-          pageBuilder:
-              (context, state) => MaterialPage(
-                key: state.pageKey,
-                child: const ZenBreathScreen(),
-              ),
-        ),
+        // Legal Screens
 
-        // Story View Screen
         GoRoute(
           path: '/story/:storyId',
           name: 'story_view',

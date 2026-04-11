@@ -392,7 +392,7 @@ class _PulsatingParticipantState extends State<PulsatingParticipant> with Single
     final profileProvider = context.read<ProfileProvider>();
     if (widget.isLocal) {
       _profile = profileProvider.currentProfile;
-    } else if (widget.userId != null) {
+    } else if (widget.userId != null && widget.userId!.isNotEmpty) {
       try {
         final profile = await profileProvider.getProfile(widget.userId!);
         if (mounted) {

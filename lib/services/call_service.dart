@@ -493,9 +493,25 @@ class CallService extends ChangeNotifier {
         .stream(primaryKey: ['id'])
         .eq('user_id', user.id)
         .listen((data) async {
+      final now = DateTime.now();
       for (var participant in data) {
         if (participant['status'] == 'invited') {
           final callId = participant['call_id'];
+          final createdAt = DateTime.parse(participant['created_at'] as String);
+          
+          // Skip if call invite is older than 5 minutes (stale)
+          if (now.difference(createdAt).inMinutes > 5) {
+            debugPrint('[CallService] Ignoring stale call invite: $callId (Created at: $createdAt)');
+            // Clean up stale invite in DB so it doesn't trigger again
+            _supabase
+                .from('call_participants')
+                .update({'status': 'missed'})
+                .match({'call_id': callId, 'user_id': user.id})
+                .then((_) => debugPrint('[CallService] Marked stale call as missed: $callId'))
+                .catchError((e) => debugPrint('[CallService] Error marking stale call: $e'));
+            continue;
+          }
+
           // Fetch call details
           try {
             final callData = await _supabase
@@ -504,10 +520,24 @@ class CallService extends ChangeNotifier {
                 .eq('id', callId)
                 .single();
             
-            _incomingCall = CallEntity.fromJson(callData);
-            _playRingtone(); // Start ringing for invitee
-            notifyListeners();
-            return;
+            final call = CallEntity.fromJson(callData);
+            
+            // Only show UI if call is still in pinging status
+            if (call.status == CallStatus.pinging) {
+              _incomingCall = call;
+              _playRingtone(); // Start ringing for invitee
+              notifyListeners();
+              return;
+            } else {
+              debugPrint('[CallService] Ignoring call $callId with status: ${call.status}');
+              // If call ended or was cancelled, mark as missed
+              _supabase
+                  .from('call_participants')
+                  .update({'status': 'missed'})
+                  .match({'call_id': callId, 'user_id': user.id})
+                  .then((_) => debugPrint('[CallService] Marked inactive call as missed: $callId'))
+                  .catchError((e) => debugPrint('[CallService] Error marking inactive call: $e'));
+            }
           } catch (e) {
             debugPrint('Error fetching incoming call details: $e');
           }

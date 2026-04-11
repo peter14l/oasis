@@ -21,7 +21,7 @@ class PricingPlan {
 class PricingService {
   static final Map<Currency, Map<String, dynamic>> _pricingData = {
     Currency.usd: {'symbol': '\$', 'pro': 4.99},
-    Currency.inr: {'symbol': '₹', 'pro': 149.0},
+    Currency.inr: {'symbol': '₹', 'pro': 5.0}, // Temporarily 5.0 for testing
     Currency.eur: {'symbol': '€', 'pro': 4.99},
     Currency.gbp: {'symbol': '£', 'pro': 4.49},
   };

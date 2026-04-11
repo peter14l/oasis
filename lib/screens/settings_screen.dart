@@ -583,6 +583,74 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _handleCancelSubscription() async {
+    final theme = Theme.of(context);
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Subscription?'),
+        content: const Text(
+          'Your Pro features will remain active until the end of your current billing period. Automatic renewal will be disabled.'
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep Pro'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Cancel Subscription'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      if (!mounted) return;
+      
+      // Show loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Processing cancellation...')),
+      );
+
+      try {
+        final supabase = SupabaseService().client;
+        final response = await supabase.functions.invoke('razorpay-cancel-subscription');
+        
+        if (response.status != 200) {
+          throw Exception(response.data['error'] ?? 'Failed to cancel subscription');
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Subscription cancelled. Auto-renewal disabled.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          
+          // Refresh profile to update UI if needed
+          final authService = Provider.of<AuthService>(context, listen: false);
+          if (authService.currentUser != null) {
+            Provider.of<ProfileProvider>(context, listen: false)
+                .loadCurrentProfile(authService.currentUser!.id);
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   Widget _buildProMemberTile(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
@@ -631,6 +699,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: colorScheme.onSurfaceVariant,
                     fontSize: 13,
                   ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => launchUrl(Uri.parse(AppConfig.getWebUrl('/profile'))),
+                      icon: const Icon(Icons.manage_accounts_rounded, size: 18),
+                      label: const Text('Web Profile'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: colorScheme.primary,
+                        side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: _handleCancelSubscription,
+                      icon: const Icon(Icons.cancel_outlined, size: 18),
+                      label: const Text('Cancel Subscription'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -6,54 +6,64 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { plan, amount, currency } = await req.json()
-    const RAZORPAY_KEY_ID = Deno.env.get('RAZORPAY_KEY_ID')
-    const RAZORPAY_KEY_SECRET = Deno.env.get('RAZORPAY_KEY_SECRET')
+    const { plan = 'Pro' } = await req.json()
+    const RAZORPAY_KEY_ID = Deno.env.get('RAZORPAY_KEY_ID')?.trim()
+    const RAZORPAY_KEY_SECRET = Deno.env.get('RAZORPAY_KEY_SECRET')?.trim()
+    const RAZORPAY_PLAN_ID = Deno.env.get('RAZORPAY_PLAN_ID')?.trim() || 'plan_Sc9w7G8vVOk3yw'
 
-    if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
-      throw new Error('Razorpay credentials are not configured on the server.')
+    if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) throw new Error('Credentials missing.')
+
+    const auth = btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`)
+
+    // DIAGNOSTIC: Check if Plan exists first
+    console.log(`Checking Plan ID: ${RAZORPAY_PLAN_ID}`)
+    const planCheck = await fetch(`https://api.razorpay.com/v1/plans/${RAZORPAY_PLAN_ID}`, {
+      method: 'GET',
+      headers: { 'Authorization': `Basic ${auth}` }
+    })
+
+    if (planCheck.status === 404) {
+      throw new Error(`Plan ID "${RAZORPAY_PLAN_ID}" was not found in your Razorpay account. Please ensure you created this plan in TEST MODE.`)
+    } else if (planCheck.status === 401) {
+      throw new Error("Razorpay API Keys are invalid. Please regenerate them in Dashboard > Settings.")
     }
 
-    const basicAuth = btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`)
-    
-    // Amount in smallest unit (multiply by 100 for INR, USD, etc)
-    const amountInSmallestUnit = Math.round(amount * 100)
-
-    const response = await fetch('https://api.razorpay.com/v1/orders', {
+    // If plan is okay, proceed to create subscription
+    console.log(`Creating subscription...`)
+    const response = await fetch('https://api.razorpay.com/v1/subscriptions', {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${basicAuth}`,
+        'Authorization': `Basic ${auth}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        amount: amountInSmallestUnit,
-        currency: currency || 'INR',
-        receipt: `receipt_${Date.now()}`,
+        plan_id: RAZORPAY_PLAN_ID,
+        total_count: 120,
+        quantity: 1,
+        customer_notify: 1,
+        notes: { plan_name: plan }
       })
     })
 
+    const data = await response.json()
     if (!response.ok) {
-        const err = await response.text()
-        throw new Error(`Razorpay API error: ${err}`)
+      console.error('Razorpay Error:', data)
+      throw new Error(data.error?.description || 'Subscription creation failed.')
     }
 
-    const data = await response.json()
+    return new Response(JSON.stringify(data), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200
+    })
 
-    return new Response(
-      JSON.stringify(data),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-
-  } catch (error) {
-    console.error('Razorpay Create Order Error:', error)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-    )
+  } catch (error: any) {
+    console.error('Function Error:', error.message)
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400
+    })
   }
 })

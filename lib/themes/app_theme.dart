@@ -7,20 +7,24 @@ class AppTheme {
   AppTheme._();
 
   // Helper method to get theme based on brightness
-  static ThemeData getTheme(Brightness brightness, {bool isM3E = false, bool highContrast = false, String? fontFamily}) {
+  static ThemeData getTheme(Brightness brightness, {bool isM3E = false, bool highContrast = false, String? fontFamily, ColorScheme? dynamicColorScheme}) {
     if (highContrast) {
       return brightness == Brightness.dark ? highContrastDark(fontFamily: fontFamily) : highContrastLight(fontFamily: fontFamily);
     }
     if (isM3E) {
-      return brightness == Brightness.dark ? m3eDark(fontFamily: fontFamily) : m3eLight(fontFamily: fontFamily);
+      return brightness == Brightness.dark 
+          ? m3eDark(fontFamily: fontFamily, dynamicColorScheme: dynamicColorScheme) 
+          : m3eLight(fontFamily: fontFamily, dynamicColorScheme: dynamicColorScheme);
     }
-    return brightness == Brightness.dark ? dark(fontFamily: fontFamily) : light(fontFamily: fontFamily);
+    return brightness == Brightness.dark 
+        ? dark(fontFamily: fontFamily, dynamicColorScheme: dynamicColorScheme) 
+        : light(fontFamily: fontFamily, dynamicColorScheme: dynamicColorScheme);
   }
 
-  static ThemeData light({String? fontFamily}) => _createTheme(Brightness.light, false, fontFamily);
-  static ThemeData dark({String? fontFamily}) => _createTheme(Brightness.dark, false, fontFamily);
-  static ThemeData m3eLight({String? fontFamily}) => _createTheme(Brightness.light, true, fontFamily);
-  static ThemeData m3eDark({String? fontFamily}) => _createTheme(Brightness.dark, true, fontFamily);
+  static ThemeData light({String? fontFamily, ColorScheme? dynamicColorScheme}) => _createTheme(Brightness.light, false, fontFamily, dynamicColorScheme);
+  static ThemeData dark({String? fontFamily, ColorScheme? dynamicColorScheme}) => _createTheme(Brightness.dark, false, fontFamily, dynamicColorScheme);
+  static ThemeData m3eLight({String? fontFamily, ColorScheme? dynamicColorScheme}) => _createTheme(Brightness.light, true, fontFamily, dynamicColorScheme);
+  static ThemeData m3eDark({String? fontFamily, ColorScheme? dynamicColorScheme}) => _createTheme(Brightness.dark, true, fontFamily, dynamicColorScheme);
   
   static ThemeData highContrastLight({String? fontFamily}) {
     final theme = light(fontFamily: fontFamily);
@@ -77,11 +81,14 @@ class AppTheme {
     }
   }
 
-  static ThemeData _createTheme(Brightness brightness, bool isM3E, String? fontFamily) {
+  static ThemeData _createTheme(Brightness brightness, bool isM3E, String? fontFamily, ColorScheme? dynamicColorScheme) {
     final isDark = brightness == Brightness.dark;
     
     if (isM3E) {
-      final colorScheme = isDark ? m3eDarkColorScheme : m3eLightColorScheme;
+      var colorScheme = isDark ? m3eDarkColorScheme : m3eLightColorScheme;
+      if (dynamicColorScheme != null) {
+        colorScheme = dynamicColorScheme;
+      }
       final textTheme = m3eTextTheme(colorScheme.onSurface, fontFamily);
       
       return ThemeData(
@@ -217,8 +224,11 @@ class AppTheme {
       );
     }
 
-    final colorScheme = isDark ? darkColorScheme : lightColorScheme;
-    final textTheme = standardTextTheme(isDark ? _darkOnSurfaceColor : _lightOnSurfaceColor, fontFamily);
+    var colorScheme = isDark ? darkColorScheme : lightColorScheme;
+    if (dynamicColorScheme != null) {
+      colorScheme = dynamicColorScheme;
+    }
+    final textTheme = standardTextTheme(colorScheme.onSurface, fontFamily);
     
     return ThemeData(
       useMaterial3: true,

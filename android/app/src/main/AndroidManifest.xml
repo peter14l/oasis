@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="com.android.vending.BILLING" />
     <application
         android:label="Oasis"
         android:name="${applicationName}"
@@ -28,6 +29,14 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- Deep link handler for posts and ripples -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="oasis" android:host="post"/>
+                <data android:scheme="oasis" android:host="ripples"/>
             </intent-filter>
             <!-- Deep link handler for Supabase auth redirects (password reset, email confirm) -->
             <intent-filter android:autoVerify="false">

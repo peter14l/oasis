@@ -12,6 +12,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/widgets/messages/share_to_dm_modal.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/services/app_initializer.dart'; // For ThemeProvider
+import 'package:oasis/services/digital_wellbeing_service.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 
 class RipplesScreen extends StatefulWidget {
@@ -38,6 +39,7 @@ class _RipplesScreenState extends State<RipplesScreen>
     _sessionStartTime = DateTime.now();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<DigitalWellbeingService>().startTracking('ripples');
       final service = context.read<RipplesProvider>();
       service.refreshRipples().then((_) {
         if (widget.initialRippleId != null) {
@@ -73,12 +75,14 @@ class _RipplesScreenState extends State<RipplesScreen>
 
   @override
   void dispose() {
+    context.read<DigitalWellbeingService>().stopTracking();
     _sessionSub?.cancel();
     _pageController.dispose();
     super.dispose();
   }
 
   void _handleExit() {
+    context.read<DigitalWellbeingService>().stopTracking();
     if (_sessionStartTime != null) {
       final elapsed = DateTime.now().difference(_sessionStartTime!);
       final service = context.read<RipplesProvider>();

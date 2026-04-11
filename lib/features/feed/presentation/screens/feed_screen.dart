@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:oasis/services/digital_wellbeing_service.dart';
 import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
@@ -63,6 +64,9 @@ class _FeedScreenState extends State<FeedScreen>
         context.read<RipplesProvider>().initForUser(userId);
       }
       _startWellbeingPolling();
+      if (mounted) {
+        context.read<DigitalWellbeingService>().startTracking('feed');
+      }
     });
   }
 
@@ -133,6 +137,7 @@ class _FeedScreenState extends State<FeedScreen>
 
   @override
   void dispose() {
+    context.read<DigitalWellbeingService>().stopTracking();
     WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     _scrollController.dispose();
