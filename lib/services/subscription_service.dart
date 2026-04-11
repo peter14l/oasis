@@ -1,28 +1,40 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/core/network/supabase_client.dart';
-import 'package:oasis/services/iap_service.dart';
 
 class SubscriptionService extends ChangeNotifier {
-  static final SubscriptionService _instance = SubscriptionService._internal();
-  factory SubscriptionService() => _instance;
-  SubscriptionService._internal();
-
-  final _supabase = SupabaseService().client;
+  static SubscriptionService? _instance;
+  
+  final SupabaseClient? _client;
   bool _isPro = false;
 
+  SubscriptionService._internal({SupabaseClient? client}) : _client = client;
+
+  factory SubscriptionService({SupabaseClient? client}) {
+    _instance ??= SubscriptionService._internal(client: client);
+    return _instance!;
+  }
+
+  /// Use for testing purposes to reset the singleton.
+  @visibleForTesting
+  static void reset(SubscriptionService service) {
+    _instance = service;
+  }
+
+  SupabaseClient get _supabase => _client ?? SupabaseService().client;
   bool get isPro => _isPro;
+
+  @visibleForTesting
+  void setProStatus(bool status) {
+    _isPro = status;
+    notifyListeners();
+  }
 
   Future<void> init() async {
     await _updateProStatus();
     
     // Listen to Auth changes
     _supabase.auth.onAuthStateChange.listen((data) {
-      _updateProStatus();
-    });
-
-    // Listen to IAP changes
-    IAPService().addListener(() {
       _updateProStatus();
     });
   }

@@ -1,5 +1,5 @@
 /// Domain entity for Time Capsule
-class TimeCapsuleEntity {
+class TimeCapsule {
   final String id;
   final String userId;
   final String username;
@@ -10,8 +10,10 @@ class TimeCapsuleEntity {
   final DateTime unlockDate;
   final DateTime createdAt;
   final bool isLocked;
+  final Map<String, dynamic>? encryptedKeys;
+  final String? iv;
 
-  const TimeCapsuleEntity({
+  const TimeCapsule({
     required this.id,
     required this.userId,
     required this.username,
@@ -22,10 +24,12 @@ class TimeCapsuleEntity {
     required this.unlockDate,
     required this.createdAt,
     required this.isLocked,
+    this.encryptedKeys,
+    this.iv,
   });
 
-  factory TimeCapsuleEntity.fromJson(Map<String, dynamic> json) {
-    return TimeCapsuleEntity(
+  factory TimeCapsule.fromJson(Map<String, dynamic> json) {
+    return TimeCapsule(
       id: json['id'] as String,
       userId: json['user_id'] as String,
       username: json['username'] as String? ?? '',
@@ -36,6 +40,8 @@ class TimeCapsuleEntity {
       unlockDate: DateTime.parse(json['unlock_date'] as String),
       createdAt: DateTime.parse(json['created_at'] as String),
       isLocked: json['is_locked'] as bool? ?? true,
+      encryptedKeys: json['encrypted_keys'] as Map<String, dynamic>?,
+      iv: json['iv'] as String?,
     );
   }
 
@@ -51,6 +57,8 @@ class TimeCapsuleEntity {
       'unlock_date': unlockDate.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
       'is_locked': isLocked,
+      'encrypted_keys': encryptedKeys,
+      'iv': iv,
     };
   }
 
@@ -69,7 +77,7 @@ class TimeCapsuleEntity {
   /// Check if capsule is still locked
   bool get isStillLocked => isLocked || DateTime.now().isBefore(unlockDate);
 
-  TimeCapsuleEntity copyWith({
+  TimeCapsule copyWith({
     String? id,
     String? userId,
     String? username,
@@ -80,8 +88,10 @@ class TimeCapsuleEntity {
     DateTime? unlockDate,
     DateTime? createdAt,
     bool? isLocked,
+    Map<String, dynamic>? encryptedKeys,
+    String? iv,
   }) {
-    return TimeCapsuleEntity(
+    return TimeCapsule(
       id: id ?? this.id,
       userId: userId ?? this.userId,
       username: username ?? this.username,
@@ -92,6 +102,8 @@ class TimeCapsuleEntity {
       unlockDate: unlockDate ?? this.unlockDate,
       createdAt: createdAt ?? this.createdAt,
       isLocked: isLocked ?? this.isLocked,
+      encryptedKeys: encryptedKeys ?? this.encryptedKeys,
+      iv: iv ?? this.iv,
     );
   }
 }

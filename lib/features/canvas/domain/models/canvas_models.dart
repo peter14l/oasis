@@ -18,6 +18,8 @@ class CanvasItemEntity {
   final Map<String, List<String>> reactions;
   final bool isLocked;
   final String? lastModifiedBy;
+  final Map<String, dynamic>? encryptedKeys;
+  final String? iv;
 
   const CanvasItemEntity({
     required this.id,
@@ -37,6 +39,8 @@ class CanvasItemEntity {
     this.reactions = const {},
     this.isLocked = false,
     this.lastModifiedBy,
+    this.encryptedKeys,
+    this.iv,
   });
 
   factory CanvasItemEntity.fromJson(Map<String, dynamic> json) {
@@ -69,6 +73,8 @@ class CanvasItemEntity {
       reactions: parsedReactions,
       isLocked: json['is_locked'] as bool? ?? false,
       lastModifiedBy: json['last_modified_by'] as String?,
+      encryptedKeys: json['encrypted_keys'] as Map<String, dynamic>?,
+      iv: json['iv'] as String?,
     );
   }
 
@@ -91,6 +97,8 @@ class CanvasItemEntity {
       'reactions': reactions,
       'is_locked': isLocked,
       'last_modified_by': lastModifiedBy,
+      'encrypted_keys': encryptedKeys,
+      'iv': iv,
     };
   }
 
@@ -112,6 +120,8 @@ class CanvasItemEntity {
     Map<String, List<String>>? reactions,
     bool? isLocked,
     String? lastModifiedBy,
+    Map<String, dynamic>? encryptedKeys,
+    String? iv,
   }) {
     return CanvasItemEntity(
       id: id ?? this.id,
@@ -131,11 +141,13 @@ class CanvasItemEntity {
       reactions: reactions ?? this.reactions,
       isLocked: isLocked ?? this.isLocked,
       lastModifiedBy: lastModifiedBy ?? this.lastModifiedBy,
+      encryptedKeys: encryptedKeys ?? this.encryptedKeys,
+      iv: iv ?? this.iv,
     );
   }
 }
 
-class OasisCanvasEntity {
+class OasisCanvas {
   final String id;
   final String title;
   final String createdBy;
@@ -144,7 +156,7 @@ class OasisCanvasEntity {
   final String coverColor;
   final List<String> memberIds;
 
-  const OasisCanvasEntity({
+  const OasisCanvas({
     required this.id,
     required this.title,
     required this.createdBy,
@@ -154,8 +166,8 @@ class OasisCanvasEntity {
     required this.memberIds,
   });
 
-  factory OasisCanvasEntity.fromJson(Map<String, dynamic> json) {
-    return OasisCanvasEntity(
+  factory OasisCanvas.fromJson(Map<String, dynamic> json) {
+    return OasisCanvas(
       id: json['id'] as String,
       title: json['title'] as String? ?? 'Our Canvas',
       createdBy: json['created_by'] as String,
@@ -182,7 +194,7 @@ class OasisCanvasEntity {
     };
   }
 
-  OasisCanvasEntity copyWith({
+  OasisCanvas copyWith({
     String? id,
     String? title,
     String? createdBy,
@@ -191,7 +203,7 @@ class OasisCanvasEntity {
     String? coverColor,
     List<String>? memberIds,
   }) {
-    return OasisCanvasEntity(
+    return OasisCanvas(
       id: id ?? this.id,
       title: title ?? this.title,
       createdBy: createdBy ?? this.createdBy,

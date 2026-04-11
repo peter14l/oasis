@@ -27,6 +27,7 @@ import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/vault_service.dart';
 import 'package:oasis/services/wellness_service.dart';
+import 'package:oasis/services/curation_tracking_service.dart';
 import 'package:oasis/services/voice_transcript_service.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
 import 'package:oasis/features/canvas/presentation/providers/canvas_provider.dart';
@@ -160,6 +161,7 @@ class InitializedServices {
   final IAPService iapService;
   final DigitalWellbeingService digitalWellbeingService;
   final VaultService vaultService;
+  final CurationTrackingService curationTrackingService;
 
   const InitializedServices({
     required this.themeProvider,
@@ -172,6 +174,7 @@ class InitializedServices {
     required this.iapService,
     required this.digitalWellbeingService,
     required this.vaultService,
+    required this.curationTrackingService,
   });
 }
 
@@ -319,6 +322,9 @@ class AppInitializer {
     final vaultService = VaultService();
     await vaultService.init();
 
+    // Curation tracking
+    final curationTrackingService = CurationTrackingService();
+
     return InitializedServices(
       themeProvider: themeProvider,
       authProvider: authProvider,
@@ -330,6 +336,7 @@ class AppInitializer {
       iapService: iapService,
       digitalWellbeingService: digitalWellbeingService,
       vaultService: vaultService,
+      curationTrackingService: curationTrackingService,
     );
   }
 
@@ -450,6 +457,9 @@ class AppInitializer {
         ),
         ChangeNotifierProvider<VaultService>.value(
           value: services.vaultService,
+        ),
+        ChangeNotifierProvider<CurationTrackingService>.value(
+          value: services.curationTrackingService,
         ),
         Provider<VoiceTranscriptService>(
           create: (_) => VoiceTranscriptService(),

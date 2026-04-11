@@ -117,4 +117,6 @@ const _$MessageTypeEnumMap = {
   MessageType.storyReply: 'storyReply',
   MessageType.postShare: 'postShare',
   MessageType.system: 'system',
+  MessageType.gif: 'gif',
+  MessageType.sticker: 'sticker',
 };

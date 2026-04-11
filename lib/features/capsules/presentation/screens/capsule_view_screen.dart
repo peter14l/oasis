@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:oasis/services/time_capsule_service.dart';
-import 'package:oasis/models/time_capsule.dart';
+import 'package:oasis/features/capsules/domain/models/time_capsule_entity.dart';
 import 'package:oasis/widgets/fluid_mesh_background.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
