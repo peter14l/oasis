@@ -6,6 +6,8 @@ import 'package:oasis/features/feed/domain/repositories/post_repository.dart';
 import 'package:oasis/features/feed/domain/repositories/comment_repository.dart';
 import 'package:oasis/features/feed/data/datasources/feed_local_datasource.dart';
 import 'package:oasis/features/feed/presentation/providers/feed_state.dart';
+import 'package:oasis/services/ad_service.dart';
+import 'package:oasis/services/subscription_service.dart';
 
 export 'package:oasis/features/feed/presentation/providers/feed_state.dart'
     show FeedType;
@@ -19,6 +21,8 @@ class FeedProvider with ChangeNotifier {
   final PostRepository _postRepository;
   final CommentRepository _commentRepository;
   final FeedLocalDatasource _localDatasource;
+  final AdService _adService;
+  final SubscriptionService _subscriptionService;
 
   FeedState _state = const FeedState();
   FeedState get state => _state;
@@ -36,10 +40,14 @@ class FeedProvider with ChangeNotifier {
     required PostRepository postRepository,
     required CommentRepository commentRepository,
     FeedLocalDatasource? localDatasource,
+    AdService? adService,
+    SubscriptionService? subscriptionService,
   }) : _feedRepository = feedRepository,
        _postRepository = postRepository,
        _commentRepository = commentRepository,
-       _localDatasource = localDatasource ?? FeedLocalDatasource() {
+       _localDatasource = localDatasource ?? FeedLocalDatasource(),
+       _adService = adService ?? AdService(),
+       _subscriptionService = subscriptionService ?? SubscriptionService() {
     _loadFromCache();
   }
 
@@ -88,7 +96,7 @@ class FeedProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final List<Post> newPosts;
+      List<Post> newPosts;
       if (_state.currentFeedType == FeedType.forYou) {
         final effectiveRefresh = refresh || _state.forYouPosts.isEmpty;
         newPosts = await _feedRepository.getFeedPosts(
@@ -96,6 +104,8 @@ class FeedProvider with ChangeNotifier {
           limit: 20,
           offset: effectiveRefresh ? 0 : _state.forYouOffset,
         );
+
+        newPosts = await _injectAds(newPosts);
 
         if (effectiveRefresh) {
           _state = _state.copyWith(forYouPosts: newPosts);
@@ -107,7 +117,7 @@ class FeedProvider with ChangeNotifier {
         }
         _state = _state.copyWith(
           forYouOffset: _state.forYouPosts.length,
-          hasMoreForYou: newPosts.length == 20,
+          hasMoreForYou: newPosts.length >= 20,
         );
       } else {
         newPosts = await _feedRepository.getFollowingFeedPosts(
@@ -115,6 +125,8 @@ class FeedProvider with ChangeNotifier {
           limit: 20,
           offset: refresh ? 0 : _state.followingOffset,
         );
+
+        newPosts = await _injectAds(newPosts);
 
         if (refresh) {
           _state = _state.copyWith(followingPosts: newPosts);
@@ -125,7 +137,7 @@ class FeedProvider with ChangeNotifier {
         }
         _state = _state.copyWith(
           followingOffset: _state.followingPosts.length,
-          hasMoreFollowing: newPosts.length == 20,
+          hasMoreFollowing: newPosts.length >= 20,
         );
       }
     } catch (e) {
@@ -145,17 +157,18 @@ class FeedProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final List<Post> newPosts;
+      List<Post> newPosts;
       if (_state.currentFeedType == FeedType.forYou) {
         newPosts = await _feedRepository.getFeedPosts(
           userId: userId,
           limit: 20,
           offset: _state.forYouOffset,
         );
+        newPosts = await _injectAds(newPosts);
         _state = _state.copyWith(
           forYouPosts: [..._state.forYouPosts, ...newPosts],
-          forYouOffset: _state.forYouPosts.length + newPosts.length,
-          hasMoreForYou: newPosts.length == 20,
+          forYouOffset: _state.forYouOffset + newPosts.length,
+          hasMoreForYou: newPosts.length >= 20,
         );
       } else {
         newPosts = await _feedRepository.getFollowingFeedPosts(
@@ -163,10 +176,11 @@ class FeedProvider with ChangeNotifier {
           limit: 20,
           offset: _state.followingOffset,
         );
+        newPosts = await _injectAds(newPosts);
         _state = _state.copyWith(
           followingPosts: [..._state.followingPosts, ...newPosts],
-          followingOffset: _state.followingPosts.length + newPosts.length,
-          hasMoreFollowing: newPosts.length == 20,
+          followingOffset: _state.followingOffset + newPosts.length,
+          hasMoreFollowing: newPosts.length >= 20,
         );
       }
     } catch (e) {
@@ -181,6 +195,24 @@ class FeedProvider with ChangeNotifier {
   /// Refresh feed.
   Future<void> refresh({required String userId}) async {
     return loadFeed(userId: userId, refresh: true);
+  }
+
+  Future<List<Post>> _injectAds(List<Post> posts) async {
+    if (_subscriptionService.isPro) return posts;
+
+    final ads = await _adService.getHouseAds();
+    if (ads.isEmpty) return posts;
+
+    final List<Post> result = [];
+    int adIndex = 0;
+    for (int i = 0; i < posts.length; i++) {
+      result.add(posts[i]);
+      if ((i + 1) % 5 == 0 && adIndex < ads.length) {
+        result.add(ads[adIndex]);
+        adIndex++;
+      }
+    }
+    return result;
   }
 
   // ─── Post Operations ──────────────────────────────────────────────

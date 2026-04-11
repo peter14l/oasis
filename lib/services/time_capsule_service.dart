@@ -4,10 +4,14 @@ import 'package:oasis/models/time_capsule.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/subscription_service.dart';
 import 'package:uuid/uuid.dart';
+import 'package:oasis/features/messages/data/encryption_service.dart';
+import 'package:oasis/services/privacy_audit_service.dart';
 
 class TimeCapsuleService {
   final _supabase = SupabaseService().client;
   final _uuid = const Uuid();
+  final _encryption = EncryptionService();
+  final _privacyAudit = PrivacyAuditService();
 
   /// Create a new time capsule
   Future<TimeCapsule> createCapsule({
@@ -20,11 +24,12 @@ class TimeCapsuleService {
     try {
       final isPro = SubscriptionService().isPro;
       if (!isPro) {
-        final activeCapsulesResponse = await _supabase
-            .from(SupabaseConfig.timeCapsulesTable)
-            .select('id')
-            .eq('user_id', userId)
-            .eq('is_locked', true);
+        final activeCapsulesResponse =
+            await _supabase
+                .from(SupabaseConfig.timeCapsulesTable)
+                .select('id')
+                .eq('user_id', userId)
+                .eq('is_locked', true);
 
         if (activeCapsulesResponse.length >= 2) {
           throw Exception(
@@ -33,12 +38,32 @@ class TimeCapsuleService {
         }
       }
 
+      // E2EE Encryption
+      if (!_encryption.isInitialized) await _encryption.init();
+      final profileResponse =
+          await _supabase
+              .from(SupabaseConfig.profilesTable)
+              .select('public_key, username, avatar_url')
+              .eq('id', userId)
+              .single();
+
+      final publicKey = profileResponse['public_key'] as String?;
+      if (publicKey == null) {
+        throw Exception(
+          'Encryption not set up. Please enable E2EE in settings first.',
+        );
+      }
+
+      final encrypted = await _encryption.encryptMessage(content, [publicKey]);
+
       final capsuleId = _uuid.v4();
 
       final capsuleData = {
         'id': capsuleId,
         'user_id': userId,
-        'content': content,
+        'content': encrypted.encryptedContent,
+        'encrypted_keys': encrypted.encryptedKeys,
+        'iv': encrypted.iv,
         'unlock_date': unlockDate.toIso8601String(),
         'media_url': mediaUrl,
         'media_type': mediaType,
@@ -49,6 +74,13 @@ class TimeCapsuleService {
           .from(SupabaseConfig.timeCapsulesTable)
           .insert(capsuleData);
 
+      // Privacy Audit: Log WRITE
+      await _privacyAudit.logAccess(
+        userId: userId,
+        resourceType: 'time_capsule',
+        action: 'WRITE',
+      );
+
       // Fetch the created capsule
       final response =
           await _supabase
@@ -57,17 +89,11 @@ class TimeCapsuleService {
               .eq('id', capsuleId)
               .single();
 
-      // Fetch profile separately to avoid relationship error
-      final profileResponse = await _supabase
-          .from(SupabaseConfig.profilesTable)
-          .select('username, avatar_url')
-          .eq('id', userId)
-          .single();
-
       final mergedData = Map<String, dynamic>.from(response);
       mergedData[SupabaseConfig.profilesTable] = profileResponse;
 
-      return _transformResponse(mergedData);
+      final capsule = _transformResponse(mergedData);
+      return _decryptCapsule(capsule);
     } catch (e) {
       debugPrint('Error creating time capsule: $e');
       rethrow;
@@ -81,29 +107,41 @@ class TimeCapsuleService {
     int offset = 0,
   }) async {
     try {
-      final response = await _supabase
-          .from(SupabaseConfig.timeCapsulesTable)
-          .select()
-          .eq('user_id', userId)
-          .order('created_at', ascending: false)
-          .range(offset, offset + limit - 1);
+      final response =
+          await _supabase
+              .from(SupabaseConfig.timeCapsulesTable)
+              .select()
+              .eq('user_id', userId)
+              .order('created_at', ascending: false)
+              .range(offset, offset + limit - 1);
+
+      // Privacy Audit: Log READ
+      await _privacyAudit.logAccess(
+        userId: userId,
+        resourceType: 'time_capsule',
+        action: 'READ',
+      );
 
       if (response.isEmpty) return [];
 
       // Fetch profile for the current user
-      final profileResponse = await _supabase
-          .from(SupabaseConfig.profilesTable)
-          .select('id, username, avatar_url')
-          .eq('id', userId)
-          .maybeSingle();
+      final profileResponse =
+          await _supabase
+              .from(SupabaseConfig.profilesTable)
+              .select('id, username, avatar_url')
+              .eq('id', userId)
+              .maybeSingle();
 
-      return (response as List).map((e) {
-        final mergedData = Map<String, dynamic>.from(e);
-        if (profileResponse != null) {
-          mergedData[SupabaseConfig.profilesTable] = profileResponse;
-        }
-        return _transformResponse(mergedData);
-      }).toList();
+      final capsules =
+          (response as List).map((e) {
+            final mergedData = Map<String, dynamic>.from(e);
+            if (profileResponse != null) {
+              mergedData[SupabaseConfig.profilesTable] = profileResponse;
+            }
+            return _transformResponse(mergedData);
+          }).toList();
+
+      return Future.wait(capsules.map(_decryptCapsule));
     } catch (e) {
       debugPrint('Error getting capsules: $e');
       rethrow;
@@ -114,29 +152,41 @@ class TimeCapsuleService {
   Future<List<TimeCapsule>> getMyUnlockedCapsules(String userId) async {
     try {
       final now = DateTime.now().toIso8601String();
-      final response = await _supabase
-          .from(SupabaseConfig.timeCapsulesTable)
-          .select()
-          .eq('user_id', userId)
-          .lte('unlock_date', now)
-          .order('unlock_date', ascending: false);
+      final response =
+          await _supabase
+              .from(SupabaseConfig.timeCapsulesTable)
+              .select()
+              .eq('user_id', userId)
+              .lte('unlock_date', now)
+              .order('unlock_date', ascending: false);
+
+      // Privacy Audit: Log READ
+      await _privacyAudit.logAccess(
+        userId: userId,
+        resourceType: 'time_capsule',
+        action: 'READ',
+      );
 
       if (response.isEmpty) return [];
 
       // Fetch profile for the current user
-      final profileResponse = await _supabase
-          .from(SupabaseConfig.profilesTable)
-          .select('username, avatar_url')
-          .eq('id', userId)
-          .maybeSingle();
+      final profileResponse =
+          await _supabase
+              .from(SupabaseConfig.profilesTable)
+              .select('username, avatar_url')
+              .eq('id', userId)
+              .maybeSingle();
 
-      return (response as List).map((e) {
-        final mergedData = Map<String, dynamic>.from(e);
-        if (profileResponse != null) {
-          mergedData[SupabaseConfig.profilesTable] = profileResponse;
-        }
-        return _transformResponse(mergedData);
-      }).toList();
+      final capsules =
+          (response as List).map((e) {
+            final mergedData = Map<String, dynamic>.from(e);
+            if (profileResponse != null) {
+              mergedData[SupabaseConfig.profilesTable] = profileResponse;
+            }
+            return _transformResponse(mergedData);
+          }).toList();
+
+      return Future.wait(capsules.map(_decryptCapsule));
     } catch (e) {
       debugPrint('Error getting unlocked capsules: $e');
       rethrow;
@@ -151,27 +201,61 @@ class TimeCapsuleService {
   /// Get a single capsule by ID
   Future<TimeCapsule> getCapsule(String capsuleId) async {
     try {
-      final response = await _supabase
-          .from(SupabaseConfig.timeCapsulesTable)
-          .select()
-          .eq('id', capsuleId)
-          .single();
+      final response =
+          await _supabase
+              .from(SupabaseConfig.timeCapsulesTable)
+              .select()
+              .eq('id', capsuleId)
+              .single();
+
+      final userId = response['user_id'] as String;
+
+      // Privacy Audit: Log READ
+      await _privacyAudit.logAccess(
+        userId: userId,
+        resourceType: 'time_capsule',
+        action: 'READ',
+      );
 
       // Fetch profile separately
-      final profileResponse = await _supabase
-          .from(SupabaseConfig.profilesTable)
-          .select('username, avatar_url')
-          .eq('id', response['user_id'])
-          .single();
+      final profileResponse =
+          await _supabase
+              .from(SupabaseConfig.profilesTable)
+              .select('username, avatar_url')
+              .eq('id', userId)
+              .single();
 
       final mergedData = Map<String, dynamic>.from(response);
       mergedData[SupabaseConfig.profilesTable] = profileResponse;
 
-      return _transformResponse(mergedData);
+      final capsule = _transformResponse(mergedData);
+      return _decryptCapsule(capsule);
     } catch (e) {
       debugPrint('Error getting capsule: $e');
       rethrow;
     }
+  }
+
+  Future<TimeCapsule> _decryptCapsule(TimeCapsule capsule) async {
+    // Only decrypt if it's unlocked and has E2EE fields
+    if (capsule.isLocked) return capsule;
+    if (capsule.encryptedKeys == null || capsule.iv == null) return capsule;
+
+    try {
+      if (!_encryption.isInitialized) await _encryption.init();
+      final decrypted = await _encryption.decryptMessage(
+        capsule.content,
+        capsule.encryptedKeys!,
+        capsule.iv!,
+      );
+
+      if (decrypted != null) {
+        return capsule.copyWith(content: decrypted);
+      }
+    } catch (e) {
+      debugPrint('Decryption error for capsule ${capsule.id}: $e');
+    }
+    return capsule;
   }
 
   TimeCapsule _transformResponse(Map<String, dynamic> data) {

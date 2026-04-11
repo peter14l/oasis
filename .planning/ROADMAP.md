@@ -49,13 +49,11 @@
 
 ## Phase 8: Monetization and Privacy Infrastructure
 **Goal:** Implement ethical monetization via House Ads and reinforce privacy through security auditing and transparency.
-**Status:** Planned
-**Plans:** 3 plans
-
-### Plans:
-- [ ] 08-01-PLAN.md — Security Audit, RLS reinforcement, and Privacy Heartbeat.
-- [ ] 08-02-PLAN.md — Curation Tracking Service and Privacy Transparency UI.
-- [ ] 08-03-PLAN.md — House Ads integration and Pro-member ad removal.
+**Status:** Completed
+**Plans:**
+- [x] 08-01-PLAN.md — Security Audit, RLS reinforcement, and Privacy Heartbeat.
+- [x] 08-02-PLAN.md — Curation Tracking Service and Privacy Transparency UI.
+- [x] 08-03-PLAN.md — House Ads integration and Pro-member ad removal.
 
 **Requirements:**
 [PRIVACY-01, PRIVACY-02, MONETIZATION-01, MONETIZATION-02]

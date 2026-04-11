@@ -1,9 +1,26 @@
 import 'package:flutter/foundation.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AdService {
-  final _supabase = SupabaseService().client;
+  static AdService? _instance;
+  final SupabaseClient? _client;
+
+  AdService._internal({SupabaseClient? client}) : _client = client;
+
+  factory AdService({SupabaseClient? client}) {
+    _instance ??= AdService._internal(client: client);
+    return _instance!;
+  }
+
+  /// Use for testing purposes to reset the singleton.
+  @visibleForTesting
+  static void reset(AdService service) {
+    _instance = service;
+  }
+
+  SupabaseClient get _supabase => _client ?? SupabaseService().client;
 
   Future<List<Post>> getHouseAds() async {
     try {

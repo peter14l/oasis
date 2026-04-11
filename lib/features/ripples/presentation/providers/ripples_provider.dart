@@ -5,6 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/features/ripples/domain/models/ripple_entity.dart'
     show RipplesLayoutType;
+import 'package:oasis/services/ad_service.dart';
+import 'package:oasis/services/subscription_service.dart';
 
 /// Provider for ripples feature - manages UI state and session lifecycle.
 /// Uses Maps internally for backward compatibility with existing screen code.
@@ -15,6 +17,8 @@ class RipplesProvider extends ChangeNotifier {
   static const String _lastActiveKey = 'ripples_last_active';
 
   final SupabaseClient _supabase;
+  final AdService _adService;
+  final SubscriptionService _subscriptionService;
 
   List<Map<String, dynamic>> _ripples = [];
   bool _isLoading = false;
@@ -33,8 +37,13 @@ class RipplesProvider extends ChangeNotifier {
   final StreamController<void> _sessionEndController =
       StreamController<void>.broadcast();
 
-  RipplesProvider({SupabaseClient? supabase})
-    : _supabase = supabase ?? SupabaseService().client {
+  RipplesProvider({
+    SupabaseClient? supabase,
+    AdService? adService,
+    SubscriptionService? subscriptionService,
+  }) : _supabase = supabase ?? SupabaseService().client,
+       _adService = adService ?? AdService(),
+       _subscriptionService = subscriptionService ?? SubscriptionService() {
     _startLockoutTimer();
   }
 
@@ -234,6 +243,7 @@ class RipplesProvider extends ChangeNotifier {
       }
 
       _ripples = ripplesData;
+      await _injectAds();
     } catch (e) {
       debugPrint('Error fetching ripples: $e');
       _error = e.toString();
@@ -241,6 +251,43 @@ class RipplesProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> _injectAds() async {
+    if (_subscriptionService.isPro) return;
+
+    final ads = await _adService.getHouseAds();
+    if (ads.isEmpty) return;
+
+    final List<Map<String, dynamic>> result = [];
+    int adIndex = 0;
+    for (int i = 0; i < _ripples.length; i++) {
+      result.add(_ripples[i]);
+      if ((i + 1) % 5 == 0 && adIndex < ads.length) {
+        final ad = ads[adIndex];
+        result.add({
+          'id': 'ad_${ad.id}',
+          'user_id': 'ad_system',
+          'is_ad': true,
+          'video_url': ad.imageUrl ?? '', // Using imageUrl as videoUrl for house ads
+          'thumbnail_url': ad.imageUrl,
+          'caption': ad.content,
+          'created_at': ad.timestamp.toIso8601String(),
+          'likes_count': 0,
+          'comments_count': 0,
+          'saves_count': 0,
+          'profiles': {
+            'username': ad.username,
+            'avatar_url': ad.userAvatar,
+            'is_private': false,
+          },
+          'is_liked': false,
+          'is_saved': false,
+        });
+        adIndex++;
+      }
+    }
+    _ripples = result;
   }
 
   Future<void> likeRipple(String rippleId) async {

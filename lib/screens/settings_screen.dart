@@ -7,6 +7,8 @@ import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/features/settings/presentation/screens/vault_settings_screen.dart';
 import 'package:oasis/features/wellness/presentation/screens/wellness_center_screen.dart';
 import 'package:oasis/features/settings/presentation/screens/account_privacy_screen.dart';
+import 'package:oasis/features/settings/presentation/screens/privacy_heartbeat_screen.dart';
+import 'package:oasis/features/settings/presentation/widgets/privacy_transparency_card.dart';
 import 'package:oasis/features/settings/presentation/screens/two_factor_auth_screen.dart';
 import 'package:oasis/features/settings/presentation/screens/download_data_screen.dart';
 import 'package:oasis/features/settings/presentation/screens/storage_usage_screen.dart';
@@ -908,72 +910,90 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildPrivacySection(BuildContext context, {int index = 0}) {
     final colorScheme = Theme.of(context).colorScheme;
-    return _buildSettingsGroup(context, index: index, [
-      _buildSettingsTile(
-        context,
-        icon: Icons.shield_outlined,
-        title: 'Vault',
-        subtitle: 'Manage hidden content and security',
-        iconColor: colorScheme.primary,
-        onTap: () => _navigateToSubPage('Vault', const VaultSettingsScreen()),
-      ),
-      _buildSettingsTile(
-        context,
-        icon: Icons.lock_outline,
-        title: 'Encryption',
-        subtitle: 'Manage End-to-End Encryption keys',
-        iconColor: Colors.purple,
-        onTap:
-            () =>
-                _navigateToSubPage('Encryption', const EncryptionSetupScreen()),
-      ),
-      _buildSettingsTile(
-        context,
-        icon: Icons.lock_outlined,
-        title: 'Account Privacy',
-        subtitle: 'Control who can see your content',
-        iconColor: Colors.green,
-        onTap:
-            () => _navigateToSubPage(
-              'Account Privacy',
-              const AccountPrivacyScreen(),
-            ),
-      ),
-      _buildSettingsTile(
-        context,
-        icon: Icons.block_outlined,
-        title: 'Blocked Accounts',
-        subtitle: 'Manage blocked users',
-        iconColor: Colors.red,
-        onTap:
-            () => _navigateToSubPage(
-              'Blocked Accounts',
-              const BlockedUsersScreen(),
-            ),
-      ),
-      _buildSettingsTile(
-        context,
-        icon: Icons.security_outlined,
-        title: 'Two-Factor Authentication',
-        subtitle: 'Add extra security',
-        iconColor: Colors.indigo,
-        onTap:
-            () => _navigateToSubPage(
-              'Two-Factor Auth',
-              const TwoFactorAuthScreen(),
-            ),
-      ),
-      _buildSettingsTile(
-        context,
-        icon: Icons.download_outlined,
-        title: 'Download Your Data',
-        subtitle: 'Request a copy of your data',
-        iconColor: Colors.teal,
-        onTap:
-            () =>
-                _navigateToSubPage('Download Data', const DownloadDataScreen()),
-      ),
-    ]);
+    return Column(
+      children: [
+        _buildSettingsGroup(context, index: index, [
+          _buildSettingsTile(
+            context,
+            icon: Icons.shield_outlined,
+            title: 'Vault',
+            subtitle: 'Manage hidden content and security',
+            iconColor: colorScheme.primary,
+            onTap: () => _navigateToSubPage('Vault', const VaultSettingsScreen()),
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.lock_outline,
+            title: 'Encryption',
+            subtitle: 'Manage End-to-End Encryption keys',
+            iconColor: Colors.purple,
+            onTap:
+                () =>
+                    _navigateToSubPage('Encryption', const EncryptionSetupScreen()),
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.lock_outlined,
+            title: 'Account Privacy',
+            subtitle: 'Control who can see your content',
+            iconColor: Colors.green,
+            onTap:
+                () => _navigateToSubPage(
+                  'Account Privacy',
+                  const AccountPrivacyScreen(),
+                ),
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.block_outlined,
+            title: 'Blocked Accounts',
+            subtitle: 'Manage blocked users',
+            iconColor: Colors.red,
+            onTap:
+                () => _navigateToSubPage(
+                  'Blocked Accounts',
+                  const BlockedUsersScreen(),
+                ),
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.security_outlined,
+            title: 'Two-Factor Authentication',
+            subtitle: 'Add extra security',
+            iconColor: Colors.indigo,
+            onTap:
+                () => _navigateToSubPage(
+                  'Two-Factor Auth',
+                  const TwoFactorAuthScreen(),
+                ),
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.favorite_border_outlined,
+            title: 'Privacy Heartbeat',
+            subtitle: 'View your data access logs',
+            iconColor: Colors.red,
+            onTap:
+                () => _navigateToSubPage(
+                  'Privacy Heartbeat',
+                  const PrivacyHeartbeatScreen(),
+                ),
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.download_outlined,
+            title: 'Download Your Data',
+            subtitle: 'Request a copy of your data',
+            iconColor: Colors.teal,
+            onTap:
+                () =>
+                    _navigateToSubPage('Download Data', const DownloadDataScreen()),
+          ),
+        ]),
+        const SizedBox(height: 24),
+        const PrivacyTransparencyCard(),
+      ],
+    );
   }
 
   static const List<String> _fonts = [
