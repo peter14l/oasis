@@ -126,15 +126,18 @@ class VaultService with ChangeNotifier {
     return true;
   }
 
+  String _normalizeId(String id) => id.trim().toLowerCase();
+
   void _unlockItem(String itemId) {
-    _unlockedItemIds.add(itemId);
+    final id = _normalizeId(itemId);
+    _unlockedItemIds.add(id);
 
     // Handle 5 mins interval
-    final interval = _itemIntervals[itemId];
+    final interval = getLockInterval(id);
     if (interval == '5mins') {
-      _lockTimers[itemId]?.cancel();
-      _lockTimers[itemId] = Timer(const Duration(minutes: 5), () {
-        lockItem(itemId);
+      _lockTimers[id]?.cancel();
+      _lockTimers[id] = Timer(const Duration(minutes: 5), () {
+        lockItem(id);
       });
     }
 
@@ -142,16 +145,18 @@ class VaultService with ChangeNotifier {
   }
 
   /// Check if a specific item is unlocked
-  bool isItemUnlocked(String itemId) => _unlockedItemIds.contains(itemId);
+  bool isItemUnlocked(String itemId) =>
+      _unlockedItemIds.contains(_normalizeId(itemId));
 
   /// Check vault lock status (deprecated or for global UI)
   bool get isUnlocked => _unlockedItemIds.isNotEmpty;
 
   /// Lock specific item
   void lockItem(String itemId) {
-    _unlockedItemIds.remove(itemId);
-    _lockTimers[itemId]?.cancel();
-    _lockTimers[itemId] = null;
+    final id = _normalizeId(itemId);
+    _unlockedItemIds.remove(id);
+    _lockTimers[id]?.cancel();
+    _lockTimers[id] = null;
     scheduleMicrotask(() => notifyListeners());
   }
 
@@ -167,15 +172,15 @@ class VaultService with ChangeNotifier {
 
   /// Specialized lock for chat exit
   void lockOnChatClose(String itemId) {
-    if (getLockInterval(itemId) == 'chat_close') {
-      lockItem(itemId);
+    final id = _normalizeId(itemId);
+    if (getLockInterval(id) == 'chat_close') {
+      lockItem(id);
     }
   }
 
   /// Lock items with a specific interval (e.g. 'app_close')
   void lockItemsWithInterval(String interval) {
-    // Collect IDs first to avoid concurrent modification if any listeners
-    // were to trigger state changes (though remove doesn't usually cause this)
+    // Collect IDs first to avoid concurrent modification
     final itemsToLock =
         _unlockedItemIds.where((id) => getLockInterval(id) == interval).toList();
     
@@ -192,18 +197,19 @@ class VaultService with ChangeNotifier {
 
   /// Set lock interval for an item
   Future<void> setLockInterval(String itemId, String interval) async {
-    _itemIntervals[itemId] = interval;
+    final id = _normalizeId(itemId);
+    _itemIntervals[id] = interval;
     await _saveIntervals();
 
     // If interval changed to something other than 5mins, cancel existing timer
     if (interval != '5mins') {
-      _lockTimers[itemId]?.cancel();
-      _lockTimers[itemId] = null;
-    } else if (_unlockedItemIds.contains(itemId)) {
+      _lockTimers[id]?.cancel();
+      _lockTimers[id] = null;
+    } else if (_unlockedItemIds.contains(id)) {
       // If it's already unlocked and changed to 5mins, start the timer now
-      _lockTimers[itemId]?.cancel();
-      _lockTimers[itemId] = Timer(const Duration(minutes: 5), () {
-        lockItem(itemId);
+      _lockTimers[id]?.cancel();
+      _lockTimers[id] = Timer(const Duration(minutes: 5), () {
+        lockItem(id);
       });
     }
 
@@ -211,7 +217,7 @@ class VaultService with ChangeNotifier {
   }
 
   String getLockInterval(String itemId) =>
-      _itemIntervals[itemId] ?? 'app_close';
+      _itemIntervals[_normalizeId(itemId)] ?? 'app_close';
 
   /// Attempt to authenticate for a specific item
   Future<bool> authenticate({
@@ -219,14 +225,16 @@ class VaultService with ChangeNotifier {
     String? pin,
     BuildContext? context,
   }) async {
+    final id = _normalizeId(itemId);
+    
     if (pin != null) {
-      return unlockItemWithPin(itemId, pin);
+      return unlockItemWithPin(id, pin);
     }
 
     // Check if PIN is required
     final hasPin = await _storage.read(key: _vaultPinKey);
     if (hasPin == null) {
-      _unlockItem(itemId);
+      _unlockItem(id);
       return true;
     }
 
@@ -243,7 +251,7 @@ class VaultService with ChangeNotifier {
             localizedReason: 'Please authenticate to unlock this chat',
           );
           if (authenticated) {
-            _unlockItem(itemId);
+            _unlockItem(id);
             return true;
           }
         }
@@ -254,7 +262,7 @@ class VaultService with ChangeNotifier {
 
     // Show PIN dialog if context is provided
     if (context != null && context.mounted) {
-      return await _showPinDialog(context, itemId);
+      return await _showPinDialog(context, id);
     }
 
     return false;
@@ -328,6 +336,7 @@ class VaultService with ChangeNotifier {
     required String itemId,
     required VaultItemType type,
   }) async {
+    final id = _normalizeId(itemId);
     final items = await _getVaultItems();
 
     // Pro check for limits
@@ -339,14 +348,14 @@ class VaultService with ChangeNotifier {
       );
     }
 
-    if (items.any((i) => i.id == itemId)) return;
+    if (items.any((i) => _normalizeId(i.id) == id)) return;
 
-    items.add(VaultItem(id: itemId, type: type, addedAt: DateTime.now()));
+    items.add(VaultItem(id: id, type: type, addedAt: DateTime.now()));
     await _saveVaultItems(items);
-    _vaultItemIds.add(itemId);
+    _vaultItemIds.add(id);
 
     // Default interval
-    _itemIntervals[itemId] = 'app_close';
+    _itemIntervals[id] = 'app_close';
     await _saveIntervals();
 
     // Sync to server (Pro Only)
@@ -356,7 +365,7 @@ class VaultService with ChangeNotifier {
         if (userId != null) {
           await _supabase.from('vault_items').upsert({
             'user_id': userId,
-            'item_id': itemId,
+            'item_id': id,
             'item_type': type.value,
             'created_at': DateTime.now().toIso8601String(),
           });
@@ -371,15 +380,16 @@ class VaultService with ChangeNotifier {
 
   /// Remove item from vault
   Future<void> removeFromVault(String itemId) async {
+    final id = _normalizeId(itemId);
     final items = await _getVaultItems();
-    items.removeWhere((i) => i.id == itemId);
+    items.removeWhere((i) => _normalizeId(i.id) == id);
     await _saveVaultItems(items);
 
-    _vaultItemIds.remove(itemId);
-    _unlockedItemIds.remove(itemId);
-    _itemIntervals.remove(itemId);
-    _lockTimers[itemId]?.cancel();
-    _lockTimers.remove(itemId);
+    _vaultItemIds.remove(id);
+    _unlockedItemIds.remove(id);
+    _itemIntervals.remove(id);
+    _lockTimers[id]?.cancel();
+    _lockTimers.remove(id);
     await _saveIntervals();
 
     // Sync to server (Pro only)
@@ -393,7 +403,7 @@ class VaultService with ChangeNotifier {
               .from('vault_items')
               .delete()
               .eq('user_id', userId)
-              .eq('item_id', itemId);
+              .eq('item_id', id);
         }
       }
     } catch (e) {
@@ -405,13 +415,14 @@ class VaultService with ChangeNotifier {
 
   /// Check if item is in vault (async)
   Future<bool> isInVault(String itemId) async {
+    final id = _normalizeId(itemId);
     final items = await _getVaultItems();
-    return items.any((i) => i.id == itemId);
+    return items.any((i) => _normalizeId(i.id) == id);
   }
 
   /// Check if item is in vault (synchronous cache)
   bool isInVaultSync(String itemId) {
-    return _vaultItemIds.contains(itemId);
+    return _vaultItemIds.contains(_normalizeId(itemId));
   }
 
   /// Get all vault items

@@ -6,21 +6,20 @@ import 'package:oasis/features/messages/core/chat_api_config.dart';
 class GiphyPickerSheet extends StatefulWidget {
   final Function(String url, bool isSticker) onSelected;
 
-  const GiphyPickerSheet({
-    super.key,
-    required this.onSelected,
-  });
+  const GiphyPickerSheet({super.key, required this.onSelected});
 
   @override
   State<GiphyPickerSheet> createState() => _GiphyPickerSheetState();
 }
 
-class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerProviderStateMixin {
+class _GiphyPickerSheetState extends State<GiphyPickerSheet>
+    with SingleTickerProviderStateMixin {
   late TabController? _tabController;
   final KlipyService _klipyService = KlipyService();
   final TextEditingController _searchController = TextEditingController();
   List<KlipyMedia> _klipyResults = [];
   bool _isLoadingKlipy = false;
+  String? _klipyError; // Error message to display
 
   bool get _hasGiphy => ChatApiConfig.giphyApiKey.isNotEmpty;
   bool get _hasKlipy => ChatApiConfig.klipyApiKey.isNotEmpty;
@@ -41,7 +40,7 @@ class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerPr
     } else {
       _tabController = null;
     }
-    
+
     if (_hasKlipy) {
       _loadTrendingKlipy();
     }
@@ -56,11 +55,21 @@ class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerPr
 
   Future<void> _loadTrendingKlipy() async {
     if (ChatApiConfig.klipyApiKey.isEmpty) return;
-    
-    setState(() => _isLoadingKlipy = true);
-    final results = await _klipyService.getTrending();
+
     setState(() {
-      _klipyResults = results;
+      _isLoadingKlipy = true;
+      _klipyError = null;
+    });
+
+    final result = await _klipyService.getTrending();
+    setState(() {
+      if (result.isSuccess) {
+        _klipyResults = result.data ?? [];
+        _klipyError = null;
+      } else {
+        _klipyResults = [];
+        _klipyError = result.error;
+      }
       _isLoadingKlipy = false;
     });
   }
@@ -71,10 +80,20 @@ class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerPr
       _loadTrendingKlipy();
       return;
     }
-    setState(() => _isLoadingKlipy = true);
-    final results = await _klipyService.search(query);
     setState(() {
-      _klipyResults = results;
+      _isLoadingKlipy = true;
+      _klipyError = null;
+    });
+
+    final result = await _klipyService.search(query);
+    setState(() {
+      if (result.isSuccess) {
+        _klipyResults = result.data ?? [];
+        _klipyError = null;
+      } else {
+        _klipyResults = [];
+        _klipyError = result.error;
+      }
       _isLoadingKlipy = false;
     });
   }
@@ -83,7 +102,7 @@ class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerPr
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final count = _tabCount;
-    
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
       decoration: BoxDecoration(
@@ -95,14 +114,9 @@ class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerPr
           if (count > 1)
             TabBar(
               controller: _tabController,
-              tabs: const [
-                Tab(text: 'Giphy'),
-                Tab(text: 'Klipy'),
-              ],
+              tabs: const [Tab(text: 'Giphy'), Tab(text: 'Klipy')],
             ),
-          Expanded(
-            child: _buildBody(count),
-          ),
+          Expanded(child: _buildBody(count)),
         ],
       ),
     );
@@ -112,17 +126,14 @@ class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerPr
     if (count == 0) {
       return _buildUnavailableMessage();
     }
-    
+
     if (count == 1) {
       return _hasGiphy ? _buildGiphyTab() : _buildKlipyTab();
     }
 
     return TabBarView(
       controller: _tabController,
-      children: [
-        _buildGiphyTab(),
-        _buildKlipyTab(),
-      ],
+      children: [_buildGiphyTab(), _buildKlipyTab()],
     );
   }
 
@@ -134,17 +145,20 @@ class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerPr
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.vpn_key_off_outlined, size: 48, color: theme.colorScheme.onSurfaceVariant),
-            const SizedBox(height: 16),
-            Text(
-              'Services Unavailable',
-              style: theme.textTheme.titleMedium,
+            Icon(
+              Icons.vpn_key_off_outlined,
+              size: 48,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
+            const SizedBox(height: 16),
+            Text('Services Unavailable', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             Text(
               'Please configure Giphy or Klipy API keys in your .env file to enable GIF and Sticker features.',
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -163,7 +177,11 @@ class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerPr
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.vpn_key_off_outlined, size: 48, color: theme.colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.vpn_key_off_outlined,
+                size: 48,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(height: 16),
               Text(
                 'Giphy Service Unavailable',
@@ -173,7 +191,9 @@ class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerPr
               Text(
                 'Please configure your Giphy API key in the .env file to enable this feature.',
                 textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -192,13 +212,16 @@ class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerPr
               lang: GiphyLanguage.english,
             );
             if (gif != null && gif.images?.original?.url != null) {
-              widget.onSelected(gif.images!.original!.url!, gif.type == 'sticker');
+              widget.onSelected(
+                gif.images!.original!.url!,
+                gif.type == 'sticker',
+              );
             }
           } catch (e) {
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Giphy error: $e')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('Giphy error: $e')));
             }
           }
         },
@@ -218,7 +241,11 @@ class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerPr
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.vpn_key_off_outlined, size: 48, color: theme.colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.vpn_key_off_outlined,
+                size: 48,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(height: 16),
               Text(
                 'Klipy Service Unavailable',
@@ -228,7 +255,9 @@ class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerPr
               Text(
                 'Please configure your Klipy API key in the .env file to enable this feature.',
                 textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -252,40 +281,85 @@ class _GiphyPickerSheetState extends State<GiphyPickerSheet> with SingleTickerPr
                   _loadTrendingKlipy();
                 },
               ),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onSubmitted: _searchKlipy,
           ),
         ),
         Expanded(
-          child: _isLoadingKlipy
-              ? const Center(child: CircularProgressIndicator())
-              : _klipyResults.isEmpty 
-                  ? Center(child: Text('No results found', style: theme.textTheme.bodyMedium))
-                  : GridView.builder(
-                      padding: const EdgeInsets.all(8),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                      ),
-                      itemCount: _klipyResults.length,
-                      itemBuilder: (context, index) {
-                        final media = _klipyResults[index];
-                        return GestureDetector(
-                          onTap: () => widget.onSelected(media.url, false),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              media.thumbnailUrl,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => 
-                                  const Center(child: Icon(Icons.broken_image)),
+          child:
+              _isLoadingKlipy
+                  ? const Center(child: CircularProgressIndicator())
+                  : _klipyError != null
+                  ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: theme.colorScheme.error,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Klipy Error',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: theme.colorScheme.error,
                             ),
                           ),
-                        );
-                      },
+                          const SizedBox(height: 8),
+                          Text(
+                            _klipyError!,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _loadTrendingKlipy,
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
                     ),
+                  )
+                  : _klipyResults.isEmpty
+                  ? Center(
+                    child: Text(
+                      'No results found',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  )
+                  : GridView.builder(
+                    padding: const EdgeInsets.all(8),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
+                    itemCount: _klipyResults.length,
+                    itemBuilder: (context, index) {
+                      final media = _klipyResults[index];
+                      return GestureDetector(
+                        onTap: () => widget.onSelected(media.url, false),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            media.thumbnailUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (context, error, stackTrace) => const Center(
+                                  child: Icon(Icons.broken_image),
+                                ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
         ),
       ],
     );

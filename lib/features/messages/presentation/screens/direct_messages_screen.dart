@@ -990,17 +990,16 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
     }
 
     if (isDesktop) {
-      if (_selectedConversation?.id != conversation.id) {
-        // Load individual chat settings for this conversation
-        final prefs = await SharedPreferences.getInstance();
-        setState(() {
-          _selectedConversation = conversation;
-          _bgOpacity =
-              prefs.getDouble('chat_bg_opacity_${conversation.id}') ?? 1.0;
-          _bgBrightness =
-              prefs.getDouble('chat_bg_brightness_${conversation.id}') ?? 0.7;
-        });
-      }
+      // On desktop, we always setState to ensure the view refreshes,
+      // but only load settings if the ID changed or we just unlocked.
+      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        _selectedConversation = conversation;
+        _bgOpacity =
+            prefs.getDouble('chat_bg_opacity_${conversation.id}') ?? 1.0;
+        _bgBrightness =
+            prefs.getDouble('chat_bg_brightness_${conversation.id}') ?? 0.7;
+      });
     } else {
       if (mounted) {
         // Await the push so that we can handle state changes upon return
