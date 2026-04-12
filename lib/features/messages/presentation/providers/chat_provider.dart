@@ -17,6 +17,7 @@ import 'package:oasis/services/smart_reply_service.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_state.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_encryption_provider.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_settings_provider.dart';
+import 'package:oasis/services/curation_tracking_service.dart';
 
 /// Main chat provider managing message list, sending, receiving, and UI state.
 /// Fully migrated from _ChatScreenState in chat_screen.dart.
@@ -33,6 +34,8 @@ class ChatProvider with ChangeNotifier {
   final MessagingService _messagingService = MessagingService();
   final AuthService _authService = AuthService();
   final EncryptionService _encryptionService = EncryptionService();
+  final CurationTrackingService _curationTrackingService =
+      CurationTrackingService();
 
   // Realtime subscriptions (managed here, not in ChatState)
   RealtimeChannel? _messageChannel;
@@ -1093,9 +1096,26 @@ class ChatProvider with ChangeNotifier {
     _callsSubscription?.cancel();
     _publicKeyCache.clear();
 
+    // Track time spent in chat for curation
+    _trackChatTimeSpent();
+
     scrollController?.dispose();
     encryptionProvider.dispose();
     settingsProvider.dispose();
     super.dispose();
+  }
+
+  /// Track time spent in this conversation for curation.
+  Future<void> _trackChatTimeSpent() async {
+    final duration = DateTime.now().difference(_sessionStartTime).inSeconds;
+    if (duration < 5) return; // Ignore sessions less than 5 seconds
+
+    // Use conversation name or default to 'direct_messages'
+    final category = state.otherUserName?.toLowerCase() ?? 'direct_messages';
+    try {
+      await _curationTrackingService.trackTimeSpent(category, duration);
+    } catch (e) {
+      debugPrint('[ChatProvider] Time tracking error: $e');
+    }
   }
 }

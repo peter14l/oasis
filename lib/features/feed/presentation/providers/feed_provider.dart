@@ -8,6 +8,7 @@ import 'package:oasis/features/feed/data/datasources/feed_local_datasource.dart'
 import 'package:oasis/features/feed/presentation/providers/feed_state.dart';
 import 'package:oasis/services/ad_service.dart';
 import 'package:oasis/services/subscription_service.dart';
+import 'package:oasis/services/curation_tracking_service.dart';
 
 export 'package:oasis/features/feed/presentation/providers/feed_state.dart'
     show FeedType;
@@ -23,6 +24,7 @@ class FeedProvider with ChangeNotifier {
   final FeedLocalDatasource _localDatasource;
   final AdService _adService;
   final SubscriptionService _subscriptionService;
+  final CurationTrackingService _curationTrackingService;
 
   FeedState _state = const FeedState();
   FeedState get state => _state;
@@ -42,12 +44,15 @@ class FeedProvider with ChangeNotifier {
     FeedLocalDatasource? localDatasource,
     AdService? adService,
     SubscriptionService? subscriptionService,
+    CurationTrackingService? curationTrackingService,
   }) : _feedRepository = feedRepository,
        _postRepository = postRepository,
        _commentRepository = commentRepository,
        _localDatasource = localDatasource ?? FeedLocalDatasource(),
        _adService = adService ?? AdService(),
-       _subscriptionService = subscriptionService ?? SubscriptionService() {
+       _subscriptionService = subscriptionService ?? SubscriptionService(),
+       _curationTrackingService =
+           curationTrackingService ?? CurationTrackingService() {
     _loadFromCache();
   }
 
@@ -119,6 +124,8 @@ class FeedProvider with ChangeNotifier {
           forYouOffset: _state.forYouPosts.length,
           hasMoreForYou: newPosts.length >= 20,
         );
+        // Track category for curation
+        _trackCategories(newPosts);
       } else {
         newPosts = await _feedRepository.getFollowingFeedPosts(
           userId: userId,
@@ -139,6 +146,8 @@ class FeedProvider with ChangeNotifier {
           followingOffset: _state.followingPosts.length,
           hasMoreFollowing: newPosts.length >= 20,
         );
+        // Track category for curation
+        _trackCategories(newPosts);
       }
     } catch (e) {
       _state = _state.copyWith(error: e.toString());
@@ -221,12 +230,18 @@ class FeedProvider with ChangeNotifier {
   Future<void> likePost({
     required String userId,
     required String postId,
+    String? communityName,
   }) async {
     _updatePostLikeStatus(postId, true);
     notifyListeners();
     _localDatasource.saveFeed(
       _state.forYouPosts.map((e) => e.toJson()).toList(),
     );
+
+    // Track like for curation
+    if (communityName != null && communityName.isNotEmpty) {
+      _trackPostLike(postId, communityName);
+    }
 
     try {
       await _postRepository.likePost(userId: userId, postId: postId);
@@ -438,5 +453,41 @@ class FeedProvider with ChangeNotifier {
 
     updateList(_state.forYouPosts);
     updateList(_state.followingPosts);
+  }
+
+  // ─── Curation Tracking ──────────────────────────────────────────────
+
+  /// Track categories from loaded posts for curation.
+  Future<void> _trackCategories(List<Post> posts) async {
+    if (posts.isEmpty) return;
+
+    // Group unique categories from posts
+    final categories = <String>{};
+    for (final post in posts) {
+      if (post.communityName != null && post.communityName!.isNotEmpty) {
+        categories.add(post.communityName!.toLowerCase());
+      }
+    }
+
+    // Track each category with weight 1 (viewing)
+    for (final category in categories) {
+      try {
+        await _curationTrackingService.trackCategoryInteraction(category);
+      } catch (e) {
+        debugPrint('[FeedProvider] Category tracking error: $e');
+      }
+    }
+  }
+
+  /// Track when user likes a post.
+  Future<void> _trackPostLike(String postId, String communityName) async {
+    final category = communityName.toLowerCase();
+    if (category.isEmpty) return;
+
+    try {
+      await _curationTrackingService.trackPostLike(category, postId);
+    } catch (e) {
+      debugPrint('[FeedProvider] Post like tracking error: $e');
+    }
   }
 }
