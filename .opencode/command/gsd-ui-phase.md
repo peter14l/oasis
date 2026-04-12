@@ -19,8 +19,8 @@ Flow: Validate → Research UI → Verify UI-SPEC → Done
 </objective>
 
 <execution_context>
-@F:/oasis/.opencode/get-shit-done/workflows/ui-phase.md
-@F:/oasis/.opencode/get-shit-done/references/ui-brand.md
+@D:/oasis/.opencode/get-shit-done/workflows/ui-phase.md
+@D:/oasis/.opencode/get-shit-done/references/ui-brand.md
 </execution_context>
 
 <context>
@@ -28,6 +28,6 @@ Phase number: $ARGUMENTS — optional, auto-detects next unplanned phase if omit
 </context>
 
 <process>
-Execute @F:/oasis/.opencode/get-shit-done/workflows/ui-phase.md end-to-end.
+Execute @D:/oasis/.opencode/get-shit-done/workflows/ui-phase.md end-to-end.
 Preserve all workflow gates.
 </process>

@@ -7,4 +7,4 @@ tools:
 
 Show the following output to the user verbatim, with no extra commentary:
 
-!`node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" config-set-model-profile $ARGUMENTS --raw`
+!`node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" config-set-model-profile $ARGUMENTS --raw`

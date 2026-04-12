@@ -26,7 +26,7 @@ Output: {padded_phase}-REVIEW.md in phase directory + inline summary of findings
 </objective>
 
 <execution_context>
-@F:/oasis/.opencode/get-shit-done/workflows/code-review.md
+@D:/oasis/.opencode/get-shit-done/workflows/code-review.md
 </execution_context>
 
 <context>
@@ -42,7 +42,7 @@ Context files (AGENTS.md, SUMMARY.md, phase state) are resolved inside the workf
 <process>
 This command is a thin dispatch layer. It parses arguments and delegates to the workflow.
 
-Execute the code-review workflow from @F:/oasis/.opencode/get-shit-done/workflows/code-review.md end-to-end.
+Execute the code-review workflow from @D:/oasis/.opencode/get-shit-done/workflows/code-review.md end-to-end.
 
 The workflow (not this command) enforces these gates:
 - Phase validation (before config gate)

@@ -24,7 +24,7 @@ Flag handling rule:
 </objective>
 
 <execution_context>
-@F:/oasis/.opencode/get-shit-done/workflows/docs-update.md
+@D:/oasis/.opencode/get-shit-done/workflows/docs-update.md
 </execution_context>
 
 <context>
@@ -42,6 +42,6 @@ Arguments: $ARGUMENTS
 </context>
 
 <process>
-Execute the docs-update workflow from @F:/oasis/.opencode/get-shit-done/workflows/docs-update.md end-to-end.
+Execute the docs-update workflow from @D:/oasis/.opencode/get-shit-done/workflows/docs-update.md end-to-end.
 Preserve all workflow gates (preservation_check, flag handling, wave execution, monorepo dispatch, commit, reporting).
 </process>

@@ -468,8 +468,8 @@ Output: [Artifacts created]
 </objective>
 
 <execution_context>
-@F:/oasis/.opencode/get-shit-done/workflows/execute-plan.md
-@F:/oasis/.opencode/get-shit-done/templates/summary.md
+@D:/oasis/.opencode/get-shit-done/workflows/execute-plan.md
+@D:/oasis/.opencode/get-shit-done/templates/summary.md
 </execution_context>
 
 <context>
@@ -887,7 +887,7 @@ start of execution when `--reviews` flag is present or reviews mode is active.
 Load planning context:
 
 ```bash
-INIT=$(node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" init plan-phase "${PHASE}")
+INIT=$(node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" init plan-phase "${PHASE}")
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
 ```
 
@@ -956,7 +956,7 @@ Apply discovery level protocol (see discovery_levels section).
 
 **Step 1 — Generate digest index:**
 ```bash
-node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" history-digest
+node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" history-digest
 ```
 
 **Step 2 — Select relevant phases (typically 2-4):**
@@ -1020,7 +1020,7 @@ cat "$phase_dir"/*-DISCOVERY.md 2>/dev/null  # From mandatory discovery
 
 <step name="break_into_tasks">
 At decision points during plan creation, apply structured reasoning:
-@F:/oasis/.opencode/get-shit-done/references/thinking-models-planning.md
+@D:/oasis/.opencode/get-shit-done/references/thinking-models-planning.md
 
 Decompose phase into tasks. **Think dependencies first, not sequence.**
 
@@ -1128,7 +1128,7 @@ Include all frontmatter fields.
 Validate each created PLAN.md using gsd-tools:
 
 ```bash
-VALID=$(node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" frontmatter validate "$PLAN_PATH" --schema plan)
+VALID=$(node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" frontmatter validate "$PLAN_PATH" --schema plan)
 ```
 
 Returns JSON: `{ valid, missing, present, schema }`
@@ -1141,7 +1141,7 @@ Required plan frontmatter fields:
 Also validate plan structure:
 
 ```bash
-STRUCTURE=$(node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" verify plan-structure "$PLAN_PATH")
+STRUCTURE=$(node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" verify plan-structure "$PLAN_PATH")
 ```
 
 Returns JSON: `{ valid, errors, warnings, task_count, tasks }`
@@ -1178,7 +1178,7 @@ Plans:
 
 <step name="git_commit">
 ```bash
-node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" commit "docs($PHASE): create phase plan" --files .planning/phases/$PHASE-*/$PHASE-*-PLAN.md .planning/ROADMAP.md
+node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" commit "docs($PHASE): create phase plan" --files .planning/phases/$PHASE-*/$PHASE-*-PLAN.md .planning/ROADMAP.md
 ```
 </step>
 

@@ -33,11 +33,11 @@ Create a physical workspace directory containing copies of specified git repos (
 </objective>
 
 <execution_context>
-@F:/oasis/.opencode/get-shit-done/workflows/new-workspace.md
-@F:/oasis/.opencode/get-shit-done/references/ui-brand.md
+@D:/oasis/.opencode/get-shit-done/workflows/new-workspace.md
+@D:/oasis/.opencode/get-shit-done/references/ui-brand.md
 </execution_context>
 
 <process>
-Execute the new-workspace workflow from @F:/oasis/.opencode/get-shit-done/workflows/new-workspace.md end-to-end.
+Execute the new-workspace workflow from @D:/oasis/.opencode/get-shit-done/workflows/new-workspace.md end-to-end.
 Preserve all workflow gates (validation, approvals, commits, routing).
 </process>

@@ -130,7 +130,7 @@ class _MainLayoutState extends State<MainLayout> {
   Future<void> _checkEncryption() async {
     final encryption = context.read<EncryptionService>();
     final status = await encryption.init();
-    
+
     if (mounted) {
       setState(() {
         _encryptionStatus = status;
@@ -250,16 +250,32 @@ class _MainLayoutState extends State<MainLayout> {
                           mainContent,
                           // Sliding panels for desktop (search/notifications)
                           if (isDesktop && _activePanel != null)
-                            Positioned(
+                            AnimatedPositioned(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
                               left: 0,
                               top: 0,
                               bottom: 0,
                               width: 400,
                               child: Container(
-                                color: panelColor,
-                                child: _activePanel == 'search'
-                                    ? const SearchScreen()
-                                    : const NotificationsScreen(),
+                                decoration: BoxDecoration(
+                                  color: panelColor,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                      blurRadius: 20,
+                                      spreadRadius: 5,
+                                    ),
+                                  ],
+                                ),
+                                child:
+                                    _activePanel == 'search'
+                                        ? const SearchScreen(isPanel: true)
+                                        : const NotificationsScreen(
+                                          isPanel: true,
+                                        ),
                               ),
                             ),
                         ],
@@ -270,13 +286,21 @@ class _MainLayoutState extends State<MainLayout> {
               ),
             ],
           ),
-          bottomNavigationBar: !isDesktop
-              ? _buildBottomNavigationBar(context, currentIndex, theme,
-                  killSwitchActive: killSwitchActive)
-              : null,
+          bottomNavigationBar:
+              !isDesktop
+                  ? _buildBottomNavigationBar(
+                    context,
+                    currentIndex,
+                    theme,
+                    killSwitchActive: killSwitchActive,
+                  )
+                  : null,
           floatingActionButton: _buildFloatingActionButton(
-              context, currentIndex, theme,
-              killSwitchActive: killSwitchActive),
+            context,
+            currentIndex,
+            theme,
+            killSwitchActive: killSwitchActive,
+          ),
         );
       },
     );
@@ -413,9 +437,7 @@ class _MainLayoutState extends State<MainLayout> {
           label: 'Spaces',
         ),
         const NavigationDestinationM3E(
-          icon: UnreadMessagesBadge(
-            child: Icon(FluentIcons.chat_24_regular),
-          ),
+          icon: UnreadMessagesBadge(child: Icon(FluentIcons.chat_24_regular)),
           selectedIcon: UnreadMessagesBadge(
             child: Icon(FluentIcons.chat_24_filled),
           ),
@@ -568,9 +590,7 @@ class _MainLayoutState extends State<MainLayout> {
           label: Text('Spaces'),
         ),
         const NavigationRailDestination(
-          icon: UnreadMessagesBadge(
-            child: Icon(FluentIcons.chat_24_regular),
-          ),
+          icon: UnreadMessagesBadge(child: Icon(FluentIcons.chat_24_regular)),
           selectedIcon: UnreadMessagesBadge(
             child: Icon(FluentIcons.chat_24_filled),
           ),
@@ -1335,7 +1355,6 @@ class AppRouter {
         ),
 
         // Legal Screens
-
         GoRoute(
           path: '/story/:storyId',
           name: 'story_view',

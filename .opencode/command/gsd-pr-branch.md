@@ -16,9 +16,9 @@ changes that are irrelevant to code review.
 </objective>
 
 <execution_context>
-@F:/oasis/.opencode/get-shit-done/workflows/pr-branch.md
+@D:/oasis/.opencode/get-shit-done/workflows/pr-branch.md
 </execution_context>
 
 <process>
-Execute the pr-branch workflow from @F:/oasis/.opencode/get-shit-done/workflows/pr-branch.md end-to-end.
+Execute the pr-branch workflow from @D:/oasis/.opencode/get-shit-done/workflows/pr-branch.md end-to-end.
 </process>

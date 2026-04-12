@@ -216,6 +216,36 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     // Mobile layout OR Panel layout (Simplified)
+    if (usePanelLayout) {
+      // Panel layout - adapted for 400px sliding panel
+      return Scaffold(
+        backgroundColor: colorScheme.surface,
+        appBar: AppBar(
+          backgroundColor: colorScheme.surface,
+          automaticallyImplyLeading: false,
+          elevation: 0,
+          toolbarHeight: 50,
+          title: Text(
+            'Notifications',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          actions: [
+            if (_filteredNotifications.isNotEmpty)
+              IconButton(
+                icon: const Icon(Icons.done_all, size: 20),
+                onPressed: _markAllAsRead,
+                tooltip: 'Mark all read',
+              ),
+            const SizedBox(width: 4),
+          ],
+        ),
+        body: _buildPanelLayout(),
+      );
+    }
+
+    // Mobile layout
     return Scaffold(
       backgroundColor:
           usePanelLayout ? colorScheme.surface : theme.scaffoldBackgroundColor,
@@ -382,6 +412,99 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           },
           child: _buildNotificationsList(),
         );
+  }
+
+  Widget _buildPanelLayout() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final provider = context.watch<NotificationProvider>();
+
+    if (provider.state.loadingState == state.NotificationLoadingState.loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_filteredNotifications.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      itemCount: _filteredNotifications.length,
+      itemBuilder: (context, index) {
+        final notification = _filteredNotifications[index];
+        return _buildPanelNotificationItem(notification);
+      },
+    );
+  }
+
+  Widget _buildPanelNotificationItem(AppNotification notification) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isM3E =
+        Provider.of<ThemeProvider>(context, listen: false).isM3EEnabled;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color:
+            notification.isRead
+                ? colorScheme.surfaceContainerLow
+                : colorScheme.primaryContainer.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+        border:
+            isM3E
+                ? Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  width: 1,
+                )
+                : null,
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        dense: true,
+        leading: CircleAvatar(
+          radius: 16,
+          backgroundImage:
+              notification.actorAvatar != null &&
+                      notification.actorAvatar!.isNotEmpty
+                  ? CachedNetworkImageProvider(notification.actorAvatar!)
+                  : null,
+          backgroundColor: isM3E ? colorScheme.tertiaryContainer : null,
+          child:
+              notification.actorAvatar == null ||
+                      notification.actorAvatar!.isEmpty
+                  ? Icon(_getNotificationIcon(notification.type), size: 16)
+                  : null,
+        ),
+        title: Text(
+          _getNotificationText(notification),
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontWeight:
+                notification.isRead ? FontWeight.normal : FontWeight.w600,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(
+          timeago.format(notification.timestamp),
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        trailing:
+            !notification.isRead
+                ? Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: isM3E ? colorScheme.tertiary : colorScheme.primary,
+                    shape: BoxShape.circle,
+                  ),
+                )
+                : null,
+        onTap: () => _handleNotificationTap(notification),
+      ),
+    );
   }
 
   Widget _buildFiltersSidebar() {

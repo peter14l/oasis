@@ -97,22 +97,79 @@ class PresenceService {
 
     final channelName = 'user_presence:$userId';
     RealtimeChannel channel;
-    bool isNewChannel = false;
 
     if (_presenceChannels.containsKey(channelName)) {
       channel = _presenceChannels[channelName]!;
     } else {
       channel = _supabase.channel(channelName);
       _presenceChannels[channelName] = channel;
-      isNewChannel = true;
-      _channelSubscribed[channelName] = false;
     }
 
-    // Wait for subscription if not yet completed (new or existing)
-    if (!_channelSubscribed[channelName]!) {
-      channel.subscribe();
-      // Wait for subscription confirmation (max 200ms)
-      await Future.delayed(const Duration(milliseconds: 200));
+    // Check if we're already subscribed (track in our map)
+    final isAlreadySubscribed = _channelSubscribed[channelName] == true;
+    
+    if (!isAlreadySubscribed) {
+      try {
+        channel.subscribe();
+        _channelSubscribed[channelName] = true;
+        // Wait for subscription confirmation (max 200ms)
+        await Future.delayed(const Duration(milliseconds: 200));
+      } catch (e) {
+        // Check if it's the "already subscribed" error - this is OK
+        if (e.toString().contains('already been subscribed')) {
+          _channelSubscribed[channelName] = true;
+        } else {
+          debugPrint('PresenceService: subscribe error - ${e.toString()}');
+        }
+      }
+    }
+
+    try {
+      await channel.track({
+        'status': status,
+        'last_seen': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      // Retry once after brief delay
+      debugPrint('PresenceService: Retry presence after - ${e.toString()}');
+      try {
+        await Future.delayed(const Duration(milliseconds: 100));
+        await channel.track({
+          'status': status,
+          'last_seen': DateTime.now().toIso8601String(),
+        });
+      } catch (e2) {
+        debugPrint(
+          'PresenceService: Failed to track presence - ${e2.toString()}',
+        );
+      }
+    }
+  }
+
+    _lastUpdateTime[userId] = now;
+
+    final channelName = 'user_presence:$userId';
+    RealtimeChannel channel;
+
+    if (_presenceChannels.containsKey(channelName)) {
+      channel = _presenceChannels[channelName]!;
+    } else {
+      channel = _supabase.channel(channelName);
+      _presenceChannels[channelName] = channel;
+    }
+
+    // Only subscribe if not already subscribed (track in our map)
+    if (!_channelSubscribed.containsKey(channelName) ||
+        !_channelSubscribed[channelName]!) {
+      try {
+        channel.subscribe();
+        _channelSubscribed[channelName] = true;
+        // Wait for subscription confirmation (max 200ms)
+        await Future.delayed(const Duration(milliseconds: 200));
+      } catch (e) {
+        // Already subscribed - mark as subscribed and continue
+        _channelSubscribed[channelName] = true;
+      }
     }
 
     try {

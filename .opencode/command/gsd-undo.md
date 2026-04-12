@@ -19,9 +19,9 @@ Three modes:
 </objective>
 
 <execution_context>
-@F:/oasis/.opencode/get-shit-done/workflows/undo.md
-@F:/oasis/.opencode/get-shit-done/references/ui-brand.md
-@F:/oasis/.opencode/get-shit-done/references/gate-prompts.md
+@D:/oasis/.opencode/get-shit-done/workflows/undo.md
+@D:/oasis/.opencode/get-shit-done/references/ui-brand.md
+@D:/oasis/.opencode/get-shit-done/references/gate-prompts.md
 </execution_context>
 
 <context>
@@ -29,5 +29,5 @@ $ARGUMENTS
 </context>
 
 <process>
-Execute the undo workflow from @F:/oasis/.opencode/get-shit-done/workflows/undo.md end-to-end.
+Execute the undo workflow from @D:/oasis/.opencode/get-shit-done/workflows/undo.md end-to-end.
 </process>

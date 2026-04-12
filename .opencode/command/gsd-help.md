@@ -14,10 +14,10 @@ Output ONLY the reference content below. Do NOT add:
 </objective>
 
 <execution_context>
-@F:/oasis/.opencode/get-shit-done/workflows/help.md
+@D:/oasis/.opencode/get-shit-done/workflows/help.md
 </execution_context>
 
 <process>
-Output the complete GSD command reference from @F:/oasis/.opencode/get-shit-done/workflows/help.md.
+Output the complete GSD command reference from @D:/oasis/.opencode/get-shit-done/workflows/help.md.
 Display the reference content directly — no additions or modifications.
 </process>

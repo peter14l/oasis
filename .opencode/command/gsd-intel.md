@@ -38,7 +38,7 @@ GSD > INTEL
 
 Intel system is disabled. To activate:
 
-  node F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs config-set intel.enabled true
+  node D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs config-set intel.enabled true
 
 Then run /gsd-intel refresh to build the initial index.
 ```
@@ -76,7 +76,7 @@ Modes:
 Run:
 
 ```bash
-node F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs intel query <term>
+node D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs intel query <term>
 ```
 
 Parse the JSON output and display results:
@@ -91,7 +91,7 @@ Parse the JSON output and display results:
 Run:
 
 ```bash
-node F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs intel status
+node D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs intel status
 ```
 
 Parse the JSON output and display each intel file with:
@@ -106,7 +106,7 @@ Parse the JSON output and display each intel file with:
 Run:
 
 ```bash
-node F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs intel diff
+node D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs intel diff
 ```
 
 Parse the JSON output and display:
@@ -136,7 +136,7 @@ Task(
   prompt="You are the gsd-intel-updater agent. Your job is to analyze this codebase and write/update intelligence files in .planning/intel/.
 
 Project root: ${CWD}
-gsd-tools path: F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs
+gsd-tools path: D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs
 
 Instructions:
 1. Analyze the codebase structure, dependencies, APIs, and architecture
@@ -160,7 +160,7 @@ Wait for the agent to complete.
 After the agent completes, run:
 
 ```bash
-node F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs intel status
+node D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs intel status
 ```
 
 Display a summary showing:

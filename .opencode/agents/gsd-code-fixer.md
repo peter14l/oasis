@@ -307,7 +307,7 @@ For each finding in sorted order:
 
 Use gsd-tools commit command with conventional format:
 ```bash
-node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" commit \
+node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" commit \
   "fix({padded_phase}): {finding_id} {short_description}" \
   --files {all_modified_files}
 ```

@@ -78,11 +78,12 @@ class DesktopHeader extends StatelessWidget {
               ],
             ),
           ),
-          if (actions != null) ...[
+          if (actions != null && actions!.isNotEmpty) ...[
             const SizedBox(width: 20),
-            ...actions!.expand(
-              (widget) => [widget, const SizedBox(width: 12)],
-            ).toList()..removeLast(),
+            ...actions!
+                .expand((widget) => [widget, const SizedBox(width: 12)])
+                .toList()
+              ..removeLast(),
           ],
         ],
       ),
