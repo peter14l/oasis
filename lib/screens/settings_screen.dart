@@ -106,7 +106,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         border: Border(
                           right: BorderSide(
-                            color: colorScheme.onSurface.withValues(alpha: 0.05),
+                            color: colorScheme.onSurface.withValues(
+                              alpha: 0.05,
+                            ),
                           ),
                         ),
                       ),
@@ -301,7 +303,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     if (mounted) {
       setState(() {
-        _showSupportEmailNote = !(prefs.getBool('support_email_note_dismissed') ?? false);
+        _showSupportEmailNote =
+            !(prefs.getBool('support_email_note_dismissed') ?? false);
       });
     }
   }
@@ -429,8 +432,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Text(
                   label,
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight:
-                        isSelected ? FontWeight.w900 : FontWeight.w600,
+                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
                     color:
                         isSelected
                             ? colorScheme.primary
@@ -538,7 +540,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Vault',
             subtitle: 'Manage hidden content and security',
             iconColor: colorScheme.primary,
-            onTap: () => _navigateToSubPage('Vault', const VaultSettingsScreen()),
+            onTap:
+                () => _navigateToSubPage('Vault', const VaultSettingsScreen()),
           ),
           _buildSettingsTile(
             context,
@@ -547,8 +550,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: 'Manage End-to-End Encryption keys',
             iconColor: Colors.purple,
             onTap:
-                () =>
-                    _navigateToSubPage('Encryption', const EncryptionSetupScreen()),
+                () => _navigateToSubPage(
+                  'Encryption',
+                  const EncryptionSetupScreen(),
+                ),
           ),
           _buildSettingsTile(
             context,
@@ -605,8 +610,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: 'Request a copy of your data',
             iconColor: Colors.teal,
             onTap:
-                () =>
-                    _navigateToSubPage('Download Data', const DownloadDataScreen()),
+                () => _navigateToSubPage(
+                  'Download Data',
+                  const DownloadDataScreen(),
+                ),
           ),
         ]),
         const SizedBox(height: 24),
@@ -694,7 +701,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         iconColor: Colors.indigo,
         trailing: Switch(
           value: userSettingsProvider.meshEnabled,
-          onChanged: (v) => userSettingsProvider.setMeshEnabled(v),
+          onChanged: (v) {
+            if (v && themeProvider.isM3EEnabled) {
+              // If turning on mesh, turn off M3E Expressive
+              themeProvider.setM3EEnabled(false);
+            }
+            userSettingsProvider.setMeshEnabled(v);
+          },
         ),
       ),
       _buildSettingsTile(
@@ -705,7 +718,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         iconColor: Colors.pink,
         trailing: Switch(
           value: themeProvider.isM3EEnabled,
-          onChanged: (v) => themeProvider.setM3EEnabled(v),
+          onChanged: (v) {
+            if (v && userSettingsProvider.meshEnabled) {
+              // If turning on M3E, turn off mesh
+              userSettingsProvider.setMeshEnabled(false);
+            }
+            themeProvider.setM3EEnabled(v);
+          },
         ),
       ),
       if (themeProvider.isM3EEnabled)

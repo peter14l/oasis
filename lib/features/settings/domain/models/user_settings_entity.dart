@@ -15,12 +15,12 @@ class UserSettingsEntity extends Equatable {
     this.dataSaver = false,
     this.fontSizeFactor = 1.0,
     this.highContrast = false,
-    this.meshEnabled = true,
+    this.meshEnabled = false,
     this.dailyLimitMinutes = 0,
     this.windDownEnabled = false,
     this.micaEnabled = false,
     this.windowEffect = 'mica',
-    this.fontFamily = 'Comfortaa',
+    this.fontFamily = 'Outfit',
   });
 
   UserSettingsEntity copyWith({
@@ -49,14 +49,14 @@ class UserSettingsEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        dataSaver,
-        fontSizeFactor,
-        highContrast,
-        meshEnabled,
-        dailyLimitMinutes,
-        windDownEnabled,
-        micaEnabled,
-        windowEffect,
-        fontFamily,
-      ];
+    dataSaver,
+    fontSizeFactor,
+    highContrast,
+    meshEnabled,
+    dailyLimitMinutes,
+    windDownEnabled,
+    micaEnabled,
+    windowEffect,
+    fontFamily,
+  ];
 }
