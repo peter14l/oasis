@@ -704,16 +704,22 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
-                              vertical: 4,
+                              vertical: 8,
                             ),
                             child: Wrap(
                               spacing: 8,
-                              runSpacing: 4,
+                              runSpacing: 8,
                               children:
                                   state.smartReplies.map((reply) {
-                                    return ActionChip(
-                                      label: Text(reply),
-                                      onPressed: () {
+                                    final bubbleColor =
+                                        state.bubbleColorSent ??
+                                        theme.colorScheme.primaryContainer;
+                                    final textColor =
+                                        state.textColorSent ??
+                                        theme.colorScheme.onPrimaryContainer;
+
+                                    return GestureDetector(
+                                      onTap: () {
                                         _messageController.text = reply;
                                         _chatProvider.setState(
                                           (s) => s.copyWith(
@@ -723,6 +729,26 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                         );
                                         _sendMessage();
                                       },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 10,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: bubbleColor,
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          reply,
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                color: textColor,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                        ),
+                                      ),
                                     );
                                   }).toList(),
                             ),
