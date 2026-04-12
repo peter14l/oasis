@@ -9,71 +9,60 @@ class HelpSupportScreen extends StatelessWidget {
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     final content = ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _buildHelpSection(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildHelpSection(context, 'Frequently Asked Questions', [
+          _buildHelpTile(
             context,
-            'Frequently Asked Questions',
-            [
-              _buildHelpTile(
-                context,
-                'How do I change my profile?',
-                'Go to Settings > Edit Profile.',
-              ),
-              _buildHelpTile(
-                context,
-                'Is Oasis Pro free?',
-                'Oasis Pro is a premium subscription service.',
-              ),
-              _buildHelpTile(
-                context,
-                'How do I report a bug?',
-                'You can use the "Send Feedback" option in Settings.',
-              ),
-            ],
+            'How do I change my profile?',
+            'Go to Settings > Edit Profile.',
           ),
-          const SizedBox(height: 24),
-          _buildHelpSection(
+          _buildHelpTile(
             context,
-            'Contact Us',
-            [
-              ListTile(
-                leading: const Icon(Icons.email_outlined),
-                title: const Text('Email Support'),
-                subtitle: const Text('oasis.officialsupport@outlook.com'),
-                onTap: () async {
-                  final Uri emailUri = Uri(
-                    scheme: 'mailto',
-                    path: 'oasis.officialsupport@outlook.com',
-                  );
-                  if (await canLaunchUrl(emailUri)) {
-                    await launchUrl(emailUri);
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.help_center_outlined),
-                title: const Text('Help Center'),
-                subtitle: const Text('Visit our help website'),
-                onTap: () async {
-                  final Uri url = Uri.parse('https://help.Oasisapp.com');
-                  if (await canLaunchUrl(url)) {
-                    await launchUrl(url);
-                  }
-                },
-              ),
-            ],
+            'Is Oasis Pro free?',
+            'Oasis Pro is a premium subscription service.',
           ),
-        ],
-      );
+          _buildHelpTile(
+            context,
+            'How do I report a bug?',
+            'You can use the "Send Feedback" option in Settings.',
+          ),
+        ]),
+        const SizedBox(height: 24),
+        _buildHelpSection(context, 'Contact Us', [
+          ListTile(
+            leading: const Icon(Icons.email_outlined),
+            title: const Text('Email Support'),
+            subtitle: const Text('oasis.officialsupport@gmail.com'),
+            onTap: () async {
+              final Uri emailUri = Uri(
+                scheme: 'mailto',
+                path: 'oasis.officialsupport@gmail.com',
+              );
+              if (await canLaunchUrl(emailUri)) {
+                await launchUrl(emailUri);
+              }
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.help_center_outlined),
+            title: const Text('Help Center'),
+            subtitle: const Text('Visit our help website'),
+            onTap: () async {
+              final Uri url = Uri.parse('https://help.Oasisapp.com');
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url);
+              }
+            },
+          ),
+        ]),
+      ],
+    );
 
     if (isDesktop) return Material(color: Colors.transparent, child: content);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Help & Support'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Help & Support'), centerTitle: true),
       body: content,
     );
   }

@@ -97,7 +97,7 @@ class ThemeProvider with ChangeNotifier {
     final themeIndex = prefs.getInt(_themeKey) ?? ThemeMode.system.index;
     _themeMode = ThemeMode.values[themeIndex];
     _highContrast = prefs.getBool(_highContrastKey) ?? false;
-    _isM3EEnabled = prefs.getBool(_m3eKey) ?? true;
+    _isM3EEnabled = prefs.getBool(_m3eKey) ?? false;
     _isM3ETransparencyDisabled = prefs.getBool(_m3eTransparencyKey) ?? false;
     _useMaterialYou = prefs.getBool(_materialYouKey) ?? false;
     notifyListeners();
@@ -402,9 +402,7 @@ class AppInitializer {
         ChangeNotifierProvider<SubscriptionService>.value(
           value: services.subscriptionService,
         ),
-        ChangeNotifierProvider<IAPService>.value(
-          value: services.iapService,
-        ),
+        ChangeNotifierProvider<IAPService>.value(value: services.iapService),
         Provider<EncryptionService>(create: (_) => EncryptionService()),
         ChangeNotifierProvider(
           create:

@@ -2,12 +2,13 @@
 
 ## Phase 1: Codebase Cleanup
 **Goal:** Remove unused legacy .dart files after migrating active dependencies.
-**Status:** In Progress
+**Status:** ✅ Completed
 **Plans:** 2 plans
 
 ### Plans:
-- [ ] 01-01-PLAN.md — Migrate active dependencies to new entities and audit remaining references.
-- [ ] 01-02-PLAN.md — Remove unused legacy .dart files and perform final validation.
+- [x] 01-01-PLAN.md — Migrate active dependencies to new entities and audit remaining references.
+- [x] 01-01-SUMMARY.md — Complete
+- [ ] 01-02-PLAN.md — Remove unused legacy .dart files and perform final validation. (Ready - legacy files identified)
 
 ## Phase 2: Username-based Sign-in
 **Goal:** Implement secure sign-in and password reset using unique usernames or emails.
@@ -16,10 +17,11 @@
 
 ## Phase 3: Advanced Video/Voice Calling Experience
 **Goal:** Implement robust, multi-participant video/voice calling with E2EE signaling, screen sharing, and themed UI.
-**Status:** Completed
+**Status:** ✅ Completed
 **Plans:**
 - [x] 03-01-PLAN.md — Implement multi-participant Mesh calls, E2EE signaling, and screen sharing.
 - [x] 03-02-PLAN.md — Implement themed calling UI, participant management, and overlay controls.
+- [x] VERIFICATION.md — Complete
 
 **Requirements:**
 [CLEANUP-01, CLEANUP-02, CALL-01, CALL-02, CALL-03]
@@ -31,21 +33,20 @@
 
 ## Phase 5: PIN Recovery Mechanism
 **Goal:** Set New Pin mechanism for users who have Both Forgot their pin and lost their recovery codes as well. The previous texts can't be accessed anymore but set up a mechanism for setting new pin so that the new texts are not lost anymore.
-**Status:** Planned
+**Status:** ✅ Completed
 **Plans:** 1 plan
 
 ### Plans:
-- [ ] 05-01-PLAN.md — Implement PIN reset via email/password with warning and new PIN setup.
+- [x] 05-01-PLAN.md — Implement PIN reset via email/password with warning and new PIN setup.
+- [x] 05-01-SUMMARY.md — Complete
 
 ## Phase 6: Cross-platform Subscriptions
-**Goal:** Support subscriptions across multiple platforms.
-**Status:** Planned
-**Plans:** None (TBD)
+**Goal:** Support subscriptions across multiple platforms using in_app_purchase for mobile/macOS and Razorpay for Windows.
+**Status:** ✅ Completed
+**Plans:** 1 plan
 
-## Phase 7: TBD
-**Goal:** TBD
-**Status:** Planned
-**Plans:** None (TBD)
+### Plans:
+- [x] 06-01-PLAN.md — Cross-platform IAP setup and subscription infrastructure.
 
 ## Phase 8: Monetization and Privacy Infrastructure
 **Goal:** Implement ethical monetization via House Ads and reinforce privacy through security auditing and transparency.
@@ -57,3 +58,18 @@
 
 **Requirements:**
 [PRIVACY-01, PRIVACY-02, MONETIZATION-01, MONETIZATION-02]
+
+## Phase 9: Privacy Sync Toggle
+
+**Goal:** Add optional server sync toggle to Privacy Transparency feature. Fix broken tracking, add toggle for users to optionally sync analytics to server, show warning when disabling, delete server data on disable.
+
+**Status:** ✅ Completed
+
+**Plans:** 2 plans
+
+Plans:
+- [x] 09-01-PLAN.md — Fix local tracking (wire to actual usage) + create Supabase schema for analytics
+- [x] 09-02-PLAN.md — Add server sync toggle UI with warning dialogs
+
+**Requirements:**
+[PRIVACY-02]
