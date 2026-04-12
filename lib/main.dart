@@ -95,6 +95,10 @@ class _LifecycleManagerState extends State<LifecycleManager>
       if (userId != null) {
         presence.updateUserPresence(userId, 'online');
       }
+    } else if (state == AppLifecycleState.inactive) {
+      // Skip presence update on inactive state - this is intermediate
+      // between resumed and paused, often triggered temporarily by system
+      // e.g., incoming call, notification, or dialog
     }
   }
 
@@ -238,11 +242,21 @@ class _MyAppState extends State<MyApp> {
                       // GoRouter.of(context) should be available here
                       String location = '';
                       try {
-                        location = GoRouter.of(context).routeInformationProvider?.value.uri.path ?? '';
+                        location =
+                            GoRouter.of(
+                              context,
+                            ).routeInformationProvider?.value.uri.path ??
+                            '';
                       } catch (e) {
-                        location = AppRouter.router.routerDelegate.currentConfiguration.uri.path;
+                        location =
+                            AppRouter
+                                .router
+                                .routerDelegate
+                                .currentConfiguration
+                                .uri
+                                .path;
                       }
-                      
+
                       final onCallScreen = location.startsWith('/call');
 
                       if (hasActiveCall && !onCallScreen) {
@@ -250,12 +264,19 @@ class _MyAppState extends State<MyApp> {
                           final activeCallId = callProvider.activeCall?.id;
                           final incomingCallId = callProvider.incomingCall?.id;
                           final callId = activeCallId ?? incomingCallId;
-                          
+
                           if (callId != null) {
-                            debugPrint('[CallNavigation] Triggering navigation to /call/$callId (Current location: $location)');
-                            
+                            debugPrint(
+                              '[CallNavigation] Triggering navigation to /call/$callId (Current location: $location)',
+                            );
+
                             // Use the root navigator context for reliable navigation
-                            final navContext = AppRouter.router.configuration.navigatorKey.currentContext;
+                            final navContext =
+                                AppRouter
+                                    .router
+                                    .configuration
+                                    .navigatorKey
+                                    .currentContext;
                             if (navContext != null) {
                               GoRouter.of(navContext).pushNamed(
                                 'active_call',
@@ -268,7 +289,9 @@ class _MyAppState extends State<MyApp> {
                               );
                             }
                           } else {
-                            debugPrint('[CallNavigation] hasActiveCall is true but callId is null!');
+                            debugPrint(
+                              '[CallNavigation] hasActiveCall is true but callId is null!',
+                            );
                           }
                         });
                       }

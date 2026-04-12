@@ -7,9 +7,9 @@ import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/notification_service.dart';
 
 /// Service dedicated to message transport and lifecycle management.
-/// 
+///
 /// Handles retrieving messages, applying "whisper mode" (ephemeral) filters,
-/// sending new messages with security checks (e.g. blocking), and marking 
+/// sending new messages with security checks (e.g. blocking), and marking
 /// messages as read.
 class ChatMessagingService {
   final SupabaseClient _supabase;
@@ -17,10 +17,10 @@ class ChatMessagingService {
   final NotificationService _notificationService = NotificationService();
 
   ChatMessagingService({SupabaseClient? client})
-      : _supabase = client ?? SupabaseService().client;
+    : _supabase = client ?? SupabaseService().client;
 
   /// Retrieves messages for a specific conversation.
-  /// 
+  ///
   /// Includes read receipts, reply-to metadata, and reaction counts.
   /// Filters messages based on the user's "cleared_at" timestamp.
   Future<List<Message>> getMessages({
@@ -34,19 +34,24 @@ class ChatMessagingService {
       if (currentUserId == null) throw Exception('Not authenticated');
 
       // 1. Fetch cleared_at timestamp for the current user
-      final participantResponse = await _supabase
-          .from('conversation_participants')
-          .select('cleared_at')
-          .eq('conversation_id', conversationId)
-          .eq('user_id', currentUserId)
-          .maybeSingle();
+      final participantResponse =
+          await _supabase
+              .from('conversation_participants')
+              .select('cleared_at')
+              .eq('conversation_id', conversationId)
+              .eq('user_id', currentUserId)
+              .maybeSingle();
 
-      final clearedAt = participantResponse != null && participantResponse['cleared_at'] != null
-          ? DateTime.parse(participantResponse['cleared_at'])
-          : null;
+      final clearedAt =
+          participantResponse != null &&
+                  participantResponse['cleared_at'] != null
+              ? DateTime.parse(participantResponse['cleared_at'])
+              : null;
 
       // 2. Query messages
-      var query = _supabase.from(SupabaseConfig.messagesTable).select('''
+      var query = _supabase
+          .from(SupabaseConfig.messagesTable)
+          .select('''
             *,
             sender_profile:sender_id (username, avatar_url),
             reply_to:reply_to_id (
@@ -56,7 +61,8 @@ class ChatMessagingService {
             ),
             reactions:message_reactions(*),
             media_views:message_media_views!left(view_count)
-          ''').eq('conversation_id', conversationId);
+          ''')
+          .eq('conversation_id', conversationId);
 
       if (clearedAt != null) {
         query = query.gte('created_at', clearedAt.toIso8601String());
@@ -110,7 +116,9 @@ class ChatMessagingService {
           final msgIndex = messages.indexWhere((m) => m.id == msgId);
           if (msgIndex >= 0 && uId != messages[msgIndex].senderId) {
             if (!firstReadMap.containsKey(msgId) ||
-                DateTime.parse(rAt).isBefore(DateTime.parse(firstReadMap[msgId]!))) {
+                DateTime.parse(
+                  rAt,
+                ).isBefore(DateTime.parse(firstReadMap[msgId]!))) {
               firstReadMap[msgId] = rAt;
             }
           }
@@ -121,8 +129,10 @@ class ChatMessagingService {
           final myReadTimeStr = myReadMap[messages[i].id];
           final anyReadTimeStr = firstReadMap[messages[i].id];
 
-          final DateTime? myReadAt = myReadTimeStr != null ? DateTime.parse(myReadTimeStr) : null;
-          final DateTime? anyReadAt = anyReadTimeStr != null ? DateTime.parse(anyReadTimeStr) : null;
+          final DateTime? myReadAt =
+              myReadTimeStr != null ? DateTime.parse(myReadTimeStr) : null;
+          final DateTime? anyReadAt =
+              anyReadTimeStr != null ? DateTime.parse(anyReadTimeStr) : null;
 
           if (myReadAt != null || anyReadAt != null) {
             messages[i] = messages[i].copyWith(
@@ -132,8 +142,12 @@ class ChatMessagingService {
             );
 
             // Heal expiresAt locally
-            if (messages[i].isEphemeral && messages[i].expiresAt == null && anyReadAt != null) {
-              final calculatedExpiry = anyReadAt.add(Duration(seconds: messages[i].ephemeralDuration));
+            if (messages[i].isEphemeral &&
+                messages[i].expiresAt == null &&
+                anyReadAt != null) {
+              final calculatedExpiry = anyReadAt.add(
+                Duration(seconds: messages[i].ephemeralDuration),
+              );
               messages[i] = messages[i].copyWith(expiresAt: calculatedExpiry);
             }
           }
@@ -202,7 +216,8 @@ class ChatMessagingService {
       };
 
       if (mediaUrl != null) {
-        if (messageType == MessageType.image || messageType == MessageType.ripple) {
+        if (messageType == MessageType.image ||
+            messageType == MessageType.ripple) {
           insertData['image_url'] = mediaUrl;
         } else if (messageType == MessageType.document) {
           insertData['file_url'] = mediaUrl;
@@ -215,7 +230,10 @@ class ChatMessagingService {
       await _supabase.from(SupabaseConfig.messagesTable).insert(insertData);
 
       // Fetch created message with details
-      final response = await _supabase.from(SupabaseConfig.messagesTable).select('''
+      final response =
+          await _supabase
+              .from(SupabaseConfig.messagesTable)
+              .select('''
             *,
             sender_profile:sender_id (username, avatar_url),
             reply_to:reply_to_id (
@@ -224,19 +242,30 @@ class ChatMessagingService {
               profiles:sender_id (username)
             ),
             reactions:message_reactions(*)
-          ''').eq('id', messageId).single();
+          ''')
+              .eq('id', messageId)
+              .single();
 
       final message = Message.fromJson(Map<String, dynamic>.from(response));
 
       // Manual sync of conversation timestamp
-      await _supabase.from(SupabaseConfig.conversationsTable).update({
-        'last_message_id': message.id,
-        'last_message_at': message.timestamp.toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', conversationId);
+      await _supabase
+          .from(SupabaseConfig.conversationsTable)
+          .update({
+            'last_message_id': message.id,
+            'last_message_at': message.timestamp.toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', conversationId);
 
       // Send notifications
-      _triggerNotifications(conversationId, senderId, content, messageId, encryptedKeys != null || signalMessageType != null);
+      _triggerNotifications(
+        conversationId,
+        senderId,
+        content,
+        messageId,
+        encryptedKeys != null || signalMessageType != null,
+      );
 
       return message;
     } catch (e) {
@@ -246,7 +275,10 @@ class ChatMessagingService {
   }
 
   /// Mark message as read.
-  Future<void> markAsRead({required String messageId, required String userId}) async {
+  Future<void> markAsRead({
+    required String messageId,
+    required String userId,
+  }) async {
     try {
       await _supabase.from(SupabaseConfig.messageReadReceiptsTable).upsert({
         'message_id': messageId,
@@ -265,59 +297,96 @@ class ChatMessagingService {
     Function(String)? onDeleteMessage,
   }) {
     final channel = _supabase.channel('messages:$conversationId');
-    channel.onPostgresChanges(
-      event: PostgresChangeEvent.insert,
-      schema: 'public',
-      table: SupabaseConfig.messagesTable,
-      filter: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'conversation_id', value: conversationId),
-      callback: (payload) async {
-        final messageData = payload.newRecord;
-        final profile = await _supabase.from(SupabaseConfig.profilesTable).select('username, avatar_url').eq('id', messageData['sender_id']).single();
-        messageData['sender_name'] = profile['username'];
-        messageData['sender_avatar'] = profile['avatar_url'];
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: SupabaseConfig.messagesTable,
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'conversation_id',
+            value: conversationId,
+          ),
+          callback: (payload) {
+            final messageData = Map<String, dynamic>.from(payload.newRecord);
+            // Extract sender info directly from the inserted record - no extra DB calls
+            // The sender_id is already present in the message, profile can be fetched lazily only when displaying username
+            final senderId = messageData['sender_id'] as String?;
+            if (senderId != null) {
+              // Store sender_id for lazy profile fetch if needed - but don't block message display
+              messageData['sender_name'] = null;
+              messageData['sender_avatar'] = null;
+            }
 
-        if (messageData['reply_to_id'] != null) {
-          final replyResponse = await _supabase.from(SupabaseConfig.messagesTable).select('*, profiles:sender_id (username)').eq('id', messageData['reply_to_id']).maybeSingle();
-          if (replyResponse != null) messageData['reply_to'] = replyResponse;
-        }
-        onNewMessage(Message.fromJson(messageData));
-      },
-    ).onPostgresChanges(
-      event: PostgresChangeEvent.delete,
-      schema: 'public',
-      table: SupabaseConfig.messagesTable,
-      callback: (payload) {
-        if (onDeleteMessage != null) onDeleteMessage(payload.oldRecord['id'] as String);
-      },
-    ).subscribe((status, [error]) {
-      if (status == RealtimeSubscribeStatus.channelError) {
-        debugPrint('[ChatMessagingService] Subscription error: $error');
-      }
-    });
+            // Reply-to is not needed for immediate display - skip to eliminate delay
+            messageData.remove('reply_to_id');
+
+            onNewMessage(Message.fromJson(messageData));
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.delete,
+          schema: 'public',
+          table: SupabaseConfig.messagesTable,
+          callback: (payload) {
+            if (onDeleteMessage != null)
+              onDeleteMessage(payload.oldRecord['id'] as String);
+          },
+        )
+        .subscribe((status, [error]) {
+          if (status == RealtimeSubscribeStatus.channelError) {
+            debugPrint('[ChatMessagingService] Subscription error: $error');
+          }
+        });
     return channel;
   }
 
   // --- Helper Methods ---
 
-  Future<String?> _getRecipientId(String conversationId, String senderId) async {
-    final response = await _supabase.from('conversation_participants').select('user_id').eq('conversation_id', conversationId).neq('user_id', senderId).maybeSingle();
+  Future<String?> _getRecipientId(
+    String conversationId,
+    String senderId,
+  ) async {
+    final response =
+        await _supabase
+            .from('conversation_participants')
+            .select('user_id')
+            .eq('conversation_id', conversationId)
+            .neq('user_id', senderId)
+            .maybeSingle();
     return response?['user_id'] as String?;
   }
 
   Future<bool> _isBlockedBy(String userId, String actorId) async {
-    final response = await _supabase
-        .from('blocked_users')
-        .select('id')
-        .eq('blocker_id', userId)
-        .eq('blocked_id', actorId)
-        .maybeSingle();
+    final response =
+        await _supabase
+            .from('blocked_users')
+            .select('id')
+            .eq('blocker_id', userId)
+            .eq('blocked_id', actorId)
+            .maybeSingle();
     return response != null;
   }
 
-  void _triggerNotifications(String conversationId, String senderId, String content, String messageId, bool isEncrypted) async {
+  void _triggerNotifications(
+    String conversationId,
+    String senderId,
+    String content,
+    String messageId,
+    bool isEncrypted,
+  ) async {
     try {
-      final participants = await _supabase.from('conversation_participants').select('user_id').eq('conversation_id', conversationId).neq('user_id', senderId);
-      final senderProfile = await _supabase.from(SupabaseConfig.profilesTable).select('username').eq('id', senderId).single();
+      final participants = await _supabase
+          .from('conversation_participants')
+          .select('user_id')
+          .eq('conversation_id', conversationId)
+          .neq('user_id', senderId);
+      final senderProfile =
+          await _supabase
+              .from(SupabaseConfig.profilesTable)
+              .select('username')
+              .eq('id', senderId)
+              .single();
       final senderName = senderProfile['username'] ?? 'Someone';
 
       for (final p in participants) {

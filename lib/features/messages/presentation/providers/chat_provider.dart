@@ -249,40 +249,36 @@ class ChatProvider with ChangeNotifier {
                     now.isAfter(decryptedMessage.expiresAt!)));
         if (isExpired) return;
 
-        SchedulerBinding.instance.addPostFrameCallback((_) {
-          // Avoid duplicates (especially from optimistic updates)
-          final index = state.messages.indexWhere(
-            (m) => m.id == decryptedMessage.id,
-          );
+        // Avoid duplicates (especially from optimistic updates)
+        final index = state.messages.indexWhere(
+          (m) => m.id == decryptedMessage.id,
+        );
 
-          List<Message> updatedMessages;
-          if (index == -1) {
-            updatedMessages = [...state.messages, decryptedMessage];
-          } else {
-            updatedMessages = List<Message>.from(state.messages);
-            updatedMessages[index] = decryptedMessage;
-          }
+        List<Message> updatedMessages;
+        if (index == -1) {
+          updatedMessages = [...state.messages, decryptedMessage];
+        } else {
+          updatedMessages = List<Message>.from(state.messages);
+          updatedMessages[index] = decryptedMessage;
+        }
 
-          setState((s) => s.copyWith(messages: updatedMessages));
-          scrollToBottom();
-          loadSmartReplies();
-          settingsProvider.saveMessagesToCache(updatedMessages);
+        setState((s) => s.copyWith(messages: updatedMessages));
+        scrollToBottom();
+        loadSmartReplies();
+        settingsProvider.saveMessagesToCache(updatedMessages);
 
-          // Mark as read if message is from other user
-          if (decryptedMessage.senderId != currentUserId) {
-            markAsRead();
-          }
-        });
+        // Mark as read if message is from other user
+        if (decryptedMessage.senderId != currentUserId) {
+          markAsRead();
+        }
       },
       onDeleteMessage: (messageId) {
-        SchedulerBinding.instance.addPostFrameCallback((_) {
-          setState(
-            (s) => s.copyWith(
-              messages: s.messages.where((m) => m.id != messageId).toList(),
-            ),
-          );
-          settingsProvider.saveMessagesToCache(state.messages);
-        });
+        setState(
+          (s) => s.copyWith(
+            messages: s.messages.where((m) => m.id != messageId).toList(),
+          ),
+        );
+        settingsProvider.saveMessagesToCache(state.messages);
       },
     );
   }
@@ -750,7 +746,10 @@ class ChatProvider with ChangeNotifier {
           // Try Signal encryption first
           if (SignalService().isInitialized) {
             try {
-              final cipherMessage = await SignalService().encryptMessage(recipientId, content);
+              final cipherMessage = await SignalService().encryptMessage(
+                recipientId,
+                content,
+              );
               finalContent = base64Encode(cipherMessage.serialize());
               signalMessageType = cipherMessage.getType();
               usedSignal = true;
@@ -762,7 +761,10 @@ class ChatProvider with ChangeNotifier {
           if (!usedSignal) {
             String? recipientPublicKey = _publicKeyCache[recipientId];
             if (recipientPublicKey != null) {
-              final encrypted = await _encryptionService.encryptMessage(content, [recipientPublicKey]);
+              final encrypted = await _encryptionService.encryptMessage(
+                content,
+                [recipientPublicKey],
+              );
               finalContent = encrypted.encryptedContent;
               encryptedKeys = encrypted.encryptedKeys;
               iv = encrypted.iv;
@@ -788,10 +790,8 @@ class ChatProvider with ChangeNotifier {
 
       final decrypted = await _decryptSingleMessage(sentMessage);
       setState(
-        (s) => s.copyWith(
-          messages: [...s.messages, decrypted],
-          isSending: false,
-        ),
+        (s) =>
+            s.copyWith(messages: [...s.messages, decrypted], isSending: false),
       );
       scrollToBottom();
       await settingsProvider.saveMessagesToCache(state.messages);
@@ -822,7 +822,10 @@ class ChatProvider with ChangeNotifier {
         if (recipientId != null) {
           if (SignalService().isInitialized) {
             try {
-              final cipherMessage = await SignalService().encryptMessage(recipientId, content);
+              final cipherMessage = await SignalService().encryptMessage(
+                recipientId,
+                content,
+              );
               finalContent = base64Encode(cipherMessage.serialize());
               signalMessageType = cipherMessage.getType();
               usedSignal = true;
@@ -834,7 +837,10 @@ class ChatProvider with ChangeNotifier {
           if (!usedSignal) {
             String? recipientPublicKey = _publicKeyCache[recipientId];
             if (recipientPublicKey != null) {
-              final encrypted = await _encryptionService.encryptMessage(content, [recipientPublicKey]);
+              final encrypted = await _encryptionService.encryptMessage(
+                content,
+                [recipientPublicKey],
+              );
               finalContent = encrypted.encryptedContent;
               encryptedKeys = encrypted.encryptedKeys;
               iv = encrypted.iv;
@@ -860,10 +866,8 @@ class ChatProvider with ChangeNotifier {
 
       final decrypted = await _decryptSingleMessage(sentMessage);
       setState(
-        (s) => s.copyWith(
-          messages: [...s.messages, decrypted],
-          isSending: false,
-        ),
+        (s) =>
+            s.copyWith(messages: [...s.messages, decrypted], isSending: false),
       );
       scrollToBottom();
       await settingsProvider.saveMessagesToCache(state.messages);
@@ -987,7 +991,7 @@ class ChatProvider with ChangeNotifier {
       // Basic approximation of item height. Since messages vary, this is a best-effort scroll.
       // For more precision, ScrollablePositionedList would be needed.
       double offset = listIndex * 120.0;
-      
+
       if (offset > scrollController!.position.maxScrollExtent) {
         offset = scrollController!.position.maxScrollExtent;
       }

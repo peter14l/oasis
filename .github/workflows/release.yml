@@ -127,6 +127,23 @@ jobs:
           echo "WINDOWS_KEY=${{ secrets.WINDOWS_KEY }}" >> .env
           echo "MACOS_KEY=${{ secrets.MACOS_KEY }}" >> .env
 
+      - name: Download Firebase C++ SDK from GitHub (bypass dl.google.com which has DNS issues)
+        shell: pwsh
+        run: |
+          # Download Firebase C++ SDK from GitHub releases (dl.google.com has intermittent DNS failures)
+          $sdkUrl = "https://github.com/firebase/firebase-cpp-sdk/releases/download/v13.5.0/firebase_cpp_sdk.zip"
+          $sdkPath = "$env:TEMP\firebase_cpp_sdk.zip"
+          Write-Host "Downloading Firebase C++ SDK from GitHub..."
+          Invoke-WebRequest -Uri $sdkUrl -OutFile $sdkPath -UseBasicParsing
+          Write-Host "Extracting SDK..."
+          $extractDir = "$env:TEMP\firebase_cpp_sdk_extracted"
+          if (Test-Path $extractDir) { Remove-Item $extractDir -Recurse -Force }
+          Expand-Archive -Path $sdkPath -DestinationPath $extractDir -Force
+          # Set environment variable - SDK extracts to firebase_cpp_sdk subfolder
+          $sdkDir = "$extractDir\firebase_cpp_sdk"
+          echo "FIREBASE_CPP_SDK_DIR=$sdkDir" >> $env:GITHUB_ENV
+          Write-Host "Firebase C++ SDK ready at: $sdkDir"
+
       - name: Patch sentry_flutter to skip submodules
         shell: pwsh
         run: |

@@ -7,6 +7,12 @@ class PresenceService {
   final SupabaseClient _supabase = SupabaseService().client;
   final Map<String, RealtimeChannel> _presenceChannels = {};
 
+  // Track subscription state to prevent race conditions
+  final Map<String, bool> _channelSubscribed = {};
+
+  // Debounce: skip redundant updates with same status
+  final Map<String, String> _lastTrackedStatus = {};
+
   // Track a user's presence in a specific conversation or globally
   RealtimeChannel subscribeToUserPresence({
     required String userId,
@@ -20,69 +26,89 @@ class PresenceService {
 
     final channel = _supabase.channel(channelName);
 
-    channel.onPresenceSync((payload) {
-      final presenceState = channel.presenceState();
-      if (presenceState.isEmpty) {
-        onUpdate('offline', null);
-        return;
-      }
-
-      // Check if any session for this user is online
-      bool isOnline = false;
-      DateTime? latestSeen;
-
-      for (final singlePresence in presenceState) {
-        for (final presence in singlePresence.presences) {
-          final status = presence.payload['status'] as String?;
-          if (status == 'online') {
-            isOnline = true;
+    channel
+        .onPresenceSync((payload) {
+          final presenceState = channel.presenceState();
+          if (presenceState.isEmpty) {
+            onUpdate('offline', null);
+            return;
           }
-          final lastSeenStr = presence.payload['last_seen'] as String?;
-          if (lastSeenStr != null) {
-            final lastSeen = DateTime.parse(lastSeenStr);
-            if (latestSeen == null || lastSeen.isAfter(latestSeen)) {
-              latestSeen = lastSeen;
+
+          // Check if any session for this user is online
+          bool isOnline = false;
+          DateTime? latestSeen;
+
+          for (final singlePresence in presenceState) {
+            for (final presence in singlePresence.presences) {
+              final status = presence.payload['status'] as String?;
+              if (status == 'online') {
+                isOnline = true;
+              }
+              final lastSeenStr = presence.payload['last_seen'] as String?;
+              if (lastSeenStr != null) {
+                final lastSeen = DateTime.parse(lastSeenStr);
+                if (latestSeen == null || lastSeen.isAfter(latestSeen)) {
+                  latestSeen = lastSeen;
+                }
+              }
             }
           }
-        }
-      }
 
-      onUpdate(isOnline ? 'online' : 'offline', latestSeen);
-    }).subscribe((status, [error]) {
-      if (status == RealtimeSubscribeStatus.channelError) {
-        debugPrint('PresenceService: subscribeToUserPresence error: $error');
-      }
-    });
+          onUpdate(isOnline ? 'online' : 'offline', latestSeen);
+        })
+        .subscribe((status, [error]) {
+          if (status == RealtimeSubscribeStatus.channelError) {
+            debugPrint(
+              'PresenceService: subscribeToUserPresence error: $error',
+            );
+          } else if (status == RealtimeSubscribeStatus.subscribed) {
+            _channelSubscribed[channelName] = true;
+          }
+        });
 
     _presenceChannels[channelName] = channel;
+    _channelSubscribed[channelName] = false; // Will be set to true in callback
     return channel;
   }
 
   // Update current user's presence
   Future<void> updateUserPresence(String userId, String status) async {
+    // Debounce: skip if same status already tracked
+    final cachedStatus = _lastTrackedStatus[userId];
+    if (cachedStatus == status) {
+      return; // Skip redundant update
+    }
+
+    // Update cached status
+    _lastTrackedStatus[userId] = status;
+
     final channelName = 'user_presence:$userId';
     RealtimeChannel channel;
+    bool isNewChannel = false;
 
     if (_presenceChannels.containsKey(channelName)) {
       channel = _presenceChannels[channelName]!;
     } else {
       channel = _supabase.channel(channelName);
       _presenceChannels[channelName] = channel;
-      // We must subscribe before we can track
-      // Not awaiting this because it can take a while and we want the app to be responsive
-      channel.subscribe();
+      isNewChannel = true;
+      _channelSubscribed[channelName] = false;
     }
-    
+
+    // If new channel, ensure it's subscribed before tracking
+    if (isNewChannel) {
+      channel.subscribe();
+      // Wait briefly for subscription to complete
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+
     try {
-      // The presence update will be queued by the channel and sent once the channel is subscribed
       await channel.track({
         'status': status,
         'last_seen': DateTime.now().toIso8601String(),
       });
     } catch (e) {
-      debugPrint(
-        'PresenceService: Failed to track presence - ${e.toString()}',
-      );
+      debugPrint('PresenceService: Failed to track presence - ${e.toString()}');
     }
   }
 
@@ -91,6 +117,8 @@ class PresenceService {
     if (_presenceChannels.containsKey(channelName)) {
       _supabase.removeChannel(_presenceChannels[channelName]!);
       _presenceChannels.remove(channelName);
+      _channelSubscribed.remove(channelName);
+      _lastTrackedStatus.remove(userId);
     }
   }
 }
