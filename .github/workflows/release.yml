@@ -80,11 +80,15 @@ jobs:
         run: |
           flutter build apk --release --split-per-abi --dart-define-from-file=".env" --no-pub
           
-          # Verify APK signing (informational only, don't fail build)
+          # Verify APK signing using apksigner (more reliable than keytool for APKs)
           if [[ -f "android/app/release.keystore" ]] && [[ -f "build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk" ]]; then
-            echo "Verifying APK signing..."
-            keytool -printcert -jarfile build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk 2>/dev/null | grep "Owner:" || echo "⚠️ Could not find Owner info in APK (might be signed with a different format)"
+            echo "Verifying APK signature..."
+            # Check if APK is signed and get signer info
+            apksigner verify --print-certs build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk 2>/dev/null && echo "✅ APK signature verified successfully" || echo "⚠️ APK signature verification failed (may use v3/v4 signing)"
             echo "✅ APK build process completed"
+          else
+            echo "No release keystore found - using debug signing"
+            echo "✅ APK build process completed with debug signing"
           fi
 
       - name: Upload APKs

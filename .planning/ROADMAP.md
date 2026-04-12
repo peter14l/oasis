@@ -48,6 +48,19 @@
 ### Plans:
 - [x] 06-01-PLAN.md — Cross-platform IAP setup and subscription infrastructure.
 
+## Phase 7: Desktop Modal Adaptations
+**Goal:** Adapt modal sheets to context menus for desktop users (right-click instead of bottom sheets).
+**Status:** ✅ Completed
+**Plans:** 3 plans
+
+### Plans:
+- [x] 07-01-PLAN.md — Extend MessageOptionsMenu with reactions picker (desktop).
+- [x] 07-02-PLAN.md — Create AttachmentOptionsMenu for desktop right-click on attachment button.
+- [x] 07-03-PLAN.md — Assessment completed - no additional modal adaptations needed.
+
+**Requirements:**
+[DESKTOP-01, DESKTOP-02]
+
 ## Phase 8: Monetization and Privacy Infrastructure
 **Goal:** Implement ethical monetization via House Ads and reinforce privacy through security auditing and transparency.
 **Status:** Completed

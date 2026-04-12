@@ -33,6 +33,7 @@ import 'package:oasis/features/messages/presentation/widgets/previews/video_prev
 import 'package:oasis/features/messages/presentation/widgets/previews/audio_preview.dart';
 import 'package:oasis/features/messages/presentation/widgets/previews/file_preview.dart';
 import 'package:oasis/features/messages/presentation/widgets/modals/attachment_options_sheet.dart';
+import 'package:oasis/features/messages/presentation/widgets/modals/attachment_options_menu.dart';
 import 'package:oasis/features/messages/presentation/widgets/modals/message_options_sheet.dart';
 import 'package:oasis/features/messages/presentation/widgets/modals/message_options_menu.dart';
 import 'package:oasis/features/messages/data/datasources/chat_media_picker.dart';
@@ -497,12 +498,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   void _showAttachmentOptions([Offset? position]) {
     if (MediaQuery.of(context).size.width >= 1000 && position != null) {
-      AttachmentOptionsMenu(
-        position: position,
-        onPhotoSelected: _pickImage,
-        onVideoSelected: _pickVideo,
-        onFileSelected: _pickFile,
-        onAudioSelected: _pickAudio,
+      Builder(
+        builder:
+            (context) => AttachmentOptionsMenu(
+              position: position,
+              onPhotoSelected: _pickImage,
+              onVideoSelected: _pickVideo,
+              onFileSelected: _pickFile,
+              onAudioSelected: _pickAudio,
+            ),
       );
     } else {
       showModalBottomSheet(
