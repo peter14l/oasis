@@ -10,8 +10,11 @@ class PresenceService {
   // Track subscription state to prevent race conditions
   final Map<String, bool> _channelSubscribed = {};
 
-  // Debounce: skip redundant updates with same status
-  final Map<String, String> _lastTrackedStatus = {};
+  // Track last update time to prevent rapid status toggling
+  final Map<String, DateTime> _lastUpdateTime = {};
+
+  // Minimum interval between presence updates to prevent spam
+  static const _minUpdateInterval = Duration(seconds: 1);
 
   // Track a user's presence in a specific conversation or globally
   RealtimeChannel subscribeToUserPresence({
@@ -26,11 +29,20 @@ class PresenceService {
 
     final channel = _supabase.channel(channelName);
 
+    // Use debounce to avoid false offline during initial sync
+    Timer? _emptyStateDebounce;
+
     channel
         .onPresenceSync((payload) {
+          // Clear any pending empty state timer
+          _emptyStateDebounce?.cancel();
+
           final presenceState = channel.presenceState();
           if (presenceState.isEmpty) {
-            onUpdate('offline', null);
+            // Debounce empty state - might be initial sync, wait 500ms
+            _emptyStateDebounce = Timer(const Duration(milliseconds: 500), () {
+              onUpdate('offline', null);
+            });
             return;
           }
 
@@ -67,20 +79,21 @@ class PresenceService {
         });
 
     _presenceChannels[channelName] = channel;
-    _channelSubscribed[channelName] = false; // Will be set to true in callback
+    _channelSubscribed[channelName] = false;
     return channel;
   }
 
   // Update current user's presence
   Future<void> updateUserPresence(String userId, String status) async {
-    // Debounce: skip if same status already tracked
-    final cachedStatus = _lastTrackedStatus[userId];
-    if (cachedStatus == status) {
-      return; // Skip redundant update
+    final now = DateTime.now();
+    final lastUpdate = _lastUpdateTime[userId];
+
+    // Rate limit: skip if updated too recently
+    if (lastUpdate != null && now.difference(lastUpdate) < _minUpdateInterval) {
+      return;
     }
 
-    // Update cached status
-    _lastTrackedStatus[userId] = status;
+    _lastUpdateTime[userId] = now;
 
     final channelName = 'user_presence:$userId';
     RealtimeChannel channel;
@@ -95,11 +108,11 @@ class PresenceService {
       _channelSubscribed[channelName] = false;
     }
 
-    // If new channel, ensure it's subscribed before tracking
-    if (isNewChannel) {
+    // Wait for subscription if not yet completed (new or existing)
+    if (!_channelSubscribed[channelName]!) {
       channel.subscribe();
-      // Wait briefly for subscription to complete
-      await Future.delayed(const Duration(milliseconds: 100));
+      // Wait for subscription confirmation (max 200ms)
+      await Future.delayed(const Duration(milliseconds: 200));
     }
 
     try {
@@ -108,7 +121,19 @@ class PresenceService {
         'last_seen': DateTime.now().toIso8601String(),
       });
     } catch (e) {
-      debugPrint('PresenceService: Failed to track presence - ${e.toString()}');
+      // Retry once after brief delay
+      debugPrint('PresenceService: Retry presence after - ${e.toString()}');
+      try {
+        await Future.delayed(const Duration(milliseconds: 100));
+        await channel.track({
+          'status': status,
+          'last_seen': DateTime.now().toIso8601String(),
+        });
+      } catch (e2) {
+        debugPrint(
+          'PresenceService: Failed to track presence - ${e2.toString()}',
+        );
+      }
     }
   }
 
@@ -118,7 +143,7 @@ class PresenceService {
       _supabase.removeChannel(_presenceChannels[channelName]!);
       _presenceChannels.remove(channelName);
       _channelSubscribed.remove(channelName);
-      _lastTrackedStatus.remove(userId);
+      _lastUpdateTime.remove(userId);
     }
   }
 }

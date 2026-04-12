@@ -95,55 +95,72 @@ class _OasisProScreenState extends State<OasisProScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.black,
-        insetPadding: const EdgeInsets.all(20),
-        child: Container(
-          width: 800,
-          height: 600,
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white10),
-          ),
-          child: Column(
-            children: [
-              AppBar(
-                backgroundColor: Colors.white.withValues(alpha: 0.05),
-                title: const Text('Secure Checkout', style: TextStyle(fontSize: 16)),
-                leading: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
+      builder:
+          (context) => Dialog(
+            backgroundColor: Colors.black,
+            insetPadding: const EdgeInsets.all(20),
+            child: Container(
+              width: 800,
+              height: 600,
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white10),
               ),
-              Expanded(
-                child: RazorpayWindowsView(
-                  plan: plan,
-                  onSuccess: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(this.context).showSnackBar(
-                      const SnackBar(content: Text('Payment Successful! Your Pro status will be updated shortly.')),
-                    );
-                    context.read<SubscriptionService>().refresh();
-                  },
-                  onCancel: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(this.context).showSnackBar(
-                      const SnackBar(content: Text('Payment Cancelled.')),
-                    );
-                  },
-                ),
+              child: Column(
+                children: [
+                  AppBar(
+                    backgroundColor: Colors.white.withValues(alpha: 0.05),
+                    title: const Text(
+                      'Secure Checkout',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    leading: IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                  Expanded(
+                    child: RazorpayWindowsView(
+                      plan: plan,
+                      onSuccess: () {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(this.context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Payment Successful! Your Pro status will be updated shortly.',
+                            ),
+                          ),
+                        );
+                        context.read<SubscriptionService>().refresh();
+                      },
+                      onCancel: () {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(this.context).showSnackBar(
+                          const SnackBar(content: Text('Payment Cancelled.')),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 
   Future<void> _launchWebCheckout(PricingPlan plan) async {
     final userId = SupabaseService().client.auth.currentUser?.id;
-    if (userId == null) return;
+    if (userId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please log in to upgrade to Oasis Pro.'),
+          ),
+        );
+      }
+      return;
+    }
 
     final url = Uri.parse(
       AppConfig.getWebUrl(
@@ -151,16 +168,25 @@ class _OasisProScreenState extends State<OasisProScreen> {
       ),
     );
     try {
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      } else {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
+      final canLaunch = await canLaunchUrl(url);
+      if (!canLaunch) {
+        // canLaunchUrl returns false - try anyway as fallback
+        debugPrint(
+          'canLaunchUrl returned false for $url, attempting launch anyway',
+        );
+      }
+      final launched = await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        throw Exception('launchUrl returned false');
       }
     } catch (e) {
       debugPrint('Could not launch $url: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open checkout page. Please try again.')),
+          SnackBar(content: Text('Could not open checkout page: $e')),
         );
       }
     }
@@ -193,7 +219,9 @@ class _OasisProScreenState extends State<OasisProScreen> {
         ),
 
         if (_isLoading)
-          const Center(child: CircularProgressIndicator(color: Colors.blueAccent))
+          const Center(
+            child: CircularProgressIndicator(color: Colors.blueAccent),
+          )
         else
           CustomScrollView(
             slivers: [
@@ -338,9 +366,7 @@ class _OasisProScreenState extends State<OasisProScreen> {
       decoration: BoxDecoration(
         color: Colors.blueAccent.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: Colors.blueAccent.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -357,10 +383,7 @@ class _OasisProScreenState extends State<OasisProScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.blueAccent,
                   borderRadius: BorderRadius.circular(8),
@@ -427,4 +450,3 @@ class _OasisProScreenState extends State<OasisProScreen> {
     );
   }
 }
-
