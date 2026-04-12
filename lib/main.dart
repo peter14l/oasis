@@ -374,8 +374,13 @@ void main() async {
           ),
         ),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Error initializing app: $e');
+      debugPrint('Stack trace: $stackTrace');
+      // Print each frame
+      for (final frame in stackTrace.toString().split('\n')) {
+        debugPrint(frame);
+      }
       runApp(
         MaterialApp(
           home: Scaffold(

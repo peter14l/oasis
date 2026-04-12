@@ -11,17 +11,23 @@ class IAPService extends ChangeNotifier {
 
   final InAppPurchase _iap = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _subscription;
-  
+
   List<ProductDetails> _products = [];
   List<ProductDetails> get products => _products;
-  
+
   bool _isAvailable = false;
   bool get isAvailable => _isAvailable;
 
   final List<String> _productIds = ['oasis_pro_monthly'];
 
   Future<void> init() async {
-    _isAvailable = await _iap.isAvailable();
+    try {
+      _isAvailable = await _iap.isAvailable();
+    } catch (e) {
+      debugPrint('IAP not available on this platform: $e');
+      _isAvailable = false;
+      return;
+    }
     if (!_isAvailable) return;
 
     final Stream<List<PurchaseDetails>> purchaseUpdated = _iap.purchaseStream;
@@ -36,8 +42,10 @@ class IAPService extends ChangeNotifier {
 
   Future<void> fetchProducts() async {
     if (!_isAvailable) return;
-    
-    final ProductDetailsResponse response = await _iap.queryProductDetails(_productIds.toSet());
+
+    final ProductDetailsResponse response = await _iap.queryProductDetails(
+      _productIds.toSet(),
+    );
     if (response.notFoundIDs.isNotEmpty) {
       debugPrint('Products not found: ${response.notFoundIDs}');
     }
@@ -58,7 +66,9 @@ class IAPService extends ChangeNotifier {
     await _iap.restorePurchases();
   }
 
-  Future<void> _onPurchaseUpdate(List<PurchaseDetails> purchaseDetailsList) async {
+  Future<void> _onPurchaseUpdate(
+    List<PurchaseDetails> purchaseDetailsList,
+  ) async {
     for (var purchase in purchaseDetailsList) {
       if (purchase.status == PurchaseStatus.pending) {
         // Show pending UI if needed
@@ -67,7 +77,8 @@ class IAPService extends ChangeNotifier {
         if (purchase.pendingCompletePurchase) {
           await _iap.completePurchase(purchase);
         }
-      } else if (purchase.status == PurchaseStatus.purchased || purchase.status == PurchaseStatus.restored) {
+      } else if (purchase.status == PurchaseStatus.purchased ||
+          purchase.status == PurchaseStatus.restored) {
         final bool valid = await _verifyPurchase(purchase);
         if (valid) {
           if (purchase.pendingCompletePurchase) {
@@ -81,15 +92,18 @@ class IAPService extends ChangeNotifier {
   Future<bool> _verifyPurchase(PurchaseDetails purchase) async {
     try {
       final supabase = Supabase.instance.client;
-      
+
       // Call the verification Edge Function
       // We'll need to implement verify-iap Edge Function later
-      final response = await supabase.functions.invoke('verify-iap', body: {
-        'product_id': purchase.productID,
-        'purchase_id': purchase.purchaseID,
-        'verification_data': purchase.verificationData.serverVerificationData,
-        'platform': Platform.isIOS || Platform.isMacOS ? 'apple' : 'google',
-      });
+      final response = await supabase.functions.invoke(
+        'verify-iap',
+        body: {
+          'product_id': purchase.productID,
+          'purchase_id': purchase.purchaseID,
+          'verification_data': purchase.verificationData.serverVerificationData,
+          'platform': Platform.isIOS || Platform.isMacOS ? 'apple' : 'google',
+        },
+      );
 
       return response.status == 200;
     } catch (e) {

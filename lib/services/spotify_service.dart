@@ -2,11 +2,19 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:oasis/features/stories/domain/models/story_entity.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SpotifyService {
-  static String get _clientId => dotenv.env['SPOTIFY_CLIENT_ID'] ?? '';
-  static String get _clientSecret => dotenv.env['SPOTIFY_CLIENT_SECRET'] ?? '';
+  static String get _clientId {
+    const fromEnv = String.fromEnvironment('SPOTIFY_CLIENT_ID');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    return '';
+  }
+
+  static String get _clientSecret {
+    const fromEnv = String.fromEnvironment('SPOTIFY_CLIENT_SECRET');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    return '';
+  }
 
   String? _accessToken;
   DateTime? _tokenExpiry;
@@ -87,7 +95,9 @@ class SpotifyService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         _accessToken = data['access_token'];
-        _tokenExpiry = DateTime.now().add(Duration(seconds: data['expires_in']));
+        _tokenExpiry = DateTime.now().add(
+          Duration(seconds: data['expires_in']),
+        );
         return _accessToken;
       }
     } catch (e) {
