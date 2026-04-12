@@ -433,6 +433,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           Clipboard.setData(ClipboardData(text: message.content));
         },
         onUnsend: () => _unsendMessage(message),
+        onReactionSelected: (emoji) async {
+          await _reactionsProvider.onReactionSelected(
+            message: message,
+            reaction: emoji,
+            userId: currentUserId ?? '',
+            username: AuthService().currentUser?.username ?? 'Unknown',
+            currentReactions: message.reactions,
+            onReactionsUpdated: (updatedReactions) {
+              _chatProvider.updateMessageReactions(
+                message.id,
+                updatedReactions,
+              );
+            },
+          );
+        },
       );
     } else {
       showModalBottomSheet(
@@ -480,20 +495,30 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _focusNode.requestFocus();
   }
 
-  void _showAttachmentOptions() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      useRootNavigator: true,
-      builder:
-          (context) => AttachmentOptionsSheet(
-            onPhotoSelected: _pickImage,
-            onVideoSelected: _pickVideo,
-            onFileSelected: _pickFile,
-            onAudioSelected: _pickAudio,
-          ),
-    );
+  void _showAttachmentOptions([Offset? position]) {
+    if (MediaQuery.of(context).size.width >= 1000 && position != null) {
+      AttachmentOptionsMenu(
+        position: position,
+        onPhotoSelected: _pickImage,
+        onVideoSelected: _pickVideo,
+        onFileSelected: _pickFile,
+        onAudioSelected: _pickAudio,
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        isScrollControlled: true,
+        useRootNavigator: true,
+        builder:
+            (context) => AttachmentOptionsSheet(
+              onPhotoSelected: _pickImage,
+              onVideoSelected: _pickVideo,
+              onFileSelected: _pickFile,
+              onAudioSelected: _pickAudio,
+            ),
+      );
+    }
   }
 
   void _openChatDetails() {
