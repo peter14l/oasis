@@ -32,14 +32,14 @@ Initialize a new project through unified flow: questioning → research (optiona
 </objective>
 
 <execution_context>
-@F:/oasis/.opencode/get-shit-done/workflows/new-project.md
-@F:/oasis/.opencode/get-shit-done/references/questioning.md
-@F:/oasis/.opencode/get-shit-done/references/ui-brand.md
-@F:/oasis/.opencode/get-shit-done/templates/project.md
-@F:/oasis/.opencode/get-shit-done/templates/requirements.md
+@D:/oasis/.opencode/get-shit-done/workflows/new-project.md
+@D:/oasis/.opencode/get-shit-done/references/questioning.md
+@D:/oasis/.opencode/get-shit-done/references/ui-brand.md
+@D:/oasis/.opencode/get-shit-done/templates/project.md
+@D:/oasis/.opencode/get-shit-done/templates/requirements.md
 </execution_context>
 
 <process>
-Execute the new-project workflow from @F:/oasis/.opencode/get-shit-done/workflows/new-project.md end-to-end.
+Execute the new-project workflow from @D:/oasis/.opencode/get-shit-done/workflows/new-project.md end-to-end.
 Preserve all workflow gates (validation, approvals, commits, routing).
 </process>

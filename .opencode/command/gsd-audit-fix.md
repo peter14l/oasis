@@ -24,9 +24,9 @@ Flags:
 </objective>
 
 <execution_context>
-@F:/oasis/.opencode/get-shit-done/workflows/audit-fix.md
+@D:/oasis/.opencode/get-shit-done/workflows/audit-fix.md
 </execution_context>
 
 <process>
-Execute the audit-fix workflow from @F:/oasis/.opencode/get-shit-done/workflows/audit-fix.md end-to-end.
+Execute the audit-fix workflow from @D:/oasis/.opencode/get-shit-done/workflows/audit-fix.md end-to-end.
 </process>

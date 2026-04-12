@@ -19,8 +19,8 @@ Runs inline — no Task, no question, no Bash.
 </objective>
 
 <execution_context>
-@F:/oasis/.opencode/get-shit-done/workflows/note.md
-@F:/oasis/.opencode/get-shit-done/references/ui-brand.md
+@D:/oasis/.opencode/get-shit-done/workflows/note.md
+@D:/oasis/.opencode/get-shit-done/references/ui-brand.md
 </execution_context>
 
 <context>
@@ -28,6 +28,6 @@ $ARGUMENTS
 </context>
 
 <process>
-Execute the note workflow from @F:/oasis/.opencode/get-shit-done/workflows/note.md end-to-end.
+Execute the note workflow from @D:/oasis/.opencode/get-shit-done/workflows/note.md end-to-end.
 Capture the note, list notes, or promote to todo — depending on arguments.
 </process>

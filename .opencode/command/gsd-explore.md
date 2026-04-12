@@ -18,9 +18,9 @@ Accepts an optional topic argument: `/gsd-explore authentication strategy`
 </objective>
 
 <execution_context>
-@F:/oasis/.opencode/get-shit-done/workflows/explore.md
+@D:/oasis/.opencode/get-shit-done/workflows/explore.md
 </execution_context>
 
 <process>
-Execute the explore workflow from @F:/oasis/.opencode/get-shit-done/workflows/explore.md end-to-end.
+Execute the explore workflow from @D:/oasis/.opencode/get-shit-done/workflows/explore.md end-to-end.
 </process>

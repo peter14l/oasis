@@ -3,7 +3,7 @@ Verify threat mitigations for a completed phase. Confirm PLAN.md threat register
 </purpose>
 
 <required_reading>
-@F:/oasis/.opencode/get-shit-done/references/ui-brand.md
+@D:/oasis/.opencode/get-shit-done/references/ui-brand.md
 </required_reading>
 
 <available_agent_types>
@@ -16,16 +16,16 @@ Valid GSD subagent types (use exact names — do not fall back to 'general-purpo
 ## 0. Initialize
 
 ```bash
-INIT=$(node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" init phase-op "${PHASE_ARG}")
+INIT=$(node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" init phase-op "${PHASE_ARG}")
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
-AGENT_SKILLS_AUDITOR=$(node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" agent-skills gsd-security-auditor 2>/dev/null)
+AGENT_SKILLS_AUDITOR=$(node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" agent-skills gsd-security-auditor 2>/dev/null)
 ```
 
 Parse: `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `padded_phase`.
 
 ```bash
-AUDITOR_MODEL=$(node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" resolve-model gsd-security-auditor --raw)
-SECURITY_CFG=$(node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" config-get workflow.security_enforcement --raw 2>/dev/null || echo "true")
+AUDITOR_MODEL=$(node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" resolve-model gsd-security-auditor --raw)
+SECURITY_CFG=$(node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" config-get workflow.security_enforcement --raw 2>/dev/null || echo "true")
 ```
 
 If `SECURITY_CFG` is `false`: exit with "Security enforcement disabled. Enable via /gsd-settings."
@@ -82,7 +82,7 @@ Call question with threat table and options:
 
 ```
 Task(
-  prompt="Read F:/oasis/.opencode/agents/gsd-security-auditor.md for instructions.\n\n" +
+  prompt="Read D:/oasis/.opencode/agents/gsd-security-auditor.md for instructions.\n\n" +
     "<files_to_read>{PLAN, SUMMARY, impl files, SECURITY.md}</files_to_read>" +
     "<threat_register>{threat register}</threat_register>" +
     "<config>asvs_level: {SECURITY_ASVS}, block_on: {SECURITY_BLOCK_ON}</config>" +
@@ -102,7 +102,7 @@ Handle return:
 ## 6. Write/Update SECURITY.md
 
 **State B (create):**
-1. Read template from `F:/oasis/.opencode/get-shit-done/templates/SECURITY.md`
+1. Read template from `D:/oasis/.opencode/get-shit-done/templates/SECURITY.md`
 2. Fill: frontmatter, threat register, accepted risks, audit trail
 3. Write to `${PHASE_DIR}/${PADDED_PHASE}-SECURITY.md`
 
@@ -132,7 +132,7 @@ Do NOT emit next-phase routing. Stop here.
 ## 7. Commit
 
 ```bash
-node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" commit "docs(phase-${PHASE}): add/update security threat verification"
+node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" commit "docs(phase-${PHASE}): add/update security threat verification"
 ```
 
 ## 8. Results + Routing

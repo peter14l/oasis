@@ -17,9 +17,9 @@ Supports `--force` flag to bypass safety gates (checkpoint, error state, verific
 </objective>
 
 <execution_context>
-@F:/oasis/.opencode/get-shit-done/workflows/next.md
+@D:/oasis/.opencode/get-shit-done/workflows/next.md
 </execution_context>
 
 <process>
-Execute the next workflow from @F:/oasis/.opencode/get-shit-done/workflows/next.md end-to-end.
+Execute the next workflow from @D:/oasis/.opencode/get-shit-done/workflows/next.md end-to-end.
 </process>

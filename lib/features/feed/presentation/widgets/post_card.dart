@@ -482,11 +482,11 @@ class _PostCardState extends State<PostCard>
                     child: ClipRRect(
                       borderRadius:
                           isM3E
-                              ? BorderRadius.circular(10)
-                              : BorderRadius.circular(20),
+                              ? BorderRadius.circular(14)
+                              : BorderRadius.circular(28),
                       child: SizedBox(
-                        width: isDesktop ? 32 : 40,
-                        height: isDesktop ? 32 : 40,
+                        width: isDesktop ? 48 : 40,
+                        height: isDesktop ? 48 : 40,
                         child:
                             widget.post.userAvatar.isNotEmpty
                                 ? CachedNetworkImage(
@@ -499,7 +499,7 @@ class _PostCardState extends State<PostCard>
                                     child: Text(
                                       widget.post.username[0].toUpperCase(),
                                       style: TextStyle(
-                                        fontSize: isDesktop ? 10 : 14,
+                                        fontSize: isDesktop ? 16 : 14,
                                         color: colorScheme.primary,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -510,7 +510,7 @@ class _PostCardState extends State<PostCard>
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 Expanded(
                   child: GestureDetector(
                     onTap: () => context.push('/profile/${widget.post.userId}'),
@@ -521,26 +521,24 @@ class _PostCardState extends State<PostCard>
                           children: [
                             Text(
                               widget.post.username,
-                              style: (isDesktop
-                                      ? theme.textTheme.titleSmall
-                                      : theme.textTheme.titleMedium)
-                                  ?.copyWith(
-                                    fontWeight:
-                                        isM3E
-                                            ? FontWeight.w900
-                                            : FontWeight.w600,
-                                    letterSpacing: isM3E ? -0.5 : 0,
-                                  ),
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight:
+                                    isM3E ? FontWeight.w900 : FontWeight.w600,
+                                letterSpacing: isM3E ? -0.5 : 0,
+                                fontSize: isDesktop ? 17 : null,
+                              ),
                             ),
                             if (widget.post.isVerified) ...[
-                              const SizedBox(width: 4),
+                              const SizedBox(width: 6),
                               Icon(
                                 Icons.verified,
-                                size: isDesktop ? 14 : 16,
+                                size: isDesktop ? 18 : 16,
                                 color: colorScheme.primary,
                               ),
                             ],
-                            if (!widget.isOwnPost && widget.post.userId != AuthService().currentUser?.id)
+                            if (!widget.isOwnPost &&
+                                widget.post.userId !=
+                                    AuthService().currentUser?.id)
                               Consumer<ProfileProvider>(
                                 builder: (context, profileProvider, child) {
                                   final isFollowing = profileProvider.following
@@ -563,12 +561,11 @@ class _PostCardState extends State<PostCard>
                                       },
                                       child: Text(
                                         'Follow',
-                                        style: (isDesktop
-                                                ? theme.textTheme.labelSmall
-                                                : theme.textTheme.labelMedium)
+                                        style: theme.textTheme.labelLarge
                                             ?.copyWith(
                                               color: colorScheme.primary,
                                               fontWeight: FontWeight.bold,
+                                              fontSize: isDesktop ? 15 : null,
                                             ),
                                       ),
                                     ),
@@ -581,7 +578,7 @@ class _PostCardState extends State<PostCard>
                           timeago.format(widget.post.timestamp),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
-                            fontSize: isDesktop ? 10 : 12,
+                            fontSize: isDesktop ? 13 : 12,
                           ),
                         ),
                       ],
@@ -592,13 +589,10 @@ class _PostCardState extends State<PostCard>
                   key: _moreButtonKey,
                   icon: Icon(
                     FluentIcons.more_vertical_24_regular,
-                    size: isDesktop ? 18 : 24,
+                    size: isDesktop ? 26 : 24,
                   ),
                   onPressed: _showMoreOptions,
-                  visualDensity:
-                      isDesktop
-                          ? VisualDensity.compact
-                          : VisualDensity.standard,
+                  visualDensity: VisualDensity.standard,
                 ),
               ],
             ),
@@ -622,32 +616,37 @@ class _PostCardState extends State<PostCard>
                       child: Container(
                         width: double.infinity,
                         constraints: BoxConstraints(
-                          maxHeight: isDesktop ? 600 : MediaQuery.of(context).size.height * 0.7,
+                          maxHeight:
+                              isDesktop
+                                  ? 600
+                                  : MediaQuery.of(context).size.height * 0.7,
                         ),
                         decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.3),
+                          color: colorScheme.surfaceContainerHighest.withValues(
+                            alpha: 0.3,
+                          ),
                         ),
-                        child: images.length > 1
-                            ? AspectRatio(
-                                aspectRatio: isDesktop ? 1.2 : 4 / 5,
-                                child: PageView.builder(
-                                  itemCount: images.length,
-                                  itemBuilder: (context, index) {
-                                    return _buildImageItem(
-                                      images[index],
-                                      colorScheme,
-                                    );
-                                  },
+                        child:
+                            images.length > 1
+                                ? AspectRatio(
+                                  aspectRatio: isDesktop ? 1.2 : 4 / 5,
+                                  child: PageView.builder(
+                                    itemCount: images.length,
+                                    itemBuilder: (context, index) {
+                                      return _buildImageItem(
+                                        images[index],
+                                        colorScheme,
+                                      );
+                                    },
+                                  ),
+                                )
+                                : Hero(
+                                  tag: 'post_${widget.post.id}',
+                                  child: _buildImageItem(
+                                    images.first,
+                                    colorScheme,
+                                  ),
                                 ),
-                              )
-                            : Hero(
-                                tag: 'post_${widget.post.id}',
-                                child: _buildImageItem(
-                                  images.first,
-                                  colorScheme,
-                                ),
-                              ),
                       ),
                     ),
                     if (images.length > 1)
@@ -729,53 +728,59 @@ class _PostCardState extends State<PostCard>
                           widget.post.isLiked
                               ? (isM3E ? colorScheme.tertiary : Colors.red)
                               : null,
-                      size: isDesktop ? 24 : 32,
+                      size: isDesktop ? 28 : 32,
                     ),
                     onPressed: _handleLike,
                     padding:
-                        isDesktop ? EdgeInsets.zero : const EdgeInsets.all(8),
-                    constraints: isDesktop ? const BoxConstraints() : null,
+                        isDesktop
+                            ? const EdgeInsets.all(8)
+                            : const EdgeInsets.all(8),
+                    constraints: null,
                   ),
                 ),
                 const SizedBox(width: 4),
                 Text(
                   '${widget.post.likes}',
-                  style: (isDesktop
-                          ? theme.textTheme.bodySmall
-                          : theme.textTheme.bodyMedium)
-                      ?.copyWith(fontWeight: isM3E ? FontWeight.w900 : null),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.w600,
+                    fontSize: isDesktop ? 15 : null,
+                  ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 20),
                 IconButton(
                   key: const ValueKey('post_card_comment_button'),
                   icon: Icon(
                     FluentIcons.chat_24_regular,
-                    size: isDesktop ? 22 : 28,
+                    size: isDesktop ? 26 : 28,
                   ),
                   onPressed: widget.onComment,
                   padding:
-                      isDesktop ? EdgeInsets.zero : const EdgeInsets.all(8),
-                  constraints: isDesktop ? const BoxConstraints() : null,
+                      isDesktop
+                          ? const EdgeInsets.all(8)
+                          : const EdgeInsets.all(8),
+                  constraints: null,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   '${widget.post.comments}',
-                  style: (isDesktop
-                          ? theme.textTheme.bodySmall
-                          : theme.textTheme.bodyMedium)
-                      ?.copyWith(fontWeight: isM3E ? FontWeight.w900 : null),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.w600,
+                    fontSize: isDesktop ? 15 : null,
+                  ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 20),
                 IconButton(
                   key: const ValueKey('post_card_share_button'),
                   icon: Icon(
                     FluentIcons.share_24_regular,
-                    size: isDesktop ? 22 : 28,
+                    size: isDesktop ? 26 : 28,
                   ),
                   onPressed: widget.onShare,
                   padding:
-                      isDesktop ? EdgeInsets.zero : const EdgeInsets.all(8),
-                  constraints: isDesktop ? const BoxConstraints() : null,
+                      isDesktop
+                          ? const EdgeInsets.all(8)
+                          : const EdgeInsets.all(8),
+                  constraints: null,
                 ),
                 const Spacer(),
                 IconButton(
@@ -786,12 +791,14 @@ class _PostCardState extends State<PostCard>
                         : FluentIcons.bookmark_24_regular,
                     color:
                         widget.post.isBookmarked ? colorScheme.primary : null,
-                    size: isDesktop ? 22 : 28,
+                    size: isDesktop ? 26 : 28,
                   ),
                   onPressed: widget.onBookmark,
                   padding:
-                      isDesktop ? EdgeInsets.zero : const EdgeInsets.all(8),
-                  constraints: isDesktop ? const BoxConstraints() : null,
+                      isDesktop
+                          ? const EdgeInsets.all(8)
+                          : const EdgeInsets.all(8),
+                  constraints: null,
                 ),
               ],
             ),

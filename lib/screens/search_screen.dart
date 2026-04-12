@@ -154,6 +154,68 @@ class _SearchScreenState extends State<SearchScreen>
     }
 
     // Mobile layout OR Panel layout (Simplified for narrow width)
+    if (usePanelLayout) {
+      // Panel layout - adapted for 400px sliding panel
+      return Scaffold(
+        backgroundColor: colorScheme.surface,
+        appBar: AppBar(
+          backgroundColor: colorScheme.surface,
+          automaticallyImplyLeading: false,
+          elevation: 0,
+          toolbarHeight: 60,
+          title: Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(isM3E ? 12 : 20),
+              border: Border.all(
+                color: theme.dividerColor.withValues(alpha: 0.2),
+              ),
+            ),
+            child: TextField(
+              controller: _searchController,
+              onChanged: _onSearchChanged,
+              onSubmitted: _onSearchSubmitted,
+              decoration: InputDecoration(
+                hintText: 'Search...',
+                border: InputBorder.none,
+                hintStyle: TextStyle(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  fontSize: 14,
+                ),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: colorScheme.onSurfaceVariant,
+                  size: 20,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+              ),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface,
+              ),
+              textInputAction: TextInputAction.search,
+            ),
+          ),
+          actions: [
+            if (_query.isNotEmpty)
+              IconButton(
+                icon: const Icon(Icons.clear, size: 20),
+                onPressed: () {
+                  _searchController.clear();
+                  _onSearchChanged('');
+                },
+              ),
+            const SizedBox(width: 4),
+          ],
+        ),
+        body: _buildPanelLayout(isM3E),
+      );
+    }
+
+    // Mobile layout
     return Scaffold(
       backgroundColor:
           usePanelLayout ? colorScheme.surface : theme.scaffoldBackgroundColor,
@@ -339,29 +401,32 @@ class _SearchScreenState extends State<SearchScreen>
       context: context,
       backgroundColor: Theme.of(context).colorScheme.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(isM3E ? 48 : 24)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Sort Results',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
-                letterSpacing: isM3E ? -0.5 : 0,
-              ),
-            ),
-            const SizedBox(height: 24),
-            _buildSortOption('Relevance', 'relevance', Icons.star_outline),
-            _buildSortOption('Recent', 'recent', Icons.access_time),
-            _buildSortOption('Popular', 'popular', Icons.trending_up),
-            const SizedBox(height: 32),
-          ],
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(isM3E ? 48 : 24),
         ),
       ),
+      builder:
+          (context) => Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Sort Results',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                    letterSpacing: isM3E ? -0.5 : 0,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                _buildSortOption('Relevance', 'relevance', Icons.star_outline),
+                _buildSortOption('Recent', 'recent', Icons.access_time),
+                _buildSortOption('Popular', 'popular', Icons.trending_up),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
     );
   }
 
@@ -391,7 +456,10 @@ class _SearchScreenState extends State<SearchScreen>
                   isSelected
                       ? Colors.white
                       : theme.colorScheme.onSurfaceVariant,
-              fontWeight: isSelected ? (isM3E ? FontWeight.w900 : FontWeight.bold) : FontWeight.normal,
+              fontWeight:
+                  isSelected
+                      ? (isM3E ? FontWeight.w900 : FontWeight.bold)
+                      : FontWeight.normal,
             ),
           ),
         );
@@ -438,6 +506,249 @@ class _SearchScreenState extends State<SearchScreen>
           controller: _tabController,
           children: [_buildUserList(isM3E), _buildPostList()],
         );
+  }
+
+  Widget _buildPanelLayout(bool isM3E) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : _query.isEmpty
+        ? Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.search,
+                  size: 48,
+                  color: colorScheme.primary.withValues(alpha: 0.5),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Search for people and posts',
+                  style: theme.textTheme.titleSmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Enter keywords to find users and posts',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        )
+        : Column(
+          children: [
+            // Simple tab bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(child: _buildPanelTab('People', 0, isM3E)),
+                  const SizedBox(width: 8),
+                  Expanded(child: _buildPanelTab('Posts', 1, isM3E)),
+                ],
+              ),
+            ),
+            // Results
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [_buildPanelUserList(isM3E), _buildPanelPostList()],
+              ),
+            ),
+          ],
+        );
+  }
+
+  Widget _buildPanelTab(String label, int index, bool isM3E) {
+    return ListenableBuilder(
+      listenable: _tabController,
+      builder: (context, child) {
+        final isSelected = _tabController.index == index;
+        final theme = Theme.of(context);
+        return GestureDetector(
+          onTap: () => _tabController.animateTo(index),
+          child: Container(
+            height: 36,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color:
+                  isSelected
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.5,
+                      ),
+              borderRadius: BorderRadius.circular(isM3E ? 10 : 10),
+            ),
+            child: Text(
+              label,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color:
+                    isSelected
+                        ? Colors.white
+                        : theme.colorScheme.onSurfaceVariant,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPanelUserList(bool isM3E) {
+    if (_userResults.isEmpty) {
+      return Center(
+        child: Text(
+          'No users found',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      itemCount: _userResults.length,
+      itemBuilder: (context, index) {
+        final user = _userResults[index];
+        return ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 4,
+          ),
+          dense: true,
+          leading: CircleAvatar(
+            radius: 18,
+            backgroundImage:
+                user['avatar_url'] != null
+                    ? CachedNetworkImageProvider(user['avatar_url'])
+                    : null,
+            child:
+                user['avatar_url'] == null
+                    ? Text(user['username'][0].toUpperCase())
+                    : null,
+          ),
+          title: Text(
+            user['full_name'] ?? user['username'],
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text(
+            '@${user['username']}',
+            style: Theme.of(context).textTheme.bodySmall,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          onTap: () {
+            context.push('/profile/${user['id']}');
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildPanelPostList() {
+    if (_postResults.isEmpty) {
+      return Center(
+        child: Text(
+          'No posts found',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      itemCount: _postResults.length,
+      itemBuilder: (context, index) {
+        final post = _postResults[index];
+        return _buildPanelPostCard(post);
+      },
+    );
+  }
+
+  Widget _buildPanelPostCard(Post post) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // User info
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 14,
+                backgroundImage:
+                    post.userAvatar.isNotEmpty
+                        ? CachedNetworkImageProvider(post.userAvatar)
+                        : null,
+                child:
+                    post.userAvatar.isEmpty
+                        ? Text(
+                          post.username[0].toUpperCase(),
+                          style: const TextStyle(fontSize: 10),
+                        )
+                        : null,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  post.username,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Content
+          Text(
+            post.content ?? '',
+            style: theme.textTheme.bodyMedium,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+          if (post.imageUrl != null && post.imageUrl!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: CachedNetworkImage(
+                imageUrl: post.imageUrl!,
+                height: 120,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   Widget _buildFiltersSidebar(bool isM3E) {
@@ -604,9 +915,9 @@ class _SearchScreenState extends State<SearchScreen>
                 padding: const EdgeInsets.all(16),
                 child: Text(
                   'People',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                  ),
                 ),
               ),
               SizedBox(height: 200, child: _buildUserList(isM3E)),
@@ -616,9 +927,9 @@ class _SearchScreenState extends State<SearchScreen>
                 padding: const EdgeInsets.all(16),
                 child: Text(
                   'Posts',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                  ),
                 ),
               ),
               _buildPostList(),
@@ -764,28 +1075,50 @@ class _SearchScreenState extends State<SearchScreen>
             decoration: BoxDecoration(
               shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
               borderRadius: isM3E ? BorderRadius.circular(10) : null,
-              border: isM3E ? Border.all(color: Theme.of(context).colorScheme.primary, width: 1) : null,
+              border:
+                  isM3E
+                      ? Border.all(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 1,
+                      )
+                      : null,
             ),
             child: ClipRRect(
-              borderRadius: isM3E ? BorderRadius.circular(8) : BorderRadius.circular(20),
+              borderRadius:
+                  isM3E ? BorderRadius.circular(8) : BorderRadius.circular(20),
               child: SizedBox(
                 width: 40,
                 height: 40,
-                child: user['avatar_url'] != null
-                    ? CachedNetworkImage(
-                        imageUrl: user['avatar_url'],
-                        fit: BoxFit.cover,
-                      )
-                    : Container(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                        child: Center(
-                          child: Text(user['username'][0].toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
+                child:
+                    user['avatar_url'] != null
+                        ? CachedNetworkImage(
+                          imageUrl: user['avatar_url'],
+                          fit: BoxFit.cover,
+                        )
+                        : Container(
+                          color:
+                              Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                          child: Center(
+                            child: Text(
+                              user['username'][0].toUpperCase(),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
               ),
             ),
           ),
-          title: Text(user['full_name'] ?? user['username'], style: TextStyle(fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold)),
+          title: Text(
+            user['full_name'] ?? user['username'],
+            style: TextStyle(
+              fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+            ),
+          ),
           subtitle: Text('@${user['username']}'),
           onTap: () {
             context.push('/profile/${user['id']}');
@@ -823,27 +1156,42 @@ class _SearchScreenState extends State<SearchScreen>
                     decoration: BoxDecoration(
                       shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
                       borderRadius: isM3E ? BorderRadius.circular(14) : null,
-                      border: isM3E ? Border.all(color: theme.colorScheme.primary, width: 1.5) : null,
+                      border:
+                          isM3E
+                              ? Border.all(
+                                color: theme.colorScheme.primary,
+                                width: 1.5,
+                              )
+                              : null,
                     ),
                     child: ClipRRect(
-                      borderRadius: isM3E ? BorderRadius.circular(11) : BorderRadius.circular(28),
+                      borderRadius:
+                          isM3E
+                              ? BorderRadius.circular(11)
+                              : BorderRadius.circular(28),
                       child: SizedBox(
                         width: 56,
                         height: 56,
-                        child: user['avatar_url'] != null
-                            ? CachedNetworkImage(
-                                imageUrl: user['avatar_url'],
-                                fit: BoxFit.cover,
-                              )
-                            : Container(
-                                color: theme.colorScheme.surfaceContainerHighest,
-                                child: Center(
-                                  child: Text(
-                                    user['username'][0].toUpperCase(),
-                                    style: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
+                        child:
+                            user['avatar_url'] != null
+                                ? CachedNetworkImage(
+                                  imageUrl: user['avatar_url'],
+                                  fit: BoxFit.cover,
+                                )
+                                : Container(
+                                  color:
+                                      theme.colorScheme.surfaceContainerHighest,
+                                  child: Center(
+                                    child: Text(
+                                      user['username'][0].toUpperCase(),
+                                      style: theme.textTheme.titleLarge
+                                          ?.copyWith(
+                                            color: theme.colorScheme.primary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
                                   ),
                                 ),
-                              ),
                       ),
                     ),
                   ),
@@ -856,7 +1204,8 @@ class _SearchScreenState extends State<SearchScreen>
                         Text(
                           user['full_name'] ?? user['username'],
                           style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                            fontWeight:
+                                isM3E ? FontWeight.w900 : FontWeight.bold,
                             letterSpacing: isM3E ? -0.5 : 0,
                           ),
                           maxLines: 1,
@@ -940,4 +1289,3 @@ class _SearchScreenState extends State<SearchScreen>
     );
   }
 }
-

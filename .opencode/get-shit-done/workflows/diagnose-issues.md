@@ -58,7 +58,7 @@ gaps = [
 **Read worktree config:**
 
 ```bash
-USE_WORKTREES=$(node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" config-get workflow.use_worktrees 2>/dev/null || echo "true")
+USE_WORKTREES=$(node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" config-get workflow.use_worktrees 2>/dev/null || echo "true")
 ```
 
 **Report diagnosis plan to user:**
@@ -87,7 +87,7 @@ This runs in parallel - all gaps investigated simultaneously.
 **Load agent skills:**
 
 ```bash
-AGENT_SKILLS_DEBUGGER=$(node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" agent-skills gsd-debugger 2>/dev/null)
+AGENT_SKILLS_DEBUGGER=$(node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" agent-skills gsd-debugger 2>/dev/null)
 EXPECTED_BASE=$(git rev-parse HEAD)
 ```
 
@@ -177,7 +177,7 @@ Update status in frontmatter to "diagnosed".
 
 Commit the updated UAT.md:
 ```bash
-node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" commit "docs({phase_num}): add root causes from diagnosis" --files ".planning/phases/XX-name/{phase_num}-UAT.md"
+node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" commit "docs({phase_num}): add root causes from diagnosis" --files ".planning/phases/XX-name/{phase_num}-UAT.md"
 ```
 </step>
 

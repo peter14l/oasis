@@ -62,7 +62,7 @@ Report any summaries with placeholder content as incomplete items.
 **Write structured handoff to `.planning/HANDOFF.json`:**
 
 ```bash
-timestamp=$(node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" current-timestamp full --raw)
+timestamp=$(node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" current-timestamp full --raw)
 ```
 
 ```json
@@ -197,13 +197,13 @@ Be specific enough for a fresh the agent to understand immediately.
 
 Use `current-timestamp` for last_updated field. You can use init todos (which provides timestamps) or call directly:
 ```bash
-timestamp=$(node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" current-timestamp full --raw)
+timestamp=$(node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" current-timestamp full --raw)
 ```
 </step>
 
 <step name="commit">
 ```bash
-node "F:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" commit "wip: [context-name] paused at [X]/[Y]" --files [handoff-path] .planning/HANDOFF.json
+node "D:/oasis/.opencode/get-shit-done/bin/gsd-tools.cjs" commit "wip: [context-name] paused at [X]/[Y]" --files [handoff-path] .planning/HANDOFF.json
 ```
 </step>
 

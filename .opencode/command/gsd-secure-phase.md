@@ -21,7 +21,7 @@ Output: updated SECURITY.md.
 </objective>
 
 <execution_context>
-@F:/oasis/.opencode/get-shit-done/workflows/secure-phase.md
+@D:/oasis/.opencode/get-shit-done/workflows/secure-phase.md
 </execution_context>
 
 <context>
@@ -29,6 +29,6 @@ Phase: $ARGUMENTS — optional, defaults to last completed phase.
 </context>
 
 <process>
-Execute @F:/oasis/.opencode/get-shit-done/workflows/secure-phase.md.
+Execute @D:/oasis/.opencode/get-shit-done/workflows/secure-phase.md.
 Preserve all workflow gates.
 </process>

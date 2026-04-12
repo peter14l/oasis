@@ -16,7 +16,7 @@ Closes the plan → execute → verify → ship loop.
 </objective>
 
 <execution_context>
-@F:/oasis/.opencode/get-shit-done/workflows/ship.md
+@D:/oasis/.opencode/get-shit-done/workflows/ship.md
 </execution_context>
 
-Execute the ship workflow from @F:/oasis/.opencode/get-shit-done/workflows/ship.md end-to-end.
+Execute the ship workflow from @D:/oasis/.opencode/get-shit-done/workflows/ship.md end-to-end.

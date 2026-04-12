@@ -21,9 +21,9 @@ Future: `--prd` mode for PRD extraction is planned for a follow-up PR.
 </objective>
 
 <execution_context>
-@F:/oasis/.opencode/get-shit-done/workflows/import.md
-@F:/oasis/.opencode/get-shit-done/references/ui-brand.md
-@F:/oasis/.opencode/get-shit-done/references/gate-prompts.md
+@D:/oasis/.opencode/get-shit-done/workflows/import.md
+@D:/oasis/.opencode/get-shit-done/references/ui-brand.md
+@D:/oasis/.opencode/get-shit-done/references/gate-prompts.md
 </execution_context>
 
 <context>

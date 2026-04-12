@@ -2,10 +2,12 @@
   "$schema": "https://opencode.ai/config.json",
   "permission": {
     "read": {
-      "F:/oasis/.opencode/get-shit-done/*": "allow"
+      "F:/oasis/.opencode/get-shit-done/*": "allow",
+      "D:/oasis/.opencode/get-shit-done/*": "allow"
     },
     "external_directory": {
-      "F:/oasis/.opencode/get-shit-done/*": "allow"
+      "F:/oasis/.opencode/get-shit-done/*": "allow",
+      "D:/oasis/.opencode/get-shit-done/*": "allow"
     }
   }
 }
