@@ -10,8 +10,9 @@ class PresenceService {
   // Track subscription state to prevent race conditions
   final Map<String, bool> _channelSubscribed = {};
 
-  // Track last update time to prevent rapid status toggling
+  // Track last update time and status to prevent rapid status toggling
   final Map<String, DateTime> _lastUpdateTime = {};
+  final Map<String, String> _lastStatus = {};
 
   // Minimum interval between presence updates to prevent spam
   static const _minUpdateInterval = Duration(seconds: 1);
@@ -87,13 +88,15 @@ class PresenceService {
   Future<void> updateUserPresence(String userId, String status) async {
     final now = DateTime.now();
     final lastUpdate = _lastUpdateTime[userId];
+    final lastStatus = _lastStatus[userId];
 
-    // Rate limit: skip if updated too recently
-    if (lastUpdate != null && now.difference(lastUpdate) < _minUpdateInterval) {
+    // Rate limit: skip if updated too recently AND status is the same
+    // This allows rapid status changes (offline -> online) while still preventing spam
+    if (lastUpdate != null &&
+        now.difference(lastUpdate) < _minUpdateInterval &&
+        lastStatus == status) {
       return;
     }
-
-    _lastUpdateTime[userId] = now;
 
     final channelName = 'user_presence:$userId';
     RealtimeChannel channel;
@@ -107,7 +110,7 @@ class PresenceService {
 
     // Check if we're already subscribed (track in our map)
     final isAlreadySubscribed = _channelSubscribed[channelName] == true;
-    
+
     if (!isAlreadySubscribed) {
       try {
         channel.subscribe();
@@ -144,54 +147,11 @@ class PresenceService {
         );
       }
     }
-  }
 
-    _lastUpdateTime[userId] = now;
-
-    final channelName = 'user_presence:$userId';
-    RealtimeChannel channel;
-
-    if (_presenceChannels.containsKey(channelName)) {
-      channel = _presenceChannels[channelName]!;
-    } else {
-      channel = _supabase.channel(channelName);
-      _presenceChannels[channelName] = channel;
-    }
-
-    // Only subscribe if not already subscribed (track in our map)
-    if (!_channelSubscribed.containsKey(channelName) ||
-        !_channelSubscribed[channelName]!) {
-      try {
-        channel.subscribe();
-        _channelSubscribed[channelName] = true;
-        // Wait for subscription confirmation (max 200ms)
-        await Future.delayed(const Duration(milliseconds: 200));
-      } catch (e) {
-        // Already subscribed - mark as subscribed and continue
-        _channelSubscribed[channelName] = true;
-      }
-    }
-
-    try {
-      await channel.track({
-        'status': status,
-        'last_seen': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      // Retry once after brief delay
-      debugPrint('PresenceService: Retry presence after - ${e.toString()}');
-      try {
-        await Future.delayed(const Duration(milliseconds: 100));
-        await channel.track({
-          'status': status,
-          'last_seen': DateTime.now().toIso8601String(),
-        });
-      } catch (e2) {
-        debugPrint(
-          'PresenceService: Failed to track presence - ${e2.toString()}',
-        );
-      }
-    }
+    // Only update last update time AFTER the async track completes
+    // This ensures rapid state changes (background->foreground) are not rate-limited
+    _lastUpdateTime[userId] = DateTime.now();
+    _lastStatus[userId] = status;
   }
 
   void unsubscribeFromPresence(String userId) {
@@ -201,6 +161,7 @@ class PresenceService {
       _presenceChannels.remove(channelName);
       _channelSubscribed.remove(channelName);
       _lastUpdateTime.remove(userId);
+      _lastStatus.remove(userId);
     }
   }
 }

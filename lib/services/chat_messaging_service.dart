@@ -395,7 +395,7 @@ class ChatMessagingService {
           type: 'dm',
           actorId: senderId,
           title: senderName,
-          message: isEncrypted ? '🔒 Encrypted Message' : content,
+          message: isEncrypted ? 'New encrypted message' : content,
           messageId: messageId,
         );
       }

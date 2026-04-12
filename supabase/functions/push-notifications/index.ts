@@ -111,6 +111,46 @@ serve(async (req) => {
     // 4. Get Google OAuth2 access token for FCM
     const accessToken = await getGoogleAccessToken(firebaseServiceAccount);
 
+    // Build data payload - include conversation_id for DMs and sender info
+    let dataPayload: Record<string, string> = {
+      type: record.type,
+      actor_id: record.actor_id,
+      click_action: "FLUTTER_NOTIFICATION_CLICK",
+    };
+
+    // Add DM-specific data for deep linking
+    if (record.type === 'dm' && record.message_id) {
+      // Get sender info for deep linking
+      const { data: senderProfile } = await supabase
+        .from('profiles')
+        .select('username, avatar_url')
+        .eq('id', record.actor_id)
+        .maybeSingle();
+
+      if (senderProfile) {
+        dataPayload['sender_name'] = senderProfile.username || '';
+        dataPayload['sender_avatar'] = senderProfile.avatar_url || '';
+      }
+
+      // Get conversation_id from message
+      const { data: msgData } = await supabase
+        .from('messages')
+        .select('conversation_id')
+        .eq('id', record.message_id)
+        .single();
+
+      if (msgData) {
+        dataPayload['conversation_id'] = msgData.conversation_id;
+        dataPayload['sender_id'] = record.actor_id;
+      }
+    }
+
+    // Add call-specific data
+    if (record.call_id) {
+      dataPayload['call_id'] = record.call_id;
+      dataPayload['call_type'] = record.call_type || 'voice';
+    }
+
     // 5. Send FCM message
     const fcmResponse = await fetch(
       `https://fcm.googleapis.com/v1/projects/${firebaseProjectId}/messages:send`,
@@ -127,12 +167,7 @@ serve(async (req) => {
               title: title,
               body: body,
             },
-            data: {
-              type: record.type,
-              actor_id: record.actor_id,
-              click_action: "FLUTTER_NOTIFICATION_CLICK",
-              ...(record.call_id ? { call_id: record.call_id, call_type: record.call_type } : {}),
-            },
+            data: dataPayload,
             android: {
               priority: "high",
               notification: {
