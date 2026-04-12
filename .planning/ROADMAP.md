@@ -57,3 +57,29 @@
 
 **Requirements:**
 [PRIVACY-01, PRIVACY-02, MONETIZATION-01, MONETIZATION-02]
+
+### Phase 9: Razorpay Android Integration
+
+**Goal:** Integrate native Razorpay payment checkout for Android using razorpay_flutter package.
+**Status:** Planned
+**Depends on:** Phase 8
+
+**Plans:** 1 plan
+
+Plans:
+- [ ] 09-01-PLAN.md — Implement native Razorpay checkout for Android with success/error/cancel handling.
+
+## Phase 10: Privacy Sync Toggle
+
+**Goal:** Add optional server sync toggle to Privacy Transparency feature. Fix broken tracking, add toggle for users to optionally sync analytics to server, show warning when disabling, delete server data on disable.
+
+**Status:** Planned
+
+**Plans:** 2 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — Fix local tracking (wire to actual usage) + create Supabase schema for analytics
+- [ ] 10-02-PLAN.md — Add server sync toggle UI with warning dialogs
+
+**Requirements:**
+[PRIVACY-02]
