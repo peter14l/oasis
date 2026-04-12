@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/widgets/messages/forward_message_modal.dart';
+import 'package:oasis/widgets/messages/message_reactions.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/widgets/moderation_dialogs.dart';
 
@@ -16,6 +17,7 @@ class MessageOptionsMenu extends StatelessWidget {
     required this.onForward,
     required this.onCopy,
     required this.onUnsend,
+    required this.onReactionSelected,
   });
 
   final Message message;
@@ -25,6 +27,7 @@ class MessageOptionsMenu extends StatelessWidget {
   final VoidCallback onForward;
   final VoidCallback onCopy;
   final VoidCallback onUnsend;
+  final Function(String) onReactionSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +50,41 @@ class MessageOptionsMenu extends StatelessWidget {
       ),
       elevation: 8,
       items: <PopupMenuEntry>[
+        PopupMenuItem(
+          onTap: () {
+            showMenu(
+              context: context,
+              position: RelativeRect.fromLTRB(
+                position.dx + 120,
+                position.dy,
+                position.dx + 120,
+                position.dy,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                ),
+              ),
+              elevation: 8,
+              items: <PopupMenuEntry>[
+                PopupMenuItem(
+                  enabled: false,
+                  child: MessageReactionPicker(
+                    onReactionSelected: onReactionSelected,
+                  ),
+                ),
+              ],
+            );
+          },
+          child: Row(
+            children: [
+              const Text('😀', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 12),
+              Text('Add Reaction', style: theme.textTheme.bodyMedium),
+            ],
+          ),
+        ),
         PopupMenuItem(
           onTap: onReply,
           child: const Row(
