@@ -79,3 +79,18 @@ Plans:
 
 **Requirements:**
 [PRIVACY-02]
+
+## Phase 11: Desktop Native UX
+
+**Goal:** Make desktop apps feel native with context menus instead of modal sheets, right-click instead of tap-hold, and proper desktop navigation. Preserve ALL mobile UI behavior unchanged.
+
+**Status:** ✅ Planned
+**Plans:** 3 plans
+
+### Plans:
+- [ ] 11-01-PLAN.md — DesktopContextMenu infrastructure (context menu widget + SecondaryTapHandler)
+- [ ] 11-02-PLAN.md — Apply context menu to PostCard + MessageReactions
+- [ ] 11-03-PLAN.md — Add right-click support to ChatMessageList
+
+**Requirements:**
+[DESKTOP-01, DESKTOP-02]
