@@ -43,7 +43,13 @@ class _LiveLocationScreenState extends State<LiveLocationScreen> {
             }
           },
         )
-        .subscribe();
+        .subscribe((status, [error]) {
+          if (status == RealtimeSubscribeStatus.timedOut) {
+            debugPrint('[LiveLocationScreen] Realtime subscription timed out. Marker updates may be delayed.');
+          } else if (status == RealtimeSubscribeStatus.channelError) {
+            debugPrint('[LiveLocationScreen] Realtime channel error: $error');
+          }
+        });
   }
 
   @override

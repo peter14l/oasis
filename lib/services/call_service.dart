@@ -189,6 +189,9 @@ class CallService extends ChangeNotifier {
         .from('call_signaling')
         .stream(primaryKey: ['id'])
         .eq('call_id', callId)
+        .handleError((error) {
+          debugPrint('[CallService] Signaling stream error: $error');
+        })
         .listen((data) async {
           for (var item in data) {
             final senderId = item['sender_id'];
@@ -259,6 +262,9 @@ class CallService extends ChangeNotifier {
         .from('call_participants')
         .stream(primaryKey: ['id'])
         .eq('call_id', callId)
+        .handleError((error) {
+          debugPrint('[CallService] Participants stream error: $error');
+        })
         .listen((data) async {
           _participants.clear();
           _participants.addAll(data.map((p) => CallParticipantEntity.fromJson(p)));
@@ -492,6 +498,9 @@ class CallService extends ChangeNotifier {
         .from('call_participants')
         .stream(primaryKey: ['id'])
         .eq('user_id', user.id)
+        .handleError((error) {
+          debugPrint('[CallService] Incoming call stream error: $error');
+        })
         .listen((data) async {
       final now = DateTime.now();
       for (var participant in data) {

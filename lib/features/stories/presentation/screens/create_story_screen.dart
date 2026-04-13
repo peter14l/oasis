@@ -332,18 +332,39 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       ResolutionPreset.high,
       enableAudio: true,
     );
+    
     try {
       await newController.initialize();
-      await old?.dispose();
-      if (mounted) {
-        setState(() {
-          _cameraController = newController;
-          _isCameraInitialized = true;
-        });
+      
+      // If we've already been disposed while waiting for initialization,
+      // cleanup the new controller immediately.
+      if (!mounted) {
+        await newController.dispose();
+        return;
       }
+
+      // Safeguard dispose of old controller
+      if (old != null) {
+        _isCameraInitialized = false;
+        try {
+          await old.dispose();
+        } catch (e) {
+          debugPrint('Error disposing old camera: $e');
+        }
+      }
+
+      setState(() {
+        _cameraController = newController;
+        _isCameraInitialized = true;
+      });
     } catch (e) {
       debugPrint('Camera switch error: $e');
-      await newController.dispose();
+      try {
+        await newController.dispose();
+      } catch (disposeError) {
+        debugPrint('Error disposing new camera after fail: $disposeError');
+      }
+      if (mounted) setState(() => _isCameraAvailable = false);
     }
   }
 
@@ -450,7 +471,22 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   void dispose() {
     _recordingTimer?.cancel();
     _countdownTimer?.cancel();
-    _cameraController?.dispose();
+    
+    // Safety for CameraX disposal issues
+    final controller = _cameraController;
+    _cameraController = null;
+    _isCameraInitialized = false;
+    
+    if (controller != null) {
+      controller.dispose().catchError((e) {
+        if (e is PlatformException && e.code == 'IllegalStateException') {
+          debugPrint('Suppressed known CameraX release error during dispose: $e');
+        } else {
+          debugPrint('Camera dispose error: $e');
+        }
+      });
+    }
+
     _captionController.dispose();
     _videoController?.dispose();
     super.dispose();

@@ -137,9 +137,9 @@ class MessageOperationsService {
         )
         .subscribe((status, [error]) {
           if (status == RealtimeSubscribeStatus.channelError) {
-            debugPrint(
-              'MessageOperationsService: subscribeToTypingStatus error: $error',
-            );
+            debugPrint('[MessageOps] subscribeToTypingStatus error: $error');
+          } else if (status == RealtimeSubscribeStatus.timedOut) {
+            debugPrint('[MessageOps] subscribeToTypingStatus timed out. Replication may be missing.');
           }
         });
     return channel;
@@ -251,9 +251,9 @@ class MessageOperationsService {
         )
         .subscribe((status, [error]) {
           if (status == RealtimeSubscribeStatus.channelError) {
-            debugPrint(
-              'MessageOperationsService: subscribeToReadReceipts error: $error',
-            );
+            debugPrint('[MessageOps] subscribeToReadReceipts error: $error');
+          } else if (status == RealtimeSubscribeStatus.timedOut) {
+            debugPrint('[MessageOps] subscribeToReadReceipts timed out. Replication may be missing.');
           }
         });
     return channel;
@@ -291,9 +291,9 @@ class MessageOperationsService {
         )
         .subscribe((status, [error]) {
           if (status == RealtimeSubscribeStatus.channelError) {
-            debugPrint(
-              'MessageOperationsService: subscribeToReactions error: $error',
-            );
+            debugPrint('[MessageOps] subscribeToReactions error: $error');
+          } else if (status == RealtimeSubscribeStatus.timedOut) {
+            debugPrint('[MessageOps] subscribeToReactions timed out. Replication may be missing.');
           }
         });
     return channel;
@@ -356,9 +356,9 @@ class MessageOperationsService {
         )
         .subscribe((status, [error]) {
           if (status == RealtimeSubscribeStatus.channelError) {
-            debugPrint(
-              'MessageOperationsService: subscribeToConversationDetails error: $error',
-            );
+            debugPrint('[MessageOps] subscribeToConversationDetails error: $error');
+          } else if (status == RealtimeSubscribeStatus.timedOut) {
+            debugPrint('[MessageOps] subscribeToConversationDetails timed out. Replication may be missing.');
           }
         });
     return channel;

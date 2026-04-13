@@ -100,7 +100,7 @@ class FeedRemoteDatasource {
         .order('created_at', ascending: false)
         .limit(limit)
         .handleError((error) {
-          debugPrint('[FeedRemoteDatasource] Watch error: $error');
+          debugPrint('[FeedRemoteDatasource] Realtime stream error: $error');
           return <Map<String, dynamic>>[];
         });
   }

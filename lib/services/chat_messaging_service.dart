@@ -337,7 +337,11 @@ class ChatMessagingService {
         )
         .subscribe((status, [error]) {
           if (status == RealtimeSubscribeStatus.channelError) {
-            debugPrint('[ChatMessagingService] Subscription error: $error');
+            debugPrint('[ChatMessagingService] Subscription error for $conversationId: $error');
+          } else if (status == RealtimeSubscribeStatus.timedOut) {
+            debugPrint('[ChatMessagingService] Subscription timed out for $conversationId. Table replication or RLS may be missing.');
+          } else if (status == RealtimeSubscribeStatus.subscribed) {
+            debugPrint('[ChatMessagingService] Successfully subscribed to $conversationId');
           }
         });
     return channel;
