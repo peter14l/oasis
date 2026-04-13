@@ -544,352 +544,384 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     );
     debugPrint('Will show empty state: ${_selectedFile == null}');
 
-    return Scaffold(
-      backgroundColor: isM3E ? colorScheme.surface : Colors.black,
-      resizeToAvoidBottomInset: false,
-      body: Stack(
-        children: [
-          // ── Composite Area (Captured via RepaintBoundary) ──
-          RepaintBoundary(
-            key: _boundaryKey,
-            child: Container(
-              width: double.infinity,
-              height: double.infinity,
-              color: isM3E ? colorScheme.surface : Colors.black,
-              child: Stack(
-                children: [
-                  if (_selectedFile != null) ...[
-                    Positioned.fill(
-                      child: ColorFiltered(
-                        colorFilter: ui.ColorFilter.matrix(
-                          _filterPresets[_selectedFilterIndex]['matrix'],
-                        ),
-                        child:
-                            _mediaType == 'video' &&
-                                    _videoController != null &&
-                                    _videoController!.value.isInitialized
-                                ? FittedBox(
-                                  fit: BoxFit.cover,
-                                  child: SizedBox(
-                                    width: _videoController!.value.size.width,
-                                    height: _videoController!.value.size.height,
-                                    child: VideoPlayer(_videoController!),
-                                  ),
-                                )
-                                : Image.file(
-                                  _selectedFile!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    debugPrint(
-                                      'Error loading story image: $error',
-                                    );
-                                    return Container(
-                                      color: Colors.black,
-                                      child: Center(
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.broken_image_outlined,
-                                              size: 64,
-                                              color: Colors.white.withValues(
-                                                alpha: 0.5,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 16),
-                                            Text(
-                                              'Failed to load image',
-                                              style: TextStyle(
-                                                color: Colors.white.withValues(
-                                                  alpha: 0.7,
-                                                ),
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            TextButton.icon(
-                                              onPressed: () {
-                                                setState(
-                                                  () => _selectedFile = null,
-                                                );
-                                              },
-                                              icon: const Icon(
-                                                Icons.refresh,
-                                                color: Colors.white,
-                                              ),
-                                              label: const Text(
-                                                'Choose different',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+    // Adaptive layout: use LayoutBuilder for responsive design
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = constraints.maxWidth;
+
+        // Responsive breakpoints (Material 3 adaptive guidelines)
+        final isTablet = screenWidth > 600;
+        final isDesktop = screenWidth > 900;
+
+        // Adaptive sizes based on screen size
+        final double adaptiveIconSize = isDesktop ? 36 : (isTablet ? 32 : 24);
+        final double adaptiveButtonSize = isDesktop ? 56 : (isTablet ? 52 : 48);
+        final double adaptivePadding = isDesktop ? 24 : (isTablet ? 20 : 16);
+
+        // M3E conditional icon helper - use rounded when M3E enabled, standard otherwise
+        IconData getIcon(IconData rounded, IconData standard) =>
+            isM3E ? rounded : standard;
+
+        return Scaffold(
+          backgroundColor: isM3E ? colorScheme.surface : Colors.black,
+          resizeToAvoidBottomInset: false,
+          body: Stack(
+            children: [
+              // ── Composite Area (Captured via RepaintBoundary) ──
+              RepaintBoundary(
+                key: _boundaryKey,
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: isM3E ? colorScheme.surface : Colors.black,
+                  child: Stack(
+                    children: [
+                      if (_selectedFile != null) ...[
+                        Positioned.fill(
+                          child: ColorFiltered(
+                            colorFilter: ui.ColorFilter.matrix(
+                              _filterPresets[_selectedFilterIndex]['matrix'],
+                            ),
+                            child:
+                                _mediaType == 'video' &&
+                                        _videoController != null &&
+                                        _videoController!.value.isInitialized
+                                    ? FittedBox(
+                                      fit: BoxFit.cover,
+                                      child: SizedBox(
+                                        width:
+                                            _videoController!.value.size.width,
+                                        height:
+                                            _videoController!.value.size.height,
+                                        child: VideoPlayer(_videoController!),
                                       ),
-                                    );
-                                  },
-                                ),
-                      ),
-                    ),
-
-                    // Music Sticker (Draggable)
-                    if (_selectedMusic != null)
-                      Positioned(
-                        left:
-                            _musicPosition.dx *
-                                MediaQuery.of(context).size.width -
-                            60,
-                        top:
-                            _musicPosition.dy *
-                                MediaQuery.of(context).size.height -
-                            30,
-                        child: GestureDetector(
-                          onTap: () => setState(() => _selectedMusic = null),
-                          onPanStart: (_) {
-                            HapticFeedback.selectionClick();
-                          },
-                          onPanUpdate: (details) {
-                            setState(() {
-                              final screenWidth =
-                                  MediaQuery.of(context).size.width;
-                              final screenHeight =
-                                  MediaQuery.of(context).size.height;
-                              _musicPosition = Offset(
-                                (_musicPosition.dx +
-                                        details.delta.dx / screenWidth)
-                                    .clamp(0.1, 0.9),
-                                (_musicPosition.dy +
-                                        details.delta.dy / screenHeight)
-                                    .clamp(0.1, 0.9),
-                              );
-                            });
-                          },
-                          onPanEnd: (_) {
-                            HapticFeedback.lightImpact();
-                          },
-                          child: _buildMusicStickerWidget(_selectedMusic!),
+                                    )
+                                    : Image.file(
+                                      _selectedFile!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (
+                                        context,
+                                        error,
+                                        stackTrace,
+                                      ) {
+                                        debugPrint(
+                                          'Error loading story image: $error',
+                                        );
+                                        return Container(
+                                          color: Colors.black,
+                                          child: Center(
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.broken_image_outlined,
+                                                  size: 64,
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.5),
+                                                ),
+                                                const SizedBox(height: 16),
+                                                Text(
+                                                  'Failed to load image',
+                                                  style: TextStyle(
+                                                    color: Colors.white
+                                                        .withValues(alpha: 0.7),
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 8),
+                                                TextButton.icon(
+                                                  onPressed: () {
+                                                    setState(
+                                                      () =>
+                                                          _selectedFile = null,
+                                                    );
+                                                  },
+                                                  icon: const Icon(
+                                                    Icons.refresh,
+                                                    color: Colors.white,
+                                                  ),
+                                                  label: const Text(
+                                                    'Choose different',
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                          ),
                         ),
-                      ),
 
-                    Positioned.fill(
-                      child: CustomPaint(
-                        painter: DrawingPainter(
-                          strokes: _strokes,
-                          currentStroke: _currentStroke,
+                        // Music Sticker (Draggable)
+                        if (_selectedMusic != null)
+                          Positioned(
+                            left:
+                                _musicPosition.dx *
+                                    MediaQuery.of(context).size.width -
+                                60,
+                            top:
+                                _musicPosition.dy *
+                                    MediaQuery.of(context).size.height -
+                                30,
+                            child: GestureDetector(
+                              onTap:
+                                  () => setState(() => _selectedMusic = null),
+                              onPanStart: (_) {
+                                HapticFeedback.selectionClick();
+                              },
+                              onPanUpdate: (details) {
+                                setState(() {
+                                  final screenWidth =
+                                      MediaQuery.of(context).size.width;
+                                  final screenHeight =
+                                      MediaQuery.of(context).size.height;
+                                  _musicPosition = Offset(
+                                    (_musicPosition.dx +
+                                            details.delta.dx / screenWidth)
+                                        .clamp(0.1, 0.9),
+                                    (_musicPosition.dy +
+                                            details.delta.dy / screenHeight)
+                                        .clamp(0.1, 0.9),
+                                  );
+                                });
+                              },
+                              onPanEnd: (_) {
+                                HapticFeedback.lightImpact();
+                              },
+                              child: _buildMusicStickerWidget(_selectedMusic!),
+                            ),
+                          ),
+
+                        Positioned.fill(
+                          child: CustomPaint(
+                            painter: DrawingPainter(
+                              strokes: _strokes,
+                              currentStroke: _currentStroke,
+                            ),
+                            size: Size.infinite,
+                          ),
                         ),
-                        size: Size.infinite,
-                      ),
-                    ),
-                    ..._texts.asMap().entries.map((entry) {
-                      final i = entry.key;
-                      final t = entry.value;
-                      final themeProvider = Provider.of<ThemeProvider>(
-                        context,
-                        listen: false,
-                      );
-                      final isM3E = themeProvider.isM3EEnabled;
-                      return Positioned(
-                        left: t.position.dx - 100,
-                        top: t.position.dy - 25,
-                        child: GestureDetector(
-                          onTap: () {
-                            if (_isDraggingText) return;
-                            setState(() {
-                              _editingTextIndex = i;
-                              _captionController.text = t.text;
-                              _textColor = t.color;
-                              _textBackgroundMode = t.backgroundMode;
-                              _selectedFontIndex = t.fontIndex;
-                              _isCaptionVisible = true;
-                            });
-                          },
-                          onPanStart: (_) {
-                            setState(() => _isDraggingText = true);
-                            HapticFeedback.selectionClick();
-                          },
-                          onPanUpdate: (details) {
-                            setState(() {
-                              t.position += details.delta;
-                              final screenWidth =
-                                  MediaQuery.of(context).size.width;
-                              final screenHeight =
-                                  MediaQuery.of(context).size.height;
-                              final trashPos = Offset(
-                                screenWidth / 2,
-                                screenHeight - 100,
-                              );
-                              final distance = (t.position - trashPos).distance;
-                              if (distance < 120 && !_isTextOverTrash) {
-                                _isTextOverTrash = true;
-                                HapticFeedback.mediumImpact();
-                              } else if (distance >= 120 && _isTextOverTrash) {
-                                _isTextOverTrash = false;
-                              }
-                            });
-                          },
-                          onPanEnd: (_) {
-                            if (_isTextOverTrash) {
-                              setState(() {
-                                _texts.removeAt(i);
-                              });
-                              HapticFeedback.heavyImpact();
-                            }
-                            setState(() {
-                              _isDraggingText = false;
-                              _isTextOverTrash = false;
-                            });
-                          },
-                          child: AnimatedScale(
-                            duration: const Duration(milliseconds: 100),
-                            scale:
-                                _isDraggingText && _isTextOverTrash ? 0.5 : 1.0,
-                            child: Opacity(
-                              opacity:
-                                  _isDraggingText && _isTextOverTrash
-                                      ? 0.5
-                                      : 1.0,
-                              child: Container(
-                                width: 200,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                      t.backgroundMode == 1
-                                          ? t.color.withValues(alpha: 0.9)
-                                          : (t.backgroundMode == 2
-                                              ? Colors.black54
-                                              : Colors.transparent),
-                                  borderRadius: BorderRadius.circular(
-                                    isM3E ? 16 : 8,
-                                  ),
-                                ),
-                                child: Text(
-                                  t.text,
-                                  textAlign: t.align,
-                                  style: TextStyle(
-                                    color:
-                                        t.backgroundMode == 1
-                                            ? (t.color.computeLuminance() > 0.5
-                                                ? Colors.black
-                                                : Colors.white)
-                                            : t.color,
-                                    fontSize: 28,
-                                    fontWeight:
-                                        isM3E
-                                            ? FontWeight.w900
-                                            : FontWeight.bold,
-                                    letterSpacing: isM3E ? -0.5 : 0,
-                                    fontFamily:
-                                        _fontStyles[t.fontIndex]['fontFamily']
-                                            as String?,
+                        ..._texts.asMap().entries.map((entry) {
+                          final i = entry.key;
+                          final t = entry.value;
+                          final themeProvider = Provider.of<ThemeProvider>(
+                            context,
+                            listen: false,
+                          );
+                          final isM3E = themeProvider.isM3EEnabled;
+                          return Positioned(
+                            left: t.position.dx - 100,
+                            top: t.position.dy - 25,
+                            child: GestureDetector(
+                              onTap: () {
+                                if (_isDraggingText) return;
+                                setState(() {
+                                  _editingTextIndex = i;
+                                  _captionController.text = t.text;
+                                  _textColor = t.color;
+                                  _textBackgroundMode = t.backgroundMode;
+                                  _selectedFontIndex = t.fontIndex;
+                                  _isCaptionVisible = true;
+                                });
+                              },
+                              onPanStart: (_) {
+                                setState(() => _isDraggingText = true);
+                                HapticFeedback.selectionClick();
+                              },
+                              onPanUpdate: (details) {
+                                setState(() {
+                                  t.position += details.delta;
+                                  final screenWidth =
+                                      MediaQuery.of(context).size.width;
+                                  final screenHeight =
+                                      MediaQuery.of(context).size.height;
+                                  final trashPos = Offset(
+                                    screenWidth / 2,
+                                    screenHeight - 100,
+                                  );
+                                  final distance =
+                                      (t.position - trashPos).distance;
+                                  if (distance < 120 && !_isTextOverTrash) {
+                                    _isTextOverTrash = true;
+                                    HapticFeedback.mediumImpact();
+                                  } else if (distance >= 120 &&
+                                      _isTextOverTrash) {
+                                    _isTextOverTrash = false;
+                                  }
+                                });
+                              },
+                              onPanEnd: (_) {
+                                if (_isTextOverTrash) {
+                                  setState(() {
+                                    _texts.removeAt(i);
+                                  });
+                                  HapticFeedback.heavyImpact();
+                                }
+                                setState(() {
+                                  _isDraggingText = false;
+                                  _isTextOverTrash = false;
+                                });
+                              },
+                              child: AnimatedScale(
+                                duration: const Duration(milliseconds: 100),
+                                scale:
+                                    _isDraggingText && _isTextOverTrash
+                                        ? 0.5
+                                        : 1.0,
+                                child: Opacity(
+                                  opacity:
+                                      _isDraggingText && _isTextOverTrash
+                                          ? 0.5
+                                          : 1.0,
+                                  child: Container(
+                                    width: 200,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          t.backgroundMode == 1
+                                              ? t.color.withValues(alpha: 0.9)
+                                              : (t.backgroundMode == 2
+                                                  ? Colors.black54
+                                                  : Colors.transparent),
+                                      borderRadius: BorderRadius.circular(
+                                        isM3E ? 16 : 8,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      t.text,
+                                      textAlign: t.align,
+                                      style: TextStyle(
+                                        color:
+                                            t.backgroundMode == 1
+                                                ? (t.color.computeLuminance() >
+                                                        0.5
+                                                    ? Colors.black
+                                                    : Colors.white)
+                                                : t.color,
+                                        fontSize: 28,
+                                        fontWeight:
+                                            isM3E
+                                                ? FontWeight.w900
+                                                : FontWeight.bold,
+                                        letterSpacing: isM3E ? -0.5 : 0,
+                                        fontFamily:
+                                            _fontStyles[t
+                                                    .fontIndex]['fontFamily']
+                                                as String?,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ] else
-                    _buildEmptyState(),
-                ],
-              ),
-            ),
-          ),
-
-          // ── Drawing INTERACTION Layer ──
-          if (_selectedFile != null && _isDrawingMode)
-            Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onPanStart: (details) {
-                  setState(() {
-                    _currentStroke = [
-                      DrawingPoint(
-                        details.localPosition,
-                        Paint()
-                          ..color =
-                              _isEraserMode
-                                  ? Colors.transparent
-                                  : _selectedColor
-                          ..strokeWidth = _isEraserMode ? 30.0 : _strokeWidth
-                          ..strokeCap = StrokeCap.round
-                          ..blendMode =
-                              _isEraserMode
-                                  ? BlendMode.clear
-                                  : BlendMode.srcOver
-                          ..style = PaintingStyle.stroke
-                          ..isAntiAlias = true,
-                      ),
-                    ];
-                  });
-                },
-                onPanUpdate: (details) {
-                  setState(() {
-                    _currentStroke.add(
-                      DrawingPoint(
-                        details.localPosition,
-                        Paint()
-                          ..color =
-                              _isEraserMode
-                                  ? Colors.transparent
-                                  : _selectedColor
-                          ..strokeWidth = _isEraserMode ? 30.0 : _strokeWidth
-                          ..strokeCap = StrokeCap.round
-                          ..blendMode =
-                              _isEraserMode
-                                  ? BlendMode.clear
-                                  : BlendMode.srcOver
-                          ..style = PaintingStyle.stroke
-                          ..isAntiAlias = true,
-                      ),
-                    );
-                  });
-                },
-                onPanEnd: (details) {
-                  setState(() {
-                    _strokes.add(List.from(_currentStroke));
-                    _currentStroke = [];
-                  });
-                },
-              ),
-            ),
-
-          // ── UI Overlays ──
-          if (_selectedFile != null) ...[
-            _buildCinematicGradients(),
-            if (_isDraggingText)
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: AnimatedOpacity(
-                    opacity: 0.4,
-                    duration: const Duration(milliseconds: 200),
-                    child: Container(color: Colors.black),
+                          );
+                        }),
+                      ] else
+                        _buildEmptyState(),
+                    ],
                   ),
                 ),
               ),
-            if (!_isCaptionVisible &&
-                !_isDrawingMode &&
-                !_isFilterPickerVisible &&
-                !_isDraggingText)
-              _buildSideToolbar(),
-            _buildTopToolbar(),
-            if (_isFilterPickerVisible) _buildFilterPicker(),
-            if (_isCaptionVisible) _buildTextEditor(),
-            if (!_isCaptionVisible && !_isDrawingMode && !_isDraggingText)
-              _buildBottomActionBar(),
-            if (_isDrawingMode) _buildDrawingTools(),
-            if (_isDraggingText) _buildTrashArea(),
-          ],
 
-          // Close button now integrated into empty state layout
-        ],
-      ),
+              // ── Drawing INTERACTION Layer ──
+              if (_selectedFile != null && _isDrawingMode)
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onPanStart: (details) {
+                      setState(() {
+                        _currentStroke = [
+                          DrawingPoint(
+                            details.localPosition,
+                            Paint()
+                              ..color =
+                                  _isEraserMode
+                                      ? Colors.transparent
+                                      : _selectedColor
+                              ..strokeWidth =
+                                  _isEraserMode ? 30.0 : _strokeWidth
+                              ..strokeCap = StrokeCap.round
+                              ..blendMode =
+                                  _isEraserMode
+                                      ? BlendMode.clear
+                                      : BlendMode.srcOver
+                              ..style = PaintingStyle.stroke
+                              ..isAntiAlias = true,
+                          ),
+                        ];
+                      });
+                    },
+                    onPanUpdate: (details) {
+                      setState(() {
+                        _currentStroke.add(
+                          DrawingPoint(
+                            details.localPosition,
+                            Paint()
+                              ..color =
+                                  _isEraserMode
+                                      ? Colors.transparent
+                                      : _selectedColor
+                              ..strokeWidth =
+                                  _isEraserMode ? 30.0 : _strokeWidth
+                              ..strokeCap = StrokeCap.round
+                              ..blendMode =
+                                  _isEraserMode
+                                      ? BlendMode.clear
+                                      : BlendMode.srcOver
+                              ..style = PaintingStyle.stroke
+                              ..isAntiAlias = true,
+                          ),
+                        );
+                      });
+                    },
+                    onPanEnd: (details) {
+                      setState(() {
+                        _strokes.add(List.from(_currentStroke));
+                        _currentStroke = [];
+                      });
+                    },
+                  ),
+                ),
+
+              // ── UI Overlays ──
+              if (_selectedFile != null) ...[
+                _buildCinematicGradients(),
+                if (_isDraggingText)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: AnimatedOpacity(
+                        opacity: 0.4,
+                        duration: const Duration(milliseconds: 200),
+                        child: Container(color: Colors.black),
+                      ),
+                    ),
+                  ),
+                if (!_isCaptionVisible &&
+                    !_isDrawingMode &&
+                    !_isFilterPickerVisible &&
+                    !_isDraggingText)
+                  _buildSideToolbar(),
+                _buildTopToolbar(),
+                if (_isFilterPickerVisible) _buildFilterPicker(),
+                if (_isCaptionVisible) _buildTextEditor(),
+                if (!_isCaptionVisible && !_isDrawingMode && !_isDraggingText)
+                  _buildBottomActionBar(),
+                if (_isDrawingMode) _buildDrawingTools(),
+                if (_isDraggingText) _buildTrashArea(),
+              ],
+
+              // Close button now integrated into empty state layout
+            ],
+          ),
         );
-      }, // End LayoutBuilder - adaptive layout
+      }, // End LayoutBuilder
     );
   }
 
