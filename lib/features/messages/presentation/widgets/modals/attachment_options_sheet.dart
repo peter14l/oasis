@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:oasis/features/messages/presentation/widgets/shared/attachment_option_card.dart';
 
@@ -10,17 +12,22 @@ class AttachmentOptionsSheet extends StatelessWidget {
     required this.onVideoSelected,
     required this.onFileSelected,
     required this.onAudioSelected,
+    required this.onLocationSelected,
   });
 
   final VoidCallback onPhotoSelected;
   final VoidCallback onVideoSelected;
   final VoidCallback onFileSelected;
   final VoidCallback onAudioSelected;
+  final VoidCallback onLocationSelected;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    
+    // Check if platform supports google location (hide on web/desktop)
+    final bool canShareLocation = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
     return SafeArea(
       child: Container(
@@ -126,6 +133,17 @@ class AttachmentOptionsSheet extends StatelessWidget {
                         onAudioSelected();
                       },
                     ),
+                    if (canShareLocation)
+                      AttachmentOptionCard(
+                        icon: Icons.location_on_rounded,
+                        label: 'Location',
+                        iconColor: const Color(0xFF20C997),
+                        bgColor: const Color(0xFF20C997).withValues(alpha: 0.1),
+                        onTap: () {
+                          Navigator.pop(context);
+                          onLocationSelected();
+                        },
+                      ),
                   ],
                 ),
               ),

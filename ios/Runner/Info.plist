@@ -76,5 +76,9 @@
 	<array>
 		<string>firebase-cloud-messaging</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to location to share your live location in chat.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs access to location to share your live location continuously in the background.</string>
 </dict>
 </plist>

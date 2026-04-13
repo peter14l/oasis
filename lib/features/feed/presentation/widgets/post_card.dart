@@ -15,6 +15,7 @@ import 'package:oasis/widgets/messages/share_to_dm_modal.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/widgets/moderation_dialogs.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:oasis/features/feed/presentation/widgets/polls/poll_widgets.dart';
 
 class PostCard extends StatefulWidget {
   final Post post;
@@ -683,6 +684,18 @@ class _PostCardState extends State<PostCard>
                     TextSpan(text: widget.post.content),
                   ],
                 ),
+              ),
+            ),
+
+          // Poll (if exists)
+          if (widget.post.poll != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: PollDisplay(
+                poll: widget.post.poll!,
+                onVote: (optionId) {
+                  // TODO: Implement voting in PostService/Provider
+                },
               ),
             ),
 

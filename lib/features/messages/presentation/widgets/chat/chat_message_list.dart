@@ -80,10 +80,9 @@ class ChatMessageList extends StatelessWidget {
 
     if (message.messageType == MessageType.text &&
         message.content.startsWith('[INVITE:')) {
-      return Container(
-        padding: const EdgeInsets.all(12),
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        child: Text(message.content),
+      return InviteBubble(
+        content: message.content,
+        isMe: isMe,
       );
     }
 
@@ -405,6 +404,7 @@ class MessageBubble extends StatelessWidget {
         return DocumentBubble(
           fileName: message.mediaFileName ?? 'Document',
           mediaUrl: message.mediaUrl,
+          fileSize: message.mediaFileSize,
           isMe: isMe,
           textColor: textColor,
         );
@@ -425,6 +425,12 @@ class MessageBubble extends StatelessWidget {
           message: message,
           isMe: isMe,
           formatTime: _formatTime,
+        );
+      case MessageType.location:
+        return LocationBubble(
+          message: message,
+          isMe: isMe,
+          conversationId: message.conversationId,
         );
       default:
         return TextBubble(

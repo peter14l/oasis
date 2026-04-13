@@ -15,6 +15,7 @@ import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/widgets/desktop_header.dart';
 import 'package:oasis/widgets/moderation_dialogs.dart';
+import 'package:oasis/core/config/app_config.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userId;
@@ -694,7 +695,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         ),
         const SizedBox(width: 8),
-        if (currentUserId != null)
+        if (currentUserId != null) ...[
           IconButton.filledTonal(
             onPressed: () => _handleMessage(currentUserId, profile.id),
             icon: const Icon(Icons.chat_bubble_outline_rounded, size: 20),
@@ -705,6 +706,24 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ),
           ),
+          const SizedBox(width: 8),
+        ],
+        IconButton.filledTonal(
+          onPressed: () {
+            final shareText = isOwnProfile
+                ? 'Check out my profile on Oasis!'
+                : 'Check out ${profile.username} on Oasis!';
+            final profileUrl = AppConfig.getWebUrl('/profile/${profile.id}');
+            Share.share('$shareText\n$profileUrl');
+          },
+          icon: const Icon(Icons.ios_share_rounded, size: 20),
+          style: IconButton.styleFrom(
+            padding: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(radius),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -1013,7 +1032,13 @@ class _ProfileScreenState extends State<ProfileScreen>
           const SizedBox(width: 12),
         ],
         IconButton.filledTonal(
-          onPressed: () => Share.share('Check out my profile on Oasis!'),
+          onPressed: () {
+            final shareText = isOwnProfile
+                ? 'Check out my profile on Oasis!'
+                : 'Check out ${profile.username} on Oasis!';
+            final profileUrl = AppConfig.getWebUrl('/profile/${profile.id}');
+            Share.share('$shareText\n$profileUrl');
+          },
           icon: const Icon(Icons.ios_share_rounded),
           style: IconButton.styleFrom(
             padding: const EdgeInsets.all(16),

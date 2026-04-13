@@ -47,7 +47,11 @@ class PostRemoteDatasource {
             avatar_url,
             is_verified
           ),
-          communities:community_id (name)
+          communities:community_id (name),
+          polls:polls (
+            *,
+            options:poll_options (*)
+          )
         ''')
             .eq('id', postId)
             .single();

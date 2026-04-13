@@ -13,6 +13,7 @@ import 'package:oasis/services/energy_meter_service.dart';
 import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/services/sharing_service.dart';
+import 'package:oasis/services/deep_link_service.dart';
 import 'package:oasis/services/vault_service.dart';
 import 'package:oasis/services/wellness_service.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
@@ -219,6 +220,7 @@ class _MyAppState extends State<MyApp> {
                     context.read<CircleProvider>().loadCircles(userId);
                     context.read<CanvasProvider>().loadCanvases(userId);
                     SharingService().init(context);
+                    DeepLinkService().init();
                   });
                 } else {
                   WidgetsBinding.instance.addPostFrameCallback((_) {

@@ -182,6 +182,7 @@ class ChatMessagingService {
     String? storyId,
     String? postId,
     Map<String, dynamic>? shareData,
+    Map<String, dynamic>? locationData,
     String mediaViewMode = 'unlimited',
   }) async {
     try {
@@ -208,6 +209,7 @@ class ChatMessagingService {
         'story_id': storyId,
         'post_id': postId,
         'share_data': shareData,
+        'location_data': locationData,
         'media_view_mode': mediaViewMode,
         'encrypted_keys': encryptedKeys,
         'iv': iv,

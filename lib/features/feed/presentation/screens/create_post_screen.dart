@@ -105,6 +105,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 : _captionController.text.trim(),
         mediaFiles: _selectedImages.map((file) => File(file.path)).toList(),
         mediaTypes: List.filled(_selectedImages.length, 'image'),
+        mood: _selectedMood?.name,
+        poll: _attachedPoll,
       );
 
       if (!mounted) return;

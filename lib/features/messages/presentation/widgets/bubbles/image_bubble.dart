@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/features/messages/presentation/screens/image_preview_screen.dart';
 import 'package:oasis/features/messages/presentation/widgets/bubbles/text_bubble.dart';
+import 'package:provider/provider.dart';
+import 'package:oasis/features/messages/presentation/providers/chat_provider.dart';
 
 /// Image message bubble with view-once/allow-replay support.
 /// Extracted from the image branch of _buildMessageBubble() in chat_screen.dart.
@@ -58,7 +60,9 @@ class ImageBubble extends StatelessWidget {
                           ),
                     ),
                   );
-                  // Caller should refresh messages to update view counts
+                  if (messageId != null && context.mounted) {
+                    context.read<ChatProvider>().incrementLocalMediaViewCount(messageId!);
+                  }
                 },
         child: Row(
           mainAxisSize: MainAxisSize.min,

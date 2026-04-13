@@ -68,9 +68,10 @@ class SpotifyService {
       albumArtUrl:
           'https://i.scdn.co/image/ab67616d0000b273f443997576f9d34343d96924',
       previewUrl:
-          'https://p.scdn.co/mp3-preview/9f383e9383938393839383938393839383938393',
+          'https://p.scdn.co/mp3-preview/5f19a15c5e0a3e4d938e2e5bfa2fa1e3ed5def83',
       artworkStyle: 'original',
     ),
+
   ];
 
   static const List<String> artworkStyles = [

@@ -1,4 +1,5 @@
 import 'package:universal_io/io.dart';
+import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -14,6 +15,7 @@ import 'package:oasis/core/utils/haptic_utils.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/services/stories_service.dart';
+import 'package:camera/camera.dart';
 
 import 'package:oasis/widgets/stories/music_picker_sheet.dart';
 import 'package:oasis/features/stories/domain/models/story_entity.dart';
@@ -47,11 +49,29 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   VideoPlayerController? _videoController;
 
   // Camera UI State
+  CameraController? _cameraController;
+  List<CameraDescription> _cameras = [];
+  bool _isCameraInitialized = false;
+  bool _isCameraAvailable = Platform.isAndroid || Platform.isIOS;
   int _selectedModeIndex = 1; // 0: POST, 1: STORY, 2: REEL, 3: LIVE
   bool _isFlashOn = false;
   bool _isFrontCamera = true;
   String _activeTool = 'none'; // 'create', 'boomerang', 'layout', 'handsfree'
   final List<String> _modes = ['POST', 'STORY', 'REEL', 'LIVE'];
+
+  // Video Recording State
+  bool _isRecordingVideo = false;
+  Timer? _recordingTimer;
+  int _recordingSeconds = 0;
+
+  // Hands-Free Countdown State
+  int? _handsFreeCountdown;
+  Timer? _countdownTimer;
+
+  // Layout Mode State
+  List<File?> _layoutImages = [null, null, null, null];
+  bool _isLayoutMode = false;
+  int _layoutStyle = 0; // 0: 2x2, 1: 2x1, 2: 1x2
 
   // Text Overlay State
   List<StoryText> _texts = [];
@@ -275,10 +295,162 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   @override
   void initState() {
     super.initState();
+    if (_isCameraAvailable) {
+      _initCamera();
+    }
+  }
+
+  Future<void> _initCamera() async {
+    try {
+      _cameras = await availableCameras();
+      if (_cameras.isEmpty) {
+        setState(() => _isCameraAvailable = false);
+        return;
+      }
+      await _switchCamera();
+    } catch (e) {
+      debugPrint('Camera init error: $e');
+      if (mounted) setState(() => _isCameraAvailable = false);
+    }
+  }
+
+  Future<void> _switchCamera() async {
+    if (_cameras.isEmpty) return;
+    final description = _isFrontCamera
+        ? _cameras.firstWhere(
+            (c) => c.lensDirection == CameraLensDirection.front,
+            orElse: () => _cameras.first,
+          )
+        : _cameras.firstWhere(
+            (c) => c.lensDirection == CameraLensDirection.back,
+            orElse: () => _cameras.first,
+          );
+
+    final old = _cameraController;
+    final newController = CameraController(
+      description,
+      ResolutionPreset.high,
+      enableAudio: true,
+    );
+    try {
+      await newController.initialize();
+      await old?.dispose();
+      if (mounted) {
+        setState(() {
+          _cameraController = newController;
+          _isCameraInitialized = true;
+        });
+      }
+    } catch (e) {
+      debugPrint('Camera switch error: $e');
+      await newController.dispose();
+    }
+  }
+
+  Future<void> _capturePhoto() async {
+    if (_cameraController == null || !_isCameraInitialized) return;
+    try {
+      HapticUtils.mediumImpact();
+      final xfile = await _cameraController!.takePicture();
+      final file = File(xfile.path);
+      setState(() {
+        _selectedFile = file;
+        _mediaType = 'image';
+        _texts = [];
+        _strokes = [];
+        _currentStroke = [];
+        _selectedFilterIndex = 0;
+        _selectedMusic = null;
+        _activeTool = 'none';
+      });
+    } catch (e) {
+      debugPrint('Capture error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Capture failed: $e')));
+      }
+    }
+  }
+
+  Future<void> _startVideoRecording() async {
+    if (_cameraController == null || !_isCameraInitialized) return;
+    try {
+      await _cameraController!.startVideoRecording();
+      HapticUtils.mediumImpact();
+      setState(() {
+        _isRecordingVideo = true;
+        _recordingSeconds = 0;
+      });
+      _recordingTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+        if (!mounted) {
+          t.cancel();
+          return;
+        }
+        setState(() => _recordingSeconds++);
+        if (_recordingSeconds >= 30) _stopVideoRecording();
+      });
+    } catch (e) {
+      debugPrint('Video record start error: $e');
+    }
+  }
+
+  Future<void> _stopVideoRecording() async {
+    _recordingTimer?.cancel();
+    if (_cameraController == null || !_isRecordingVideo) return;
+    try {
+      final xfile = await _cameraController!.stopVideoRecording();
+      HapticUtils.mediumImpact();
+      final videoFile = File(xfile.path);
+      _videoController?.dispose();
+      _videoController = VideoPlayerController.file(videoFile)
+        ..initialize().then((_) {
+          _videoController!.setLooping(true);
+          _videoController!.play();
+          if (mounted) setState(() {});
+        });
+      setState(() {
+        _isRecordingVideo = false;
+        _recordingSeconds = 0;
+        _selectedFile = videoFile;
+        _mediaType = 'video';
+        _texts = [];
+        _strokes = [];
+        _currentStroke = [];
+        _selectedFilterIndex = 0;
+        _selectedMusic = null;
+        _activeTool = 'none';
+      });
+    } catch (e) {
+      setState(() => _isRecordingVideo = false);
+      debugPrint('Video record stop error: $e');
+    }
+  }
+
+  void _startHandsFreeCountdown() {
+    setState(() {
+      _handsFreeCountdown = 3;
+      _activeTool = 'handsfree';
+    });
+    HapticUtils.selectionClick();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) { t.cancel(); return; }
+      final next = (_handsFreeCountdown ?? 0) - 1;
+      if (next <= 0) {
+        t.cancel();
+        setState(() => _handsFreeCountdown = null);
+        _capturePhoto();
+      } else {
+        setState(() => _handsFreeCountdown = next);
+        HapticUtils.selectionClick();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _recordingTimer?.cancel();
+    _countdownTimer?.cancel();
+    _cameraController?.dispose();
     _captionController.dispose();
     _videoController?.dispose();
     super.dispose();
@@ -1000,8 +1172,122 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     return Container(
       color: Colors.black,
       child: Stack(
+        fit: StackFit.expand,
         children: [
-          // Camera Sidebar (Instagram Tools)
+          // 1. Camera Preview Layer
+          if (_isCameraAvailable && _isCameraInitialized && _cameraController != null)
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(isM3E ? 24 : 16),
+                child: CameraPreview(_cameraController!),
+              ),
+            )
+          else if (!_isCameraAvailable)
+            // Empty state for Windows / Desktop
+            Positioned.fill(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.photo_library_outlined, size: 64, color: Colors.white54),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Select an image to start',
+                      style: TextStyle(
+                        color: Colors.white54,
+                        fontSize: 18,
+                        fontWeight: isM3E ? FontWeight.w600 : FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // 2. Mode-Specific Overlays
+          if (_activeTool == 'create')
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.purple.withValues(alpha: 0.8), Colors.orange.withValues(alpha: 0.8)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: const Center(
+                  child: Text(
+                    'Tap to type',
+                    style: TextStyle(color: Colors.white54, fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ),
+            
+          if (_activeTool == 'layout')
+            Positioned.fill(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.white38, width: 1)))),
+                        Expanded(child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.white38, width: 1)))),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.white38, width: 1)))),
+                        Expanded(child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.white38, width: 1)))),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          if (_activeTool == 'handsfree' && _handsFreeCountdown != null)
+            Positioned.fill(
+              child: Center(
+                child: Text(
+                  '$_handsFreeCountdown',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 120,
+                    fontWeight: FontWeight.w900,
+                    shadows: [Shadow(color: Colors.black54, blurRadius: 20)],
+                  ),
+                ),
+              ),
+            ),
+
+          if (_activeTool == 'boomerang')
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 60,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.all_inclusive_rounded, color: Colors.white, size: 16),
+                      SizedBox(width: 8),
+                      Text('Boomerang', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+          // 3. Camera Sidebar (Instagram Tools)
           Positioned(
             left: 16,
             top: MediaQuery.of(context).size.height * 0.15,
@@ -1011,40 +1297,56 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                   icon: Icons.text_fields_rounded,
                   label: 'Create',
                   isActive: _activeTool == 'create',
-                  onTap: () => setState(() => _activeTool = 'create'),
+                  onTap: () {
+                    HapticUtils.selectionClick();
+                    setState(() => _activeTool = _activeTool == 'create' ? 'none' : 'create');
+                  },
+                  isM3E: isM3E,
+                  colorScheme: Theme.of(context).colorScheme,
                 ),
                 const SizedBox(height: 20),
-                _buildCameraSideTool(
-                  icon: Icons.all_inclusive_rounded,
-                  label: 'Boomerang',
-                  isActive: _activeTool == 'boomerang',
-                  onTap: () => setState(() => _activeTool = 'boomerang'),
-                ),
-                const SizedBox(height: 20),
-                _buildCameraSideTool(
-                  icon: Icons.grid_view_rounded,
-                  label: 'Layout',
-                  isActive: _activeTool == 'layout',
-                  onTap: () => setState(() => _activeTool = 'layout'),
-                ),
-                const SizedBox(height: 20),
-                _buildCameraSideTool(
-                  icon: Icons.timer_outlined,
-                  label: 'Hands-free',
-                  isActive: _activeTool == 'handsfree',
-                  onTap: () => setState(() => _activeTool = 'handsfree'),
-                ),
-                const SizedBox(height: 20),
-                _buildCameraSideTool(
-                  icon: Icons.keyboard_arrow_down_rounded,
-                  label: '',
-                  onTap: () {},
-                ),
+                if (_isCameraAvailable) ...[
+                  _buildCameraSideTool(
+                    icon: Icons.all_inclusive_rounded,
+                    label: 'Boomerang',
+                    isActive: _activeTool == 'boomerang',
+                    onTap: () {
+                      HapticUtils.selectionClick();
+                      setState(() => _activeTool = _activeTool == 'boomerang' ? 'none' : 'boomerang');
+                    },
+                    isM3E: isM3E,
+                    colorScheme: Theme.of(context).colorScheme,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildCameraSideTool(
+                    icon: Icons.grid_view_rounded,
+                    label: 'Layout',
+                    isActive: _activeTool == 'layout',
+                    onTap: () {
+                      HapticUtils.selectionClick();
+                      setState(() => _activeTool = _activeTool == 'layout' ? 'none' : 'layout');
+                    },
+                    isM3E: isM3E,
+                    colorScheme: Theme.of(context).colorScheme,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildCameraSideTool(
+                    icon: Icons.timer_outlined,
+                    label: 'Hands-free',
+                    isActive: _activeTool == 'handsfree',
+                    onTap: () {
+                      HapticUtils.selectionClick();
+                      setState(() => _activeTool = _activeTool == 'handsfree' ? 'none' : 'handsfree');
+                    },
+                    isM3E: isM3E,
+                    colorScheme: Theme.of(context).colorScheme,
+                  ),
+                ],
               ],
             ),
           ),
 
-          // Top Controls
+          // 4. Top Controls
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,
             left: 0,
@@ -1054,31 +1356,27 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(
-                      Icons.settings_outlined,
-                      color: Colors.white,
-                      size: 28,
-                    ),
+                    icon: const Icon(Icons.settings_outlined, color: Colors.white, size: 28),
                     onPressed: () {},
                   ),
                   const Spacer(),
-                  IconButton(
-                    icon: Icon(
-                      _isFlashOn
-                          ? Icons.flash_on_rounded
-                          : Icons.flash_off_rounded,
-                      color: Colors.white,
-                      size: 28,
+                  if (_isCameraAvailable)
+                    IconButton(
+                      icon: Icon(
+                        _isFlashOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                      onPressed: () async {
+                        if (_cameraController == null) return;
+                        final newMode = _isFlashOn ? FlashMode.off : FlashMode.torch;
+                        await _cameraController!.setFlashMode(newMode);
+                        setState(() => _isFlashOn = !_isFlashOn);
+                      },
                     ),
-                    onPressed: () => setState(() => _isFlashOn = !_isFlashOn),
-                  ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(
-                      Icons.close_rounded,
-                      color: Colors.white,
-                      size: 32,
-                    ),
+                    icon: const Icon(Icons.close_rounded, color: Colors.white, size: 32),
                     onPressed: () => context.pop(),
                   ),
                 ],
@@ -1086,7 +1384,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             ),
           ),
 
-          // Bottom Controls (Gallery, Shutter, Flip)
+          // 5. Bottom Controls (Gallery, Shutter, Flip)
           Positioned(
             bottom: 100,
             left: 0,
@@ -1094,7 +1392,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                // Gallery Preview
+                // Gallery Picker
                 GestureDetector(
                   onTap: () => _pickMedia(ImageSource.gallery),
                   child: Container(
@@ -1103,10 +1401,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.white, width: 2),
                       borderRadius: BorderRadius.circular(8),
+                      // Fake gallery thumbnail for preview
                       image: const DecorationImage(
-                        image: CachedNetworkImageProvider(
-                          'https://picsum.photos/100',
-                        ),
+                        image: CachedNetworkImageProvider('https://picsum.photos/100'),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -1114,42 +1411,60 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 ),
 
                 // Shutter Button
-                GestureDetector(
-                  onTap: () => _pickMedia(ImageSource.camera),
-                  onLongPress:
-                      () => _pickMedia(ImageSource.camera, isVideo: true),
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
-                    ),
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
+                if (_isCameraAvailable || _activeTool == 'create')
+                  GestureDetector(
+                    onTap: () {
+                      if (_activeTool == 'handsfree') {
+                        _startHandsFreeCountdown();
+                      } else {
+                        _capturePhoto();
+                      }
+                    },
+                    onLongPress: (_activeTool == 'create' || _activeTool == 'layout') ? null : _startVideoRecording,
+                    onLongPressUp: _isRecordingVideo ? _stopVideoRecording : null,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: _isRecordingVideo ? 100 : 80,
+                      height: _isRecordingVideo ? 100 : 80,
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
+                        border: Border.all(
+                          color: _isRecordingVideo ? Colors.red : Colors.white, 
+                          width: _isRecordingVideo ? 8 : 4
+                        ),
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _isRecordingVideo ? Colors.red : Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: _isRecordingVideo 
+                          ? Center(child: Text('$_recordingSeconds', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))
+                          : null,
                       ),
                     ),
-                  ),
-                ),
+                  )
+                else 
+                  const SizedBox(width: 80),
 
                 // Flip Camera
-                IconButton(
-                  icon: const Icon(
-                    Icons.flip_camera_ios_rounded,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                  onPressed:
-                      () => setState(() => _isFrontCamera = !_isFrontCamera),
-                ),
+                if (_isCameraAvailable)
+                  IconButton(
+                    icon: const Icon(Icons.flip_camera_ios_rounded, color: Colors.white, size: 32),
+                    onPressed: () {
+                      HapticUtils.lightImpact();
+                      setState(() => _isFrontCamera = !_isFrontCamera);
+                      _switchCamera();
+                    },
+                  )
+                else
+                  const SizedBox(width: 32),
               ],
             ),
           ),
 
-          // Mode Selector
+          // 6. Mode Selector
           Positioned(
             bottom: 40,
             left: 0,
@@ -1158,16 +1473,14 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               height: 40,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width / 2 - 40,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width / 2 - 40),
                 itemCount: _modes.length,
                 itemBuilder: (context, index) {
                   final isSelected = _selectedModeIndex == index;
                   return GestureDetector(
                     onTap: () {
                       setState(() => _selectedModeIndex = index);
-                      HapticFeedback.lightImpact();
+                      HapticUtils.lightImpact();
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1176,8 +1489,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                         _modes[index],
                         style: TextStyle(
                           color: isSelected ? Colors.white : Colors.white60,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                           fontSize: 14,
                           letterSpacing: 0.5,
                         ),
@@ -1198,6 +1510,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     required String label,
     bool isActive = false,
     required VoidCallback onTap,
+    bool isM3E = false,
+    ColorScheme? colorScheme,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -1206,16 +1520,29 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: isActive ? Colors.white24 : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
+              color: isActive 
+                  ? (isM3E && colorScheme != null ? colorScheme.primary : Colors.white)
+                  : Colors.black26,
+              borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
             ),
-            child: Icon(icon, color: Colors.white, size: 28),
+            child: Icon(
+              icon, 
+              color: isActive 
+                  ? (isM3E && colorScheme != null ? colorScheme.onPrimary : Colors.black)
+                  : Colors.white, 
+              size: 24,
+            ),
           ),
           if (label.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
               label,
-              style: const TextStyle(color: Colors.white, fontSize: 10),
+              style: TextStyle(
+                color: Colors.white, 
+                fontSize: 11,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                shadows: const [Shadow(color: Colors.black54, blurRadius: 4)],
+              ),
             ),
           ],
         ],
@@ -1824,22 +2151,48 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(isM3E ? 16 : 20),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(isM3E ? 16 : 20),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-              alignment: Alignment.center,
-              padding: const EdgeInsets.all(12),
-              color:
-                  isM3E ? Colors.white.withValues(alpha: 0.2) : Colors.white10,
-              child: Icon(icon, color: Colors.white, size: 24),
+    if (isM3E) {
+      // M3E: use filledTonal IconButton with glassmorphism tint
+      return SizedBox(
+        width: 48,
+        height: 48,
+        child: IconButton.filledTonal(
+          onPressed: onTap,
+          icon: Icon(icon, size: 22),
+          style: IconButton.styleFrom(
+            backgroundColor: Colors.white.withValues(alpha: 0.20),
+            foregroundColor: Colors.white,
+            minimumSize: const Size(48, 48),
+            maximumSize: const Size(48, 48),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Non-M3E: classic blurred circle button, height strictly constrained
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: Material(
+        color: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: BackdropFilter(
+              filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                alignment: Alignment.center,
+                color: Colors.white10,
+                child: Icon(icon, color: Colors.white, size: 24),
+              ),
             ),
           ),
         ),

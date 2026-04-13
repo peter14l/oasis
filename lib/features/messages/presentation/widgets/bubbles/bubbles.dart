@@ -7,3 +7,5 @@ export 'system_message_bubble.dart';
 export 'text_bubble.dart';
 export 'video_bubble.dart';
 export 'voice_bubble.dart';
+export 'location_bubble.dart';
+export 'invite_bubble.dart';

@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:oasis/features/feed/domain/models/enhanced_poll.dart';
 
 part 'post.freezed.dart';
 part 'post.g.dart';
@@ -27,6 +28,7 @@ abstract class Post with _$Post {
     @Default(false) @JsonKey(name: 'isAd') bool isAd,
     @Default(false) @JsonKey(name: 'isVerified') bool isVerified,
     String? mood,
+    EnhancedPoll? poll,
   }) = _Post;
 
   const Post._();
@@ -54,6 +56,17 @@ abstract class Post with _$Post {
     normalized['isAd'] = json['is_ad'] ?? json['isAd'] ?? false;
     normalized['isVerified'] =
         json['is_verified'] ?? json['isVerified'] ?? false;
+
+    // Handle nested poll data from Supabase
+    if (json['polls'] != null) {
+      final pollsList = json['polls'] as List;
+      if (pollsList.isNotEmpty) {
+        normalized['poll'] = pollsList.first;
+      }
+    } else if (json['poll'] != null) {
+      normalized['poll'] = json['poll'];
+    }
+
     return normalized;
   }
 }

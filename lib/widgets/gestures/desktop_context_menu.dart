@@ -50,7 +50,7 @@ class DesktopContextMenu {
     required BuildContext context,
     required List<MenuItem> items,
     RelativeRect? position,
-    Size size,
+    Size? size,
   }) async {
     if (position == null) {
       // Default to center of the widget
@@ -217,7 +217,7 @@ class SecondaryTapHandler extends StatelessWidget {
     if (box == null) return;
 
     final RenderBox overlay =
-        Navigator.of(context).overlayContext!.findRenderObject() as RenderBox;
+        Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
 
     final RelativeRect position2 = RelativeRect.fromRect(
       Rect.fromCenter(center: position, width: 0, height: 0),

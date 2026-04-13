@@ -47,6 +47,9 @@ class SupabaseConfig {
   static const String typingIndicatorsTable = 'typing_indicators';
   static const String storiesTable = 'stories';
   static const String timeCapsulesTable = 'time_capsules';
+  static const String pollsTable = 'polls';
+  static const String pollOptionsTable = 'poll_options';
+  static const String pollVotesTable = 'poll_votes';
 
   // Function names
   static const String getFeedPostsFn = 'get_feed_posts';

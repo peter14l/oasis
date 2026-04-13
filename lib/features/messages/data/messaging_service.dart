@@ -156,6 +156,7 @@ class MessagingService extends ChangeNotifier {
     String? storyId,
     String? postId,
     Map<String, dynamic>? shareData,
+    Map<String, dynamic>? locationData,
     String mediaViewMode = 'unlimited',
   }) => _chatMessagingService.sendMessage(
     conversationId: conversationId,
@@ -177,6 +178,7 @@ class MessagingService extends ChangeNotifier {
     storyId: storyId,
     postId: postId,
     shareData: shareData,
+    locationData: locationData,
     mediaViewMode: mediaViewMode,
   );
 
