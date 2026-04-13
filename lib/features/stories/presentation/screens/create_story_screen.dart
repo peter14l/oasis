@@ -39,6 +39,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   bool _isDrawingMode = false;
   bool _isFilterPickerVisible = false;
   StoryMusicEntity? _selectedMusic;
+  Offset _musicPosition = const Offset(0.5, 0.5);
+  bool _isDraggingMusic = false;
 
   // New Instagram Features State
   bool _shareToCloseFriends = false;
@@ -61,6 +63,28 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   final TextAlign _textAlign = TextAlign.center;
   Color _textColor = Colors.white;
   int _selectedFontIndex = 0;
+
+  // Font style options for text overlay
+  final List<Map<String, dynamic>> _fontStyles = [
+    {'name': 'Classic', 'fontFamily': null, 'fontWeight': FontWeight.bold},
+    {'name': 'Modern', 'fontFamily': 'Roboto', 'fontWeight': FontWeight.w900},
+    {
+      'name': 'Typewriter',
+      'fontFamily': 'Courier',
+      'fontWeight': FontWeight.bold,
+    },
+    {
+      'name': 'Neon',
+      'fontFamily': null,
+      'fontWeight': FontWeight.bold,
+      'glow': true,
+    },
+    {
+      'name': 'Strong',
+      'fontFamily': 'Arial Black',
+      'fontWeight': FontWeight.w900,
+    },
+  ];
 
   // Drawing State
   List<List<DrawingPoint>> _strokes = [];
@@ -252,16 +276,6 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Feature is still undergoing polish. Will be released at the earliest'),
-          ),
-        );
-      }
-    });
   }
 
   @override
@@ -414,7 +428,16 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         file: finalFile,
         mediaType: _mediaType,
         musicId: _selectedMusic?.trackId,
-        musicMetadata: _selectedMusic?.toJson(),
+        musicMetadata:
+            _selectedMusic != null
+                ? {
+                  ..._selectedMusic!.toJson(),
+                  'music_position': {
+                    'x': _musicPosition.dx,
+                    'y': _musicPosition.dy,
+                  },
+                }
+                : null,
         interactiveMetadata: interactiveMetadata,
       );
 
@@ -725,6 +748,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                                             ? FontWeight.w900
                                             : FontWeight.bold,
                                     letterSpacing: isM3E ? -0.5 : 0,
+                                    fontFamily:
+                                        _fontStyles[t.fontIndex]['fontFamily']
+                                            as String?,
                                   ),
                                 ),
                               ),
@@ -960,13 +986,19 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.settings_outlined, color: Colors.white, size: 28),
+                    icon: const Icon(
+                      Icons.settings_outlined,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                     onPressed: () {},
                   ),
                   const Spacer(),
                   IconButton(
                     icon: Icon(
-                      _isFlashOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
+                      _isFlashOn
+                          ? Icons.flash_on_rounded
+                          : Icons.flash_off_rounded,
                       color: Colors.white,
                       size: 28,
                     ),
@@ -974,7 +1006,11 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, color: Colors.white, size: 32),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
                     onPressed: () => context.pop(),
                   ),
                 ],
@@ -1000,7 +1036,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                       border: Border.all(color: Colors.white, width: 2),
                       borderRadius: BorderRadius.circular(8),
                       image: const DecorationImage(
-                        image: CachedNetworkImageProvider('https://picsum.photos/100'),
+                        image: CachedNetworkImageProvider(
+                          'https://picsum.photos/100',
+                        ),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -1010,7 +1048,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 // Shutter Button
                 GestureDetector(
                   onTap: () => _pickMedia(ImageSource.camera),
-                  onLongPress: () => _pickMedia(ImageSource.camera, isVideo: true),
+                  onLongPress:
+                      () => _pickMedia(ImageSource.camera, isVideo: true),
                   child: Container(
                     width: 80,
                     height: 80,
@@ -1030,8 +1069,13 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
 
                 // Flip Camera
                 IconButton(
-                  icon: const Icon(Icons.flip_camera_ios_rounded, color: Colors.white, size: 32),
-                  onPressed: () => setState(() => _isFrontCamera = !_isFrontCamera),
+                  icon: const Icon(
+                    Icons.flip_camera_ios_rounded,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                  onPressed:
+                      () => setState(() => _isFrontCamera = !_isFrontCamera),
                 ),
               ],
             ),
@@ -1046,7 +1090,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               height: 40,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width / 2 - 40),
+                padding: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width / 2 - 40,
+                ),
                 itemCount: _modes.length,
                 itemBuilder: (context, index) {
                   final isSelected = _selectedModeIndex == index;
@@ -1062,7 +1108,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                         _modes[index],
                         style: TextStyle(
                           color: isSelected ? Colors.white : Colors.white60,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
                           fontSize: 14,
                           letterSpacing: 0.5,
                         ),
@@ -1196,6 +1243,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               ),
             ),
             _buildColorPicker(),
+            _buildFontStylePicker(),
           ],
         ),
       ),
@@ -1233,6 +1281,49 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 ),
               ),
             ),
+      ),
+    );
+  }
+
+  Widget _buildFontStylePicker() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
+    return Container(
+      height: 50,
+      margin: const EdgeInsets.only(bottom: 20),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: _fontStyles.length,
+        itemBuilder: (context, index) {
+          final isSelected = _selectedFontIndex == index;
+          final fontStyle = _fontStyles[index];
+          return GestureDetector(
+            onTap: () => setState(() => _selectedFontIndex = index),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.white : Colors.white12,
+                borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
+                border: Border.all(
+                  color: isSelected ? Colors.white : Colors.transparent,
+                  width: 2,
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                fontStyle['name'] as String,
+                style: TextStyle(
+                  color: isSelected ? Colors.black : Colors.white,
+                  fontSize: 13,
+                  fontWeight: fontStyle['fontWeight'] as FontWeight,
+                  fontFamily: fontStyle['fontFamily'] as String?,
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
