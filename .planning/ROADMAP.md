@@ -104,7 +104,7 @@ Plans:
 
 ### Plans:
 - [ ] 12-01-PLAN.md — Text overlay system (multi-text, background modes, font styles)
-- [ ] 12-02-PLAN.md — Music picker fix and visual overhaul
+- [x] 12-02-PLAN.md — Music picker fix and visual overhaul
 - [ ] 12-03-PLAN.md — Draggable music sticker + instant stories refresh
 - [ ] 12-04-PLAN.md — M3E icons + adaptive layout
 
