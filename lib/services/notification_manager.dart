@@ -120,7 +120,7 @@ class NotificationManager {
         );
         return;
       }
-      
+
       // If it's a call, we might still want to block it if allowCallsDuringZen is false.
       // However, we don't have direct access to WellnessService here easily without circular dependencies.
       // For now, we'll let all calls pass through when paused, as per the mandate "Only Calls are allowed to pass through".
@@ -314,11 +314,10 @@ class NotificationManager {
 
     // Create the default channel for Android
     if (Platform.isAndroid) {
-      final androidPlugin =
-          _localNotificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin
-              >();
+      final androidPlugin = _localNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
 
       await androidPlugin?.createNotificationChannel(
         const AndroidNotificationChannel(
@@ -338,7 +337,10 @@ class NotificationManager {
   Future<void> _initFCM() async {
     final messaging = FirebaseMessaging.instance;
 
-    await messaging.requestPermission(alert: true, badge: true, sound: true);
+    // Request permission on mobile platforms only
+    if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) {
+      await messaging.requestPermission(alert: true, badge: true, sound: true);
+    }
 
     try {
       final token = await messaging.getToken();
@@ -368,7 +370,9 @@ class NotificationManager {
       debugPrint('Failed to retrieve or save FCM token: $e');
     }
 
+    // Foreground message handler - works when app is in foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      debugPrint('FCM onMessage received: ${message.messageId}');
       if (message.notification != null) {
         showNotification(
           title: message.notification!.title ?? 'New Notification',
@@ -379,15 +383,24 @@ class NotificationManager {
       }
     });
 
+    // Handle when user taps notification to open app
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      debugPrint('FCM onMessageOpenedApp: ${message.messageId}');
       _handleNotificationTap(jsonEncode(message.data));
     });
 
     // Check if app was opened from terminated state
     final RemoteMessage? initialMessage = await messaging.getInitialMessage();
     if (initialMessage != null) {
+      debugPrint('FCM initialMessage: ${initialMessage.messageId}');
       _handleNotificationTap(jsonEncode(initialMessage.data));
     }
+
+    // Windows-specific: when in system tray, we need to ensure we're listening
+    // The app must remain running in the system tray for FCM notifications to work
+    debugPrint(
+      'FCM initialized - app must run in system tray for background notifications on Windows',
+    );
   }
 
   void _handleNotificationTap(String? payload) {
