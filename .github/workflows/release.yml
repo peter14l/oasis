@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build Signed APKs
+  build-android:
+    name: Build Signed APKs (Android)
     runs-on: ubuntu-latest
 
     steps:
@@ -68,3 +68,54 @@ jobs:
           path: |
             build/app/outputs/flutter-apk/*-signed.apk
           retention-days: 7
+
+  build-windows:
+    name: Build Windows MSIX
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Create .env from secrets
+        run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
+          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
+          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
+          echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID }}" >> .env
+          echo "GIPHY_WEB_KEY=${{ secrets.GIPHY_WEB_KEY }}" >> .env
+          echo "GIPHY_ANDROID_KEY=${{ secrets.GIPHY_ANDROID_KEY }}" >> .env
+          echo "GIPHY_IOS_KEY=${{ secrets.GIPHY_IOS_KEY }}" >> .env
+          echo "GIPHY_WINDOWS_KEY=${{ secrets.GIPHY_WINDOWS_KEY }}" >> .env
+          echo "GIPHY_MACOS_KEY=${{ secrets.GIPHY_MACOS_KEY }}" >> .env
+
+      - name: Disable sentry-native (avoid crashpad 403 error)
+        run: |
+          echo "SENTRY_NATIVE_BACKEND=none" >> .env
+
+      - name: Build Windows
+        run: flutter build windows --release --dart-define-from-file=".env"
+        env:
+          SENTRY_NATIVE_BACKEND: none
+          SENTRY_BACKEND: none
+
+      - name: Create MSIX
+        run: dart run msix:create --build-windows false
+
+      - name: Upload MSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-msix
+          path: |
+            build/windows/x64/runner/Release/*.msix
+            test_certificate.pfx
+        if: always()
