@@ -47,9 +47,17 @@ jobs:
           echo "GIPHY_WINDOWS_KEY=${{ secrets.GIPHY_WINDOWS_KEY }}" >> .env
           echo "GIPHY_MACOS_KEY=${{ secrets.GIPHY_MACOS_KEY }}" >> .env
 
+      - name: Decode Keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
+
       - name: Build Release APKs (Split per ABI)
         run: |
           flutter build apk --release --split-per-abi --dart-define-from-file=".env"
+        env:
+          RELEASE_STORE_FILE: release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Sign APKs
         uses: r0adkll/sign-android-release@v1

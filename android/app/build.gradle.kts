@@ -38,16 +38,16 @@ android {
         create("release") {
             // Used for local release builds
             // CI uses r0adkll/sign-android-release action instead
-            val storeFile = System.getenv("RELEASE_STORE_FILE")
-            val storePass = System.getenv("RELEASE_STORE_PASSWORD")
-            val keyAlias = System.getenv("RELEASE_KEY_ALIAS")
-            val keyPass = System.getenv("RELEASE_KEY_PASSWORD")
+            val envStoreFile = System.getenv("RELEASE_STORE_FILE")
+            val envStorePass = System.getenv("KEYSTORE_PASSWORD")
+            val envKeyAlias = System.getenv("KEY_ALIAS")
+            val envKeyPass = System.getenv("KEY_PASSWORD")
 
-            if (!storeFile.isNullOrEmpty()) {
-                storeFile = file(storeFile)
-                storePassword = storePass
-                this.keyAlias = keyAlias
-                keyPassword = keyPass
+            if (!envStoreFile.isNullOrEmpty()) {
+                storeFile = file(envStoreFile)
+                storePassword = envStorePass
+                keyAlias = envKeyAlias
+                keyPassword = envKeyPass
                 storeType = "PKCS12"
             }
         }
