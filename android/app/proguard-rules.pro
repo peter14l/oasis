@@ -1,24 +1,53 @@
-# Flutter wrapper rules
+# Flutter wrapper rules - keep Flutter engine classes
 -keep class io.flutter.app.** { *; }
 -keep class io.flutter.plugin.**  { *; }
 -keep class io.flutter.util.**  { *; }
 -keep class io.flutter.view.**  { *; }
 -keep class io.flutter.**  { *; }
 -keep class io.flutter.plugins.**  { *; }
+-keep class io.flutter.embedding.engine.** { *; }
+
+# Freezed - Keep generated freezed classes
+-keep class **.freezed.** { *; }
+-keepclassmembers class ** {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# JSON Serializable - Keep generated .g.dart classes  
+-keep class **.g.** { *; }
+-keepclassmembers class ** {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# Google Guava - Required for shared_preferences and other plugins
+-keep class com.google.common.reflect.TypeToken { *; }
+-keep class * extends com.google.common.reflect.TypeToken { *; }
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken { *; }
 
 # Supabase / PostgREST / GoTrue / Serialization
 -keep class io.supabase.** { *; }
 -keep class com.oasis.app.models.** { *; }
 -keepclassmembers class com.oasis.app.models.** { *; }
--keepattributes Signature,Annotation,EnclosingMethod,InnerClasses
+-keepattributes Signature,Annotation,EnclosingMethod,InnerClasses,GenericSignature
 -dontwarn moxy.**
 -dontwarn com.google.errorprone.annotations.**
 
 # Firebase
 -keep class com.google.firebase.** { *; }
 -keep class com.google.android.gms.** { *; }
+-keep class com.google.android.play.core.** { *; }
 -dontwarn com.google.firebase.**
 -dontwarn com.google.android.gms.**
+
+# Sentry
+-keep class io.sentry.** { *; }
+-dontwarn io.sentry.**
+
+# Keep method channels for plugins
+-keepclassmembers class * {
+    @io.flutter.plugin.common.MethodChannelHandler <methods>;
+}
 
 # Sentry / Compose
 -dontwarn androidx.compose.**

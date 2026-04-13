@@ -36,17 +36,18 @@ android {
 
     signingConfigs {
         create("release") {
-            // Read from environment variables if they exist (for CI)
-            val envFile = System.getenv("RELEASE_STORE_FILE")
-            val envStorePass = System.getenv("RELEASE_STORE_PASSWORD")
-            val envKeyAlias = System.getenv("RELEASE_KEY_ALIAS")
-            val envKeyPass = System.getenv("RELEASE_KEY_PASSWORD")
+            // Used for local release builds
+            // CI uses r0adkll/sign-android-release action instead
+            val storeFile = System.getenv("RELEASE_STORE_FILE")
+            val storePass = System.getenv("RELEASE_STORE_PASSWORD")
+            val keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+            val keyPass = System.getenv("RELEASE_KEY_PASSWORD")
 
-            if (!envFile.isNullOrEmpty()) {
-                storeFile = file(envFile)
-                storePassword = envStorePass
-                keyAlias = envKeyAlias
-                keyPassword = envKeyPass
+            if (!storeFile.isNullOrEmpty()) {
+                storeFile = file(storeFile)
+                storePassword = storePass
+                this.keyAlias = keyAlias
+                keyPassword = keyPass
                 storeType = "PKCS12"
             }
         }
@@ -54,17 +55,18 @@ android {
 
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             
-            // Use debug signing for CI (no keystore) or local builds
-            val releaseStoreFile = System.getenv("RELEASE_STORE_FILE")
-            val useDebugSigning = System.getenv("DEBUG_SIGNING") == "true" || releaseStoreFile.isNullOrEmpty()
-            
-            signingConfig = if (useDebugSigning) {
-                signingConfigs.getByName("debug")
-            } else {
+            // Use release signing config for local builds
+            // CI workflow signs with r0adkll/sign-android-release action
+            val hasKeystore = !System.getenv("RELEASE_STORE_FILE").isNullOrEmpty()
+            signingConfig = if (hasKeystore) {
                 signingConfigs.getByName("release")
+            } else {
+                // For CI: build unsigned, sign later with action
+                // For local: needs keystore env vars or use debug
+                signingConfigs.getByName("debug")
             }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
