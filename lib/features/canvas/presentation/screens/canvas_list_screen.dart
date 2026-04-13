@@ -59,14 +59,16 @@ class _CanvasListScreenState extends State<CanvasListScreen> {
                         children: [
                           Text(
                             'Canvas',
-                            style: (isDesktop
-                                    ? theme.textTheme.headlineLarge
-                                    : theme.textTheme.headlineMedium)
-                                ?.copyWith(
-                                  fontWeight:
-                                      isM3E ? FontWeight.w900 : FontWeight.w900,
-                                  letterSpacing: isM3E ? -1.5 : -1,
-                                ),
+                            style:
+                                (isDesktop
+                                        ? theme.textTheme.headlineLarge
+                                        : theme.textTheme.headlineMedium)
+                                    ?.copyWith(
+                                      fontWeight: isM3E
+                                          ? FontWeight.w900
+                                          : FontWeight.w900,
+                                      letterSpacing: isM3E ? -1.5 : -1,
+                                    ),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -126,18 +128,18 @@ class _CanvasListScreenState extends State<CanvasListScreen> {
                     crossAxisCount: isDesktop ? 4 : 2,
                     mainAxisSpacing: isDesktop ? 20 : 12,
                     crossAxisSpacing: isDesktop ? 20 : 12,
-                    childAspectRatio: 0.85,
+                    childAspectRatio: isDesktop ? 0.85 : 0.85,
                   ),
                   itemCount: provider.canvases.length,
                   itemBuilder: (context, i) {
                     final canvas = provider.canvases[i];
                     return _CanvasTileWrapper(
                       canvas: canvas,
-                      onTap:
-                          () => context.pushNamed(
-                            'canvas_detail',
-                            pathParameters: {'canvasId': canvas.id},
-                          ),
+                      isDesktop: isDesktop,
+                      onTap: () => context.pushNamed(
+                        'canvas_detail',
+                        pathParameters: {'canvasId': canvas.id},
+                      ),
                     );
                   },
                 ),
@@ -210,8 +212,13 @@ class _EmptyCanvasState extends StatelessWidget {
 class _CanvasTileWrapper extends StatelessWidget {
   final OasisCanvas canvas;
   final VoidCallback onTap;
+  final bool isDesktop;
 
-  const _CanvasTileWrapper({required this.canvas, required this.onTap});
+  const _CanvasTileWrapper({
+    required this.canvas,
+    required this.onTap,
+    this.isDesktop = false,
+  });
 
   void _showContextMenu(BuildContext context, Offset position) async {
     final theme = Theme.of(context);
@@ -295,24 +302,23 @@ class _CanvasTileWrapper extends StatelessWidget {
     } else if (result == 'delete' && context.mounted) {
       final confirmed = await showDialog<bool>(
         context: context,
-        builder:
-            (context) => AlertDialog(
-              title: const Text('Delete Canvas?'),
-              content: const Text(
-                'This will permanently delete this canvas. This action cannot be undone.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  style: TextButton.styleFrom(foregroundColor: Colors.red),
-                  child: const Text('Delete'),
-                ),
-              ],
+        builder: (context) => AlertDialog(
+          title: const Text('Delete Canvas?'),
+          content: const Text(
+            'This will permanently delete this canvas. This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
             ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
       );
 
       if (confirmed == true && context.mounted) {
@@ -321,24 +327,21 @@ class _CanvasTileWrapper extends StatelessWidget {
     } else if (result == 'leave' && context.mounted) {
       final confirmed = await showDialog<bool>(
         context: context,
-        builder:
-            (context) => AlertDialog(
-              title: const Text('Leave Canvas?'),
-              content: const Text(
-                'Are you sure you want to leave this canvas?',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  style: TextButton.styleFrom(foregroundColor: Colors.red),
-                  child: const Text('Leave'),
-                ),
-              ],
+        builder: (context) => AlertDialog(
+          title: const Text('Leave Canvas?'),
+          content: const Text('Are you sure you want to leave this canvas?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
             ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Leave'),
+            ),
+          ],
+        ),
       );
 
       if (confirmed == true && context.mounted) {
@@ -349,13 +352,21 @@ class _CanvasTileWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Desktop: right-click for context menu
+    if (isDesktop) {
+      return GestureDetector(
+        onSecondaryTapDown: (details) =>
+            _showContextMenu(context, details.globalPosition),
+        child: CanvasListTile(canvas: canvas, onTap: onTap, isDesktop: true),
+      );
+    }
+    // Mobile: long-press for context menu
     return GestureDetector(
-      onSecondaryTapDown:
-          (details) => _showContextMenu(context, details.globalPosition),
-      onLongPressStart:
-          (details) => _showContextMenu(context, details.globalPosition),
+      onSecondaryTapDown: (details) =>
+          _showContextMenu(context, details.globalPosition),
+      onLongPressStart: (details) =>
+          _showContextMenu(context, details.globalPosition),
       child: CanvasListTile(canvas: canvas, onTap: onTap),
     );
   }
 }
-

@@ -134,10 +134,9 @@ class _ProfileScreenState extends State<ProfileScreen>
 
     return Consumer<ProfileProvider>(
       builder: (context, profileProvider, child) {
-        final profile =
-            isOwnProfile
-                ? profileProvider.currentProfile
-                : profileProvider.viewedProfile;
+        final profile = isOwnProfile
+            ? profileProvider.currentProfile
+            : profileProvider.viewedProfile;
 
         if (profileProvider.isLoading && profile == null) {
           return const Scaffold(
@@ -182,10 +181,9 @@ class _ProfileScreenState extends State<ProfileScreen>
     bool isM3E,
     bool disableTransparency,
   ) {
-    final desktopBgColor =
-        disableTransparency
-            ? colorScheme.surface
-            : colorScheme.surface.withValues(alpha: 0.4);
+    final desktopBgColor = disableTransparency
+        ? colorScheme.surface
+        : colorScheme.surface.withValues(alpha: 0.4);
 
     return Padding(
       padding: const EdgeInsets.all(12),
@@ -197,9 +195,19 @@ class _ProfileScreenState extends State<ProfileScreen>
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
-          child:
-              disableTransparency
-                  ? _buildDesktopContent(
+          child: disableTransparency
+              ? _buildDesktopContent(
+                  profile,
+                  theme,
+                  colorScheme,
+                  profileProvider,
+                  userId,
+                  isM3E,
+                  disableTransparency,
+                )
+              : BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: _buildDesktopContent(
                     profile,
                     theme,
                     colorScheme,
@@ -207,19 +215,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                     userId,
                     isM3E,
                     disableTransparency,
-                  )
-                  : BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: _buildDesktopContent(
-                      profile,
-                      theme,
-                      colorScheme,
-                      profileProvider,
-                      userId,
-                      isM3E,
-                      disableTransparency,
-                    ),
                   ),
+                ),
         ),
       ),
     );
@@ -239,6 +236,8 @@ class _ProfileScreenState extends State<ProfileScreen>
         DesktopHeader(
           title: profile.username,
           subtitle: profile.fullName ?? 'Oasis Member',
+          showBackButton: true,
+          onBack: () => context.pop(),
           actions: [
             if (isOwnProfile)
               IconButton(
@@ -333,27 +332,28 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ),
             child: ClipRRect(
-              borderRadius:
-                  isM3E ? BorderRadius.circular(28) : BorderRadius.circular(60),
+              borderRadius: isM3E
+                  ? BorderRadius.circular(28)
+                  : BorderRadius.circular(60),
               child: Container(
                 width: 120,
                 height: 120,
                 color: colorScheme.surface,
                 child:
                     profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
-                        ? CachedNetworkImage(
-                          imageUrl: profile.avatarUrl!,
-                          fit: BoxFit.cover,
-                        )
-                        : Center(
-                          child: Text(
-                            profile.username[0].toUpperCase(),
-                            style: TextStyle(
-                              fontSize: 32,
-                              color: colorScheme.primary,
-                            ),
+                    ? CachedNetworkImage(
+                        imageUrl: profile.avatarUrl!,
+                        fit: BoxFit.cover,
+                      )
+                    : Center(
+                        child: Text(
+                          profile.username[0].toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 32,
+                            color: colorScheme.primary,
                           ),
                         ),
+                      ),
               ),
             ),
           ),
@@ -519,19 +519,18 @@ class _ProfileScreenState extends State<ProfileScreen>
               PreferredSize(
                 preferredSize: const Size.fromHeight(64),
                 child: ClipRRect(
-                  child:
-                      disableTransparency
-                          ? Container(
-                            color: colorScheme.surface,
+                  child: disableTransparency
+                      ? Container(
+                          color: colorScheme.surface,
+                          child: _buildTabBar(colorScheme),
+                        )
+                      : BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            color: colorScheme.surface.withValues(alpha: 0.7),
                             child: _buildTabBar(colorScheme),
-                          )
-                          : BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            child: Container(
-                              color: colorScheme.surface.withValues(alpha: 0.7),
-                              child: _buildTabBar(colorScheme),
-                            ),
                           ),
+                        ),
                 ),
               ),
               colorScheme.surface,
@@ -677,14 +676,12 @@ class _ProfileScreenState extends State<ProfileScreen>
               }
             },
             style: FilledButton.styleFrom(
-              backgroundColor:
-                  profileProvider.isFollowing
-                      ? colorScheme.surfaceContainerHighest
-                      : colorScheme.primary,
-              foregroundColor:
-                  profileProvider.isFollowing
-                      ? colorScheme.onSurface
-                      : colorScheme.onPrimary,
+              backgroundColor: profileProvider.isFollowing
+                  ? colorScheme.surfaceContainerHighest
+                  : colorScheme.primary,
+              foregroundColor: profileProvider.isFollowing
+                  ? colorScheme.onSurface
+                  : colorScheme.onPrimary,
               padding: const EdgeInsets.symmetric(vertical: 20),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(radius),
@@ -722,10 +719,9 @@ class _ProfileScreenState extends State<ProfileScreen>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color:
-            disableTransparency
-                ? colorScheme.surfaceContainerLow
-                : colorScheme.onSurface.withValues(alpha: 0.05),
+        color: disableTransparency
+            ? colorScheme.surfaceContainerLow
+            : colorScheme.onSurface.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(isM3E ? 24 : 12),
         border: Border.all(
           color: colorScheme.onSurface.withValues(alpha: 0.05),
@@ -787,26 +783,25 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ),
               ),
               child: ClipRRect(
-                borderRadius:
-                    isM3E
-                        ? BorderRadius.circular(21)
-                        : BorderRadius.circular(45),
+                borderRadius: isM3E
+                    ? BorderRadius.circular(21)
+                    : BorderRadius.circular(45),
                 child: Container(
                   width: 90,
                   height: 90,
                   color: colorScheme.surface,
                   child:
                       profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
-                          ? CachedNetworkImage(
-                            imageUrl: profile.avatarUrl!,
-                            fit: BoxFit.cover,
-                          )
-                          : Center(
-                            child: Text(
-                              profile.username[0].toUpperCase(),
-                              style: const TextStyle(fontSize: 24),
-                            ),
+                      ? CachedNetworkImage(
+                          imageUrl: profile.avatarUrl!,
+                          fit: BoxFit.cover,
+                        )
+                      : Center(
+                          child: Text(
+                            profile.username[0].toUpperCase(),
+                            style: const TextStyle(fontSize: 24),
                           ),
+                        ),
                 ),
               ),
             ),
@@ -876,10 +871,9 @@ class _ProfileScreenState extends State<ProfileScreen>
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
-        color:
-            disableTransparency
-                ? colorScheme.surfaceContainerHighest
-                : colorScheme.onSurface.withValues(alpha: 0.08),
+        color: disableTransparency
+            ? colorScheme.surfaceContainerHighest
+            : colorScheme.onSurface.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(isM3E ? 24 : 12),
         border: Border.all(
           color: colorScheme.onSurface.withValues(alpha: 0.05),
@@ -954,22 +948,21 @@ class _ProfileScreenState extends State<ProfileScreen>
     return Row(
       children: [
         Expanded(
-          child:
-              isOwnProfile
-                  ? FilledButton.icon(
-                    onPressed: () => context.push('/edit-profile'),
-                    icon: const Icon(Icons.edit_note_rounded, size: 20),
-                    label: const Text('Edit Profile'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(radius),
-                      ),
+          child: isOwnProfile
+              ? FilledButton.icon(
+                  onPressed: () => context.push('/edit-profile'),
+                  icon: const Icon(Icons.edit_note_rounded, size: 20),
+                  label: const Text('Edit Profile'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(radius),
                     ),
-                  )
-                  : (profileProvider.isFollowing
-                      ? OutlinedButton(
+                  ),
+                )
+              : (profileProvider.isFollowing
+                    ? OutlinedButton(
                         onPressed: () {
                           if (currentUserId != null) {
                             profileProvider.unfollowUser(
@@ -986,7 +979,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
                         child: const Text('Following'),
                       )
-                      : FilledButton(
+                    : FilledButton(
                         onPressed: () {
                           if (currentUserId != null) {
                             profileProvider.followUser(
@@ -1065,10 +1058,9 @@ class _ProfileScreenState extends State<ProfileScreen>
     bool isM3E,
     bool disableTransparency,
   ) {
-    final appBarBgColor =
-        disableTransparency
-            ? theme.colorScheme.surface
-            : theme.colorScheme.surface.withValues(alpha: 0.4);
+    final appBarBgColor = disableTransparency
+        ? theme.colorScheme.surface
+        : theme.colorScheme.surface.withValues(alpha: 0.4);
 
     return SliverAppBar(
       pinned: true,
@@ -1081,27 +1073,26 @@ class _ProfileScreenState extends State<ProfileScreen>
         borderRadius: BorderRadius.circular(isM3E ? 12 : 20),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(isM3E ? 12 : 20),
-          child:
-              disableTransparency
-                  ? Container(
+          child: disableTransparency
+              ? Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  color: appBarBgColor,
+                  child: _buildAppBarTitle(profile, colorScheme),
+                )
+              : BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                  child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 8,
                     ),
                     color: appBarBgColor,
                     child: _buildAppBarTitle(profile, colorScheme),
-                  )
-                  : BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      color: appBarBgColor,
-                      child: _buildAppBarTitle(profile, colorScheme),
-                    ),
                   ),
+                ),
         ),
       ),
       actions: [
@@ -1121,31 +1112,27 @@ class _ProfileScreenState extends State<ProfileScreen>
               onPressed: () {
                 showModalBottomSheet(
                   context: context,
-                  builder:
-                      (context) => SafeArea(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ListTile(
-                              leading: const Icon(
-                                Icons.flag_outlined,
-                                color: Colors.red,
-                              ),
-                              title: const Text(
-                                'Report Profile',
-                                style: TextStyle(color: Colors.red),
-                              ),
-                              onTap: () {
-                                Navigator.pop(context);
-                                ReportDialog.show(
-                                  context,
-                                  userId: widget.userId,
-                                );
-                              },
-                            ),
-                          ],
+                  builder: (context) => SafeArea(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading: const Icon(
+                            Icons.flag_outlined,
+                            color: Colors.red,
+                          ),
+                          title: const Text(
+                            'Report Profile',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                          onTap: () {
+                            Navigator.pop(context);
+                            ReportDialog.show(context, userId: widget.userId);
+                          },
                         ),
-                      ),
+                      ],
+                    ),
+                  ),
                 );
               },
             ),
@@ -1218,10 +1205,9 @@ class _ProfileScreenState extends State<ProfileScreen>
       ),
       delegate: SliverChildBuilderDelegate((context, index) {
         final post = posts[index];
-        final borderRadius =
-            isM3E
-                ? BorderRadius.circular(16)
-                : (isDesktop ? BorderRadius.circular(12) : BorderRadius.zero);
+        final borderRadius = isM3E
+            ? BorderRadius.circular(16)
+            : (isDesktop ? BorderRadius.circular(12) : BorderRadius.zero);
 
         return GestureDetector(
           onTap: () => context.push('/post/${post.id}'),
@@ -1232,16 +1218,15 @@ class _ProfileScreenState extends State<ProfileScreen>
             ),
             child: ClipRRect(
               borderRadius: borderRadius,
-              child:
-                  post.imageUrl != null
-                      ? Hero(
-                        tag: 'post_${post.id}',
-                        child: CachedNetworkImage(
-                          imageUrl: post.imageUrl!,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                      : const Center(child: Icon(Icons.text_fields, size: 20)),
+              child: post.imageUrl != null
+                  ? Hero(
+                      tag: 'post_${post.id}',
+                      child: CachedNetworkImage(
+                        imageUrl: post.imageUrl!,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  : const Center(child: Icon(Icons.text_fields, size: 20)),
             ),
           ),
         );
