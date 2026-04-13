@@ -8,8 +8,8 @@
 
 # Supabase / PostgREST / GoTrue / Serialization
 -keep class io.supabase.** { *; }
--keep class com.example.morrow_v2.models.** { *; }
--keepclassmembers class com.example.morrow_v2.models.** { *; }
+-keep class com.oasis.app.models.** { *; }
+-keepclassmembers class com.oasis.app.models.** { *; }
 -keepattributes Signature,Annotation,EnclosingMethod,InnerClasses
 -dontwarn moxy.**
 -dontwarn com.google.errorprone.annotations.**

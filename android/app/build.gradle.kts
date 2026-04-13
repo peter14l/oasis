@@ -9,7 +9,7 @@ plugins {
 buildDir = File(rootDir, "../build/app")
 
 android {
-    namespace = "com.example.morrow_v2"
+    namespace = "com.oasis.app"
     compileSdk = 36
     ndkVersion = "28.2.13676358"
 
@@ -27,7 +27,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.morrow_v2"
+        applicationId = "com.oasis.app"
         minSdk = 24
         targetSdk = 36
         versionCode = flutter.versionCode

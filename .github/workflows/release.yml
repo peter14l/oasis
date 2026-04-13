@@ -1,18 +1,18 @@
-name: Release Build (APK & MSIX)
+name: Build & Sign APK
 
 on:
   push:
-    branches: [ '**' ]
-  pull_request:
-    branches: [ '**' ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  build-android:
-    name: Build Android APK (Release)
+  build:
+    name: Build Signed APKs
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -21,41 +21,17 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      - name: Decode Keystore
-        run: |
-          if [ -n "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ]; then
-            mkdir -p android/app
-            echo '${{ secrets.RELEASE_KEYSTORE_BASE64 }}' | base64 -d > android/app/release.keystore
-            ls -la android/app/release.keystore
-            echo "Keystore decoded"
-          else
-            echo "No keystore configured - using debug signing"
-          fi
-        shell: bash
-
-      - name: Configure Signing
-        run: |
-          if [ -n "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ] && [ -f "android/app/release.keystore" ]; then
-            echo "RELEASE_STORE_FILE=release.keystore" >> $GITHUB_ENV
-            echo "RELEASE_STORE_PASSWORD=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
-            echo "RELEASE_KEY_ALIAS=${{ secrets.RELEASE_KEYSTORE_ALIAS }}" >> $GITHUB_ENV
-            echo "RELEASE_KEY_PASSWORD=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
-            echo "Signing configured"
-          else
-            echo "DEBUG_SIGNING=true" >> $GITHUB_ENV
-            echo "Using debug signing"
-          fi
-        shell: bash
-
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'any'
           channel: 'stable'
           cache: true
 
-      - name: Get dependencies
+      - name: Install dependencies
         run: flutter pub get
+
+      - name: Run Build Runner
+        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Create .env from secrets
         run: |
@@ -68,99 +44,27 @@ jobs:
           echo "GIPHY_IOS_KEY=${{ secrets.GIPHY_IOS_KEY }}" >> .env
           echo "GIPHY_WINDOWS_KEY=${{ secrets.GIPHY_WINDOWS_KEY }}" >> .env
           echo "GIPHY_MACOS_KEY=${{ secrets.GIPHY_MACOS_KEY }}" >> .env
-          echo "WEB_KEY=${{ secrets.WEB_KEY }}" >> .env
-          echo "ANDROID_KEY=${{ secrets.ANDROID_KEY }}" >> .env
-          echo "IOS_KEY=${{ secrets.IOS_KEY }}" >> .env
-          echo "WINDOWS_KEY=${{ secrets.WINDOWS_KEY }}" >> .env
-          echo "MACOS_KEY=${{ secrets.MACOS_KEY }}" >> .env
 
-      - name: Build Release APK
-        env:
-          GRADLE_OPTS: -Dorg.gradle.vfs.watch=false
+      - name: Build Release APKs (Split per ABI)
         run: |
-          flutter build apk --release --split-per-abi --dart-define-from-file=".env" --no-pub
-          
-          # Verify APK signing (informational only, don't fail build)
-          if [[ -f "android/app/release.keystore" ]] && [[ -f "build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk" ]]; then
-            echo "Verifying APK signing..."
-            keytool -printcert -jarfile build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk 2>/dev/null | grep "Owner:" || echo "⚠️ Could not find Owner info in APK (might be signed with a different format)"
-            echo "✅ APK build process completed"
-          fi
+          flutter build apk --release --split-per-abi --dart-define-from-file=".env"
 
-      - name: Upload APKs
+      - name: Sign APKs
+        uses: r0adkll/sign-android-release@v1
+        id: sign_app
+        with:
+          releaseDirectory: build/app/outputs/flutter-apk
+          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
+
+      - name: Upload Signed APKs
         uses: actions/upload-artifact@v4
         with:
-          name: release-apks
-          path: build/app/outputs/flutter-apk/app-*-release.apk
-
-  build-windows:
-    name: Build Windows MSIX (Release)
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: 'any'
-          channel: 'stable'
-          cache: true
-
-      - name: Get dependencies
-        run: flutter pub get
-
-      - name: Create .env from secrets
-        shell: bash
-        run: |
-          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
-          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
-          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
-          echo "GOOGLE_WEB_CLIENT_ID=${{ secrets.GOOGLE_WEB_CLIENT_ID }}" >> .env
-          echo "GIPHY_WEB_KEY=${{ secrets.GIPHY_WEB_KEY }}" >> .env
-          echo "GIPHY_ANDROID_KEY=${{ secrets.GIPHY_ANDROID_KEY }}" >> .env
-          echo "GIPHY_IOS_KEY=${{ secrets.GIPHY_IOS_KEY }}" >> .env
-          echo "GIPHY_WINDOWS_KEY=${{ secrets.GIPHY_WINDOWS_KEY }}" >> .env
-          echo "GIPHY_MACOS_KEY=${{ secrets.GIPHY_MACOS_KEY }}" >> .env
-          echo "WEB_KEY=${{ secrets.WEB_KEY }}" >> .env
-          echo "ANDROID_KEY=${{ secrets.ANDROID_KEY }}" >> .env
-          echo "IOS_KEY=${{ secrets.IOS_KEY }}" >> .env
-          echo "WINDOWS_KEY=${{ secrets.WINDOWS_KEY }}" >> .env
-          echo "MACOS_KEY=${{ secrets.MACOS_KEY }}" >> .env
-
-      
-
-      - name: Patch sentry_flutter to skip submodules
-        shell: pwsh
-        run: |
-          $path = "windows/flutter/ephemeral/.plugin_symlinks/sentry_flutter/sentry-native/sentry-native.cmake"
-          if (Test-Path $path) {
-            $content = Get-Content $path -Raw
-            $old = 'GIT_TAG \${SENTRY_NATIVE_version}'
-            $new = "GIT_TAG `${SENTRY_NATIVE_version}`n    GIT_SUBMODULES `"`""
-            $content = $content -replace $old, $new
-            Set-Content -Path $path -Value $content -NoNewline
-            Write-Host "Successfully patched $path to skip submodules"
-          } else {
-            Write-Warning "Could not find $path"
-          }
-
-      - name: Disable sentry-native (avoid crashpad 403 error on googlesource.com)
-        run: |
-          echo "SENTRY_NATIVE_BACKEND=none" >> .env
-
-      - name: Build Windows
-        run: flutter build windows --release --dart-define-from-file=".env"
-        env:
-          SENTRY_NATIVE_BACKEND: none
-          SENTRY_BACKEND: none
-
-      - name: Create MSIX
-        run: dart run msix:create --build-windows false
-
-      - name: Upload MSIX
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-msix
+          name: signed-apks
           path: |
-            build/windows/x64/runner/Release/*.msix
-            test_certificate.pfx
+            build/app/outputs/flutter-apk/*-signed.apk
+          retention-days: 7
