@@ -45,6 +45,12 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="oasis"/>
             </intent-filter>
+            <!-- FCM notification tap handler (required for background/terminated notifications) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="oasis"/>
+            </intent-filter>
             <!-- App Links (Android) for https://oasis-web-red.vercel.app -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW"/>
