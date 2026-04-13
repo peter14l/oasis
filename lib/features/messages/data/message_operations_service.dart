@@ -206,16 +206,10 @@ class MessageOperationsService {
   /// Increments the view count for a media message.
   Future<void> incrementMediaViewCount(String messageId) async {
     try {
-      final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) return;
-
-      await _supabase.from(SupabaseConfig.messageMediaViewsTable).upsert({
-        'message_id': messageId,
-        'user_id': userId,
-        'view_count':
-            1, // This is a simplified version, usually you'd increment it
-      }, onConflict: 'message_id,user_id');
-      // Note: Ideally this would be an RPC to truly increment
+      await _supabase.rpc(
+        SupabaseConfig.incrementMediaViewCountFn,
+        params: {'p_message_id': messageId},
+      );
     } catch (e) {
       debugPrint('[MessageOps] Error incrementing media view count: $e');
     }

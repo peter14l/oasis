@@ -60,6 +60,7 @@ class SupabaseConfig {
   static const String resetUnreadCountFn = 'reset_unread_count';
   static const String deleteUserAccountFn = 'delete_user_account';
   static const String getEmailByUsernameFn = 'get_email_by_username';
+  static const String incrementMediaViewCountFn = 'increment_media_view_count';
 
   // Channel names for realtime
   static const String postsChannel = 'public:posts';
