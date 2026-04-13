@@ -103,3 +103,26 @@
 
 # JNI / Native
 -keep class com.tekartik.sqflite.** { *; }
+
+# okhttp3
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-keep class okhttp3.** { *; }
+-keep interface okhttp3.** { *; }
+-keep class okhttp3.internal.** { *; }
+-keep class okio.** { *; }
+-dontwarn okhttp3.internal.**
+-dontwarn okio.**
+
+# uCrop
+-dontwarn com.yalantis.ucrop.**
+-dontwarn com.yalantis.ucrop.task.**
+-dontwarn com.yalantis.ucrop.model.**
+-dontwarn com.yalantis.ucrop.view.**
+-dontwarn com.yalantis.ucrop.util.**
+-keep class com.yalantis.ucrop.** { *; }
+-keep interface com.yalantis.ucrop.** { *; }
+-keep class com.yalantis.ucrop.task.** { *; }
+-keep class com.yalantis.ucrop.model.** { *; }
+-keep class com.yalantis.ucrop.view.** { *; }
+-keep class com.yalantis.ucrop.util.** { *; }
