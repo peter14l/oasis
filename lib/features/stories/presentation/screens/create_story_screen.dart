@@ -40,7 +40,6 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   bool _isFilterPickerVisible = false;
   StoryMusicEntity? _selectedMusic;
   Offset _musicPosition = const Offset(0.5, 0.5);
-  bool _isDraggingMusic = false;
 
   // New Instagram Features State
   bool _shareToCloseFriends = false;
@@ -634,9 +633,44 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                       ),
                     ),
 
-                    // Music Sticker (Rendered into composite)
+                    // Music Sticker (Draggable)
                     if (_selectedMusic != null)
-                      _buildMusicStickerWidget(_selectedMusic!),
+                      Positioned(
+                        left:
+                            _musicPosition.dx *
+                                MediaQuery.of(context).size.width -
+                            60,
+                        top:
+                            _musicPosition.dy *
+                                MediaQuery.of(context).size.height -
+                            30,
+                        child: GestureDetector(
+                          onTap: () => setState(() => _selectedMusic = null),
+                          onPanStart: (_) {
+                            HapticFeedback.selectionClick();
+                          },
+                          onPanUpdate: (details) {
+                            setState(() {
+                              final screenWidth =
+                                  MediaQuery.of(context).size.width;
+                              final screenHeight =
+                                  MediaQuery.of(context).size.height;
+                              _musicPosition = Offset(
+                                (_musicPosition.dx +
+                                        details.delta.dx / screenWidth)
+                                    .clamp(0.1, 0.9),
+                                (_musicPosition.dy +
+                                        details.delta.dy / screenHeight)
+                                    .clamp(0.1, 0.9),
+                              );
+                            });
+                          },
+                          onPanEnd: (_) {
+                            HapticFeedback.lightImpact();
+                          },
+                          child: _buildMusicStickerWidget(_selectedMusic!),
+                        ),
+                      ),
 
                     Positioned.fill(
                       child: CustomPaint(
@@ -854,6 +888,8 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           // Close button now integrated into empty state layout
         ],
       ),
+        );
+      }, // End LayoutBuilder - adaptive layout
     );
   }
 
