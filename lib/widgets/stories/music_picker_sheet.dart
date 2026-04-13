@@ -97,21 +97,22 @@ class _MusicPickerSheetState extends State<MusicPickerSheet> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => _ArtworkPickerSheet(
-        track: track,
-        onSelect: (artworkStyle) {
-          final updatedTrack = StoryMusicEntity(
-            trackId: track.trackId,
-            title: track.title,
-            artist: track.artist,
-            albumArtUrl: track.albumArtUrl,
-            previewUrl: track.previewUrl,
-            artworkStyle: artworkStyle,
-          );
-          Navigator.pop(context);
-          Navigator.pop(context, updatedTrack);
-        },
-      ),
+      builder:
+          (context) => _ArtworkPickerSheet(
+            track: track,
+            onSelect: (artworkStyle) {
+              final updatedTrack = StoryMusicEntity(
+                trackId: track.trackId,
+                title: track.title,
+                artist: track.artist,
+                albumArtUrl: track.albumArtUrl,
+                previewUrl: track.previewUrl,
+                artworkStyle: artworkStyle,
+              );
+              Navigator.pop(context);
+              Navigator.pop(context, updatedTrack);
+            },
+          ),
     );
   }
 
@@ -156,9 +157,10 @@ class _MusicPickerSheetState extends State<MusicPickerSheet> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: isM3E
-                          ? colorScheme.surfaceContainerHighest
-                          : Colors.white10,
+                      color:
+                          isM3E
+                              ? colorScheme.surfaceContainerHighest
+                              : Colors.white10,
                       borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
                     ),
                     child: TextField(
@@ -178,19 +180,20 @@ class _MusicPickerSheetState extends State<MusicPickerSheet> {
                           fontSize: 14,
                         ),
                         border: InputBorder.none,
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(
-                                  Icons.clear,
-                                  color: Colors.white54,
-                                  size: 18,
-                                ),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  _search('');
-                                },
-                              )
-                            : null,
+                        suffixIcon:
+                            _searchController.text.isNotEmpty
+                                ? IconButton(
+                                  icon: const Icon(
+                                    Icons.clear,
+                                    color: Colors.white54,
+                                    size: 18,
+                                  ),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _search('');
+                                  },
+                                )
+                                : null,
                       ),
                     ),
                   ),
@@ -211,40 +214,41 @@ class _MusicPickerSheetState extends State<MusicPickerSheet> {
           ),
           _buildSectionHeader(isM3E),
           Expanded(
-            child: _isLoading || _isSearching
-                ? const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  )
-                : _tracks.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No music found',
-                      style: TextStyle(color: Colors.white54),
+            child:
+                _isLoading || _isSearching
+                    ? const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    )
+                    : _tracks.isEmpty
+                    ? const Center(
+                      child: Text(
+                        'No music found',
+                        style: TextStyle(color: Colors.white54),
+                      ),
+                    )
+                    : ListView.builder(
+                      controller: _scrollController,
+                      itemCount: _tracks.length + 1,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      itemBuilder: (context, index) {
+                        if (index >= _tracks.length) {
+                          return _tracks.length >= _displayedCount
+                              ? _buildLoadMoreButton(isM3E, colorScheme)
+                              : const SizedBox.shrink();
+                        }
+                        final track = _tracks[index];
+                        final isPlaying = _playingTrackId == track.trackId;
+                        return FadeInUp(
+                          duration: Duration(milliseconds: 100 + (index * 20)),
+                          child: _buildTrackTile(
+                            track,
+                            isPlaying,
+                            isM3E,
+                            colorScheme,
+                          ),
+                        );
+                      },
                     ),
-                  )
-                : ListView.builder(
-                    controller: _scrollController,
-                    itemCount: _tracks.length + 1,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    itemBuilder: (context, index) {
-                      if (index >= _tracks.length) {
-                        return _tracks.length >= _displayedCount
-                            ? _buildLoadMoreButton(isM3E)
-                            : const SizedBox.shrink();
-                      }
-                      final track = _tracks[index];
-                      final isPlaying = _playingTrackId == track.trackId;
-                      return FadeInUp(
-                        duration: Duration(milliseconds: 100 + (index * 20)),
-                        child: _buildTrackTile(
-                          track,
-                          isPlaying,
-                          isM3E,
-                          colorScheme,
-                        ),
-                      );
-                    },
-                  ),
           ),
           const SizedBox(height: 20),
         ],
@@ -309,8 +313,9 @@ class _MusicPickerSheetState extends State<MusicPickerSheet> {
               width: 56,
               height: 56,
               fit: BoxFit.cover,
-              placeholder: (context, url) =>
-                  Container(color: Colors.white10, width: 56, height: 56),
+              placeholder:
+                  (context, url) =>
+                      Container(color: Colors.white10, width: 56, height: 56),
             ),
           ),
           if (isPlaying)
@@ -355,7 +360,7 @@ class _MusicPickerSheetState extends State<MusicPickerSheet> {
     );
   }
 
-  Widget _buildLoadMoreButton(bool isM3E) {
+  Widget _buildLoadMoreButton(bool isM3E, ColorScheme colorScheme) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Center(
@@ -451,20 +456,23 @@ class _ArtworkPickerSheetState extends State<_ArtworkPickerSheet> {
                     width: 100,
                     margin: const EdgeInsets.symmetric(horizontal: 8),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? (isM3E
-                                ? colorScheme.primaryContainer
-                                : Colors.white.withOpacity(0.1))
-                          : Colors.white.withOpacity(0.05),
+                      color:
+                          isSelected
+                              ? (isM3E
+                                  ? colorScheme.primaryContainer
+                                  : Colors.white.withOpacity(0.1))
+                              : Colors.white.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
-                      border: isSelected
-                          ? Border.all(
-                              color: isM3E
-                                  ? colorScheme.primary
-                                  : Colors.white54,
-                              width: 2,
-                            )
-                          : null,
+                      border:
+                          isSelected
+                              ? Border.all(
+                                color:
+                                    isM3E
+                                        ? colorScheme.primary
+                                        : Colors.white54,
+                                width: 2,
+                              )
+                              : null,
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -484,9 +492,10 @@ class _ArtworkPickerSheetState extends State<_ArtworkPickerSheet> {
                           style: TextStyle(
                             color: isSelected ? Colors.white : Colors.white70,
                             fontSize: 12,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.normal,
+                            fontWeight:
+                                isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
                           ),
                         ),
                       ],
