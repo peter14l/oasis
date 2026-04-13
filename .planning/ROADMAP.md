@@ -94,3 +94,19 @@ Plans:
 
 **Requirements:**
 [DESKTOP-01, DESKTOP-02]
+
+## Phase 12: Full Story Implementation
+
+**Goal:** Implement full Instagram-style Create Story feature with add/delete text overlays, background support, text styling, filters, drawing tools, M3E icons, visual music picker overhaul with search, draggable music/text positioning, artwork picker, and instant stories bar refresh after posting.
+
+**Status:** 📋 Planned
+**Plans:** 4 plans
+
+### Plans:
+- [ ] 12-01-PLAN.md — Text overlay system (multi-text, background modes, font styles)
+- [ ] 12-02-PLAN.md — Music picker fix and visual overhaul
+- [ ] 12-03-PLAN.md — Draggable music sticker + instant stories refresh
+- [ ] 12-04-PLAN.md — M3E icons + adaptive layout
+
+**Requirements:**
+[STORY-01, STORY-02, STORY-03, STORY-04, STORY-05]
