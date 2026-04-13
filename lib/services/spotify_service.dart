@@ -29,6 +29,7 @@ class SpotifyService {
           'https://i.scdn.co/image/ab67616d0000b2738863bc11fafbf383a54d6d67',
       previewUrl:
           'https://p.scdn.co/mp3-preview/6324268e36785501869811f269a84d413554e4c2',
+      artworkStyle: 'original',
     ),
     StoryMusicEntity(
       trackId: '5Y640pS3K99Z766oXv8p7P',
@@ -38,6 +39,7 @@ class SpotifyService {
           'https://i.scdn.co/image/ab67616d0000b2738863bc11fafbf383a54d6d67',
       previewUrl:
           'https://p.scdn.co/mp3-preview/a91901174620585f6738c823f66299b86be0b155',
+      artworkStyle: 'original',
     ),
     StoryMusicEntity(
       trackId: '2693892839283',
@@ -47,6 +49,7 @@ class SpotifyService {
           'https://i.scdn.co/image/ab67616d0000b273b46b7e8b6267802871ee27a7',
       previewUrl:
           'https://p.scdn.co/mp3-preview/3e0bd2275841774312017366d9817751f78f6920',
+      artworkStyle: 'original',
     ),
     StoryMusicEntity(
       trackId: '7K3165q8u6mZfX2K8T2K6K',
@@ -56,6 +59,7 @@ class SpotifyService {
           'https://i.scdn.co/image/ab67616d0000b273e787cffec20aa2a096fa0655',
       previewUrl:
           'https://p.scdn.co/mp3-preview/f4f9f214220359f1311099434823483984398439',
+      artworkStyle: 'original',
     ),
     StoryMusicEntity(
       trackId: '1BxfuLsSRmSclS9vunvS8S',
@@ -65,7 +69,15 @@ class SpotifyService {
           'https://i.scdn.co/image/ab67616d0000b273f443997576f9d34343d96924',
       previewUrl:
           'https://p.scdn.co/mp3-preview/9f383e9383938393839383938393839383938393',
+      artworkStyle: 'original',
     ),
+  ];
+
+  static const List<String> artworkStyles = [
+    'original',
+    'blurred',
+    'circle',
+    'full',
   ];
 
   Future<String?> _getAccessToken() async {
@@ -143,10 +155,11 @@ class SpotifyService {
     final images = item['album']['images'] as List;
     return StoryMusicEntity(
       trackId: item['id'],
-      title: item['name'],
+      title: item['name'] ?? '',
       artist: (item['artists'] as List).map((a) => a['name']).join(', '),
       albumArtUrl: images.isNotEmpty ? images[0]['url'] : '',
       previewUrl: item['preview_url'] ?? '',
+      artworkStyle: 'original',
     );
   }
 

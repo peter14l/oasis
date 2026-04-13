@@ -56,19 +56,16 @@ class StoryEntity {
       musicId: json['music_id'] as String?,
       musicMetadata: json['music_metadata'] != null
           ? StoryMusicEntity.fromJson(
-            json['music_metadata'] as Map<String, dynamic>,
-          )
+              json['music_metadata'] as Map<String, dynamic>,
+            )
           : null,
-      interactiveMetadata:
-          json['interactive_metadata'] != null
-              ? (json['interactive_metadata'] as List<dynamic>)
-                  .map(
-                    (s) => StoryStickerEntity.fromJson(
-                      s as Map<String, dynamic>,
-                    ),
-                  )
-                  .toList()
-              : null,
+      interactiveMetadata: json['interactive_metadata'] != null
+          ? (json['interactive_metadata'] as List<dynamic>)
+                .map(
+                  (s) => StoryStickerEntity.fromJson(s as Map<String, dynamic>),
+                )
+                .toList()
+          : null,
     );
   }
 
@@ -89,8 +86,9 @@ class StoryEntity {
       'has_viewed': hasViewed,
       'music_id': musicId,
       'music_metadata': musicMetadata?.toJson(),
-      'interactive_metadata':
-          interactiveMetadata?.map((s) => s.toJson()).toList(),
+      'interactive_metadata': interactiveMetadata
+          ?.map((s) => s.toJson())
+          .toList(),
     };
   }
 
@@ -217,6 +215,7 @@ class StoryMusicEntity {
   final String artist;
   final String albumArtUrl;
   final String previewUrl;
+  final String artworkStyle; // 'original', 'blurred', 'circle', 'full'
 
   StoryMusicEntity({
     required this.trackId,
@@ -224,6 +223,7 @@ class StoryMusicEntity {
     required this.artist,
     required this.albumArtUrl,
     required this.previewUrl,
+    this.artworkStyle = 'original',
   });
 
   factory StoryMusicEntity.fromJson(Map<String, dynamic> json) {
@@ -233,6 +233,7 @@ class StoryMusicEntity {
       artist: json['artist'] as String,
       albumArtUrl: json['album_art_url'] as String,
       previewUrl: json['preview_url'] as String,
+      artworkStyle: json['artwork_style'] as String? ?? 'original',
     );
   }
 
@@ -243,6 +244,7 @@ class StoryMusicEntity {
       'artist': artist,
       'album_art_url': albumArtUrl,
       'preview_url': previewUrl,
+      'artwork_style': artworkStyle,
     };
   }
 }
