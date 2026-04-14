@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:oasis/features/capsules/domain/models/time_capsule_entity.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:oasis/themes/app_colors.dart';
 
 class CapsuleFeedItem extends StatelessWidget {
   final TimeCapsule capsule;
@@ -11,144 +12,158 @@ class CapsuleFeedItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final isLocked = capsule.isLocked;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.2),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundImage: capsule.userAvatar.isNotEmpty
-                          ? NetworkImage(capsule.userAvatar)
-                          : null,
-                      child: capsule.userAvatar.isEmpty
-                          ? Text(capsule.username.isNotEmpty ? capsule.username[0] : '?')
-                          : null,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: AspectRatio(
+        aspectRatio: 1.6, // Envelope shape
+        child: Stack(
+          children: [
+            // Envelope Body
+            Container(
+              decoration: BoxDecoration(
+                color: OasisColors.sand,
+                borderRadius: BorderRadius.circular(4),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Envelope Flap Lines (using CustomPaint)
+            Positioned.fill(
+              child: CustomPaint(
+                painter: EnvelopePainter(
+                  color: OasisColors.sage.withValues(alpha: 0.2),
+                ),
+              ),
+            ),
+            
+            // Content (Peeking through if unlocked)
+            if (!isLocked)
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        capsule.content,
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: OasisColors.deep.withValues(alpha: 0.8),
+                          fontFamily: 'Inter',
+                          height: 1.4,
+                        ),
+                      ),
+                      const Spacer(),
+                      Row(
                         children: [
                           Text(
-                            capsule.username,
-                            style: theme.textTheme.titleMedium?.copyWith(
+                            'From: ${capsule.username}',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: OasisColors.deep.withValues(alpha: 0.5),
                               fontWeight: FontWeight.bold,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
+                          const Spacer(),
                           Text(
-                            'Sealed ${timeago.format(capsule.createdAt)}',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
+                            timeago.format(capsule.createdAt),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: OasisColors.deep.withValues(alpha: 0.4),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    const Spacer(),
-                    Icon(
-                      isLocked ? Icons.lock : Icons.lock_open,
-                      color: isLocked ? colorScheme.tertiary : colorScheme.primary,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                
-                const SizedBox(height: 20),
-                
-                // Content Area
-                Stack(
+              ),
+            
+            // Wax Seal (if locked)
+            if (isLocked)
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Actual Content (Blurred if locked)
-                    ImageFiltered(
-                      imageFilter: ImageFilter.blur(
-                        sigmaX: isLocked ? 10 : 0, 
-                        sigmaY: isLocked ? 10 : 0
-                      ),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(16),
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8B0000), // Wax Red
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                        border: Border.all(
+                          color: const Color(0xFF5D0000),
+                          width: 2,
                         ),
-                        child: Text(
-                          // If locked, maybe show dummy text length or random chars? 
-                          // Or just the real text blurred (privacy risk if blur isn't perfect, but okay for MVP)
-                          // Better: Show "Locked Content" text if locked to be safe.
-                          isLocked 
-                            ? 'This is a secret message that is quite long and hidden...' 
-                            : capsule.content,
-                          style: theme.textTheme.bodyLarge,
+                      ),
+                      child: const Icon(
+                        Icons.lock_rounded,
+                        color: Color(0xFFFFD700), // Gold icon
+                        size: 32,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: OasisColors.deep.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        _formatDuration(capsule.timeRemaining),
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: OasisColors.deep.withValues(alpha: 0.6),
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    
-                    // Lock Overlay
-                    if (isLocked)
-                      Positioned.fill(
-                        child: Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24, 
-                              vertical: 12
-                            ),
-                            decoration: BoxDecoration(
-                              color: colorScheme.tertiaryContainer,
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.hourglass_empty, 
-                                  size: 20,
-                                  color: colorScheme.onTertiaryContainer
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  _formatDuration(capsule.timeRemaining),
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    color: colorScheme.onTertiaryContainer,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            
+            // Address Label style
+            if (isLocked)
+              Positioned(
+                top: 24,
+                left: 24,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'TO BE OPENED BY:',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: OasisColors.deep.withValues(alpha: 0.3),
+                        letterSpacing: 1.5,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      capsule.username.toUpperCase(),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: OasisColors.deep.withValues(alpha: 0.7),
+                        fontFamily: 'Cormorant Garamond',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -156,14 +171,47 @@ class CapsuleFeedItem extends StatelessWidget {
 
   String _formatDuration(Duration d) {
     if (d.inDays > 365) {
-      return 'Unlocks in ${(d.inDays / 365).toStringAsFixed(1)} years';
+      return 'UNSEALS IN ${(d.inDays / 365).toStringAsFixed(1)}Y';
     } else if (d.inDays > 0) {
-      return 'Unlocks in ${d.inDays} days';
+      return 'UNSEALS IN ${d.inDays}D';
     } else if (d.inHours > 0) {
-      return 'Unlocks in ${d.inHours} hours';
+      return 'UNSEALS IN ${d.inHours}H';
     } else {
-      return 'Unlocks soon';
+      return 'UNSEALING SOON';
     }
   }
+}
+
+class EnvelopePainter extends CustomPainter {
+  final Color color;
+
+  EnvelopePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    final path = Path();
+    
+    // Top flap lines
+    path.moveTo(0, 0);
+    path.lineTo(size.width / 2, size.height * 0.45);
+    path.lineTo(size.width, 0);
+    
+    // Bottom fold lines
+    path.moveTo(0, size.height);
+    path.lineTo(size.width * 0.4, size.height * 0.6);
+    
+    path.moveTo(size.width, size.height);
+    path.lineTo(size.width * 0.6, size.height * 0.6);
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 

@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:oasis/themes/app_colors.dart';
 
 class MeshGradientBackground extends StatefulWidget {
   final Widget child;
@@ -25,7 +26,7 @@ class _MeshGradientBackgroundState extends State<MeshGradientBackground>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 10),
+      duration: const Duration(seconds: 15),
     )..repeat(reverse: true);
   }
 
@@ -37,15 +38,11 @@ class _MeshGradientBackgroundState extends State<MeshGradientBackground>
 
   @override
   Widget build(BuildContext context) {
-    // If animation is disabled, just show a static gradient or the child directly
+    // If animation is disabled, just show a static gradient
     if (!widget.animate) {
       return Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: OasisColors.deep,
         ),
         child: widget.child,
       );
@@ -54,7 +51,7 @@ class _MeshGradientBackgroundState extends State<MeshGradientBackground>
     return Stack(
       children: [
         // Background base color
-        Container(color: const Color(0xFF0C0F14)), // Deep Space Black
+        Container(color: OasisColors.deep),
 
         // Animated Mesh Orbs
         AnimatedBuilder(
@@ -70,9 +67,9 @@ class _MeshGradientBackgroundState extends State<MeshGradientBackground>
         // Blur overlay to blend the orbs
         ClipRect(
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+            filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
             child: Container(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: OasisColors.deep.withValues(alpha: 0.1),
             ),
           ),
         ),
@@ -80,14 +77,23 @@ class _MeshGradientBackgroundState extends State<MeshGradientBackground>
         // Overlay gradient for depth
         Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+            gradient: RadialGradient(
+              center: Alignment.center,
+              radius: 1.5,
               colors: [
-                Colors.black.withValues(alpha: 0.2),
                 Colors.transparent,
-                Colors.black.withValues(alpha: 0.4),
+                OasisColors.deep.withValues(alpha: 0.5),
+                OasisColors.deep.withValues(alpha: 0.8),
               ],
+            ),
+          ),
+        ),
+        
+        // Grain Texture (Procedural Noise)
+        const Positioned.fill(
+          child: IgnorePointer(
+            child: CustomPaint(
+              painter: GrainPainter(),
             ),
           ),
         ),
@@ -107,41 +113,55 @@ class MeshPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint =
-        Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 60);
+        Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
 
-    // Royal Blue Orb 1
-    final x1 = size.width * 0.2 + sin(animationValue * 2 * pi) * 120;
-    final y1 = size.height * 0.3 + cos(animationValue * 2 * pi) * 70;
-    paint.color = const Color(0xFF2563EB).withValues(alpha: 0.5); // Royal Blue
-    canvas.drawCircle(Offset(x1, y1), 220, paint);
+    // Oasis Glow Orb 1
+    final x1 = size.width * 0.3 + sin(animationValue * 2 * pi) * 150;
+    final y1 = size.height * 0.4 + cos(animationValue * 2 * pi) * 100;
+    paint.color = OasisColors.glow.withValues(alpha: 0.25);
+    canvas.drawCircle(Offset(x1, y1), 350, paint);
 
-    // Emerald Orb 2
-    final x2 = size.width * 0.8 - cos(animationValue * 2 * pi) * 150;
-    final y2 = size.height * 0.7 - sin(animationValue * 2 * pi) * 90;
-    paint.color = const Color(0xFF10B981).withValues(alpha: 0.4); // Emerald
-    canvas.drawCircle(Offset(x2, y2), 280, paint);
+    // Oasis Moss Orb 2
+    final x2 = size.width * 0.7 - cos(animationValue * 2 * pi) * 180;
+    final y2 = size.height * 0.6 - sin(animationValue * 2 * pi) * 120;
+    paint.color = OasisColors.moss.withValues(alpha: 0.35);
+    canvas.drawCircle(Offset(x2, y2), 450, paint);
 
-    // Amber Orb 3
-    final x3 = size.width * 0.5 + sin(animationValue * 2 * pi + 1) * 100;
-    final y3 = size.height * 0.5 + cos(animationValue * 2 * pi + 1) * 120;
-    paint.color = const Color(0xFFF59E0B).withValues(alpha: 0.4); // Amber
-    canvas.drawCircle(Offset(x3, y3), 200, paint);
+    // Oasis Sage Orb 3
+    final x3 = size.width * 0.5 + sin(animationValue * 2 * pi + 1) * 120;
+    final y3 = size.height * 0.2 + cos(animationValue * 2 * pi + 1) * 150;
+    paint.color = OasisColors.sage.withValues(alpha: 0.3);
+    canvas.drawCircle(Offset(x3, y3), 300, paint);
 
-    // Deep Blue Orb 4
-    final x4 = size.width * 0.1 + cos(animationValue * 2 * pi + 2) * 80;
-    final y4 = size.height * 0.8 + sin(animationValue * 2 * pi + 2) * 100;
-    paint.color = const Color(0xFF1D4ED8).withValues(alpha: 0.3); // Deeper Royal Blue
-    canvas.drawCircle(Offset(x4, y4), 150, paint);
-
-    // Teal/Emerald Orb 5
-    final x5 = size.width * 0.9 - sin(animationValue * 2 * pi + 0.5) * 100;
-    final y5 = size.height * 0.1 + cos(animationValue * 2 * pi + 0.5) * 80;
-    paint.color = const Color(0xFF0D9488).withValues(alpha: 0.4); // Teal
-    canvas.drawCircle(Offset(x5, y5), 240, paint);
+    // Oasis Glow Orb 4 (Halo effect)
+    final x4 = size.width * 0.8 + cos(animationValue * 2 * pi + 2) * 100;
+    final y4 = size.height * 0.8 + sin(animationValue * 2 * pi + 2) * 130;
+    paint.color = OasisColors.glow.withValues(alpha: 0.15);
+    canvas.drawCircle(Offset(x4, y4), 250, paint);
   }
 
   @override
   bool shouldRepaint(covariant MeshPainter oldDelegate) {
     return oldDelegate.animationValue != animationValue;
   }
+}
+
+class GrainPainter extends CustomPainter {
+  const GrainPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final random = Random(42); // Deterministic seed for consistent grain
+    final paint = Paint()..color = Colors.white.withValues(alpha: 0.03);
+    
+    // Draw tiny dots randomly to simulate grain
+    for (var i = 0; i < 5000; i++) {
+      final x = random.nextDouble() * size.width;
+      final y = random.nextDouble() * size.height;
+      canvas.drawRect(Rect.fromLTWH(x, y, 1, 1), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant GrainPainter oldDelegate) => false;
 }

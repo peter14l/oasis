@@ -20,7 +20,7 @@ class UserSettingsEntity extends Equatable {
     this.windDownEnabled = false,
     this.micaEnabled = false,
     this.windowEffect = 'mica',
-    this.fontFamily = 'Outfit',
+    this.fontFamily = 'Inter',
   });
 
   UserSettingsEntity copyWith({

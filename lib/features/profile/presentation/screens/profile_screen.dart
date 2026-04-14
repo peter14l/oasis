@@ -16,6 +16,9 @@ import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/widgets/desktop_header.dart';
 import 'package:oasis/widgets/moderation_dialogs.dart';
 import 'package:oasis/core/config/app_config.dart';
+import 'package:oasis/features/wellness/presentation/widgets/session_dial.dart';
+import 'package:oasis/services/screen_time_service.dart';
+import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userId;
@@ -788,94 +791,121 @@ class _ProfileScreenState extends State<ProfileScreen>
     ColorScheme colorScheme,
     bool isM3E,
   ) {
-    return Row(
+    return Column(
       children: [
-        Stack(
+        Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
-                borderRadius: isM3E ? BorderRadius.circular(24) : null,
-                gradient: LinearGradient(
-                  colors: [colorScheme.primary, colorScheme.tertiary],
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: isM3E
-                    ? BorderRadius.circular(21)
-                    : BorderRadius.circular(45),
-                child: Container(
-                  width: 90,
-                  height: 90,
-                  color: colorScheme.surface,
-                  child:
-                      profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: profile.avatarUrl!,
-                          fit: BoxFit.cover,
-                        )
-                      : Center(
-                          child: Text(
-                            profile.username[0].toUpperCase(),
-                            style: const TextStyle(fontSize: 24),
-                          ),
-                        ),
-                ),
-              ),
-            ),
-            if (profile.isPro)
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
+            Stack(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary,
-                    borderRadius: BorderRadius.circular(isM3E ? 8 : 12),
-                    border: Border.all(color: colorScheme.surface, width: 2),
+                    shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                    borderRadius: isM3E ? BorderRadius.circular(24) : null,
+                    gradient: LinearGradient(
+                      colors: [colorScheme.primary, colorScheme.tertiary],
+                    ),
                   ),
-                  child: const Text(
-                    'PRO',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+                  child: ClipRRect(
+                    borderRadius: isM3E
+                        ? BorderRadius.circular(21)
+                        : BorderRadius.circular(45),
+                    child: Container(
+                      width: 90,
+                      height: 90,
+                      color: colorScheme.surface,
+                      child:
+                          profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: profile.avatarUrl!,
+                              fit: BoxFit.cover,
+                            )
+                          : Center(
+                              child: Text(
+                                profile.username[0].toUpperCase(),
+                                style: const TextStyle(fontSize: 24),
+                              ),
+                            ),
                     ),
                   ),
                 ),
+                if (profile.isPro)
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary,
+                        borderRadius: BorderRadius.circular(isM3E ? 8 : 12),
+                        border: Border.all(color: colorScheme.surface, width: 2),
+                      ),
+                      child: const Text(
+                        'PRO',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    profile.fullName ?? profile.username,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    '@${profile.username}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.5),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  WellnessBadge(xp: profile.xp),
+                ],
               ),
+            ),
           ],
         ),
-        const SizedBox(width: 20),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                profile.fullName ?? profile.username,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.5,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              Text(
-                '@${profile.username}',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.5),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const WellnessBadge(),
-            ],
+        if (isOwnProfile) ...[
+          const SizedBox(height: 40),
+          // Wellness Dashboard Dial
+          Consumer<ScreenTimeService>(
+            builder: (context, screenTime, _) {
+              return FutureBuilder<Duration>(
+                future: screenTime.getTodayTotalUsage(),
+                builder: (context, snapshot) {
+                  final usage = snapshot.data ?? Duration.zero;
+                  final settings = context.read<UserSettingsProvider>();
+                  final dailyLimit = settings.dailyLimitMinutes > 0 ? settings.dailyLimitMinutes : 60;
+                  final progress = (usage.inMinutes / dailyLimit).clamp(0.0, 1.0);
+                  
+                  return SessionDial(
+                    progress: progress,
+                    label: '${usage.inMinutes}m',
+                    subLabel: 'TODAY\'S FLOW',
+                  );
+                },
+              );
+            },
           ),
-        ),
+        ],
       ],
     );
   }

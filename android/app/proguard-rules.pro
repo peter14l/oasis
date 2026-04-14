@@ -128,8 +128,17 @@
 -keep class com.yalantis.ucrop.util.** { *; }
 
 # Razorpay Proguard Rules
--keepclassmembers class com.razorpay.CheckoutBridge {
-    public *;
-}
--keep class com.razorpay.** {*;}
+-keepattributes *Annotation*
 -dontwarn com.razorpay.**
+-keep class com.razorpay.** {*;}
+-optimizations !method/inlining/*
+
+# Required for the Javascript bridge to work in the Webview
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
+# Keep the payment listeners
+-keepclasseswithmembers class * {
+    public void onPayment*(...);
+}

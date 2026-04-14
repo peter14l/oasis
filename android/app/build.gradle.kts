@@ -56,7 +56,7 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
-            isShrinkResources = true
+            isShrinkResources = false
             
             // Use release signing config for local builds
             // CI workflow signs with r0adkll/sign-android-release action

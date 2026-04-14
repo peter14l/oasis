@@ -24,8 +24,23 @@ class DarkColors {
   static const Color onBackground = Color(0xFFE9ECEF);
   static const Color onSurface = Color(0xFFDEE2E6);
   static const Color hint = Color(0xFF9DA6B9);
-  static const Color error = Color(0xFFFF6B6B);
+  static const Color error = Color(0xFFDC3545);
   static const Color border = Color(0xFF2D343A);
+}
+
+// Oasis "Organic Luxury" Palette
+class OasisColors {
+  static const Color deep = Color(0xFF0D1F1A);      // Background / Scaffold
+  static const Color moss = Color(0xFF1E3A2F);      // Primary Surface
+  static const Color sage = Color(0xFF3D6B55);      // Secondary Surface / Borders
+  static const Color mist = Color(0xFFA8C5B5);      // Muted Text
+  static const Color glow = Color(0xFF7FFFD4);      // Accent / Primary Action
+  static const Color sand = Color(0xFFE8D9C0);      // Display Headings
+  static const Color white = Color(0xFFF5F5F0);     // Pure Text
+  
+  // Opacity variants for Glassmorphism
+  static Color glassBackground = deep.withValues(alpha: 0.6);
+  static Color glassBorder = glow.withValues(alpha: 0.1);
 }
 
 // Text Styles
