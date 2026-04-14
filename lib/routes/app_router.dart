@@ -1088,7 +1088,7 @@ class AppRouter {
           },
         ),
 
-        // Oasis Pro Screen
+        // Oasis Pro Screen (now pointing to SubscriptionScreen)
         GoRoute(
           path: '/oasis-pro',
           name: 'oasis_pro',
@@ -1097,7 +1097,7 @@ class AppRouter {
             return MaterialPage(
               key: state.pageKey,
               fullscreenDialog: true,
-              child: const OasisProScreen(),
+              child: const SubscriptionScreen(),
             );
           },
         ),

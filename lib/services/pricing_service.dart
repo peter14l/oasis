@@ -20,10 +20,26 @@ class PricingPlan {
 
 class PricingService {
   static final Map<Currency, Map<String, dynamic>> _pricingData = {
-    Currency.usd: {'symbol': '\$', 'pro': 4.99},
-    Currency.inr: {'symbol': '₹', 'pro': 5.0}, // Temporarily 5.0 for testing
-    Currency.eur: {'symbol': '€', 'pro': 4.99},
-    Currency.gbp: {'symbol': '£', 'pro': 4.49},
+    Currency.usd: {
+      'symbol': '\$',
+      'monthly': 4.99,
+      'annual': 34.99,
+    },
+    Currency.inr: {
+      'symbol': '₹',
+      'monthly': 5.0, // Testing price
+      'annual': 50.0, // Testing price
+    },
+    Currency.eur: {
+      'symbol': '€',
+      'monthly': 4.99,
+      'annual': 34.99,
+    },
+    Currency.gbp: {
+      'symbol': '£',
+      'monthly': 4.49,
+      'annual': 31.99,
+    },
   };
 
   static final Map<String, Currency> _countryToCurrency = {
@@ -86,8 +102,14 @@ class PricingService {
     final data = _pricingData[currency]!;
     return [
       PricingPlan(
-        name: 'Pro',
-        price: data['pro'],
+        name: 'Monthly',
+        price: data['monthly'],
+        symbol: data['symbol'],
+        currency: currency,
+      ),
+      PricingPlan(
+        name: 'Annual',
+        price: data['annual'],
         symbol: data['symbol'],
         currency: currency,
       ),

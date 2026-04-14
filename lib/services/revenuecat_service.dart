@@ -15,7 +15,7 @@ class RevenueCatService extends ChangeNotifier {
   Offerings? _offerings;
   Offerings? get offerings => _offerings;
 
-  bool get isPro => _customerInfo?.entitlements.active.containsKey('pro') ?? false;
+  bool get isPro => _customerInfo?.entitlements.active.containsKey('Oasis Pro') ?? false;
 
   Future<void> init() async {
     await Purchases.setLogLevel(kDebugMode ? LogLevel.debug : LogLevel.error);

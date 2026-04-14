@@ -11,6 +11,8 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class OasisProScreen extends StatefulWidget {
   const OasisProScreen({super.key});
@@ -23,11 +25,55 @@ class _OasisProScreenState extends State<OasisProScreen> {
   Currency _detectedCurrency = Currency.usd;
   List<PricingPlan> _plans = [];
   bool _isLoading = true;
+  late Razorpay _razorpay;
 
   @override
   void initState() {
     super.initState();
     _initPricing();
+    _initRazorpay();
+  }
+
+  void _initRazorpay() {
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+  }
+
+  @override
+  void dispose() {
+    _razorpay.clear();
+    super.dispose();
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    // Payment successful, update Supabase
+    final userId = SupabaseService().client.auth.currentUser?.id;
+    if (userId != null) {
+      try {
+        await SupabaseService().client.from('profiles').update({'is_pro': true}).eq('id', userId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Payment Successful! You are now Pro.')),
+          );
+          context.read<SubscriptionService>().refresh();
+          context.pop();
+        }
+      } catch (e) {
+        debugPrint('Error updating pro status: $e');
+      }
+    }
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Payment Failed: ${response.message}')),
+    );
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    debugPrint('External wallet selected: ${response.walletName}');
   }
 
   Future<void> _initPricing() async {
@@ -45,10 +91,69 @@ class _OasisProScreenState extends State<OasisProScreen> {
     if (Platform.isWindows) {
       // Use Razorpay Flow for Windows (Phase 4)
       _startRazorpayWindowsFlow(plan);
+    } else if (Platform.isAndroid) {
+      // Use direct Razorpay SDK for Android APKs
+      _startRazorpayMobileFlow(plan);
     } else {
-      // Use Web Checkout for all other platforms (Android, iOS, MacOS, Web)
-      // to handle checkout outside of standard App Store/Play Store IAP
+      // Fallback to Web Checkout for other platforms
       _launchWebCheckout(plan);
+    }
+  }
+
+  void _startRazorpayMobileFlow(PricingPlan plan) async {
+    final user = SupabaseService().client.auth.currentUser;
+    if (user == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      // 1. Create Subscription on Backend
+      final response = await http.post(
+        Uri.parse(AppConfig.getWebUrl('/functions/v1/razorpay-create-order')),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${SupabaseService().client.auth.currentSession?.accessToken}',
+        },
+        body: jsonEncode({
+          'plan_id': plan.name == 'Monthly' 
+              ? dotenv.env['RAZORPAY_MONTHLY_PLAN_ID'] 
+              : dotenv.env['RAZORPAY_ANNUAL_PLAN_ID'],
+          'user_id': user.id,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to create subscription: ${response.body}');
+      }
+
+      final data = jsonDecode(response.body);
+      final subscriptionId = data['id'];
+
+      // 2. Open Razorpay SDK with Subscription ID
+      final options = {
+        'key': dotenv.env['RAZORPAY_KEY_ID'] ?? '',
+        'subscription_id': subscriptionId,
+        'name': 'Oasis Pro',
+        'description': '${plan.name} Subscription',
+        'prefill': {
+          'contact': '',
+          'email': user.email ?? '',
+        },
+        'external': {
+          'wallets': ['paytm']
+        }
+      };
+
+      _razorpay.open(options);
+    } catch (e) {
+      debugPrint('Error starting Razorpay subscription: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oasis/models/feed_layout_strategy.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
-import 'package:oasis/screens/oasis_pro_screen.dart';
+import 'package:oasis/features/settings/presentation/screens/subscription_screen.dart';
 
 /// Widget for switching between different feed layouts
 /// Displays as a popup menu in the AppBar
@@ -44,7 +44,7 @@ class _FeedLayoutSwitcherState extends State<FeedLayoutSwitcher> {
     // Lock ZenCarousel and PulseMap for free users
     if (!isPro && (layout == FeedLayoutType.zenCarousel || layout == FeedLayoutType.pulseMap)) {
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => const OasisProScreen()),
+        MaterialPageRoute(builder: (context) => const SubscriptionScreen()),
       );
       return;
     }

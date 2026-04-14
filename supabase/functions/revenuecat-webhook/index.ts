@@ -53,7 +53,7 @@ serve(async (req) => {
     if (upsertError) throw upsertError
 
     // 4. Sync Pro status to profiles table (if your schema uses is_pro flag there)
-    const isPro = status === 'active' && (event.entitlement_ids?.includes('pro') ?? false)
+    const isPro = status === 'active' && (event.entitlement_ids?.includes('Oasis Pro') ?? false)
     
     const { error: profileError } = await supabase
       .from('profiles')

@@ -22,6 +22,7 @@ import 'package:oasis/features/circles/presentation/providers/circle_provider.da
 import 'package:oasis/features/canvas/presentation/providers/canvas_provider.dart';
 import 'package:oasis/features/notifications/presentation/providers/notification_provider.dart';
 import 'package:oasis/providers/community_provider.dart';
+import 'package:oasis/services/revenuecat_service.dart';
 
 class AuthService with ChangeNotifier {
   static final AuthService _instance = AuthService._internal();
@@ -53,6 +54,11 @@ class AuthService with ChangeNotifier {
       if (session != null) {
         if (kDebugMode) developer.log('User ID: ${session.user.id}');
         _accountRegistry.syncCurrentSessionToRegistry(session);
+        // Sync RevenueCat
+        RevenueCatService().identify(session.user.id);
+      } else {
+        // Log out of RevenueCat if no session
+        RevenueCatService().logout();
       }
       notifyListeners();
     });

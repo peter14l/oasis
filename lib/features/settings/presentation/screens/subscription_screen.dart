@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:oasis/services/subscription_service.dart';
 import 'package:oasis/services/revenuecat_service.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:oasis/core/config/app_config.dart';
+import 'package:oasis/screens/oasis_pro_screen.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -25,25 +28,59 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
     if (subService.isPro) {
       final proContent = Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.stars, size: 80, color: colorScheme.primary),
-            const SizedBox(height: 24),
-            Text(
-              'You are a Pro Member!',
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.stars_rounded, size: 80, color: colorScheme.primary),
               ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Thank you for supporting Oasis.',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+              const SizedBox(height: 32),
+              Text(
+                'You are a Pro Member!',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                'Thank you for supporting Oasis. You have full access to all premium features across all your devices.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 48),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: OutlinedButton.icon(
+                  onPressed: () => Purchases.showManageSubscriptions(),
+                  icon: const Icon(Icons.settings_outlined),
+                  label: const Text('Manage Subscription'),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Subscriptions are managed through your App Store or Play Store account.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
         ),
       );
 
@@ -51,7 +88,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         return Material(color: Colors.transparent, child: proContent);
 
       return Scaffold(
-        appBar: AppBar(title: const Text('Oasis Pro'), centerTitle: true),
+        appBar: AppBar(
+          title: const Text('Oasis Pro'),
+          centerTitle: true,
+          elevation: 0,
+        ),
         body: proContent,
       );
     }
@@ -289,15 +330,83 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             ),
           ),
 
+          if (subService.isSideloaded) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const OasisProScreen()),
+                  );
+                },
+                icon: const Icon(Icons.payment),
+                label: const Text('Pay with Razorpay / UPI'),
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Center(
+              child: Text(
+                'Use this if you downloaded the app via APK',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+
           const SizedBox(height: 16),
 
           // Terms footnote
           Center(
-            child: Text(
-              'Recurring billing. Cancel anytime.',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+            child: Column(
+              children: [
+                Text(
+                  'Recurring billing. Cancel anytime.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () async {
+                    setState(() => _isProcessing = true);
+                    await rcService.restorePurchases();
+                    setState(() => _isProcessing = false);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Purchases restored.')),
+                      );
+                    }
+                  },
+                  child: const Text('Restore Purchases'),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () => launchUrl(Uri.parse(AppConfig.getWebUrl('/privacy-policy'))),
+                      child: Text('Privacy Policy', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.primary)),
+                    ),
+                    Text(
+                      ' • ',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => launchUrl(Uri.parse(AppConfig.getWebUrl('/terms-of-service'))),
+                      child: Text('Terms of Service', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.primary)),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 32),
