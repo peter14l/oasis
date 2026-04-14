@@ -241,16 +241,29 @@ class AppInitializer {
 
   /// Step 2 — Initialize Sentry and run the app inside its appRunner.
   static Future<void> runWithSentry(Future<void> Function() appRunner) async {
-    SentryWidgetsFlutterBinding.ensureInitialized();
-    await SentryFlutter.init((options) {
-      const dsn = String.fromEnvironment('SENTRY_DSN');
-      options.dsn = dsn.isNotEmpty ? dsn : null;
-      options.tracesSampleRate = kDebugMode ? 1.0 : 0.05;
-      options.sendDefaultPii = false;
-      if (kDebugMode) {
-        options.debug = true;
-      }
-    }, appRunner: appRunner);
+    debugPrint('runWithSentry: Setting up Sentry options...');
+    try {
+      await SentryFlutter.init((options) {
+        debugPrint('SentryFlutter.init callback started');
+        const dsn = String.fromEnvironment('SENTRY_DSN');
+        options.dsn = dsn.isNotEmpty ? dsn : null;
+        options.tracesSampleRate = kDebugMode ? 1.0 : 0.05;
+        options.sendDefaultPii = false;
+        if (kDebugMode) {
+          options.debug = true;
+        }
+        debugPrint('Sentry options configured (DSN: ${options.dsn != null ? "provided" : "none"})');
+      }, appRunner: () async {
+        debugPrint('Sentry appRunner triggered');
+        await appRunner();
+      });
+      debugPrint('SentryFlutter.init call completed');
+    } catch (e, st) {
+      debugPrint('Sentry initialization exception: $e');
+      debugPrint('Stack trace: $st');
+      // If Sentry fails, we still want to run the app
+      await appRunner();
+    }
   }
 
   /// Step 3 — Initialize Firebase (best-effort).
