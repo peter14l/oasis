@@ -9,7 +9,9 @@ class IAPService extends ChangeNotifier {
   factory IAPService() => _instance;
   IAPService._internal();
 
-  final InAppPurchase _iap = InAppPurchase.instance;
+  InAppPurchase? _iapInstance;
+  InAppPurchase get _iap => _iapInstance ?? InAppPurchase.instance;
+  
   StreamSubscription<List<PurchaseDetails>>? _subscription;
 
   List<ProductDetails> _products = [];
@@ -22,22 +24,43 @@ class IAPService extends ChangeNotifier {
 
   Future<void> init() async {
     try {
-      _isAvailable = await _iap.isAvailable();
+      // Accessing instance inside init to avoid potential early access issues
+      _iapInstance = InAppPurchase.instance;
+      
+      _isAvailable = await _iap.isAvailable().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          debugPrint('IAP isAvailable() timed out after 5 seconds');
+          return false;
+        },
+      );
     } catch (e) {
       debugPrint('IAP not available on this platform: $e');
       _isAvailable = false;
+    }
+    
+    if (!_isAvailable) {
+      debugPrint('IAP not available or timed out, skipping further IAP init');
       return;
     }
-    if (!_isAvailable) return;
 
-    final Stream<List<PurchaseDetails>> purchaseUpdated = _iap.purchaseStream;
-    _subscription = purchaseUpdated.listen(
-      _onPurchaseUpdate,
-      onDone: () => _subscription?.cancel(),
-      onError: (error) => debugPrint('IAP Error: $error'),
-    );
+    try {
+      final Stream<List<PurchaseDetails>> purchaseUpdated = _iap.purchaseStream;
+      _subscription = purchaseUpdated.listen(
+        _onPurchaseUpdate,
+        onDone: () => _subscription?.cancel(),
+        onError: (error) => debugPrint('IAP Error: $error'),
+      );
 
-    await fetchProducts();
+      await fetchProducts().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          debugPrint('IAP fetchProducts() timed out');
+        },
+      );
+    } catch (e) {
+      debugPrint('Error during IAP stream/product setup: $e');
+    }
   }
 
   Future<void> fetchProducts() async {

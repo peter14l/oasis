@@ -17,7 +17,12 @@ class RevenueCatService extends ChangeNotifier {
 
   bool get isPro => _customerInfo?.entitlements.active.containsKey('Oasis Pro') ?? false;
 
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
+
   Future<void> init() async {
+    if (_isInitialized) return;
+
     await Purchases.setLogLevel(kDebugMode ? LogLevel.debug : LogLevel.error);
 
     String? apiKey;
@@ -40,18 +45,30 @@ class RevenueCatService extends ChangeNotifier {
       configuration.appUserID = currentUser.id;
     }
 
-    await Purchases.configure(configuration);
+    try {
+      await Purchases.configure(configuration);
+      _isInitialized = true;
 
-    // Listen for customer info updates
-    Purchases.addCustomerInfoUpdateListener((info) {
-      _customerInfo = info;
-      notifyListeners();
-    });
+      // Listen for customer info updates
+      Purchases.addCustomerInfoUpdateListener((info) {
+        _customerInfo = info;
+        notifyListeners();
+      });
 
-    await refresh();
+      // Refresh with timeout
+      await refresh().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          debugPrint('RevenueCat refresh() timed out after 10 seconds');
+        },
+      );
+    } catch (e) {
+      debugPrint('Error configuring RevenueCat: $e');
+    }
   }
 
   Future<void> refresh() async {
+    if (!_isInitialized) return;
     try {
       _customerInfo = await Purchases.getCustomerInfo();
       _offerings = await Purchases.getOfferings();

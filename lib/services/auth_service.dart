@@ -55,10 +55,14 @@ class AuthService with ChangeNotifier {
         if (kDebugMode) developer.log('User ID: ${session.user.id}');
         _accountRegistry.syncCurrentSessionToRegistry(session);
         // Sync RevenueCat
-        RevenueCatService().identify(session.user.id);
+        if (RevenueCatService().isInitialized) {
+          RevenueCatService().identify(session.user.id);
+        }
       } else {
         // Log out of RevenueCat if no session
-        RevenueCatService().logout();
+        if (RevenueCatService().isInitialized) {
+          RevenueCatService().logout();
+        }
       }
       notifyListeners();
     });

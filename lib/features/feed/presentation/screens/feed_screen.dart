@@ -90,6 +90,7 @@ class _FeedScreenState extends State<FeedScreen>
   }
 
   Future<void> _checkWellbeingLimit() async {
+    if (!mounted) return;
     final settings = context.read<UserSettingsProvider>();
     if (settings.dailyLimitMinutes <= 0) return;
 
@@ -109,27 +110,27 @@ class _FeedScreenState extends State<FeedScreen>
   }
 
   void _onScroll() {
-    if (_scrollController.hasClients) {
-      if (_scrollController.offset > 50 && !_isScrolled) {
-        setState(() => _isScrolled = true);
-      } else if (_scrollController.offset <= 50 && _isScrolled) {
-        setState(() => _isScrolled = false);
-      }
+    if (!mounted || !_scrollController.hasClients) return;
+    if (_scrollController.offset > 50 && !_isScrolled) {
+      setState(() => _isScrolled = true);
+    } else if (_scrollController.offset <= 50 && _isScrolled) {
+      setState(() => _isScrolled = false);
+    }
 
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 200) {
-        final userId = _authService.currentUser?.id;
-        if (userId != null) {
-          final feedProvider = context.read<FeedProvider>();
-          if (!feedProvider.isLoadingMore && feedProvider.hasMore) {
-            feedProvider.loadMore(userId: userId);
-          }
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final userId = _authService.currentUser?.id;
+      if (userId != null) {
+        final feedProvider = context.read<FeedProvider>();
+        if (!feedProvider.isLoadingMore && feedProvider.hasMore) {
+          feedProvider.loadMore(userId: userId);
         }
       }
     }
   }
 
   void _handleTabSelection() {
+    if (!mounted) return;
     if (_tabController.indexIsChanging) {
       _loadFeed();
     }
@@ -137,7 +138,14 @@ class _FeedScreenState extends State<FeedScreen>
 
   @override
   void dispose() {
-    context.read<DigitalWellbeingService>().stopTracking();
+    try {
+      if (mounted) {
+        final wellbeingService = context.read<DigitalWellbeingService>();
+        wellbeingService.stopTracking();
+      }
+    } catch (e) {
+      debugPrint('Error stopping wellbeing tracking in dispose: $e');
+    }
     WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     _scrollController.dispose();

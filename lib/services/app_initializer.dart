@@ -24,6 +24,7 @@ import 'package:oasis/features/messages/data/signal/signal_service.dart';
 import 'package:oasis/services/subscription_service.dart';
 import 'package:oasis/services/iap_service.dart';
 import 'package:oasis/services/revenuecat_service.dart';
+import 'package:oasis/services/razorpay_service.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/vault_service.dart';
@@ -70,6 +71,8 @@ import 'package:oasis/features/calling/presentation/providers/call_provider.dart
 import 'package:oasis/services/call_service.dart';
 import 'package:oasis/core/storage/prefs_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 // ---------------------------------------------------------------------------
 // ThemeProvider (kept here — it's UI-level state, not a service)
@@ -284,6 +287,11 @@ class AppInitializer {
   /// Step 4 — Core initialization: Supabase → auth → settings → services.
   /// Returns all pre-instantiated providers so main.dart can wire them up.
   static Future<InitializedServices> initCore() async {
+    // Android-specific WebView initialization
+    if (Platform.isAndroid) {
+      WebViewPlatform.instance = AndroidWebViewPlatform();
+    }
+
     // Supabase
     debugPrint('Initializing Supabase...');
     try {
@@ -351,21 +359,28 @@ class AppInitializer {
       }),
     );
 
-    // Subscription
+    // Subscription & Vault
     final iapService = IAPService();
-    await iapService.init();
-
     final revenueCatService = RevenueCatService();
-    await revenueCatService.init();
-
     final subscriptionService = SubscriptionService();
-    await subscriptionService.init();
-
-    // Vault
     final vaultService = VaultService();
-    await vaultService.init();
+    final razorpayService = RazorpayService();
 
-    // Curation tracking
+    try {
+      await Future.wait([
+        iapService.init(),
+        revenueCatService.init(),
+        subscriptionService.init(),
+        vaultService.init(),
+      ]).timeout(const Duration(seconds: 8));
+      
+      // Razorpay init is quick but needs to be called
+      razorpayService.init();
+    } catch (e) {
+      debugPrint('Warning: Some parallel services failed or timed out: $e');
+      // We continue anyway so the app can start
+    }
+
     final curationTrackingService = CurationTrackingService();
 
     return InitializedServices(
@@ -449,6 +464,9 @@ class AppInitializer {
         ChangeNotifierProvider<IAPService>.value(value: services.iapService),
         ChangeNotifierProvider<RevenueCatService>.value(
           value: services.revenueCatService,
+        ),
+        ChangeNotifierProvider<RazorpayService>.value(
+          value: RazorpayService(),
         ),
         Provider<EncryptionService>(create: (_) => EncryptionService()),
         ChangeNotifierProvider(
