@@ -253,8 +253,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               children: [
                 Text(
                   _isAnnual 
-                      ? (annualPackage?.storeProduct.priceString ?? '\$34.99')
-                      : (monthlyPackage?.storeProduct.priceString ?? '\$4.99'),
+                      ? (annualPackage?.storeProduct.priceString ?? r'$34.99')
+                      : (monthlyPackage?.storeProduct.priceString ?? r'$4.99'),
                   style: theme.textTheme.displayMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.primary,
