@@ -233,130 +233,126 @@ class _MainLayoutState extends State<MainLayout> {
 
         return Scaffold(
           extendBody: true,
-          body: Stack(
-            children: [
-              Column(
-                children: [
-                  if (_encryptionStatus == EncryptionStatus.needsRestore)
-                    const SecurityUpgradeBanner(),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        if (isDesktop)
-                          _buildNavigationRail(
-                            context,
-                            currentIndex,
-                            theme,
-                            killSwitchActive: killSwitchActive,
-                            isMica: isMica,
-                            disableTransparency: disableTransparency,
-                          ),
-                        Expanded(
-                          child: Stack(
-                            children: [
-                              mainContent,
-                              // Sliding panels for desktop (search/notifications)
-                              if (isDesktop && _activePanel != null)
-                                AnimatedPositioned(
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.easeInOut,
-                                  left: 0,
-                                  top: 0,
-                                  bottom: 0,
-                                  width: 400,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: panelColor,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.3,
-                                          ),
-                                          blurRadius: 20,
-                                          spreadRadius: 5,
-                                        ),
-                                      ],
-                                    ),
-                                    child:
-                                        _activePanel == 'search'
-                                            ? const SearchScreen(isPanel: true)
-                                            : const NotificationsScreen(
-                                              isPanel: true,
-                                            ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              
-              // Privacy Shutter Gesture Detector (Two-finger long press)
-              Positioned.fill(
-                child: RawGestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  gestures: {
-                    _TwoFingerLongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<_TwoFingerLongPressGestureRecognizer>(
-                      () => _TwoFingerLongPressGestureRecognizer(
-                        onTwoFingerLongPress: () {
-                          setState(() => _isPrivacyBlurActive = !_isPrivacyBlurActive);
-                          if (_isPrivacyBlurActive) {
-                            HapticFeedback.heavyImpact();
-                          } else {
-                            HapticFeedback.mediumImpact();
-                          }
-                        },
-                      ),
-                      (instance) {},
-                    ),
+          body: RawGestureDetector(
+            behavior: HitTestBehavior.translucent,
+            gestures: {
+              _TwoFingerLongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<_TwoFingerLongPressGestureRecognizer>(
+                () => _TwoFingerLongPressGestureRecognizer(
+                  onTwoFingerLongPress: () {
+                    setState(() => _isPrivacyBlurActive = !_isPrivacyBlurActive);
+                    if (_isPrivacyBlurActive) {
+                      HapticFeedback.heavyImpact();
+                    } else {
+                      HapticFeedback.mediumImpact();
+                    }
                   },
                 ),
+                (instance) {},
               ),
-
-              // Privacy Blur Overlay
-              if (_isPrivacyBlurActive)
-                Positioned.fill(
-                  child: motion.Animate(
-                    effects: const [motion.FadeEffect(duration: Duration(milliseconds: 300))],
-                    child: GestureDetector(
-                      onTap: () => setState(() => _isPrivacyBlurActive = false),
-                      child: BackdropFilter(
-                        filter: ui.ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-                        child: Container(
-                          color: OasisColors.deep.withValues(alpha: 0.7),
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
+            },
+            child: Stack(
+              children: [
+                Column(
+                  children: [
+                    if (_encryptionStatus == EncryptionStatus.needsRestore)
+                      const SecurityUpgradeBanner(),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          if (isDesktop)
+                            _buildNavigationRail(
+                              context,
+                              currentIndex,
+                              theme,
+                              killSwitchActive: killSwitchActive,
+                              isMica: isMica,
+                              disableTransparency: disableTransparency,
+                            ),
+                          Expanded(
+                            child: Stack(
                               children: [
-                                Icon(Icons.spa_rounded, color: OasisColors.glow, size: 80),
-                                const SizedBox(height: 24),
-                                Text(
-                                  'Privacy Mode Active',
-                                  style: theme.textTheme.headlineSmall?.copyWith(
-                                    color: OasisColors.white,
-                                    fontFamily: 'Cormorant Garamond',
-                                    fontStyle: FontStyle.italic,
+                                mainContent,
+                                // Sliding panels for desktop (search/notifications)
+                                if (isDesktop && _activePanel != null)
+                                  AnimatedPositioned(
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                    left: 0,
+                                    top: 0,
+                                    bottom: 0,
+                                    width: 400,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: panelColor,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.3,
+                                            ),
+                                            blurRadius: 20,
+                                            spreadRadius: 5,
+                                          ),
+                                        ],
+                                      ),
+                                      child:
+                                          _activePanel == 'search'
+                                              ? const SearchScreen(isPanel: true)
+                                              : const NotificationsScreen(
+                                                isPanel: true,
+                                              ),
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Tap to resume your Oasis',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: OasisColors.mist,
-                                  ),
-                                ),
                               ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                
+                // Privacy Blur Overlay
+                if (_isPrivacyBlurActive)
+                  Positioned.fill(
+                    child: motion.Animate(
+                      effects: const [motion.FadeEffect(duration: Duration(milliseconds: 300))],
+                      child: GestureDetector(
+                        onTap: () => setState(() => _isPrivacyBlurActive = false),
+                        child: BackdropFilter(
+                          filter: ui.ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+                          child: Container(
+                            color: OasisColors.deep.withValues(alpha: 0.7),
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.spa_rounded, color: OasisColors.glow, size: 80),
+                                  const SizedBox(height: 24),
+                                  Text(
+                                    'Privacy Mode Active',
+                                    style: theme.textTheme.headlineSmall?.copyWith(
+                                      color: OasisColors.white,
+                                      fontFamily: 'Cormorant Garamond',
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Tap to resume your Oasis',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: OasisColors.mist,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
           bottomNavigationBar:
               !isDesktop
