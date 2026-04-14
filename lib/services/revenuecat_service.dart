@@ -61,9 +61,11 @@ class RevenueCatService extends ChangeNotifier {
     }
   }
 
+  /// Purchase a package
   Future<bool> purchasePackage(Package package) async {
     try {
-      _customerInfo = await Purchases.purchasePackage(package);
+      final result = await Purchases.purchasePackage(package);
+      _customerInfo = result.customerInfo;
       notifyListeners();
       return isPro;
     } catch (e) {
@@ -72,6 +74,7 @@ class RevenueCatService extends ChangeNotifier {
     }
   }
 
+  /// Restore purchases
   Future<void> restorePurchases() async {
     try {
       _customerInfo = await Purchases.restorePurchases();
@@ -81,13 +84,14 @@ class RevenueCatService extends ChangeNotifier {
     }
   }
 
-  /// Manually sync user ID after login
+  /// Identify user
   Future<void> identify(String userId) async {
     try {
-      _customerInfo = await Purchases.logIn(userId);
+      final result = await Purchases.logIn(userId);
+      _customerInfo = result.customerInfo;
       notifyListeners();
     } catch (e) {
-      debugPrint('Identify failed: $e');
+      debugPrint('Identification failed: $e');
     }
   }
 

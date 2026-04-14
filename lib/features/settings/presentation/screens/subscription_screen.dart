@@ -61,7 +61,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 width: double.infinity,
                 height: 56,
                 child: OutlinedButton.icon(
-                  onPressed: () => Purchases.showManageSubscriptions(),
+                  onPressed: () {
+                    // TODO: Update to v9 method for managing subscriptions
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please manage subscriptions in your App Store or Play Store settings.')),
+                    );
+                  },
                   icon: const Icon(Icons.settings_outlined),
                   label: const Text('Manage Subscription'),
                   style: OutlinedButton.styleFrom(
