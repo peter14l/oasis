@@ -53,25 +53,40 @@ class PricingService {
   };
 
   static Future<Currency> detectPPP() async {
+    // Priority 1: System Hardware Locale (Highly resistant to VPN)
+    final systemCurrency = detectCurrency();
+    
     try {
-      // Priority 1: IP-based detection (most accurate for travel/VPN)
+      // Priority 2: IP-based detection (Used for validation)
       final response = await http
           .get(Uri.parse('https://ipapi.co/json/'))
           .timeout(const Duration(seconds: 3));
+          
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final countryCode = data['country_code']?.toString().toUpperCase();
-        if (countryCode != null &&
-            _countryToCurrency.containsKey(countryCode)) {
-          return _countryToCurrency[countryCode]!;
+        final ipCountryCode = data['country_code']?.toString().toUpperCase();
+        
+        // Validation: If IP country doesn't match System Locale, 
+        // it's likely a VPN. Default to USD for safety.
+        final systemCountryCode = PlatformDispatcher.instance.locale.countryCode?.toUpperCase();
+        
+        if (ipCountryCode != null && systemCountryCode != null) {
+          if (ipCountryCode != systemCountryCode) {
+            debugPrint('VPN Detected! IP: $ipCountryCode vs Locale: $systemCountryCode. Defaulting to USD.');
+            return Currency.usd;
+          }
+        }
+
+        if (ipCountryCode != null && _countryToCurrency.containsKey(ipCountryCode)) {
+          return _countryToCurrency[ipCountryCode]!;
         }
       }
     } catch (e) {
       debugPrint('PPP Detection via IP failed: $e');
     }
 
-    // Priority 2: System Locale (reliable fallback on most OSs)
-    return detectCurrency();
+    // Fallback to the Hardware Locale detected at the start
+    return systemCurrency;
   }
 
   static Currency detectCurrency() {
