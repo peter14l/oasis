@@ -65,6 +65,12 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name="com.razorpay.CheckoutActivity"
+            android:theme="@style/RazorpayTheme"
+            android:exported="false"
+            tools:replace="android:theme,android:exported" />
+
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
             <intent-filter>
@@ -115,6 +121,10 @@
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="http" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="*/*" />
         </intent>
     </queries>
 </manifest>

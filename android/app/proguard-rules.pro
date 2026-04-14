@@ -126,3 +126,10 @@
 -keep class com.yalantis.ucrop.model.** { *; }
 -keep class com.yalantis.ucrop.view.** { *; }
 -keep class com.yalantis.ucrop.util.** { *; }
+
+# Razorpay Proguard Rules
+-keepclassmembers class com.razorpay.CheckoutBridge {
+    public *;
+}
+-keep class com.razorpay.** {*;}
+-dontwarn com.razorpay.**

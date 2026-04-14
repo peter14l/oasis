@@ -147,6 +147,10 @@ class _OasisProScreenState extends State<OasisProScreen> {
         'external': {
           'wallets': ['paytm'],
         },
+        'modal': {
+          'confirm_close': true,
+          'backdropclose': false,
+        },
       };
 
       if (mounted) {
