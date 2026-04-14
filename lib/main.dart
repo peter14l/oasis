@@ -337,15 +337,23 @@ class CallNavigator extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 void main() async {
+  debugPrint('--- APP STARTING ---');
   WidgetsFlutterBinding.ensureInitialized();
+  debugPrint('WidgetsFlutterBinding initialized');
 
+  debugPrint('Loading environment variables...');
   await AppInitializer.loadEnv();
 
+  debugPrint('Initializing Sentry...');
   await AppInitializer.runWithSentry(() async {
+    debugPrint('Sentry initialized, starting services...');
+    
     await AppInitializer.initFirebase();
 
     try {
+      debugPrint('Initializing core services...');
       final services = await AppInitializer.initCore();
+      debugPrint('Core services initialized successfully');
 
       runApp(
         SentryWidget(
@@ -355,8 +363,9 @@ void main() async {
           ),
         ),
       );
+      debugPrint('runApp called');
     } catch (e, stackTrace) {
-      debugPrint('Error initializing app: $e');
+      debugPrint('CRITICAL ERROR during initialization: $e');
       debugPrint('Stack trace: $stackTrace');
       // Print each frame
       for (final frame in stackTrace.toString().split('\n')) {
@@ -365,7 +374,17 @@ void main() async {
       runApp(
         MaterialApp(
           home: Scaffold(
-            body: Center(child: Text('Failed to initialize app: $e')),
+            backgroundColor: Colors.black,
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Text(
+                  'Failed to initialize app: $e',
+                  style: const TextStyle(color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
           ),
         ),
       );

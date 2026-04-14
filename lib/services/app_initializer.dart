@@ -222,10 +222,20 @@ class AppInitializer {
   /// Step 1 — Load .env (best-effort, never fatal).
   static Future<void> loadEnv() async {
     try {
+      // Use String.fromEnvironment to check if we have injected keys
+      // if we have them, we might not need the .env file at all.
+      const hasUrl = String.fromEnvironment('SUPABASE_URL');
+      if (hasUrl.isNotEmpty) {
+        debugPrint('.env variables injected via dart-define, skipping file load');
+        return;
+      }
+
+      // Only attempt to load if the file exists in the bundle
+      // Note: flutter_dotenv load() throws if not found in assets
       await dotenv.load(fileName: '.env');
       debugPrint('.env loaded successfully');
     } catch (e) {
-      debugPrint('Could not load .env file: $e');
+      debugPrint('Note: .env file not loaded (intended for release): $e');
     }
   }
 
@@ -233,22 +243,28 @@ class AppInitializer {
   static Future<void> runWithSentry(Future<void> Function() appRunner) async {
     SentryWidgetsFlutterBinding.ensureInitialized();
     await SentryFlutter.init((options) {
-      options.dsn = const String.fromEnvironment('SENTRY_DSN');
+      const dsn = String.fromEnvironment('SENTRY_DSN');
+      options.dsn = dsn.isNotEmpty ? dsn : null;
       options.tracesSampleRate = kDebugMode ? 1.0 : 0.05;
       options.sendDefaultPii = false;
+      if (kDebugMode) {
+        options.debug = true;
+      }
     }, appRunner: appRunner);
   }
 
   /// Step 3 — Initialize Firebase (best-effort).
   static Future<void> initFirebase() async {
+    debugPrint('Initializing Firebase...');
     try {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
       debugPrint('Firebase initialized successfully');
-    } catch (e) {
+    } catch (e, st) {
       debugPrint('Firebase initialization failed: $e');
+      debugPrint('Stack trace: $st');
     }
   }
 
@@ -256,10 +272,18 @@ class AppInitializer {
   /// Returns all pre-instantiated providers so main.dart can wire them up.
   static Future<InitializedServices> initCore() async {
     // Supabase
-    await SupabaseService.initialize();
-    debugPrint('Supabase initialized successfully');
+    debugPrint('Initializing Supabase...');
+    try {
+      await SupabaseService.initialize();
+      debugPrint('Supabase initialized successfully');
+    } catch (e, st) {
+      debugPrint('CRITICAL: Supabase initialization failed: $e');
+      debugPrint('Stack trace: $st');
+      rethrow;
+    }
 
     // PrefsStorage (shared preferences wrapper — required by SessionLocalDatasource)
+    debugPrint('Initializing PrefsStorage...');
     await PrefsStorage.init();
     debugPrint('PrefsStorage initialized successfully');
 
