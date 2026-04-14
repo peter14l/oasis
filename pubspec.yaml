@@ -131,6 +131,7 @@ dependencies:
   integration_test:
     sdk: flutter
   in_app_purchase: ^3.2.3
+  purchases_flutter: ^7.0.0
   webview_flutter: ^4.10.0
   webview_windows: ^0.4.0
   camera: ^0.12.0+1

@@ -23,6 +23,7 @@ import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/features/messages/data/signal/signal_service.dart';
 import 'package:oasis/services/subscription_service.dart';
 import 'package:oasis/services/iap_service.dart';
+import 'package:oasis/services/revenuecat_service.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/vault_service.dart';
@@ -159,6 +160,7 @@ class InitializedServices {
   final EnergyMeterService energyMeterService;
   final SubscriptionService subscriptionService;
   final IAPService iapService;
+  final RevenueCatService revenueCatService;
   final DigitalWellbeingService digitalWellbeingService;
   final VaultService vaultService;
   final CurationTrackingService curationTrackingService;
@@ -172,6 +174,7 @@ class InitializedServices {
     required this.energyMeterService,
     required this.subscriptionService,
     required this.iapService,
+    required this.revenueCatService,
     required this.digitalWellbeingService,
     required this.vaultService,
     required this.curationTrackingService,
@@ -315,6 +318,9 @@ class AppInitializer {
     final iapService = IAPService();
     await iapService.init();
 
+    final revenueCatService = RevenueCatService();
+    await revenueCatService.init();
+
     final subscriptionService = SubscriptionService();
     await subscriptionService.init();
 
@@ -334,6 +340,7 @@ class AppInitializer {
       energyMeterService: energyMeterService,
       subscriptionService: subscriptionService,
       iapService: iapService,
+      revenueCatService: revenueCatService,
       digitalWellbeingService: digitalWellbeingService,
       vaultService: vaultService,
       curationTrackingService: curationTrackingService,
@@ -403,6 +410,9 @@ class AppInitializer {
           value: services.subscriptionService,
         ),
         ChangeNotifierProvider<IAPService>.value(value: services.iapService),
+        ChangeNotifierProvider<RevenueCatService>.value(
+          value: services.revenueCatService,
+        ),
         Provider<EncryptionService>(create: (_) => EncryptionService()),
         ChangeNotifierProvider(
           create:

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/services/subscription_service.dart';
-import 'package:oasis/services/pricing_service.dart';
+import 'package:oasis/services/revenuecat_service.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -19,6 +20,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final subService = Provider.of<SubscriptionService>(context);
+    final rcService = Provider.of<RevenueCatService>(context);
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
 
     if (subService.isPro) {
@@ -53,6 +55,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         body: proContent,
       );
     }
+
+    // Get offerings from RevenueCat
+    final offerings = rcService.offerings;
+    final currentOffering = offerings?.current;
+    final annualPackage = currentOffering?.annual;
+    final monthlyPackage = currentOffering?.monthly;
 
     final upgradeContent = SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -203,7 +211,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             child: Column(
               children: [
                 Text(
-                  _isAnnual ? '\$34.99' : '\$4.99',
+                  _isAnnual 
+                      ? (annualPackage?.storeProduct.priceString ?? '$34.99')
+                      : (monthlyPackage?.storeProduct.priceString ?? '$4.99'),
                   style: theme.textTheme.displayMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.primary,
@@ -230,17 +240,24 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   _isProcessing
                       ? null
                       : () async {
-                        setState(() => _isProcessing = true);
-                        // TODO: Implement actual revenuecat purchase flow here
-                        // The backend webhook should handle granting pro status
-                        await Future.delayed(const Duration(seconds: 2));
+                        final package = _isAnnual ? annualPackage : monthlyPackage;
+                        if (package == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Plan not available.')),
+                          );
+                          return;
+                        }
 
+                        setState(() => _isProcessing = true);
+                        
+                        final success = await rcService.purchasePackage(package);
+                        
                         setState(() => _isProcessing = false);
 
-                        if (context.mounted) {
+                        if (success && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Purchase flow not yet implemented.'),
+                              content: Text('Congratulations! You are now Pro.'),
                             ),
                           );
                         }
@@ -263,7 +280,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                         ),
                       )
                       : Text(
-                        'Start 14-Day Free Trial',
+                        _isAnnual ? 'Start Annual Pro' : 'Start Monthly Pro',
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: colorScheme.onPrimary,
                           fontWeight: FontWeight.bold,
@@ -419,3 +436,4 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     );
   }
 }
+
