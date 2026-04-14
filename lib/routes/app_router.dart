@@ -295,8 +295,6 @@ class _MainLayoutState extends State<MainLayout> {
                 child: RawGestureDetector(
                   behavior: HitTestBehavior.translucent,
                   gestures: {
-import 'package:flutter/services.dart';
-// ... existing imports ...
                     _TwoFingerLongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<_TwoFingerLongPressGestureRecognizer>(
                       () => _TwoFingerLongPressGestureRecognizer(
                         onTwoFingerLongPress: () {
