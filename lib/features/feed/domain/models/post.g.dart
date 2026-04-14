@@ -36,10 +36,9 @@ _Post _$PostFromJson(Map<String, dynamic> json) => _Post(
   isAd: json['isAd'] as bool? ?? false,
   isVerified: json['isVerified'] as bool? ?? false,
   mood: json['mood'] as String?,
-  poll:
-      json['poll'] == null
-          ? null
-          : EnhancedPoll.fromJson(json['poll'] as Map<String, dynamic>),
+  poll: json['poll'] == null
+      ? null
+      : EnhancedPoll.fromJson(json['poll'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$PostToJson(_Post instance) => <String, dynamic>{

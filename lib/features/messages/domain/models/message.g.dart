@@ -14,14 +14,12 @@ _Message _$MessageFromJson(Map<String, dynamic> json) => _Message(
   senderAvatar: json['sender_avatar'] as String? ?? '',
   content: json['content'] as String? ?? '',
   isRead: json['is_read'] as bool? ?? false,
-  readAt:
-      json['read_at'] == null
-          ? null
-          : DateTime.parse(json['read_at'] as String),
-  anyReadAt:
-      json['any_read_at'] == null
-          ? null
-          : DateTime.parse(json['any_read_at'] as String),
+  readAt: json['read_at'] == null
+      ? null
+      : DateTime.parse(json['read_at'] as String),
+  anyReadAt: json['any_read_at'] == null
+      ? null
+      : DateTime.parse(json['any_read_at'] as String),
   timestamp: DateTime.parse(json['created_at'] as String),
   messageType:
       $enumDecodeNullable(_$MessageTypeEnumMap, json['message_type']) ??
@@ -46,16 +44,15 @@ _Message _$MessageFromJson(Map<String, dynamic> json) => _Message(
       const [],
   isEphemeral: json['is_ephemeral'] as bool? ?? false,
   ephemeralDuration: (json['ephemeral_duration'] as num?)?.toInt() ?? 86400,
-  expiresAt:
-      json['expires_at'] == null
-          ? null
-          : DateTime.parse(json['expires_at'] as String),
+  expiresAt: json['expires_at'] == null
+      ? null
+      : DateTime.parse(json['expires_at'] as String),
   encryptedKeys: json['encrypted_keys'] as Map<String, dynamic>?,
   iv: json['iv'] as String?,
   signalMessageType: (json['signal_message_type'] as num?)?.toInt(),
   signalSenderContent: json['signal_sender_content'] as String?,
-  signalSenderMessageType:
-      (json['signal_sender_message_type'] as num?)?.toInt(),
+  signalSenderMessageType: (json['signal_sender_message_type'] as num?)
+      ?.toInt(),
   callId: json['call_id'] as String?,
   rippleId: json['ripple_id'] as String?,
   storyId: json['story_id'] as String?,

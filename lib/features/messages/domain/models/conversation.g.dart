@@ -13,14 +13,12 @@ _Conversation _$ConversationFromJson(Map<String, dynamic> json) =>
       otherUserName: json['other_user_name'] as String,
       otherUserAvatar: json['other_user_avatar'] as String,
       lastMessage: json['last_message'] as String?,
-      lastMessageTime:
-          json['last_message_time'] == null
-              ? null
-              : DateTime.parse(json['last_message_time'] as String),
-      lastMessageReadAt:
-          json['last_message_read_at'] == null
-              ? null
-              : DateTime.parse(json['last_message_read_at'] as String),
+      lastMessageTime: json['last_message_time'] == null
+          ? null
+          : DateTime.parse(json['last_message_time'] as String),
+      lastMessageReadAt: json['last_message_read_at'] == null
+          ? null
+          : DateTime.parse(json['last_message_read_at'] as String),
       lastMessageSenderId: json['last_message_sender_id'] as String?,
       unreadCount: (json['unread_count'] as num?)?.toInt() ?? 0,
       lastMessageType: json['last_message_type'] as String?,

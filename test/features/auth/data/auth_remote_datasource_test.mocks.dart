@@ -1771,11 +1771,12 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
   ]) =>
       (super.noSuchMethod(
             Invocation.method(#count, [count]),
-            returnValue: _FakeResponsePostgrestBuilder_23<
-              _i2.PostgrestResponse<T>,
-              T,
-              T
-            >(this, Invocation.method(#count, [count])),
+            returnValue:
+                _FakeResponsePostgrestBuilder_23<
+                  _i2.PostgrestResponse<T>,
+                  T,
+                  T
+                >(this, Invocation.method(#count, [count])),
           )
           as _i2.ResponsePostgrestBuilder<_i2.PostgrestResponse<T>, T, T>);
 
@@ -1799,11 +1800,12 @@ class MockPostgrestFilterBuilder<T> extends _i1.Mock
   geojson() =>
       (super.noSuchMethod(
             Invocation.method(#geojson, []),
-            returnValue: _FakeResponsePostgrestBuilder_23<
-              Map<String, dynamic>,
-              Map<String, dynamic>,
-              Map<String, dynamic>
-            >(this, Invocation.method(#geojson, [])),
+            returnValue:
+                _FakeResponsePostgrestBuilder_23<
+                  Map<String, dynamic>,
+                  Map<String, dynamic>,
+                  Map<String, dynamic>
+                >(this, Invocation.method(#geojson, [])),
           )
           as _i2.ResponsePostgrestBuilder<
             Map<String, dynamic>,
