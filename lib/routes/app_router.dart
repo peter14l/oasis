@@ -1,7 +1,10 @@
 // app_router.dart
 
 import 'dart:ui' as ui;
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/gestures.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:navigation_bar_m3e/navigation_bar_m3e.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +15,7 @@ import 'package:oasis/services/wellness_service.dart';
 import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
 import 'package:universal_io/io.dart';
 import 'package:oasis/screens/spaces/spaces_screen.dart';
+import 'package:oasis/themes/app_colors.dart';
 
 import 'package:oasis/features/circles/presentation/screens/circle_detail_screen.dart';
 import 'package:oasis/features/circles/presentation/screens/create_circle_screen.dart';
