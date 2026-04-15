@@ -248,9 +248,16 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
 
     if (profile == null) return const SizedBox.shrink();
 
-    return profile.isPro
-        ? _buildProMemberTile(context)
-        : _buildPremiumTile(context);
+    // TODO: Re-enable subscription section once subscription feature is ready
+    // return profile.isPro
+    //     ? _buildProMemberTile(context)
+    //     : _buildPremiumTile(context);
+
+    // For now, only show pro member tile if user is already pro
+    if (profile.isPro) {
+      return _buildProMemberTile(context);
+    }
+    return const SizedBox.shrink(); // Hide upgrade tile for non-pro users
   }
 
   Widget _buildProMemberTile(BuildContext context) {
