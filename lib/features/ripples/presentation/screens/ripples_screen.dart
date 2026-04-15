@@ -157,6 +157,13 @@ class _RipplesScreenState extends State<RipplesScreen>
             backgroundColor: Colors.black,
             body: Stack(
               children: [
+                // Time tracking info
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 16,
+                  left: 16,
+                  right: 16,
+                  child: _buildTimeInfoBanner(context),
+                ),
                 // Immersive Blurred Background
                 Positioned.fill(
                   child: AnimatedSwitcher(
@@ -514,6 +521,33 @@ class _RipplesScreenState extends State<RipplesScreen>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildTimeInfoBanner(BuildContext context) {
+    final wellbeing = context.watch<DigitalWellbeingService>();
+    final threshold = wellbeing.lockoutThresholdMinutes;
+    final usedMinutes = wellbeing.feedMinutes + wellbeing.ripplesMinutes;
+    final remaining = threshold - usedMinutes > 0 ? threshold - usedMinutes : 0;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.black54,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.timer_outlined, size: 14, color: Colors.white54),
+          const SizedBox(width: 6),
+          Text(
+            'Ripples time: ${wellbeing.ripplesMinutes}m / $thresholdm (Feed + Ripples)',
+            style: const TextStyle(fontSize: 11, color: Colors.white54),
+          ),
+        ],
+      ),
     );
   }
 

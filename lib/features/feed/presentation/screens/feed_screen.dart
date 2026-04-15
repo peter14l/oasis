@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
+import 'package:oasis/widgets/wellbeing/lockout_overlay.dart';
 import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
@@ -207,139 +208,130 @@ class _FeedScreenState extends State<FeedScreen>
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder:
-          (context) => Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(32),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 20,
-                    offset: const Offset(0, -5),
-                  ),
-                ],
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 20,
+                offset: const Offset(0, -5),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 24),
-                    decoration: BoxDecoration(
-                      color: colorScheme.onSurface.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Enter Ripples',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Set your intentional focus duration',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [15, 30, 45].map((mins) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: ChoiceChip(
-                          label: Text('$mins min'),
-                          selected: false,
-                          onSelected: (_) {
-                            service.startSession(Duration(minutes: mins));
-                            Navigator.pop(context);
-                            if (ResponsiveLayout.isDesktop(context)) {
-                              setState(() => _showRipplesOverlay = true);
-                            } else {
-                              context.push('/ripples');
-                            }
-                          },
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest.withValues(
-                        alpha: 0.3,
-                      ),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: colorScheme.outlineVariant.withValues(
-                          alpha: 0.5,
-                        ),
-                      ),
-                    ),
-                    child: TextField(
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      autofocus: true,
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: '00',
-                        suffixText: 'min',
-                        suffixStyle: theme.textTheme.titleMedium?.copyWith(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                        ),
-                      ),
-                      onSubmitted: (val) {
-                        final mins = int.tryParse(val);
-                        if (mins != null && mins > 0) {
-                          service.startSession(Duration(minutes: mins));
-                          Navigator.pop(context);
-                          if (ResponsiveLayout.isDesktop(context)) {
-                            setState(() => _showRipplesOverlay = true);
-                          } else {
-                            context.push('/ripples');
-                          }
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  color: colorScheme.onSurface.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Enter Ripples',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Set your intentional focus duration',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [15, 30, 45].map((mins) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: ChoiceChip(
+                      label: Text('$mins min'),
+                      selected: false,
+                      onSelected: (_) {
+                        service.startSession(Duration(minutes: mins));
+                        Navigator.pop(context);
+                        if (ResponsiveLayout.isDesktop(context)) {
+                          setState(() => _showRipplesOverlay = true);
+                        } else {
+                          context.push('/ripples');
                         }
                       },
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Ripples limits distractions to help you stay present.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant.withValues(
-                        alpha: 0.7,
-                      ),
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                  );
+                }).toList(),
               ),
-            ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.3,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: TextField(
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  autofocus: true,
+                  style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: '00',
+                    suffixText: 'min',
+                    suffixStyle: theme.textTheme.titleMedium?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  onSubmitted: (val) {
+                    final mins = int.tryParse(val);
+                    if (mins != null && mins > 0) {
+                      service.startSession(Duration(minutes: mins));
+                      Navigator.pop(context);
+                      if (ResponsiveLayout.isDesktop(context)) {
+                        setState(() => _showRipplesOverlay = true);
+                      } else {
+                        context.push('/ripples');
+                      }
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Ripples limits distractions to help you stay present.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
+        ),
+      ),
     );
   }
 
@@ -364,16 +356,16 @@ class _FeedScreenState extends State<FeedScreen>
               floating: true,
               snap: true,
               elevation: 0,
-              backgroundColor:
-                  _isScrolled
-                      ? Colors.black.withValues(alpha: 0.8)
-                      : Colors.transparent,
+              backgroundColor: _isScrolled
+                  ? Colors.black.withValues(alpha: 0.8)
+                  : Colors.transparent,
               toolbarHeight: 70,
               automaticallyImplyLeading: false,
               centerTitle: true,
               title: _buildMobileHeader(colorScheme, isM3E),
             ),
 
+          SliverToBoxAdapter(child: _buildFeedInfoBanner(colorScheme)),
           SliverToBoxAdapter(
             child: Consumer<StoriesProvider>(
               builder: (context, storiesProvider, _) {
@@ -449,71 +441,70 @@ class _FeedScreenState extends State<FeedScreen>
         children: [
           isDesktop
               ? Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color:
-                              disableTransparency
-                                  ? colorScheme.surfaceContainer
-                                  : colorScheme.surface.withValues(alpha: 0.4),
-                          borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
-                          border:
-                              isM3E
-                                  ? Border.all(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: disableTransparency
+                                ? colorScheme.surfaceContainer
+                                : colorScheme.surface.withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(
+                              isM3E ? 28 : 12,
+                            ),
+                            border: isM3E
+                                ? Border.all(
                                     color: colorScheme.outlineVariant
                                         .withValues(alpha: 0.3),
                                     width: 1,
                                   )
-                                  : null,
-                        ),
-                        child: Column(
-                          children: [
-                            DesktopHeader(
-                              title: 'Feed',
-                              actions: [
-                                _buildDesktopTabSwitcher(colorScheme, isM3E),
-                                const SizedBox(width: 12),
-                                _buildRipplesButton(colorScheme, isM3E),
-                              ],
-                            ),
-                            const Divider(height: 1, thickness: 0.5),
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.vertical(
-                                  bottom: Radius.circular(isM3E ? 28 : 12),
-                                ),
-                                child:
-                                    disableTransparency
-                                        ? feedContent
-                                        : BackdropFilter(
+                                : null,
+                          ),
+                          child: Column(
+                            children: [
+                              DesktopHeader(
+                                title: 'Feed',
+                                actions: [
+                                  _buildDesktopTabSwitcher(colorScheme, isM3E),
+                                  const SizedBox(width: 12),
+                                  _buildRipplesButton(colorScheme, isM3E),
+                                ],
+                              ),
+                              const Divider(height: 1, thickness: 0.5),
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.vertical(
+                                    bottom: Radius.circular(isM3E ? 28 : 12),
+                                  ),
+                                  child: disableTransparency
+                                      ? feedContent
+                                      : BackdropFilter(
                                           filter: ImageFilter.blur(
                                             sigmaX: 10,
                                             sigmaY: 10,
                                           ),
                                           child: feedContent,
                                         ),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    _showCommentPane && _selectedPostId != null
-                        ? _buildDesktopCommentPane(theme, colorScheme, isM3E)
-                        : _buildDesktopSidebar(theme, colorScheme, isM3E),
-                  ],
-                ),
-              )
+                      const SizedBox(width: 12),
+                      _showCommentPane && _selectedPostId != null
+                          ? _buildDesktopCommentPane(theme, colorScheme, isM3E)
+                          : _buildDesktopSidebar(theme, colorScheme, isM3E),
+                    ],
+                  ),
+                )
               : (ResponsiveLayout.isMobile(context)
-                  ? feedContent
-                  : MaxWidthContainer(
-                    maxWidth: ResponsiveLayout.maxFeedWidth,
-                    child: feedContent,
-                  )),
+                    ? feedContent
+                    : MaxWidthContainer(
+                        maxWidth: ResponsiveLayout.maxFeedWidth,
+                        child: feedContent,
+                      )),
 
           if (_showRipplesOverlay && isDesktop)
             Positioned.fill(
@@ -525,6 +516,7 @@ class _FeedScreenState extends State<FeedScreen>
               ),
             ),
 
+          const LockoutOverlay(pageName: 'Feed'),
           if (_showWellbeingNudge) _buildWellbeingNudge(),
           if (_showDeepBreath) _buildDeepBreath(),
         ],
@@ -630,7 +622,10 @@ class _FeedScreenState extends State<FeedScreen>
                     ),
                     child: const Text(
                       'I AM PRESENT',
-                      style: TextStyle(letterSpacing: 2, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        letterSpacing: 2,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -710,18 +705,16 @@ class _FeedScreenState extends State<FeedScreen>
     return Container(
       width: 450,
       decoration: BoxDecoration(
-        color:
-            isM3E
-                ? colorScheme.surfaceContainer
-                : colorScheme.surface.withValues(alpha: 0.4),
+        color: isM3E
+            ? colorScheme.surfaceContainer
+            : colorScheme.surface.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
-        border:
-            isM3E
-                ? Border.all(
-                  color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-                  width: 1,
-                )
-                : Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: isM3E
+            ? Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                width: 1,
+              )
+            : Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
@@ -765,6 +758,40 @@ class _FeedScreenState extends State<FeedScreen>
     );
   }
 
+  Widget _buildFeedInfoBanner(ColorScheme colorScheme) {
+    final wellbeing = context.watch<DigitalWellbeingService>();
+    final threshold = wellbeing.lockoutThresholdMinutes;
+    final usedMinutes = wellbeing.feedMinutes + wellbeing.ripplesMinutes;
+    final remaining = threshold - usedMinutes > 0 ? threshold - usedMinutes : 0;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.timer_outlined, size: 16, color: colorScheme.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Today\'s Feed time: ${wellbeing.totalMinutes}m / $thresholdm limit (Feed + Ripples)',
+              style: TextStyle(
+                fontSize: 11,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMobileHeader(ColorScheme colorScheme, [bool isM3E = false]) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -776,7 +803,10 @@ class _FeedScreenState extends State<FeedScreen>
     );
   }
 
-  Widget _buildDesktopTabSwitcher(ColorScheme colorScheme, [bool isM3E = false]) {
+  Widget _buildDesktopTabSwitcher(
+    ColorScheme colorScheme, [
+    bool isM3E = false,
+  ]) {
     return Container(
       height: 48,
       padding: const EdgeInsets.all(4),
@@ -790,18 +820,8 @@ class _FeedScreenState extends State<FeedScreen>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildDesktopTabButton(
-            'Following',
-            0,
-            colorScheme,
-            isM3E,
-          ),
-          _buildDesktopTabButton(
-            'Explore',
-            1,
-            colorScheme,
-            isM3E,
-          ),
+          _buildDesktopTabButton('Following', 0, colorScheme, isM3E),
+          _buildDesktopTabButton('Explore', 1, colorScheme, isM3E),
         ],
       ),
     );
@@ -842,44 +862,39 @@ class _FeedScreenState extends State<FeedScreen>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(isM3E ? 16 : 20),
       ),
-      itemBuilder:
-          (context) => [
-            PopupMenuItem(
-              value: 0,
-              child: Text(
-                'FOLLOWING',
-                style: TextStyle(
-                  fontWeight: isM3E ? FontWeight.w600 : FontWeight.bold,
-                ),
-              ),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 0,
+          child: Text(
+            'FOLLOWING',
+            style: TextStyle(
+              fontWeight: isM3E ? FontWeight.w600 : FontWeight.bold,
             ),
-            PopupMenuItem(
-              value: 1,
-              child: Text(
-                'EXPLORE',
-                style: TextStyle(
-                  fontWeight: isM3E ? FontWeight.w600 : FontWeight.bold,
-                ),
-              ),
+          ),
+        ),
+        PopupMenuItem(
+          value: 1,
+          child: Text(
+            'EXPLORE',
+            style: TextStyle(
+              fontWeight: isM3E ? FontWeight.w600 : FontWeight.bold,
             ),
-          ],
+          ),
+        ),
+      ],
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color:
-              isM3E
-                  ? colorScheme.surfaceContainer
-                  : colorScheme.surface.withValues(alpha: 0.8),
+          color: isM3E
+              ? colorScheme.surfaceContainer
+              : colorScheme.surface.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(isM3E ? 20 : 32),
-          border:
-              isM3E
-                  ? Border.all(
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-                    width: 1,
-                  )
-                  : Border.all(
-                    color: colorScheme.onSurface.withValues(alpha: 0.1),
-                  ),
+          border: isM3E
+              ? Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                  width: 1,
+                )
+              : Border.all(color: colorScheme.onSurface.withValues(alpha: 0.1)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -905,20 +920,16 @@ class _FeedScreenState extends State<FeedScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color:
-              isM3E
-                  ? colorScheme.tertiaryContainer
-                  : colorScheme.secondary.withValues(alpha: 0.1),
+          color: isM3E
+              ? colorScheme.tertiaryContainer
+              : colorScheme.secondary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(isM3E ? 20 : 32),
-          border:
-              isM3E
-                  ? Border.all(
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-                    width: 1,
-                  )
-                  : Border.all(
-                    color: colorScheme.secondary.withValues(alpha: 0.2),
-                  ),
+          border: isM3E
+              ? Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  width: 1,
+                )
+              : Border.all(color: colorScheme.secondary.withValues(alpha: 0.2)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -926,10 +937,9 @@ class _FeedScreenState extends State<FeedScreen>
             Text(
               'Ripples',
               style: TextStyle(
-                color:
-                    isM3E
-                        ? colorScheme.onTertiaryContainer
-                        : colorScheme.secondary,
+                color: isM3E
+                    ? colorScheme.onTertiaryContainer
+                    : colorScheme.secondary,
                 fontWeight: isM3E ? FontWeight.w600 : FontWeight.bold,
                 fontSize: 14,
               ),
@@ -948,18 +958,16 @@ class _FeedScreenState extends State<FeedScreen>
     return Container(
       width: 400,
       decoration: BoxDecoration(
-        color:
-            isM3E
-                ? colorScheme.surfaceContainer
-                : colorScheme.surface.withValues(alpha: 0.4),
+        color: isM3E
+            ? colorScheme.surfaceContainer
+            : colorScheme.surface.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
-        border:
-            isM3E
-                ? Border.all(
-                  color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-                  width: 1,
-                )
-                : null,
+        border: isM3E
+            ? Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                width: 1,
+              )
+            : null,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
@@ -1151,8 +1159,8 @@ class _FeedScreenState extends State<FeedScreen>
                     ),
                     const SizedBox(height: 12),
                     TextButton(
-                      onPressed:
-                          () => setState(() => _showWellbeingNudge = false),
+                      onPressed: () =>
+                          setState(() => _showWellbeingNudge = false),
                       child: const Text(
                         'Stay for 5 more minutes',
                         style: TextStyle(color: Colors.white54),

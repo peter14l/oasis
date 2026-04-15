@@ -19,6 +19,13 @@ All notable changes to this project will be documented in this file.
 - **Live Location Sharing** - Now sends initial location coordinates in message payload, shows map preview in bubble with real-time marker updates
 - **Dynamic Theme (M3E)** - Fixed issue where only some components used dynamic colors. Now all theme components (scaffold, navigation bar, cards, app bar, inputs) use the dynamic color scheme when enabled
 
+### Screen Time & Lockout Fix (2026-04-15)
+- **Bug:** Users were getting locked out of Feed/Search even when time hadn't reached 60 minutes
+- **Root Cause:** The lockout logic was in `DigitalWellbeingService` but was never actually enforced in the UI - the `LockoutOverlay` component existed but was never added to Feed/Search screens
+- **Fix:** Added `LockoutOverlay` to both Feed and Search screens to properly enforce the 60-minute lockout
+- **Clarification:** Only Feed and Ripples screen time counts toward the lockout limit (not total app usage)
+- **UI Improvement:** Added info banners to Feed and Ripples screens showing "Today's Feed time: Xm / 60m limit (Feed + Ripples)" so users understand what time is being tracked
+
 ### Ripples Screen Updates (2026-04-15)
 - **Fixed:** Live location sharing - Added `live_location` to `media_view_mode_check` constraint in database (SQL migration created)
 - **UI:** Removed layout changer and close buttons from top of mobile view
@@ -47,6 +54,9 @@ All notable changes to this project will be documented in this file.
 - `lib/themes/app_theme.dart` - Fixed all theme components to use dynamic colors when available
 - `lib/main.dart` - Added palette color scheme generation with priority order
 - `lib/screens/settings_screen.dart` - Added Color Palette dropdown UI with palette names and colors
+- `lib/features/feed/presentation/screens/feed_screen.dart` - Added LockoutOverlay and time tracking info banner
+- `lib/screens/search_screen.dart` - Added LockoutOverlay for search screen
+- `lib/widgets/wellbeing/lockout_overlay.dart` - Lockout overlay component (already existed but was not used)
 
 ---
 
