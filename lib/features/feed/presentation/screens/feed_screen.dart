@@ -780,7 +780,7 @@ class _FeedScreenState extends State<FeedScreen>
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Today\'s Feed time: ${wellbeing.totalMinutes}m / $thresholdm limit (Feed + Ripples)',
+              'Today\'s Feed time: ${wellbeing.totalMinutes}m / ${wellbeing.lockoutThresholdMinutes}m limit (Feed + Ripples)',
               style: TextStyle(
                 fontSize: 11,
                 color: colorScheme.onSurfaceVariant,

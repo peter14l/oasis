@@ -543,7 +543,7 @@ class _RipplesScreenState extends State<RipplesScreen>
           const Icon(Icons.timer_outlined, size: 14, color: Colors.white54),
           const SizedBox(width: 6),
           Text(
-            'Ripples time: ${wellbeing.ripplesMinutes}m / $thresholdm (Feed + Ripples)',
+            'Ripples time: ${wellbeing.ripplesMinutes}m / ${wellbeing.lockoutThresholdMinutes}m (Feed + Ripples)',
             style: const TextStyle(fontSize: 11, color: Colors.white54),
           ),
         ],
