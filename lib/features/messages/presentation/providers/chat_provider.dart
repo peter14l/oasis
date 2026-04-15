@@ -1215,9 +1215,10 @@ class ChatProvider with ChangeNotifier {
 
   Future<void> stopLiveLocation() async {
     try {
-      await LiveLocationTracker().stopSharing();
-      // Optimistically update the UI to show sharing has stopped
       final activeMsgId = LiveLocationTracker().activeMessageId;
+      await LiveLocationTracker().stopSharing();
+
+      // Optimistically update the UI to show sharing has stopped
       if (activeMsgId != null) {
         final index = state.messages.indexWhere((m) => m.id == activeMsgId);
         if (index != -1) {

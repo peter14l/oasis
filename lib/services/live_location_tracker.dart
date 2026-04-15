@@ -10,6 +10,7 @@ class LiveLocationTracker {
   LiveLocationTracker._internal();
 
   StreamSubscription<Position>? _positionStream;
+  Timer? _expiryTimer;
   String? _activeMessageId;
   DateTime? _expiresAt;
 
@@ -37,6 +38,9 @@ class LiveLocationTracker {
       return Future.error('Location permissions are permanently denied, we cannot request permissions.');
     }
 
+    // Stop existing sharing if any
+    await stopSharing();
+
     _activeMessageId = messageId;
     _expiresAt = DateTime.now().add(duration);
 
@@ -50,15 +54,22 @@ class LiveLocationTracker {
         distanceFilter: 10,
       ),
     ).listen((Position position) {
-      if (DateTime.now().isAfter(_expiresAt!)) {
+      if (_expiresAt != null && DateTime.now().isAfter(_expiresAt!)) {
         stopSharing();
       } else {
         _updateLocationOnServer(position);
       }
     });
+
+    // Auto-stop when duration expires
+    _expiryTimer = Timer(duration, () {
+      stopSharing();
+    });
   }
 
   Future<void> stopSharing() async {
+    _expiryTimer?.cancel();
+    _expiryTimer = null;
     await _positionStream?.cancel();
     _positionStream = null;
     
