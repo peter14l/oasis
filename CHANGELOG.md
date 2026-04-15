@@ -10,12 +10,14 @@ All notable changes to this project will be documented in this file.
 - Polling fallback to `PresenceProvider` (online/offline status) - User presence now polls every 10 seconds as fallback
 - Polling fallback to `TypingIndicatorProvider` (typing indicator) - Typing status now polls every 5 seconds as fallback
 - **Live Location Improvements (2026-04-15)** - Now includes initial GPS coordinates when sharing starts, displays map preview in chat bubble with real-time updates
+- **Theme Color Palettes (2026-04-15)** - Added 6 predefined color palettes (Emerald, Ocean, Sunset, Lavender, Rose, Teal) plus None option for M3E Expressive mode
 
 ### Fixed
 - **Root Cause:** All realtime features (messages, unread count, presence, typing, read receipts) rely on Supabase database replication which may not be enabled on the backend
 - The polling fallbacks ensure features work even when Supabase realtime subscriptions fail silently
 - `subscribeToReadReceipts()` - Added conversation filter in callback to avoid processing receipts for other conversations
 - **Live Location Sharing** - Now sends initial location coordinates in message payload, shows map preview in bubble with real-time marker updates
+- **Dynamic Theme (M3E)** - Fixed issue where only some components used dynamic colors. Now all theme components (scaffold, navigation bar, cards, app bar, inputs) use the dynamic color scheme when enabled
 
 ### Ripples Screen Updates (2026-04-15)
 - **Fixed:** Live location sharing - Added `live_location` to `media_view_mode_check` constraint in database (SQL migration created)
@@ -23,6 +25,13 @@ All notable changes to this project will be documented in this file.
 - **UI:** Increased bottom padding in M3E card layout (140→200) for more space between card and username
 - **UI:** Added comment input field with send button to RippleCommentsList for posting comments
 - **Feature:** Save button now properly updates `saves_count` when saving/unsaving ripples
+
+### Theme System Changes (2026-04-15)
+- Added `ColorPalette` enum with 7 options: none (default M3E green), emerald, ocean, sunset, lavender, rose, teal
+- Added `setColorPalette()` and `getPaletteColorScheme()` methods to ThemeProvider
+- Added Color Palette dropdown in Settings > Appearance (visible when M3E enabled and Dynamic Theme OFF)
+- Fixed all theme components to use dynamic color scheme colors when available (scaffold, navigation, cards, app bar, inputs)
+- Priority order: Dynamic Theme (Material You) > Color Palette > Default M3E
 
 ### Files Changed
 - `lib/features/messages/presentation/providers/chat_provider.dart` - Added polling timer for message sync, get initial GPS before sending live location
@@ -34,6 +43,10 @@ All notable changes to this project will be documented in this file.
 - `lib/features/ripples/presentation/screens/ripples_screen.dart` - UI updates, removed top buttons, added comment input
 - `lib/features/ripples/presentation/providers/ripples_provider.dart` - Fixed saves_count updates in saveRipple/unsaveRipple
 - `supabase/migrations/20260415000000_live_location_fix.sql` - Added live_location to check constraint
+- `lib/services/app_initializer.dart` - Added ColorPalette enum, setColorPalette(), getPaletteColorScheme()
+- `lib/themes/app_theme.dart` - Fixed all theme components to use dynamic colors when available
+- `lib/main.dart` - Added palette color scheme generation with priority order
+- `lib/screens/settings_screen.dart` - Added Color Palette dropdown UI with palette names and colors
 
 ---
 
