@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import '../core/utils/error_parser.dart';
 
 class CustomSnackbar {
-  static void showError(BuildContext context, String message) {
+  static void showError(BuildContext context, dynamic errorOrMessage) {
+    final message = errorOrMessage is String 
+        ? errorOrMessage 
+        : ErrorParser.parse(errorOrMessage);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),

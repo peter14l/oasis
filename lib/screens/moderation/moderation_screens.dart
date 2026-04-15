@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:oasis/models/moderation.dart';
 import 'package:oasis/services/moderation_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:oasis/widgets/custom_snackbar.dart';
 
 class BlockedUsersScreen extends StatefulWidget {
   const BlockedUsersScreen({super.key});
@@ -34,9 +35,7 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading blocked users: $e')),
-        );
+        CustomSnackbar.showError(context, e);
       }
     }
   }
@@ -45,16 +44,12 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
     try {
       await _moderationService.unblockUser(userId);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Unblocked @$username')));
+        CustomSnackbar.showSuccess(context, 'Unblocked @$username');
         _loadBlockedUsers(); // Refresh list
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error unblocking user: $e')));
+        CustomSnackbar.showError(context, e);
       }
     }
   }
@@ -140,9 +135,7 @@ class _MutedUsersScreenState extends State<MutedUsersScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading muted users: $e')),
-        );
+        CustomSnackbar.showError(context, e);
       }
     }
   }
@@ -151,16 +144,12 @@ class _MutedUsersScreenState extends State<MutedUsersScreen> {
     try {
       await _moderationService.unmuteUser(userId);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Unmuted @$username')));
+        CustomSnackbar.showSuccess(context, 'Unmuted @$username');
         _loadMutedUsers(); // Refresh list
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error unmuting user: $e')));
+        CustomSnackbar.showError(context, e);
       }
     }
   }

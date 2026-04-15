@@ -53,7 +53,9 @@ class SupabaseService {
     }
 
     try {
-      debugPrint('Connecting to Supabase at $url...');
+      if (kDebugMode) {
+        debugPrint('Connecting to Supabase...');
+      }
       await Supabase.initialize(
         url: url,
         anonKey: anonKey,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:oasis/widgets/custom_snackbar.dart';
 import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
@@ -292,13 +293,9 @@ class _ShareToChatModalState extends State<ShareToChatModal> {
 
         if (sizeInMb > 50) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'File ${sharedFile.path.split('/').last} is too large (Max 50MB). Skipping.',
-                ),
-                backgroundColor: Colors.orange,
-              ),
+            CustomSnackbar.showError(
+              context,
+              'File ${sharedFile.path.split('/').last} is too large (Max 50MB). Skipping.',
             );
           }
           continue;
@@ -337,23 +334,13 @@ class _ShareToChatModalState extends State<ShareToChatModal> {
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Shared successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        CustomSnackbar.showSuccess(context, 'Shared successfully!');
         // Optionally navigate to the chat
         // context.push('/chat/${conversation.id}');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to share: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        CustomSnackbar.showError(context, e);
       }
     } finally {
       if (mounted) setState(() => _isSending = false);

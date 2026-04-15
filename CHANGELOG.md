@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [4.2.0] - 2026-04-15
+
+### Added
+- **Secure Error Handling (2026-04-15)** - Introduced `ErrorParser` utility to map backend/database exceptions to user-friendly messages, preventing schema and logic leaks via UI SnackBars.
+- **Unified Error Display (2026-04-15)** - Updated `CustomSnackbar` to automatically handle error objects through the new secure parser.
+
+### Fixed
+- **Information Leak in Logs (2026-04-15)** - Sanitized Supabase initialization logs to remove plain-text URLs.
+- **Hardcoded Infrastructure Fallbacks (2026-04-15)** - Removed production URLs from `AppConfig`; configuration now strictly favors environment variables (`--dart-define`) with safe `localhost` fallbacks for local debugging only.
+
+### Changed
+- **UI Error Refactoring (2026-04-15)** - Refactored over 15 screens and services (Moderation, Search, Hashtags, Auth, etc.) to use secure error handling instead of raw exception strings.
+
 ### Added
 - **Splash Screen (2026-04-15)** - Added animated splash screen with app logo displayed during app initialization for improved perceived performance
 - **Parallelized Service Initialization (2026-04-15)** - Services now initialize in parallel (ScreenTimeService, WellnessService, DigitalWellbeingService, EnergyMeterService) reducing startup time by ~30-50%

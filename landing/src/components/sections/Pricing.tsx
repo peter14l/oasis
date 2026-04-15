@@ -99,6 +99,17 @@ export default function Pricing() {
             </motion.div>
           ))}
         </div>
+
+        {/* Info about pricing */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.5 }}
+          className="font-space-mono text-sm text-oasis-mist/50 mt-8"
+        >
+          INFO: Pricing and subscriptions will be introduced in the app soon.
+        </motion.p>
       </div>
       
       {/* Background radial glow */}

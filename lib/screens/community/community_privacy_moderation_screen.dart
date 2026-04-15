@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/services/community_service.dart';
 import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/widgets/custom_snackbar.dart';
 
 class CommunityPrivacyModerationScreen extends StatefulWidget {
   final String name;
@@ -40,9 +41,7 @@ class _CommunityPrivacyModerationScreenState
       final user = Provider.of<AuthService>(context, listen: false).currentUser;
       if (user == null) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error: User not authenticated')),
-          );
+          CustomSnackbar.showError(context, 'Error: User not authenticated');
         }
         return;
       }
@@ -77,9 +76,7 @@ class _CommunityPrivacyModerationScreenState
       context.push('/community/create/confirmation', extra: communityData);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error creating community: $e')));
+      CustomSnackbar.showError(context, e);
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

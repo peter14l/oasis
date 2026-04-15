@@ -7,6 +7,7 @@ import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/features/feed/presentation/widgets/post_card.dart';
 import 'package:oasis/widgets/comments_modal.dart';
 import 'package:oasis/widgets/share_sheet.dart';
+import 'package:oasis/widgets/custom_snackbar.dart';
 
 class HashtagScreen extends StatefulWidget {
   final String tag;
@@ -59,9 +60,7 @@ class _HashtagScreenState extends State<HashtagScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading hashtag: $e')));
+        CustomSnackbar.showError(context, e);
       }
     }
   }

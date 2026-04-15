@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import LaunchCountdown from "./LaunchCountdown";
 
 export default function Hero() {
   return (
@@ -34,6 +35,9 @@ export default function Hero() {
           >
             Oasis is a social platform built around your wellbeing, not your attention span.
           </motion.p>
+
+          {/* Launch Countdown */}
+          <LaunchCountdown />
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}

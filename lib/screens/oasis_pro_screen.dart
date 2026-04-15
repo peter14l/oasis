@@ -13,6 +13,7 @@ import 'package:oasis/widgets/subscription/razorpay_windows_view.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/widgets/custom_snackbar.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -66,22 +67,21 @@ class _OasisProScreenState extends State<OasisProScreen> {
       try {
         await SupabaseService().client.from('profiles').update({'is_pro': true}).eq('id', userId);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Payment Successful! You are now Pro.')),
-          );
+          CustomSnackbar.showSuccess(context, 'Payment Successful! You are now Pro.');
           context.read<SubscriptionService>().refresh();
           context.pop();
         }
       } catch (e) {
         debugPrint('Error updating pro status: $e');
+        if (mounted) {
+          CustomSnackbar.showError(context, e);
+        }
       }
     }
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Payment Failed: ${response.message}')),
-    );
+    CustomSnackbar.showError(context, 'Payment Failed: ${response.message}');
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
@@ -159,18 +159,7 @@ class _OasisProScreenState extends State<OasisProScreen> {
     } catch (e) {
       debugPrint('Error starting Razorpay subscription: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            action:
-                e.toString().contains('NotInitializedError')
-                    ? SnackBarAction(
-                      label: 'Retry',
-                      onPressed: () => _startRazorpayMobileFlow(plan),
-                    )
-                    : null,
-          ),
-        );
+        CustomSnackbar.showError(context, e);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -278,11 +267,7 @@ class _OasisProScreenState extends State<OasisProScreen> {
     final userId = SupabaseService().client.auth.currentUser?.id;
     if (userId == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please log in to upgrade to Oasis Pro.'),
-          ),
-        );
+        CustomSnackbar.showError(context, 'Please log in to upgrade to Oasis Pro.');
       }
       return;
     }

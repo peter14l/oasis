@@ -16,14 +16,17 @@ class AppConfig {
     const fromEnv = String.fromEnvironment('WEB_BASE_URL');
     if (fromEnv.isNotEmpty) return fromEnv;
 
-    return 'https://oasis-web-red.vercel.app';
+    if (kDebugMode) return 'http://localhost:3000';
+    return ''; // Should be injected via --dart-define in production
   }
 
   /// URL to check for app updates
   static String get updateCheckUrl {
     const fromEnv = String.fromEnvironment('UPDATE_CHECK_URL');
     if (fromEnv.isNotEmpty) return fromEnv;
-    return 'https://oasis-web-red.vercel.app/api/check-update';
+    
+    if (kDebugMode) return 'http://localhost:3000/api/check-update';
+    return '';
   }
 
   /// Helper to generate a full URL for specific paths.

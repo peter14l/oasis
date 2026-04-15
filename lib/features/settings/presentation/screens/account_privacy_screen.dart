@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/widgets/custom_snackbar.dart';
 
 class AccountPrivacyScreen extends StatelessWidget {
   const AccountPrivacyScreen({super.key});
@@ -32,9 +33,7 @@ class AccountPrivacyScreen extends StatelessWidget {
                   );
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error updating privacy: $e')),
-                    );
+                    CustomSnackbar.showError(context, e);
                   }
                 }
               }

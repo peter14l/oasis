@@ -1,0 +1,171 @@
+'use server';
+
+import { supabase } from '@/lib/supabase';
+import { revalidatePath } from 'next/cache';
+
+export async function getMaxBetaTesters(): Promise<number> {
+  return 15;
+}
+
+export interface BetaSignupResult {
+  success: boolean;
+  message: string;
+  isBetaFull: boolean;
+}
+
+export async function joinBetaTester(userEmail: string): Promise<BetaSignupResult> {
+  try {
+    const maxTesters = await getMaxBetaTesters();
+    
+    // Check current beta tester count
+    const { count, error: countError } = await supabase
+      .from('beta_testers')
+      .select('*', { count: 'exact', head: true });
+
+    if (countError) {
+      console.error('Error checking beta count:', countError);
+      return { 
+        success: false, 
+        message: 'Unable to verify beta status. Please try again.', 
+        isBetaFull: false 
+      };
+    }
+
+    const currentCount = count || 0;
+
+    if (currentCount >= maxTesters) {
+      return { 
+        success: false, 
+        message: 'Sorry we are filled up now. Enter your email below to join the waitlist again and we\'ll notify you when we expand.', 
+        isBetaFull: true 
+      };
+    }
+
+    // Check if email already registered
+    const { data: existing } = await supabase
+      .from('beta_testers')
+      .select('email, status')
+      .eq('email', userEmail)
+      .single();
+
+    if (existing) {
+      if (existing.status === 'active') {
+        return { 
+          success: true, 
+          message: 'Welcome back! You\'re already a beta tester.', 
+          isBetaFull: false 
+        };
+      } else {
+        // Reactivate if was previously waitlisted
+        await supabase
+          .from('beta_testers')
+          .update({ status: 'active', updated_at: new Date().toISOString() })
+          .eq('email', userEmail);
+        
+        return { 
+          success: true, 
+          message: 'You\'re in! Welcome to the beta.', 
+          isBetaFull: false 
+        };
+      }
+    }
+
+    // Add new beta tester
+    const { error: insertError } = await supabase
+      .from('beta_testers')
+      .insert({
+        email: userEmail,
+        status: 'active',
+        joined_at: new Date().toISOString()
+      });
+
+    if (insertError) {
+      console.error('Error inserting beta tester:', insertError);
+      return { 
+        success: false, 
+        message: 'Unable to join beta. Please try again.', 
+        isBetaFull: false 
+      };
+    }
+
+    revalidatePath('/');
+    return { 
+      success: true, 
+      message: 'You\'re in! Welcome to the beta.', 
+      isBetaFull: false 
+    };
+
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    return { 
+      success: false, 
+      message: 'An unexpected error occurred. Please try again.', 
+      isBetaFull: false 
+    };
+  }
+}
+
+export async function joinWaitlist(userEmail: string): Promise<BetaSignupResult> {
+  try {
+    // Check if email already exists
+    const { data: existing } = await supabase
+      .from('waitlist')
+      .select('email')
+      .eq('email', userEmail)
+      .single();
+
+    if (existing) {
+      return { 
+        success: true, 
+        message: 'You\'re already on the waitlist! We\'ll notify you when we expand.', 
+        isBetaFull: true 
+      };
+    }
+
+    // Add to waitlist
+    const { error: insertError } = await supabase
+      .from('waitlist')
+      .insert({
+        email: userEmail,
+        joined_at: new Date().toISOString()
+      });
+
+    if (insertError) {
+      console.error('Error adding to waitlist:', insertError);
+      return { 
+        success: false, 
+        message: 'Unable to join waitlist. Please try again.', 
+        isBetaFull: true 
+      };
+    }
+
+    return { 
+      success: true, 
+      message: 'You\'ve been added to the waitlist! We\'ll notify you when we expand.', 
+      isBetaFull: true 
+    };
+
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    return { 
+      success: false, 
+      message: 'An unexpected error occurred. Please try again.', 
+      isBetaFull: true 
+    };
+  }
+}
+
+export async function getBetaTesterCount(): Promise<number> {
+  const maxTesters = await getMaxBetaTesters();
+  const { count, error } = await supabase
+    .from('beta_testers')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'active');
+
+  if (error) {
+    console.error('Error getting beta count:', error);
+    return 0;
+  }
+
+  return Math.min(count || 0, maxTesters);
+}

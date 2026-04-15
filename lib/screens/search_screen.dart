@@ -9,6 +9,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/widgets/desktop_header.dart';
 import 'package:oasis/widgets/wellbeing/lockout_overlay.dart';
+import 'package:oasis/widgets/custom_snackbar.dart';
 
 import 'package:oasis/services/app_initializer.dart'; // For ThemeProvider
 import 'package:provider/provider.dart';
@@ -70,9 +71,7 @@ class _SearchScreenState extends State<SearchScreen>
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error searching: ${e.toString()}')),
-        );
+        CustomSnackbar.showError(context, e);
       }
     }
   }

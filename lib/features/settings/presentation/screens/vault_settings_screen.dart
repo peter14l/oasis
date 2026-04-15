@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:oasis/services/vault_service.dart';
+import 'package:oasis/widgets/custom_snackbar.dart';
 import 'package:provider/provider.dart';
 
 class VaultSettingsScreen extends StatefulWidget {
@@ -36,9 +37,7 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
       debugPrint('Error checking vault status: $e');
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading vault settings: $e')),
-        );
+        CustomSnackbar.showError(context, e);
       }
     }
   }
@@ -58,16 +57,12 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
       await service.enableVault(pin: _pinController.text);
       await _checkVaultStatus();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Vault enabled successfully')),
-        );
+        CustomSnackbar.showSuccess(context, 'Vault enabled successfully');
         _pinController.clear();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error enabling vault: $e')));
+        CustomSnackbar.showError(context, e);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -85,15 +80,11 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
       await service.disableVault();
       await _checkVaultStatus();
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Vault disabled')));
+        CustomSnackbar.showSuccess(context, 'Vault disabled');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error disabling vault: $e')));
+        CustomSnackbar.showError(context, e);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -271,12 +262,7 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
     );
 
     if (result == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('PIN changed successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      CustomSnackbar.showSuccess(context, 'PIN changed successfully!');
     }
   }
 

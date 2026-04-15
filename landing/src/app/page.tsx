@@ -6,7 +6,7 @@ import Hero from "@/components/sections/Hero";
 import ProblemStatement from "@/components/sections/ProblemStatement";
 import FeaturesGrid from "@/components/sections/FeaturesGrid";
 import WellbeingSpotlight from "@/components/sections/WellbeingSpotlight";
-import ScreenshotMarquee from "@/components/sections/ScreenshotMarquee";
+// import ScreenshotMarquee from "@/components/sections/ScreenshotMarquee";
 import Pricing from "@/components/sections/Pricing";
 import SocialProof from "@/components/sections/SocialProof";
 import FinalCTA from "@/components/sections/FinalCTA";
@@ -26,7 +26,7 @@ export default function Home() {
         <ProblemStatement />
         <FeaturesGrid />
         <WellbeingSpotlight />
-        <ScreenshotMarquee />
+        {/* <ScreenshotMarquee /> */}
         <Pricing />
         <SocialProof />
         <FinalCTA />

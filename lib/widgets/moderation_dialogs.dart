@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:oasis/services/moderation_service.dart';
 import 'package:oasis/models/moderation.dart';
 import 'package:oasis/themes/app_colors.dart';
+import 'package:oasis/widgets/custom_snackbar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ReportDialog extends StatefulWidget {
@@ -79,16 +80,12 @@ class _ReportDialogState extends State<ReportDialog> {
 
         if (mounted) {
           Navigator.of(context).pop(true);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Report submitted successfully')),
-          );
+          CustomSnackbar.showSuccess(context, 'Report submitted successfully');
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error submitting report: $e')));
+        CustomSnackbar.showError(context, e);
       }
     } finally {
       if (mounted) {
