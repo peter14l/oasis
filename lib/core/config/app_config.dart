@@ -6,6 +6,10 @@ import 'package:flutter/foundation.dart';
 class AppConfig {
   AppConfig._();
 
+  /// The current app version from package info
+  /// This is populated at runtime from package_info_plus
+  static String appVersion = '0.0.0';
+
   /// The base URL for the web portal/landing page.
   /// Used for deep links, auth callbacks, and checkout redirects.
   static String get webBaseUrl {
@@ -15,11 +19,19 @@ class AppConfig {
     return 'https://oasis-web-red.vercel.app';
   }
 
+  /// URL to check for app updates
+  static String get updateCheckUrl {
+    const fromEnv = String.fromEnvironment('UPDATE_CHECK_URL');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    return 'https://oasis-web-red.vercel.app/api/check-update';
+  }
+
   /// Helper to generate a full URL for specific paths.
   static String getWebUrl(String path) {
     final base = webBaseUrl;
-    final normalizedBase =
-        base.endsWith('/') ? base.substring(0, base.length - 1) : base;
+    final normalizedBase = base.endsWith('/')
+        ? base.substring(0, base.length - 1)
+        : base;
     final normalizedPath = path.startsWith('/') ? path : '/$path';
     return '$normalizedBase$normalizedPath';
   }

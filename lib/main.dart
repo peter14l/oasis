@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:universal_io/io.dart';
 
+import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/routes/app_router.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/services/auth_service.dart';
@@ -28,6 +30,7 @@ import 'package:oasis/features/profile/presentation/providers/profile_provider.d
 import 'package:oasis/themes/app_theme.dart';
 import 'package:oasis/widgets/mesh_gradient_background.dart';
 import 'package:oasis/widgets/splash_screen.dart';
+import 'package:oasis/services/update_service.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 
 // ---------------------------------------------------------------------------
@@ -452,6 +455,16 @@ Future<void> _runAppInitialization() async {
     await AppInitializer.runWithSentry(() async {
       debugPrint('Sentry initialized, starting services...');
 
+      // Initialize package info early for update service
+      debugPrint('Loading package info...');
+      final packageInfo = await PackageInfo.fromPlatform();
+      AppConfig.appVersion = packageInfo.version;
+      debugPrint('Package version: ${AppConfig.appVersion}');
+
+      // Check for app updates in background (non-blocking)
+      // This will show dialog/notification if update is available
+      _checkForUpdates();
+
       await AppInitializer.initFirebase();
 
       try {
@@ -501,3 +514,36 @@ Future<void> _runAppInitialization() async {
     debugPrint('Stack trace: $st');
   }
 }
+
+/// Check for app updates in background
+/// Shows dialog if update available and user is logged in
+Future<void> _checkForUpdates() async {
+  if (!UpdateService.isEnabled) {
+    debugPrint('UpdateService: Disabled, skipping check');
+    return;
+  }
+
+  final updateInfo = await UpdateService.instance.checkForUpdates();
+
+  if (updateInfo != null && updateInfo.isUpdateAvailable) {
+    debugPrint('UpdateService: Update available - ${updateInfo.latestVersion}');
+
+    // Show notification (works even before app is fully initialized)
+    // Note: We delay slightly to ensure NotificationManager is ready
+    Future.delayed(const Duration(seconds: 3), () {
+      // For required updates, show dialog immediately
+      // For optional updates, show notification
+      if (updateInfo.isRequired) {
+        debugPrint(
+          'UpdateService: Required update, will show dialog after app ready',
+        );
+        // Store update info to show after app is ready
+        _pendingUpdateInfo = updateInfo;
+      } else {
+        UpdateService.instance.showUpdateNotification(updateInfo);
+      }
+    });
+  }
+}
+
+UpdateInfo? _pendingUpdateInfo;

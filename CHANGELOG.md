@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - **Parallelized Service Initialization (2026-04-15)** - Services now initialize in parallel (ScreenTimeService, WellnessService, DigitalWellbeingService, EnergyMeterService) reducing startup time by ~30-50%
 - **Staggered Post-Auth Initialization (2026-04-15)** - Post-login data loading is now staggered (300ms-1200ms delays) to prevent frame drops and UI blocking
 - **Theme Caching (2026-04-15)** - Theme computations are now cached and only recomputed when settings change, reducing build-time overhead
+- **In-App Update Notifier (2026-04-15)** - Added UpdateService that checks for app updates from remote server, shows native notification or dialog when update available. Configurable via `UPDATE_CHECK_URL` and `UPDATE_CHECK_ENABLED` environment variables
 - Polling fallback to `ChatProvider` (message delay fix) - Messages now sync every 10 seconds as fallback when Supabase realtime fails
 - Polling fallback to `ConversationProvider` (unread count sync) - Conversations now sync every 10 seconds as fallback
 - Polling fallback to `PresenceProvider` (online/offline status) - User presence now polls every 10 seconds as fallback
