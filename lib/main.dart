@@ -27,6 +27,7 @@ import 'package:oasis/features/settings/presentation/providers/user_settings_pro
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/themes/app_theme.dart';
 import 'package:oasis/widgets/mesh_gradient_background.dart';
+import 'package:oasis/widgets/splash_screen.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 
 // ---------------------------------------------------------------------------
@@ -125,6 +126,14 @@ class _MyAppState extends State<MyApp> {
   bool _navigatingToReset = false;
   String? _lastInitializedUserId;
 
+  // Cache for theme data to avoid recomputation on every build
+  ThemeData? _cachedLightTheme;
+  ThemeData? _cachedDarkTheme;
+  ColorScheme? _cachedLightScheme;
+  ColorScheme? _cachedDarkScheme;
+  String _cachedSettingsKey = '';
+  bool _themeSettingsChanged = true; // Track if settings changed
+
   @override
   void initState() {
     super.initState();
@@ -162,12 +171,42 @@ class _MyAppState extends State<MyApp> {
     _lastInitializedUserId = userId;
 
     if (userId != null) {
+      // CRITICAL: Initialize notification first (user-facing)
       context.read<NotificationProvider>().init(userId);
+
+      // CRITICAL: Set presence to online immediately
       context.read<PresenceProvider>().updateUserPresence(userId, 'online');
-      context.read<ConversationProvider>().initialize(userId);
-      context.read<ProfileProvider>().loadCurrentProfile(userId);
-      context.read<CircleProvider>().loadCircles(userId);
-      context.read<CanvasProvider>().loadCanvases(userId);
+
+      // STAGGER: Delay non-critical data loads to prevent frame drops
+      // Run conversation initialization after a short delay
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          context.read<ConversationProvider>().initialize(userId);
+        }
+      });
+
+      // Run profile loading after 500ms
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          context.read<ProfileProvider>().loadCurrentProfile(userId);
+        }
+      });
+
+      // Run circle loading after 800ms
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) {
+          context.read<CircleProvider>().loadCircles(userId);
+        }
+      });
+
+      // Run canvas loading after 1200ms (lowest priority, most data)
+      Future.delayed(const Duration(milliseconds: 1200), () {
+        if (mounted) {
+          context.read<CanvasProvider>().loadCanvases(userId);
+        }
+      });
+
+      // Services that don't need user data - run immediately but fire-and-forget style
       SharingService().init(context);
       DeepLinkService().init();
     } else {
@@ -200,21 +239,58 @@ class _MyAppState extends State<MyApp> {
           darkScheme = themeProvider.getPaletteColorScheme(Brightness.dark);
         }
 
-        final ThemeData theme = AppTheme.getTheme(
-          Brightness.light,
-          isM3E: themeProvider.isM3EEnabled,
-          highContrast: themeProvider.highContrast,
-          fontFamily: userSettings.fontFamily,
-          dynamicColorScheme: lightScheme,
-        );
+        // Check if theme settings have changed to invalidate cache
+        final settingsKey =
+            '${themeProvider.isM3EEnabled}_'
+            '${themeProvider.useMaterialYou}_'
+            '${themeProvider.colorPalette}_'
+            '${userSettings.fontFamily}';
 
-        final ThemeData darkTheme = AppTheme.getTheme(
-          Brightness.dark,
-          isM3E: themeProvider.isM3EEnabled,
-          highContrast: themeProvider.highContrast,
-          fontFamily: userSettings.fontFamily,
-          dynamicColorScheme: darkScheme,
-        );
+        if (_themeSettingsChanged || settingsKey != _cachedSettingsKey) {
+          _cachedSettingsKey = settingsKey;
+          _themeSettingsChanged = false;
+          _cachedLightScheme = lightScheme;
+          _cachedDarkScheme = darkScheme;
+          // Pre-compute themes
+          _cachedLightTheme = AppTheme.getTheme(
+            Brightness.light,
+            isM3E: themeProvider.isM3EEnabled,
+            highContrast: themeProvider.highContrast,
+            fontFamily: userSettings.fontFamily,
+            dynamicColorScheme: lightScheme,
+          );
+          _cachedDarkTheme = AppTheme.getTheme(
+            Brightness.dark,
+            isM3E: themeProvider.isM3EEnabled,
+            highContrast: themeProvider.highContrast,
+            fontFamily: userSettings.fontFamily,
+            dynamicColorScheme: darkScheme,
+          );
+        } else {
+          // Use cached schemes if settings haven't changed
+          lightScheme = _cachedLightScheme;
+          darkScheme = _cachedDarkScheme;
+        }
+
+        final theme =
+            _cachedLightTheme ??
+            AppTheme.getTheme(
+              Brightness.light,
+              isM3E: themeProvider.isM3EEnabled,
+              highContrast: themeProvider.highContrast,
+              fontFamily: userSettings.fontFamily,
+              dynamicColorScheme: lightScheme,
+            );
+
+        final darkTheme =
+            _cachedDarkTheme ??
+            AppTheme.getTheme(
+              Brightness.dark,
+              isM3E: themeProvider.isM3EEnabled,
+              highContrast: themeProvider.highContrast,
+              fontFamily: userSettings.fontFamily,
+              dynamicColorScheme: darkScheme,
+            );
 
         return StreamBuilder<AuthState>(
           stream: authService.authStateChanges,
@@ -347,53 +423,81 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('WidgetsFlutterBinding initialized');
 
-  debugPrint('Loading environment variables...');
-  await AppInitializer.loadEnv();
+  // Show splash screen immediately for perceived performance
+  // The splash will display while heavy initialization happens in background
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: SplashScreen(
+        onInitComplete: () {
+          // This callback fires after splash animation completes
+          // Actual app initialization happens after splash is shown
+          _runAppInitialization();
+        },
+      ),
+    ),
+  );
+}
 
-  debugPrint('Initializing Sentry...');
-  await AppInitializer.runWithSentry(() async {
-    debugPrint('Sentry initialized, starting services...');
+/// Actual app initialization - runs after splash screen is displayed
+/// This separates heavy initialization from UI, improving perceived performance
+Future<void> _runAppInitialization() async {
+  debugPrint('Starting background initialization...');
 
-    await AppInitializer.initFirebase();
+  try {
+    debugPrint('Loading environment variables...');
+    await AppInitializer.loadEnv();
 
-    try {
-      debugPrint('Initializing core services...');
-      final services = await AppInitializer.initCore();
-      debugPrint('Core services initialized successfully');
+    debugPrint('Initializing Sentry...');
+    await AppInitializer.runWithSentry(() async {
+      debugPrint('Sentry initialized, starting services...');
 
-      runApp(
-        SentryWidget(
-          child: AppInitializer.buildProviderTree(
-            services: services,
-            child: const LifecycleManager(child: MyApp()),
+      await AppInitializer.initFirebase();
+
+      try {
+        debugPrint('Initializing core services...');
+        final services = await AppInitializer.initCore();
+        debugPrint('Core services initialized successfully');
+
+        // Update the running app with the actual app content
+        // This replaces the splash screen with the real app
+        runApp(
+          SentryWidget(
+            child: AppInitializer.buildProviderTree(
+              services: services,
+              child: const LifecycleManager(child: MyApp()),
+            ),
           ),
-        ),
-      );
-      debugPrint('runApp called');
-    } catch (e, stackTrace) {
-      debugPrint('CRITICAL ERROR during initialization: $e');
-      debugPrint('Stack trace: $stackTrace');
-      // Print each frame
-      for (final frame in stackTrace.toString().split('\n')) {
-        debugPrint(frame);
-      }
-      runApp(
-        MaterialApp(
-          home: Scaffold(
-            backgroundColor: Colors.black,
-            body: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Text(
-                  'Failed to initialize app: $e',
-                  style: const TextStyle(color: Colors.white),
-                  textAlign: TextAlign.center,
+        );
+        debugPrint('runApp called');
+      } catch (e, stackTrace) {
+        debugPrint('CRITICAL ERROR during initialization: $e');
+        debugPrint('Stack trace: $stackTrace');
+        // Print each frame
+        for (final frame in stackTrace.toString().split('\n')) {
+          debugPrint(frame);
+        }
+        runApp(
+          MaterialApp(
+            home: Scaffold(
+              backgroundColor: Colors.black,
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Text(
+                    'Failed to initialize app: $e',
+                    style: const TextStyle(color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      );
-    }
-  });
+        );
+      }
+    });
+  } catch (e, st) {
+    debugPrint('Initialization failed: $e');
+    debugPrint('Stack trace: $st');
+  }
 }

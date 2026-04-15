@@ -396,13 +396,27 @@ class AppInitializer {
       );
     }
 
-    // Wellness & tracking services
-    final screenTimeService = await ScreenTimeService.init();
-    final wellnessService = await WellnessService.init();
-    final digitalWellbeingService = await DigitalWellbeingService.init(
+    // Wellness & tracking services - PARALLELIZE for faster startup
+    // All these services are independent and can run concurrently
+    final screenTimeServiceFuture = ScreenTimeService.init();
+    final wellnessServiceFuture = WellnessService.init();
+    final digitalWellbeingServiceFuture = DigitalWellbeingService.init(
       AuthService(),
     );
-    final energyMeterService = await EnergyMeterService.init();
+    final energyMeterServiceFuture = EnergyMeterService.init();
+
+    // Wait for all to complete in parallel
+    final results = await Future.wait([
+      screenTimeServiceFuture,
+      wellnessServiceFuture,
+      digitalWellbeingServiceFuture,
+      energyMeterServiceFuture,
+    ]);
+
+    final screenTimeService = results[0] as ScreenTimeService;
+    final wellnessService = results[1] as WellnessService;
+    final digitalWellbeingService = results[2] as DigitalWellbeingService;
+    final energyMeterService = results[3] as EnergyMeterService;
 
     // Notifications
     await NotificationManager.instance.initialize();
