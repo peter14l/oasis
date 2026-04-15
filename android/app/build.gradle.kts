@@ -27,7 +27,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.oasis.debug" // Default: debug builds
+        applicationId = "com.oasis.app" // Production: com.oasis.app
         minSdk = 24
         targetSdk = 36
         versionCode = flutter.versionCode
@@ -36,11 +36,11 @@ android {
 
     buildTypes {
         getByName("debug") {
-            // Debug build: com.oasis.debug (from defaultConfig)
+            // Debug build: com.oasis.app.debug
+            applicationIdSuffix = ".debug"
         }
         getByName("release") {
-            // Release build: com.oasis.app (production)
-            applicationId = "com.oasis.app"
+            // Release build: com.oasis.app
             
             isMinifyEnabled = true
             isShrinkResources = false
