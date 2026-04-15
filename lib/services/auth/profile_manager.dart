@@ -95,6 +95,47 @@ class ProfileManager {
     return publicUrl;
   }
 
+  // Get public keys for a list of user IDs
+  Future<Map<String, String>> getPublicKeys(List<String> userIds) async {
+    if (userIds.isEmpty) return {};
+
+    try {
+      final response = await _supabase
+          .from(SupabaseConfig.profilesTable)
+          .select('id, public_key')
+          .inFilter('id', userIds);
+
+      final Map<String, String> keys = {};
+      for (final profile in response) {
+        final pk = profile['public_key'] as String?;
+        final id = profile['id'] as String;
+        if (pk != null) {
+          keys[id] = pk;
+        }
+      }
+      return keys;
+    } catch (e) {
+      debugPrint('[ProfileManager] Error fetching public keys: $e');
+      return {};
+    }
+  }
+
+  // Get public key for a single user ID
+  Future<String?> getPublicKey(String userId) async {
+    try {
+      final response = await _supabase
+          .from(SupabaseConfig.profilesTable)
+          .select('public_key')
+          .eq('id', userId)
+          .maybeSingle();
+
+      return response?['public_key'] as String?;
+    } catch (e) {
+      debugPrint('[ProfileManager] Error fetching public key: $e');
+      return null;
+    }
+  }
+
   // Helper method to create a user profile
   Future<void> createUserProfile({
     required String userId,

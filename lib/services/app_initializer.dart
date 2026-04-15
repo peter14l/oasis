@@ -49,6 +49,8 @@ import 'package:oasis/providers/presence_provider.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:oasis/providers/typing_indicator_provider.dart';
+import 'package:oasis/features/messages/data/messaging_service.dart';
+import 'package:oasis/features/messages/presentation/providers/chat_reactions_provider.dart';
 import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
 import 'package:oasis/features/settings/data/repositories/settings_repository_impl.dart';
 import 'package:oasis/features/settings/domain/usecases/settings_usecases.dart';
@@ -521,6 +523,7 @@ class AppInitializer {
           value: services.authProvider,
         ),
         ChangeNotifierProvider<AuthService>.value(value: AuthService()),
+        ChangeNotifierProvider<MessagingService>(create: (_) => MessagingService()),
         ChangeNotifierProvider<UserSettingsProvider>.value(
           value: services.userSettingsProvider,
         ),

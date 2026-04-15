@@ -28,12 +28,12 @@ class ChatProvider with ChangeNotifier {
   final String? otherUserId;
   final ChatEncryptionProvider encryptionProvider;
   final ChatSettingsProvider settingsProvider;
+  final MessagingService _messagingService;
 
   ChatState _state = const ChatState();
   ChatState get state => _state;
 
   // Services
-  final MessagingService _messagingService = MessagingService();
   final AuthService _authService = AuthService();
   final EncryptionService _encryptionService = EncryptionService();
   final CurationTrackingService _curationTrackingService =
@@ -72,10 +72,12 @@ class ChatProvider with ChangeNotifier {
     this.scrollController,
     ChatEncryptionProvider? encryptionProvider,
     ChatSettingsProvider? settingsProvider,
+    required MessagingService messagingService,
   }) : encryptionProvider = encryptionProvider ?? ChatEncryptionProvider(),
        settingsProvider =
            settingsProvider ??
-           ChatSettingsProvider(conversationId: conversationId);
+           ChatSettingsProvider(conversationId: conversationId),
+       _messagingService = messagingService;
 
   /// Helper to update state immutably and notify listeners.
   void setState(ChatState Function(ChatState state) update) {
@@ -537,13 +539,7 @@ class ChatProvider with ChangeNotifier {
           String? recipientPublicKey = _publicKeyCache[recipientId];
 
           if (recipientPublicKey == null) {
-            final recipientProfile = await Supabase.instance.client
-                .from('profiles')
-                .select('public_key')
-                .eq('id', recipientId)
-                .single();
-
-            recipientPublicKey = recipientProfile['public_key'] as String?;
+            recipientPublicKey = await _authService.getPublicKey(recipientId);
             if (recipientPublicKey != null) {
               _publicKeyCache[recipientId] = recipientPublicKey;
             }
@@ -622,23 +618,17 @@ class ChatProvider with ChangeNotifier {
 
           if (publicKeys.length < 2) {
             final idsToFetch = <String>[];
-            if (cachedRecipientPk == null) idsToFetch.add(recipientId!);
+            if (cachedRecipientPk == null && recipientId != null) {
+              idsToFetch.add(recipientId);
+            }
             if (cachedSenderPk == null) idsToFetch.add(userId);
 
             if (idsToFetch.isNotEmpty) {
-              final profilesResponse = await Supabase.instance.client
-                  .from('profiles')
-                  .select('id, public_key')
-                  .inFilter('id', idsToFetch);
-
-              for (var profile in profilesResponse) {
-                final pk = profile['public_key'] as String?;
-                final id = profile['id'] as String;
-                if (pk != null) {
-                  _publicKeyCache[id] = pk;
-                  if (!publicKeys.contains(pk)) publicKeys.add(pk);
-                }
-              }
+              final keys = await _authService.getPublicKeys(idsToFetch);
+              keys.forEach((id, pk) {
+                _publicKeyCache[id] = pk;
+                if (!publicKeys.contains(pk)) publicKeys.add(pk);
+              });
             }
           }
 

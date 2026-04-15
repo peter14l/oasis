@@ -64,6 +64,13 @@ All notable changes to this project will be documented in this file.
 - Fixed all theme components to use dynamic color scheme colors when available (scaffold, navigation, cards, app bar, inputs)
 - Priority order: Dynamic Theme (Material You) > Color Palette > Default M3E
 
+### Phase 3: Architectural Decoupling (2026-04-15)
+- **Restricted Table References** - Moved direct Supabase table references (e.g., `profiles`, `posts`, `messages`) out of the UI and Provider layers into the Service/Repository layer.
+- **Repository Pattern Transition** - Refactored `ChatProvider`, `ChatReactionsProvider`, `ChatSettingsProvider`, and `LocationBubble` to use `MessagingService` instead of direct `client.from(...)` calls.
+- **Service Layer Expansion** - Added `DataExportService` for handling data export requests and expanded `MessagingService` and `ConversationService` with methods for managing chat backgrounds, mute status, and reactions.
+- **Auth Service Enhancements** - Added `getPublicKey` and `getPublicKeys` to `AuthService` (via `ProfileManager`) to support end-to-end encryption without direct database access from the UI.
+- **Dependency Injection** - Updated `AppInitializer` to provide `MessagingService` through `MultiProvider`, ensuring consistent service access across the widget tree.
+
 ### Files Changed
 - `lib/features/messages/presentation/providers/chat_provider.dart` - Added polling timer for message sync, get initial GPS before sending live location
 - `lib/providers/conversation_provider.dart` - Added polling timer for conversation/unread sync
@@ -81,6 +88,20 @@ All notable changes to this project will be documented in this file.
 - `lib/features/feed/presentation/screens/feed_screen.dart` - Added LockoutOverlay and time tracking info banner
 - `lib/screens/search_screen.dart` - Added LockoutOverlay for search screen
 - `lib/widgets/wellbeing/lockout_overlay.dart` - Lockout overlay component (already existed but was not used)
+- `lib/features/messages/data/message_operations_service.dart` - Added reaction methods, used SupabaseConfig
+- `lib/features/messages/data/messaging_service.dart` - Refactored as facade, exposed new service methods
+- `lib/features/messages/presentation/providers/chat_reactions_provider.dart` - Refactored to use MessagingService
+- `lib/services/app_initializer.dart` - Added MessagingService to global provider tree
+- `lib/features/messages/presentation/screens/chat_screen.dart` - Updated provider initialization
+- `lib/features/messages/presentation/providers/chat_provider.dart` - Refactored for dependency injection
+- `lib/features/messages/presentation/widgets/bubbles/location_bubble.dart` - Decoupled from SupabaseConfig
+- `lib/services/data_export_service.dart` - New service for data exports
+- `lib/features/settings/presentation/screens/download_data_screen.dart` - Refactored to use DataExportService
+- `lib/services/auth/profile_manager.dart` - Added public key retrieval methods
+- `lib/services/auth_service.dart` - Exposed public key methods
+- `lib/features/messages/data/conversation_service.dart` - Added background retrieval
+- `lib/features/messages/presentation/providers/chat_settings_provider.dart` - Refactored to use MessagingService
+- `lib/features/messages/presentation/screens/chat_details_screen.dart` - Complete decoupling of Supabase calls
 
 ---
 

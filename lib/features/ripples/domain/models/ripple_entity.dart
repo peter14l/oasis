@@ -133,6 +133,18 @@ class RippleCommentEntity {
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'ripple_id': rippleId,
+      'user_id': userId,
+      'username': username,
+      'avatar_url': avatarUrl,
+      'content': content,
+      'created_at': createdAt.toIso8601String(),
+    };
+  }
 }
 
 /// Layout type for ripples display.

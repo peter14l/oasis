@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/core/config/supabase_config.dart';
 
 class PresenceService {
   final SupabaseClient _supabase = SupabaseService().client;
@@ -16,6 +17,20 @@ class PresenceService {
 
   // Minimum interval between presence updates to prevent spam
   static const _minUpdateInterval = Duration(seconds: 1);
+
+  /// Fetches the current status of a user from the database (polling fallback)
+  Future<Map<String, dynamic>?> getUserStatus(String userId) async {
+    try {
+      return await _supabase
+          .from(SupabaseConfig.userStatusTable)
+          .select('status, last_seen')
+          .eq('user_id', userId)
+          .maybeSingle();
+    } catch (e) {
+      debugPrint('[PresenceService] Error fetching user status: $e');
+      return null;
+    }
+  }
 
   // Track a user's presence in a specific conversation or globally
   RealtimeChannel subscribeToUserPresence({

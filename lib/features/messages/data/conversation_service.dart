@@ -316,6 +316,26 @@ class ConversationService {
     }
   }
 
+  /// Gets the mute status for a conversation for the current user.
+  Future<bool> getMuteStatus(String conversationId) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return false;
+
+      final response = await _supabase
+          .from(SupabaseConfig.conversationParticipantsTable)
+          .select('is_muted')
+          .eq('conversation_id', conversationId)
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      return response?['is_muted'] as bool? ?? false;
+    } catch (e) {
+      debugPrint('[ConversationService] Error getting mute status: $e');
+      return false;
+    }
+  }
+
   /// Update chat background for all participants.
   Future<void> updateChatBackground(
     String conversationId,
@@ -323,13 +343,13 @@ class ConversationService {
   ) async {
     try {
       final participants = await _supabase
-          .from('conversation_participants')
+          .from(SupabaseConfig.conversationParticipantsTable)
           .select('user_id')
           .eq('conversation_id', conversationId);
 
       for (final participant in participants) {
         final userId = participant['user_id'] as String;
-        await _supabase.from('chat_themes').upsert({
+        await _supabase.from(SupabaseConfig.chatThemesTable).upsert({
           'conversation_id': conversationId,
           'user_id': userId,
           'background_image_url': backgroundUrl,
@@ -339,6 +359,25 @@ class ConversationService {
     } catch (e) {
       debugPrint('[ConversationService] Error updating background: $e');
       rethrow;
+    }
+  }
+
+  /// Retrieves the current background URL for a conversation.
+  Future<String?> getChatBackground(String conversationId) async {
+    try {
+      final data =
+          await _supabase
+              .from(SupabaseConfig.chatThemesTable)
+              .select('background_image_url')
+              .eq('conversation_id', conversationId)
+              .order('updated_at', ascending: false)
+              .limit(1)
+              .maybeSingle();
+
+      return data?['background_image_url'] as String?;
+    } catch (e) {
+      debugPrint('[ConversationService] Error fetching background: $e');
+      return null;
     }
   }
 

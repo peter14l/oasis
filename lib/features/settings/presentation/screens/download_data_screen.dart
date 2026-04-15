@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/services/data_export_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DownloadDataScreen extends StatefulWidget {
@@ -13,6 +13,7 @@ class _DownloadDataScreenState extends State<DownloadDataScreen> {
   bool _isLoading = false;
   bool _isSuccess = false;
   String? _error;
+  final _exportService = DataExportService();
 
   Future<void> _requestDataExport() async {
     if (_isLoading) return;
@@ -24,20 +25,13 @@ class _DownloadDataScreenState extends State<DownloadDataScreen> {
     });
 
     try {
-      final supabase = SupabaseService().client;
-      final user = supabase.auth.currentUser;
+      final user = Supabase.instance.client.auth.currentUser;
 
       if (user == null) {
         throw Exception('You must be logged in to request your data');
       }
 
-      // Insert data export request into the database
-      // The backend will process this and send an email
-      await supabase.from('data_export_requests').insert({
-        'user_id': user.id,
-        'status': 'pending',
-        'requested_at': DateTime.now().toIso8601String(),
-      });
+      await _exportService.requestDataExport(userId: user.id);
 
       if (mounted) {
         setState(() {

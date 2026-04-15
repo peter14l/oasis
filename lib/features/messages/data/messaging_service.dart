@@ -10,6 +10,7 @@ import 'package:oasis/services/chat_messaging_service.dart';
 import 'package:oasis/features/messages/data/chat_media_service.dart';
 import 'package:oasis/features/messages/data/message_operations_service.dart';
 import 'package:oasis/services/moderation_service.dart';
+import 'package:oasis/core/config/supabase_config.dart';
 
 /// Facade service for all messaging and chat-related operations.
 ///
@@ -67,6 +68,10 @@ class MessagingService extends ChangeNotifier {
   Future<Conversation> getConversationDetails(String conversationId) =>
       _conversationService.getConversationDetails(conversationId);
 
+  /// Retrieves the current background URL for a conversation.
+  Future<String?> getChatBackground(String conversationId) =>
+      _conversationService.getChatBackground(conversationId);
+
   /// Initiates or retrieves a direct message conversation between two users.
   Future<String> getOrCreateConversation({
     required String user1Id,
@@ -111,6 +116,24 @@ class MessagingService extends ChangeNotifier {
   /// Toggles mute for a conversation.
   Future<void> toggleMute(String conversationId, bool mute) =>
       _conversationService.toggleMute(conversationId, mute);
+
+  /// Gets the mute status for a conversation.
+  Future<bool> getMuteStatus(String conversationId) =>
+      _conversationService.getMuteStatus(conversationId);
+
+  /// Removes chat background for the current user only.
+  Future<void> removeChatBackground(String conversationId) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return;
+
+    await _supabase.from(SupabaseConfig.chatThemesTable).upsert({
+      'conversation_id': conversationId,
+      'user_id': userId,
+      'background_image_url': null,
+      'updated_at': DateTime.now().toIso8601String(),
+    }, onConflict: 'conversation_id, user_id');
+    notifyListeners();
+  }
 
   /// Fetches recent unread messages for Peek preview (decrypted, without marking as read).
   Future<List<String>> getRecentUnreadMessages(
@@ -235,6 +258,12 @@ class MessagingService extends ChangeNotifier {
     bool isTyping,
   ) => _messageOpsService.updateTypingStatus(conversationId, userId, isTyping);
 
+  /// Fetches typing status from database (polling fallback).
+  Future<Map<String, dynamic>?> getTypingStatus(
+    String conversationId,
+    String currentUserId,
+  ) => _messageOpsService.getTypingStatus(conversationId, currentUserId);
+
   /// Subscribes to typing status in a conversation.
   RealtimeChannel subscribeToTypingStatus({
     required String conversationId,
@@ -268,6 +297,45 @@ class MessagingService extends ChangeNotifier {
   /// Increments media view count.
   Future<void> incrementMediaViewCount(String messageId) =>
       _messageOpsService.incrementMediaViewCount(messageId);
+
+  /// Adds a reaction to a message.
+  Future<void> addReaction({
+    required String messageId,
+    required String userId,
+    required String emoji,
+    required String username,
+  }) => _messageOpsService.addReaction(
+    messageId: messageId,
+    userId: userId,
+    emoji: emoji,
+    username: username,
+  );
+
+  /// Removes a reaction from a message.
+  Future<void> removeReaction({
+    required String messageId,
+    required String userId,
+    required String emoji,
+  }) => _messageOpsService.removeReaction(
+    messageId: messageId,
+    userId: userId,
+    emoji: emoji,
+  );
+
+  /// Fetches latest location data for a message (polling fallback).
+  Future<Map<String, dynamic>?> getMessageLocation(String messageId) async {
+    try {
+      final response = await _supabase
+          .from(SupabaseConfig.messagesTable)
+          .select('location_data')
+          .eq('id', messageId)
+          .maybeSingle();
+      return response?['location_data'] as Map<String, dynamic>?;
+    } catch (e) {
+      debugPrint('[MessagingService] Error fetching location: $e');
+      return null;
+    }
+  }
 
   // --- Moderation ---
 
@@ -314,6 +382,28 @@ class MessagingService extends ChangeNotifier {
   /// Closes a realtime subscription channel.
   Future<void> unsubscribeFromMessages(RealtimeChannel channel) async {
     await _supabase.removeChannel(channel);
+  }
+
+  /// Listens for updates to a specific message.
+  RealtimeChannel subscribeToMessageUpdates({
+    required String messageId,
+    required Function(Map<String, dynamic> payload) onUpdate,
+  }) {
+    final channel = _supabase.channel('message_updates:$messageId');
+    channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: SupabaseConfig.messagesTable,
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'id',
+            value: messageId,
+          ),
+          callback: (payload) => onUpdate(payload.newRecord),
+        )
+        .subscribe();
+    return channel;
   }
 
   /// Utility to filter messages based on expiry (placeholder).

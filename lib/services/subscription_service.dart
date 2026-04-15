@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/core/config/supabase_config.dart';
 import 'package:oasis/services/revenuecat_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:io';
@@ -31,6 +32,20 @@ class SubscriptionService extends ChangeNotifier {
 
   @visibleForTesting
   void setProStatus(bool status) {
+    _isPro = status;
+    notifyListeners();
+  }
+
+  /// Updates the user's Pro status in the database
+  Future<void> updateProStatus(bool status) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) throw Exception('Not authenticated');
+
+    await _supabase
+        .from(SupabaseConfig.profilesTable)
+        .update({'is_pro': status})
+        .eq('id', user.id);
+    
     _isPro = status;
     notifyListeners();
   }
@@ -95,7 +110,7 @@ class SubscriptionService extends ChangeNotifier {
         if (!status) {
           try {
             final profile = await _supabase
-                .from('profiles')
+                .from(SupabaseConfig.profilesTable)
                 .select('is_pro')
                 .eq('id', user.id)
                 .maybeSingle();

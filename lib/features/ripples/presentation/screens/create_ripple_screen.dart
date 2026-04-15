@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:oasis/core/network/supabase_client.dart';
-import 'package:uuid/uuid.dart';
+import 'package:provider/provider.dart';
+import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 
 class CreateRippleScreen extends StatefulWidget {
   const CreateRippleScreen({super.key});
@@ -17,7 +17,6 @@ class CreateRippleScreen extends StatefulWidget {
 class _CreateRippleScreenState extends State<CreateRippleScreen> {
   final ImagePicker _picker = ImagePicker();
   final TextEditingController _captionController = TextEditingController();
-  final _uuid = const Uuid();
 
   File? _videoFile;
   VideoPlayerController? _videoController;
@@ -63,31 +62,10 @@ class _CreateRippleScreenState extends State<CreateRippleScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final supabase = SupabaseService().client;
-      final userId = supabase.auth.currentUser?.id;
-      if (userId == null) throw Exception('Not authenticated');
-
-      // 1. Upload video
-      final fileExt = _videoFile!.path.split('.').last;
-      final fileName =
-          '${DateTime.now().millisecondsSinceEpoch}_${_uuid.v4()}.$fileExt';
-      final storagePath = '$userId/$fileName';
-
-      await supabase.storage
-          .from('ripples-videos')
-          .upload(storagePath, _videoFile!);
-      final videoUrl = supabase.storage
-          .from('ripples-videos')
-          .getPublicUrl(storagePath);
-
-      // 2. Create DB record
-      await supabase.from('ripples').insert({
-        'user_id': userId,
-        'video_url': videoUrl,
-        'caption': _captionController.text.trim(),
-        'is_private':
-            false, // Logic for private/public can be added based on user profile
-      });
+      await context.read<RipplesProvider>().uploadAndCreateRipple(
+        videoFile: _videoFile!,
+        caption: _captionController.text.trim(),
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(

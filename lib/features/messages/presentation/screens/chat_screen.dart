@@ -92,12 +92,15 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
 
     // Create providers
+    final messagingService = context.read<MessagingService>();
     _encryptionProvider = ChatEncryptionProvider();
     _settingsProvider = ChatSettingsProvider(
       conversationId: widget.conversationId,
+      messagingService: messagingService,
     );
     _recordingProvider = ChatRecordingProvider();
-    _reactionsProvider = ChatReactionsProvider();
+    _reactionsProvider =
+        ChatReactionsProvider(messagingService: messagingService);
 
     _chatProvider = ChatProvider(
       conversationId: widget.conversationId,
@@ -105,6 +108,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       scrollController: _scrollController,
       encryptionProvider: _encryptionProvider,
       settingsProvider: _settingsProvider,
+      messagingService: messagingService,
     );
 
     _recordingProvider.addListener(() {

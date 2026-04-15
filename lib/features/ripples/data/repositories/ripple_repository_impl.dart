@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/features/ripples/data/datasources/ripple_remote_datasource.dart';
@@ -20,6 +21,26 @@ class RippleRepositoryImpl implements RippleRepository {
   @override
   Future<List<RippleEntity>> getRipples() async {
     return _remoteDatasource.getRipples();
+  }
+
+  @override
+  Future<RippleEntity> uploadAndCreateRipple({
+    required File videoFile,
+    String? caption,
+    bool isPrivate = false,
+  }) async {
+    final userId = _currentUserId;
+    if (userId == null) throw Exception('Not authenticated');
+
+    // 1. Upload video
+    final videoUrl = await _remoteDatasource.uploadRippleVideo(videoFile, userId);
+
+    // 2. Create DB record
+    return createRipple(
+      videoUrl: videoUrl,
+      caption: caption,
+      isPrivate: isPrivate,
+    );
   }
 
   @override

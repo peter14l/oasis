@@ -1245,13 +1245,10 @@ class _RippleCommentsListState extends State<RippleCommentsList> {
 
   Future<void> _loadComments() async {
     setState(() => _isLoading = true);
-    final supabase = SupabaseService().client;
     try {
-      final response = await supabase
-          .from('ripple_comments')
-          .select('*, profiles:user_id(username, avatar_url)')
-          .eq('ripple_id', widget.rippleId)
-          .order('created_at', ascending: true);
+      final response = await context.read<RipplesProvider>().getComments(
+        widget.rippleId,
+      );
 
       if (mounted) {
         setState(() {
@@ -1269,20 +1266,11 @@ class _RippleCommentsListState extends State<RippleCommentsList> {
 
     setState(() => _isPosting = true);
 
-    final supabase = SupabaseService().client;
-    final userId = AuthService().currentUser?.id;
-
-    if (userId == null) {
-      setState(() => _isPosting = false);
-      return;
-    }
-
     try {
-      await supabase.from('ripple_comments').insert({
-        'ripple_id': widget.rippleId,
-        'user_id': userId,
-        'content': _commentController.text.trim(),
-      });
+      await context.read<RipplesProvider>().commentOnRipple(
+        widget.rippleId,
+        _commentController.text.trim(),
+      );
 
       _commentController.clear();
       await _loadComments();

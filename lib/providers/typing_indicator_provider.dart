@@ -6,7 +6,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TypingIndicatorProvider with ChangeNotifier {
   final MessagingService _messagingService = MessagingService();
-  final _supabase = SupabaseService().client;
 
   // Map of conversationId -> isTyping status
   final Map<String, bool> _typingStatus = {};
@@ -163,15 +162,10 @@ class TypingIndicatorProvider with ChangeNotifier {
   Future<void> _pollTypingStatus(String currentUserId) async {
     for (final conversationId in _trackedConversationIds) {
       try {
-        // Query typing_indicators table directly
-        final result = await _supabase
-            .from('typing_indicators')
-            .select('user_id, is_typing')
-            .eq('conversation_id', conversationId)
-            .neq('user_id', currentUserId)
-            .order('updated_at', ascending: false)
-            .limit(1)
-            .maybeSingle();
+        final result = await _messagingService.getTypingStatus(
+          conversationId,
+          currentUserId,
+        );
 
         if (result != null) {
           final isTyping = result['is_typing'] as bool? ?? false;

@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/core/config/razorpay_config.dart';
 import 'package:oasis/services/pricing_service.dart';
-import 'package:oasis/services/iap_service.dart';
 import 'package:oasis/services/subscription_service.dart';
 import 'package:oasis/services/razorpay_service.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
@@ -14,9 +13,6 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/widgets/custom_snackbar.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class OasisProScreen extends StatefulWidget {
   const OasisProScreen({super.key});
@@ -44,8 +40,6 @@ class _OasisProScreenState extends State<OasisProScreen> {
 
   @override
   void dispose() {
-    // We don't dispose the service here as it's a singleton, 
-    // but we remove the listener if we were using one
     super.dispose();
   }
 
@@ -62,30 +56,26 @@ class _OasisProScreenState extends State<OasisProScreen> {
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) async {
     // Payment successful, update Supabase
-    final userId = SupabaseService().client.auth.currentUser?.id;
-    if (userId != null) {
-      try {
-        await SupabaseService().client.from('profiles').update({'is_pro': true}).eq('id', userId);
-        if (mounted) {
-          CustomSnackbar.showSuccess(context, 'Payment Successful! You are now Pro.');
-          context.read<SubscriptionService>().refresh();
-          context.pop();
-        }
-      } catch (e) {
-        debugPrint('Error updating pro status: $e');
-        if (mounted) {
-          CustomSnackbar.showError(context, e);
-        }
+    try {
+      await context.read<SubscriptionService>().updateProStatus(true);
+      if (mounted) {
+        CustomSnackbar.showSuccess(
+          context,
+          'Payment Successful! You are now Pro.',
+        );
+        context.read<SubscriptionService>().refresh();
+        context.pop();
+      }
+    } catch (e) {
+      debugPrint('Error updating pro status: $e');
+      if (mounted) {
+        CustomSnackbar.showError(context, e);
       }
     }
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
     CustomSnackbar.showError(context, 'Payment Failed: ${response.message}');
-  }
-
-  void _handleExternalWallet(ExternalWalletResponse response) {
-    debugPrint('External wallet selected: ${response.walletName}');
   }
 
   Future<void> _initPricing() async {
@@ -166,45 +156,6 @@ class _OasisProScreenState extends State<OasisProScreen> {
     }
   }
 
-  Widget _buildWebRedirectBanner(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blueAccent.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          const Icon(FluentIcons.info_24_regular, color: Colors.blueAccent),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Web Checkout',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'Payments are currently handled via our secure web portal. You will be redirected to complete your purchase.',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: Colors.white70,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _startRazorpayWindowsFlow(PricingPlan plan) {
     showDialog(
       context: context,
@@ -278,13 +229,6 @@ class _OasisProScreenState extends State<OasisProScreen> {
       ),
     );
     try {
-      final canLaunch = await canLaunchUrl(url);
-      if (!canLaunch) {
-        // canLaunchUrl returns false - try anyway as fallback
-        debugPrint(
-          'canLaunchUrl returned false for $url, attempting launch anyway',
-        );
-      }
       final launched = await launchUrl(
         url,
         mode: LaunchMode.externalApplication,
@@ -406,19 +350,9 @@ class _OasisProScreenState extends State<OasisProScreen> {
                     ),
                     const SizedBox(height: 40),
 
-                    _buildWebRedirectBanner(context),
-
                     ..._plans.map((plan) => _buildPricingCard(plan)),
 
                     const SizedBox(height: 40),
-                    Center(
-                      child: Text(
-                        'Secure payments handled via our web portal.',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: Colors.white24,
-                        ),
-                      ),
-                    ),
                   ]),
                 ),
               ),

@@ -328,6 +328,12 @@ class AuthService with ChangeNotifier {
   Future<String> uploadProfilePicture(String filePath) =>
       _profileManager.uploadProfilePicture(filePath);
 
+  Future<String?> getPublicKey(String userId) =>
+      _profileManager.getPublicKey(userId);
+
+  Future<Map<String, String>> getPublicKeys(List<String> userIds) =>
+      _profileManager.getPublicKeys(userIds);
+
   // Auth Utilities
   Future<void> sendPasswordResetEmail(String email) async {
     await _supabase.auth.resetPasswordForEmail(email,

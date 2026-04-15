@@ -248,16 +248,9 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
 
     if (profile == null) return const SizedBox.shrink();
 
-    // TODO: Re-enable subscription section once subscription feature is ready
-    // return profile.isPro
-    //     ? _buildProMemberTile(context)
-    //     : _buildPremiumTile(context);
-
-    // For now, only show pro member tile if user is already pro
-    if (profile.isPro) {
-      return _buildProMemberTile(context);
-    }
-    return const SizedBox.shrink(); // Hide upgrade tile for non-pro users
+    return profile.isPro
+        ? _buildProMemberTile(context)
+        : _buildPremiumTile(context);
   }
 
   Widget _buildProMemberTile(BuildContext context) {
@@ -345,56 +338,55 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
     );
   }
 
-  // TODO: Re-enable Oasis Pro tile once subscription feature is ready
-  // Widget _buildPremiumTile(BuildContext context) {
-  //   final themeProvider = Provider.of<ThemeProvider>(context);
-  //   final isM3E = themeProvider.isM3EEnabled;
+  Widget _buildPremiumTile(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isM3E = themeProvider.isM3EEnabled;
 
-  //   return Container(
-  //     decoration: BoxDecoration(
-  //       gradient: LinearGradient(
-  //         colors:
-  //             isM3E
-  //                 ? [Colors.amber.shade600, Colors.deepOrange.shade700]
-  //                 : [Colors.amber.shade700, Colors.orange.shade900],
-  //         begin: Alignment.topLeft,
-  //         end: Alignment.bottomRight,
-  //       ),
-  //       borderRadius: BorderRadius.circular(isM3E ? 28 : 16),
-  //       border:
-  //           isM3E
-  //               ? Border.all(
-  //                 color: Colors.amber.withValues(alpha: 0.3),
-  //                 width: 1,
-  //               )
-  //               : null,
-  //     ),
-  //     child: ListTile(
-  //       leading: const Icon(
-  //         Icons.workspace_premium,
-  //         color: Colors.white,
-  //         size: 32,
-  //       ),
-  //       title: const Text(
-  //         'Oasis Pro',
-  //         style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-  //       ),
-  //       subtitle: const Text(
-  //         'Unlock premium features & go ad-free',
-  //         style: TextStyle(color: Colors.white70),
-  //       ),
-  //       trailing: const Icon(
-  //         Icons.arrow_forward_ios,
-  //         color: Colors.white,
-  //         size: 16,
-  //       ),
-  //       onTap:
-  //           () => Navigator.of(
-  //             context,
-  //           ).push(MaterialPageRoute(builder: (context) => const SubscriptionScreen())),
-  //     ),
-  //   );
-  // }
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors:
+              isM3E
+                  ? [Colors.amber.shade600, Colors.deepOrange.shade700]
+                  : [Colors.amber.shade700, Colors.orange.shade900],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(isM3E ? 28 : 16),
+        border:
+            isM3E
+                ? Border.all(
+                  color: Colors.amber.withValues(alpha: 0.3),
+                  width: 1,
+                )
+                : null,
+      ),
+      child: ListTile(
+        leading: const Icon(
+          Icons.workspace_premium,
+          color: Colors.white,
+          size: 32,
+        ),
+        title: const Text(
+          'Oasis Pro',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        subtitle: const Text(
+          'Unlock premium features & go ad-free',
+          style: TextStyle(color: Colors.white70),
+        ),
+        trailing: const Icon(
+          Icons.arrow_forward_ios,
+          color: Colors.white,
+          size: 16,
+        ),
+        onTap:
+            () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (context) => const SubscriptionScreen())),
+      ),
+    );
+  }
 
   Widget _buildDangerZone(BuildContext context) {
     final theme = Theme.of(context);

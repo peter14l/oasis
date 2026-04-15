@@ -10,8 +10,12 @@ import 'package:oasis/features/messages/data/messaging_service.dart';
 /// Extracted from _ChatScreenState settings methods in chat_screen.dart.
 class ChatSettingsProvider with ChangeNotifier {
   final String conversationId;
+  final MessagingService _messagingService;
 
-  ChatSettingsProvider({required this.conversationId});
+  ChatSettingsProvider({
+    required this.conversationId,
+    MessagingService? messagingService,
+  }) : _messagingService = messagingService ?? MessagingService();
 
   // State fields
   String? _backgroundUrl;
@@ -42,20 +46,15 @@ class ChatSettingsProvider with ChangeNotifier {
 
     try {
       if (currentUserId != null) {
-        final data =
-            await Supabase.instance.client
-                .from('chat_themes')
-                .select('background_image_url')
-                .eq('conversation_id', conversationId)
-                .order('updated_at', ascending: false)
-                .limit(1)
-                .maybeSingle();
+        final fetchedBgUrl = await _messagingService.getChatBackground(
+          conversationId,
+        );
 
-        if (data != null) {
-          bgUrl = data['background_image_url'] as String?;
+        if (fetchedBgUrl != null || bgUrl != null) {
+          bgUrl = fetchedBgUrl;
           // Update local cache
           if (bgUrl != null) {
-            await prefs.setString(bgKey, bgUrl);
+            await prefs.setString(bgKey, bgUrl!);
           } else {
             await prefs.remove(bgKey);
           }

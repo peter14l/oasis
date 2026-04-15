@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/features/messages/domain/models/message_reaction.dart';
+import 'package:oasis/features/messages/data/messaging_service.dart';
 
 /// Grouped reaction for display in the UI.
 class GroupedReaction {
@@ -19,10 +19,13 @@ class GroupedReaction {
 }
 
 /// Provider handling all message reaction logic.
-/// Extracted from _ChatScreenState reaction methods in chat_screen.dart.
 class ChatReactionsProvider with ChangeNotifier {
+  final MessagingService _messagingService;
+
+  ChatReactionsProvider({required MessagingService messagingService})
+    : _messagingService = messagingService;
+
   /// Group individual reactions by emoji for display.
-  /// Original: _groupReactions() in chat_screen.dart
   List<GroupedReaction> groupReactions(
     List<MessageReactionModel> reactions,
     String? currentUserId,
@@ -52,7 +55,6 @@ class ChatReactionsProvider with ChangeNotifier {
   }
 
   /// Add, remove, or toggle a reaction on a message.
-  /// Original: _onReactionSelected() in chat_screen.dart
   Future<void> onReactionSelected({
     required Message message,
     required String reaction,
@@ -101,31 +103,20 @@ class ChatReactionsProvider with ChangeNotifier {
 
     try {
       if (existingIndex >= 0) {
-        // Toggle off: remove reaction from DB
-        await Supabase.instance.client
-            .from('message_reactions')
-            .delete()
-            .eq('message_id', message.id)
-            .eq('user_id', userId)
-            .eq('emoji', reaction);
+        // Toggle off: remove reaction
+        await _messagingService.removeReaction(
+          messageId: message.id,
+          userId: userId,
+          emoji: reaction,
+        );
       } else {
-        // Insert new reaction — split into delete+insert to avoid RLS blocking upsert
-        // First remove any existing reaction from this user on this message
-        await Supabase.instance.client
-            .from('message_reactions')
-            .delete()
-            .eq('message_id', message.id)
-            .eq('user_id', userId);
-
-        // Then insert the new reaction
-        await Supabase.instance.client.from('message_reactions').insert({
-          'message_id': message.id,
-          'user_id': userId,
-          'emoji': reaction,
-          'reaction': reaction,
-          'username': username,
-          'created_at': DateTime.now().toIso8601String(),
-        });
+        // Add new reaction
+        await _messagingService.addReaction(
+          messageId: message.id,
+          userId: userId,
+          emoji: reaction,
+          username: username,
+        );
       }
     } catch (e) {
       debugPrint('Error updating reaction: $e');

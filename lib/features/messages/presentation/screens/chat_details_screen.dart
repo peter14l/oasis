@@ -92,7 +92,7 @@ class VerticalLineThumbShape extends SliderComponentShape {
 }
 
 class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
-  final MessagingService _messagingService = MessagingService();
+  late MessagingService _messagingService;
   final AuthService _authService = AuthService();
   final ImagePicker _imagePicker = ImagePicker();
 
@@ -116,11 +116,19 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     _selectedBackground = widget.currentBackground;
     _loadPersistedSettings();
     _checkLockStatus();
-    _checkMuteStatus();
     _checkBlockStatus();
     // Note: messages for search are read from ChatProvider.state.messages
     // (already decrypted) — no re-initialization of SignalService needed here.
-    _subscribeToConversationUpdates();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _messagingService = Provider.of<MessagingService>(context);
+    if (_conversationChannel == null) {
+      _subscribeToConversationUpdates();
+      _checkMuteStatus();
+    }
   }
 
   void _subscribeToConversationUpdates() {
@@ -139,7 +147,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   @override
   void dispose() {
     if (_conversationChannel != null) {
-      Supabase.instance.client.removeChannel(_conversationChannel!);
+      _messagingService.unsubscribeFromMessages(_conversationChannel!);
     }
     _searchController.dispose();
     super.dispose();
@@ -147,18 +155,11 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
 
   Future<void> _checkMuteStatus() async {
     try {
-      final userId = _authService.currentUser?.id;
-      if (userId == null) return;
-
-      final response = await Supabase.instance.client
-          .from('conversation_participants')
-          .select('is_muted')
-          .eq('conversation_id', widget.conversationId)
-          .eq('user_id', userId)
-          .maybeSingle();
-
-      if (response != null && mounted) {
-        setState(() => _isMuted = response['is_muted'] as bool? ?? false);
+      final muted = await _messagingService.getMuteStatus(
+        widget.conversationId,
+      );
+      if (mounted) {
+        setState(() => _isMuted = muted);
       }
     } catch (e) {
       debugPrint('Error checking mute status: $e');
@@ -597,15 +598,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     await prefs.remove('chat_bg_${widget.conversationId}');
 
     try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId != null) {
-        await Supabase.instance.client.from('chat_themes').upsert({
-          'conversation_id': widget.conversationId,
-          'user_id': userId,
-          'background_image_url': null,
-          'updated_at': DateTime.now().toIso8601String(),
-        }, onConflict: 'conversation_id, user_id');
-      }
+      await _messagingService.removeChatBackground(widget.conversationId);
     } catch (e) {
       debugPrint('Failed to sync chat theme removal to Supabase: $e');
     }

@@ -60,7 +60,7 @@ class MessageOperationsService {
       if (userId == null) throw Exception('Not authenticated');
 
       await _supabase
-          .from('conversation_participants')
+          .from(SupabaseConfig.conversationParticipantsTable)
           .update({'cleared_at': 'now()'})
           .eq('conversation_id', conversationId)
           .eq('user_id', userId);
@@ -70,7 +70,27 @@ class MessageOperationsService {
     }
   }
 
-  /// Clears all messages in a conversation for all participants.
+  /// Fetches typing status from database (polling fallback).
+  Future<Map<String, dynamic>?> getTypingStatus(
+    String conversationId,
+    String currentUserId,
+  ) async {
+    try {
+      return await _supabase
+          .from(SupabaseConfig.typingIndicatorsTable)
+          .select('user_id, is_typing')
+          .eq('conversation_id', conversationId)
+          .neq('user_id', currentUserId)
+          .order('updated_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+    } catch (e) {
+      debugPrint('[MessageOps] Error fetching typing status: $e');
+      return null;
+    }
+  }
+
+  /// Updates typing status for the current user.
   Future<void> clearConversationMessages(String conversationId) async {
     try {
       await _supabase
@@ -280,12 +300,13 @@ class MessageOperationsService {
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
-          table: 'message_reactions',
+          table: SupabaseConfig.messageReactionsTable,
           callback: (payload) {
             try {
-              final data = payload.newRecord.isNotEmpty
-                  ? payload.newRecord
-                  : payload.oldRecord;
+              final data =
+                  payload.newRecord.isNotEmpty
+                      ? payload.newRecord
+                      : payload.oldRecord;
               if (data.isNotEmpty) {
                 final messageId = data['message_id'] as String?;
                 if (messageId != null) {
@@ -310,31 +331,84 @@ class MessageOperationsService {
     return channel;
   }
 
+  /// Adds a reaction to a message.
+  Future<void> addReaction({
+    required String messageId,
+    required String userId,
+    required String emoji,
+    required String username,
+  }) async {
+    try {
+      // First remove any existing reaction from this user on this message
+      // (Standard behavior: one reaction per user per message)
+      await _supabase
+          .from(SupabaseConfig.messageReactionsTable)
+          .delete()
+          .eq('message_id', messageId)
+          .eq('user_id', userId);
+
+      // Then insert the new reaction
+      await _supabase.from(SupabaseConfig.messageReactionsTable).insert({
+        'message_id': messageId,
+        'user_id': userId,
+        'emoji': emoji,
+        'reaction': emoji, // Legacy support
+        'username': username,
+        'created_at': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      debugPrint('[MessageOps] Error adding reaction: $e');
+      rethrow;
+    }
+  }
+
+  /// Removes a reaction from a message.
+  Future<void> removeReaction({
+    required String messageId,
+    required String userId,
+    required String emoji,
+  }) async {
+    try {
+      await _supabase
+          .from(SupabaseConfig.messageReactionsTable)
+          .delete()
+          .eq('message_id', messageId)
+          .eq('user_id', userId)
+          .eq('emoji', emoji);
+    } catch (e) {
+      debugPrint('[MessageOps] Error removing reaction: $e');
+      rethrow;
+    }
+  }
+
   Future<void> _fetchReactionsForMessage(
     String messageId,
     Function(String messageId, List<MessageReactionModel> reactions) onUpdate,
   ) async {
     try {
       final reactions = await _supabase
-          .from('message_reactions')
-          .select('*, profiles:user_id (username)')
+          .from(SupabaseConfig.messageReactionsTable)
+          .select('*, ${SupabaseConfig.profilesTable}:user_id (username)')
           .eq('message_id', messageId);
 
-      final reactionModels = reactions.map((r) {
-        final profile = r['profiles'] as Map<String, dynamic>?;
-        final createdAtStr = r['created_at'] as String?;
+      final reactionModels =
+          reactions.map((r) {
+            final profile =
+                r[SupabaseConfig.profilesTable] as Map<String, dynamic>?;
+            final createdAtStr = r['created_at'] as String?;
 
-        return MessageReactionModel(
-          id: r['id'] as String? ?? '',
-          messageId: r['message_id'] as String? ?? '',
-          userId: r['user_id'] as String? ?? '',
-          username: profile?['username'] ?? 'Unknown',
-          reaction: r['emoji'] as String? ?? r['reaction'] as String? ?? '',
-          createdAt: createdAtStr != null
-              ? DateTime.parse(createdAtStr)
-              : DateTime.now(),
-        );
-      }).toList();
+            return MessageReactionModel(
+              id: r['id'] as String? ?? '',
+              messageId: r['message_id'] as String? ?? '',
+              userId: r['user_id'] as String? ?? '',
+              username: profile?['username'] ?? 'Unknown',
+              reaction: r['emoji'] as String? ?? r['reaction'] as String? ?? '',
+              createdAt:
+                  createdAtStr != null
+                      ? DateTime.parse(createdAtStr)
+                      : DateTime.now(),
+            );
+          }).toList();
 
       onUpdate(messageId, reactionModels);
     } catch (e) {

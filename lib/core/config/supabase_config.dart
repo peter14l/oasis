@@ -23,6 +23,7 @@ class SupabaseConfig {
   static const String communityImagesBucket = 'community-images';
   static const String messageAttachmentsBucket = 'message-attachments';
   static const String storiesBucket = 'stories';
+  static const String ripplesVideosBucket = 'ripples-videos';
 
   // Table names - Core
   static const String profilesTable = 'profiles';
@@ -35,6 +36,14 @@ class SupabaseConfig {
   static const String commentsTable = 'comments';
   static const String commentLikesTable = 'comment_likes';
   static const String notificationsTable = 'notifications';
+  static const String userStatusTable = 'user_status';
+  static const String dataExportRequestsTable = 'data_export_requests';
+
+  // Table names - Ripples
+  static const String ripplesTable = 'ripples';
+  static const String rippleCommentsTable = 'ripple_comments';
+  static const String rippleLikesTable = 'ripple_likes';
+  static const String rippleSavesTable = 'ripple_saves';
 
   // Table names - Messaging
   static const String conversationsTable = 'conversations';
@@ -45,6 +54,7 @@ class SupabaseConfig {
   static const String messageReactionsTable = 'message_reactions';
   static const String messageMediaViewsTable = 'message_media_views';
   static const String typingIndicatorsTable = 'typing_indicators';
+  static const String chatThemesTable = 'chat_themes';
   static const String storiesTable = 'stories';
   static const String timeCapsulesTable = 'time_capsules';
   static const String pollsTable = 'polls';

@@ -11,7 +11,6 @@ class UserPresence {
 
 class PresenceProvider with ChangeNotifier {
   final PresenceService _presenceService = PresenceService();
-  final _supabase = SupabaseService().client;
   final Map<String, UserPresence> _userPresence = {};
 
   // Polling fallback for user presence (when realtime presence sync fails)
@@ -79,19 +78,13 @@ class PresenceProvider with ChangeNotifier {
   Future<void> _pollUserPresence() async {
     for (final userId in _trackedUserIds) {
       try {
-        // Query user_status table directly for presence
-        final result = await _supabase
-            .from('user_status')
-            .select('status, last_seen')
-            .eq('user_id', userId)
-            .maybeSingle();
+        final result = await _presenceService.getUserStatus(userId);
 
         if (result != null) {
           final status = result['status'] as String? ?? 'offline';
           final lastSeenStr = result['last_seen'] as String?;
-          final lastSeen = lastSeenStr != null
-              ? DateTime.parse(lastSeenStr)
-              : null;
+          final lastSeen =
+              lastSeenStr != null ? DateTime.parse(lastSeenStr) : null;
 
           _userPresence[userId] = UserPresence(
             status: status,

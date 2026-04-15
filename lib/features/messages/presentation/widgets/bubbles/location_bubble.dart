@@ -4,6 +4,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_provider.dart';
 import 'package:oasis/features/messages/presentation/screens/live_location_screen.dart';
+import 'package:oasis/features/messages/data/messaging_service.dart';
+import 'package:oasis/core/config/supabase_config.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -24,6 +26,7 @@ class LocationBubble extends StatefulWidget {
 }
 
 class _LocationBubbleState extends State<LocationBubble> {
+  late MessagingService _messagingService;
   late Message _currentMessage;
   RealtimeChannel? _channel;
   Timer? _pollingTimer;
@@ -32,31 +35,29 @@ class _LocationBubbleState extends State<LocationBubble> {
   void initState() {
     super.initState();
     _currentMessage = widget.message;
-    _startLocationUpdates();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _messagingService = Provider.of<MessagingService>(context);
+    if (_channel == null) {
+      _startLocationUpdates();
+    }
   }
 
   void _startLocationUpdates() {
     // Realtime subscription for location updates
-    _channel = Supabase.instance.client
-        .channel('live_loc_bubble_${_currentMessage.id}')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.update,
-          schema: 'public',
-          table: 'messages',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'id',
-            value: _currentMessage.id,
-          ),
-          callback: (payload) {
-            if (mounted) {
-              setState(() {
-                _currentMessage = Message.fromJson(payload.newRecord);
-              });
-            }
-          },
-        )
-        .subscribe();
+    _channel = _messagingService.subscribeToMessageUpdates(
+      messageId: _currentMessage.id,
+      onUpdate: (data) {
+        if (mounted) {
+          setState(() {
+            _currentMessage = Message.fromJson(data);
+          });
+        }
+      },
+    );
 
     // Polling fallback - refresh location every 15 seconds if realtime fails
     _pollingTimer = Timer.periodic(const Duration(seconds: 15), (_) {
@@ -66,14 +67,11 @@ class _LocationBubbleState extends State<LocationBubble> {
 
   Future<void> _pollLocationUpdate() async {
     try {
-      final response = await Supabase.instance.client
-          .from('messages')
-          .select('location_data')
-          .eq('id', _currentMessage.id)
-          .maybeSingle();
+      final locData = await _messagingService.getMessageLocation(
+        _currentMessage.id,
+      );
 
-      if (response != null && mounted && response['location_data'] != null) {
-        final locData = response['location_data'] as Map<String, dynamic>;
+      if (locData != null && mounted) {
         if (locData['latitude'] != _currentMessage.locationData?['latitude'] ||
             locData['longitude'] !=
                 _currentMessage.locationData?['longitude']) {

@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/core/config/supabase_config.dart';
 import 'package:oasis/features/ripples/domain/models/ripple_entity.dart';
 
 /// Remote data source for ripples - handles all Supabase API calls.
@@ -9,23 +11,39 @@ class RippleRemoteDatasource {
   RippleRemoteDatasource({SupabaseClient? supabase})
     : _supabase = supabase ?? SupabaseService().client;
 
+  /// Uploads a ripple video to storage.
+  Future<String> uploadRippleVideo(File file, String userId) async {
+    final fileExt = file.path.split('.').last;
+    final fileName =
+        '${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond}.$fileExt';
+    final storagePath = '$userId/$fileName';
+
+    await _supabase.storage
+        .from(SupabaseConfig.ripplesVideosBucket)
+        .upload(storagePath, file);
+    
+    return _supabase.storage
+        .from(SupabaseConfig.ripplesVideosBucket)
+        .getPublicUrl(storagePath);
+  }
+
   /// Fetches ripples from Supabase with profile data and like/save status.
   Future<List<RippleEntity>> getRipples() async {
     final userId = _supabase.auth.currentUser?.id;
 
     final response = await _supabase
-        .from('ripples')
+        .from(SupabaseConfig.ripplesTable)
         .select('''
           *,
-          profiles:user_id (
+          ${SupabaseConfig.profilesTable}:user_id (
             username,
             avatar_url,
             is_private
           ),
-          ripple_likes!left (
+          ${SupabaseConfig.rippleLikesTable}!left (
             user_id
           ),
-          ripple_saves!left (
+          ${SupabaseConfig.rippleSavesTable}!left (
             user_id
           )
         ''')
@@ -36,15 +54,15 @@ class RippleRemoteDatasource {
 
     // Process ripples to add is_liked and is_saved fields
     for (var ripple in ripplesData) {
-      final likes = ripple['ripple_likes'] as List<dynamic>?;
+      final likes = ripple[SupabaseConfig.rippleLikesTable] as List<dynamic>?;
       ripple['is_liked'] =
           likes != null && likes.any((l) => l['user_id'] == userId);
-      ripple.remove('ripple_likes');
+      ripple.remove(SupabaseConfig.rippleLikesTable);
 
-      final saves = ripple['ripple_saves'] as List<dynamic>?;
+      final saves = ripple[SupabaseConfig.rippleSavesTable] as List<dynamic>?;
       ripple['is_saved'] =
           saves != null && saves.any((s) => s['user_id'] == userId);
-      ripple.remove('ripple_saves');
+      ripple.remove(SupabaseConfig.rippleSavesTable);
     }
 
     return ripplesData.map((json) => RippleEntity.fromJson(json)).toList();
@@ -60,7 +78,7 @@ class RippleRemoteDatasource {
   }) async {
     final data =
         await _supabase
-            .from('ripples')
+            .from(SupabaseConfig.ripplesTable)
             .insert({
               'user_id': userId,
               'video_url': videoUrl,
@@ -76,12 +94,12 @@ class RippleRemoteDatasource {
 
   /// Deletes a ripple by ID.
   Future<void> deleteRipple(String rippleId) async {
-    await _supabase.from('ripples').delete().eq('id', rippleId);
+    await _supabase.from(SupabaseConfig.ripplesTable).delete().eq('id', rippleId);
   }
 
   /// Likes a ripple.
   Future<void> likeRipple(String rippleId, String userId) async {
-    await _supabase.from('ripple_likes').upsert({
+    await _supabase.from(SupabaseConfig.rippleLikesTable).upsert({
       'ripple_id': rippleId,
       'user_id': userId,
     });
@@ -89,7 +107,7 @@ class RippleRemoteDatasource {
 
   /// Removes like from a ripple.
   Future<void> unlikeRipple(String rippleId, String userId) async {
-    await _supabase.from('ripple_likes').delete().match({
+    await _supabase.from(SupabaseConfig.rippleLikesTable).delete().match({
       'ripple_id': rippleId,
       'user_id': userId,
     });
@@ -97,7 +115,7 @@ class RippleRemoteDatasource {
 
   /// Saves a ripple.
   Future<void> saveRipple(String rippleId, String userId) async {
-    await _supabase.from('ripple_saves').upsert({
+    await _supabase.from(SupabaseConfig.rippleSavesTable).upsert({
       'ripple_id': rippleId,
       'user_id': userId,
     });
@@ -105,7 +123,7 @@ class RippleRemoteDatasource {
 
   /// Removes a ripple from saved.
   Future<void> unsaveRipple(String rippleId, String userId) async {
-    await _supabase.from('ripple_saves').delete().match({
+    await _supabase.from(SupabaseConfig.rippleSavesTable).delete().match({
       'ripple_id': rippleId,
       'user_id': userId,
     });
@@ -119,7 +137,7 @@ class RippleRemoteDatasource {
   }) async {
     final data =
         await _supabase
-            .from('ripple_comments')
+            .from(SupabaseConfig.rippleCommentsTable)
             .insert({
               'ripple_id': rippleId,
               'user_id': userId,
@@ -134,8 +152,8 @@ class RippleRemoteDatasource {
   /// Gets comments for a ripple.
   Future<List<RippleCommentEntity>> getComments(String rippleId) async {
     final response = await _supabase
-        .from('ripple_comments')
-        .select('*, profiles:user_id(username, avatar_url)')
+        .from(SupabaseConfig.rippleCommentsTable)
+        .select('*, ${SupabaseConfig.profilesTable}:user_id(username, avatar_url)')
         .eq('ripple_id', rippleId)
         .order('created_at', ascending: true);
 
@@ -148,18 +166,18 @@ class RippleRemoteDatasource {
 
     final response =
         await _supabase
-            .from('ripples')
+            .from(SupabaseConfig.ripplesTable)
             .select('''
           *,
-          profiles:user_id (
+          ${SupabaseConfig.profilesTable}:user_id (
             username,
             avatar_url,
             is_private
           ),
-          ripple_likes!left (
+          ${SupabaseConfig.rippleLikesTable}!left (
             user_id
           ),
-          ripple_saves!left (
+          ${SupabaseConfig.rippleSavesTable}!left (
             user_id
           )
         ''')
@@ -169,15 +187,15 @@ class RippleRemoteDatasource {
     if (response == null) return null;
 
     final ripple = Map<String, dynamic>.from(response);
-    final likes = ripple['ripple_likes'] as List<dynamic>?;
+    final likes = ripple[SupabaseConfig.rippleLikesTable] as List<dynamic>?;
     ripple['is_liked'] =
         likes != null && likes.any((l) => l['user_id'] == userId);
-    ripple.remove('ripple_likes');
+    ripple.remove(SupabaseConfig.rippleLikesTable);
 
-    final saves = ripple['ripple_saves'] as List<dynamic>?;
+    final saves = ripple[SupabaseConfig.rippleSavesTable] as List<dynamic>?;
     ripple['is_saved'] =
         saves != null && saves.any((s) => s['user_id'] == userId);
-    ripple.remove('ripple_saves');
+    ripple.remove(SupabaseConfig.rippleSavesTable);
 
     return RippleEntity.fromJson(ripple);
   }
