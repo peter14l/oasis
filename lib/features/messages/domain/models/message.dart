@@ -85,6 +85,12 @@ abstract class Message with _$Message {
         type = MessageType.postShare;
       } else if (json['ripple_id'] != null) {
         type = MessageType.ripple;
+      } else if (json['location_data'] != null) {
+        type = MessageType.location;
+      } else if (json['poll_data'] != null) {
+        type = MessageType.poll;
+      } else if (json['story_id'] != null) {
+        type = MessageType.storyReply;
       }
     }
     normalizedJson['message_type'] = type.name;

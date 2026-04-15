@@ -49,6 +49,10 @@ class _FeedScreenState extends State<FeedScreen>
   String? _selectedPostId;
   bool _showCommentPane = false;
 
+  // Cached service references for safe cleanup in dispose()
+  DigitalWellbeingService? _wellbeingService;
+  UserSettingsProvider? _settingsProvider;
+
   AuthService get _authService => context.read<AuthService>();
 
   @override
@@ -61,6 +65,7 @@ class _FeedScreenState extends State<FeedScreen>
 
     // Load initial feed
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _loadFeed();
       _loadStories();
       final userId = _authService.currentUser?.id;
@@ -70,9 +75,17 @@ class _FeedScreenState extends State<FeedScreen>
       }
       _startWellbeingPolling();
       if (mounted) {
-        context.read<DigitalWellbeingService>().startTracking('feed');
+        _wellbeingService = context.read<DigitalWellbeingService>();
+        _wellbeingService?.startTracking('feed');
       }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Cache settings provider for async callbacks
+    _settingsProvider = context.read<UserSettingsProvider>();
   }
 
   void _startWellbeingPolling() {
@@ -96,8 +109,8 @@ class _FeedScreenState extends State<FeedScreen>
 
   Future<void> _checkWellbeingLimit() async {
     if (!mounted) return;
-    final settings = context.read<UserSettingsProvider>();
-    if (settings.dailyLimitMinutes <= 0) return;
+    final settings = _settingsProvider;
+    if (settings == null || settings.dailyLimitMinutes <= 0) return;
 
     try {
       final screenTimeService = context.read<ScreenTimeService>();
@@ -144,10 +157,7 @@ class _FeedScreenState extends State<FeedScreen>
   @override
   void dispose() {
     try {
-      if (mounted) {
-        final wellbeingService = context.read<DigitalWellbeingService>();
-        wellbeingService.stopTracking();
-      }
+      _wellbeingService?.stopTracking();
     } catch (e) {
       debugPrint('Error stopping wellbeing tracking in dispose: $e');
     }

@@ -230,7 +230,7 @@ class _LocationBubbleState extends State<LocationBubble> {
   }
 }
 
-/// Mini map preview for the bubble - shows static map with marker
+/// Mini map preview for the bubble - shows actual map with marker
 class _LiveLocationMapPreview extends StatelessWidget {
   final LatLng center;
   final bool isLive;
@@ -239,110 +239,28 @@ class _LiveLocationMapPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    // Using static map image as preview (more reliable than live map in bubble)
-    // The full LiveLocationScreen has the interactive map
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // Static map preview using Google Maps static API would be ideal
-        // For now, show a styled placeholder with location indicator
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                theme.colorScheme.primaryContainer.withValues(alpha: 0.7),
-                theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
-              ],
-            ),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: isLive ? Colors.green : theme.colorScheme.primary,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color:
-                            (isLive ? Colors.green : theme.colorScheme.primary)
-                                .withValues(alpha: 0.5),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: Icon(Icons.location_on, color: Colors.white, size: 32),
-                ),
-                const SizedBox(height: 8),
-                if (isLive)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'LIVE',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ),
+    return AbsorbPointer(
+      child: GoogleMap(
+        initialCameraPosition: CameraPosition(
+          target: center,
+          zoom: 15,
         ),
-        // Map overlay pattern to simulate map tiles
-        CustomPaint(painter: _MapGridPainter()),
-      ],
+        markers: {
+          Marker(
+            markerId: const MarkerId('preview_loc'),
+            position: center,
+          ),
+        },
+        liteModeEnabled: true,
+        zoomControlsEnabled: false,
+        mapToolbarEnabled: false,
+        myLocationButtonEnabled: false,
+        compassEnabled: false,
+        scrollGesturesEnabled: false,
+        zoomGesturesEnabled: false,
+        tiltGesturesEnabled: false,
+        rotateGesturesEnabled: false,
+      ),
     );
   }
-}
-
-class _MapGridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.1)
-      ..strokeWidth = 0.5
-      ..style = PaintingStyle.stroke;
-
-    // Draw grid lines to simulate map
-    const spacing = 20.0;
-    for (double x = 0; x < size.width; x += spacing) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y < size.height; y += spacing) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

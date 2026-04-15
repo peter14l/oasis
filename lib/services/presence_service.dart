@@ -147,6 +147,17 @@ class PresenceService {
         'status': status,
         'last_seen': DateTime.now().toIso8601String(),
       });
+
+      // Also upsert to user_status table for polling fallback
+      unawaited(
+        _supabase.from(SupabaseConfig.userStatusTable).upsert({
+          'user_id': userId,
+          'status': status,
+          'last_seen': DateTime.now().toIso8601String(),
+        }).catchError((e) {
+          debugPrint('PresenceService: Table upsert error - ${e.toString()}');
+        }),
+      );
     } catch (e) {
       // Retry once after brief delay
       debugPrint('PresenceService: Retry presence after - ${e.toString()}');
