@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:file_picker/file_picker.dart' show PlatformFile;
+import 'package:geolocator/geolocator.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/features/messages/domain/models/message_reaction.dart';
 import 'package:oasis/features/messages/data/messaging_service.dart';
@@ -1169,12 +1170,40 @@ class ChatProvider with ChangeNotifier {
     try {
       setState((s) => s.copyWith(isSending: true));
 
+      // Get initial location before sending the message
+      double? latitude;
+      double? longitude;
+
+      try {
+        final position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+        latitude = position.latitude;
+        longitude = position.longitude;
+      } catch (e) {
+        debugPrint('Failed to get initial location: $e');
+        // Continue without initial location - tracker will update later
+      }
+
+      // Build initial location data
+      Map<String, dynamic>? locationData;
+      if (latitude != null && longitude != null) {
+        locationData = {
+          'latitude': latitude,
+          'longitude': longitude,
+          'is_live': true,
+          'started_at': DateTime.now().toIso8601String(),
+          'expires_at': DateTime.now().add(duration).toIso8601String(),
+        };
+      }
+
       final sentMessage = await _messagingService.sendMessage(
         conversationId: conversationId,
         senderId: _authService.currentUser!.id,
         content: 'Live Location Shared',
         messageType: MessageType.location,
         mediaViewMode: 'live_location',
+        locationData: locationData,
       );
 
       // Start the tracker
