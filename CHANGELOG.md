@@ -18,6 +18,11 @@ All notable changes to this project will be documented in this file.
 - `subscribeToReadReceipts()` - Added conversation filter in callback to avoid processing receipts for other conversations
 - **Live Location Sharing** - Now sends initial location coordinates in message payload, shows map preview in bubble with real-time marker updates
 - **Dynamic Theme (M3E)** - Fixed issue where only some components used dynamic colors. Now all theme components (scaffold, navigation bar, cards, app bar, inputs) use the dynamic color scheme when enabled
+- **Screen Time Lockout** - Added LockoutOverlay to Feed and Search screens to properly enforce 60-minute limit, added info banners showing tracked time
+
+### Disabled (Temporary)
+- **Calling Buttons** - Commented out call and video call buttons in ChatAppBar (temporary until calling feature is ready)
+- **Oasis Pro Tile** - Commented out Oasis Pro upgrade tile in Account Details screen (temporary until subscription feature is ready)
 
 ### Screen Time & Lockout Fix (2026-04-15)
 - **Bug:** Users were getting locked out of Feed/Search even when time hadn't reached 60 minutes

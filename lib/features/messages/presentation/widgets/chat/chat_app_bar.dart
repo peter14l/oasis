@@ -53,7 +53,9 @@ class ChatAppBar extends StatelessWidget {
               child: IconButton(
                 icon: const Icon(Icons.arrow_back, size: 20),
                 onPressed: () {
-                  final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+                  final keyboardHeight = MediaQuery.of(
+                    context,
+                  ).viewInsets.bottom;
                   if (keyboardHeight > 0) {
                     FocusScope.of(context).unfocus();
                   } else {
@@ -74,7 +76,10 @@ class ChatAppBar extends StatelessWidget {
               child: _FloatingContainer(
                 isCircular: false,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   child: Row(
                     children: [
                       Stack(
@@ -87,7 +92,10 @@ class ChatAppBar extends StatelessWidget {
                                 : null,
                             child: (otherUserAvatar ?? '').isEmpty
                                 ? Text(
-                                    (otherUserName.isNotEmpty ? otherUserName[0] : 'U').toUpperCase(),
+                                    (otherUserName.isNotEmpty
+                                            ? otherUserName[0]
+                                            : 'U')
+                                        .toUpperCase(),
                                     style: TextStyle(
                                       color: colorScheme.onPrimaryContainer,
                                       fontSize: 14,
@@ -97,7 +105,8 @@ class ChatAppBar extends StatelessWidget {
                           ),
                           Consumer<PresenceProvider>(
                             builder: (context, presenceProvider, child) {
-                              final isOnline = otherUserId != null &&
+                              final isOnline =
+                                  otherUserId != null &&
                                   presenceProvider.isUserOnline(otherUserId!);
                               return Positioned(
                                 right: 0,
@@ -106,7 +115,9 @@ class ChatAppBar extends StatelessWidget {
                                   width: 10,
                                   height: 10,
                                   decoration: BoxDecoration(
-                                    color: isOnline ? Colors.green : Colors.grey,
+                                    color: isOnline
+                                        ? Colors.green
+                                        : Colors.grey,
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: colorScheme.surface,
@@ -138,7 +149,9 @@ class ChatAppBar extends StatelessWidget {
                             Consumer<PresenceProvider>(
                               builder: (context, presenceProvider, child) {
                                 final presence = otherUserId != null
-                                    ? presenceProvider.getUserPresence(otherUserId!)
+                                    ? presenceProvider.getUserPresence(
+                                        otherUserId!,
+                                      )
                                     : null;
                                 final isOnline = presence?.status == 'online';
 
@@ -148,7 +161,9 @@ class ChatAppBar extends StatelessWidget {
                                       Icon(
                                         FluentIcons.lock_closed_12_filled,
                                         size: 10,
-                                        color: colorScheme.primary.withValues(alpha: 0.7),
+                                        color: colorScheme.primary.withValues(
+                                          alpha: 0.7,
+                                        ),
                                       ),
                                       const SizedBox(width: 4),
                                     ],
@@ -156,15 +171,19 @@ class ChatAppBar extends StatelessWidget {
                                       isOnline
                                           ? 'Online'
                                           : (presence?.lastSeen != null
-                                              ? 'Last seen ${_formatSeenTime(presence!.lastSeen!)}'
-                                              : 'Offline'),
-                                      style: theme.textTheme.bodySmall?.copyWith(
-                                        color: isOnline
-                                            ? Colors.green.withValues(alpha: 0.8)
-                                            : colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                                ? 'Last seen ${_formatSeenTime(presence!.lastSeen!)}'
+                                                : 'Offline'),
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: isOnline
+                                                ? Colors.green.withValues(
+                                                    alpha: 0.8,
+                                                  )
+                                                : colorScheme.onSurfaceVariant
+                                                      .withValues(alpha: 0.7),
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                     ),
                                   ],
                                 );
@@ -192,18 +211,19 @@ class ChatAppBar extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(
-                      icon: const Icon(FluentIcons.call_24_regular, size: 20),
-                      onPressed: onCallPressed,
-                      padding: const EdgeInsets.all(8),
-                      constraints: const BoxConstraints(),
-                    ),
-                    IconButton(
-                      icon: const Icon(FluentIcons.video_24_regular, size: 20),
-                      onPressed: onVideoCallPressed,
-                      padding: const EdgeInsets.all(8),
-                      constraints: const BoxConstraints(),
-                    ),
+                    // TODO: Re-enable calling buttons once calling feature is ready
+                    // IconButton(
+                    //   icon: const Icon(FluentIcons.call_24_regular, size: 20),
+                    //   onPressed: onCallPressed,
+                    //   padding: const EdgeInsets.all(8),
+                    //   constraints: const BoxConstraints(),
+                    // ),
+                    // IconButton(
+                    //   icon: const Icon(FluentIcons.video_24_regular, size: 20),
+                    //   onPressed: onVideoCallPressed,
+                    //   padding: const EdgeInsets.all(8),
+                    //   constraints: const BoxConstraints(),
+                    // ),
                     if (isDesktop) ...[
                       const SizedBox(width: 4),
                       IconButton(
@@ -251,14 +271,18 @@ class _FloatingContainer extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface.withValues(alpha: 0.6),
-        borderRadius: isCircular ? BorderRadius.circular(20) : BorderRadius.circular(24),
+        borderRadius: isCircular
+            ? BorderRadius.circular(20)
+            : BorderRadius.circular(24),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
       child: ClipRRect(
-        borderRadius: isCircular ? BorderRadius.circular(20) : BorderRadius.circular(24),
+        borderRadius: isCircular
+            ? BorderRadius.circular(20)
+            : BorderRadius.circular(24),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: child,

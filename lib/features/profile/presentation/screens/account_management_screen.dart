@@ -16,7 +16,8 @@ class AccountManagementScreen extends StatefulWidget {
   const AccountManagementScreen({super.key});
 
   @override
-  State<AccountManagementScreen> createState() => _AccountManagementScreenState();
+  State<AccountManagementScreen> createState() =>
+      _AccountManagementScreenState();
 }
 
 class _AccountManagementScreenState extends State<AccountManagementScreen> {
@@ -40,10 +41,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Account Details'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Account Details'), centerTitle: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Center(
@@ -86,70 +84,61 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              gradient:
-                  isM3E
-                      ? LinearGradient(
-                        colors: [
-                          colorScheme.primaryContainer,
-                          colorScheme.tertiaryContainer,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                      : LinearGradient(
-                        colors: [
-                          colorScheme.primaryContainer,
-                          colorScheme.secondaryContainer,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+              gradient: isM3E
+                  ? LinearGradient(
+                      colors: [
+                        colorScheme.primaryContainer,
+                        colorScheme.tertiaryContainer,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : LinearGradient(
+                      colors: [
+                        colorScheme.primaryContainer,
+                        colorScheme.secondaryContainer,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
               borderRadius: BorderRadius.circular(isM3E ? 32 : 20),
-              border:
-                  isM3E
-                      ? Border.all(
-                        color: colorScheme.outlineVariant.withValues(
-                          alpha: 0.3,
-                        ),
-                        width: 1,
-                      )
-                      : null,
+              border: isM3E
+                  ? Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                      width: 1,
+                    )
+                  : null,
             ),
             child: Column(
               children: [
                 Row(
                   children: [
                     Container(
-                      padding: isM3E ? const EdgeInsets.all(3) : EdgeInsets.zero,
-                      decoration:
-                          isM3E
-                              ? BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: colorScheme.onPrimaryContainer,
-                                  width: 2,
-                                ),
-                              )
-                              : null,
+                      padding: isM3E
+                          ? const EdgeInsets.all(3)
+                          : EdgeInsets.zero,
+                      decoration: isM3E
+                          ? BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: colorScheme.onPrimaryContainer,
+                                width: 2,
+                              ),
+                            )
+                          : null,
                       child: CircleAvatar(
                         radius: 40,
-                        backgroundImage:
-                            profile.avatarUrl != null
-                                ? CachedNetworkImageProvider(profile.avatarUrl!)
-                                : null,
-                        child:
-                            profile.avatarUrl == null
-                                ? Text(
-                                  profile.username
-                                      .substring(0, 1)
-                                      .toUpperCase(),
-                                  style: theme.textTheme.headlineMedium
-                                      ?.copyWith(
-                                        fontWeight:
-                                            isM3E ? FontWeight.w600 : null,
-                                      ),
-                                )
-                                : null,
+                        backgroundImage: profile.avatarUrl != null
+                            ? CachedNetworkImageProvider(profile.avatarUrl!)
+                            : null,
+                        child: profile.avatarUrl == null
+                            ? Text(
+                                profile.username.substring(0, 1).toUpperCase(),
+                                style: theme.textTheme.headlineMedium?.copyWith(
+                                  fontWeight: isM3E ? FontWeight.w600 : null,
+                                ),
+                              )
+                            : null,
                       ),
                     ),
                     const SizedBox(width: 20),
@@ -203,10 +192,11 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
                     IconButton(
                       icon: const Icon(Icons.edit_outlined),
                       color: colorScheme.onPrimaryContainer,
-                      onPressed:
-                          () => Navigator.of(context).push(
-                            MaterialPageRoute(builder: (context) => const EditProfileScreen())
-                          ),
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const EditProfileScreen(),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -255,10 +245,12 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
   Widget _buildSubscriptionSection(BuildContext context) {
     final profileProvider = Provider.of<ProfileProvider>(context);
     final profile = profileProvider.currentProfile;
-    
+
     if (profile == null) return const SizedBox.shrink();
 
-    return profile.isPro ? _buildProMemberTile(context) : _buildPremiumTile(context);
+    return profile.isPro
+        ? _buildProMemberTile(context)
+        : _buildPremiumTile(context);
   }
 
   Widget _buildProMemberTile(BuildContext context) {
@@ -315,12 +307,15 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
                   spacing: 8,
                   children: [
                     OutlinedButton.icon(
-                      onPressed: () => launchUrl(Uri.parse(AppConfig.getWebUrl('/profile'))),
+                      onPressed: () =>
+                          launchUrl(Uri.parse(AppConfig.getWebUrl('/profile'))),
                       icon: const Icon(Icons.manage_accounts_rounded, size: 18),
                       label: const Text('Web Profile'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: colorScheme.primary,
-                        side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.5)),
+                        side: BorderSide(
+                          color: colorScheme.primary.withValues(alpha: 0.5),
+                        ),
                         visualDensity: VisualDensity.compact,
                       ),
                     ),
@@ -343,55 +338,56 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
     );
   }
 
-  Widget _buildPremiumTile(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isM3E = themeProvider.isM3EEnabled;
+  // TODO: Re-enable Oasis Pro tile once subscription feature is ready
+  // Widget _buildPremiumTile(BuildContext context) {
+  //   final themeProvider = Provider.of<ThemeProvider>(context);
+  //   final isM3E = themeProvider.isM3EEnabled;
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors:
-              isM3E
-                  ? [Colors.amber.shade600, Colors.deepOrange.shade700]
-                  : [Colors.amber.shade700, Colors.orange.shade900],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(isM3E ? 28 : 16),
-        border:
-            isM3E
-                ? Border.all(
-                  color: Colors.amber.withValues(alpha: 0.3),
-                  width: 1,
-                )
-                : null,
-      ),
-      child: ListTile(
-        leading: const Icon(
-          Icons.workspace_premium,
-          color: Colors.white,
-          size: 32,
-        ),
-        title: const Text(
-          'Oasis Pro',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        subtitle: const Text(
-          'Unlock premium features & go ad-free',
-          style: TextStyle(color: Colors.white70),
-        ),
-        trailing: const Icon(
-          Icons.arrow_forward_ios,
-          color: Colors.white,
-          size: 16,
-        ),
-        onTap:
-            () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (context) => const SubscriptionScreen())),
-      ),
-    );
-  }
+  //   return Container(
+  //     decoration: BoxDecoration(
+  //       gradient: LinearGradient(
+  //         colors:
+  //             isM3E
+  //                 ? [Colors.amber.shade600, Colors.deepOrange.shade700]
+  //                 : [Colors.amber.shade700, Colors.orange.shade900],
+  //         begin: Alignment.topLeft,
+  //         end: Alignment.bottomRight,
+  //       ),
+  //       borderRadius: BorderRadius.circular(isM3E ? 28 : 16),
+  //       border:
+  //           isM3E
+  //               ? Border.all(
+  //                 color: Colors.amber.withValues(alpha: 0.3),
+  //                 width: 1,
+  //               )
+  //               : null,
+  //     ),
+  //     child: ListTile(
+  //       leading: const Icon(
+  //         Icons.workspace_premium,
+  //         color: Colors.white,
+  //         size: 32,
+  //       ),
+  //       title: const Text(
+  //         'Oasis Pro',
+  //         style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+  //       ),
+  //       subtitle: const Text(
+  //         'Unlock premium features & go ad-free',
+  //         style: TextStyle(color: Colors.white70),
+  //       ),
+  //       trailing: const Icon(
+  //         Icons.arrow_forward_ios,
+  //         color: Colors.white,
+  //         size: 16,
+  //       ),
+  //       onTap:
+  //           () => Navigator.of(
+  //             context,
+  //           ).push(MaterialPageRoute(builder: (context) => const SubscriptionScreen())),
+  //     ),
+  //   );
+  // }
 
   Widget _buildDangerZone(BuildContext context) {
     final theme = Theme.of(context);
@@ -418,7 +414,10 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
             border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
           ),
           child: ListTile(
-            leading: const Icon(Icons.delete_forever_outlined, color: Colors.red),
+            leading: const Icon(
+              Icons.delete_forever_outlined,
+              color: Colors.red,
+            ),
             title: const Text(
               'Delete Account',
               style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
@@ -438,7 +437,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Cancel Subscription?'),
         content: const Text(
-          'Your Pro features will remain active until the end of your current billing period. Automatic renewal will be disabled.'
+          'Your Pro features will remain active until the end of your current billing period. Automatic renewal will be disabled.',
         ),
         actions: [
           TextButton(
@@ -456,17 +455,21 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
 
     if (confirmed == true) {
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Processing cancellation...')),
       );
 
       try {
         final supabase = SupabaseService().client;
-        final response = await supabase.functions.invoke('razorpay-cancel-subscription');
-        
+        final response = await supabase.functions.invoke(
+          'razorpay-cancel-subscription',
+        );
+
         if (response.status != 200) {
-          throw Exception(response.data['error'] ?? 'Failed to cancel subscription');
+          throw Exception(
+            response.data['error'] ?? 'Failed to cancel subscription',
+          );
         }
 
         if (mounted) {
@@ -476,11 +479,13 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
               backgroundColor: Colors.orange,
             ),
           );
-          
+
           final authService = Provider.of<AuthService>(context, listen: false);
           if (authService.currentUser != null) {
-            Provider.of<ProfileProvider>(context, listen: false)
-                .loadCurrentProfile(authService.currentUser!.id);
+            Provider.of<ProfileProvider>(
+              context,
+              listen: false,
+            ).loadCurrentProfile(authService.currentUser!.id);
           }
         }
       } catch (e) {
