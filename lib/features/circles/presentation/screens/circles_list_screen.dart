@@ -60,14 +60,16 @@ class _CirclesListScreenState extends State<CirclesListScreen> {
                         children: [
                           Text(
                             'Circles',
-                            style: (isDesktop
-                                    ? theme.textTheme.headlineLarge
-                                    : theme.textTheme.headlineMedium)
-                                ?.copyWith(
-                                  fontWeight:
-                                      isM3E ? FontWeight.w900 : FontWeight.w900,
-                                  letterSpacing: isM3E ? -1.5 : -1,
-                                ),
+                            style:
+                                (isDesktop
+                                        ? theme.textTheme.headlineLarge
+                                        : theme.textTheme.headlineMedium)
+                                    ?.copyWith(
+                                      fontWeight: isM3E
+                                          ? FontWeight.w900
+                                          : FontWeight.w900,
+                                      letterSpacing: isM3E ? -1.5 : -1,
+                                    ),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -109,22 +111,22 @@ class _CirclesListScreenState extends State<CirclesListScreen> {
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 sliver: SliverGrid.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
                     mainAxisSpacing: 20,
                     crossAxisSpacing: 20,
-                    childAspectRatio: 1.1,
+                    childAspectRatio: 1.4,
                   ),
                   itemCount: circles.circles.length,
                   itemBuilder: (context, i) {
                     final circle = circles.circles[i];
                     return CircleListCard(
                       circle: circle,
-                      onTap:
-                          () => context.pushNamed(
-                            'circle_detail',
-                            pathParameters: {'circleId': circle.id},
-                          ),
+                      isDesktop: true,
+                      onTap: () => context.pushNamed(
+                        'circle_detail',
+                        pathParameters: {'circleId': circle.id},
+                      ),
                     );
                   },
                 ),
@@ -140,11 +142,10 @@ class _CirclesListScreenState extends State<CirclesListScreen> {
                       padding: const EdgeInsets.only(bottom: 12),
                       child: CircleListCard(
                         circle: circle,
-                        onTap:
-                            () => context.pushNamed(
-                              'circle_detail',
-                              pathParameters: {'circleId': circle.id},
-                            ),
+                        onTap: () => context.pushNamed(
+                          'circle_detail',
+                          pathParameters: {'circleId': circle.id},
+                        ),
                       ),
                     );
                   },

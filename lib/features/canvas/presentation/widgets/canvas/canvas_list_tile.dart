@@ -8,8 +8,14 @@ import 'package:provider/provider.dart';
 class CanvasListTile extends StatelessWidget {
   final OasisCanvas canvas;
   final VoidCallback onTap;
+  final bool isDesktop;
 
-  const CanvasListTile({super.key, required this.canvas, required this.onTap});
+  const CanvasListTile({
+    super.key,
+    required this.canvas,
+    required this.onTap,
+    this.isDesktop = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,17 +32,16 @@ class CanvasListTile extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(isM3E ? 28 : 20),
-          gradient:
-              disableTransparency
-                  ? null
-                  : LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      coverColor.withValues(alpha: 0.5),
-                      coverColor.withValues(alpha: 0.2),
-                    ],
-                  ),
+          gradient: disableTransparency
+              ? null
+              : LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    coverColor.withValues(alpha: 0.5),
+                    coverColor.withValues(alpha: 0.2),
+                  ],
+                ),
           color: disableTransparency ? coverColor.withValues(alpha: 0.8) : null,
           border: Border.all(
             color: coverColor.withValues(alpha: isM3E ? 0.5 : 0.35),
@@ -94,4 +99,3 @@ class CanvasListTile extends StatelessWidget {
     );
   }
 }
-

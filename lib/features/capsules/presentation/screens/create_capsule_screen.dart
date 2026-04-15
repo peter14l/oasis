@@ -5,7 +5,7 @@ import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/services/time_capsule_service.dart';
 import 'package:oasis/widgets/share_sheet.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
-import 'package:oasis/screens/oasis_pro_screen.dart';
+import 'package:oasis/features/settings/presentation/screens/subscription_screen.dart';
 
 class CreateCapsuleScreen extends StatefulWidget {
   const CreateCapsuleScreen({super.key});
@@ -240,7 +240,7 @@ class _CreateCapsuleScreenState extends State<CreateCapsuleScreen> {
                   onPressed: () {
                     if (isLocked) {
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => const OasisProScreen()),
+                        MaterialPageRoute(builder: (context) => const SubscriptionScreen()),
                       );
                     } else {
                       setState(() {

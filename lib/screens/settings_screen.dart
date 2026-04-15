@@ -359,7 +359,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'All feedback, bugs, and reports will be sent to oasis.officialsupport@outlook.com. This is subject to change when our official domain is available.',
+            'All feedback, bugs, and reports will be sent to oasis.officialsupport@gmail.com. This is subject to change when our official domain is available.',
             style: TextStyle(fontSize: 13),
           ),
         ],
@@ -1204,7 +1204,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final Uri emailLaunchUri = Uri(
       scheme: 'mailto',
-      path: 'oasis.officialsupport@outlook.com',
+      path: 'oasis.officialsupport@gmail.com',
       query:
           'subject=${Uri.encodeComponent('${prefix}Oasis App Feedback: $label')}',
     );

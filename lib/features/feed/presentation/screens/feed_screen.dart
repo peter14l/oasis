@@ -23,6 +23,7 @@ import 'package:oasis/features/settings/presentation/providers/user_settings_pro
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/themes/app_colors.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -39,6 +40,7 @@ class _FeedScreenState extends State<FeedScreen>
   Timer? _wellbeingTimer;
   bool _showWellbeingNudge = false;
   bool _showRipplesOverlay = false;
+  bool _showDeepBreath = true; // Show on first load
 
   // Desktop Comment Pane State
   String? _selectedPostId;
@@ -90,6 +92,7 @@ class _FeedScreenState extends State<FeedScreen>
   }
 
   Future<void> _checkWellbeingLimit() async {
+    if (!mounted) return;
     final settings = context.read<UserSettingsProvider>();
     if (settings.dailyLimitMinutes <= 0) return;
 
@@ -109,27 +112,27 @@ class _FeedScreenState extends State<FeedScreen>
   }
 
   void _onScroll() {
-    if (_scrollController.hasClients) {
-      if (_scrollController.offset > 50 && !_isScrolled) {
-        setState(() => _isScrolled = true);
-      } else if (_scrollController.offset <= 50 && _isScrolled) {
-        setState(() => _isScrolled = false);
-      }
+    if (!mounted || !_scrollController.hasClients) return;
+    if (_scrollController.offset > 50 && !_isScrolled) {
+      setState(() => _isScrolled = true);
+    } else if (_scrollController.offset <= 50 && _isScrolled) {
+      setState(() => _isScrolled = false);
+    }
 
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 200) {
-        final userId = _authService.currentUser?.id;
-        if (userId != null) {
-          final feedProvider = context.read<FeedProvider>();
-          if (!feedProvider.isLoadingMore && feedProvider.hasMore) {
-            feedProvider.loadMore(userId: userId);
-          }
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final userId = _authService.currentUser?.id;
+      if (userId != null) {
+        final feedProvider = context.read<FeedProvider>();
+        if (!feedProvider.isLoadingMore && feedProvider.hasMore) {
+          feedProvider.loadMore(userId: userId);
         }
       }
     }
   }
 
   void _handleTabSelection() {
+    if (!mounted) return;
     if (_tabController.indexIsChanging) {
       _loadFeed();
     }
@@ -137,7 +140,14 @@ class _FeedScreenState extends State<FeedScreen>
 
   @override
   void dispose() {
-    context.read<DigitalWellbeingService>().stopTracking();
+    try {
+      if (mounted) {
+        final wellbeingService = context.read<DigitalWellbeingService>();
+        wellbeingService.stopTracking();
+      }
+    } catch (e) {
+      debugPrint('Error stopping wellbeing tracking in dispose: $e');
+    }
     WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     _scrollController.dispose();
@@ -516,7 +526,118 @@ class _FeedScreenState extends State<FeedScreen>
             ),
 
           if (_showWellbeingNudge) _buildWellbeingNudge(),
+          if (_showDeepBreath) _buildDeepBreath(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDeepBreath() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Positioned.fill(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+        child: Container(
+          color: OasisColors.deep.withValues(alpha: 0.9),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                motion.Animate(
+                  onPlay: (controller) => controller.repeat(reverse: true),
+                  effects: [
+                    motion.ScaleEffect(
+                      begin: const Offset(1.0, 1.0),
+                      end: const Offset(1.2, 1.2),
+                      duration: const Duration(seconds: 4),
+                      curve: Curves.easeInOut,
+                    ),
+                    motion.FadeEffect(
+                      begin: 0.4,
+                      end: 0.8,
+                      duration: const Duration(seconds: 4),
+                    ),
+                  ],
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: OasisColors.glow.withValues(alpha: 0.5),
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: OasisColors.glow.withValues(alpha: 0.2),
+                          blurRadius: 40,
+                          spreadRadius: 10,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 64),
+                motion.Animate(
+                  effects: const [
+                    motion.FadeEffect(
+                      delay: Duration(milliseconds: 500),
+                      duration: Duration(seconds: 2),
+                    ),
+                  ],
+                  child: Text(
+                    'Take a deep breath',
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontFamily: 'Cormorant Garamond',
+                      fontStyle: FontStyle.italic,
+                      color: OasisColors.sand,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                motion.Animate(
+                  effects: const [
+                    motion.FadeEffect(
+                      delay: Duration(seconds: 2),
+                      duration: Duration(seconds: 1),
+                    ),
+                  ],
+                  child: Text(
+                    'Enter Oasis with intention.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: OasisColors.mist,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 64),
+                motion.Animate(
+                  effects: const [
+                    motion.FadeEffect(
+                      delay: Duration(seconds: 3),
+                      duration: Duration(seconds: 1),
+                    ),
+                  ],
+                  child: TextButton(
+                    onPressed: () => setState(() => _showDeepBreath = false),
+                    style: TextButton.styleFrom(
+                      foregroundColor: OasisColors.glow,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 16,
+                      ),
+                    ),
+                    child: const Text(
+                      'I AM PRESENT',
+                      style: TextStyle(letterSpacing: 2, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -15,10 +15,9 @@ _AppUser _$AppUserFromJson(Map<String, dynamic> json) => _AppUser(
   bio: json['bio'] as String?,
   location: json['location'] as String?,
   website: json['website'] as String?,
-  joinedDate:
-      json['joinedDate'] == null
-          ? null
-          : DateTime.parse(json['joinedDate'] as String),
+  joinedDate: json['joinedDate'] == null
+      ? null
+      : DateTime.parse(json['joinedDate'] as String),
   followersCount: (json['followersCount'] as num?)?.toInt() ?? 0,
   followingCount: (json['followingCount'] as num?)?.toInt() ?? 0,
   postsCount: (json['postsCount'] as num?)?.toInt() ?? 0,

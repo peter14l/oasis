@@ -128,7 +128,7 @@ This report was also submitted to our moderation system.
 
     final Uri emailLaunchUri = Uri(
       scheme: 'mailto',
-      path: 'oasis.officialsupport@outlook.com',
+      path: 'oasis.officialsupport@gmail.com',
       query:
           'subject=${Uri.encodeComponent('New Report: $category ($type)')}&body=${Uri.encodeComponent(body)}',
     );

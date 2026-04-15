@@ -1,0 +1,5 @@
+package com.oasis.app
+
+import io.flutter.embedding.android.FlutterFragmentActivity
+
+class MainActivity : FlutterFragmentActivity()

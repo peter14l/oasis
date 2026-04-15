@@ -11,6 +11,10 @@ class ProfileRemoteDatasource {
   final _uuid = const Uuid();
 
   Future<Map<String, dynamic>> getProfile(String userId) async {
+    if (userId.isEmpty) {
+      debugPrint('[ProfileRemoteDatasource] Blocking getProfile attempt with empty userId');
+      return {}; // Return empty map or throw error. Calling code handles empty map or errors.
+    }
     try {
       final response =
           await _supabase

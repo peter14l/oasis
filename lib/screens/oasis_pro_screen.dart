@@ -3,14 +3,19 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:oasis/core/config/razorpay_config.dart';
 import 'package:oasis/services/pricing_service.dart';
 import 'package:oasis/services/iap_service.dart';
 import 'package:oasis/services/subscription_service.dart';
+import 'package:oasis/services/razorpay_service.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:oasis/widgets/subscription/razorpay_windows_view.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class OasisProScreen extends StatefulWidget {
   const OasisProScreen({super.key});
@@ -28,6 +33,59 @@ class _OasisProScreenState extends State<OasisProScreen> {
   void initState() {
     super.initState();
     _initPricing();
+    
+    // Listen to Razorpay events via service
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final rzp = context.read<RazorpayService>();
+      rzp.addListener(_onRazorpayUpdate);
+    });
+  }
+
+  @override
+  void dispose() {
+    // We don't dispose the service here as it's a singleton, 
+    // but we remove the listener if we were using one
+    super.dispose();
+  }
+
+  void _onRazorpayUpdate() {
+    if (!mounted) return;
+    final rzp = context.read<RazorpayService>();
+    
+    if (rzp.lastSuccessResponse != null) {
+      _handlePaymentSuccess(rzp.lastSuccessResponse!);
+    } else if (rzp.lastFailureResponse != null) {
+      _handlePaymentError(rzp.lastFailureResponse!);
+    }
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    // Payment successful, update Supabase
+    final userId = SupabaseService().client.auth.currentUser?.id;
+    if (userId != null) {
+      try {
+        await SupabaseService().client.from('profiles').update({'is_pro': true}).eq('id', userId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Payment Successful! You are now Pro.')),
+          );
+          context.read<SubscriptionService>().refresh();
+          context.pop();
+        }
+      } catch (e) {
+        debugPrint('Error updating pro status: $e');
+      }
+    }
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Payment Failed: ${response.message}')),
+    );
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    debugPrint('External wallet selected: ${response.walletName}');
   }
 
   Future<void> _initPricing() async {
@@ -45,10 +103,77 @@ class _OasisProScreenState extends State<OasisProScreen> {
     if (Platform.isWindows) {
       // Use Razorpay Flow for Windows (Phase 4)
       _startRazorpayWindowsFlow(plan);
+    } else if (Platform.isAndroid) {
+      // Use direct Razorpay SDK for Android APKs
+      _startRazorpayMobileFlow(plan);
     } else {
-      // Use Web Checkout for all other platforms (Android, iOS, MacOS, Web)
-      // to handle checkout outside of standard App Store/Play Store IAP
+      // Fallback to Web Checkout for other platforms
       _launchWebCheckout(plan);
+    }
+  }
+
+  void _startRazorpayMobileFlow(PricingPlan plan) async {
+    final user = SupabaseService().client.auth.currentUser;
+    if (user == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      // 1. Create Subscription on Backend
+      final response = await SupabaseService().client.functions.invoke(
+        'razorpay-create-order',
+        body: {
+          'plan_id':
+              plan.name == 'Monthly'
+                  ? RazorpayConfig.monthlyPlanId
+                  : RazorpayConfig.annualPlanId,
+          'user_id': user.id,
+        },
+      );
+
+      if (response.status != 200) {
+        throw Exception('Failed to create subscription: ${response.data}');
+      }
+
+      final subscriptionId = response.data['id'];
+
+      // 2. Open Razorpay via service
+      final options = {
+        'key': RazorpayConfig.keyId,
+        'subscription_id': subscriptionId,
+        'name': 'Oasis Pro',
+        'description': '${plan.name} Subscription',
+        'prefill': {'contact': '', 'email': user.email ?? ''},
+        'external': {
+          'wallets': ['paytm'],
+        },
+        'modal': {
+          'confirm_close': true,
+          'backdropclose': false,
+        },
+      };
+
+      if (mounted) {
+        context.read<RazorpayService>().open(options);
+      }
+    } catch (e) {
+      debugPrint('Error starting Razorpay subscription: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            action:
+                e.toString().contains('NotInitializedError')
+                    ? SnackBarAction(
+                      label: 'Retry',
+                      onPressed: () => _startRazorpayMobileFlow(plan),
+                    )
+                    : null,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

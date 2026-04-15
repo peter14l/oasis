@@ -23,13 +23,15 @@ class FeedRemoteDatasource {
     );
 
     if (response == null) return [];
-    return (response as List<dynamic>).map((json) {
+    final posts = (response as List<dynamic>).map((json) {
       final map = Map<String, dynamic>.from(json as Map);
       if (map['comments_count'] == null && map['comments'] != null) {
         map['comments_count'] = map['comments'];
       }
       return map;
     }).toList();
+
+    return _hydratePolls(posts);
   }
 
   /// Fetch "Following" feed posts via RPC function.
@@ -44,13 +46,47 @@ class FeedRemoteDatasource {
     );
 
     if (response == null) return [];
-    return (response as List<dynamic>).map((json) {
+    final posts = (response as List<dynamic>).map((json) {
       final map = Map<String, dynamic>.from(json as Map);
       if (map['comments_count'] == null && map['comments'] != null) {
         map['comments_count'] = map['comments'];
       }
       return map;
     }).toList();
+
+    return _hydratePolls(posts);
+  }
+
+  /// Hydrate posts with their corresponding polls and options.
+  Future<List<Map<String, dynamic>>> _hydratePolls(
+    List<Map<String, dynamic>> posts,
+  ) async {
+    if (posts.isEmpty) return posts;
+
+    final postIds = posts.map((p) => p['id'] as String).toList();
+
+    try {
+      final pollsResponse = await _supabase
+          .from(SupabaseConfig.pollsTable)
+          .select('*, poll_options(*)')
+          .inFilter('post_id', postIds);
+
+      if (pollsResponse.isNotEmpty) {
+        final pollsList = pollsResponse;
+        for (final post in posts) {
+          final postPolls = pollsList
+              .where((poll) => poll['post_id'] == post['id'])
+              .toList();
+          if (postPolls.isNotEmpty) {
+            post['polls'] = postPolls;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[FeedRemoteDatasource] Poll hydration error: $e');
+    }
+
+    return posts;
   }
 
   /// Stream posts table for real-time updates.
@@ -64,7 +100,7 @@ class FeedRemoteDatasource {
         .order('created_at', ascending: false)
         .limit(limit)
         .handleError((error) {
-          debugPrint('[FeedRemoteDatasource] Watch error: $error');
+          debugPrint('[FeedRemoteDatasource] Realtime stream error: $error');
           return <Map<String, dynamic>>[];
         });
   }

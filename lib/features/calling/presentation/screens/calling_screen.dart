@@ -50,14 +50,32 @@ class _CallingScreenState extends State<CallingScreen> {
     final callProvider = context.watch<CallProvider>();
     final state = callProvider.state;
 
+    if (!_isInitialized) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        ),
+      );
+    }
+
     // Automatically pop when the call ends
     if (!callProvider.hasActiveCall && !callProvider.hasIncomingCall) {
+      debugPrint('[CallingScreen] No active or incoming call, popping screen');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && Navigator.canPop(context)) {
           Navigator.pop(context);
         }
       });
-      return const Scaffold(backgroundColor: Colors.black);
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Text(
+            'Call ended',
+            style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
+        ),
+      );
     }
     
     if (_isInitialized && state.localStream != null && _localRenderer.srcObject != state.localStream) {

@@ -82,27 +82,29 @@ class _StoriesBarState extends State<StoriesBar> {
                   child:
                       hasOwnStories && currentUser?.photoUrl != null
                           ? Container(
-                              decoration: BoxDecoration(
-                                shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
-                                borderRadius: isM3E ? BorderRadius.circular(18) : null,
-                              ),
-                              clipBehavior: Clip.antiAlias,
-                              child: CachedNetworkImage(
-                                imageUrl: currentUser!.photoUrl!,
-                                fit: BoxFit.cover,
-                                placeholder:
-                                    (context, url) =>
-                                        Container(color: Colors.grey.shade200),
-                                errorWidget:
-                                    (context, url, error) => Container(
-                                      color: Colors.grey.shade200,
-                                      child: const Icon(
-                                        Icons.person,
-                                        color: Colors.grey,
-                                      ),
+                            decoration: BoxDecoration(
+                              shape:
+                                  isM3E ? BoxShape.rectangle : BoxShape.circle,
+                              borderRadius:
+                                  isM3E ? BorderRadius.circular(18) : null,
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: CachedNetworkImage(
+                              imageUrl: currentUser!.photoUrl!,
+                              fit: BoxFit.cover,
+                              placeholder:
+                                  (context, url) =>
+                                      Container(color: Colors.grey.shade200),
+                              errorWidget:
+                                  (context, url, error) => Container(
+                                    color: Colors.grey.shade200,
+                                    child: const Icon(
+                                      Icons.person,
+                                      color: Colors.grey,
                                     ),
-                              ),
-                            )
+                                  ),
+                            ),
+                          )
                           : Center(
                             child: Icon(
                               Icons.add,
@@ -118,11 +120,8 @@ class _StoriesBarState extends State<StoriesBar> {
                   bottom: 0,
                   child: GestureDetector(
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Feature is still undergoing polish. Will be released at the earliest'),
-                        ),
-                      );
+                      // Navigate to Create Story Screen
+                      context.push('/stories/create');
                     },
                     child: Container(
                       width: 24,
@@ -168,12 +167,8 @@ class _StoriesBarState extends State<StoriesBar> {
             extra: widget.currentUserStories,
           );
         } else {
-          // Create new story
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Feature is still undergoing polish. Will be released at the earliest'),
-            ),
-          );
+          // Create new story - navigate to Create Story Screen
+          context.push('/stories/create');
         }
       },
     );
@@ -255,7 +250,9 @@ class _StoriesBarState extends State<StoriesBar> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight:
-                    group.hasUnviewed || isM3E ? FontWeight.w600 : FontWeight.normal,
+                    group.hasUnviewed || isM3E
+                        ? FontWeight.w600
+                        : FontWeight.normal,
               ),
             ),
           ),
@@ -337,9 +334,10 @@ class _AnimatedStoryScaleState extends State<_AnimatedStoryScale>
       vsync: this,
       duration: const Duration(milliseconds: 150),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.92).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.92,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override

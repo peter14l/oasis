@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Post {
 
- String get id;@JsonKey(name: 'userId') String get userId; String get username;@JsonKey(name: 'userAvatar') String get userAvatar; String? get content;@JsonKey(name: 'image_url') String? get imageUrl;@JsonKey(name: 'thumbnail_url') String? get thumbnailUrl;@JsonKey(name: 'dominant_color') String? get dominantColor;@JsonKey(name: 'media_urls') List<String> get mediaUrls;@JsonKey(name: 'media_types') List<String> get mediaTypes;@JsonKey(name: 'community_id') String? get communityId;@JsonKey(name: 'community_name') String? get communityName; DateTime get timestamp; int get likes; int get comments; int get shares;@JsonKey(name: 'isLiked') bool get isLiked;@JsonKey(name: 'isBookmarked') bool get isBookmarked;@JsonKey(name: 'isAd') bool get isAd;@JsonKey(name: 'isVerified') bool get isVerified; String? get mood;
+ String get id;@JsonKey(name: 'userId') String get userId; String get username;@JsonKey(name: 'userAvatar') String get userAvatar; String? get content;@JsonKey(name: 'image_url') String? get imageUrl;@JsonKey(name: 'thumbnail_url') String? get thumbnailUrl;@JsonKey(name: 'dominant_color') String? get dominantColor;@JsonKey(name: 'media_urls') List<String> get mediaUrls;@JsonKey(name: 'media_types') List<String> get mediaTypes;@JsonKey(name: 'community_id') String? get communityId;@JsonKey(name: 'community_name') String? get communityName; DateTime get timestamp; int get likes; int get comments; int get shares;@JsonKey(name: 'isLiked') bool get isLiked;@JsonKey(name: 'isBookmarked') bool get isBookmarked;@JsonKey(name: 'isAd') bool get isAd;@JsonKey(name: 'isVerified') bool get isVerified; String? get mood; EnhancedPoll? get poll;
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $PostCopyWith<Post> get copyWith => _$PostCopyWithImpl<Post>(this as Post, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Post&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.username, username) || other.username == username)&&(identical(other.userAvatar, userAvatar) || other.userAvatar == userAvatar)&&(identical(other.content, content) || other.content == content)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.dominantColor, dominantColor) || other.dominantColor == dominantColor)&&const DeepCollectionEquality().equals(other.mediaUrls, mediaUrls)&&const DeepCollectionEquality().equals(other.mediaTypes, mediaTypes)&&(identical(other.communityId, communityId) || other.communityId == communityId)&&(identical(other.communityName, communityName) || other.communityName == communityName)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.likes, likes) || other.likes == likes)&&(identical(other.comments, comments) || other.comments == comments)&&(identical(other.shares, shares) || other.shares == shares)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked)&&(identical(other.isBookmarked, isBookmarked) || other.isBookmarked == isBookmarked)&&(identical(other.isAd, isAd) || other.isAd == isAd)&&(identical(other.isVerified, isVerified) || other.isVerified == isVerified)&&(identical(other.mood, mood) || other.mood == mood));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Post&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.username, username) || other.username == username)&&(identical(other.userAvatar, userAvatar) || other.userAvatar == userAvatar)&&(identical(other.content, content) || other.content == content)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.dominantColor, dominantColor) || other.dominantColor == dominantColor)&&const DeepCollectionEquality().equals(other.mediaUrls, mediaUrls)&&const DeepCollectionEquality().equals(other.mediaTypes, mediaTypes)&&(identical(other.communityId, communityId) || other.communityId == communityId)&&(identical(other.communityName, communityName) || other.communityName == communityName)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.likes, likes) || other.likes == likes)&&(identical(other.comments, comments) || other.comments == comments)&&(identical(other.shares, shares) || other.shares == shares)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked)&&(identical(other.isBookmarked, isBookmarked) || other.isBookmarked == isBookmarked)&&(identical(other.isAd, isAd) || other.isAd == isAd)&&(identical(other.isVerified, isVerified) || other.isVerified == isVerified)&&(identical(other.mood, mood) || other.mood == mood)&&(identical(other.poll, poll) || other.poll == poll));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,userId,username,userAvatar,content,imageUrl,thumbnailUrl,dominantColor,const DeepCollectionEquality().hash(mediaUrls),const DeepCollectionEquality().hash(mediaTypes),communityId,communityName,timestamp,likes,comments,shares,isLiked,isBookmarked,isAd,isVerified,mood]);
+int get hashCode => Object.hashAll([runtimeType,id,userId,username,userAvatar,content,imageUrl,thumbnailUrl,dominantColor,const DeepCollectionEquality().hash(mediaUrls),const DeepCollectionEquality().hash(mediaTypes),communityId,communityName,timestamp,likes,comments,shares,isLiked,isBookmarked,isAd,isVerified,mood,poll]);
 
 @override
 String toString() {
-  return 'Post(id: $id, userId: $userId, username: $username, userAvatar: $userAvatar, content: $content, imageUrl: $imageUrl, thumbnailUrl: $thumbnailUrl, dominantColor: $dominantColor, mediaUrls: $mediaUrls, mediaTypes: $mediaTypes, communityId: $communityId, communityName: $communityName, timestamp: $timestamp, likes: $likes, comments: $comments, shares: $shares, isLiked: $isLiked, isBookmarked: $isBookmarked, isAd: $isAd, isVerified: $isVerified, mood: $mood)';
+  return 'Post(id: $id, userId: $userId, username: $username, userAvatar: $userAvatar, content: $content, imageUrl: $imageUrl, thumbnailUrl: $thumbnailUrl, dominantColor: $dominantColor, mediaUrls: $mediaUrls, mediaTypes: $mediaTypes, communityId: $communityId, communityName: $communityName, timestamp: $timestamp, likes: $likes, comments: $comments, shares: $shares, isLiked: $isLiked, isBookmarked: $isBookmarked, isAd: $isAd, isVerified: $isVerified, mood: $mood, poll: $poll)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $PostCopyWith<$Res>  {
   factory $PostCopyWith(Post value, $Res Function(Post) _then) = _$PostCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'userId') String userId, String username,@JsonKey(name: 'userAvatar') String userAvatar, String? content,@JsonKey(name: 'image_url') String? imageUrl,@JsonKey(name: 'thumbnail_url') String? thumbnailUrl,@JsonKey(name: 'dominant_color') String? dominantColor,@JsonKey(name: 'media_urls') List<String> mediaUrls,@JsonKey(name: 'media_types') List<String> mediaTypes,@JsonKey(name: 'community_id') String? communityId,@JsonKey(name: 'community_name') String? communityName, DateTime timestamp, int likes, int comments, int shares,@JsonKey(name: 'isLiked') bool isLiked,@JsonKey(name: 'isBookmarked') bool isBookmarked,@JsonKey(name: 'isAd') bool isAd,@JsonKey(name: 'isVerified') bool isVerified, String? mood
+ String id,@JsonKey(name: 'userId') String userId, String username,@JsonKey(name: 'userAvatar') String userAvatar, String? content,@JsonKey(name: 'image_url') String? imageUrl,@JsonKey(name: 'thumbnail_url') String? thumbnailUrl,@JsonKey(name: 'dominant_color') String? dominantColor,@JsonKey(name: 'media_urls') List<String> mediaUrls,@JsonKey(name: 'media_types') List<String> mediaTypes,@JsonKey(name: 'community_id') String? communityId,@JsonKey(name: 'community_name') String? communityName, DateTime timestamp, int likes, int comments, int shares,@JsonKey(name: 'isLiked') bool isLiked,@JsonKey(name: 'isBookmarked') bool isBookmarked,@JsonKey(name: 'isAd') bool isAd,@JsonKey(name: 'isVerified') bool isVerified, String? mood, EnhancedPoll? poll
 });
 
 
@@ -65,7 +65,7 @@ class _$PostCopyWithImpl<$Res>
 
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? username = null,Object? userAvatar = null,Object? content = freezed,Object? imageUrl = freezed,Object? thumbnailUrl = freezed,Object? dominantColor = freezed,Object? mediaUrls = null,Object? mediaTypes = null,Object? communityId = freezed,Object? communityName = freezed,Object? timestamp = null,Object? likes = null,Object? comments = null,Object? shares = null,Object? isLiked = null,Object? isBookmarked = null,Object? isAd = null,Object? isVerified = null,Object? mood = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? username = null,Object? userAvatar = null,Object? content = freezed,Object? imageUrl = freezed,Object? thumbnailUrl = freezed,Object? dominantColor = freezed,Object? mediaUrls = null,Object? mediaTypes = null,Object? communityId = freezed,Object? communityName = freezed,Object? timestamp = null,Object? likes = null,Object? comments = null,Object? shares = null,Object? isLiked = null,Object? isBookmarked = null,Object? isAd = null,Object? isVerified = null,Object? mood = freezed,Object? poll = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -88,7 +88,8 @@ as bool,isBookmarked: null == isBookmarked ? _self.isBookmarked : isBookmarked /
 as bool,isAd: null == isAd ? _self.isAd : isAd // ignore: cast_nullable_to_non_nullable
 as bool,isVerified: null == isVerified ? _self.isVerified : isVerified // ignore: cast_nullable_to_non_nullable
 as bool,mood: freezed == mood ? _self.mood : mood // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,poll: freezed == poll ? _self.poll : poll // ignore: cast_nullable_to_non_nullable
+as EnhancedPoll?,
   ));
 }
 
@@ -173,10 +174,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'userId')  String userId,  String username, @JsonKey(name: 'userAvatar')  String userAvatar,  String? content, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'thumbnail_url')  String? thumbnailUrl, @JsonKey(name: 'dominant_color')  String? dominantColor, @JsonKey(name: 'media_urls')  List<String> mediaUrls, @JsonKey(name: 'media_types')  List<String> mediaTypes, @JsonKey(name: 'community_id')  String? communityId, @JsonKey(name: 'community_name')  String? communityName,  DateTime timestamp,  int likes,  int comments,  int shares, @JsonKey(name: 'isLiked')  bool isLiked, @JsonKey(name: 'isBookmarked')  bool isBookmarked, @JsonKey(name: 'isAd')  bool isAd, @JsonKey(name: 'isVerified')  bool isVerified,  String? mood)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'userId')  String userId,  String username, @JsonKey(name: 'userAvatar')  String userAvatar,  String? content, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'thumbnail_url')  String? thumbnailUrl, @JsonKey(name: 'dominant_color')  String? dominantColor, @JsonKey(name: 'media_urls')  List<String> mediaUrls, @JsonKey(name: 'media_types')  List<String> mediaTypes, @JsonKey(name: 'community_id')  String? communityId, @JsonKey(name: 'community_name')  String? communityName,  DateTime timestamp,  int likes,  int comments,  int shares, @JsonKey(name: 'isLiked')  bool isLiked, @JsonKey(name: 'isBookmarked')  bool isBookmarked, @JsonKey(name: 'isAd')  bool isAd, @JsonKey(name: 'isVerified')  bool isVerified,  String? mood,  EnhancedPoll? poll)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Post() when $default != null:
-return $default(_that.id,_that.userId,_that.username,_that.userAvatar,_that.content,_that.imageUrl,_that.thumbnailUrl,_that.dominantColor,_that.mediaUrls,_that.mediaTypes,_that.communityId,_that.communityName,_that.timestamp,_that.likes,_that.comments,_that.shares,_that.isLiked,_that.isBookmarked,_that.isAd,_that.isVerified,_that.mood);case _:
+return $default(_that.id,_that.userId,_that.username,_that.userAvatar,_that.content,_that.imageUrl,_that.thumbnailUrl,_that.dominantColor,_that.mediaUrls,_that.mediaTypes,_that.communityId,_that.communityName,_that.timestamp,_that.likes,_that.comments,_that.shares,_that.isLiked,_that.isBookmarked,_that.isAd,_that.isVerified,_that.mood,_that.poll);case _:
   return orElse();
 
 }
@@ -194,10 +195,10 @@ return $default(_that.id,_that.userId,_that.username,_that.userAvatar,_that.cont
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'userId')  String userId,  String username, @JsonKey(name: 'userAvatar')  String userAvatar,  String? content, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'thumbnail_url')  String? thumbnailUrl, @JsonKey(name: 'dominant_color')  String? dominantColor, @JsonKey(name: 'media_urls')  List<String> mediaUrls, @JsonKey(name: 'media_types')  List<String> mediaTypes, @JsonKey(name: 'community_id')  String? communityId, @JsonKey(name: 'community_name')  String? communityName,  DateTime timestamp,  int likes,  int comments,  int shares, @JsonKey(name: 'isLiked')  bool isLiked, @JsonKey(name: 'isBookmarked')  bool isBookmarked, @JsonKey(name: 'isAd')  bool isAd, @JsonKey(name: 'isVerified')  bool isVerified,  String? mood)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'userId')  String userId,  String username, @JsonKey(name: 'userAvatar')  String userAvatar,  String? content, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'thumbnail_url')  String? thumbnailUrl, @JsonKey(name: 'dominant_color')  String? dominantColor, @JsonKey(name: 'media_urls')  List<String> mediaUrls, @JsonKey(name: 'media_types')  List<String> mediaTypes, @JsonKey(name: 'community_id')  String? communityId, @JsonKey(name: 'community_name')  String? communityName,  DateTime timestamp,  int likes,  int comments,  int shares, @JsonKey(name: 'isLiked')  bool isLiked, @JsonKey(name: 'isBookmarked')  bool isBookmarked, @JsonKey(name: 'isAd')  bool isAd, @JsonKey(name: 'isVerified')  bool isVerified,  String? mood,  EnhancedPoll? poll)  $default,) {final _that = this;
 switch (_that) {
 case _Post():
-return $default(_that.id,_that.userId,_that.username,_that.userAvatar,_that.content,_that.imageUrl,_that.thumbnailUrl,_that.dominantColor,_that.mediaUrls,_that.mediaTypes,_that.communityId,_that.communityName,_that.timestamp,_that.likes,_that.comments,_that.shares,_that.isLiked,_that.isBookmarked,_that.isAd,_that.isVerified,_that.mood);case _:
+return $default(_that.id,_that.userId,_that.username,_that.userAvatar,_that.content,_that.imageUrl,_that.thumbnailUrl,_that.dominantColor,_that.mediaUrls,_that.mediaTypes,_that.communityId,_that.communityName,_that.timestamp,_that.likes,_that.comments,_that.shares,_that.isLiked,_that.isBookmarked,_that.isAd,_that.isVerified,_that.mood,_that.poll);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -214,10 +215,10 @@ return $default(_that.id,_that.userId,_that.username,_that.userAvatar,_that.cont
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'userId')  String userId,  String username, @JsonKey(name: 'userAvatar')  String userAvatar,  String? content, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'thumbnail_url')  String? thumbnailUrl, @JsonKey(name: 'dominant_color')  String? dominantColor, @JsonKey(name: 'media_urls')  List<String> mediaUrls, @JsonKey(name: 'media_types')  List<String> mediaTypes, @JsonKey(name: 'community_id')  String? communityId, @JsonKey(name: 'community_name')  String? communityName,  DateTime timestamp,  int likes,  int comments,  int shares, @JsonKey(name: 'isLiked')  bool isLiked, @JsonKey(name: 'isBookmarked')  bool isBookmarked, @JsonKey(name: 'isAd')  bool isAd, @JsonKey(name: 'isVerified')  bool isVerified,  String? mood)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'userId')  String userId,  String username, @JsonKey(name: 'userAvatar')  String userAvatar,  String? content, @JsonKey(name: 'image_url')  String? imageUrl, @JsonKey(name: 'thumbnail_url')  String? thumbnailUrl, @JsonKey(name: 'dominant_color')  String? dominantColor, @JsonKey(name: 'media_urls')  List<String> mediaUrls, @JsonKey(name: 'media_types')  List<String> mediaTypes, @JsonKey(name: 'community_id')  String? communityId, @JsonKey(name: 'community_name')  String? communityName,  DateTime timestamp,  int likes,  int comments,  int shares, @JsonKey(name: 'isLiked')  bool isLiked, @JsonKey(name: 'isBookmarked')  bool isBookmarked, @JsonKey(name: 'isAd')  bool isAd, @JsonKey(name: 'isVerified')  bool isVerified,  String? mood,  EnhancedPoll? poll)?  $default,) {final _that = this;
 switch (_that) {
 case _Post() when $default != null:
-return $default(_that.id,_that.userId,_that.username,_that.userAvatar,_that.content,_that.imageUrl,_that.thumbnailUrl,_that.dominantColor,_that.mediaUrls,_that.mediaTypes,_that.communityId,_that.communityName,_that.timestamp,_that.likes,_that.comments,_that.shares,_that.isLiked,_that.isBookmarked,_that.isAd,_that.isVerified,_that.mood);case _:
+return $default(_that.id,_that.userId,_that.username,_that.userAvatar,_that.content,_that.imageUrl,_that.thumbnailUrl,_that.dominantColor,_that.mediaUrls,_that.mediaTypes,_that.communityId,_that.communityName,_that.timestamp,_that.likes,_that.comments,_that.shares,_that.isLiked,_that.isBookmarked,_that.isAd,_that.isVerified,_that.mood,_that.poll);case _:
   return null;
 
 }
@@ -229,7 +230,7 @@ return $default(_that.id,_that.userId,_that.username,_that.userAvatar,_that.cont
 @JsonSerializable()
 
 class _Post extends Post {
-  const _Post({required this.id, @JsonKey(name: 'userId') required this.userId, required this.username, @JsonKey(name: 'userAvatar') required this.userAvatar, this.content, @JsonKey(name: 'image_url') this.imageUrl, @JsonKey(name: 'thumbnail_url') this.thumbnailUrl, @JsonKey(name: 'dominant_color') this.dominantColor, @JsonKey(name: 'media_urls') final  List<String> mediaUrls = const [], @JsonKey(name: 'media_types') final  List<String> mediaTypes = const [], @JsonKey(name: 'community_id') this.communityId, @JsonKey(name: 'community_name') this.communityName, required this.timestamp, this.likes = 0, this.comments = 0, this.shares = 0, @JsonKey(name: 'isLiked') this.isLiked = false, @JsonKey(name: 'isBookmarked') this.isBookmarked = false, @JsonKey(name: 'isAd') this.isAd = false, @JsonKey(name: 'isVerified') this.isVerified = false, this.mood}): _mediaUrls = mediaUrls,_mediaTypes = mediaTypes,super._();
+  const _Post({required this.id, @JsonKey(name: 'userId') required this.userId, required this.username, @JsonKey(name: 'userAvatar') required this.userAvatar, this.content, @JsonKey(name: 'image_url') this.imageUrl, @JsonKey(name: 'thumbnail_url') this.thumbnailUrl, @JsonKey(name: 'dominant_color') this.dominantColor, @JsonKey(name: 'media_urls') final  List<String> mediaUrls = const [], @JsonKey(name: 'media_types') final  List<String> mediaTypes = const [], @JsonKey(name: 'community_id') this.communityId, @JsonKey(name: 'community_name') this.communityName, required this.timestamp, this.likes = 0, this.comments = 0, this.shares = 0, @JsonKey(name: 'isLiked') this.isLiked = false, @JsonKey(name: 'isBookmarked') this.isBookmarked = false, @JsonKey(name: 'isAd') this.isAd = false, @JsonKey(name: 'isVerified') this.isVerified = false, this.mood, this.poll}): _mediaUrls = mediaUrls,_mediaTypes = mediaTypes,super._();
   factory _Post.fromJson(Map<String, dynamic> json) => _$PostFromJson(json);
 
 @override final  String id;
@@ -265,6 +266,7 @@ class _Post extends Post {
 @override@JsonKey(name: 'isAd') final  bool isAd;
 @override@JsonKey(name: 'isVerified') final  bool isVerified;
 @override final  String? mood;
+@override final  EnhancedPoll? poll;
 
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
@@ -279,16 +281,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Post&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.username, username) || other.username == username)&&(identical(other.userAvatar, userAvatar) || other.userAvatar == userAvatar)&&(identical(other.content, content) || other.content == content)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.dominantColor, dominantColor) || other.dominantColor == dominantColor)&&const DeepCollectionEquality().equals(other._mediaUrls, _mediaUrls)&&const DeepCollectionEquality().equals(other._mediaTypes, _mediaTypes)&&(identical(other.communityId, communityId) || other.communityId == communityId)&&(identical(other.communityName, communityName) || other.communityName == communityName)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.likes, likes) || other.likes == likes)&&(identical(other.comments, comments) || other.comments == comments)&&(identical(other.shares, shares) || other.shares == shares)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked)&&(identical(other.isBookmarked, isBookmarked) || other.isBookmarked == isBookmarked)&&(identical(other.isAd, isAd) || other.isAd == isAd)&&(identical(other.isVerified, isVerified) || other.isVerified == isVerified)&&(identical(other.mood, mood) || other.mood == mood));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Post&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.username, username) || other.username == username)&&(identical(other.userAvatar, userAvatar) || other.userAvatar == userAvatar)&&(identical(other.content, content) || other.content == content)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.dominantColor, dominantColor) || other.dominantColor == dominantColor)&&const DeepCollectionEquality().equals(other._mediaUrls, _mediaUrls)&&const DeepCollectionEquality().equals(other._mediaTypes, _mediaTypes)&&(identical(other.communityId, communityId) || other.communityId == communityId)&&(identical(other.communityName, communityName) || other.communityName == communityName)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.likes, likes) || other.likes == likes)&&(identical(other.comments, comments) || other.comments == comments)&&(identical(other.shares, shares) || other.shares == shares)&&(identical(other.isLiked, isLiked) || other.isLiked == isLiked)&&(identical(other.isBookmarked, isBookmarked) || other.isBookmarked == isBookmarked)&&(identical(other.isAd, isAd) || other.isAd == isAd)&&(identical(other.isVerified, isVerified) || other.isVerified == isVerified)&&(identical(other.mood, mood) || other.mood == mood)&&(identical(other.poll, poll) || other.poll == poll));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,userId,username,userAvatar,content,imageUrl,thumbnailUrl,dominantColor,const DeepCollectionEquality().hash(_mediaUrls),const DeepCollectionEquality().hash(_mediaTypes),communityId,communityName,timestamp,likes,comments,shares,isLiked,isBookmarked,isAd,isVerified,mood]);
+int get hashCode => Object.hashAll([runtimeType,id,userId,username,userAvatar,content,imageUrl,thumbnailUrl,dominantColor,const DeepCollectionEquality().hash(_mediaUrls),const DeepCollectionEquality().hash(_mediaTypes),communityId,communityName,timestamp,likes,comments,shares,isLiked,isBookmarked,isAd,isVerified,mood,poll]);
 
 @override
 String toString() {
-  return 'Post(id: $id, userId: $userId, username: $username, userAvatar: $userAvatar, content: $content, imageUrl: $imageUrl, thumbnailUrl: $thumbnailUrl, dominantColor: $dominantColor, mediaUrls: $mediaUrls, mediaTypes: $mediaTypes, communityId: $communityId, communityName: $communityName, timestamp: $timestamp, likes: $likes, comments: $comments, shares: $shares, isLiked: $isLiked, isBookmarked: $isBookmarked, isAd: $isAd, isVerified: $isVerified, mood: $mood)';
+  return 'Post(id: $id, userId: $userId, username: $username, userAvatar: $userAvatar, content: $content, imageUrl: $imageUrl, thumbnailUrl: $thumbnailUrl, dominantColor: $dominantColor, mediaUrls: $mediaUrls, mediaTypes: $mediaTypes, communityId: $communityId, communityName: $communityName, timestamp: $timestamp, likes: $likes, comments: $comments, shares: $shares, isLiked: $isLiked, isBookmarked: $isBookmarked, isAd: $isAd, isVerified: $isVerified, mood: $mood, poll: $poll)';
 }
 
 
@@ -299,7 +301,7 @@ abstract mixin class _$PostCopyWith<$Res> implements $PostCopyWith<$Res> {
   factory _$PostCopyWith(_Post value, $Res Function(_Post) _then) = __$PostCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'userId') String userId, String username,@JsonKey(name: 'userAvatar') String userAvatar, String? content,@JsonKey(name: 'image_url') String? imageUrl,@JsonKey(name: 'thumbnail_url') String? thumbnailUrl,@JsonKey(name: 'dominant_color') String? dominantColor,@JsonKey(name: 'media_urls') List<String> mediaUrls,@JsonKey(name: 'media_types') List<String> mediaTypes,@JsonKey(name: 'community_id') String? communityId,@JsonKey(name: 'community_name') String? communityName, DateTime timestamp, int likes, int comments, int shares,@JsonKey(name: 'isLiked') bool isLiked,@JsonKey(name: 'isBookmarked') bool isBookmarked,@JsonKey(name: 'isAd') bool isAd,@JsonKey(name: 'isVerified') bool isVerified, String? mood
+ String id,@JsonKey(name: 'userId') String userId, String username,@JsonKey(name: 'userAvatar') String userAvatar, String? content,@JsonKey(name: 'image_url') String? imageUrl,@JsonKey(name: 'thumbnail_url') String? thumbnailUrl,@JsonKey(name: 'dominant_color') String? dominantColor,@JsonKey(name: 'media_urls') List<String> mediaUrls,@JsonKey(name: 'media_types') List<String> mediaTypes,@JsonKey(name: 'community_id') String? communityId,@JsonKey(name: 'community_name') String? communityName, DateTime timestamp, int likes, int comments, int shares,@JsonKey(name: 'isLiked') bool isLiked,@JsonKey(name: 'isBookmarked') bool isBookmarked,@JsonKey(name: 'isAd') bool isAd,@JsonKey(name: 'isVerified') bool isVerified, String? mood, EnhancedPoll? poll
 });
 
 
@@ -316,7 +318,7 @@ class __$PostCopyWithImpl<$Res>
 
 /// Create a copy of Post
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? username = null,Object? userAvatar = null,Object? content = freezed,Object? imageUrl = freezed,Object? thumbnailUrl = freezed,Object? dominantColor = freezed,Object? mediaUrls = null,Object? mediaTypes = null,Object? communityId = freezed,Object? communityName = freezed,Object? timestamp = null,Object? likes = null,Object? comments = null,Object? shares = null,Object? isLiked = null,Object? isBookmarked = null,Object? isAd = null,Object? isVerified = null,Object? mood = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? username = null,Object? userAvatar = null,Object? content = freezed,Object? imageUrl = freezed,Object? thumbnailUrl = freezed,Object? dominantColor = freezed,Object? mediaUrls = null,Object? mediaTypes = null,Object? communityId = freezed,Object? communityName = freezed,Object? timestamp = null,Object? likes = null,Object? comments = null,Object? shares = null,Object? isLiked = null,Object? isBookmarked = null,Object? isAd = null,Object? isVerified = null,Object? mood = freezed,Object? poll = freezed,}) {
   return _then(_Post(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -339,7 +341,8 @@ as bool,isBookmarked: null == isBookmarked ? _self.isBookmarked : isBookmarked /
 as bool,isAd: null == isAd ? _self.isAd : isAd // ignore: cast_nullable_to_non_nullable
 as bool,isVerified: null == isVerified ? _self.isVerified : isVerified // ignore: cast_nullable_to_non_nullable
 as bool,mood: freezed == mood ? _self.mood : mood // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,poll: freezed == poll ? _self.poll : poll // ignore: cast_nullable_to_non_nullable
+as EnhancedPoll?,
   ));
 }
 

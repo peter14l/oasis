@@ -137,9 +137,9 @@ class MessageOperationsService {
         )
         .subscribe((status, [error]) {
           if (status == RealtimeSubscribeStatus.channelError) {
-            debugPrint(
-              'MessageOperationsService: subscribeToTypingStatus error: $error',
-            );
+            debugPrint('[MessageOps] subscribeToTypingStatus error: $error');
+          } else if (status == RealtimeSubscribeStatus.timedOut) {
+            debugPrint('[MessageOps] subscribeToTypingStatus timed out. Replication may be missing.');
           }
         });
     return channel;
@@ -206,16 +206,10 @@ class MessageOperationsService {
   /// Increments the view count for a media message.
   Future<void> incrementMediaViewCount(String messageId) async {
     try {
-      final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) return;
-
-      await _supabase.from(SupabaseConfig.messageMediaViewsTable).upsert({
-        'message_id': messageId,
-        'user_id': userId,
-        'view_count':
-            1, // This is a simplified version, usually you'd increment it
-      }, onConflict: 'message_id,user_id');
-      // Note: Ideally this would be an RPC to truly increment
+      await _supabase.rpc(
+        SupabaseConfig.incrementMediaViewCountFn,
+        params: {'p_message_id': messageId},
+      );
     } catch (e) {
       debugPrint('[MessageOps] Error incrementing media view count: $e');
     }
@@ -257,9 +251,9 @@ class MessageOperationsService {
         )
         .subscribe((status, [error]) {
           if (status == RealtimeSubscribeStatus.channelError) {
-            debugPrint(
-              'MessageOperationsService: subscribeToReadReceipts error: $error',
-            );
+            debugPrint('[MessageOps] subscribeToReadReceipts error: $error');
+          } else if (status == RealtimeSubscribeStatus.timedOut) {
+            debugPrint('[MessageOps] subscribeToReadReceipts timed out. Replication may be missing.');
           }
         });
     return channel;
@@ -297,9 +291,9 @@ class MessageOperationsService {
         )
         .subscribe((status, [error]) {
           if (status == RealtimeSubscribeStatus.channelError) {
-            debugPrint(
-              'MessageOperationsService: subscribeToReactions error: $error',
-            );
+            debugPrint('[MessageOps] subscribeToReactions error: $error');
+          } else if (status == RealtimeSubscribeStatus.timedOut) {
+            debugPrint('[MessageOps] subscribeToReactions timed out. Replication may be missing.');
           }
         });
     return channel;
@@ -362,9 +356,9 @@ class MessageOperationsService {
         )
         .subscribe((status, [error]) {
           if (status == RealtimeSubscribeStatus.channelError) {
-            debugPrint(
-              'MessageOperationsService: subscribeToConversationDetails error: $error',
-            );
+            debugPrint('[MessageOps] subscribeToConversationDetails error: $error');
+          } else if (status == RealtimeSubscribeStatus.timedOut) {
+            debugPrint('[MessageOps] subscribeToConversationDetails timed out. Replication may be missing.');
           }
         });
     return channel;

@@ -18,6 +18,7 @@ import 'package:oasis/features/messages/presentation/providers/chat_state.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_encryption_provider.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_settings_provider.dart';
 import 'package:oasis/services/curation_tracking_service.dart';
+import 'package:oasis/services/live_location_tracker.dart';
 
 /// Main chat provider managing message list, sending, receiving, and UI state.
 /// Fully migrated from _ChatScreenState in chat_screen.dart.
@@ -603,6 +604,8 @@ class ChatProvider with ChangeNotifier {
         messageType = MessageType.voice;
       }
 
+
+
       // Generate dual-layer fallback (RSA encrypted copy for both sender and recipient)
       if (_encryptionService.isInitialized && content.isNotEmpty) {
         try {
@@ -1116,6 +1119,74 @@ class ChatProvider with ChangeNotifier {
       await _curationTrackingService.trackTimeSpent(category, duration);
     } catch (e) {
       debugPrint('[ChatProvider] Time tracking error: $e');
+    }
+  }
+
+  void incrementLocalMediaViewCount(String messageId) {
+    final idx = state.messages.indexWhere((m) => m.id == messageId);
+    if (idx != -1) {
+      final msg = state.messages[idx];
+      final newCount = msg.currentUserViewCount + 1;
+      final newMsgs = List<Message>.from(state.messages);
+      newMsgs[idx] = msg.copyWith(currentUserViewCount: newCount);
+      setState((s) => s.copyWith(messages: newMsgs));
+    }
+  }
+
+  Future<void> shareLiveLocation(Duration duration) async {
+    try {
+      setState((s) => s.copyWith(isSending: true));
+      
+      final sentMessage = await _messagingService.sendMessage(
+        conversationId: conversationId,
+        senderId: _authService.currentUser!.id,
+        content: 'Live Location Shared',
+        messageType: MessageType.location,
+        mediaViewMode: 'live_location',
+      );
+
+      // Start the tracker
+      await LiveLocationTracker().startSharing(sentMessage.id, duration);
+
+      final decrypted = await _decryptSingleMessage(sentMessage);
+      setState(
+        (s) => s.copyWith(
+          messages: [...s.messages, decrypted],
+          isSending: false,
+        ),
+      );
+      scrollToBottom();
+      await settingsProvider.saveMessagesToCache(state.messages);
+    } catch (e) {
+      debugPrint('Error starting live location: $e');
+      setState((s) => s.copyWith(isSending: false));
+      onError?.call('Failed to share live location: $e');
+    }
+  }
+
+  Future<void> stopLiveLocation() async {
+    try {
+      await LiveLocationTracker().stopSharing();
+      // Optimistically update the UI to show sharing has stopped
+      final activeMsgId = LiveLocationTracker().activeMessageId;
+      if (activeMsgId != null) {
+        final index = state.messages.indexWhere((m) => m.id == activeMsgId);
+        if (index != -1) {
+          final msg = state.messages[index];
+          final currentLocData = msg.locationData != null 
+              ? Map<String, dynamic>.from(msg.locationData!) 
+              : <String, dynamic>{};
+          currentLocData['is_live'] = false;
+          
+          final updatedMsg = msg.copyWith(locationData: currentLocData);
+          final newMsgs = List<Message>.from(state.messages);
+          newMsgs[index] = updatedMsg;
+          
+          setState((s) => s.copyWith(messages: newMsgs));
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to stop live location: $e');
     }
   }
 }

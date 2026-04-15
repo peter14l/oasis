@@ -182,6 +182,7 @@ class ChatMessagingService {
     String? storyId,
     String? postId,
     Map<String, dynamic>? shareData,
+    Map<String, dynamic>? locationData,
     String mediaViewMode = 'unlimited',
   }) async {
     try {
@@ -208,6 +209,7 @@ class ChatMessagingService {
         'story_id': storyId,
         'post_id': postId,
         'share_data': shareData,
+        'location_data': locationData,
         'media_view_mode': mediaViewMode,
         'encrypted_keys': encryptedKeys,
         'iv': iv,
@@ -335,7 +337,11 @@ class ChatMessagingService {
         )
         .subscribe((status, [error]) {
           if (status == RealtimeSubscribeStatus.channelError) {
-            debugPrint('[ChatMessagingService] Subscription error: $error');
+            debugPrint('[ChatMessagingService] Subscription error for $conversationId: $error');
+          } else if (status == RealtimeSubscribeStatus.timedOut) {
+            debugPrint('[ChatMessagingService] Subscription timed out for $conversationId. Table replication or RLS may be missing.');
+          } else if (status == RealtimeSubscribeStatus.subscribed) {
+            debugPrint('[ChatMessagingService] Successfully subscribed to $conversationId');
           }
         });
     return channel;

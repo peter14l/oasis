@@ -80,10 +80,9 @@ class VerticalLineThumbShape extends SliderComponentShape {
       height: thumbHeight,
     );
 
-    final paint =
-        Paint()
-          ..color = sliderTheme.thumbColor ?? Colors.white
-          ..style = PaintingStyle.fill;
+    final paint = Paint()
+      ..color = sliderTheme.thumbColor ?? Colors.white
+      ..style = PaintingStyle.fill;
 
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect, const Radius.circular(2)),
@@ -151,13 +150,12 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       final userId = _authService.currentUser?.id;
       if (userId == null) return;
 
-      final response =
-          await Supabase.instance.client
-              .from('conversation_participants')
-              .select('is_muted')
-              .eq('conversation_id', widget.conversationId)
-              .eq('user_id', userId)
-              .maybeSingle();
+      final response = await Supabase.instance.client
+          .from('conversation_participants')
+          .select('is_muted')
+          .eq('conversation_id', widget.conversationId)
+          .eq('user_id', userId)
+          .maybeSingle();
 
       if (response != null && mounted) {
         setState(() => _isMuted = response['is_muted'] as bool? ?? false);
@@ -206,33 +204,30 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   Future<void> _toggleBlock() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(
-              _isBlocked
-                  ? 'Unblock ${widget.otherUserName}?'
-                  : 'Block ${widget.otherUserName}?',
-            ),
-            content: Text(
-              _isBlocked
-                  ? 'They will be able to message you again.'
-                  : 'They will no longer be able to message you or see your posts.',
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: Text(_isBlocked ? 'Unblock' : 'Block'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: Text(
+          _isBlocked
+              ? 'Unblock ${widget.otherUserName}?'
+              : 'Block ${widget.otherUserName}?',
+        ),
+        content: Text(
+          _isBlocked
+              ? 'They will be able to message you again.'
+              : 'They will no longer be able to message you or see your posts.',
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
           ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(_isBlocked ? 'Unblock' : 'Block'),
+          ),
+        ],
+      ),
     );
 
     if (confirmed == true) {
@@ -276,12 +271,11 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => SharedContentScreen(
-              conversationId: widget.conversationId,
-              otherUserName: widget.otherUserName,
-              messages: messagesToPass,
-            ),
+        builder: (context) => SharedContentScreen(
+          conversationId: widget.conversationId,
+          otherUserName: widget.otherUserName,
+          messages: messagesToPass,
+        ),
       ),
     );
   }
@@ -304,10 +298,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       allMessages = _allMessages; // fallback if provider not in tree
     }
 
-    final results =
-        allMessages.where((m) {
-          return m.content.toLowerCase().contains(query.toLowerCase());
-        }).toList();
+    final results = allMessages.where((m) {
+      return m.content.toLowerCase().contains(query.toLowerCase());
+    }).toList();
 
     setState(() {
       _searchResults = results;
@@ -322,130 +315,127 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       useRootNavigator: true,
-      builder:
-          (modalContext) => SafeArea(
-            child: StatefulBuilder(
-              builder: (statefulContext, setModalState) {
-                final theme = Theme.of(statefulContext);
-                return Container(
-                  height: MediaQuery.of(statefulContext).size.height * 0.8,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(32),
+      builder: (modalContext) => SafeArea(
+        child: StatefulBuilder(
+          builder: (statefulContext, setModalState) {
+            final theme = Theme.of(statefulContext);
+            return Container(
+              height: MediaQuery.of(statefulContext).size.height * 0.8,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(32),
+                ),
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white10,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 12),
-                      Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.white10,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: TextField(
-                          controller: _searchController,
-                          autofocus: true,
-                          onChanged: (val) {
-                            _onSearchChanged(val);
-                            setModalState(() {});
-                          },
-                          decoration: InputDecoration(
-                            hintText: 'Search in this chat...',
-                            prefixIcon: const Icon(
-                              FluentIcons.search_24_regular,
-                            ),
-                            suffixIcon:
-                                _searchController.text.isNotEmpty
-                                    ? IconButton(
-                                      icon: const Icon(
-                                        FluentIcons.dismiss_24_regular,
-                                      ),
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        _onSearchChanged('');
-                                        setModalState(() {});
-                                      },
-                                    )
-                                    : null,
-                            filled: true,
-                            fillColor: Colors.white.withValues(alpha: 0.05),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child:
-                            _searchController.text.isEmpty
-                                ? const Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        FluentIcons.chat_24_regular,
-                                        size: 48,
-                                        color: Colors.white24,
-                                      ),
-                                      SizedBox(height: 16),
-                                      Text(
-                                        'Search for keywords',
-                                        style: TextStyle(color: Colors.white38),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                                : _searchResults.isEmpty
-                                ? const Center(
-                                  child: Text(
-                                    'No messages found',
-                                    style: TextStyle(color: Colors.white38),
-                                  ),
-                                )
-                                : ListView.builder(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                  ),
-                                  itemCount: _searchResults.length,
-                                  itemBuilder: (listContext, index) {
-                                    final msg = _searchResults[index];
-                                    return ListTile(
-                                      leading: const Icon(
-                                        FluentIcons.history_24_regular,
-                                        size: 20,
-                                        color: Colors.white24,
-                                      ),
-                                      title: Text(
-                                        msg.content,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      subtitle: Text(
-                                        _formatTimestamp(msg.timestamp),
-                                        style: const TextStyle(fontSize: 11),
-                                      ),
-                                      onTap: () {
-                                        chatProvider.scrollToMessage(msg.id);
-                                        Navigator.pop(modalContext); // Close bottom sheet
-                                        Navigator.pop(this.context); // Close ChatDetailsScreen
-                                      },
-                                    );
-                                  },
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: TextField(
+                      controller: _searchController,
+                      autofocus: true,
+                      onChanged: (val) {
+                        _onSearchChanged(val);
+                        setModalState(() {});
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search in this chat...',
+                        prefixIcon: const Icon(FluentIcons.search_24_regular),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(
+                                  FluentIcons.dismiss_24_regular,
                                 ),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _onSearchChanged('');
+                                  setModalState(() {});
+                                },
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: Colors.white.withValues(alpha: 0.05),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
-                    ],
+                    ),
                   ),
-                );
-              },
-            ),
-          ),
+                  Expanded(
+                    child: _searchController.text.isEmpty
+                        ? const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  FluentIcons.chat_24_regular,
+                                  size: 48,
+                                  color: Colors.white24,
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  'Search for keywords',
+                                  style: TextStyle(color: Colors.white38),
+                                ),
+                              ],
+                            ),
+                          )
+                        : _searchResults.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'No messages found',
+                              style: TextStyle(color: Colors.white38),
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: _searchResults.length,
+                            itemBuilder: (listContext, index) {
+                              final msg = _searchResults[index];
+                              return ListTile(
+                                leading: const Icon(
+                                  FluentIcons.history_24_regular,
+                                  size: 20,
+                                  color: Colors.white24,
+                                ),
+                                title: Text(
+                                  msg.content,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                subtitle: Text(
+                                  _formatTimestamp(msg.timestamp),
+                                  style: const TextStyle(fontSize: 11),
+                                ),
+                                onTap: () {
+                                  chatProvider.scrollToMessage(msg.id);
+                                  Navigator.pop(
+                                    modalContext,
+                                  ); // Close bottom sheet
+                                  Navigator.pop(
+                                    this.context,
+                                  ); // Close ChatDetailsScreen
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -624,31 +614,28 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   Future<void> _clearChat() async {
     final result = await showDialog<String>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Clear Chat?'),
-            content: const Text(
-              'This will remove all messages from this conversation.',
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop('me'),
-                child: const Text('Clear for me'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop('everyone'),
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Clear for everyone'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Clear Chat?'),
+        content: const Text(
+          'This will remove all messages from this conversation.',
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop('me'),
+            child: const Text('Clear for me'),
           ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop('everyone'),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Clear for everyone'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
     );
 
     if (result != null) {
@@ -711,23 +698,30 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         backgroundColor: Colors.transparent,
         titleSpacing: isDesktop ? 24 : null,
         automaticallyImplyLeading: false,
-        leading:
-            isDesktop
-                ? (widget.onBackgroundSettingsChanged != null
-                    ? IconButton(
+        leading: isDesktop
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(FluentIcons.chevron_left_24_regular),
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    tooltip: 'Back to chat',
+                  ),
+                  if (widget.onBackgroundSettingsChanged != null)
+                    IconButton(
                       icon: const Icon(FluentIcons.dismiss_24_regular),
-                      onPressed:
-                          widget.onBackgroundSettingsChanged != null
-                              ? () => widget.onBackgroundSettingsChanged!(0, 0)
-                              : null,
-                    )
-                    : null)
-                : (canPop
-                    ? IconButton(
+                      onPressed: () =>
+                          widget.onBackgroundSettingsChanged!(0, 0),
+                      tooltip: 'Close',
+                    ),
+                ],
+              )
+            : (canPop
+                  ? IconButton(
                       icon: const Icon(FluentIcons.chevron_left_24_regular),
                       onPressed: () => Navigator.of(context).maybePop(),
                     )
-                    : null),
+                  : null),
         actions: [
           if (isDesktop && widget.onBackgroundSettingsChanged != null)
             IconButton(
@@ -760,14 +754,13 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                       icon: FluentIcons.color_24_regular,
                       title: 'Chat Background',
                       subtitle: 'Custom image for this chat',
-                      trailing:
-                          _selectedBackground != null
-                              ? const Icon(
-                                FluentIcons.checkmark_circle_24_filled,
-                                color: Colors.green,
-                                size: 20,
-                              )
-                              : null,
+                      trailing: _selectedBackground != null
+                          ? const Icon(
+                              FluentIcons.checkmark_circle_24_filled,
+                              color: Colors.green,
+                              size: 20,
+                            )
+                          : null,
                       onTap: _pickBackground,
                     ),
                     if (_selectedBackground != null) ...[
@@ -837,10 +830,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                 child: Column(
                   children: [
                     _buildSwitchTile(
-                      icon:
-                          _isLocked
-                              ? FluentIcons.lock_closed_24_filled
-                              : FluentIcons.lock_open_24_regular,
+                      icon: _isLocked
+                          ? FluentIcons.lock_closed_24_filled
+                          : FluentIcons.lock_open_24_regular,
                       title: 'Vault Lock',
                       subtitle: 'Hide and protect this chat',
                       value: _isLocked,
@@ -918,10 +910,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                       onTap: _showSearchModal,
                     ),
                     _buildSwitchTile(
-                      icon:
-                          _isMuted
-                              ? FluentIcons.alert_off_24_regular
-                              : FluentIcons.alert_24_regular,
+                      icon: _isMuted
+                          ? FluentIcons.alert_off_24_regular
+                          : FluentIcons.alert_24_regular,
                       title: 'Mute Notifications',
                       subtitle: 'Silence alerts for this chat',
                       value: _isMuted,
@@ -936,14 +927,12 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                       onTap: _clearChat,
                     ),
                     _buildActionTile(
-                      icon:
-                          _isBlocked
-                              ? FluentIcons.person_available_24_regular
-                              : FluentIcons.person_prohibited_24_regular,
-                      title:
-                          _isBlocked
-                              ? 'Unblock ${widget.otherUserName}'
-                              : 'Block ${widget.otherUserName}',
+                      icon: _isBlocked
+                          ? FluentIcons.person_available_24_regular
+                          : FluentIcons.person_prohibited_24_regular,
+                      title: _isBlocked
+                          ? 'Unblock ${widget.otherUserName}'
+                          : 'Block ${widget.otherUserName}',
                       titleColor: colorScheme.error,
                       iconColor: colorScheme.error,
                       onTap: _toggleBlock,
@@ -954,10 +943,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                       titleColor: colorScheme.error,
                       iconColor: colorScheme.error,
                       onTap: () {
-                        ReportDialog.show(
-                          context,
-                          userId: widget.otherUserId,
-                        );
+                        ReportDialog.show(context, userId: widget.otherUserId);
                       },
                     ),
                   ],
@@ -984,19 +970,17 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
           CircleAvatar(
             radius: 48,
             backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
-            backgroundImage:
-                widget.otherUserAvatar.isNotEmpty
-                    ? CachedNetworkImageProvider(widget.otherUserAvatar)
-                    : null,
-            child:
-                widget.otherUserAvatar.isEmpty
-                    ? Text(
-                      widget.otherUserName[0].toUpperCase(),
-                      style: theme.textTheme.headlineLarge?.copyWith(
-                        color: colorScheme.primary,
-                      ),
-                    )
-                    : null,
+            backgroundImage: widget.otherUserAvatar.isNotEmpty
+                ? CachedNetworkImageProvider(widget.otherUserAvatar)
+                : null,
+            child: widget.otherUserAvatar.isEmpty
+                ? Text(
+                    widget.otherUserName[0].toUpperCase(),
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      color: colorScheme.primary,
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(height: 16),
           Text(
@@ -1142,44 +1126,43 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                 ),
                 isM3E
                     ? SliderTheme(
-                      data: SliderTheme.of(context).copyWith(
-                        trackHeight: 8.0,
-                        activeTrackColor: colorScheme.primary,
-                        inactiveTrackColor: colorScheme.primary.withValues(
-                          alpha: 0.3,
+                        data: SliderTheme.of(context).copyWith(
+                          trackHeight: 8.0,
+                          activeTrackColor: colorScheme.primary,
+                          inactiveTrackColor: colorScheme.primary.withValues(
+                            alpha: 0.3,
+                          ),
+                          thumbColor: colorScheme.primary,
+                          overlayColor: colorScheme.primary.withValues(
+                            alpha: 0.1,
+                          ),
+                          thumbShape: const VerticalLineThumbShape(),
+                          trackShape: const RoundedRectSliderTrackShape(),
                         ),
-                        thumbColor: colorScheme.primary,
-                        overlayColor: colorScheme.primary.withValues(
-                          alpha: 0.1,
+                        child: Slider(
+                          value: value,
+                          onChanged: onChanged,
+                          min: 0.0,
+                          max: 1.0,
                         ),
-                        thumbShape: const VerticalLineThumbShape(),
-                        trackShape: const RoundedRectSliderTrackShape(),
-                      ),
-                      child: Slider(
+                      )
+                    : Slider(
                         value: value,
                         onChanged: onChanged,
                         min: 0.0,
                         max: 1.0,
                       ),
-                    )
-                    : Slider(
-                      value: value,
-                      onChanged: onChanged,
-                      min: 0.0,
-                      max: 1.0,
-                    ),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration:
-                isM3E
-                    ? BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    )
-                    : null,
+            decoration: isM3E
+                ? BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  )
+                : null,
             child: Text(
               '${(value * 100).toInt()}%',
               style: TextStyle(
@@ -1204,11 +1187,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     final isSelected = current == value;
 
     return GestureDetector(
-      onTap:
-          () => context.read<VaultService>().setLockInterval(
-            widget.conversationId,
-            value,
-          ),
+      onTap: () => context.read<VaultService>().setLockInterval(
+        widget.conversationId,
+        value,
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(

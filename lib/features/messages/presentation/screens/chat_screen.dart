@@ -38,6 +38,7 @@ import 'package:oasis/features/messages/presentation/widgets/modals/message_opti
 import 'package:oasis/features/messages/presentation/widgets/modals/message_options_menu.dart';
 import 'package:oasis/features/messages/data/datasources/chat_media_picker.dart';
 import 'package:oasis/features/messages/presentation/widgets/modals/giphy_picker_sheet.dart';
+import 'package:oasis/features/messages/presentation/widgets/modals/location_duration_sheet.dart';
 
 import 'package:oasis/features/calling/presentation/providers/call_provider.dart';
 import 'package:oasis/features/calling/domain/models/call_entity.dart';
@@ -496,33 +497,40 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _focusNode.requestFocus();
   }
 
-  void _showAttachmentOptions([Offset? position]) {
-    if (MediaQuery.of(context).size.width >= 1000 && position != null) {
-      Builder(
-        builder:
-            (context) => AttachmentOptionsMenu(
-              position: position,
-              onPhotoSelected: _pickImage,
-              onVideoSelected: _pickVideo,
-              onFileSelected: _pickFile,
-              onAudioSelected: _pickAudio,
-            ),
-      );
-    } else {
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        isScrollControlled: true,
-        useRootNavigator: true,
-        builder:
-            (context) => AttachmentOptionsSheet(
-              onPhotoSelected: _pickImage,
-              onVideoSelected: _pickVideo,
-              onFileSelected: _pickFile,
-              onAudioSelected: _pickAudio,
-            ),
-      );
-    }
+  void _showAttachmentOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder:
+          (context) => AttachmentOptionsSheet(
+            onPhotoSelected: _pickImage,
+            onVideoSelected: _pickVideo,
+            onFileSelected: _pickFile,
+            onAudioSelected: _pickAudio,
+            onLocationSelected: _showLocationDurationOptions,
+          ),
+    );
+  }
+
+  void _showLocationDurationOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder:
+          (context) => LocationDurationSheet(
+            onDurationSelected: (duration) async {
+               try {
+                 await _chatProvider.shareLiveLocation(duration);
+               } catch (e) {
+                 _showError('Failed to share location: $e');
+               }
+            },
+          ),
+    );
   }
 
   void _openChatDetails() {
@@ -935,6 +943,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                                 state.whisperMode > 0
                                                     ? 'Disappearing message...'
                                                     : 'Type a message...',
+                                            hasAttachment: state.selectedImage != null || 
+                                                           state.selectedVideo != null || 
+                                                           state.selectedAudio != null || 
+                                                           state.selectedFile != null,
                                           ),
                                         ),
                                       ],

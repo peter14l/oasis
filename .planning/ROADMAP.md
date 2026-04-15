@@ -28,8 +28,14 @@
 
 ## Phase 4: Scalability Improvements
 **Goal:** Implement scalability patterns including pagination, offline caching, lazy loading, and retry logic to support platform growth.
-**Status:** Planned
-**Plans:** None (TBD)
+**Status:** ✅ Planned
+**Plans:** 4 plans
+
+### Plans:
+- [ ] 04-01-PLAN.md — Exponential backoff retry infrastructure (TDD)
+- [ ] 04-02-PLAN.md — Cursor-based pagination infrastructure (TDD)
+- [ ] 04-03-PLAN.md — Hive offline caching + lazy loading
+- [ ] 04-04-PLAN.md — Supabase CDN image optimization
 
 ## Phase 5: PIN Recovery Mechanism
 **Goal:** Set New Pin mechanism for users who have Both Forgot their pin and lost their recovery codes as well. The previous texts can't be accessed anymore but set up a mechanism for setting new pin so that the new texts are not lost anymore.
@@ -86,3 +92,34 @@ Plans:
 
 **Requirements:**
 [PRIVACY-02]
+
+## Phase 11: Desktop Native UX
+
+**Goal:** Make desktop apps feel native with context menus instead of modal sheets, right-click instead of tap-hold, and proper desktop navigation. Preserve ALL mobile UI behavior unchanged.
+
+**Status:** ✅ Planned
+**Plans:** 3 plans
+
+### Plans:
+- [ ] 11-01-PLAN.md — DesktopContextMenu infrastructure (context menu widget + SecondaryTapHandler)
+- [ ] 11-02-PLAN.md — Apply context menu to PostCard + MessageReactions
+- [ ] 11-03-PLAN.md — Add right-click support to ChatMessageList
+
+**Requirements:**
+[DESKTOP-01, DESKTOP-02]
+
+## Phase 12: Full Story Implementation
+
+**Goal:** Implement full Instagram-style Create Story feature with add/delete text overlays, background support, text styling, filters, drawing tools, M3E icons, visual music picker overhaul with search, draggable music/text positioning, artwork picker, and instant stories bar refresh after posting.
+
+**Status:** 📋 Planned
+**Plans:** 4 plans
+
+### Plans:
+- [ ] 12-01-PLAN.md — Text overlay system (multi-text, background modes, font styles)
+- [x] 12-02-PLAN.md — Music picker fix and visual overhaul
+- [ ] 12-03-PLAN.md — Draggable music sticker + instant stories refresh
+- [ ] 12-04-PLAN.md — M3E icons + adaptive layout
+
+**Requirements:**
+[STORY-01, STORY-02, STORY-03, STORY-04, STORY-05]

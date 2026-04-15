@@ -695,6 +695,15 @@ class MockSubscriptionService extends _i1.Mock
           as bool);
 
   @override
+  bool get isSideloaded =>
+      (super.noSuchMethod(
+            Invocation.getter(#isSideloaded),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
+          as bool);
+
+  @override
   bool get hasListeners =>
       (super.noSuchMethod(
             Invocation.getter(#hasListeners),
@@ -3023,16 +3032,18 @@ class MockPostgrestFilterBuilder extends _i1.Mock
   count([_i4.CountOption? count = _i4.CountOption.exact]) =>
       (super.noSuchMethod(
             Invocation.method(#count, [count]),
-            returnValue: _FakeResponsePostgrestBuilder_26<
-              _i4.PostgrestResponse<List<Map<String, dynamic>>>,
-              List<Map<String, dynamic>>,
-              List<Map<String, dynamic>>
-            >(this, Invocation.method(#count, [count])),
-            returnValueForMissingStub: _FakeResponsePostgrestBuilder_26<
-              _i4.PostgrestResponse<List<Map<String, dynamic>>>,
-              List<Map<String, dynamic>>,
-              List<Map<String, dynamic>>
-            >(this, Invocation.method(#count, [count])),
+            returnValue:
+                _FakeResponsePostgrestBuilder_26<
+                  _i4.PostgrestResponse<List<Map<String, dynamic>>>,
+                  List<Map<String, dynamic>>,
+                  List<Map<String, dynamic>>
+                >(this, Invocation.method(#count, [count])),
+            returnValueForMissingStub:
+                _FakeResponsePostgrestBuilder_26<
+                  _i4.PostgrestResponse<List<Map<String, dynamic>>>,
+                  List<Map<String, dynamic>>,
+                  List<Map<String, dynamic>>
+                >(this, Invocation.method(#count, [count])),
           )
           as _i4.ResponsePostgrestBuilder<
             _i4.PostgrestResponse<List<Map<String, dynamic>>>,
@@ -3065,16 +3076,18 @@ class MockPostgrestFilterBuilder extends _i1.Mock
   geojson() =>
       (super.noSuchMethod(
             Invocation.method(#geojson, []),
-            returnValue: _FakeResponsePostgrestBuilder_26<
-              Map<String, dynamic>,
-              Map<String, dynamic>,
-              Map<String, dynamic>
-            >(this, Invocation.method(#geojson, [])),
-            returnValueForMissingStub: _FakeResponsePostgrestBuilder_26<
-              Map<String, dynamic>,
-              Map<String, dynamic>,
-              Map<String, dynamic>
-            >(this, Invocation.method(#geojson, [])),
+            returnValue:
+                _FakeResponsePostgrestBuilder_26<
+                  Map<String, dynamic>,
+                  Map<String, dynamic>,
+                  Map<String, dynamic>
+                >(this, Invocation.method(#geojson, [])),
+            returnValueForMissingStub:
+                _FakeResponsePostgrestBuilder_26<
+                  Map<String, dynamic>,
+                  Map<String, dynamic>,
+                  Map<String, dynamic>
+                >(this, Invocation.method(#geojson, [])),
           )
           as _i4.ResponsePostgrestBuilder<
             Map<String, dynamic>,
@@ -3518,16 +3531,18 @@ class MockPostgrestTransformBuilder extends _i1.Mock
   count([_i4.CountOption? count = _i4.CountOption.exact]) =>
       (super.noSuchMethod(
             Invocation.method(#count, [count]),
-            returnValue: _FakeResponsePostgrestBuilder_26<
-              _i4.PostgrestResponse<List<Map<String, dynamic>>>,
-              List<Map<String, dynamic>>,
-              List<Map<String, dynamic>>
-            >(this, Invocation.method(#count, [count])),
-            returnValueForMissingStub: _FakeResponsePostgrestBuilder_26<
-              _i4.PostgrestResponse<List<Map<String, dynamic>>>,
-              List<Map<String, dynamic>>,
-              List<Map<String, dynamic>>
-            >(this, Invocation.method(#count, [count])),
+            returnValue:
+                _FakeResponsePostgrestBuilder_26<
+                  _i4.PostgrestResponse<List<Map<String, dynamic>>>,
+                  List<Map<String, dynamic>>,
+                  List<Map<String, dynamic>>
+                >(this, Invocation.method(#count, [count])),
+            returnValueForMissingStub:
+                _FakeResponsePostgrestBuilder_26<
+                  _i4.PostgrestResponse<List<Map<String, dynamic>>>,
+                  List<Map<String, dynamic>>,
+                  List<Map<String, dynamic>>
+                >(this, Invocation.method(#count, [count])),
           )
           as _i4.ResponsePostgrestBuilder<
             _i4.PostgrestResponse<List<Map<String, dynamic>>>,
@@ -3560,16 +3575,18 @@ class MockPostgrestTransformBuilder extends _i1.Mock
   geojson() =>
       (super.noSuchMethod(
             Invocation.method(#geojson, []),
-            returnValue: _FakeResponsePostgrestBuilder_26<
-              Map<String, dynamic>,
-              Map<String, dynamic>,
-              Map<String, dynamic>
-            >(this, Invocation.method(#geojson, [])),
-            returnValueForMissingStub: _FakeResponsePostgrestBuilder_26<
-              Map<String, dynamic>,
-              Map<String, dynamic>,
-              Map<String, dynamic>
-            >(this, Invocation.method(#geojson, [])),
+            returnValue:
+                _FakeResponsePostgrestBuilder_26<
+                  Map<String, dynamic>,
+                  Map<String, dynamic>,
+                  Map<String, dynamic>
+                >(this, Invocation.method(#geojson, [])),
+            returnValueForMissingStub:
+                _FakeResponsePostgrestBuilder_26<
+                  Map<String, dynamic>,
+                  Map<String, dynamic>,
+                  Map<String, dynamic>
+                >(this, Invocation.method(#geojson, [])),
           )
           as _i4.ResponsePostgrestBuilder<
             Map<String, dynamic>,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 
@@ -43,19 +44,33 @@ class SupabaseService {
   static Future<void> initialize() async {
     if (isInitialized) return;
 
+    final url = SupabaseConfig.supabaseUrl;
+    final anonKey = SupabaseConfig.supabaseAnonKey;
+
+    if (url.isEmpty || anonKey.isEmpty) {
+      debugPrint('Supabase configuration is missing (URL or Anon Key is empty)');
+      throw Exception('Supabase configuration is missing. Check your .env or dart-define values.');
+    }
+
     try {
+      debugPrint('Connecting to Supabase at $url...');
       await Supabase.initialize(
-        url: SupabaseConfig.supabaseUrl,
-        anonKey: SupabaseConfig.supabaseAnonKey,
+        url: url,
+        anonKey: anonKey,
         debug: SupabaseConfig.debug,
         authOptions: const FlutterAuthClientOptions(
           authFlowType: AuthFlowType.pkce,
         ),
-      );
+      ).timeout(const Duration(seconds: 15), onTimeout: () {
+        throw TimeoutException('Supabase initialization timed out after 15 seconds');
+      });
 
       _instance._clientInstance = Supabase.instance.client;
       isInitialized = true;
-    } catch (e) {
+      debugPrint('Supabase initialized successfully');
+    } catch (e, st) {
+      debugPrint('Failed to initialize Supabase: $e');
+      debugPrint('Stack trace: $st');
       throw Exception('Failed to initialize Supabase: $e');
     }
   }

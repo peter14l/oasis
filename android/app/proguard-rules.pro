@@ -1,24 +1,53 @@
-# Flutter wrapper rules
+# Flutter wrapper rules - keep Flutter engine classes
 -keep class io.flutter.app.** { *; }
 -keep class io.flutter.plugin.**  { *; }
 -keep class io.flutter.util.**  { *; }
 -keep class io.flutter.view.**  { *; }
 -keep class io.flutter.**  { *; }
 -keep class io.flutter.plugins.**  { *; }
+-keep class io.flutter.embedding.engine.** { *; }
+
+# Freezed - Keep generated freezed classes
+-keep class **.freezed.** { *; }
+-keepclassmembers class ** {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# JSON Serializable - Keep generated .g.dart classes  
+-keep class **.g.** { *; }
+-keepclassmembers class ** {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# Google Guava - Required for shared_preferences and other plugins
+-keep class com.google.common.reflect.TypeToken { *; }
+-keep class * extends com.google.common.reflect.TypeToken { *; }
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken { *; }
 
 # Supabase / PostgREST / GoTrue / Serialization
 -keep class io.supabase.** { *; }
--keep class com.example.morrow_v2.models.** { *; }
--keepclassmembers class com.example.morrow_v2.models.** { *; }
--keepattributes Signature,Annotation,EnclosingMethod,InnerClasses
+-keep class com.oasis.app.models.** { *; }
+-keepclassmembers class com.oasis.app.models.** { *; }
+-keepattributes Signature,Annotation,EnclosingMethod,InnerClasses,GenericSignature
 -dontwarn moxy.**
 -dontwarn com.google.errorprone.annotations.**
 
 # Firebase
 -keep class com.google.firebase.** { *; }
 -keep class com.google.android.gms.** { *; }
+-keep class com.google.android.play.core.** { *; }
 -dontwarn com.google.firebase.**
 -dontwarn com.google.android.gms.**
+
+# Sentry
+-keep class io.sentry.** { *; }
+-dontwarn io.sentry.**
+
+# Keep method channels for plugins
+-keepclassmembers class * {
+    @io.flutter.plugin.common.MethodChannelHandler <methods>;
+}
 
 # Sentry / Compose
 -dontwarn androidx.compose.**
@@ -74,3 +103,42 @@
 
 # JNI / Native
 -keep class com.tekartik.sqflite.** { *; }
+
+# okhttp3
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-keep class okhttp3.** { *; }
+-keep interface okhttp3.** { *; }
+-keep class okhttp3.internal.** { *; }
+-keep class okio.** { *; }
+-dontwarn okhttp3.internal.**
+-dontwarn okio.**
+
+# uCrop
+-dontwarn com.yalantis.ucrop.**
+-dontwarn com.yalantis.ucrop.task.**
+-dontwarn com.yalantis.ucrop.model.**
+-dontwarn com.yalantis.ucrop.view.**
+-dontwarn com.yalantis.ucrop.util.**
+-keep class com.yalantis.ucrop.** { *; }
+-keep interface com.yalantis.ucrop.** { *; }
+-keep class com.yalantis.ucrop.task.** { *; }
+-keep class com.yalantis.ucrop.model.** { *; }
+-keep class com.yalantis.ucrop.view.** { *; }
+-keep class com.yalantis.ucrop.util.** { *; }
+
+# Razorpay Proguard Rules
+-keepattributes *Annotation*
+-dontwarn com.razorpay.**
+-keep class com.razorpay.** {*;}
+-optimizations !method/inlining/*
+
+# Required for the Javascript bridge to work in the Webview
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
+# Keep the payment listeners
+-keepclasseswithmembers class * {
+    public void onPayment*(...);
+}

@@ -14,6 +14,8 @@ import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/widgets/messages/share_to_dm_modal.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/widgets/moderation_dialogs.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:oasis/features/feed/presentation/widgets/polls/poll_widgets.dart';
 
 class PostCard extends StatefulWidget {
   final Post post;
@@ -130,10 +132,9 @@ class _PostCardState extends State<PostCard>
       showMenu(
         context: context,
         position: position,
-        color:
-            theme.brightness == Brightness.dark
-                ? const Color(0xFF1A1D24)
-                : Colors.white,
+        color: theme.brightness == Brightness.dark
+            ? const Color(0xFF1A1D24)
+            : Colors.white,
         surfaceTintColor: Colors.transparent,
         elevation: 8,
         shape: RoundedRectangleBorder(
@@ -193,114 +194,111 @@ class _PostCardState extends State<PostCard>
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder:
-          (context) => SafeArea(
-            child: Container(
-              margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              decoration: BoxDecoration(
-                color: colorScheme.surface.withValues(alpha: 0.98),
-                borderRadius: BorderRadius.circular(32),
-                border: Border.all(
-                  color: colorScheme.onSurface.withValues(alpha: 0.1),
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(32),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.only(top: 12, bottom: 8),
-                        width: 36,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: colorScheme.onSurface.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      if (widget.isOwnPost) ...[
-                        _buildMoreTile(
-                          context,
-                          icon: FluentIcons.delete_24_regular,
-                          title: 'Delete Post',
-                          titleColor: colorScheme.error,
-                          onTap: () {
-                            Navigator.pop(context);
-                            _confirmDelete();
-                          },
-                        ),
-                      ] else ...[
-                        _buildMoreTile(
-                          context,
-                          icon: FluentIcons.flag_24_regular,
-                          title: 'Report Post',
-                          titleColor: colorScheme.error,
-                          onTap: () {
-                            Navigator.pop(context);
-                            _showReportDialog();
-                          },
-                        ),
-                      ],
-                      _buildMoreTile(
-                        context,
-                        icon: FluentIcons.link_24_regular,
-                        title: 'Copy Link',
-                        onTap: () {
-                          Navigator.pop(context);
-                          _copyPostLink();
-                        },
-                      ),
-                      _buildMoreTile(
-                        context,
-                        icon: FluentIcons.send_24_regular,
-                        title: 'Share to Message',
-                        onTap: () {
-                          Navigator.pop(context);
-                          _shareToDM();
-                        },
-                      ),
-                      _buildMoreTile(
-                        context,
-                        icon: FluentIcons.share_24_regular,
-                        title: 'Share via...',
-                        onTap: () {
-                          Navigator.pop(context);
-                          widget.onShare?.call();
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                    ],
+      builder: (context) => SafeArea(
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          decoration: BoxDecoration(
+            color: colorScheme.surface.withValues(alpha: 0.98),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: colorScheme.onSurface.withValues(alpha: 0.1),
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(32),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 12, bottom: 8),
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: colorScheme.onSurface.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                ),
+                  if (widget.isOwnPost) ...[
+                    _buildMoreTile(
+                      context,
+                      icon: FluentIcons.delete_24_regular,
+                      title: 'Delete Post',
+                      titleColor: colorScheme.error,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _confirmDelete();
+                      },
+                    ),
+                  ] else ...[
+                    _buildMoreTile(
+                      context,
+                      icon: FluentIcons.flag_24_regular,
+                      title: 'Report Post',
+                      titleColor: colorScheme.error,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showReportDialog();
+                      },
+                    ),
+                  ],
+                  _buildMoreTile(
+                    context,
+                    icon: FluentIcons.link_24_regular,
+                    title: 'Copy Link',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _copyPostLink();
+                    },
+                  ),
+                  _buildMoreTile(
+                    context,
+                    icon: FluentIcons.send_24_regular,
+                    title: 'Share to Message',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _shareToDM();
+                    },
+                  ),
+                  _buildMoreTile(
+                    context,
+                    icon: FluentIcons.share_24_regular,
+                    title: 'Share via...',
+                    onTap: () {
+                      Navigator.pop(context);
+                      widget.onShare?.call();
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                ],
               ),
             ),
           ),
+        ),
+      ),
     );
   }
 
   void _shareToDM() {
     showDialog(
       context: context,
-      builder:
-          (context) => ShareToDirectMessageModal(
-            title: 'Share Post',
-            content: widget.post.content ?? 'Shared a post',
-            messageType: MessageType.postShare,
-            postId: widget.post.id,
-            mediaUrl:
-                widget.post.mediaUrls.isNotEmpty
-                    ? widget.post.mediaUrls.first
-                    : widget.post.imageUrl,
-            shareData: {
-              'username': widget.post.username,
-              'user_avatar': widget.post.userAvatar,
-              'content': widget.post.content,
-              'media_urls': widget.post.mediaUrls,
-              'image_url': widget.post.imageUrl,
-            },
-          ),
+      builder: (context) => ShareToDirectMessageModal(
+        title: 'Share Post',
+        content: widget.post.content ?? 'Shared a post',
+        messageType: MessageType.postShare,
+        postId: widget.post.id,
+        mediaUrl: widget.post.mediaUrls.isNotEmpty
+            ? widget.post.mediaUrls.first
+            : widget.post.imageUrl,
+        shareData: {
+          'username': widget.post.username,
+          'user_avatar': widget.post.userAvatar,
+          'content': widget.post.content,
+          'media_urls': widget.post.mediaUrls,
+          'image_url': widget.post.imageUrl,
+        },
+      ),
     );
   }
 
@@ -342,27 +340,26 @@ class _PostCardState extends State<PostCard>
   void _confirmDelete() {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Delete Post'),
-            content: const Text(
-              'Are you sure you want to delete this post? This action cannot be undone.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  widget.onDelete?.call();
-                },
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Delete'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Post'),
+        content: const Text(
+          'Are you sure you want to delete this post? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
           ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              widget.onDelete?.call();
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -390,18 +387,14 @@ class _PostCardState extends State<PostCard>
       imageUrl: url,
       fit: BoxFit.contain, // Properly fit the image in the container
       width: double.infinity,
-      placeholder:
-          (context, url) => Container(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-            child: const Center(
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
-      errorWidget:
-          (context, url, error) => Container(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-            child: const Center(child: Icon(Icons.error_outline)),
-          ),
+      placeholder: (context, url) => Container(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      ),
+      errorWidget: (context, url, error) => Container(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        child: const Center(child: Icon(Icons.error_outline)),
+      ),
     );
   }
 
@@ -417,41 +410,37 @@ class _PostCardState extends State<PostCard>
 
     // M3E: Solid tonal surfaces instead of gradients
     final cardDecoration = BoxDecoration(
-      gradient:
-          (isM3E && !disableTransparency)
-              ? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colorScheme.surfaceContainer.withValues(alpha: 0.8),
-                  colorScheme.surfaceContainerLow.withValues(alpha: 0.6),
-                ],
-              )
-              : null,
-      color:
-          isM3E
-              ? (disableTransparency
-                  ? colorScheme.surfaceContainerHigh
-                  : colorScheme.surfaceContainerLow)
-              : colorScheme.surface.withValues(alpha: 0.7),
+      gradient: (isM3E && !disableTransparency)
+          ? LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colorScheme.surfaceContainer.withValues(alpha: 0.8),
+                colorScheme.surfaceContainerLow.withValues(alpha: 0.6),
+              ],
+            )
+          : null,
+      color: isM3E
+          ? (disableTransparency
+                ? colorScheme.surfaceContainerHigh
+                : colorScheme.surfaceContainerLow)
+          : colorScheme.surface.withValues(alpha: 0.7),
       borderRadius: BorderRadius.circular(cardRadius),
-      border:
-          isM3E
-              ? Border.all(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-                width: 1,
-              )
-              : Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      boxShadow:
-          isM3E && disableTransparency
-              ? [
-                BoxShadow(
-                  color: colorScheme.shadow.withValues(alpha: 0.08),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-              : null,
+      border: isM3E
+          ? Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+              width: 1,
+            )
+          : Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      boxShadow: isM3E && disableTransparency
+          ? [
+              BoxShadow(
+                color: colorScheme.shadow.withValues(alpha: 0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ]
+          : null,
     );
 
     final Widget cardContent = Container(
@@ -471,41 +460,35 @@ class _PostCardState extends State<PostCard>
                     decoration: BoxDecoration(
                       shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
                       borderRadius: isM3E ? BorderRadius.circular(12) : null,
-                      border:
-                          isM3E
-                              ? Border.all(
-                                color: colorScheme.primary,
-                                width: 1.5,
-                              )
-                              : null,
+                      border: isM3E
+                          ? Border.all(color: colorScheme.primary, width: 1.5)
+                          : null,
                     ),
                     child: ClipRRect(
-                      borderRadius:
-                          isM3E
-                              ? BorderRadius.circular(14)
-                              : BorderRadius.circular(28),
+                      borderRadius: isM3E
+                          ? BorderRadius.circular(14)
+                          : BorderRadius.circular(28),
                       child: SizedBox(
                         width: isDesktop ? 48 : 40,
                         height: isDesktop ? 48 : 40,
-                        child:
-                            widget.post.userAvatar.isNotEmpty
-                                ? CachedNetworkImage(
-                                  imageUrl: widget.post.userAvatar,
-                                  fit: BoxFit.cover,
-                                )
-                                : Container(
-                                  color: colorScheme.surfaceContainerHighest,
-                                  child: Center(
-                                    child: Text(
-                                      widget.post.username[0].toUpperCase(),
-                                      style: TextStyle(
-                                        fontSize: isDesktop ? 16 : 14,
-                                        color: colorScheme.primary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                        child: widget.post.userAvatar.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: widget.post.userAvatar,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                color: colorScheme.surfaceContainerHighest,
+                                child: Center(
+                                  child: Text(
+                                    widget.post.username[0].toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: isDesktop ? 16 : 14,
+                                      color: colorScheme.primary,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
+                              ),
                       ),
                     ),
                   ),
@@ -522,8 +505,9 @@ class _PostCardState extends State<PostCard>
                             Text(
                               widget.post.username,
                               style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight:
-                                    isM3E ? FontWeight.w900 : FontWeight.w600,
+                                fontWeight: isM3E
+                                    ? FontWeight.w900
+                                    : FontWeight.w600,
                                 letterSpacing: isM3E ? -0.5 : 0,
                                 fontSize: isDesktop ? 17 : null,
                               ),
@@ -604,10 +588,9 @@ class _PostCardState extends State<PostCard>
                   widget.post.imageUrl!.isNotEmpty)) ...[
             Builder(
               builder: (context) {
-                final images =
-                    widget.post.mediaUrls.isNotEmpty
-                        ? widget.post.mediaUrls
-                        : [widget.post.imageUrl!];
+                final images = widget.post.mediaUrls.isNotEmpty
+                    ? widget.post.mediaUrls
+                    : [widget.post.imageUrl!];
 
                 return Column(
                   children: [
@@ -616,10 +599,9 @@ class _PostCardState extends State<PostCard>
                       child: Container(
                         width: double.infinity,
                         constraints: BoxConstraints(
-                          maxHeight:
-                              isDesktop
-                                  ? 600
-                                  : MediaQuery.of(context).size.height * 0.7,
+                          maxHeight: isDesktop
+                              ? 600
+                              : MediaQuery.of(context).size.height * 0.7,
                         ),
                         decoration: BoxDecoration(
                           color: colorScheme.surfaceContainerHighest.withValues(
@@ -686,13 +668,12 @@ class _PostCardState extends State<PostCard>
               ),
               child: RichText(
                 text: TextSpan(
-                  style:
-                      isDesktop
-                          ? theme.textTheme.bodyMedium?.copyWith(
-                            fontSize: 15,
-                            height: 1.4,
-                          )
-                          : theme.textTheme.bodyMedium,
+                  style: isDesktop
+                      ? theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 15,
+                          height: 1.4,
+                        )
+                      : theme.textTheme.bodyMedium,
                   children: [
                     TextSpan(
                       text: '${widget.post.username} ',
@@ -704,6 +685,18 @@ class _PostCardState extends State<PostCard>
                     TextSpan(text: widget.post.content),
                   ],
                 ),
+              ),
+            ),
+
+          // Poll (if exists)
+          if (widget.post.poll != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: PollDisplay(
+                poll: widget.post.poll!,
+                onVote: (optionId) {
+                  // TODO: Implement voting in PostService/Provider
+                },
               ),
             ),
 
@@ -724,17 +717,15 @@ class _PostCardState extends State<PostCard>
                       widget.post.isLiked
                           ? FluentIcons.heart_24_filled
                           : FluentIcons.heart_24_regular,
-                      color:
-                          widget.post.isLiked
-                              ? (isM3E ? colorScheme.tertiary : Colors.red)
-                              : null,
+                      color: widget.post.isLiked
+                          ? (isM3E ? colorScheme.tertiary : Colors.red)
+                          : null,
                       size: isDesktop ? 28 : 32,
                     ),
                     onPressed: _handleLike,
-                    padding:
-                        isDesktop
-                            ? const EdgeInsets.all(8)
-                            : const EdgeInsets.all(8),
+                    padding: isDesktop
+                        ? const EdgeInsets.all(8)
+                        : const EdgeInsets.all(8),
                     constraints: null,
                   ),
                 ),
@@ -754,10 +745,9 @@ class _PostCardState extends State<PostCard>
                     size: isDesktop ? 26 : 28,
                   ),
                   onPressed: widget.onComment,
-                  padding:
-                      isDesktop
-                          ? const EdgeInsets.all(8)
-                          : const EdgeInsets.all(8),
+                  padding: isDesktop
+                      ? const EdgeInsets.all(8)
+                      : const EdgeInsets.all(8),
                   constraints: null,
                 ),
                 const SizedBox(width: 4),
@@ -776,10 +766,9 @@ class _PostCardState extends State<PostCard>
                     size: isDesktop ? 26 : 28,
                   ),
                   onPressed: widget.onShare,
-                  padding:
-                      isDesktop
-                          ? const EdgeInsets.all(8)
-                          : const EdgeInsets.all(8),
+                  padding: isDesktop
+                      ? const EdgeInsets.all(8)
+                      : const EdgeInsets.all(8),
                   constraints: null,
                 ),
                 const Spacer(),
@@ -789,15 +778,15 @@ class _PostCardState extends State<PostCard>
                     widget.post.isBookmarked
                         ? FluentIcons.bookmark_24_filled
                         : FluentIcons.bookmark_24_regular,
-                    color:
-                        widget.post.isBookmarked ? colorScheme.primary : null,
+                    color: widget.post.isBookmarked
+                        ? colorScheme.primary
+                        : null,
                     size: isDesktop ? 26 : 28,
                   ),
                   onPressed: widget.onBookmark,
-                  padding:
-                      isDesktop
-                          ? const EdgeInsets.all(8)
-                          : const EdgeInsets.all(8),
+                  padding: isDesktop
+                      ? const EdgeInsets.all(8)
+                      : const EdgeInsets.all(8),
                   constraints: null,
                 ),
               ],
@@ -822,13 +811,12 @@ class _PostCardState extends State<PostCard>
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(cardRadius),
-            child:
-                disableTransparency
-                    ? cardContent
-                    : BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                      child: cardContent,
-                    ),
+            child: disableTransparency
+                ? cardContent
+                : BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                    child: cardContent,
+                  ),
           ),
         ),
       ),

@@ -23,6 +23,8 @@ import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/features/messages/data/signal/signal_service.dart';
 import 'package:oasis/services/subscription_service.dart';
 import 'package:oasis/services/iap_service.dart';
+import 'package:oasis/services/revenuecat_service.dart';
+import 'package:oasis/services/razorpay_service.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/vault_service.dart';
@@ -69,6 +71,8 @@ import 'package:oasis/features/calling/presentation/providers/call_provider.dart
 import 'package:oasis/services/call_service.dart';
 import 'package:oasis/core/storage/prefs_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 // ---------------------------------------------------------------------------
 // ThemeProvider (kept here — it's UI-level state, not a service)
@@ -97,7 +101,7 @@ class ThemeProvider with ChangeNotifier {
     final themeIndex = prefs.getInt(_themeKey) ?? ThemeMode.system.index;
     _themeMode = ThemeMode.values[themeIndex];
     _highContrast = prefs.getBool(_highContrastKey) ?? false;
-    _isM3EEnabled = prefs.getBool(_m3eKey) ?? false;
+    _isM3EEnabled = prefs.getBool(_m3eKey) ?? true;
     _isM3ETransparencyDisabled = prefs.getBool(_m3eTransparencyKey) ?? false;
     _useMaterialYou = prefs.getBool(_materialYouKey) ?? false;
     notifyListeners();
@@ -159,6 +163,7 @@ class InitializedServices {
   final EnergyMeterService energyMeterService;
   final SubscriptionService subscriptionService;
   final IAPService iapService;
+  final RevenueCatService revenueCatService;
   final DigitalWellbeingService digitalWellbeingService;
   final VaultService vaultService;
   final CurationTrackingService curationTrackingService;
@@ -172,6 +177,7 @@ class InitializedServices {
     required this.energyMeterService,
     required this.subscriptionService,
     required this.iapService,
+    required this.revenueCatService,
     required this.digitalWellbeingService,
     required this.vaultService,
     required this.curationTrackingService,
@@ -219,44 +225,86 @@ class AppInitializer {
   /// Step 1 — Load .env (best-effort, never fatal).
   static Future<void> loadEnv() async {
     try {
+      // Use String.fromEnvironment to check if we have injected keys
+      // if we have them, we might not need the .env file at all.
+      const hasUrl = String.fromEnvironment('SUPABASE_URL');
+      if (hasUrl.isNotEmpty) {
+        debugPrint('.env variables injected via dart-define, skipping file load');
+        return;
+      }
+
+      // Only attempt to load if the file exists in the bundle
+      // Note: flutter_dotenv load() throws if not found in assets
       await dotenv.load(fileName: '.env');
       debugPrint('.env loaded successfully');
     } catch (e) {
-      debugPrint('Could not load .env file: $e');
+      debugPrint('Note: .env file not loaded (intended for release): $e');
     }
   }
 
   /// Step 2 — Initialize Sentry and run the app inside its appRunner.
   static Future<void> runWithSentry(Future<void> Function() appRunner) async {
-    SentryWidgetsFlutterBinding.ensureInitialized();
-    await SentryFlutter.init((options) {
-      options.dsn = const String.fromEnvironment('SENTRY_DSN');
-      options.tracesSampleRate = kDebugMode ? 1.0 : 0.05;
-      options.sendDefaultPii = false;
-    }, appRunner: appRunner);
+    debugPrint('runWithSentry: Setting up Sentry options...');
+    try {
+      await SentryFlutter.init((options) {
+        debugPrint('SentryFlutter.init callback started');
+        const dsn = String.fromEnvironment('SENTRY_DSN');
+        options.dsn = dsn.isNotEmpty ? dsn : null;
+        options.tracesSampleRate = kDebugMode ? 1.0 : 0.05;
+        options.sendDefaultPii = false;
+        if (kDebugMode) {
+          options.debug = true;
+        }
+        debugPrint('Sentry options configured (DSN: ${options.dsn != null ? "provided" : "none"})');
+      }, appRunner: () async {
+        debugPrint('Sentry appRunner triggered');
+        await appRunner();
+      });
+      debugPrint('SentryFlutter.init call completed');
+    } catch (e, st) {
+      debugPrint('Sentry initialization exception: $e');
+      debugPrint('Stack trace: $st');
+      // If Sentry fails, we still want to run the app
+      await appRunner();
+    }
   }
 
   /// Step 3 — Initialize Firebase (best-effort).
   static Future<void> initFirebase() async {
+    debugPrint('Initializing Firebase...');
     try {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
       debugPrint('Firebase initialized successfully');
-    } catch (e) {
+    } catch (e, st) {
       debugPrint('Firebase initialization failed: $e');
+      debugPrint('Stack trace: $st');
     }
   }
 
   /// Step 4 — Core initialization: Supabase → auth → settings → services.
   /// Returns all pre-instantiated providers so main.dart can wire them up.
   static Future<InitializedServices> initCore() async {
+    // Android-specific WebView initialization
+    if (Platform.isAndroid) {
+      WebViewPlatform.instance = AndroidWebViewPlatform();
+    }
+
     // Supabase
-    await SupabaseService.initialize();
-    debugPrint('Supabase initialized successfully');
+    debugPrint('Initializing Supabase...');
+    try {
+      await SupabaseService.initialize();
+      debugPrint('Supabase initialized successfully');
+    } catch (e, st) {
+      debugPrint('CRITICAL: Supabase initialization failed: $e');
+      debugPrint('Stack trace: $st');
+      rethrow;
+    }
 
     // PrefsStorage (shared preferences wrapper — required by SessionLocalDatasource)
+    debugPrint('Initializing PrefsStorage...');
     await PrefsStorage.init();
     debugPrint('PrefsStorage initialized successfully');
 
@@ -311,18 +359,28 @@ class AppInitializer {
       }),
     );
 
-    // Subscription
+    // Subscription & Vault
     final iapService = IAPService();
-    await iapService.init();
-
+    final revenueCatService = RevenueCatService();
     final subscriptionService = SubscriptionService();
-    await subscriptionService.init();
-
-    // Vault
     final vaultService = VaultService();
-    await vaultService.init();
+    final razorpayService = RazorpayService();
 
-    // Curation tracking
+    try {
+      await Future.wait([
+        iapService.init(),
+        revenueCatService.init(),
+        subscriptionService.init(),
+        vaultService.init(),
+      ]).timeout(const Duration(seconds: 8));
+      
+      // Razorpay init is quick but needs to be called
+      razorpayService.init();
+    } catch (e) {
+      debugPrint('Warning: Some parallel services failed or timed out: $e');
+      // We continue anyway so the app can start
+    }
+
     final curationTrackingService = CurationTrackingService();
 
     return InitializedServices(
@@ -334,6 +392,7 @@ class AppInitializer {
       energyMeterService: energyMeterService,
       subscriptionService: subscriptionService,
       iapService: iapService,
+      revenueCatService: revenueCatService,
       digitalWellbeingService: digitalWellbeingService,
       vaultService: vaultService,
       curationTrackingService: curationTrackingService,
@@ -403,6 +462,12 @@ class AppInitializer {
           value: services.subscriptionService,
         ),
         ChangeNotifierProvider<IAPService>.value(value: services.iapService),
+        ChangeNotifierProvider<RevenueCatService>.value(
+          value: services.revenueCatService,
+        ),
+        ChangeNotifierProvider<RazorpayService>.value(
+          value: RazorpayService(),
+        ),
         Provider<EncryptionService>(create: (_) => EncryptionService()),
         ChangeNotifierProvider(
           create:

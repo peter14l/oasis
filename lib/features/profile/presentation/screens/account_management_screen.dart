@@ -10,7 +10,7 @@ import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/features/profile/presentation/screens/edit_profile_screen.dart';
-import 'package:oasis/screens/oasis_pro_screen.dart';
+import 'package:oasis/features/settings/presentation/screens/subscription_screen.dart';
 
 class AccountManagementScreen extends StatefulWidget {
   const AccountManagementScreen({super.key});
@@ -388,7 +388,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
         onTap:
             () => Navigator.of(
               context,
-            ).push(MaterialPageRoute(builder: (context) => const OasisProScreen())),
+            ).push(MaterialPageRoute(builder: (context) => const SubscriptionScreen())),
       ),
     );
   }

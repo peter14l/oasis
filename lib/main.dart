@@ -13,6 +13,7 @@ import 'package:oasis/services/energy_meter_service.dart';
 import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/services/sharing_service.dart';
+import 'package:oasis/services/deep_link_service.dart';
 import 'package:oasis/services/vault_service.dart';
 import 'package:oasis/services/wellness_service.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
@@ -122,6 +123,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   StreamSubscription<AuthState>? _authSub;
   bool _navigatingToReset = false;
+  String? _lastInitializedUserId;
 
   @override
   void initState() {
@@ -153,6 +155,24 @@ class _MyAppState extends State<MyApp> {
   void dispose() {
     _authSub?.cancel();
     super.dispose();
+  }
+
+  void _handleInitialization(String? userId) {
+    if (_lastInitializedUserId == userId) return;
+    _lastInitializedUserId = userId;
+
+    if (userId != null) {
+      context.read<NotificationProvider>().init(userId);
+      context.read<PresenceProvider>().updateUserPresence(userId, 'online');
+      context.read<ConversationProvider>().initialize(userId);
+      context.read<ProfileProvider>().loadCurrentProfile(userId);
+      context.read<CircleProvider>().loadCircles(userId);
+      context.read<CanvasProvider>().loadCanvases(userId);
+      SharingService().init(context);
+      DeepLinkService().init();
+    } else {
+      context.read<NotificationProvider>().init(null);
+    }
   }
 
   @override
@@ -192,6 +212,15 @@ class _MyAppState extends State<MyApp> {
         return StreamBuilder<AuthState>(
           stream: authService.authStateChanges,
           builder: (context, snapshot) {
+            final userId =
+                snapshot.hasData && snapshot.data?.session != null
+                    ? snapshot.data!.session!.user.id
+                    : null;
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _handleInitialization(userId);
+            });
+
             return MaterialApp.router(
               title: 'Oasis',
               debugShowCheckedModeBanner: false,
@@ -200,147 +229,12 @@ class _MyAppState extends State<MyApp> {
               themeMode: themeProvider.themeMode,
               routerConfig: router,
               builder: (context, child) {
-                final mediaQuery = MediaQuery.of(context);
-                final settingsProvider = Provider.of<UserSettingsProvider>(
-                  context,
-                );
-                final scale = settingsProvider.fontSizeFactor;
-
-                if (snapshot.hasData && snapshot.data?.session != null) {
-                  final userId = snapshot.data!.session!.user.id;
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    context.read<NotificationProvider>().init(userId);
-                    context.read<PresenceProvider>().updateUserPresence(
-                      userId,
-                      'online',
-                    );
-                    context.read<ConversationProvider>().initialize(userId);
-                    context.read<ProfileProvider>().loadCurrentProfile(userId);
-                    context.read<CircleProvider>().loadCircles(userId);
-                    context.read<CanvasProvider>().loadCanvases(userId);
-                    SharingService().init(context);
-                  });
-                } else {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    context.read<NotificationProvider>().init(null);
-                  });
-                }
-
                 return MediaQuery(
-                  data: mediaQuery.copyWith(
-                    textScaler: TextScaler.linear(scale),
+                  data: MediaQuery.of(context).copyWith(
+                    textScaler: TextScaler.linear(userSettings.fontSizeFactor),
                     boldText: false,
                   ),
-                  child: Consumer2<UserSettingsProvider, CallProvider>(
-                    builder: (context, userSettings, callProvider, _) {
-                      // Global Call Navigation Trigger
-                      final hasActiveCall =
-                          callProvider.hasActiveCall ||
-                          callProvider.hasIncomingCall;
-
-                      // Use the router's current location more reliably
-                      // GoRouter.of(context) should be available here
-                      String location = '';
-                      try {
-                        location =
-                            GoRouter.of(
-                              context,
-                            ).routeInformationProvider?.value.uri.path ??
-                            '';
-                      } catch (e) {
-                        location =
-                            AppRouter
-                                .router
-                                .routerDelegate
-                                .currentConfiguration
-                                .uri
-                                .path;
-                      }
-
-                      final onCallScreen = location.startsWith('/call');
-
-                      if (hasActiveCall && !onCallScreen) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          final activeCallId = callProvider.activeCall?.id;
-                          final incomingCallId = callProvider.incomingCall?.id;
-                          final callId = activeCallId ?? incomingCallId;
-
-                          if (callId != null) {
-                            debugPrint(
-                              '[CallNavigation] Triggering navigation to /call/$callId (Current location: $location)',
-                            );
-
-                            // Use the root navigator context for reliable navigation
-                            final navContext =
-                                AppRouter
-                                    .router
-                                    .configuration
-                                    .navigatorKey
-                                    .currentContext;
-                            if (navContext != null) {
-                              GoRouter.of(navContext).pushNamed(
-                                'active_call',
-                                pathParameters: {'callId': callId},
-                              );
-                            } else {
-                              AppRouter.router.pushNamed(
-                                'active_call',
-                                pathParameters: {'callId': callId},
-                              );
-                            }
-                          } else {
-                            debugPrint(
-                              '[CallNavigation] hasActiveCall is true but callId is null!',
-                            );
-                          }
-                        });
-                      }
-
-                      Widget childWidget = child!;
-
-                      if (Platform.isWindows && userSettings.micaEnabled) {
-                        final theme = Theme.of(context);
-                        childWidget = Theme(
-                          data: theme.copyWith(
-                            colorScheme: theme.colorScheme.copyWith(
-                              surface: Colors.black.withValues(alpha: 0.05),
-                              surfaceContainer: Colors.black.withValues(
-                                alpha: 0.02,
-                              ),
-                              onSurface: Colors.white,
-                            ),
-                            scaffoldBackgroundColor: Colors.transparent,
-                            canvasColor: Colors.transparent,
-                            cardColor: Colors.white.withValues(alpha: 0.02),
-                          ),
-                          child: childWidget,
-                        );
-
-                        return Container(
-                          color: Colors.transparent,
-                          child: childWidget,
-                        );
-                      }
-
-                      if (userSettings.meshEnabled) {
-                        return MeshGradientBackground(child: childWidget);
-                      } else {
-                        final isDark =
-                            themeProvider.themeMode == ThemeMode.dark ||
-                            (themeProvider.themeMode == ThemeMode.system &&
-                                MediaQuery.platformBrightnessOf(context) ==
-                                    Brightness.dark);
-
-                        return Container(
-                          color:
-                              isDark
-                                  ? const Color(0xFF080A0E)
-                                  : const Color(0xFFF8F9FA),
-                          child: childWidget,
-                        );
-                      }
-                    },
-                  ),
+                  child: CallNavigator(child: child!),
                 );
               },
             );
@@ -351,20 +245,115 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
+class CallNavigator extends StatelessWidget {
+  final Widget child;
+  const CallNavigator({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final callProvider = context.watch<CallProvider>();
+    final userSettings = context.watch<UserSettingsProvider>();
+
+    final hasActiveCall =
+        callProvider.hasActiveCall || callProvider.hasIncomingCall;
+
+    if (hasActiveCall) {
+      String location = '';
+      try {
+        location =
+            GoRouter.of(context).routeInformationProvider?.value.uri.path ?? '';
+      } catch (e) {
+        location = AppRouter.router.routerDelegate.currentConfiguration.uri.path;
+      }
+
+      final onCallScreen = location.startsWith('/call');
+
+      if (!onCallScreen) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final activeCallId = callProvider.activeCall?.id;
+          final incomingCallId = callProvider.incomingCall?.id;
+          final callId = activeCallId ?? incomingCallId;
+
+          if (callId != null) {
+            debugPrint(
+              '[CallNavigation] Triggering navigation to /call/$callId (Current location: $location)',
+            );
+
+            // Use the root navigator context for reliable navigation
+            final navContext =
+                AppRouter.router.configuration.navigatorKey.currentContext;
+            if (navContext != null) {
+              GoRouter.of(navContext).pushNamed(
+                'active_call',
+                pathParameters: {'callId': callId},
+              );
+            } else {
+              AppRouter.router.pushNamed(
+                'active_call',
+                pathParameters: {'callId': callId},
+              );
+            }
+          }
+        });
+      }
+    }
+
+    Widget childWidget = child;
+
+    if (Platform.isWindows && userSettings.micaEnabled) {
+      final theme = Theme.of(context);
+      childWidget = Theme(
+        data: theme.copyWith(
+          colorScheme: theme.colorScheme.copyWith(
+            surface: Colors.black.withValues(alpha: 0.05),
+            surfaceContainer: Colors.black.withValues(alpha: 0.02),
+            onSurface: Colors.white,
+          ),
+          scaffoldBackgroundColor: Colors.transparent,
+          canvasColor: Colors.transparent,
+          cardColor: Colors.white.withValues(alpha: 0.02),
+        ),
+        child: childWidget,
+      );
+
+      childWidget = Container(color: Colors.transparent, child: childWidget);
+    }
+
+    if (userSettings.meshEnabled) {
+      return MeshGradientBackground(child: childWidget);
+    } else {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+
+      return Container(
+        color: isDark ? const Color(0xFF080A0E) : const Color(0xFFF8F9FA),
+        child: childWidget,
+      );
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // main — thin entry point, delegates to AppInitializer
 // ---------------------------------------------------------------------------
 
 void main() async {
+  debugPrint('--- APP STARTING ---');
   WidgetsFlutterBinding.ensureInitialized();
+  debugPrint('WidgetsFlutterBinding initialized');
 
+  debugPrint('Loading environment variables...');
   await AppInitializer.loadEnv();
 
+  debugPrint('Initializing Sentry...');
   await AppInitializer.runWithSentry(() async {
+    debugPrint('Sentry initialized, starting services...');
+    
     await AppInitializer.initFirebase();
 
     try {
+      debugPrint('Initializing core services...');
       final services = await AppInitializer.initCore();
+      debugPrint('Core services initialized successfully');
 
       runApp(
         SentryWidget(
@@ -374,8 +363,9 @@ void main() async {
           ),
         ),
       );
+      debugPrint('runApp called');
     } catch (e, stackTrace) {
-      debugPrint('Error initializing app: $e');
+      debugPrint('CRITICAL ERROR during initialization: $e');
       debugPrint('Stack trace: $stackTrace');
       // Print each frame
       for (final frame in stackTrace.toString().split('\n')) {
@@ -384,7 +374,17 @@ void main() async {
       runApp(
         MaterialApp(
           home: Scaffold(
-            body: Center(child: Text('Failed to initialize app: $e')),
+            backgroundColor: Colors.black,
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Text(
+                  'Failed to initialize app: $e',
+                  style: const TextStyle(color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
           ),
         ),
       );

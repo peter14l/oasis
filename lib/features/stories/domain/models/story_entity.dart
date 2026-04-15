@@ -56,19 +56,16 @@ class StoryEntity {
       musicId: json['music_id'] as String?,
       musicMetadata: json['music_metadata'] != null
           ? StoryMusicEntity.fromJson(
-            json['music_metadata'] as Map<String, dynamic>,
-          )
+              json['music_metadata'] as Map<String, dynamic>,
+            )
           : null,
-      interactiveMetadata:
-          json['interactive_metadata'] != null
-              ? (json['interactive_metadata'] as List<dynamic>)
-                  .map(
-                    (s) => StoryStickerEntity.fromJson(
-                      s as Map<String, dynamic>,
-                    ),
-                  )
-                  .toList()
-              : null,
+      interactiveMetadata: json['interactive_metadata'] != null
+          ? (json['interactive_metadata'] as List<dynamic>)
+                .map(
+                  (s) => StoryStickerEntity.fromJson(s as Map<String, dynamic>),
+                )
+                .toList()
+          : null,
     );
   }
 
@@ -89,8 +86,9 @@ class StoryEntity {
       'has_viewed': hasViewed,
       'music_id': musicId,
       'music_metadata': musicMetadata?.toJson(),
-      'interactive_metadata':
-          interactiveMetadata?.map((s) => s.toJson()).toList(),
+      'interactive_metadata': interactiveMetadata
+          ?.map((s) => s.toJson())
+          .toList(),
     };
   }
 
@@ -217,6 +215,8 @@ class StoryMusicEntity {
   final String artist;
   final String albumArtUrl;
   final String previewUrl;
+  final String artworkStyle; // 'original', 'blurred', 'circle', 'full'
+  final int startPositionMs; // Trim start position in milliseconds (default 0)
 
   StoryMusicEntity({
     required this.trackId,
@@ -224,6 +224,8 @@ class StoryMusicEntity {
     required this.artist,
     required this.albumArtUrl,
     required this.previewUrl,
+    this.artworkStyle = 'original',
+    this.startPositionMs = 0,
   });
 
   factory StoryMusicEntity.fromJson(Map<String, dynamic> json) {
@@ -232,7 +234,9 @@ class StoryMusicEntity {
       title: json['title'] as String,
       artist: json['artist'] as String,
       albumArtUrl: json['album_art_url'] as String,
-      previewUrl: json['preview_url'] as String,
+      previewUrl: json['preview_url'] as String? ?? '',
+      artworkStyle: json['artwork_style'] as String? ?? 'original',
+      startPositionMs: json['start_position_ms'] as int? ?? 0,
     );
   }
 
@@ -243,7 +247,29 @@ class StoryMusicEntity {
       'artist': artist,
       'album_art_url': albumArtUrl,
       'preview_url': previewUrl,
+      'artwork_style': artworkStyle,
+      'start_position_ms': startPositionMs,
     };
+  }
+
+  StoryMusicEntity copyWith({
+    String? trackId,
+    String? title,
+    String? artist,
+    String? albumArtUrl,
+    String? previewUrl,
+    String? artworkStyle,
+    int? startPositionMs,
+  }) {
+    return StoryMusicEntity(
+      trackId: trackId ?? this.trackId,
+      title: title ?? this.title,
+      artist: artist ?? this.artist,
+      albumArtUrl: albumArtUrl ?? this.albumArtUrl,
+      previewUrl: previewUrl ?? this.previewUrl,
+      artworkStyle: artworkStyle ?? this.artworkStyle,
+      startPositionMs: startPositionMs ?? this.startPositionMs,
+    );
   }
 }
 

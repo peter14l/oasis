@@ -4,6 +4,7 @@ import 'package:oasis/core/config/supabase_config.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/notification_service.dart';
+import 'package:oasis/features/feed/domain/models/enhanced_poll.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -20,6 +21,7 @@ class PostService {
     List<String>? mediaTypes, // 'image' or 'video'
     String? communityId,
     String? mood,
+    EnhancedPoll? poll,
   }) async {
     try {
       final postId = _uuid.v4();
@@ -30,7 +32,6 @@ class PostService {
       if (mediaFiles != null && mediaFiles.isNotEmpty) {
         try {
           // Upload files in parallel
-          // Note: In a real app we might want to compress videos/images first
           mediaUrls = await Future.wait(
             mediaFiles.map((file) async {
               final fileExt = file.path.split('.').last;
@@ -60,14 +61,10 @@ class PostService {
             }),
           );
 
-          // Set first image URL for backward compatibility if the first item is an image
           if (mediaTypes == null ||
               mediaTypes.isEmpty ||
               mediaTypes.first == 'image') {
             firstImageUrl = mediaUrls.isNotEmpty ? mediaUrls.first : null;
-          } else {
-            // Find first image for thumbnail/preview if primarily video?
-            // For now, let's just leave it null if first is video, or maybe implement thumbnail generation later.
           }
         } catch (e) {
           debugPrint('Error uploading media: $e');
@@ -89,7 +86,38 @@ class PostService {
 
       await _supabase.from(SupabaseConfig.postsTable).insert(postData);
 
-      // Fetch the created post with user and community details
+      // Handle Poll Creation (if attached)
+      if (poll != null) {
+        try {
+          final pollResponse = await _supabase
+              .from(SupabaseConfig.pollsTable)
+              .insert({
+                'post_id': postId,
+                'question': poll.question,
+                'poll_type': poll.pollType.name,
+                'is_anonymous': poll.isAnonymous,
+                'ends_at': poll.endsAt?.toIso8601String(),
+              })
+              .select()
+              .single();
+
+          final createdPollId = pollResponse['id'];
+
+          if (poll.options.isNotEmpty) {
+            final optionsData = poll.options.map((opt) => {
+              'poll_id': createdPollId,
+              'option_text': opt.text,
+              'option_order': opt.order,
+            }).toList();
+
+            await _supabase.from(SupabaseConfig.pollOptionsTable).insert(optionsData);
+          }
+        } catch (e) {
+          debugPrint('Error saving poll: $e');
+        }
+      }
+
+      // Fetch the created post with details
       final response =
           await _supabase
               .from(SupabaseConfig.postsTable)
@@ -103,12 +131,15 @@ class PostService {
             ),
             communities:community_id (
               name
+            ),
+            polls:polls (
+              *,
+              options:poll_options (*)
             )
           ''')
               .eq('id', postId)
               .single();
 
-      // Transform response to match Post model
       final postMap = Map<String, dynamic>.from(response);
       final profile = postMap[SupabaseConfig.profilesTable];
       if (profile != null) {
@@ -124,7 +155,7 @@ class PostService {
 
       final post = Post.fromJson(postMap);
 
-      // Trigger notifications for followers
+      // Trigger notifications
       try {
         final followersResponse = await _supabase
             .from('follows')
@@ -164,12 +195,15 @@ class PostService {
               full_name,
               avatar_url,
               is_verified
+            ),
+            polls:polls (
+              *,
+              options:poll_options (*)
             )
           ''')
               .eq('id', postId)
               .single();
 
-      // Transform response
       final postMap = Map<String, dynamic>.from(response);
       final profile = postMap[SupabaseConfig.profilesTable];
       if (profile != null) {
@@ -178,7 +212,6 @@ class PostService {
         postMap['is_verified'] = profile['is_verified'] ?? false;
       }
 
-      // Check if user has liked/bookmarked
       final likeResponse =
           await _supabase
               .from(SupabaseConfig.likesTable)
@@ -222,6 +255,10 @@ class PostService {
               full_name,
               avatar_url,
               is_verified
+            ),
+            polls:polls (
+              *,
+              options:poll_options (*)
             )
           ''')
           .eq('user_id', userId)
@@ -239,9 +276,6 @@ class PostService {
           postMap['user_avatar'] = profile['avatar_url'];
           postMap['is_verified'] = profile['is_verified'] ?? false;
         }
-        
-        // We might want to enrich with is_liked status here too if needed, 
-        // but for profile view it might be secondary.
         
         posts.add(Post.fromJson(postMap));
       }
@@ -269,6 +303,10 @@ class PostService {
               full_name,
               avatar_url,
               is_verified
+            ),
+            polls:polls (
+              *,
+              options:poll_options (*)
             )
           ''')
           .eq('community_id', communityId)
@@ -300,7 +338,6 @@ class PostService {
   /// Delete a post
   Future<void> deletePost(String postId, String userId) async {
     try {
-      // Get post to verify ownership and get image URL
       final post =
           await _supabase
               .from(SupabaseConfig.postsTable)
@@ -308,12 +345,10 @@ class PostService {
               .eq('id', postId)
               .single();
 
-      // Verify ownership
       if (post['user_id'] != userId) {
         throw Exception('Not authorized to delete this post');
       }
 
-      // Delete image from storage if exists
       final imageUrl = post['image_url'] as String?;
       if (imageUrl != null && imageUrl.isNotEmpty) {
         try {
@@ -326,7 +361,6 @@ class PostService {
         }
       }
 
-      // Delete post (cascades to likes, comments, bookmarks)
       await _supabase.from(SupabaseConfig.postsTable).delete().eq('id', postId);
     } catch (e) {
       debugPrint('Error deleting post: $e');
@@ -345,7 +379,6 @@ class PostService {
         'post_id': postId,
       });
 
-      // Trigger notification for post owner
       try {
         final postResponse =
             await _supabase

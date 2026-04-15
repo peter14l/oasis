@@ -1,7 +1,10 @@
 // app_router.dart
 
 import 'dart:ui' as ui;
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/gestures.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:navigation_bar_m3e/navigation_bar_m3e.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +15,7 @@ import 'package:oasis/services/wellness_service.dart';
 import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
 import 'package:universal_io/io.dart';
 import 'package:oasis/screens/spaces/spaces_screen.dart';
+import 'package:oasis/themes/app_colors.dart';
 
 import 'package:oasis/features/circles/presentation/screens/circle_detail_screen.dart';
 import 'package:oasis/features/circles/presentation/screens/create_circle_screen.dart';
@@ -116,6 +120,7 @@ class _MainLayoutState extends State<MainLayout> {
   /// Routes that are locked when the collaboration kill-switch or focus mode is active.
   static const _restrictedRoutes = {'/feed', '/search'};
   bool _isRailExtended = false;
+  bool _isPrivacyBlurActive = false;
   EncryptionStatus? _encryptionStatus;
 
   // Panel state for Desktop
@@ -228,63 +233,126 @@ class _MainLayoutState extends State<MainLayout> {
 
         return Scaffold(
           extendBody: true,
-          body: Column(
-            children: [
-              if (_encryptionStatus == EncryptionStatus.needsRestore)
-                const SecurityUpgradeBanner(),
-              Expanded(
-                child: Row(
+          body: RawGestureDetector(
+            behavior: HitTestBehavior.translucent,
+            gestures: {
+              _TwoFingerLongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<_TwoFingerLongPressGestureRecognizer>(
+                () => _TwoFingerLongPressGestureRecognizer(
+                  onTwoFingerLongPress: () {
+                    setState(() => _isPrivacyBlurActive = !_isPrivacyBlurActive);
+                    if (_isPrivacyBlurActive) {
+                      HapticFeedback.heavyImpact();
+                    } else {
+                      HapticFeedback.mediumImpact();
+                    }
+                  },
+                ),
+                (instance) {},
+              ),
+            },
+            child: Stack(
+              children: [
+                Column(
                   children: [
-                    if (isDesktop)
-                      _buildNavigationRail(
-                        context,
-                        currentIndex,
-                        theme,
-                        killSwitchActive: killSwitchActive,
-                        isMica: isMica,
-                        disableTransparency: disableTransparency,
-                      ),
+                    if (_encryptionStatus == EncryptionStatus.needsRestore)
+                      const SecurityUpgradeBanner(),
                     Expanded(
-                      child: Stack(
+                      child: Row(
                         children: [
-                          mainContent,
-                          // Sliding panels for desktop (search/notifications)
-                          if (isDesktop && _activePanel != null)
-                            AnimatedPositioned(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                              left: 0,
-                              top: 0,
-                              bottom: 0,
-                              width: 400,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: panelColor,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.3,
-                                      ),
-                                      blurRadius: 20,
-                                      spreadRadius: 5,
-                                    ),
-                                  ],
-                                ),
-                                child:
-                                    _activePanel == 'search'
-                                        ? const SearchScreen(isPanel: true)
-                                        : const NotificationsScreen(
-                                          isPanel: true,
-                                        ),
-                              ),
+                          if (isDesktop)
+                            _buildNavigationRail(
+                              context,
+                              currentIndex,
+                              theme,
+                              killSwitchActive: killSwitchActive,
+                              isMica: isMica,
+                              disableTransparency: disableTransparency,
                             ),
+                          Expanded(
+                            child: Stack(
+                              children: [
+                                mainContent,
+                                // Sliding panels for desktop (search/notifications)
+                                if (isDesktop && _activePanel != null)
+                                  AnimatedPositioned(
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                    left: 0,
+                                    top: 0,
+                                    bottom: 0,
+                                    width: 400,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: panelColor,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.3,
+                                            ),
+                                            blurRadius: 20,
+                                            spreadRadius: 5,
+                                          ),
+                                        ],
+                                      ),
+                                      child:
+                                          _activePanel == 'search'
+                                              ? const SearchScreen(isPanel: true)
+                                              : const NotificationsScreen(
+                                                isPanel: true,
+                                              ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
+                
+                // Privacy Blur Overlay
+                if (_isPrivacyBlurActive)
+                  Positioned.fill(
+                    child: motion.Animate(
+                      effects: const [motion.FadeEffect(duration: Duration(milliseconds: 300))],
+                      child: GestureDetector(
+                        onTap: () => setState(() => _isPrivacyBlurActive = false),
+                        child: BackdropFilter(
+                          filter: ui.ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+                          child: Container(
+                            color: OasisColors.deep.withValues(alpha: 0.7),
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.spa_rounded, color: OasisColors.glow, size: 80),
+                                  const SizedBox(height: 24),
+                                  Text(
+                                    'Privacy Mode Active',
+                                    style: theme.textTheme.headlineSmall?.copyWith(
+                                      color: OasisColors.white,
+                                      fontFamily: 'Cormorant Garamond',
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Tap to resume your Oasis',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: OasisColors.mist,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
           bottomNavigationBar:
               !isDesktop
@@ -1088,7 +1156,7 @@ class AppRouter {
           },
         ),
 
-        // Oasis Pro Screen
+        // Oasis Pro Screen (now pointing to SubscriptionScreen)
         GoRoute(
           path: '/oasis-pro',
           name: 'oasis_pro',
@@ -1097,7 +1165,7 @@ class AppRouter {
             return MaterialPage(
               key: state.pageKey,
               fullscreenDialog: true,
-              child: const OasisProScreen(),
+              child: const SubscriptionScreen(),
             );
           },
         ),
@@ -1466,4 +1534,56 @@ class AppRouter {
     );
     return _router!;
   }
+}
+
+class _TwoFingerLongPressGestureRecognizer extends MultiTapGestureRecognizer {
+  final VoidCallback onTwoFingerLongPress;
+  final Map<int, Offset> _pointers = {};
+  Timer? _longPressTimer;
+
+  _TwoFingerLongPressGestureRecognizer({required this.onTwoFingerLongPress});
+
+  @override
+  void addAllowedPointer(PointerDownEvent event) {
+    if (_pointers.length < 2) {
+      _pointers[event.pointer] = event.position;
+      if (_pointers.length == 2) {
+        _startTimer();
+      }
+    }
+    super.addAllowedPointer(event);
+  }
+
+  void _startTimer() {
+    _longPressTimer?.cancel();
+    _longPressTimer = Timer(const Duration(milliseconds: 800), () {
+      if (_pointers.length == 2) {
+        onTwoFingerLongPress();
+      }
+    });
+  }
+
+  @override
+  void acceptGesture(int pointer) {}
+
+  @override
+  void rejectGesture(int pointer) {
+    _pointers.remove(pointer);
+    if (_pointers.length < 2) {
+      _longPressTimer?.cancel();
+    }
+  }
+
+  @override
+  void handleEvent(PointerEvent event) {
+    if (event is PointerUpEvent || event is PointerCancelEvent) {
+      _pointers.remove(event.pointer);
+      if (_pointers.length < 2) {
+        _longPressTimer?.cancel();
+      }
+    }
+  }
+
+  @override
+  String get debugDescription => 'twoFingerLongPress';
 }

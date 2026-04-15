@@ -47,6 +47,9 @@ class SupabaseConfig {
   static const String typingIndicatorsTable = 'typing_indicators';
   static const String storiesTable = 'stories';
   static const String timeCapsulesTable = 'time_capsules';
+  static const String pollsTable = 'polls';
+  static const String pollOptionsTable = 'poll_options';
+  static const String pollVotesTable = 'poll_votes';
 
   // Function names
   static const String getFeedPostsFn = 'get_feed_posts';
@@ -57,6 +60,7 @@ class SupabaseConfig {
   static const String resetUnreadCountFn = 'reset_unread_count';
   static const String deleteUserAccountFn = 'delete_user_account';
   static const String getEmailByUsernameFn = 'get_email_by_username';
+  static const String incrementMediaViewCountFn = 'increment_media_view_count';
 
   // Channel names for realtime
   static const String postsChannel = 'public:posts';

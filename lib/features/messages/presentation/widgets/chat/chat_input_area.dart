@@ -23,6 +23,7 @@ class ChatInputArea extends StatelessWidget {
     this.backgroundUrl,
     this.textColor,
     this.hintText,
+    this.hasAttachment = false,
   });
 
   final TextEditingController controller;
@@ -39,6 +40,7 @@ class ChatInputArea extends StatelessWidget {
   final String? backgroundUrl;
   final Color? textColor;
   final String? hintText;
+  final bool hasAttachment;
 
   String _formatDuration(int seconds) {
     final minutes = seconds ~/ 60;
@@ -142,7 +144,7 @@ class ChatInputArea extends StatelessWidget {
                               keys.contains(LogicalKeyboardKey.shiftRight)) {
                             return;
                           }
-                          if (controller.text.trim().isNotEmpty) {
+                          if (controller.text.trim().isNotEmpty || hasAttachment) {
                             onSend();
                           }
                         },
@@ -167,7 +169,7 @@ class ChatInputArea extends StatelessWidget {
                         maxLines: 4,
                         textCapitalization: TextCapitalization.sentences,
                         onSubmitted: (_) {
-                          if (controller.text.trim().isNotEmpty) {
+                          if (controller.text.trim().isNotEmpty || hasAttachment) {
                             onSend();
                           }
                         },
@@ -178,18 +180,20 @@ class ChatInputArea extends StatelessWidget {
           ValueListenableBuilder<String>(
             valueListenable: textNotifier ?? ValueNotifier(controller.text),
             builder: (context, text, child) {
-              final bool isEmpty = text.trim().isEmpty;
+              final bool isEmptyText = text.trim().isEmpty;
+              final bool showMic = isEmptyText && !hasAttachment;
+              
               return Container(
                 decoration: BoxDecoration(
                   color:
                       isSending
                           ? colorScheme.onSurface.withValues(alpha: 0.12)
-                          : (isRecording ? Colors.red : colorScheme.primary),
+                          : (showMic ? (isRecording ? Colors.red : colorScheme.primary) : colorScheme.secondary),
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
                   onPressed:
-                      isSending ? null : (isEmpty ? onToggleRecording : onSend),
+                      isSending ? null : (showMic ? onToggleRecording : onSend),
                   icon:
                       isSending
                           ? const SizedBox(
@@ -201,7 +205,7 @@ class ChatInputArea extends StatelessWidget {
                             ),
                           )
                           : Icon(
-                            isEmpty
+                            showMic
                                 ? (isRecording ? Icons.stop_rounded : Icons.mic)
                                 : Icons.send_rounded,
                             color: Colors.white,

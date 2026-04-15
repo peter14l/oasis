@@ -42,7 +42,43 @@
               "client_id": "244356693090-qf8sr3c1f0si1dop8jcaellnr75a74j2.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.morrow_v2"
+                "bundle_id": "com.example.morrowV2"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:244356693090:android:54ab10fc85426bef2ea53b",
+        "android_client_info": {
+          "package_name": "com.oasis.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "244356693090-mbjf7q6mtdsum5ur3rmqqckbsurv9aqc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUH_8F75hahrIVl5Ri8SB5aSFMEqYsP_M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "244356693090-mbjf7q6mtdsum5ur3rmqqckbsurv9aqc.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "244356693090-qf8sr3c1f0si1dop8jcaellnr75a74j2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.morrowV2"
               }
             }
           ]

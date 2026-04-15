@@ -28,5 +28,10 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<!-- Background modes for FCM (required for background notifications on macOS) -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>firebase-cloud-messaging</string>
+	</array>
 </dict>
 </plist>
