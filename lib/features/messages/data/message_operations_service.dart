@@ -20,12 +20,11 @@ class MessageOperationsService {
   /// Deletes a message and removes any associated media from storage.
   Future<void> deleteMessage(String messageId) async {
     try {
-      final response =
-          await _supabase
-              .from(SupabaseConfig.messagesTable)
-              .select('image_url, video_url, file_url, voice_url')
-              .eq('id', messageId)
-              .maybeSingle();
+      final response = await _supabase
+          .from(SupabaseConfig.messagesTable)
+          .select('image_url, video_url, file_url, voice_url')
+          .eq('id', messageId)
+          .maybeSingle();
 
       if (response != null) {
         final mediaUrls =
@@ -123,10 +122,9 @@ class MessageOperationsService {
             value: conversationId,
           ),
           callback: (payload) {
-            final data =
-                payload.newRecord.isNotEmpty
-                    ? payload.newRecord
-                    : payload.oldRecord;
+            final data = payload.newRecord.isNotEmpty
+                ? payload.newRecord
+                : payload.oldRecord;
             if (data.isNotEmpty) {
               final userId = data['user_id'] as String?;
               if (userId != null) {
@@ -139,7 +137,9 @@ class MessageOperationsService {
           if (status == RealtimeSubscribeStatus.channelError) {
             debugPrint('[MessageOps] subscribeToTypingStatus error: $error');
           } else if (status == RealtimeSubscribeStatus.timedOut) {
-            debugPrint('[MessageOps] subscribeToTypingStatus timed out. Replication may be missing.');
+            debugPrint(
+              '[MessageOps] subscribeToTypingStatus timed out. Replication may be missing.',
+            );
           }
         });
     return channel;
@@ -175,11 +175,9 @@ class MessageOperationsService {
           .from(SupabaseConfig.messageReadReceiptsTable)
           .upsert(
             messageIds
-                .map((id) => {
-                      'message_id': id,
-                      'user_id': userId,
-                      'read_at': now,
-                    })
+                .map(
+                  (id) => {'message_id': id, 'user_id': userId, 'read_at': now},
+                )
                 .toList(),
             onConflict: 'message_id,user_id',
           );
@@ -229,19 +227,29 @@ class MessageOperationsService {
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: SupabaseConfig.messageReadReceiptsTable,
-          callback: (payload) {
+          // Note: message_read_receipts has no conversation_id column, so we filter in callback
+          callback: (payload) async {
             try {
-              final data =
-                  payload.newRecord.isNotEmpty
-                      ? payload.newRecord
-                      : payload.oldRecord;
+              final data = payload.newRecord.isNotEmpty
+                  ? payload.newRecord
+                  : payload.oldRecord;
               if (data.isNotEmpty) {
                 final messageId = data['message_id'] as String?;
                 final userId = data['user_id'] as String?;
                 final readAt = data['read_at'] as String?;
 
                 if (messageId != null && userId != null && readAt != null) {
-                  onUpdate(messageId, userId, DateTime.parse(readAt));
+                  // Verify message belongs to this conversation before triggering callback
+                  final messageRow = await _supabase
+                      .from(SupabaseConfig.messagesTable)
+                      .select('conversation_id')
+                      .eq('id', messageId)
+                      .maybeSingle();
+
+                  if (messageRow != null &&
+                      messageRow['conversation_id'] == conversationId) {
+                    onUpdate(messageId, userId, DateTime.parse(readAt));
+                  }
                 }
               }
             } catch (e) {
@@ -253,7 +261,9 @@ class MessageOperationsService {
           if (status == RealtimeSubscribeStatus.channelError) {
             debugPrint('[MessageOps] subscribeToReadReceipts error: $error');
           } else if (status == RealtimeSubscribeStatus.timedOut) {
-            debugPrint('[MessageOps] subscribeToReadReceipts timed out. Replication may be missing.');
+            debugPrint(
+              '[MessageOps] subscribeToReadReceipts timed out. Replication may be missing.',
+            );
           }
         });
     return channel;
@@ -273,10 +283,9 @@ class MessageOperationsService {
           table: 'message_reactions',
           callback: (payload) {
             try {
-              final data =
-                  payload.newRecord.isNotEmpty
-                      ? payload.newRecord
-                      : payload.oldRecord;
+              final data = payload.newRecord.isNotEmpty
+                  ? payload.newRecord
+                  : payload.oldRecord;
               if (data.isNotEmpty) {
                 final messageId = data['message_id'] as String?;
                 if (messageId != null) {
@@ -293,7 +302,9 @@ class MessageOperationsService {
           if (status == RealtimeSubscribeStatus.channelError) {
             debugPrint('[MessageOps] subscribeToReactions error: $error');
           } else if (status == RealtimeSubscribeStatus.timedOut) {
-            debugPrint('[MessageOps] subscribeToReactions timed out. Replication may be missing.');
+            debugPrint(
+              '[MessageOps] subscribeToReactions timed out. Replication may be missing.',
+            );
           }
         });
     return channel;
@@ -309,23 +320,21 @@ class MessageOperationsService {
           .select('*, profiles:user_id (username)')
           .eq('message_id', messageId);
 
-      final reactionModels =
-          reactions.map((r) {
-            final profile = r['profiles'] as Map<String, dynamic>?;
-            final createdAtStr = r['created_at'] as String?;
+      final reactionModels = reactions.map((r) {
+        final profile = r['profiles'] as Map<String, dynamic>?;
+        final createdAtStr = r['created_at'] as String?;
 
-            return MessageReactionModel(
-              id: r['id'] as String? ?? '',
-              messageId: r['message_id'] as String? ?? '',
-              userId: r['user_id'] as String? ?? '',
-              username: profile?['username'] ?? 'Unknown',
-              reaction: r['emoji'] as String? ?? r['reaction'] as String? ?? '',
-              createdAt:
-                  createdAtStr != null
-                      ? DateTime.parse(createdAtStr)
-                      : DateTime.now(),
-            );
-          }).toList();
+        return MessageReactionModel(
+          id: r['id'] as String? ?? '',
+          messageId: r['message_id'] as String? ?? '',
+          userId: r['user_id'] as String? ?? '',
+          username: profile?['username'] ?? 'Unknown',
+          reaction: r['emoji'] as String? ?? r['reaction'] as String? ?? '',
+          createdAt: createdAtStr != null
+              ? DateTime.parse(createdAtStr)
+              : DateTime.now(),
+        );
+      }).toList();
 
       onUpdate(messageId, reactionModels);
     } catch (e) {
@@ -356,9 +365,13 @@ class MessageOperationsService {
         )
         .subscribe((status, [error]) {
           if (status == RealtimeSubscribeStatus.channelError) {
-            debugPrint('[MessageOps] subscribeToConversationDetails error: $error');
+            debugPrint(
+              '[MessageOps] subscribeToConversationDetails error: $error',
+            );
           } else if (status == RealtimeSubscribeStatus.timedOut) {
-            debugPrint('[MessageOps] subscribeToConversationDetails timed out. Replication may be missing.');
+            debugPrint(
+              '[MessageOps] subscribeToConversationDetails timed out. Replication may be missing.',
+            );
           }
         });
     return channel;
