@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:oasis/models/feed_layout_strategy.dart';
 
 class UserSettingsEntity extends Equatable {
   final bool dataSaver;
@@ -10,6 +11,7 @@ class UserSettingsEntity extends Equatable {
   final bool micaEnabled;
   final String windowEffect;
   final String fontFamily;
+  final FeedLayoutType feedLayout;
 
   const UserSettingsEntity({
     this.dataSaver = false,
@@ -21,6 +23,7 @@ class UserSettingsEntity extends Equatable {
     this.micaEnabled = false,
     this.windowEffect = 'mica',
     this.fontFamily = 'Inter',
+    this.feedLayout = FeedLayoutType.classic,
   });
 
   UserSettingsEntity copyWith({
@@ -33,6 +36,7 @@ class UserSettingsEntity extends Equatable {
     bool? micaEnabled,
     String? windowEffect,
     String? fontFamily,
+    FeedLayoutType? feedLayout,
   }) {
     return UserSettingsEntity(
       dataSaver: dataSaver ?? this.dataSaver,
@@ -44,6 +48,7 @@ class UserSettingsEntity extends Equatable {
       micaEnabled: micaEnabled ?? this.micaEnabled,
       windowEffect: windowEffect ?? this.windowEffect,
       fontFamily: fontFamily ?? this.fontFamily,
+      feedLayout: feedLayout ?? this.feedLayout,
     );
   }
 
@@ -58,5 +63,6 @@ class UserSettingsEntity extends Equatable {
     micaEnabled,
     windowEffect,
     fontFamily,
+    feedLayout,
   ];
 }

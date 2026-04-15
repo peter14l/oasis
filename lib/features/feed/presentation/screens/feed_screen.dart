@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
 import 'package:oasis/widgets/wellbeing/lockout_overlay.dart';
 import 'package:oasis/core/config/app_config.dart';
@@ -12,8 +11,6 @@ import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/features/stories/presentation/providers/stories_provider.dart';
 import 'package:oasis/features/feed/presentation/widgets/post_card.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:oasis/features/feed/presentation/widgets/stories_bar.dart';
-import 'package:oasis/features/capsules/presentation/widgets/capsule_carousel.dart';
 import 'package:oasis/features/ripples/presentation/screens/ripples_screen.dart';
 import 'package:oasis/widgets/comments_modal.dart';
 import 'package:oasis/widgets/desktop_header.dart';
@@ -23,8 +20,13 @@ import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
-import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/themes/app_colors.dart';
+import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/models/feed_layout_strategy.dart';
+import 'package:oasis/features/feed/presentation/widgets/layouts/classic_feed_layout.dart';
+import 'package:oasis/features/feed/presentation/widgets/layouts/focused_flow_layout.dart';
+import 'package:oasis/features/feed/presentation/widgets/layouts/spatial_glider_layout.dart';
+import 'package:oasis/features/feed/presentation/widgets/layouts/living_canvas_layout.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -335,6 +337,58 @@ class _FeedScreenState extends State<FeedScreen>
     );
   }
 
+  void _showLayoutSwitcher(BuildContext context) {
+    final settings = context.read<UserSettingsProvider>();
+    final colorScheme = Theme.of(context).colorScheme;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.of(context).padding.bottom),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Select Feed Layout',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 24),
+            ...FeedLayoutType.values.map((type) {
+              final isSelected = settings.feedLayout == type;
+              return ListTile(
+                leading: Icon(
+                  type.icon,
+                  color: isSelected ? colorScheme.primary : null,
+                ),
+                title: Text(
+                  type.displayName,
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.bold : null,
+                    color: isSelected ? colorScheme.primary : null,
+                  ),
+                ),
+                trailing: isSelected
+                    ? Icon(Icons.check_circle, color: colorScheme.primary)
+                    : null,
+                onTap: () {
+                  settings.setFeedLayout(type);
+                  Navigator.pop(context);
+                },
+              );
+            }),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -343,97 +397,44 @@ class _FeedScreenState extends State<FeedScreen>
     final isM3E = themeProvider.isM3EEnabled;
     final disableTransparency = themeProvider.isM3ETransparencyDisabled;
     final isDesktop = ResponsiveLayout.isDesktop(context);
+    final settings = context.watch<UserSettingsProvider>();
 
-    final feedContent = RefreshIndicator(
-      onRefresh: _refreshFeed,
-      child: CustomScrollView(
-        controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          if (!isDesktop)
-            SliverAppBar(
-              pinned: true,
-              floating: true,
-              snap: true,
-              elevation: 0,
-              backgroundColor: _isScrolled
-                  ? Colors.black.withValues(alpha: 0.8)
-                  : Colors.transparent,
-              toolbarHeight: 70,
-              automaticallyImplyLeading: false,
-              centerTitle: true,
-              title: _buildMobileHeader(colorScheme, isM3E),
-            ),
+    Widget layout;
+    switch (settings.feedLayout) {
+      case FeedLayoutType.classic:
+        layout = ClassicFeedLayout(
+          scrollController: _scrollController,
+          onRefresh: _refreshFeed,
+          isDesktop: isDesktop,
+          isScrolled: _isScrolled,
+          mobileHeader: _buildMobileHeader(colorScheme, isM3E),
+          buildPostItem: _buildPostItem,
+        );
+        break;
+      case FeedLayoutType.focused:
+        layout = FocusedFlowLayout(
+          onRefresh: _refreshFeed,
+          mobileHeader: _buildMobileHeader(colorScheme, isM3E),
+          buildPostItem: _buildPostItem,
+        );
+        break;
+      case FeedLayoutType.spatial:
+        layout = SpatialGliderLayout(
+          onRefresh: _refreshFeed,
+          mobileHeader: _buildMobileHeader(colorScheme, isM3E),
+          buildPostItem: _buildPostItem,
+        );
+        break;
+      case FeedLayoutType.canvas:
+        layout = LivingCanvasLayout(
+          onRefresh: _refreshFeed,
+          mobileHeader: _buildMobileHeader(colorScheme, isM3E),
+          buildPostItem: _buildPostItem,
+        );
+        break;
+    }
 
-          SliverToBoxAdapter(child: _buildFeedInfoBanner(colorScheme)),
-          SliverToBoxAdapter(
-            child: Consumer<StoriesProvider>(
-              builder: (context, storiesProvider, _) {
-                return StoriesBar(
-                  storyGroups: storiesProvider.storyGroups,
-                  currentUserStories: storiesProvider.userStories,
-                  isLoading: storiesProvider.isLoading,
-                  onRefresh: () {
-                    storiesProvider.loadFollowingStories();
-                    storiesProvider.loadMyStories();
-                  },
-                );
-              },
-            ),
-          ),
-
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: CapsuleCarousel(),
-            ),
-          ),
-
-          Consumer<FeedProvider>(
-            builder: (context, provider, _) {
-              final posts = provider.posts;
-              if (provider.isLoading && posts.isEmpty) {
-                return const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-              if (posts.isEmpty) {
-                return const SliverFillRemaining(
-                  child: Center(child: Text('No posts found.')),
-                );
-              }
-
-              if (isDesktop) {
-                return SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
-                  sliver: SliverMasonryGrid.count(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 24,
-                    crossAxisSpacing: 24,
-                    itemBuilder: (context, index) {
-                      final post = posts[index];
-                      return _buildPostItem(post, provider, true);
-                    },
-                    childCount: posts.length,
-                  ),
-                );
-              }
-
-              return SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 0),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final post = posts[index];
-                    return _buildPostItem(post, provider, false);
-                  }, childCount: posts.length),
-                ),
-              );
-            },
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 120)),
-        ],
-      ),
-    );
+    final feedContent = layout;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -467,6 +468,12 @@ class _FeedScreenState extends State<FeedScreen>
                                 title: 'Feed',
                                 actions: [
                                   _buildDesktopTabSwitcher(colorScheme, isM3E),
+                                  const SizedBox(width: 12),
+                                  IconButton(
+                                    icon: Icon(settings.feedLayout.icon),
+                                    onPressed: () => _showLayoutSwitcher(context),
+                                    tooltip: 'Change Layout',
+                                  ),
                                   const SizedBox(width: 12),
                                   _buildRipplesButton(colorScheme, isM3E),
                                 ],
@@ -758,46 +765,19 @@ class _FeedScreenState extends State<FeedScreen>
     );
   }
 
-  Widget _buildFeedInfoBanner(ColorScheme colorScheme) {
-    final wellbeing = context.watch<DigitalWellbeingService>();
-    final threshold = wellbeing.lockoutThresholdMinutes;
-    final usedMinutes = wellbeing.feedMinutes + wellbeing.ripplesMinutes;
-    final remaining = threshold - usedMinutes > 0 ? threshold - usedMinutes : 0;
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.2),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.timer_outlined, size: 16, color: colorScheme.primary),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Today\'s Feed time: ${wellbeing.totalMinutes}m / ${wellbeing.lockoutThresholdMinutes}m limit (Feed + Ripples)',
-              style: TextStyle(
-                fontSize: 11,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildMobileHeader(ColorScheme colorScheme, [bool isM3E = false]) {
+    final settings = context.watch<UserSettingsProvider>();
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        IconButton(
+          icon: Icon(settings.feedLayout.icon, size: 24),
+          onPressed: () => _showLayoutSwitcher(context),
+          tooltip: 'Change Layout',
+        ),
+        const Spacer(),
         _buildTabSwitcher(colorScheme, isM3E),
-        const SizedBox(width: 16),
+        const Spacer(),
         _buildRipplesButton(colorScheme, isM3E),
       ],
     );

@@ -65,6 +65,15 @@ All notable changes to this project will be documented in this file.
 - Fixed all theme components to use dynamic color scheme colors when available (scaffold, navigation, cards, app bar, inputs)
 - Priority order: Dynamic Theme (Material You) > Color Palette > Default M3E
 
+### Feed Layout Experiments (2026-04-15)
+- **Phase 1: Architectural Foundation** - Refactored `FeedScreen` to support multiple experimental layouts (Classic, Spatial Glider, Focused Flow, Living Canvas).
+- **Phase 2: Focused Flow** - Implemented a magazine-style, vertical-snapping layout with ambient blurred backgrounds.
+- **Phase 3: Spatial Glider** - Implemented a 2.5D space layout with staggered masonry grid and depth-based shadows.
+- **Phase 4: Living Canvas** - Implemented a borderless, organic layout with glowing "connecting fibers" drawn via CustomPaint.
+- **Layout Persistence** - Updated `UserSettingsProvider` and local data sources to persist the user's preferred feed layout.
+- **Layout Switcher UI** - Added a new layout switcher accessible via the Feed header on both mobile and desktop.
+- **Classic Layout Extraction** - Extracted the original feed implementation into `ClassicFeedLayout` for better modularity.
+
 ### Phase 3: Architectural Decoupling (2026-04-15)
 - **Restricted Table References** - Moved direct Supabase table references (e.g., `profiles`, `posts`, `messages`) out of the UI and Provider layers into the Service/Repository layer.
 - **Repository Pattern Transition** - Refactored `ChatProvider`, `ChatReactionsProvider`, `ChatSettingsProvider`, and `LocationBubble` to use `MessagingService` instead of direct `client.from(...)` calls.

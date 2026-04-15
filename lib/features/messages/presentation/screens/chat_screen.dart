@@ -21,6 +21,7 @@ import 'package:oasis/core/utils/haptic_utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/features/messages/presentation/providers/providers.dart';
+import 'package:oasis/features/messages/data/messaging_service.dart';
 import 'package:oasis/features/messages/presentation/widgets/chat/chat_app_bar.dart';
 import 'package:oasis/features/messages/presentation/widgets/chat/chat_background.dart';
 import 'package:oasis/features/messages/presentation/widgets/chat/chat_message_list.dart';

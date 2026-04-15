@@ -3,6 +3,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/features/messages/presentation/widgets/bubbles/bubbles.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_reactions_provider.dart';
+import 'package:oasis/features/messages/data/messaging_service.dart';
+import 'package:provider/provider.dart';
 import 'package:oasis/widgets/skeleton_container.dart';
 
 /// Chat message list with skeleton loading, empty state, and message rendering.
@@ -449,7 +451,9 @@ class MessageBubble extends StatelessWidget {
 
   Widget _buildReactionBadges(BuildContext context, bool isMe) {
     final colorScheme = Theme.of(context).colorScheme;
-    final groupedReactions = ChatReactionsProvider().groupReactions(
+    final groupedReactions = ChatReactionsProvider(
+      messagingService: context.read<MessagingService>(),
+    ).groupReactions(
       message.reactions,
       null, // currentUserId not needed for display grouping
     );

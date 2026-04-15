@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:universal_io/io.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/core/config/supabase_config.dart';

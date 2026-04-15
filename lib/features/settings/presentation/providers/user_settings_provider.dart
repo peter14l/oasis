@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:oasis/features/settings/domain/models/user_settings_entity.dart';
 import 'package:oasis/features/settings/domain/usecases/settings_usecases.dart';
+import 'package:oasis/models/feed_layout_strategy.dart';
 
 class UserSettingsProvider with ChangeNotifier {
   final GetSettingsUseCase _getSettingsUseCase;
@@ -23,6 +24,7 @@ class UserSettingsProvider with ChangeNotifier {
   bool get micaEnabled => _settings.micaEnabled;
   String get windowEffect => _settings.windowEffect;
   String get fontFamily => _settings.fontFamily;
+  FeedLayoutType get feedLayout => _settings.feedLayout;
 
   Future<void> loadSettings() async {
     final result = await _getSettingsUseCase();
@@ -88,5 +90,9 @@ class UserSettingsProvider with ChangeNotifier {
 
   Future<void> setFontFamily(String value) async {
     await _updateAndSave(_settings.copyWith(fontFamily: value));
+  }
+
+  Future<void> setFeedLayout(FeedLayoutType layout) async {
+    await _updateAndSave(_settings.copyWith(feedLayout: layout));
   }
 }
