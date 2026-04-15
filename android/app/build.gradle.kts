@@ -27,11 +27,36 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.oasis.app"
+        applicationId = "com.oasis.debug" // Default: debug builds
         minSdk = 24
         targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+    }
+
+    buildTypes {
+        getByName("debug") {
+            // Debug build: com.oasis.debug (from defaultConfig)
+        }
+        getByName("release") {
+            // Release build: com.oasis.app (production)
+            applicationId = "com.oasis.app"
+            
+            isMinifyEnabled = true
+            isShrinkResources = false
+            
+            // Use release signing config for local builds
+            // CI workflow signs with r0adkll/sign-android-release action
+            val hasKeystore = !System.getenv("RELEASE_STORE_FILE").isNullOrEmpty()
+            signingConfig = if (hasKeystore) {
+                signingConfigs.getByName("release")
+            } else {
+                // For CI: build unsigned, sign later with action
+                // For local: needs keystore env vars or use debug
+                signingConfigs.getByName("debug")
+            }
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
     }
 
     signingConfigs {
@@ -50,25 +75,6 @@ android {
                 keyPassword = envKeyPass
                 storeType = "PKCS12"
             }
-        }
-    }
-
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = true
-            isShrinkResources = false
-            
-            // Use release signing config for local builds
-            // CI workflow signs with r0adkll/sign-android-release action
-            val hasKeystore = !System.getenv("RELEASE_STORE_FILE").isNullOrEmpty()
-            signingConfig = if (hasKeystore) {
-                signingConfigs.getByName("release")
-            } else {
-                // For CI: build unsigned, sign later with action
-                // For local: needs keystore env vars or use debug
-                signingConfigs.getByName("debug")
-            }
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 }
