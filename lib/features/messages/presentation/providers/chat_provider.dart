@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:file_picker/file_picker.dart' show PlatformFile;
+import 'package:geolocator/geolocator.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/features/messages/domain/models/message_reaction.dart';
 import 'package:oasis/features/messages/data/messaging_service.dart';
@@ -45,6 +46,10 @@ class ChatProvider with ChangeNotifier {
   RealtimeChannel? _reactionsChannel;
   RealtimeChannel? _backgroundChannel;
   StreamSubscription<List<Map<String, dynamic>>>? _callsSubscription;
+
+  // Polling timer for message sync fallback (when realtime fails)
+  Timer? _pollingTimer;
+  static const Duration _pollingInterval = Duration(seconds: 10);
 
   // Scroll controller reference
   final ScrollController? scrollController;
@@ -136,6 +141,9 @@ class ChatProvider with ChangeNotifier {
     subscribeToReactions();
     subscribeToBackgroundChanges();
 
+    // Start polling fallback for message sync (works when realtime fails)
+    _startPollingFallback();
+
     // Mark as read immediately — no delay needed since loadMessages
     // has already completed inside _initializeEncryption()
     markAsRead();
@@ -207,13 +215,12 @@ class ChatProvider with ChangeNotifier {
 
       // Filter expired ephemeral messages
       final now = DateTime.now();
-      final filtered =
-          decryptedMessages.where((m) {
-            if (!m.isEphemeral) return true;
-            if (m.ephemeralDuration == 0 && m.readAt != null) return false;
-            if (m.expiresAt != null && now.isAfter(m.expiresAt!)) return false;
-            return true;
-          }).toList();
+      final filtered = decryptedMessages.where((m) {
+        if (!m.isEphemeral) return true;
+        if (m.ephemeralDuration == 0 && m.readAt != null) return false;
+        if (m.expiresAt != null && now.isAfter(m.expiresAt!)) return false;
+        return true;
+      }).toList();
 
       setState((s) => s.copyWith(messages: filtered, isLoading: false));
       scrollToBottom();
@@ -393,22 +400,20 @@ class ChatProvider with ChangeNotifier {
     final currentUserId = _authService.currentUser?.id;
     if (currentUserId == null) return;
 
-    final unreadMessageIds =
-        state.messages
-            .where((m) => m.senderId != currentUserId && !m.isRead)
-            .map((m) => m.id)
-            .toList();
+    final unreadMessageIds = state.messages
+        .where((m) => m.senderId != currentUserId && !m.isRead)
+        .map((m) => m.id)
+        .toList();
 
     if (unreadMessageIds.isEmpty) return;
 
     // Optimistically update
-    final updatedMessages =
-        state.messages.map((m) {
-          if (unreadMessageIds.contains(m.id)) {
-            return m.copyWith(isRead: true, readAt: DateTime.now());
-          }
-          return m;
-        }).toList();
+    final updatedMessages = state.messages.map((m) {
+      if (unreadMessageIds.contains(m.id)) {
+        return m.copyWith(isRead: true, readAt: DateTime.now());
+      }
+      return m;
+    }).toList();
 
     setState((s) => s.copyWith(messages: updatedMessages));
 
@@ -532,12 +537,11 @@ class ChatProvider with ChangeNotifier {
           String? recipientPublicKey = _publicKeyCache[recipientId];
 
           if (recipientPublicKey == null) {
-            final recipientProfile =
-                await Supabase.instance.client
-                    .from('profiles')
-                    .select('public_key')
-                    .eq('id', recipientId)
-                    .single();
+            final recipientProfile = await Supabase.instance.client
+                .from('profiles')
+                .select('public_key')
+                .eq('id', recipientId)
+                .single();
 
             recipientPublicKey = recipientProfile['public_key'] as String?;
             if (recipientPublicKey != null) {
@@ -603,8 +607,6 @@ class ChatProvider with ChangeNotifier {
         );
         messageType = MessageType.voice;
       }
-
-
 
       // Generate dual-layer fallback (RSA encrypted copy for both sender and recipient)
       if (_encryptionService.isInitialized && content.isNotEmpty) {
@@ -699,8 +701,9 @@ class ChatProvider with ChangeNotifier {
       if (optimisticMessage != null) {
         setState(
           (s) => s.copyWith(
-            messages:
-                s.messages.where((m) => m.id != optimisticMessage!.id).toList(),
+            messages: s.messages
+                .where((m) => m.id != optimisticMessage!.id)
+                .toList(),
             isSending: false,
           ),
         );
@@ -891,13 +894,12 @@ class ChatProvider with ChangeNotifier {
   ) {
     setState(
       (s) => s.copyWith(
-        messages:
-            s.messages.map((m) {
-              if (m.id == messageId) {
-                return m.copyWith(reactions: reactions);
-              }
-              return m;
-            }).toList(),
+        messages: s.messages.map((m) {
+          if (m.id == messageId) {
+            return m.copyWith(reactions: reactions);
+          }
+          return m;
+        }).toList(),
       ),
     );
   }
@@ -1056,6 +1058,33 @@ class ChatProvider with ChangeNotifier {
     subscribeToReactions();
   }
 
+  /// Start polling fallback to ensure messages sync even if realtime fails.
+  void _startPollingFallback() {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(_pollingInterval, (_) {
+      _loadMessagesPolled();
+    });
+  }
+
+  /// Polling callback - just loads messages without full re-init.
+  Future<void> _loadMessagesPolled() async {
+    if (_state.isLoading) return; // Skip if already loading
+
+    // Skip rapid calls (within 3 seconds of last load)
+    final now = DateTime.now();
+    if (_lastResumeTime != null &&
+        now.difference(_lastResumeTime!).inSeconds < 3) {
+      return;
+    }
+
+    // Do a lightweight sync - just fetch latest messages
+    try {
+      await loadMessages(silent: true);
+    } catch (e) {
+      debugPrint('[ChatProvider] Polling sync error: $e');
+    }
+  }
+
   /// Insert a system message (e.g., "Encryption enabled").
   void insertSystemMessage(String content) {
     setState(
@@ -1080,6 +1109,10 @@ class ChatProvider with ChangeNotifier {
 
   @override
   void dispose() {
+    // Stop polling fallback
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+
     // Clean up Realtime subscriptions
     if (_messageChannel != null) {
       _messagingService.unsubscribeFromMessages(_messageChannel!);
@@ -1136,13 +1169,41 @@ class ChatProvider with ChangeNotifier {
   Future<void> shareLiveLocation(Duration duration) async {
     try {
       setState((s) => s.copyWith(isSending: true));
-      
+
+      // Get initial location before sending the message
+      double? latitude;
+      double? longitude;
+
+      try {
+        final position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+        latitude = position.latitude;
+        longitude = position.longitude;
+      } catch (e) {
+        debugPrint('Failed to get initial location: $e');
+        // Continue without initial location - tracker will update later
+      }
+
+      // Build initial location data
+      Map<String, dynamic>? locationData;
+      if (latitude != null && longitude != null) {
+        locationData = {
+          'latitude': latitude,
+          'longitude': longitude,
+          'is_live': true,
+          'started_at': DateTime.now().toIso8601String(),
+          'expires_at': DateTime.now().add(duration).toIso8601String(),
+        };
+      }
+
       final sentMessage = await _messagingService.sendMessage(
         conversationId: conversationId,
         senderId: _authService.currentUser!.id,
         content: 'Live Location Shared',
         messageType: MessageType.location,
         mediaViewMode: 'live_location',
+        locationData: locationData,
       );
 
       // Start the tracker
@@ -1150,10 +1211,8 @@ class ChatProvider with ChangeNotifier {
 
       final decrypted = await _decryptSingleMessage(sentMessage);
       setState(
-        (s) => s.copyWith(
-          messages: [...s.messages, decrypted],
-          isSending: false,
-        ),
+        (s) =>
+            s.copyWith(messages: [...s.messages, decrypted], isSending: false),
       );
       scrollToBottom();
       await settingsProvider.saveMessagesToCache(state.messages);
@@ -1173,15 +1232,15 @@ class ChatProvider with ChangeNotifier {
         final index = state.messages.indexWhere((m) => m.id == activeMsgId);
         if (index != -1) {
           final msg = state.messages[index];
-          final currentLocData = msg.locationData != null 
-              ? Map<String, dynamic>.from(msg.locationData!) 
+          final currentLocData = msg.locationData != null
+              ? Map<String, dynamic>.from(msg.locationData!)
               : <String, dynamic>{};
           currentLocData['is_live'] = false;
-          
+
           final updatedMsg = msg.copyWith(locationData: currentLocData);
           final newMsgs = List<Message>.from(state.messages);
           newMsgs[index] = updatedMsg;
-          
+
           setState((s) => s.copyWith(messages: newMsgs));
         }
       }

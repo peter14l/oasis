@@ -188,9 +188,16 @@ class _MyAppState extends State<MyApp> {
 
         final userSettings = Provider.of<UserSettingsProvider>(context);
 
+        // Priority: Material You (system colors) > Palette > None (default M3E)
         if (themeProvider.useMaterialYou && themeProvider.isM3EEnabled) {
+          // Use system dynamic colors
           lightScheme = lightDynamic;
           darkScheme = darkDynamic;
+        } else if (themeProvider.colorPalette != ColorPalette.none &&
+            themeProvider.isM3EEnabled) {
+          // Use predefined palette
+          lightScheme = themeProvider.getPaletteColorScheme(Brightness.light);
+          darkScheme = themeProvider.getPaletteColorScheme(Brightness.dark);
         }
 
         final ThemeData theme = AppTheme.getTheme(
@@ -212,10 +219,9 @@ class _MyAppState extends State<MyApp> {
         return StreamBuilder<AuthState>(
           stream: authService.authStateChanges,
           builder: (context, snapshot) {
-            final userId =
-                snapshot.hasData && snapshot.data?.session != null
-                    ? snapshot.data!.session!.user.id
-                    : null;
+            final userId = snapshot.hasData && snapshot.data?.session != null
+                ? snapshot.data!.session!.user.id
+                : null;
 
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) _handleInitialization(userId);
@@ -263,7 +269,8 @@ class CallNavigator extends StatelessWidget {
         location =
             GoRouter.of(context).routeInformationProvider?.value.uri.path ?? '';
       } catch (e) {
-        location = AppRouter.router.routerDelegate.currentConfiguration.uri.path;
+        location =
+            AppRouter.router.routerDelegate.currentConfiguration.uri.path;
       }
 
       final onCallScreen = location.startsWith('/call');
@@ -283,10 +290,9 @@ class CallNavigator extends StatelessWidget {
             final navContext =
                 AppRouter.router.configuration.navigatorKey.currentContext;
             if (navContext != null) {
-              GoRouter.of(navContext).pushNamed(
-                'active_call',
-                pathParameters: {'callId': callId},
-              );
+              GoRouter.of(
+                navContext,
+              ).pushNamed('active_call', pathParameters: {'callId': callId});
             } else {
               AppRouter.router.pushNamed(
                 'active_call',
@@ -347,7 +353,7 @@ void main() async {
   debugPrint('Initializing Sentry...');
   await AppInitializer.runWithSentry(() async {
     debugPrint('Sentry initialized, starting services...');
-    
+
     await AppInitializer.initFirebase();
 
     try {

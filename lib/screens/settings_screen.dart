@@ -200,34 +200,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: Column(
                         children: [
                           DesktopHeader(
-                            title:
-                                _selectedSubPage != null
-                                    ? _subPageTitle ?? ''
-                                    : _getCategoryTitle(_selectedCategory),
+                            title: _selectedSubPage != null
+                                ? _subPageTitle ?? ''
+                                : _getCategoryTitle(_selectedCategory),
                             showBackButton: _selectedSubPage != null,
-                            onBack:
-                                () => setState(() {
-                                  _selectedSubPage = null;
-                                  _subPageTitle = null;
-                                }),
+                            onBack: () => setState(() {
+                              _selectedSubPage = null;
+                              _subPageTitle = null;
+                            }),
                           ),
                           const Divider(height: 1),
                           Expanded(
-                            child:
-                                _selectedSubPage != null
-                                    ? _selectedSubPage!
-                                    : SingleChildScrollView(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 40,
-                                        vertical: 32,
-                                      ),
-                                      child: MaxWidthContainer(
-                                        maxWidth: 1000,
-                                        child: _buildSelectedCategoryContent(
-                                          context,
-                                        ),
+                            child: _selectedSubPage != null
+                                ? _selectedSubPage!
+                                : SingleChildScrollView(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 40,
+                                      vertical: 32,
+                                    ),
+                                    child: MaxWidthContainer(
+                                      maxWidth: 1000,
+                                      child: _buildSelectedCategoryContent(
+                                        context,
                                       ),
                                     ),
+                                  ),
                           ),
                         ],
                       ),
@@ -396,47 +393,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap:
-              () => setState(() {
-                _selectedCategory = category;
-                _selectedSubPage = null;
-                _subPageTitle = null;
-              }),
+          onTap: () => setState(() {
+            _selectedCategory = category;
+            _selectedSubPage = null;
+            _subPageTitle = null;
+          }),
           borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color:
-                  isSelected
-                      ? colorScheme.primaryContainer.withValues(alpha: 0.3)
-                      : Colors.transparent,
+              color: isSelected
+                  ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
-              border:
-                  isSelected
-                      ? Border.all(
-                        color: colorScheme.primary.withValues(alpha: 0.2),
-                      )
-                      : null,
+              border: isSelected
+                  ? Border.all(
+                      color: colorScheme.primary.withValues(alpha: 0.2),
+                    )
+                  : null,
             ),
             child: Row(
               children: [
                 Icon(
                   isSelected ? selectedIcon : icon,
                   size: 22,
-                  color:
-                      isSelected
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
+                  color: isSelected
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 16),
                 Text(
                   label,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-                    color:
-                        isSelected
-                            ? colorScheme.primary
-                            : colorScheme.onSurfaceVariant,
+                    color: isSelected
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -520,11 +512,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Wellness Center',
         subtitle: 'Mindful usage, sessions and limits',
         iconColor: Colors.green,
-        onTap:
-            () => _navigateToSubPage(
-              'Wellness Center',
-              const WellnessCenterScreen(),
-            ),
+        onTap: () =>
+            _navigateToSubPage('Wellness Center', const WellnessCenterScreen()),
       ),
     ]);
   }
@@ -540,8 +529,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Vault',
             subtitle: 'Manage hidden content and security',
             iconColor: colorScheme.primary,
-            onTap:
-                () => _navigateToSubPage('Vault', const VaultSettingsScreen()),
+            onTap: () =>
+                _navigateToSubPage('Vault', const VaultSettingsScreen()),
           ),
           _buildSettingsTile(
             context,
@@ -549,11 +538,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Encryption',
             subtitle: 'Manage End-to-End Encryption keys',
             iconColor: Colors.purple,
-            onTap:
-                () => _navigateToSubPage(
-                  'Encryption',
-                  const EncryptionSetupScreen(),
-                ),
+            onTap: () =>
+                _navigateToSubPage('Encryption', const EncryptionSetupScreen()),
           ),
           _buildSettingsTile(
             context,
@@ -561,11 +547,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Account Privacy',
             subtitle: 'Control who can see your content',
             iconColor: Colors.green,
-            onTap:
-                () => _navigateToSubPage(
-                  'Account Privacy',
-                  const AccountPrivacyScreen(),
-                ),
+            onTap: () => _navigateToSubPage(
+              'Account Privacy',
+              const AccountPrivacyScreen(),
+            ),
           ),
           _buildSettingsTile(
             context,
@@ -573,11 +558,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Blocked Accounts',
             subtitle: 'Manage blocked users',
             iconColor: Colors.red,
-            onTap:
-                () => _navigateToSubPage(
-                  'Blocked Accounts',
-                  const BlockedUsersScreen(),
-                ),
+            onTap: () => _navigateToSubPage(
+              'Blocked Accounts',
+              const BlockedUsersScreen(),
+            ),
           ),
           _buildSettingsTile(
             context,
@@ -585,11 +569,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Two-Factor Authentication',
             subtitle: 'Add extra security',
             iconColor: Colors.indigo,
-            onTap:
-                () => _navigateToSubPage(
-                  'Two-Factor Auth',
-                  const TwoFactorAuthScreen(),
-                ),
+            onTap: () => _navigateToSubPage(
+              'Two-Factor Auth',
+              const TwoFactorAuthScreen(),
+            ),
           ),
           _buildSettingsTile(
             context,
@@ -597,11 +580,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Privacy Heartbeat',
             subtitle: 'View your data access logs',
             iconColor: Colors.red,
-            onTap:
-                () => _navigateToSubPage(
-                  'Privacy Heartbeat',
-                  const PrivacyHeartbeatScreen(),
-                ),
+            onTap: () => _navigateToSubPage(
+              'Privacy Heartbeat',
+              const PrivacyHeartbeatScreen(),
+            ),
           ),
           _buildSettingsTile(
             context,
@@ -609,11 +591,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Download Your Data',
             subtitle: 'Request a copy of your data',
             iconColor: Colors.teal,
-            onTap:
-                () => _navigateToSubPage(
-                  'Download Data',
-                  const DownloadDataScreen(),
-                ),
+            onTap: () =>
+                _navigateToSubPage('Download Data', const DownloadDataScreen()),
           ),
         ]),
         const SizedBox(height: 24),
@@ -655,8 +634,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           value: themeProvider.themeMode,
           dropdownColor: colorScheme.surfaceContainerHigh,
           underline: const SizedBox(),
-          onChanged:
-              (mode) => mode != null ? themeProvider.setTheme(mode) : null,
+          onChanged: (mode) =>
+              mode != null ? themeProvider.setTheme(mode) : null,
           items: const [
             DropdownMenuItem(value: ThemeMode.system, child: Text('System')),
             DropdownMenuItem(value: ThemeMode.light, child: Text('Light')),
@@ -679,18 +658,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               userSettingsProvider.setFontFamily(font);
             }
           },
-          items:
-              _fonts.map((font) {
-                return DropdownMenuItem(
-                  value: font,
-                  child: Text(
-                    font,
-                    style: TextStyle(
-                      fontFamily: font == 'System' ? null : font,
-                    ),
-                  ),
-                );
-              }).toList(),
+          items: _fonts.map((font) {
+            return DropdownMenuItem(
+              value: font,
+              child: Text(
+                font,
+                style: TextStyle(fontFamily: font == 'System' ? null : font),
+              ),
+            );
+          }).toList(),
         ),
       ),
       _buildSettingsTile(
@@ -739,6 +715,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onChanged: (v) => themeProvider.setMaterialYou(v),
           ),
         ),
+      if (themeProvider.isM3EEnabled && !themeProvider.useMaterialYou)
+        _buildSettingsTile(
+          context,
+          icon: Icons.palette_outlined,
+          title: 'Color Palette',
+          subtitle: _getPaletteName(themeProvider.colorPalette),
+          iconColor: _getPaletteColor(themeProvider.colorPalette),
+          trailing: DropdownButton<ColorPalette>(
+            value: themeProvider.colorPalette,
+            dropdownColor: colorScheme.surfaceContainerHigh,
+            underline: const SizedBox(),
+            onChanged: (palette) {
+              if (palette != null) {
+                themeProvider.setColorPalette(palette);
+              }
+            },
+            items: ColorPalette.values.map((palette) {
+              return DropdownMenuItem(
+                value: palette,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: _getPaletteColor(palette),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(_getPaletteName(palette)),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ),
       if (themeProvider.isM3EEnabled)
         _buildSettingsTile(
           context,
@@ -778,10 +792,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           iconColor: Colors.cyan,
           trailing: DropdownButton<String>(
             value: userSettingsProvider.windowEffect,
-            dropdownColor:
-                themeProvider.themeMode == ThemeMode.dark
-                    ? Colors.grey[900]
-                    : Colors.white,
+            dropdownColor: themeProvider.themeMode == ThemeMode.dark
+                ? Colors.grey[900]
+                : Colors.white,
             underline: const SizedBox(),
             items: const [
               DropdownMenuItem(value: 'mica', child: Text('Mica')),
@@ -810,9 +823,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Storage Usage',
         subtitle: 'Manage app storage',
         iconColor: Colors.amber,
-        onTap:
-            () =>
-                _navigateToSubPage('Storage Usage', const StorageUsageScreen()),
+        onTap: () =>
+            _navigateToSubPage('Storage Usage', const StorageUsageScreen()),
       ),
       _buildSettingsTile(
         context,
@@ -831,10 +843,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Clear Cache',
         subtitle: 'Free up space',
         iconColor: Colors.deepOrange,
-        onTap:
-            () => ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Cache cleared'))),
+        onTap: () => ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Cache cleared'))),
       ),
     ]);
   }
@@ -880,9 +891,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Help & Support',
         subtitle: 'Get help with Oasis',
         iconColor: Colors.green,
-        onTap:
-            () =>
-                _navigateToSubPage('Help & Support', const HelpSupportScreen()),
+        onTap: () =>
+            _navigateToSubPage('Help & Support', const HelpSupportScreen()),
       ),
       _buildSettingsTile(
         context,
@@ -906,22 +916,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
       onTap: () async {
         final confirmed = await showDialog<bool>(
           context: context,
-          builder:
-              (context) => AlertDialog(
-                title: const Text('Sign Out'),
-                content: const Text('Are you sure you want to sign out?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    style: TextButton.styleFrom(foregroundColor: Colors.red),
-                    child: const Text('Sign Out'),
-                  ),
-                ],
+          builder: (context) => AlertDialog(
+            title: const Text('Sign Out'),
+            content: const Text('Are you sure you want to sign out?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
               ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Sign Out'),
+              ),
+            ],
+          ),
         );
 
         if (confirmed == true) {
@@ -1039,14 +1048,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       borderRadius = BorderRadius.circular(16);
     }
 
-    final bgColor =
-        isM3E
-            ? (disableTransparency
-                ? (index % 2 == 0
+    final bgColor = isM3E
+        ? (disableTransparency
+              ? (index % 2 == 0
                     ? colorScheme.surfaceContainerHigh
                     : colorScheme.surfaceContainerLow)
-                : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3))
-            : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3);
+              : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3))
+        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3);
 
     return Container(
       decoration: BoxDecoration(
@@ -1058,16 +1066,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           width: isM3E ? 1.5 : 1,
         ),
-        boxShadow:
-            isM3E && disableTransparency
-                ? [
-                  BoxShadow(
-                    color: colorScheme.shadow.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-                : null,
+        boxShadow: isM3E && disableTransparency
+            ? [
+                BoxShadow(
+                  color: colorScheme.shadow.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : null,
       ),
       child: ClipRRect(
         borderRadius: borderRadius,
@@ -1125,15 +1132,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: textColor,
         ),
       ),
-      subtitle:
-          subtitle != null
-              ? Text(
-                subtitle,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              )
-              : null,
+      subtitle: subtitle != null
+          ? Text(
+              subtitle,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            )
+          : null,
       trailing:
           trailing ??
           (onTap != null
@@ -1224,6 +1230,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return 'Light';
       case ThemeMode.dark:
         return 'Dark';
+    }
+  }
+
+  String _getPaletteName(ColorPalette palette) {
+    switch (palette) {
+      case ColorPalette.none:
+        return 'None (Default)';
+      case ColorPalette.emerald:
+        return 'Emerald';
+      case ColorPalette.ocean:
+        return 'Ocean';
+      case ColorPalette.sunset:
+        return 'Sunset';
+      case ColorPalette.lavender:
+        return 'Lavender';
+      case ColorPalette.rose:
+        return 'Rose';
+      case ColorPalette.teal:
+        return 'Teal';
+    }
+  }
+
+  Color _getPaletteColor(ColorPalette palette) {
+    switch (palette) {
+      case ColorPalette.none:
+        return Colors.grey;
+      case ColorPalette.emerald:
+        return const Color(0xFF1C6758);
+      case ColorPalette.ocean:
+        return const Color(0xFF0D47A1);
+      case ColorPalette.sunset:
+        return const Color(0xFFE65100);
+      case ColorPalette.lavender:
+        return const Color(0xFF7E57C2);
+      case ColorPalette.rose:
+        return const Color(0xFFC2185B);
+      case ColorPalette.teal:
+        return const Color(0xFF00796B);
     }
   }
 }

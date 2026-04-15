@@ -164,8 +164,8 @@ class RipplesProvider extends ChangeNotifier {
     }
 
     const baseLockout = Duration(minutes: 30);
-    final actualLockoutMinutes =
-        (baseLockout.inMinutes * _lockoutMultiplier).round();
+    final actualLockoutMinutes = (baseLockout.inMinutes * _lockoutMultiplier)
+        .round();
 
     final lockoutEnd = DateTime.now().add(
       Duration(minutes: actualLockoutMinutes),
@@ -269,7 +269,8 @@ class RipplesProvider extends ChangeNotifier {
           'id': 'ad_${ad.id}',
           'user_id': 'ad_system',
           'is_ad': true,
-          'video_url': ad.imageUrl ?? '', // Using imageUrl as videoUrl for house ads
+          'video_url':
+              ad.imageUrl ?? '', // Using imageUrl as videoUrl for house ads
           'thumbnail_url': ad.imageUrl,
           'caption': ad.content,
           'created_at': ad.timestamp.toIso8601String(),
@@ -344,8 +345,10 @@ class RipplesProvider extends ChangeNotifier {
     if (userId == null) return;
 
     final index = _ripples.indexWhere((r) => r['id'] == rippleId);
-    if (index != -1) {
+    if (index != -1 && !(_ripples[index]['is_saved'] ?? false)) {
       _ripples[index]['is_saved'] = true;
+      _ripples[index]['saves_count'] =
+          (_ripples[index]['saves_count'] ?? 0) + 1;
       notifyListeners();
     }
 
@@ -364,8 +367,13 @@ class RipplesProvider extends ChangeNotifier {
     if (userId == null) return;
 
     final index = _ripples.indexWhere((r) => r['id'] == rippleId);
-    if (index != -1) {
+    if (index != -1 && (_ripples[index]['is_saved'] ?? false)) {
       _ripples[index]['is_saved'] = false;
+      _ripples[index]['saves_count'] =
+          (_ripples[index]['saves_count'] ?? 0) - 1;
+      if (_ripples[index]['saves_count'] < 0) {
+        _ripples[index]['saves_count'] = 0;
+      }
       notifyListeners();
     }
 

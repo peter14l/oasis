@@ -78,23 +78,37 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 // ThemeProvider (kept here — it's UI-level state, not a service)
 // ---------------------------------------------------------------------------
 
+// Predefined color palette options
+enum ColorPalette {
+  none, // Uses default M3E colors
+  emerald, // Green (current default)
+  ocean, // Blue
+  sunset, // Orange/Red
+  lavender, // Purple
+  rose, // Pink
+  teal, // Teal
+}
+
 class ThemeProvider with ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.dark;
   bool _highContrast = false;
   bool _isM3EEnabled = true;
   bool _isM3ETransparencyDisabled = false;
   bool _useMaterialYou = false;
+  ColorPalette _colorPalette = ColorPalette.none;
   static const String _themeKey = 'theme_mode';
   static const String _highContrastKey = 'high_contrast';
   static const String _m3eKey = 'm3e_enabled';
   static const String _m3eTransparencyKey = 'm3e_transparency_disabled';
   static const String _materialYouKey = 'use_material_you';
+  static const String _colorPaletteKey = 'color_palette';
 
   ThemeMode get themeMode => _themeMode;
   bool get highContrast => _highContrast;
   bool get isM3EEnabled => _isM3EEnabled;
   bool get isM3ETransparencyDisabled => _isM3ETransparencyDisabled;
   bool get useMaterialYou => _useMaterialYou;
+  ColorPalette get colorPalette => _colorPalette;
 
   Future<void> loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
@@ -104,6 +118,9 @@ class ThemeProvider with ChangeNotifier {
     _isM3EEnabled = prefs.getBool(_m3eKey) ?? true;
     _isM3ETransparencyDisabled = prefs.getBool(_m3eTransparencyKey) ?? false;
     _useMaterialYou = prefs.getBool(_materialYouKey) ?? false;
+    final paletteIndex =
+        prefs.getInt(_colorPaletteKey) ?? ColorPalette.none.index;
+    _colorPalette = ColorPalette.values[paletteIndex];
     notifyListeners();
   }
 
@@ -142,9 +159,46 @@ class ThemeProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setColorPalette(ColorPalette palette) async {
+    _colorPalette = palette;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_colorPaletteKey, palette.index);
+    notifyListeners();
+  }
+
+  /// Generate a ColorScheme based on the selected palette
+  ColorScheme? getPaletteColorScheme(Brightness brightness) {
+    if (_colorPalette == ColorPalette.none) return null;
+
+    final isDark = brightness == Brightness.dark;
+    final baseColor = _getPaletteBaseColor(_colorPalette);
+
+    return ColorScheme.fromSeed(seedColor: baseColor, brightness: brightness);
+  }
+
+  Color _getPaletteBaseColor(ColorPalette palette) {
+    switch (palette) {
+      case ColorPalette.none:
+        return const Color(0xFF6750A4); // Default purple (M3 standard)
+      case ColorPalette.emerald:
+        return const Color(0xFF1C6758); // Green
+      case ColorPalette.ocean:
+        return const Color(0xFF0D47A1); // Blue
+      case ColorPalette.sunset:
+        return const Color(0xFFE65100); // Orange/Red
+      case ColorPalette.lavender:
+        return const Color(0xFF7E57C2); // Purple
+      case ColorPalette.rose:
+        return const Color(0xFFC2185B); // Pink
+      case ColorPalette.teal:
+        return const Color(0xFF00796B); // Teal
+    }
+  }
+
   void toggleTheme() {
-    _themeMode =
-        _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    _themeMode = _themeMode == ThemeMode.dark
+        ? ThemeMode.light
+        : ThemeMode.dark;
     setTheme(_themeMode);
   }
 }
@@ -209,8 +263,9 @@ class AppInitializer {
           message.notification?.body ?? message.data['body'] ?? '';
 
       // For background, we often want the full data as payload for deep linking
-      final String? payload =
-          message.data.isNotEmpty ? jsonEncode(message.data) : null;
+      final String? payload = message.data.isNotEmpty
+          ? jsonEncode(message.data)
+          : null;
 
       await NotificationManager.instance.showNotification(
         title: title,
@@ -229,7 +284,9 @@ class AppInitializer {
       // if we have them, we might not need the .env file at all.
       const hasUrl = String.fromEnvironment('SUPABASE_URL');
       if (hasUrl.isNotEmpty) {
-        debugPrint('.env variables injected via dart-define, skipping file load');
+        debugPrint(
+          '.env variables injected via dart-define, skipping file load',
+        );
         return;
       }
 
@@ -246,20 +303,25 @@ class AppInitializer {
   static Future<void> runWithSentry(Future<void> Function() appRunner) async {
     debugPrint('runWithSentry: Setting up Sentry options...');
     try {
-      await SentryFlutter.init((options) {
-        debugPrint('SentryFlutter.init callback started');
-        const dsn = String.fromEnvironment('SENTRY_DSN');
-        options.dsn = dsn.isNotEmpty ? dsn : null;
-        options.tracesSampleRate = kDebugMode ? 1.0 : 0.05;
-        options.sendDefaultPii = false;
-        if (kDebugMode) {
-          options.debug = true;
-        }
-        debugPrint('Sentry options configured (DSN: ${options.dsn != null ? "provided" : "none"})');
-      }, appRunner: () async {
-        debugPrint('Sentry appRunner triggered');
-        await appRunner();
-      });
+      await SentryFlutter.init(
+        (options) {
+          debugPrint('SentryFlutter.init callback started');
+          const dsn = String.fromEnvironment('SENTRY_DSN');
+          options.dsn = dsn.isNotEmpty ? dsn : null;
+          options.tracesSampleRate = kDebugMode ? 1.0 : 0.05;
+          options.sendDefaultPii = false;
+          if (kDebugMode) {
+            options.debug = true;
+          }
+          debugPrint(
+            'Sentry options configured (DSN: ${options.dsn != null ? "provided" : "none"})',
+          );
+        },
+        appRunner: () async {
+          debugPrint('Sentry appRunner triggered');
+          await appRunner();
+        },
+      );
       debugPrint('SentryFlutter.init call completed');
     } catch (e, st) {
       debugPrint('Sentry initialization exception: $e');
@@ -373,7 +435,7 @@ class AppInitializer {
         subscriptionService.init(),
         vaultService.init(),
       ]).timeout(const Duration(seconds: 8));
-      
+
       // Razorpay init is quick but needs to be called
       razorpayService.init();
     } catch (e) {
@@ -465,34 +527,28 @@ class AppInitializer {
         ChangeNotifierProvider<RevenueCatService>.value(
           value: services.revenueCatService,
         ),
-        ChangeNotifierProvider<RazorpayService>.value(
-          value: RazorpayService(),
-        ),
+        ChangeNotifierProvider<RazorpayService>.value(value: RazorpayService()),
         Provider<EncryptionService>(create: (_) => EncryptionService()),
         ChangeNotifierProvider(
-          create:
-              (_) => FeedProvider(
-                feedRepository: FeedRepositoryImpl(),
-                postRepository: PostRepositoryImpl(),
-                commentRepository: CommentRepositoryImpl(),
-              ),
+          create: (_) => FeedProvider(
+            feedRepository: FeedRepositoryImpl(),
+            postRepository: PostRepositoryImpl(),
+            commentRepository: CommentRepositoryImpl(),
+          ),
         ),
         ChangeNotifierProvider(
-          create:
-              (_) => ProfileProvider(
-                profileRepository: ProfileRepositoryImpl(),
-                postRepository: PostRepositoryImpl(),
-              ),
+          create: (_) => ProfileProvider(
+            profileRepository: ProfileRepositoryImpl(),
+            postRepository: PostRepositoryImpl(),
+          ),
         ),
         ChangeNotifierProvider(create: (_) => CommunityProvider()),
         ChangeNotifierProvider(create: (_) => TypingIndicatorProvider()),
         ChangeNotifierProvider(create: (_) => PresenceProvider()),
         ChangeNotifierProxyProvider<PresenceProvider, ConversationProvider>(
           create: (_) => ConversationProvider(),
-          update:
-              (context, presenceProvider, conversationProvider) =>
-                  conversationProvider!
-                    ..updatePresenceProvider(presenceProvider),
+          update: (context, presenceProvider, conversationProvider) =>
+              conversationProvider!..updatePresenceProvider(presenceProvider),
         ),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => CanvasProvider()),

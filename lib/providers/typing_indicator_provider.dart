@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:oasis/features/messages/data/messaging_service.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TypingIndicatorProvider with ChangeNotifier {
   final MessagingService _messagingService = MessagingService();
+  final _supabase = SupabaseService().client;
 
   // Map of conversationId -> isTyping status
   final Map<String, bool> _typingStatus = {};
@@ -17,6 +19,11 @@ class TypingIndicatorProvider with ChangeNotifier {
 
   // Local throttle to avoid spamming the database while typing
   final Map<String, DateTime> _lastDatabaseUpdate = {};
+
+  // Polling fallback for typing indicator sync (when realtime fails)
+  Timer? _pollingTimer;
+  static const Duration _pollingInterval = Duration(seconds: 5);
+  final Set<String> _trackedConversationIds = {};
 
   // Getters
   bool isUserTyping(String conversationId) {
@@ -32,7 +39,8 @@ class TypingIndicatorProvider with ChangeNotifier {
     try {
       // Throttle database updates to once every 2 seconds when typing
       final lastUpdate = _lastDatabaseUpdate[conversationId];
-      if (isTyping && lastUpdate != null && 
+      if (isTyping &&
+          lastUpdate != null &&
           DateTime.now().difference(lastUpdate).inSeconds < 2) {
         // Reset the auto-stop timer but don't hit the DB yet
         _debounceTimers[conversationId]?.cancel();
@@ -51,7 +59,7 @@ class TypingIndicatorProvider with ChangeNotifier {
         userId,
         isTyping,
       );
-      
+
       _lastDatabaseUpdate[conversationId] = DateTime.now();
 
       // If typing, set a timer to auto-stop after 4 seconds of inactivity
@@ -73,6 +81,9 @@ class TypingIndicatorProvider with ChangeNotifier {
     if (_subscriptions.containsKey(conversationId)) {
       return;
     }
+
+    // Track conversation for polling fallback
+    _trackedConversationIds.add(conversationId);
 
     try {
       final channel = _messagingService.subscribeToTypingStatus(
@@ -97,6 +108,9 @@ class TypingIndicatorProvider with ChangeNotifier {
       );
 
       _subscriptions[conversationId] = channel;
+
+      // Start polling fallback if not started
+      _startPollingFallback(currentUserId);
     } catch (e) {
       debugPrint('Error subscribing to typing status: $e');
     }
@@ -131,6 +145,52 @@ class TypingIndicatorProvider with ChangeNotifier {
   @override
   void dispose() {
     clearAll();
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
     super.dispose();
+  }
+
+  /// Start polling fallback to sync typing status when realtime fails.
+  void _startPollingFallback(String currentUserId) {
+    if (_pollingTimer != null) return; // Already running
+
+    _pollingTimer = Timer.periodic(_pollingInterval, (_) {
+      _pollTypingStatus(currentUserId);
+    });
+  }
+
+  /// Poll typing status directly from database.
+  Future<void> _pollTypingStatus(String currentUserId) async {
+    for (final conversationId in _trackedConversationIds) {
+      try {
+        // Query typing_indicators table directly
+        final result = await _supabase
+            .from('typing_indicators')
+            .select('user_id, is_typing')
+            .eq('conversation_id', conversationId)
+            .neq('user_id', currentUserId)
+            .order('updated_at', ascending: false)
+            .limit(1)
+            .maybeSingle();
+
+        if (result != null) {
+          final isTyping = result['is_typing'] as bool? ?? false;
+          final userId = result['user_id'] as String?;
+
+          if (userId != null && userId != currentUserId) {
+            _typingStatus[conversationId] = isTyping;
+            notifyListeners();
+          }
+        } else {
+          // No typing - clear
+          if (_typingStatus[conversationId] == true) {
+            _typingStatus[conversationId] = false;
+            notifyListeners();
+          }
+        }
+      } catch (e) {
+        debugPrint('[TypingIndicatorProvider] Polling error: $e');
+      }
+    }
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +14,7 @@ import 'package:oasis/widgets/messages/share_to_dm_modal.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/services/app_initializer.dart'; // For ThemeProvider
 import 'package:oasis/services/digital_wellbeing_service.dart';
+import 'package:oasis/services/auth_service.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 
 class RipplesScreen extends StatefulWidget {
@@ -155,33 +157,40 @@ class _RipplesScreenState extends State<RipplesScreen>
             backgroundColor: Colors.black,
             body: Stack(
               children: [
+                // Time tracking info
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 16,
+                  left: 16,
+                  right: 16,
+                  child: _buildTimeInfoBanner(context),
+                ),
                 // Immersive Blurred Background
                 Positioned.fill(
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 500),
-                    child: Image.network(
-                          currentRipple['thumbnail_url'] ?? '',
-                          key: ValueKey('bg_${currentRipple['id']}'),
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (context, error, stackTrace) =>
+                    child:
+                        Image.network(
+                              currentRipple['thumbnail_url'] ?? '',
+                              key: ValueKey('bg_${currentRipple['id']}'),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
                                   Container(color: Colors.black),
-                        )
-                        .animate(
-                          key: ValueKey('anim_bg_${currentRipple['id']}'),
-                        )
-                        .scale(
-                          begin: const Offset(1.0, 1.0),
-                          end: const Offset(1.2, 1.2),
-                          duration: 20.seconds,
-                          curve: Curves.linear,
-                        )
-                        .move(
-                          begin: const Offset(-20, -20),
-                          end: const Offset(20, 20),
-                          duration: 20.seconds,
-                          curve: Curves.linear,
-                        ),
+                            )
+                            .animate(
+                              key: ValueKey('anim_bg_${currentRipple['id']}'),
+                            )
+                            .scale(
+                              begin: const Offset(1.0, 1.0),
+                              end: const Offset(1.2, 1.2),
+                              duration: 20.seconds,
+                              curve: Curves.linear,
+                            )
+                            .move(
+                              begin: const Offset(-20, -20),
+                              end: const Offset(20, 20),
+                              duration: 20.seconds,
+                              curve: Curves.linear,
+                            ),
                   ),
                 ),
                 Positioned.fill(
@@ -225,9 +234,8 @@ class _RipplesScreenState extends State<RipplesScreen>
                           Expanded(
                             child: ListView.separated(
                               itemCount: ripples.length,
-                              separatorBuilder:
-                                  (context, index) =>
-                                      const SizedBox(height: 12),
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 12),
                               itemBuilder: (context, index) {
                                 final ripple = ripples[index];
                                 final isCurrent = index == _currentIndex;
@@ -294,11 +302,11 @@ class _RipplesScreenState extends State<RipplesScreen>
                                 radius: 24,
                                 backgroundImage:
                                     currentRipple['profiles']['avatar_url'] !=
-                                            null
-                                        ? NetworkImage(
-                                          currentRipple['profiles']['avatar_url'],
-                                        )
-                                        : null,
+                                        null
+                                    ? NetworkImage(
+                                        currentRipple['profiles']['avatar_url'],
+                                      )
+                                    : null,
                               ),
                               const SizedBox(width: 16),
                               Expanded(
@@ -328,13 +336,12 @@ class _RipplesScreenState extends State<RipplesScreen>
                               ),
                               _buildGlassCircleButton(
                                 icon: FluentIcons.grid_24_regular,
-                                onTap:
-                                    () => _showLayoutSwitcher(
-                                      context,
-                                      ripplesService,
-                                      isM3E,
-                                      disableTransparency,
-                                    ),
+                                onTap: () => _showLayoutSwitcher(
+                                  context,
+                                  ripplesService,
+                                  isM3E,
+                                  disableTransparency,
+                                ),
                                 isM3E: isM3E,
                                 disableTransparency: disableTransparency,
                               ),
@@ -353,38 +360,33 @@ class _RipplesScreenState extends State<RipplesScreen>
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               _buildDesktopAction(
-                                icon:
-                                    currentRipple['is_liked']
-                                        ? FluentIcons.heart_24_filled
-                                        : FluentIcons.heart_24_regular,
+                                icon: currentRipple['is_liked']
+                                    ? FluentIcons.heart_24_filled
+                                    : FluentIcons.heart_24_regular,
                                 label: '${currentRipple['likes_count']}',
-                                color:
-                                    currentRipple['is_liked']
-                                        ? Colors.redAccent
-                                        : Colors.white,
+                                color: currentRipple['is_liked']
+                                    ? Colors.redAccent
+                                    : Colors.white,
                                 onTap: () => _toggleLikeInBuild(currentRipple),
                               ),
                               _buildDesktopAction(
                                 icon: FluentIcons.comment_24_regular,
                                 label: '${currentRipple['comments_count']}',
-                                onTap:
-                                    () => _showMobileComments(
-                                      context,
-                                      currentRipple['id'],
-                                      isM3E,
-                                      disableTransparency,
-                                    ),
+                                onTap: () => _showMobileComments(
+                                  context,
+                                  currentRipple['id'],
+                                  isM3E,
+                                  disableTransparency,
+                                ),
                               ),
                               _buildDesktopAction(
-                                icon:
-                                    currentRipple['is_saved']
-                                        ? FluentIcons.bookmark_24_filled
-                                        : FluentIcons.bookmark_24_regular,
+                                icon: currentRipple['is_saved']
+                                    ? FluentIcons.bookmark_24_filled
+                                    : FluentIcons.bookmark_24_regular,
                                 label: 'Save',
-                                color:
-                                    currentRipple['is_saved']
-                                        ? Colors.blueAccent
-                                        : Colors.white,
+                                color: currentRipple['is_saved']
+                                    ? Colors.blueAccent
+                                    : Colors.white,
                                 onTap: () => _toggleSaveInBuild(currentRipple),
                               ),
                               _buildDesktopAction(
@@ -433,36 +435,7 @@ class _RipplesScreenState extends State<RipplesScreen>
                 Theme.of(context).colorScheme,
                 disableTransparency,
               ),
-              Positioned(
-                top: MediaQuery.of(context).padding.top + 10,
-                left: 16,
-                right: 16,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildGlassCircleButton(
-                      icon: FluentIcons.dismiss_24_filled,
-                      onTap: _handleExit,
-                      isM3E: isM3E,
-                      disableTransparency: disableTransparency,
-                    ),
-                    _buildGlassCircleButton(
-                      icon: FluentIcons.grid_24_regular,
-                      onTap:
-                          () => _showLayoutSwitcher(
-                            context,
-                            ripplesService,
-                            isM3E,
-                            disableTransparency,
-                          ),
-                      isM3E: isM3E,
-                      disableTransparency: disableTransparency,
-                    ),
-                  ],
-                ),
-              ),
-
-              // Bottom Pill for Mobile
+              // Bottom Pill for Mobile (removed top buttons - no layout switcher or close at top)
               Positioned(
                 bottom: MediaQuery.of(context).padding.bottom + 20,
                 left: 16,
@@ -477,28 +450,54 @@ class _RipplesScreenState extends State<RipplesScreen>
                   ],
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(isM3E ? 24 : 32),
-                    child:
-                        disableTransparency
-                            ? Container(
-                              padding: const EdgeInsets.fromLTRB(
-                                16,
-                                12,
-                                16,
-                                12,
+                    child: disableTransparency
+                        ? Container(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade900,
+                              borderRadius: BorderRadius.circular(
+                                isM3E ? 24 : 32,
                               ),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.15),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.4),
+                                  blurRadius: 25,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: Stack(
+                              children: [
+                                _buildMobileBottomPillContent(currentRipple),
+                                Positioned(
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  child: _buildPillProgressBar(),
+                                ),
+                              ],
+                            ),
+                          )
+                        : BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 35, sigmaY: 35),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
                               decoration: BoxDecoration(
-                                color: Colors.grey.shade900,
+                                color: Colors.white.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(
                                   isM3E ? 24 : 32,
                                 ),
                                 border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.15),
+                                  color: Colors.white.withValues(alpha: 0.12),
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.4),
-                                    blurRadius: 25,
-                                    offset: const Offset(0, 10),
+                                    color: Colors.black.withValues(alpha: 0.35),
+                                    blurRadius: 40,
+                                    offset: const Offset(0, 12),
                                   ),
                                 ],
                               ),
@@ -507,52 +506,14 @@ class _RipplesScreenState extends State<RipplesScreen>
                                   _buildMobileBottomPillContent(currentRipple),
                                   Positioned(
                                     top: 0,
-                                    left: 0,
-                                    right: 0,
+                                    left: 20,
+                                    right: 20,
                                     child: _buildPillProgressBar(),
                                   ),
                                 ],
                               ),
-                            )
-                            : BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 35, sigmaY: 35),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(
-                                    isM3E ? 24 : 32,
-                                  ),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.12),
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.35,
-                                      ),
-                                      blurRadius: 40,
-                                      offset: const Offset(0, 12),
-                                    ),
-                                  ],
-                                ),
-                                child: Stack(
-                                  children: [
-                                    _buildMobileBottomPillContent(
-                                      currentRipple,
-                                    ),
-                                    Positioned(
-                                      top: 0,
-                                      left: 20,
-                                      right: 20,
-                                      child: _buildPillProgressBar(),
-                                    ),
-                                  ],
-                                ),
-                              ),
                             ),
+                          ),
                   ),
                 ),
               ),
@@ -560,6 +521,33 @@ class _RipplesScreenState extends State<RipplesScreen>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildTimeInfoBanner(BuildContext context) {
+    final wellbeing = context.watch<DigitalWellbeingService>();
+    final threshold = wellbeing.lockoutThresholdMinutes;
+    final usedMinutes = wellbeing.feedMinutes + wellbeing.ripplesMinutes;
+    final remaining = threshold - usedMinutes > 0 ? threshold - usedMinutes : 0;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.black54,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.timer_outlined, size: 14, color: Colors.white54),
+          const SizedBox(width: 6),
+          Text(
+            'Ripples time: ${wellbeing.ripplesMinutes}m / ${wellbeing.lockoutThresholdMinutes}m (Feed + Ripples)',
+            style: const TextStyle(fontSize: 11, color: Colors.white54),
+          ),
+        ],
+      ),
     );
   }
 
@@ -605,24 +593,21 @@ class _RipplesScreenState extends State<RipplesScreen>
                     backgroundColor: Colors.black,
                     backgroundImage:
                         currentRipple['profiles']?['avatar_url'] != null
-                            ? NetworkImage(
-                              currentRipple['profiles']['avatar_url'],
-                            )
-                            : null,
-                    child:
-                        currentRipple['profiles']?['avatar_url'] == null
-                            ? Text(
-                              (currentRipple['profiles']?['username']
-                                          as String? ??
-                                      'U')[0]
-                                  .toUpperCase(),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )
-                            : null,
+                        ? NetworkImage(currentRipple['profiles']['avatar_url'])
+                        : null,
+                    child: currentRipple['profiles']?['avatar_url'] == null
+                        ? Text(
+                            (currentRipple['profiles']?['username']
+                                        as String? ??
+                                    'U')[0]
+                                .toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : null,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -662,36 +647,31 @@ class _RipplesScreenState extends State<RipplesScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildMobileAction(
-                icon:
-                    currentRipple['is_liked'] == true
-                        ? FluentIcons.heart_24_filled
-                        : FluentIcons.heart_24_regular,
-                color:
-                    currentRipple['is_liked'] == true
-                        ? Colors.redAccent
-                        : Colors.white,
+                icon: currentRipple['is_liked'] == true
+                    ? FluentIcons.heart_24_filled
+                    : FluentIcons.heart_24_regular,
+                color: currentRipple['is_liked'] == true
+                    ? Colors.redAccent
+                    : Colors.white,
                 onTap: () => _toggleLikeInBuild(currentRipple),
               ),
               _buildMobileAction(
                 icon: FluentIcons.comment_24_regular,
                 color: Colors.white,
-                onTap:
-                    () => _showMobileComments(
-                      context,
-                      currentRipple['id'],
-                      false,
-                      false,
-                    ), // Actual values will come from context
+                onTap: () => _showMobileComments(
+                  context,
+                  currentRipple['id'],
+                  false,
+                  false,
+                ), // Actual values will come from context
               ),
               _buildMobileAction(
-                icon:
-                    currentRipple['is_saved'] == true
-                        ? FluentIcons.bookmark_24_filled
-                        : FluentIcons.bookmark_24_regular,
-                color:
-                    currentRipple['is_saved'] == true
-                        ? Colors.blueAccent
-                        : Colors.white,
+                icon: currentRipple['is_saved'] == true
+                    ? FluentIcons.bookmark_24_filled
+                    : FluentIcons.bookmark_24_regular,
+                color: currentRipple['is_saved'] == true
+                    ? Colors.blueAccent
+                    : Colors.white,
                 onTap: () => _toggleSaveInBuild(currentRipple),
               ),
               _buildMobileAction(
@@ -737,27 +717,26 @@ class _RipplesScreenState extends State<RipplesScreen>
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder:
-          (context) => Container(
-            height: MediaQuery.of(context).size.height * 0.7,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(isM3E ? 48 : 32),
-              ),
-            ),
-            child: Column(
-              children: [
-                const Text(
-                  'Comments',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                const SizedBox(height: 16),
-                Expanded(child: RippleCommentsList(rippleId: rippleId)),
-              ],
-            ),
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(isM3E ? 48 : 32),
           ),
+        ),
+        child: Column(
+          children: [
+            const Text(
+              'Comments',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const SizedBox(height: 16),
+            Expanded(child: RippleCommentsList(rippleId: rippleId)),
+          ],
+        ),
+      ),
     );
   }
 
@@ -770,48 +749,47 @@ class _RipplesScreenState extends State<RipplesScreen>
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder:
-          (context) => Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(isM3E ? 48 : 32),
-              ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(isM3E ? 48 : 32),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Layout Style',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                const Text(
-                  'Layout Style',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                _buildLayoutOption(
+                  context,
+                  service,
+                  RipplesLayoutType.kineticCardStack,
+                  'Kinetic',
+                  Icons.view_carousel,
+                  isM3E,
                 ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildLayoutOption(
-                      context,
-                      service,
-                      RipplesLayoutType.kineticCardStack,
-                      'Kinetic',
-                      Icons.view_carousel,
-                      isM3E,
-                    ),
-                    _buildLayoutOption(
-                      context,
-                      service,
-                      RipplesLayoutType.choiceMosaic,
-                      'Mosaic',
-                      Icons.grid_view_rounded,
-                      isM3E,
-                    ),
-                  ],
+                _buildLayoutOption(
+                  context,
+                  service,
+                  RipplesLayoutType.choiceMosaic,
+                  'Mosaic',
+                  Icons.grid_view_rounded,
+                  isM3E,
                 ),
-                const SizedBox(height: 32),
               ],
             ),
-          ),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
     );
   }
 
@@ -834,10 +812,9 @@ class _RipplesScreenState extends State<RipplesScreen>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color:
-                  isSelected
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(isM3E ? 24 : 100),
               shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
             ),
@@ -870,41 +847,40 @@ class _RipplesScreenState extends State<RipplesScreen>
       onTap: onTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius),
-        child:
-            disableTransparency
-                ? Container(
+        child: disableTransparency
+            ? Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(radius),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.1),
+                  ),
+                ),
+                child: Icon(icon, color: Colors.white, size: 24),
+              )
+            : BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(radius),
                     border: Border.all(
                       color: Colors.white.withValues(alpha: 0.1),
                     ),
                   ),
-                  child: Icon(icon, color: Colors.white, size: 24),
-                )
-                : BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(radius),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.1),
-                      ),
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        if (icon == FluentIcons.dismiss_24_filled ||
-                            icon == Icons.arrow_back)
-                          _buildWellbeingCircularTimer(),
-                        Icon(icon, color: Colors.white, size: 24),
-                      ],
-                    ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      if (icon == FluentIcons.dismiss_24_filled ||
+                          icon == Icons.arrow_back)
+                        _buildWellbeingCircularTimer(),
+                      Icon(icon, color: Colors.white, size: 24),
+                    ],
                   ),
                 ),
+              ),
       ),
     );
   }
@@ -913,7 +889,10 @@ class _RipplesScreenState extends State<RipplesScreen>
     final service = context.watch<DigitalWellbeingService>();
 
     final thresholdMs = service.lockoutThresholdMinutes * 60 * 1000.0;
-    final remainingMs = (thresholdMs - (service.totalSeconds * 1000.0)).clamp(0.0, thresholdMs);
+    final remainingMs = (thresholdMs - (service.totalSeconds * 1000.0)).clamp(
+      0.0,
+      thresholdMs,
+    );
     final progress = (remainingMs / thresholdMs).clamp(0.0, 1.0);
 
     return SizedBox(
@@ -983,11 +962,10 @@ class _RipplesScreenState extends State<RipplesScreen>
 
             if (!isM3E) {
               return Transform(
-                transform:
-                    Matrix4.identity()
-                      ..setEntry(3, 2, 0.001)
-                      ..scale(scale, scale, 1.0)
-                      ..rotateX(rotation),
+                transform: Matrix4.identity()
+                  ..setEntry(3, 2, 0.001)
+                  ..scale(scale, scale, 1.0)
+                  ..rotateX(rotation),
                 alignment: Alignment.center,
                 child: Opacity(opacity: opacity, child: videoPlayer),
               );
@@ -996,22 +974,26 @@ class _RipplesScreenState extends State<RipplesScreen>
             // M3E Enclosed Card Style
             return Transform(
               transform: Matrix4.identity()
-                  ..setEntry(3, 2, 0.001)
-                  ..scale(scale, scale, 1.0)
-                  ..rotateX(rotation),
+                ..setEntry(3, 2, 0.001)
+                ..scale(scale, scale, 1.0)
+                ..rotateX(rotation),
               alignment: Alignment.center,
               child: Opacity(
                 opacity: opacity,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 110, 12, 100),
+                  padding: const EdgeInsets.fromLTRB(
+                    12,
+                    110,
+                    12,
+                    200,
+                  ), // More padding between card and username
                   child: Container(
                     decoration: BoxDecoration(
-                      color:
-                          disableTransparency
-                              ? colorScheme.surfaceContainerHigh
-                              : colorScheme.surfaceContainerLow.withValues(
-                                alpha: 0.8,
-                              ),
+                      color: disableTransparency
+                          ? colorScheme.surfaceContainerHigh
+                          : colorScheme.surfaceContainerLow.withValues(
+                              alpha: 0.8,
+                            ),
                       borderRadius: BorderRadius.circular(36),
                       border: Border.all(
                         color: colorScheme.outlineVariant.withValues(
@@ -1080,7 +1062,10 @@ class _RipplesScreenState extends State<RipplesScreen>
   }) {
     return Column(
       children: [
-        IconButton(icon: Icon(icon, color: color, size: 28), onPressed: onTap),
+        IconButton(
+          icon: Icon(icon, color: color, size: 28),
+          onPressed: onTap,
+        ),
         Text(
           label,
           style: const TextStyle(color: Colors.white70, fontSize: 12),
@@ -1112,21 +1097,20 @@ class _RipplesScreenState extends State<RipplesScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder:
-          (context) => ShareToDirectMessageModal(
-            title: 'Share Ripple',
-            content: ripple['caption'] ?? 'Shared a ripple',
-            messageType: MessageType.ripple,
-            rippleId: ripple['id'],
-            mediaUrl: ripple['thumbnail_url'],
-            shareData: {
-              'username': ripple['profiles']['username'],
-              'user_avatar': ripple['profiles']['avatar_url'],
-              'caption': ripple['caption'],
-              'video_url': ripple['video_url'],
-              'thumbnail_url': ripple['thumbnail_url'],
-            },
-          ),
+      builder: (context) => ShareToDirectMessageModal(
+        title: 'Share Ripple',
+        content: ripple['caption'] ?? 'Shared a ripple',
+        messageType: MessageType.ripple,
+        rippleId: ripple['id'],
+        mediaUrl: ripple['thumbnail_url'],
+        shareData: {
+          'username': ripple['profiles']['username'],
+          'user_avatar': ripple['profiles']['avatar_url'],
+          'caption': ripple['caption'],
+          'video_url': ripple['video_url'],
+          'thumbnail_url': ripple['thumbnail_url'],
+        },
+      ),
     );
   }
 }
@@ -1157,15 +1141,14 @@ class _RippleVideoPlayerState extends State<RippleVideoPlayer>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _controller =
-        VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl))
-          ..initialize().then((_) {
-            if (!mounted) return;
-            setState(() {});
-            if (widget.isPlaying) _controller.play();
-          })
-          ..setLooping(true)
-          ..addListener(_handleProgress);
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl))
+      ..initialize().then((_) {
+        if (!mounted) return;
+        setState(() {});
+        if (widget.isPlaying) _controller.play();
+      })
+      ..setLooping(true)
+      ..addListener(_handleProgress);
   }
 
   void _handleProgress() {
@@ -1237,11 +1220,19 @@ class RippleCommentsList extends StatefulWidget {
 class _RippleCommentsListState extends State<RippleCommentsList> {
   List<dynamic> _comments = [];
   bool _isLoading = true;
+  final TextEditingController _commentController = TextEditingController();
+  bool _isPosting = false;
 
   @override
   void initState() {
     super.initState();
     _loadComments();
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
   }
 
   @override
@@ -1273,58 +1264,144 @@ class _RippleCommentsListState extends State<RippleCommentsList> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(strokeWidth: 2));
-    }
-    if (_comments.isEmpty) {
-      return const Center(
-        child: Text('No comments yet', style: TextStyle(color: Colors.white24)),
-      );
+  Future<void> _postComment() async {
+    if (_commentController.text.trim().isEmpty || _isPosting) return;
+
+    setState(() => _isPosting = true);
+
+    final supabase = SupabaseService().client;
+    final userId = AuthService().currentUser?.id;
+
+    if (userId == null) {
+      setState(() => _isPosting = false);
+      return;
     }
 
-    return ListView.separated(
-      itemCount: _comments.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 16),
-      itemBuilder: (context, index) {
-        final comment = _comments[index];
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              radius: 14,
-              backgroundImage:
-                  comment['profiles']['avatar_url'] != null
-                      ? NetworkImage(comment['profiles']['avatar_url'])
-                      : null,
+    try {
+      await supabase.from('ripple_comments').insert({
+        'ripple_id': widget.rippleId,
+        'user_id': userId,
+        'content': _commentController.text.trim(),
+      });
+
+      _commentController.clear();
+      await _loadComments();
+    } catch (e) {
+      debugPrint('Error posting comment: $e');
+    } finally {
+      if (mounted) setState(() => _isPosting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Comments list
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+              : _comments.isEmpty
+              ? const Center(
+                  child: Text(
+                    'No comments yet',
+                    style: TextStyle(color: Colors.white24),
+                  ),
+                )
+              : ListView.separated(
+                  itemCount: _comments.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final comment = _comments[index];
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CircleAvatar(
+                          radius: 14,
+                          backgroundImage:
+                              comment['profiles']?['avatar_url'] != null
+                              ? NetworkImage(comment['profiles']['avatar_url'])
+                              : null,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                comment['profiles']?['username'] ?? 'User',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                comment['content'] ?? '',
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+        ),
+        // Comment input field
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            border: Border(
+              top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    comment['profiles']['username'] ?? 'User',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _commentController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: 'Add a comment...',
+                    hintStyle: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.4),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    comment['content'],
-                    style: const TextStyle(color: Colors.white70, fontSize: 13),
-                  ),
-                ],
+                  onSubmitted: (_) => _postComment(),
+                ),
               ),
-            ),
-          ],
-        );
-      },
+              IconButton(
+                icon: _isPosting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white54,
+                        ),
+                      )
+                    : const Icon(
+                        FluentIcons.send_24_regular,
+                        color: Colors.white70,
+                      ),
+                onPressed: _isPosting ? null : _postComment,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1360,46 +1437,44 @@ class _ComingUpItemState extends State<_ComingUpItem> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color:
-                widget.isCurrent || _isHovered
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.transparent,
+            color: widget.isCurrent || _isHovered
+                ? Colors.white.withValues(alpha: 0.1)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(widget.isM3E ? 16 : 12),
             border: Border.all(
-              color:
-                  widget.isCurrent
-                      ? Colors.white.withValues(alpha: 0.3)
-                      : _isHovered
-                      ? Colors.white.withValues(alpha: 0.15)
-                      : Colors.transparent,
+              color: widget.isCurrent
+                  ? Colors.white.withValues(alpha: 0.3)
+                  : _isHovered
+                  ? Colors.white.withValues(alpha: 0.15)
+                  : Colors.transparent,
             ),
-            boxShadow:
-                _isHovered
-                    ? [
-                      BoxShadow(
-                        color: Colors.white.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        spreadRadius: 2,
-                      ),
-                    ]
-                    : [],
+            boxShadow: _isHovered
+                ? [
+                    BoxShadow(
+                      color: Colors.white.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ]
+                : [],
           ),
           child: Row(
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(widget.isM3E ? 12 : 8),
-                child: Image.network(
-                      widget.ripple['thumbnail_url'] ?? '',
-                      width: 60,
-                      height: 80,
-                      fit: BoxFit.cover,
-                    )
-                    .animate(target: _isHovered ? 1 : 0)
-                    .scale(
-                      begin: const Offset(1, 1),
-                      end: const Offset(1.1, 1.1),
-                      duration: 200.ms,
-                    ),
+                child:
+                    Image.network(
+                          widget.ripple['thumbnail_url'] ?? '',
+                          width: 60,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        )
+                        .animate(target: _isHovered ? 1 : 0)
+                        .scale(
+                          begin: const Offset(1, 1),
+                          end: const Offset(1.1, 1.1),
+                          duration: 200.ms,
+                        ),
               ),
               const SizedBox(width: 12),
               Expanded(

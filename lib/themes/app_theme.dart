@@ -8,32 +8,87 @@ class AppTheme {
   AppTheme._();
 
   // Helper method to get theme based on brightness
-  static ThemeData getTheme(Brightness brightness, {
-    bool isM3E = false, 
-    bool highContrast = false, 
-    String? fontFamily, 
+  static ThemeData getTheme(
+    Brightness brightness, {
+    bool isM3E = false,
+    bool highContrast = false,
+    String? fontFamily,
     String? headingFontFamily,
     String? bodyFontFamily,
-    ColorScheme? dynamicColorScheme
+    ColorScheme? dynamicColorScheme,
   }) {
     if (highContrast) {
-      return brightness == Brightness.dark ? highContrastDark(fontFamily: fontFamily ?? bodyFontFamily) : highContrastLight(fontFamily: fontFamily ?? bodyFontFamily);
+      return brightness == Brightness.dark
+          ? highContrastDark(fontFamily: fontFamily ?? bodyFontFamily)
+          : highContrastLight(fontFamily: fontFamily ?? bodyFontFamily);
     }
     if (isM3E) {
-      return brightness == Brightness.dark 
-          ? m3eDark(headingFontFamily: headingFontFamily, bodyFontFamily: fontFamily ?? bodyFontFamily, dynamicColorScheme: dynamicColorScheme) 
-          : m3eLight(headingFontFamily: headingFontFamily, bodyFontFamily: fontFamily ?? bodyFontFamily, dynamicColorScheme: dynamicColorScheme);
+      return brightness == Brightness.dark
+          ? m3eDark(
+              headingFontFamily: headingFontFamily,
+              bodyFontFamily: fontFamily ?? bodyFontFamily,
+              dynamicColorScheme: dynamicColorScheme,
+            )
+          : m3eLight(
+              headingFontFamily: headingFontFamily,
+              bodyFontFamily: fontFamily ?? bodyFontFamily,
+              dynamicColorScheme: dynamicColorScheme,
+            );
     }
-    return brightness == Brightness.dark 
-        ? dark(fontFamily: fontFamily ?? bodyFontFamily, dynamicColorScheme: dynamicColorScheme) 
-        : light(fontFamily: fontFamily ?? bodyFontFamily, dynamicColorScheme: dynamicColorScheme);
+    return brightness == Brightness.dark
+        ? dark(
+            fontFamily: fontFamily ?? bodyFontFamily,
+            dynamicColorScheme: dynamicColorScheme,
+          )
+        : light(
+            fontFamily: fontFamily ?? bodyFontFamily,
+            dynamicColorScheme: dynamicColorScheme,
+          );
   }
 
-  static ThemeData light({String? fontFamily, ColorScheme? dynamicColorScheme}) => _createTheme(Brightness.light, false, null, fontFamily, dynamicColorScheme);
-  static ThemeData dark({String? fontFamily, ColorScheme? dynamicColorScheme}) => _createTheme(Brightness.dark, false, null, fontFamily, dynamicColorScheme);
-  static ThemeData m3eLight({String? headingFontFamily, String? bodyFontFamily, ColorScheme? dynamicColorScheme}) => _createTheme(Brightness.light, true, headingFontFamily, bodyFontFamily, dynamicColorScheme);
-  static ThemeData m3eDark({String? headingFontFamily, String? bodyFontFamily, ColorScheme? dynamicColorScheme}) => _createTheme(Brightness.dark, true, headingFontFamily, bodyFontFamily, dynamicColorScheme);
-  
+  static ThemeData light({
+    String? fontFamily,
+    ColorScheme? dynamicColorScheme,
+  }) => _createTheme(
+    Brightness.light,
+    false,
+    null,
+    fontFamily,
+    dynamicColorScheme,
+  );
+  static ThemeData dark({
+    String? fontFamily,
+    ColorScheme? dynamicColorScheme,
+  }) => _createTheme(
+    Brightness.dark,
+    false,
+    null,
+    fontFamily,
+    dynamicColorScheme,
+  );
+  static ThemeData m3eLight({
+    String? headingFontFamily,
+    String? bodyFontFamily,
+    ColorScheme? dynamicColorScheme,
+  }) => _createTheme(
+    Brightness.light,
+    true,
+    headingFontFamily,
+    bodyFontFamily,
+    dynamicColorScheme,
+  );
+  static ThemeData m3eDark({
+    String? headingFontFamily,
+    String? bodyFontFamily,
+    ColorScheme? dynamicColorScheme,
+  }) => _createTheme(
+    Brightness.dark,
+    true,
+    headingFontFamily,
+    bodyFontFamily,
+    dynamicColorScheme,
+  );
+
   static ThemeData highContrastLight({String? fontFamily}) {
     final theme = light(fontFamily: fontFamily);
     return theme.copyWith(
@@ -81,36 +136,70 @@ class AppTheme {
     }
 
     try {
-      return GoogleFonts.getFont(
-        fontFamily,
-        textStyle: style,
-      );
+      return GoogleFonts.getFont(fontFamily, textStyle: style);
     } catch (e) {
       debugPrint('Error loading font $fontFamily: $e');
       return style;
     }
   }
 
-  static ThemeData _createTheme(Brightness brightness, bool isM3E, String? headingFont, String? bodyFont, ColorScheme? dynamicColorScheme) {
+  static ThemeData _createTheme(
+    Brightness brightness,
+    bool isM3E,
+    String? headingFont,
+    String? bodyFont,
+    ColorScheme? dynamicColorScheme,
+  ) {
     final isDark = brightness == Brightness.dark;
-    
+
     // Oasis default fonts
     final defaultHeadingFont = headingFont ?? 'Cormorant Garamond';
     final defaultBodyFont = bodyFont ?? 'Inter';
 
     if (isM3E) {
       var colorScheme = isDark ? m3eDarkColorScheme : m3eLightColorScheme;
-      if (dynamicColorScheme != null) {
+      final bool hasDynamicColor = dynamicColorScheme != null;
+      if (hasDynamicColor) {
         colorScheme = dynamicColorScheme;
       }
-      final textTheme = m3eTextTheme(colorScheme.onSurface, defaultHeadingFont, defaultBodyFont);
-      
+      final textTheme = m3eTextTheme(
+        colorScheme.onSurface,
+        defaultHeadingFont,
+        defaultBodyFont,
+      );
+
+      // Determine surface colors based on dynamic color availability
+      final Color scaffoldBackground = hasDynamicColor
+          ? colorScheme.surface
+          : (isDark ? OasisColors.deep : _m3eLightSurface);
+      final Color navigationBarBackground = hasDynamicColor
+          ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.6)
+          : (isDark
+                ? OasisColors.deep.withValues(alpha: 0.6)
+                : _m3eLightSurfaceContainer);
+      final Color navigationBarIndicator = hasDynamicColor
+          ? colorScheme.secondaryContainer
+          : (isDark ? OasisColors.moss : _m3eLightSecondaryContainer);
+      final Color cardColor = hasDynamicColor
+          ? colorScheme.surfaceContainerHigh
+          : (isDark ? OasisColors.moss : _m3eLightSurfaceContainerLow);
+      final Color appBarBackground = hasDynamicColor
+          ? colorScheme.surface.withValues(alpha: 0.6)
+          : (isDark
+                ? OasisColors.deep.withValues(alpha: 0.6)
+                : _m3eLightSurface);
+      final Color inputFillColor = hasDynamicColor
+          ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
+          : (isDark
+                ? OasisColors.moss.withValues(alpha: 0.5)
+                : _m3eLightSurfaceContainerLow);
+
       return ThemeData(
         useMaterial3: true,
         brightness: brightness,
         colorScheme: colorScheme,
         textTheme: textTheme,
-        scaffoldBackgroundColor: isDark ? OasisColors.deep : _m3eLightSurface,
+        scaffoldBackgroundColor: scaffoldBackground,
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: colorScheme.primary,
@@ -154,8 +243,8 @@ class AppTheme {
           ),
         ),
         navigationBarTheme: NavigationBarThemeData(
-          backgroundColor: isDark ? OasisColors.deep.withValues(alpha: 0.6) : _m3eLightSurfaceContainer,
-          indicatorColor: isDark ? OasisColors.moss : _m3eLightSecondaryContainer,
+          backgroundColor: navigationBarBackground,
+          indicatorColor: navigationBarIndicator,
           indicatorShape: const StadiumBorder(),
           elevation: 0,
           labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((states) {
@@ -174,15 +263,18 @@ class AppTheme {
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24.0), // Oasis large radius
-            side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5), width: 1),
+            side: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+              width: 1,
+            ),
           ),
-          color: isDark ? OasisColors.moss : _m3eLightSurfaceContainerLow,
+          color: cardColor,
           clipBehavior: Clip.antiAlias,
         ),
         appBarTheme: AppBarTheme(
           elevation: 0,
           centerTitle: true,
-          backgroundColor: isDark ? OasisColors.deep.withValues(alpha: 0.6) : _m3eLightSurface,
+          backgroundColor: appBarBackground,
           foregroundColor: colorScheme.onSurface,
           titleTextStyle: _getTextStyle(
             fontFamily: defaultHeadingFont,
@@ -191,11 +283,13 @@ class AppTheme {
             color: colorScheme.onSurface,
             isItalic: true,
           ),
-          systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+          systemOverlayStyle: isDark
+              ? SystemUiOverlayStyle.light
+              : SystemUiOverlayStyle.dark,
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: isDark ? OasisColors.moss.withValues(alpha: 0.5) : _m3eLightSurfaceContainerLow,
+          fillColor: inputFillColor,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16.0),
             borderSide: BorderSide.none,
@@ -216,7 +310,10 @@ class AppTheme {
             borderRadius: BorderRadius.circular(16.0),
             borderSide: BorderSide(color: colorScheme.error, width: 2),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
           hintStyle: _getTextStyle(
             fontFamily: defaultBodyFont,
             fontSize: 14,
@@ -236,49 +333,89 @@ class AppTheme {
             color: colorScheme.error,
           ),
         ),
-        extensions: [
-          isDark ? AppThemeExtension.dark : AppThemeExtension.light,
-        ],
+        extensions: [isDark ? AppThemeExtension.dark : AppThemeExtension.light],
       );
     }
 
     var colorScheme = isDark ? darkColorScheme : lightColorScheme;
-    if (dynamicColorScheme != null) {
+    final bool hasDynamicColor = dynamicColorScheme != null;
+    if (hasDynamicColor) {
       colorScheme = dynamicColorScheme;
     }
-    final textTheme = standardTextTheme(colorScheme.onSurface, defaultHeadingFont, defaultBodyFont);
-    
+    final textTheme = standardTextTheme(
+      colorScheme.onSurface,
+      defaultHeadingFont,
+      defaultBodyFont,
+    );
+
+    // Determine surface colors based on dynamic color availability
+    final Color scaffoldBackground = hasDynamicColor
+        ? colorScheme.surface
+        : (isDark ? OasisColors.deep : _lightBackgroundColor);
+    final Color appBarBackground = hasDynamicColor
+        ? colorScheme.surface.withValues(alpha: 0.6)
+        : (isDark
+              ? OasisColors.deep.withValues(alpha: 0.6)
+              : _lightBackgroundColor);
+    final Color appBarForeground = hasDynamicColor
+        ? colorScheme.onSurface
+        : (isDark ? OasisColors.white : _lightOnSurfaceColor);
+    final Color cardColor = hasDynamicColor
+        ? colorScheme.surfaceContainerHigh
+        : (isDark ? OasisColors.moss : _lightSurfaceColor);
+    final Color inputFillColor = hasDynamicColor
+        ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
+        : ((isDark ? OasisColors.moss : _lightSurfaceColor).withValues(
+            alpha: isDark ? 0.6 : 0.3,
+          ));
+    final Color navigationBarIndicator = hasDynamicColor
+        ? colorScheme.primaryContainer.withValues(alpha: isDark ? 0.2 : 0.12)
+        : ((isDark ? OasisColors.glow : _lightPrimaryColor).withValues(
+            alpha: isDark ? 0.2 : 0.12,
+          ));
+    final Color navigationBarBackground = hasDynamicColor
+        ? colorScheme.surface.withValues(alpha: 0.6)
+        : (isDark
+              ? OasisColors.deep.withValues(alpha: 0.6)
+              : Colors.transparent);
+
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
       colorScheme: colorScheme,
       textTheme: textTheme,
-      scaffoldBackgroundColor: isDark ? OasisColors.deep : _lightBackgroundColor,
+      scaffoldBackgroundColor: scaffoldBackground,
       appBarTheme: AppBarTheme(
         elevation: 0,
         centerTitle: true,
-        backgroundColor: isDark ? OasisColors.deep.withValues(alpha: 0.6) : _lightBackgroundColor,
-        foregroundColor: isDark ? OasisColors.white : _lightOnSurfaceColor,
+        backgroundColor: appBarBackground,
+        foregroundColor: appBarForeground,
         titleTextStyle: _getTextStyle(
           fontFamily: defaultHeadingFont,
           fontSize: 22,
           fontWeight: FontWeight.bold,
-          color: isDark ? OasisColors.white : _lightOnSurfaceColor,
+          color: appBarForeground,
           isItalic: true,
         ),
-        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+        systemOverlayStyle: isDark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark,
       ),
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
-          side: BorderSide(color: isDark ? OasisColors.sage.withValues(alpha: 0.5) : _lightSurfaceColor),
+          side: BorderSide(
+            color: isDark
+                ? OasisColors.sage.withValues(alpha: 0.5)
+                : _lightSurfaceColor,
+          ),
         ),
-        color: isDark ? OasisColors.moss : _lightSurfaceColor,
+        color: cardColor,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: (isDark ? OasisColors.moss : _lightSurfaceColor).withValues(alpha: isDark ? 0.6 : 0.3),
+        fillColor: inputFillColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
@@ -289,46 +426,49 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: isDark ? OasisColors.glow : _lightPrimaryColor, width: 2),
+          borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: isDark ? _darkErrorColor : _lightErrorColor),
+          borderSide: BorderSide(color: colorScheme.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: isDark ? _darkErrorColor : _lightErrorColor, width: 2),
+          borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         hintStyle: _getTextStyle(
           fontFamily: defaultBodyFont,
           fontSize: 14,
           fontWeight: FontWeight.w400,
-          color: (isDark ? OasisColors.mist : _lightOnSurfaceVariantColor).withValues(alpha: 0.6),
+          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
         ),
         labelStyle: _getTextStyle(
           fontFamily: defaultBodyFont,
           fontSize: 14,
           fontWeight: FontWeight.w400,
-          color: (isDark ? OasisColors.white : _lightOnSurfaceColor).withValues(alpha: 0.9),
+          color: colorScheme.onSurface.withValues(alpha: 0.9),
         ),
         errorStyle: _getTextStyle(
           fontFamily: defaultBodyFont,
           fontSize: 12,
           fontWeight: FontWeight.w400,
-          color: isDark ? _darkErrorColor : _lightErrorColor,
+          color: colorScheme.error,
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        indicatorColor: (isDark ? OasisColors.glow : _lightPrimaryColor).withValues(alpha: isDark ? 0.2 : 0.12),
-        backgroundColor: isDark ? OasisColors.deep.withValues(alpha: 0.6) : Colors.transparent,
+        indicatorColor: navigationBarIndicator,
+        backgroundColor: navigationBarBackground,
         indicatorShape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
         labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((states) {
           final color = states.contains(WidgetState.selected)
-              ? (isDark ? OasisColors.glow : _lightPrimaryColor)
-              : (isDark ? OasisColors.mist : _lightOnSurfaceVariantColor);
+              ? colorScheme.primary
+              : colorScheme.onSurfaceVariant;
           return _getTextStyle(
             fontFamily: defaultBodyFont,
             fontSize: 11,
@@ -337,47 +477,275 @@ class AppTheme {
           );
         }),
       ),
-      extensions: [
-        isDark ? AppThemeExtension.dark : AppThemeExtension.light,
-      ],
+      extensions: [isDark ? AppThemeExtension.dark : AppThemeExtension.light],
     );
   }
 
   // M3E Text Theme
-  static TextTheme m3eTextTheme(Color color, String? headingFont, String? bodyFont) => TextTheme(
-    displayLarge: _getTextStyle(fontFamily: headingFont, fontSize: 57, fontWeight: FontWeight.w400, letterSpacing: -0.25, color: color, height: 1.12, isItalic: true),
-    displayMedium: _getTextStyle(fontFamily: headingFont, fontSize: 45, fontWeight: FontWeight.w400, letterSpacing: 0, color: color, height: 1.15, isItalic: true),
-    displaySmall: _getTextStyle(fontFamily: headingFont, fontSize: 36, fontWeight: FontWeight.w400, letterSpacing: 0, color: color, height: 1.22, isItalic: true),
-    headlineLarge: _getTextStyle(fontFamily: headingFont, fontSize: 32, fontWeight: FontWeight.w600, letterSpacing: 0, color: color, height: 1.25, isItalic: true),
-    headlineMedium: _getTextStyle(fontFamily: headingFont, fontSize: 28, fontWeight: FontWeight.w600, letterSpacing: 0, color: color, height: 1.28, isItalic: true),
-    headlineSmall: _getTextStyle(fontFamily: headingFont, fontSize: 24, fontWeight: FontWeight.w600, letterSpacing: 0, color: color, height: 1.33, isItalic: true),
-    titleLarge: _getTextStyle(fontFamily: headingFont, fontSize: 22, fontWeight: FontWeight.w500, letterSpacing: 0, color: color, height: 1.27),
-    titleMedium: _getTextStyle(fontFamily: bodyFont, fontSize: 16, fontWeight: FontWeight.w500, letterSpacing: 0.15, color: color, height: 1.5),
-    titleSmall: _getTextStyle(fontFamily: bodyFont, fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.1, color: color, height: 1.42),
-    bodyLarge: _getTextStyle(fontFamily: bodyFont, fontSize: 16, fontWeight: FontWeight.w400, letterSpacing: 0.5, color: color.withValues(alpha: 0.8), height: 1.5),
-    bodyMedium: _getTextStyle(fontFamily: bodyFont, fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, color: color.withValues(alpha: 0.8), height: 1.42),
-    bodySmall: _getTextStyle(fontFamily: bodyFont, fontSize: 12, fontWeight: FontWeight.w400, letterSpacing: 0.4, color: color.withValues(alpha: 0.6), height: 1.33),
-    labelLarge: _getTextStyle(fontFamily: bodyFont, fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.1, color: color, height: 1.42),
-    labelMedium: _getTextStyle(fontFamily: bodyFont, fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: 0.5, color: color, height: 1.33),
-    labelSmall: _getTextStyle(fontFamily: bodyFont, fontSize: 11, fontWeight: FontWeight.w500, letterSpacing: 0.5, color: color, height: 1.45),
+  static TextTheme m3eTextTheme(
+    Color color,
+    String? headingFont,
+    String? bodyFont,
+  ) => TextTheme(
+    displayLarge: _getTextStyle(
+      fontFamily: headingFont,
+      fontSize: 57,
+      fontWeight: FontWeight.w400,
+      letterSpacing: -0.25,
+      color: color,
+      height: 1.12,
+      isItalic: true,
+    ),
+    displayMedium: _getTextStyle(
+      fontFamily: headingFont,
+      fontSize: 45,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0,
+      color: color,
+      height: 1.15,
+      isItalic: true,
+    ),
+    displaySmall: _getTextStyle(
+      fontFamily: headingFont,
+      fontSize: 36,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0,
+      color: color,
+      height: 1.22,
+      isItalic: true,
+    ),
+    headlineLarge: _getTextStyle(
+      fontFamily: headingFont,
+      fontSize: 32,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0,
+      color: color,
+      height: 1.25,
+      isItalic: true,
+    ),
+    headlineMedium: _getTextStyle(
+      fontFamily: headingFont,
+      fontSize: 28,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0,
+      color: color,
+      height: 1.28,
+      isItalic: true,
+    ),
+    headlineSmall: _getTextStyle(
+      fontFamily: headingFont,
+      fontSize: 24,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0,
+      color: color,
+      height: 1.33,
+      isItalic: true,
+    ),
+    titleLarge: _getTextStyle(
+      fontFamily: headingFont,
+      fontSize: 22,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0,
+      color: color,
+      height: 1.27,
+    ),
+    titleMedium: _getTextStyle(
+      fontFamily: bodyFont,
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.15,
+      color: color,
+      height: 1.5,
+    ),
+    titleSmall: _getTextStyle(
+      fontFamily: bodyFont,
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.1,
+      color: color,
+      height: 1.42,
+    ),
+    bodyLarge: _getTextStyle(
+      fontFamily: bodyFont,
+      fontSize: 16,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0.5,
+      color: color.withValues(alpha: 0.8),
+      height: 1.5,
+    ),
+    bodyMedium: _getTextStyle(
+      fontFamily: bodyFont,
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0.25,
+      color: color.withValues(alpha: 0.8),
+      height: 1.42,
+    ),
+    bodySmall: _getTextStyle(
+      fontFamily: bodyFont,
+      fontSize: 12,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0.4,
+      color: color.withValues(alpha: 0.6),
+      height: 1.33,
+    ),
+    labelLarge: _getTextStyle(
+      fontFamily: bodyFont,
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.1,
+      color: color,
+      height: 1.42,
+    ),
+    labelMedium: _getTextStyle(
+      fontFamily: bodyFont,
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.5,
+      color: color,
+      height: 1.33,
+    ),
+    labelSmall: _getTextStyle(
+      fontFamily: bodyFont,
+      fontSize: 11,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.5,
+      color: color,
+      height: 1.45,
+    ),
   );
 
-  static TextTheme standardTextTheme(Color color, String? headingFont, String? bodyFont) => TextTheme(
-    displayLarge: _getTextStyle(fontFamily: headingFont, fontSize: 57, fontWeight: FontWeight.w400, letterSpacing: -0.25, color: color, height: 1.12, isItalic: true),
-    displayMedium: _getTextStyle(fontFamily: headingFont, fontSize: 45, fontWeight: FontWeight.w400, letterSpacing: 0, color: color, height: 1.15, isItalic: true),
-    displaySmall: _getTextStyle(fontFamily: headingFont, fontSize: 36, fontWeight: FontWeight.w400, letterSpacing: 0, color: color, height: 1.22, isItalic: true),
-    headlineLarge: _getTextStyle(fontFamily: headingFont, fontSize: 32, fontWeight: FontWeight.w400, letterSpacing: 0, color: color, height: 1.25, isItalic: true),
-    headlineMedium: _getTextStyle(fontFamily: headingFont, fontSize: 28, fontWeight: FontWeight.w400, letterSpacing: 0, color: color, height: 1.28, isItalic: true),
-    headlineSmall: _getTextStyle(fontFamily: headingFont, fontSize: 24, fontWeight: FontWeight.w400, letterSpacing: 0, color: color, height: 1.33, isItalic: true),
-    titleLarge: _getTextStyle(fontFamily: headingFont, fontSize: 22, fontWeight: FontWeight.w400, letterSpacing: 0, color: color, height: 1.27),
-    titleMedium: _getTextStyle(fontFamily: bodyFont, fontSize: 16, fontWeight: FontWeight.w500, letterSpacing: 0.15, color: color, height: 1.5),
-    titleSmall: _getTextStyle(fontFamily: bodyFont, fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.1, color: color, height: 1.42),
-    bodyLarge: _getTextStyle(fontFamily: bodyFont, fontSize: 16, fontWeight: FontWeight.w400, letterSpacing: 0.5, color: color, height: 1.5),
-    bodyMedium: _getTextStyle(fontFamily: bodyFont, fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25, color: color, height: 1.42),
-    bodySmall: _getTextStyle(fontFamily: bodyFont, fontSize: 12, fontWeight: FontWeight.w400, letterSpacing: 0.4, color: color, height: 1.33),
-    labelLarge: _getTextStyle(fontFamily: bodyFont, fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.1, color: color, height: 1.42),
-    labelMedium: _getTextStyle(fontFamily: bodyFont, fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: 0.5, color: color, height: 1.33),
-    labelSmall: _getTextStyle(fontFamily: bodyFont, fontSize: 11, fontWeight: FontWeight.w500, letterSpacing: 0.5, color: color, height: 1.45),
+  static TextTheme standardTextTheme(
+    Color color,
+    String? headingFont,
+    String? bodyFont,
+  ) => TextTheme(
+    displayLarge: _getTextStyle(
+      fontFamily: headingFont,
+      fontSize: 57,
+      fontWeight: FontWeight.w400,
+      letterSpacing: -0.25,
+      color: color,
+      height: 1.12,
+      isItalic: true,
+    ),
+    displayMedium: _getTextStyle(
+      fontFamily: headingFont,
+      fontSize: 45,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0,
+      color: color,
+      height: 1.15,
+      isItalic: true,
+    ),
+    displaySmall: _getTextStyle(
+      fontFamily: headingFont,
+      fontSize: 36,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0,
+      color: color,
+      height: 1.22,
+      isItalic: true,
+    ),
+    headlineLarge: _getTextStyle(
+      fontFamily: headingFont,
+      fontSize: 32,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0,
+      color: color,
+      height: 1.25,
+      isItalic: true,
+    ),
+    headlineMedium: _getTextStyle(
+      fontFamily: headingFont,
+      fontSize: 28,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0,
+      color: color,
+      height: 1.28,
+      isItalic: true,
+    ),
+    headlineSmall: _getTextStyle(
+      fontFamily: headingFont,
+      fontSize: 24,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0,
+      color: color,
+      height: 1.33,
+      isItalic: true,
+    ),
+    titleLarge: _getTextStyle(
+      fontFamily: headingFont,
+      fontSize: 22,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0,
+      color: color,
+      height: 1.27,
+    ),
+    titleMedium: _getTextStyle(
+      fontFamily: bodyFont,
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.15,
+      color: color,
+      height: 1.5,
+    ),
+    titleSmall: _getTextStyle(
+      fontFamily: bodyFont,
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.1,
+      color: color,
+      height: 1.42,
+    ),
+    bodyLarge: _getTextStyle(
+      fontFamily: bodyFont,
+      fontSize: 16,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0.5,
+      color: color,
+      height: 1.5,
+    ),
+    bodyMedium: _getTextStyle(
+      fontFamily: bodyFont,
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0.25,
+      color: color,
+      height: 1.42,
+    ),
+    bodySmall: _getTextStyle(
+      fontFamily: bodyFont,
+      fontSize: 12,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0.4,
+      color: color,
+      height: 1.33,
+    ),
+    labelLarge: _getTextStyle(
+      fontFamily: bodyFont,
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.1,
+      color: color,
+      height: 1.42,
+    ),
+    labelMedium: _getTextStyle(
+      fontFamily: bodyFont,
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.5,
+      color: color,
+      height: 1.33,
+    ),
+    labelSmall: _getTextStyle(
+      fontFamily: bodyFont,
+      fontSize: 11,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.5,
+      color: color,
+      height: 1.45,
+    ),
   );
 
   // M3E Colors - Light

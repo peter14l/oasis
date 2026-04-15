@@ -27,6 +27,10 @@ class ConversationProvider with ChangeNotifier {
   final Map<String, RealtimeChannel> _readReceiptSubscriptions = {};
   final Map<String, RealtimeChannel> _typingSubscriptions = {};
 
+  // Polling fallback for when realtime fails (unread count sync)
+  Timer? _pollingTimer;
+  static const Duration _pollingInterval = Duration(seconds: 10);
+
   // Getters
   List<Conversation> get conversations => _conversations;
   bool get isLoading => _isLoading;
@@ -63,6 +67,7 @@ class ConversationProvider with ChangeNotifier {
 
     await loadConversations();
     _setupRealtimeSubscriptions();
+    _startPollingFallback();
   }
 
   /// Load conversations from cache
@@ -75,11 +80,10 @@ class ConversationProvider with ChangeNotifier {
       );
       if (cachedData != null) {
         final List<dynamic> decodedData = jsonDecode(cachedData);
-        _conversations =
-            decodedData.map((item) {
-              final c = Conversation.fromJson(item);
-              return c.copyWith(isPinned: _pinnedIds.contains(c.id));
-            }).toList();
+        _conversations = decodedData.map((item) {
+          final c = Conversation.fromJson(item);
+          return c.copyWith(isPinned: _pinnedIds.contains(c.id));
+        }).toList();
 
         // Sort cached conversations
         _conversations.sort((a, b) {
@@ -137,10 +141,9 @@ class ConversationProvider with ChangeNotifier {
         return timeB.compareTo(timeA);
       });
 
-      _conversations =
-          conversations
-              .map((c) => c.copyWith(isPinned: _pinnedIds.contains(c.id)))
-              .toList();
+      _conversations = conversations
+          .map((c) => c.copyWith(isPinned: _pinnedIds.contains(c.id)))
+          .toList();
       await _saveConversationsToCache();
       _setupPresenceSubscriptions();
 
@@ -427,6 +430,10 @@ class ConversationProvider with ChangeNotifier {
 
   @override
   void dispose() {
+    // Stop polling fallback
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
+
     _conversationsSubscription?.unsubscribe();
     for (final channel in _readReceiptSubscriptions.values) {
       channel.unsubscribe();
@@ -435,6 +442,26 @@ class ConversationProvider with ChangeNotifier {
       channel.unsubscribe();
     }
     super.dispose();
+  }
+
+  /// Start polling fallback to ensure conversations sync even if realtime fails.
+  void _startPollingFallback() {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(_pollingInterval, (_) {
+      _pollConversations();
+    });
+  }
+
+  /// Polling callback - lightweight sync for unread counts.
+  Future<void> _pollConversations() async {
+    if (_isLoading) return;
+
+    try {
+      // Just refresh conversations without full re-init to sync unread counts
+      await loadConversations(silent: true);
+    } catch (e) {
+      debugPrint('[ConversationProvider] Polling sync error: $e');
+    }
   }
 
   /// Fetches recent unread messages for Peek preview (decrypted, without marking as read).

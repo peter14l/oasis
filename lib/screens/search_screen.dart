@@ -8,6 +8,7 @@ import 'package:oasis/features/feed/presentation/widgets/post_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/widgets/desktop_header.dart';
+import 'package:oasis/widgets/wellbeing/lockout_overlay.dart';
 
 import 'package:oasis/services/app_initializer.dart'; // For ThemeProvider
 import 'package:provider/provider.dart';
@@ -110,10 +111,9 @@ class _SearchScreenState extends State<SearchScreen>
 
     if (isDesktop && !usePanelLayout) {
       // Full Screen Desktop layout
-      final desktopBgColor =
-          disableTransparency
-              ? colorScheme.surface
-              : colorScheme.surface.withValues(alpha: 0.4);
+      final desktopBgColor = disableTransparency
+          ? colorScheme.surface
+          : colorScheme.surface.withValues(alpha: 0.4);
 
       return Padding(
         padding: const EdgeInsets.all(12),
@@ -125,29 +125,38 @@ class _SearchScreenState extends State<SearchScreen>
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
-            child:
-                disableTransparency
-                    ? Scaffold(
-                      backgroundColor: Colors.transparent,
-                      body: Column(
-                        children: [
-                          _buildNewDesktopHeader(theme, colorScheme, isM3E),
-                          Expanded(child: _buildDesktopLayout(isM3E)),
-                        ],
-                      ),
-                    )
-                    : BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                      child: Scaffold(
-                        backgroundColor: Colors.transparent,
-                        body: Column(
+            child: disableTransparency
+                ? Scaffold(
+                    backgroundColor: Colors.transparent,
+                    body: Stack(
+                      children: [
+                        Column(
                           children: [
                             _buildNewDesktopHeader(theme, colorScheme, isM3E),
                             Expanded(child: _buildDesktopLayout(isM3E)),
                           ],
                         ),
+                        const LockoutOverlay(pageName: 'Search'),
+                      ],
+                    ),
+                  )
+                : BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Scaffold(
+                      backgroundColor: Colors.transparent,
+                      body: Stack(
+                        children: [
+                          Column(
+                            children: [
+                              _buildNewDesktopHeader(theme, colorScheme, isM3E),
+                              Expanded(child: _buildDesktopLayout(isM3E)),
+                            ],
+                          ),
+                          const LockoutOverlay(pageName: 'Search'),
+                        ],
                       ),
                     ),
+                  ),
           ),
         ),
       );
@@ -217,19 +226,19 @@ class _SearchScreenState extends State<SearchScreen>
 
     // Mobile layout
     return Scaffold(
-      backgroundColor:
-          usePanelLayout ? colorScheme.surface : theme.scaffoldBackgroundColor,
+      backgroundColor: usePanelLayout
+          ? colorScheme.surface
+          : theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: colorScheme.surface,
         automaticallyImplyLeading: !usePanelLayout,
         flexibleSpace: ClipRRect(
-          child:
-              disableTransparency
-                  ? Container(color: Colors.transparent)
-                  : BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(color: Colors.transparent),
-                  ),
+          child: disableTransparency
+              ? Container(color: Colors.transparent)
+              : BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(color: Colors.transparent),
+                ),
         ),
         elevation: 0,
         toolbarHeight: 80,
@@ -301,7 +310,12 @@ class _SearchScreenState extends State<SearchScreen>
           ),
         ),
       ),
-      body: _buildMobileLayout(isM3E),
+      body: Stack(
+        children: [
+          _buildMobileLayout(isM3E),
+          const LockoutOverlay(pageName: 'Search'),
+        ],
+      ),
     );
   }
 
@@ -324,14 +338,12 @@ class _SearchScreenState extends State<SearchScreen>
               onPressed: () => setState(() => _showFilters = !_showFilters),
               tooltip: _showFilters ? 'Hide Filters' : 'Show Filters',
               style: IconButton.styleFrom(
-                backgroundColor:
-                    _showFilters
-                        ? colorScheme.primaryContainer
-                        : colorScheme.surfaceContainerHighest,
-                foregroundColor:
-                    _showFilters
-                        ? colorScheme.primary
-                        : colorScheme.onSurfaceVariant,
+                backgroundColor: _showFilters
+                    ? colorScheme.primaryContainer
+                    : colorScheme.surfaceContainerHighest,
+                foregroundColor: _showFilters
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(isM3E ? 12 : 20),
                 ),
@@ -367,16 +379,15 @@ class _SearchScreenState extends State<SearchScreen>
                     fontWeight: FontWeight.w500,
                   ),
                   prefixIcon: const Icon(Icons.search, size: 28),
-                  suffixIcon:
-                      _query.isNotEmpty
-                          ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              _onSearchChanged('');
-                            },
-                          )
-                          : null,
+                  suffixIcon: _query.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                            _onSearchChanged('');
+                          },
+                        )
+                      : null,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 20,
@@ -405,28 +416,27 @@ class _SearchScreenState extends State<SearchScreen>
           top: Radius.circular(isM3E ? 48 : 24),
         ),
       ),
-      builder:
-          (context) => Container(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Sort Results',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
-                    letterSpacing: isM3E ? -0.5 : 0,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                _buildSortOption('Relevance', 'relevance', Icons.star_outline),
-                _buildSortOption('Recent', 'recent', Icons.access_time),
-                _buildSortOption('Popular', 'popular', Icons.trending_up),
-                const SizedBox(height: 32),
-              ],
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Sort Results',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                letterSpacing: isM3E ? -0.5 : 0,
+              ),
             ),
-          ),
+            const SizedBox(height: 24),
+            _buildSortOption('Relevance', 'relevance', Icons.star_outline),
+            _buildSortOption('Recent', 'recent', Icons.access_time),
+            _buildSortOption('Popular', 'popular', Icons.trending_up),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
     );
   }
 
@@ -441,25 +451,22 @@ class _SearchScreenState extends State<SearchScreen>
           height: 44,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color:
-                isSelected
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.surfaceContainerHighest.withValues(
-                      alpha: 0.5,
-                    ),
+            color: isSelected
+                ? theme.colorScheme.primary
+                : theme.colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.5,
+                  ),
             borderRadius: BorderRadius.circular(isM3E ? 12 : 12),
           ),
           child: Text(
             label,
             style: theme.textTheme.labelLarge?.copyWith(
-              color:
-                  isSelected
-                      ? Colors.white
-                      : theme.colorScheme.onSurfaceVariant,
-              fontWeight:
-                  isSelected
-                      ? (isM3E ? FontWeight.w900 : FontWeight.bold)
-                      : FontWeight.normal,
+              color: isSelected
+                  ? Colors.white
+                  : theme.colorScheme.onSurfaceVariant,
+              fontWeight: isSelected
+                  ? (isM3E ? FontWeight.w900 : FontWeight.bold)
+                  : FontWeight.normal,
             ),
           ),
         );
@@ -486,12 +493,11 @@ class _SearchScreenState extends State<SearchScreen>
           ),
         // Main Content
         Expanded(
-          child:
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _query.isEmpty
-                  ? _buildSearchSuggestions(isM3E)
-                  : _buildDesktopResults(isM3E),
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _query.isEmpty
+              ? _buildSearchSuggestions(isM3E)
+              : _buildDesktopResults(isM3E),
         ),
       ],
     );
@@ -503,9 +509,9 @@ class _SearchScreenState extends State<SearchScreen>
         : _query.isEmpty
         ? _buildSearchSuggestions(isM3E)
         : TabBarView(
-          controller: _tabController,
-          children: [_buildUserList(isM3E), _buildPostList()],
-        );
+            controller: _tabController,
+            children: [_buildUserList(isM3E), _buildPostList()],
+          );
   }
 
   Widget _buildPanelLayout(bool isM3E) {
@@ -516,56 +522,56 @@ class _SearchScreenState extends State<SearchScreen>
         ? const Center(child: CircularProgressIndicator())
         : _query.isEmpty
         ? Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.search,
-                  size: 48,
-                  color: colorScheme.primary.withValues(alpha: 0.5),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Search for people and posts',
-                  style: theme.textTheme.titleSmall,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Enter keywords to find users and posts',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        )
-        : Column(
-          children: [
-            // Simple tab bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: Row(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Expanded(child: _buildPanelTab('People', 0, isM3E)),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildPanelTab('Posts', 1, isM3E)),
+                  Icon(
+                    Icons.search,
+                    size: 48,
+                    color: colorScheme.primary.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Search for people and posts',
+                    style: theme.textTheme.titleSmall,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Enter keywords to find users and posts',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ],
               ),
             ),
-            // Results
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [_buildPanelUserList(isM3E), _buildPanelPostList()],
+          )
+        : Column(
+            children: [
+              // Simple tab bar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: Row(
+                  children: [
+                    Expanded(child: _buildPanelTab('People', 0, isM3E)),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildPanelTab('Posts', 1, isM3E)),
+                  ],
+                ),
               ),
-            ),
-          ],
-        );
+              // Results
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [_buildPanelUserList(isM3E), _buildPanelPostList()],
+                ),
+              ),
+            ],
+          );
   }
 
   Widget _buildPanelTab(String label, int index, bool isM3E) {
@@ -580,21 +586,19 @@ class _SearchScreenState extends State<SearchScreen>
             height: 36,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color:
-                  isSelected
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.surfaceContainerHighest.withValues(
-                        alpha: 0.5,
-                      ),
+              color: isSelected
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.5,
+                    ),
               borderRadius: BorderRadius.circular(isM3E ? 10 : 10),
             ),
             child: Text(
               label,
               style: theme.textTheme.labelMedium?.copyWith(
-                color:
-                    isSelected
-                        ? Colors.white
-                        : theme.colorScheme.onSurfaceVariant,
+                color: isSelected
+                    ? Colors.white
+                    : theme.colorScheme.onSurfaceVariant,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
@@ -629,14 +633,12 @@ class _SearchScreenState extends State<SearchScreen>
           dense: true,
           leading: CircleAvatar(
             radius: 18,
-            backgroundImage:
-                user['avatar_url'] != null
-                    ? CachedNetworkImageProvider(user['avatar_url'])
-                    : null,
-            child:
-                user['avatar_url'] == null
-                    ? Text(user['username'][0].toUpperCase())
-                    : null,
+            backgroundImage: user['avatar_url'] != null
+                ? CachedNetworkImageProvider(user['avatar_url'])
+                : null,
+            child: user['avatar_url'] == null
+                ? Text(user['username'][0].toUpperCase())
+                : null,
           ),
           title: Text(
             user['full_name'] ?? user['username'],
@@ -701,17 +703,15 @@ class _SearchScreenState extends State<SearchScreen>
             children: [
               CircleAvatar(
                 radius: 14,
-                backgroundImage:
-                    post.userAvatar.isNotEmpty
-                        ? CachedNetworkImageProvider(post.userAvatar)
-                        : null,
-                child:
-                    post.userAvatar.isEmpty
-                        ? Text(
-                          post.username[0].toUpperCase(),
-                          style: const TextStyle(fontSize: 10),
-                        )
-                        : null,
+                backgroundImage: post.userAvatar.isNotEmpty
+                    ? CachedNetworkImageProvider(post.userAvatar)
+                    : null,
+                child: post.userAvatar.isEmpty
+                    ? Text(
+                        post.username[0].toUpperCase(),
+                        style: const TextStyle(fontSize: 10),
+                      )
+                    : null,
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -869,10 +869,9 @@ class _SearchScreenState extends State<SearchScreen>
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color:
-                isSelected
-                    ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
-                    : null,
+            color: isSelected
+                ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
+                : null,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -880,10 +879,9 @@ class _SearchScreenState extends State<SearchScreen>
               Icon(
                 icon,
                 size: 20,
-                color:
-                    isSelected
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurfaceVariant,
+                color: isSelected
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: 12),
               Text(
@@ -1075,41 +1073,39 @@ class _SearchScreenState extends State<SearchScreen>
             decoration: BoxDecoration(
               shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
               borderRadius: isM3E ? BorderRadius.circular(10) : null,
-              border:
-                  isM3E
-                      ? Border.all(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 1,
-                      )
-                      : null,
+              border: isM3E
+                  ? Border.all(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 1,
+                    )
+                  : null,
             ),
             child: ClipRRect(
-              borderRadius:
-                  isM3E ? BorderRadius.circular(8) : BorderRadius.circular(20),
+              borderRadius: isM3E
+                  ? BorderRadius.circular(8)
+                  : BorderRadius.circular(20),
               child: SizedBox(
                 width: 40,
                 height: 40,
-                child:
-                    user['avatar_url'] != null
-                        ? CachedNetworkImage(
-                          imageUrl: user['avatar_url'],
-                          fit: BoxFit.cover,
-                        )
-                        : Container(
-                          color:
-                              Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest,
-                          child: Center(
-                            child: Text(
-                              user['username'][0].toUpperCase(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
+                child: user['avatar_url'] != null
+                    ? CachedNetworkImage(
+                        imageUrl: user['avatar_url'],
+                        fit: BoxFit.cover,
+                      )
+                    : Container(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                        child: Center(
+                          child: Text(
+                            user['username'][0].toUpperCase(),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ),
+                      ),
               ),
             ),
           ),
@@ -1156,42 +1152,38 @@ class _SearchScreenState extends State<SearchScreen>
                     decoration: BoxDecoration(
                       shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
                       borderRadius: isM3E ? BorderRadius.circular(14) : null,
-                      border:
-                          isM3E
-                              ? Border.all(
-                                color: theme.colorScheme.primary,
-                                width: 1.5,
-                              )
-                              : null,
+                      border: isM3E
+                          ? Border.all(
+                              color: theme.colorScheme.primary,
+                              width: 1.5,
+                            )
+                          : null,
                     ),
                     child: ClipRRect(
-                      borderRadius:
-                          isM3E
-                              ? BorderRadius.circular(11)
-                              : BorderRadius.circular(28),
+                      borderRadius: isM3E
+                          ? BorderRadius.circular(11)
+                          : BorderRadius.circular(28),
                       child: SizedBox(
                         width: 56,
                         height: 56,
-                        child:
-                            user['avatar_url'] != null
-                                ? CachedNetworkImage(
-                                  imageUrl: user['avatar_url'],
-                                  fit: BoxFit.cover,
-                                )
-                                : Container(
-                                  color:
-                                      theme.colorScheme.surfaceContainerHighest,
-                                  child: Center(
-                                    child: Text(
-                                      user['username'][0].toUpperCase(),
-                                      style: theme.textTheme.titleLarge
-                                          ?.copyWith(
-                                            color: theme.colorScheme.primary,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                        child: user['avatar_url'] != null
+                            ? CachedNetworkImage(
+                                imageUrl: user['avatar_url'],
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                color:
+                                    theme.colorScheme.surfaceContainerHighest,
+                                child: Center(
+                                  child: Text(
+                                    user['username'][0].toUpperCase(),
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                      color: theme.colorScheme.primary,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
+                              ),
                       ),
                     ),
                   ),
@@ -1204,8 +1196,9 @@ class _SearchScreenState extends State<SearchScreen>
                         Text(
                           user['full_name'] ?? user['username'],
                           style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight:
-                                isM3E ? FontWeight.w900 : FontWeight.bold,
+                            fontWeight: isM3E
+                                ? FontWeight.w900
+                                : FontWeight.bold,
                             letterSpacing: isM3E ? -0.5 : 0,
                           ),
                           maxLines: 1,
@@ -1253,9 +1246,9 @@ class _SearchScreenState extends State<SearchScreen>
 
     return (ResponsiveLayout.isDesktop(context) && !widget.isPanel)
         ? MaxWidthContainer(
-          maxWidth: ResponsiveLayout.maxFeedWidth,
-          child: postList,
-        )
+            maxWidth: ResponsiveLayout.maxFeedWidth,
+            child: postList,
+          )
         : postList;
   }
 
