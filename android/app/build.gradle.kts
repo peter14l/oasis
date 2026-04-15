@@ -36,8 +36,8 @@ android {
 
     buildTypes {
         getByName("debug") {
-            // Debug build: com.oasis.app.debug
-            applicationIdSuffix = ".debug"
+            // Must match a package name in google-services.json
+            applicationIdSuffix = "" 
         }
         getByName("release") {
             // Release build: com.oasis.app

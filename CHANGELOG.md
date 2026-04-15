@@ -23,7 +23,7 @@ All notable changes to this project will be documented in this file.
 - **Staggered Post-Auth Initialization (2026-04-15)** - Post-login data loading is now staggered (300ms-1200ms delays) to prevent frame drops and UI blocking
 - **Theme Caching (2026-04-15)** - Theme computations are now cached and only recomputed when settings change, reducing build-time overhead
 - **In-App Update Notifier (2026-04-15)** - Added UpdateService that checks for app updates from remote server, shows native notification or dialog when update available. Configurable via `UPDATE_CHECK_URL` and `UPDATE_CHECK_ENABLED` environment variables
-- **Debug/Release Package Separation (2026-04-15)** - Debug builds now use `com.oasis.app.debug` package name, release builds use `com.oasis.app`. This prevents debug and release APKs from overwriting each other on the same device. Correctly implemented via `applicationIdSuffix`.
+- **Debug/Release Package Separation (2026-04-15)** - Both builds now share `com.oasis.app` to maintain compatibility with existing Firebase configuration. Separation requires updated `google-services.json`.
 - Polling fallback to `ChatProvider` (message delay fix) - Messages now sync every 10 seconds as fallback when Supabase realtime fails
 - Polling fallback to `ConversationProvider` (unread count sync) - Conversations now sync every 10 seconds as fallback
 - Polling fallback to `PresenceProvider` (online/offline status) - User presence now polls every 10 seconds as fallback
