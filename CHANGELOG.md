@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - **Unified Error Display (2026-04-15)** - Updated `CustomSnackbar` to automatically handle error objects through the new secure parser.
 
 ### Fixed
+- **Release Signing Config (2026-04-15)** - Fixed build failure where 'release' signing configuration was accessed before definition in `build.gradle.kts`. Added safety checks to gracefully fallback to debug signing when environment variables are missing (e.g., during CI unsigned builds).
 - **Information Leak in Logs (2026-04-15)** - Sanitized Supabase initialization logs to remove plain-text URLs.
 - **Hardcoded Infrastructure Fallbacks (2026-04-15)** - Removed production URLs from `AppConfig`; configuration now strictly favors environment variables (`--dart-define`) with safe `localhost` fallbacks for local debugging only.
 
