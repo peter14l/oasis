@@ -10,6 +10,8 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/widgets/desktop_header.dart';
+import 'package:oasis/widgets/adaptive/adaptive_scaffold.dart';
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'dart:ui';
 
 class NotificationsScreen extends StatefulWidget {
@@ -174,50 +176,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final colorScheme = theme.colorScheme;
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
-    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+    final useFluent = themeProvider.useFluentUI;
 
-    if (isDesktop && !usePanelLayout) {
-      // Desktop full screen layout
-      final desktopBgColor =
-          disableTransparency
-              ? colorScheme.surface
-              : colorScheme.surface.withValues(alpha: 0.4);
-
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Container(
-          decoration: BoxDecoration(
-            color: desktopBgColor,
-            borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
-            child:
-                disableTransparency
-                    ? _buildDesktopScaffold(
-                      theme,
-                      colorScheme,
-                      unreadCount,
-                      isM3E,
-                    )
-                    : BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                      child: _buildDesktopScaffold(
-                        theme,
-                        colorScheme,
-                        unreadCount,
-                        isM3E,
-                      ),
-                    ),
-          ),
-        ),
-      );
-    }
-
-    // Mobile layout OR Panel layout (Simplified)
     if (usePanelLayout) {
-      // Panel layout - adapted for 400px sliding panel
+      // Panel layout - simplified for narrow sliding panel
       return Scaffold(
         backgroundColor: colorScheme.surface,
         appBar: AppBar(
@@ -245,18 +207,41 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       );
     }
 
-    // Mobile layout
-    return Scaffold(
-      backgroundColor:
-          usePanelLayout ? colorScheme.surface : theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: usePanelLayout ? colorScheme.surface : null,
-        automaticallyImplyLeading: !usePanelLayout,
+    if (useFluent && isDesktop) {
+      return AdaptiveScaffold(
+        title: const Text('Notifications'),
+        actions: [
+          if (_filteredNotifications.isNotEmpty)
+            fluent.Tooltip(
+              message: 'Mark all read',
+              child: fluent.IconButton(
+                icon: const Icon(Icons.done_all, size: 20),
+                onPressed: _markAllAsRead,
+              ),
+            ),
+          const SizedBox(width: 8),
+          fluent.Tooltip(
+            message: _showSidebar ? 'Hide Filters' : 'Show Filters',
+            child: fluent.IconButton(
+              icon: Icon(_showSidebar ? Icons.filter_list_off : Icons.filter_list, size: 20),
+              onPressed: () => setState(() => _showSidebar = !_showSidebar),
+            ),
+          ),
+        ],
+        body: _buildDesktopLayout(),
+      );
+    }
+
+    return AdaptiveScaffold(
+      title: const Text('Notifications'),
+      appBar: isDesktop ? null : AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: const Text(
           'Notifications',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        centerTitle: !usePanelLayout,
+        centerTitle: true,
         actions: [
           if (_filteredNotifications.isNotEmpty)
             PopupMenuButton<String>(
@@ -269,55 +254,80 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   setState(() => _showUnreadOnly = !_showUnreadOnly);
                 }
               },
-              itemBuilder:
-                  (context) => [
-                    PopupMenuItem(
-                      value: 'toggle_unread',
-                      child: Row(
-                        children: [
-                          Icon(
-                            _showUnreadOnly
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(_showUnreadOnly ? 'Show All' : 'Unread Only'),
-                        ],
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'toggle_unread',
+                  child: Row(
+                    children: [
+                      Icon(
+                        _showUnreadOnly ? Icons.visibility : Icons.visibility_off,
+                        size: 20,
                       ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'mark_read',
-                      child: Row(
-                        children: [
-                          Icon(Icons.done_all, size: 20),
-                          SizedBox(width: 12),
-                          Text('Mark all read'),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'clear_all',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.delete_sweep_outlined,
-                            size: 20,
-                            color: colorScheme.error,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Clear all',
-                            style: TextStyle(color: colorScheme.error),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      Text(_showUnreadOnly ? 'Show All' : 'Unread Only'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'mark_read',
+                  child: Row(
+                    children: [
+                      Icon(Icons.done_all, size: 20),
+                      SizedBox(width: 12),
+                      Text('Mark all read'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'clear_all',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_sweep_outlined, size: 20, color: colorScheme.error),
+                      const SizedBox(width: 12),
+                      Text('Clear all', style: TextStyle(color: colorScheme.error)),
+                    ],
+                  ),
+                ),
+              ],
             ),
         ],
       ),
-      body: _buildMobileLayout(),
+      header: isDesktop ? DesktopHeader(
+        title: 'Notifications',
+        subtitle: unreadCount > 0
+            ? 'You have $unreadCount unread notifications'
+            : 'You\'re all caught up',
+        actions: [
+          if (_filteredNotifications.isNotEmpty) ...[
+            TextButton.icon(
+              onPressed: _markAllAsRead,
+              icon: const Icon(Icons.done_all, size: 18),
+              label: const Text('Mark all read'),
+            ),
+            const SizedBox(width: 8),
+          ],
+          IconButton.filledTonal(
+            icon: Icon(
+              _showSidebar ? Icons.filter_list_off : Icons.filter_list,
+              size: 20,
+            ),
+            onPressed: () => setState(() => _showSidebar = !_showSidebar),
+            tooltip: _showSidebar ? 'Hide Filters' : 'Show Filters',
+            style: IconButton.styleFrom(
+              backgroundColor: _showSidebar
+                  ? colorScheme.primaryContainer
+                  : colorScheme.surfaceContainerHighest,
+              foregroundColor: _showSidebar
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(isM3E ? 12 : 20),
+              ),
+            ),
+          ),
+        ],
+      ) : null,
+      body: isDesktop ? _buildDesktopLayout() : _buildMobileLayout(),
     );
   }
 

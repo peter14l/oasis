@@ -7,6 +7,7 @@ import 'package:oasis/features/circles/presentation/screens/circles_list_screen.
 import 'package:oasis/features/canvas/presentation/screens/canvas_list_screen.dart';
 import 'package:oasis/widgets/desktop_header.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:oasis/widgets/adaptive/adaptive_scaffold.dart';
 
 /// The Spaces hub replaces the old Communities tab.
 /// It contains two sub-tabs: Circles & Canvas.
@@ -43,56 +44,127 @@ class _SpacesScreenState extends State<SpacesScreen>
     final theme = Theme.of(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
-    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
     final isDesktop = ResponsiveLayout.isDesktop(context);
+    final useFluent = themeProvider.useFluentUI;
 
-    if (isDesktop) {
-      final desktopBgColor =
-          disableTransparency
-              ? theme.colorScheme.surface
-              : theme.colorScheme.surface.withValues(alpha: 0.4);
-
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: Container(
-          decoration: BoxDecoration(
-            color: desktopBgColor,
-            borderRadius: BorderRadius.circular(isM3E ? 32 : 24),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(isM3E ? 32 : 24),
-            child:
-                disableTransparency
-                    ? _buildDesktopContent(theme, isM3E)
-                    : BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                      child: _buildDesktopContent(theme, isM3E),
-                    ),
-          ),
+    if (useFluent && isDesktop) {
+      return AdaptiveScaffold(
+        title: const Text('Spaces'),
+        actions: [
+          _buildDesktopTabSwitcher(theme.colorScheme, isM3E),
+        ],
+        body: Row(
+          children: [
+            // Left sidebar for navigation
+            Container(
+              width: 240,
+              decoration: BoxDecoration(
+                border: Border(
+                  right: BorderSide(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                  ),
+                ),
+              ),
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _buildSidebarItem(
+                    icon: FluentIcons.people_team_24_regular,
+                    selectedIcon: FluentIcons.people_team_24_filled,
+                    label: 'Circles',
+                    index: 0,
+                    isM3E: isM3E,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildSidebarItem(
+                    icon: FluentIcons.whiteboard_24_regular,
+                    selectedIcon: FluentIcons.whiteboard_24_filled,
+                    label: 'Canvas',
+                    index: 1,
+                    isM3E: isM3E,
+                  ),
+                ],
+              ),
+            ),
+            // Main content area
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: const [CirclesListScreen(), CanvasListScreen()],
+              ),
+            ),
+          ],
         ),
       );
     }
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
+    return AdaptiveScaffold(
       body: Column(
         children: [
-          // ── Custom top tab bar ───────────────────────────────────────
-          SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-              child: _SpacesTabBar(controller: _tabController, isM3E: isM3E),
+          if (isDesktop) ...[
+            DesktopHeader(
+              title: 'Spaces',
+              subtitle: 'Communities & Creative Hub',
+              actions: [
+                _buildDesktopTabSwitcher(theme.colorScheme, isM3E),
+              ],
             ),
-          ),
+            const Divider(height: 1),
+          ],
+          // ── Custom top tab bar for mobile/generic desktop ─────────────────
+          if (!isDesktop)
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                child: _SpacesTabBar(controller: _tabController, isM3E: isM3E),
+              ),
+            ),
 
           // ── Tab views ────────────────────────────────────────────────
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: const [CirclesListScreen(), CanvasListScreen()],
+            child: Row(
+              children: [
+                if (isDesktop)
+                  Container(
+                    width: 240,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        right: BorderSide(
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                        ),
+                      ),
+                    ),
+                    child: ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        _buildSidebarItem(
+                          icon: FluentIcons.people_team_24_regular,
+                          selectedIcon: FluentIcons.people_team_24_filled,
+                          label: 'Circles',
+                          index: 0,
+                          isM3E: isM3E,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildSidebarItem(
+                          icon: FluentIcons.whiteboard_24_regular,
+                          selectedIcon: FluentIcons.whiteboard_24_filled,
+                          label: 'Canvas',
+                          index: 1,
+                          isM3E: isM3E,
+                        ),
+                      ],
+                    ),
+                  ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: const [CirclesListScreen(), CanvasListScreen()],
+                  ),
+                ),
+              ],
             ),
           ),
         ],

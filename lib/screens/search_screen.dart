@@ -10,6 +10,7 @@ import 'package:oasis/services/search_service.dart';
 import 'package:oasis/features/feed/presentation/widgets/post_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:oasis/widgets/adaptive/adaptive_scaffold.dart';
 import 'package:oasis/widgets/desktop_header.dart';
 import 'package:oasis/widgets/wellbeing/lockout_overlay.dart';
 import 'package:oasis/widgets/custom_snackbar.dart';
@@ -107,71 +108,16 @@ class _SearchScreenState extends State<SearchScreen>
     final colorScheme = theme.colorScheme;
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
-    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
     final isDesktop = ResponsiveLayout.isDesktop(context);
     final useFluent = themeProvider.useFluentUI;
     final usePanelLayout = widget.isPanel;
 
-    if (useFluent && !usePanelLayout) {
+    if (useFluent && isDesktop && !usePanelLayout) {
       return _buildFluentSearch(context, themeProvider);
     }
 
-    if (isDesktop && !usePanelLayout) {
-      // Full Screen Desktop layout
-      final desktopBgColor = disableTransparency
-          ? colorScheme.surface
-          : colorScheme.surface.withValues(alpha: 0.4);
-
-      return material.Padding(
-        padding: const material.EdgeInsets.all(12),
-        child: Container(
-          decoration: material.BoxDecoration(
-            color: desktopBgColor,
-            borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
-            border: Border.all(color: material.Colors.white.withValues(alpha: 0.05)),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
-            child: disableTransparency
-                ? material.Scaffold(
-                    backgroundColor: material.Colors.transparent,
-                    body: Stack(
-                      children: [
-                        Column(
-                          children: [
-                            _buildNewDesktopHeader(theme, colorScheme, isM3E),
-                            Expanded(child: _buildDesktopLayout(isM3E)),
-                          ],
-                        ),
-                        const LockoutOverlay(pageName: 'Search'),
-                      ],
-                    ),
-                  )
-                : BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: material.Scaffold(
-                      backgroundColor: material.Colors.transparent,
-                      body: Stack(
-                        children: [
-                          Column(
-                            children: [
-                              _buildNewDesktopHeader(theme, colorScheme, isM3E),
-                              Expanded(child: _buildDesktopLayout(isM3E)),
-                            ],
-                          ),
-                          const LockoutOverlay(pageName: 'Search'),
-                        ],
-                      ),
-                    ),
-                  ),
-          ),
-        ),
-      );
-    }
-
-    // Mobile layout OR Panel layout (Simplified for narrow width)
     if (usePanelLayout) {
-      // Panel layout - adapted for 400px sliding panel
+      // Panel layout - simplified for narrow sliding panel
       return material.Scaffold(
         backgroundColor: colorScheme.surface,
         appBar: material.AppBar(
@@ -179,42 +125,7 @@ class _SearchScreenState extends State<SearchScreen>
           automaticallyImplyLeading: false,
           elevation: 0,
           toolbarHeight: 60,
-          title: Container(
-            height: 40,
-            decoration: material.BoxDecoration(
-              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(isM3E ? 12 : 20),
-              border: Border.all(
-                color: theme.dividerColor.withValues(alpha: 0.2),
-              ),
-            ),
-            child: material.TextField(
-              controller: _searchController,
-              onChanged: _onSearchChanged,
-              onSubmitted: _onSearchSubmitted,
-              decoration: material.InputDecoration(
-                hintText: 'Search...',
-                border: material.InputBorder.none,
-                hintStyle: material.TextStyle(
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                  fontSize: 14,
-                ),
-                prefixIcon: material.Icon(
-                  material.Icons.search,
-                  color: colorScheme.onSurfaceVariant,
-                  size: 20,
-                ),
-                contentPadding: const material.EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-              ),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface,
-              ),
-              textInputAction: TextInputAction.search,
-            ),
-          ),
+          title: _buildSearchBox(colorScheme, isM3E, isPanel: true),
           actions: [
             if (_query.isNotEmpty)
               material.IconButton(
@@ -231,59 +142,24 @@ class _SearchScreenState extends State<SearchScreen>
       );
     }
 
-    // Mobile layout
-    return material.Scaffold(
-      backgroundColor: usePanelLayout
-          ? colorScheme.surface
-          : theme.scaffoldBackgroundColor,
-      appBar: material.AppBar(
-        backgroundColor: colorScheme.surface,
-        automaticallyImplyLeading: !usePanelLayout,
-        flexibleSpace: ClipRRect(
-          child: disableTransparency
-              ? Container(color: material.Colors.transparent)
-              : BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Container(color: material.Colors.transparent),
-                ),
+    return AdaptiveScaffold(
+      title: const Text('Search'),
+      actions: isDesktop ? [
+        material.IconButton.filledTonal(
+          icon: material.Icon(
+            _showFilters ? material.Icons.filter_list_off : material.Icons.filter_list,
+            size: 20,
+          ),
+          onPressed: () => setState(() => _showFilters = !_showFilters),
+          tooltip: _showFilters ? 'Hide Filters' : 'Show Filters',
         ),
+      ] : null,
+      appBar: !isDesktop ? material.AppBar(
+        backgroundColor: colorScheme.surface,
+        automaticallyImplyLeading: true,
         elevation: 0,
         toolbarHeight: 80,
-        title: Container(
-          height: 52,
-          decoration: material.BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(isM3E ? 16 : 26),
-            border: Border.all(
-              color: theme.dividerColor.withValues(alpha: 0.2),
-            ),
-          ),
-          child: material.TextField(
-            controller: _searchController,
-            onChanged: _onSearchChanged,
-            onSubmitted: _onSearchSubmitted,
-            decoration: material.InputDecoration(
-              hintText: 'Search...',
-              border: material.InputBorder.none,
-              hintStyle: material.TextStyle(
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-              ),
-              prefixIcon: material.Icon(
-                material.Icons.search,
-                color: colorScheme.onSurfaceVariant,
-                size: 24,
-              ),
-              contentPadding: const material.EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-            ),
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: colorScheme.onSurface,
-            ),
-            textInputAction: TextInputAction.search,
-          ),
-        ),
+        title: _buildSearchBox(colorScheme, isM3E),
         actions: [
           if (_query.isNotEmpty)
             material.IconButton(
@@ -292,11 +168,6 @@ class _SearchScreenState extends State<SearchScreen>
                 _searchController.clear();
                 _onSearchChanged('');
               },
-            ),
-          if (usePanelLayout)
-            material.IconButton(
-              icon: const material.Icon(material.Icons.filter_list_rounded),
-              onPressed: () => _showPanelFilters(context, isM3E),
             ),
           const SizedBox(width: 8),
         ],
@@ -316,12 +187,53 @@ class _SearchScreenState extends State<SearchScreen>
             ),
           ),
         ),
-      ),
+      ) : null,
+      header: isDesktop ? _buildNewDesktopHeader(theme, colorScheme, isM3E) : null,
       body: Stack(
         children: [
-          _buildMobileLayout(isM3E),
+          isDesktop ? _buildDesktopLayout(isM3E) : _buildMobileLayout(isM3E),
           const LockoutOverlay(pageName: 'Search'),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBox(material.ColorScheme colorScheme, bool isM3E, {bool isPanel = false}) {
+    return Container(
+      height: isPanel ? 40 : 52,
+      decoration: material.BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(isM3E ? (isPanel ? 12 : 16) : (isPanel ? 20 : 26)),
+        border: Border.all(
+          color: material.Theme.of(context).dividerColor.withValues(alpha: 0.2),
+        ),
+      ),
+      child: material.TextField(
+        controller: _searchController,
+        onChanged: _onSearchChanged,
+        onSubmitted: _onSearchSubmitted,
+        decoration: material.InputDecoration(
+          hintText: 'Search...',
+          border: material.InputBorder.none,
+          hintStyle: material.TextStyle(
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+            fontSize: isPanel ? 14 : null,
+          ),
+          prefixIcon: material.Icon(
+            material.Icons.search,
+            color: colorScheme.onSurfaceVariant,
+            size: isPanel ? 20 : 24,
+          ),
+          contentPadding: material.EdgeInsets.symmetric(
+            horizontal: isPanel ? 12 : 16,
+            vertical: isPanel ? 10 : 14,
+          ),
+        ),
+        style: material.Theme.of(context).textTheme.bodyLarge?.copyWith(
+          color: colorScheme.onSurface,
+          fontSize: isPanel ? 14 : null,
+        ),
+        textInputAction: TextInputAction.search,
       ),
     );
   }

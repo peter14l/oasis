@@ -188,6 +188,58 @@ class _MainLayoutState extends State<MainLayout> {
     return 0;
   }
 
+  Widget _buildMainContentWithPanels({
+    required Widget mainContent,
+    required bool isDesktop,
+    required String? activePanel,
+    required Color slidingPanelColor,
+  }) {
+    return Stack(
+      children: [
+        mainContent,
+        if (isDesktop && activePanel != null) ...[
+          // Backdrop to close panel
+          GestureDetector(
+            onTap: () => setState(() => _activePanel = null),
+            behavior: HitTestBehavior.translucent,
+            child: Container(
+              color: Colors.black.withValues(alpha: 0.01),
+            ),
+          ),
+          // Sliding panel
+          motion.Animate(
+            effects: const [
+              motion.SlideEffect(
+                begin: Offset(-1, 0),
+                end: Offset(0, 0),
+                duration: Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              ),
+              motion.FadeEffect(duration: Duration(milliseconds: 300)),
+            ],
+            child: Container(
+              width: 400,
+              decoration: BoxDecoration(
+                color: slidingPanelColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+              child:
+                  activePanel == 'search'
+                      ? const SearchScreen(isPanel: true)
+                      : const NotificationsScreen(isPanel: true),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -230,16 +282,87 @@ class _MainLayoutState extends State<MainLayout> {
         }
 
         Widget mainContent = widget.child;
+        final contentWithPanels = _buildMainContentWithPanels(
+          mainContent: mainContent,
+          isDesktop: isDesktop,
+          activePanel: _activePanel,
+          slidingPanelColor: slidingPanelColor,
+        );
+
+        if (useFluent && isDesktop) {
+          return fluent.NavigationView(
+            pane: fluent.NavigationPane(
+              header: const SizedBox.shrink(),
+              selected: currentIndex,
+              onChanged:
+                  (index) => _onDestinationSelected(
+                    index,
+                    killSwitchActive: killSwitchActive,
+                  ),
+              displayMode:
+                  _isRailExtended
+                      ? fluent.PaneDisplayMode.expanded
+                      : fluent.PaneDisplayMode.compact,
+              items: [
+                fluent.PaneItem(
+                  icon: const Icon(FluentIcons.home_24_regular),
+                  title: const fluent.Text('Feed'),
+                  body: contentWithPanels,
+                ),
+                fluent.PaneItem(
+                  icon: const Icon(FluentIcons.search_24_regular),
+                  title: const fluent.Text('Search'),
+                  body: contentWithPanels,
+                ),
+                fluent.PaneItem(
+                  icon: const Icon(FluentIcons.channel_24_regular),
+                  title: const fluent.Text('Spaces'),
+                  body: contentWithPanels,
+                ),
+                fluent.PaneItem(
+                  icon: UnreadMessagesBadge(
+                    child: const Icon(FluentIcons.chat_24_regular),
+                  ),
+                  title: const fluent.Text('Messages'),
+                  body: contentWithPanels,
+                ),
+                fluent.PaneItem(
+                  icon: const Icon(FluentIcons.alert_24_regular),
+                  title: const fluent.Text('Notifications'),
+                  body: contentWithPanels,
+                ),
+                fluent.PaneItem(
+                  icon: const Icon(FluentIcons.person_24_regular),
+                  title: const fluent.Text('Profile'),
+                  body: contentWithPanels,
+                ),
+              ],
+              footerItems: [
+                fluent.PaneItemSeparator(),
+                fluent.PaneItem(
+                  icon: const Icon(FluentIcons.settings_24_regular),
+                  title: const fluent.Text('Settings'),
+                  body: contentWithPanels,
+                  onTap: () => context.push('/settings'),
+                ),
+              ],
+            ),
+          );
+        }
 
         return Scaffold(
           extendBody: true,
           body: RawGestureDetector(
             behavior: HitTestBehavior.translucent,
             gestures: {
-              _TwoFingerLongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<_TwoFingerLongPressGestureRecognizer>(
+              _TwoFingerLongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<
+                _TwoFingerLongPressGestureRecognizer
+              >(
                 () => _TwoFingerLongPressGestureRecognizer(
                   onTwoFingerLongPress: () {
-                    setState(() => _isPrivacyBlurActive = !_isPrivacyBlurActive);
+                    setState(
+                      () => _isPrivacyBlurActive = !_isPrivacyBlurActive,
+                    );
                     if (_isPrivacyBlurActive) {
                       HapticFeedback.heavyImpact();
                     } else {
@@ -268,6 +391,7 @@ class _MainLayoutState extends State<MainLayout> {
                               isMica: isMica,
                               disableTransparency: disableTransparency,
                             ),
+<<<<<<< HEAD
                           Expanded(
                             child: Stack(
                               children: [
@@ -305,6 +429,9 @@ class _MainLayoutState extends State<MainLayout> {
                               ],
                             ),
                           ),
+=======
+                          Expanded(child: contentWithPanels),
+>>>>>>> temp_preserved_work
                         ],
                       ),
                     ),
@@ -830,6 +957,13 @@ class _MainLayoutState extends State<MainLayout> {
               _activePanel == 'notifications' ? null : 'notifications';
         });
         return;
+      }
+
+      // Close active panel if navigating to other destinations
+      if (_activePanel != null) {
+        setState(() {
+          _activePanel = null;
+        });
       }
     }
 

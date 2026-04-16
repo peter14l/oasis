@@ -1,5 +1,6 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' as material;
+import 'package:oasis/themes/app_colors.dart';
 
 class AppFluentTheme {
   static FluentThemeData getTheme(
@@ -9,9 +10,13 @@ class AppFluentTheme {
   }) {
     final isDark = brightness == material.Brightness.dark;
     
-    // Fallback base color if material scheme isn't provided
-    final primaryColor = materialColorScheme?.primary ?? (isDark ? const material.Color(0xFF6B9EFF) : const material.Color(0xFF0D47A1));
+    // Core colors synchronized with Material 3 / Oasis Palette
+    final primaryColor = materialColorScheme?.primary ?? 
+        (isDark ? DarkColors.primary : LightColors.primary);
     
+    final scaffoldColor = materialColorScheme?.surface ?? 
+        (isDark ? DarkColors.background : LightColors.background);
+
     final accentColor = AccentColor.swatch({
       'darkest': primaryColor.withValues(alpha: 0.9),
       'darker': primaryColor.withValues(alpha: 0.8),
@@ -27,13 +32,42 @@ class AppFluentTheme {
       accentColor: accentColor,
       fontFamily: fontFamily,
       visualDensity: VisualDensity.standard,
-      focusTheme: FocusThemeData(
-        glowFactor: isDark ? 2.0 : 1.0,
+      scaffoldBackgroundColor: scaffoldColor,
+      micaBackgroundColor: scaffoldColor,
+      
+      // Typography synchronized with AppTextStyles
+      typography: Typography.fromBrightness(
+        brightness: isDark ? Brightness.dark : Brightness.light,
+        color: isDark ? DarkColors.onBackground : LightColors.onBackground,
+      ).apply(fontFamily: fontFamily),
+
+      navigationPaneTheme: NavigationPaneThemeData(
+        backgroundColor: isDark ? DarkColors.surface : LightColors.surface,
+        highlightColor: primaryColor,
+        selectedIconColor: WidgetStateProperty.all(primaryColor),
+        selectedTextStyle: WidgetStateProperty.all(TextStyle(
+          color: primaryColor,
+          fontWeight: FontWeight.bold,
+        )),
+        unselectedIconColor: WidgetStateProperty.all(
+          isDark ? DarkColors.hint : LightColors.hint,
+        ),
       ),
-      // Map other material colors to fluent theme if needed
-      scaffoldBackgroundColor: materialColorScheme?.surface,
-      micaBackgroundColor: materialColorScheme?.surface,
-      menuColor: materialColorScheme?.surfaceContainerHigh,
+
+      checkboxTheme: CheckboxThemeData(
+        checkedIconColor: WidgetStateProperty.all(material.Colors.white),
+      ),
+
+      buttonTheme: ButtonThemeData(
+        filledButtonStyle: ButtonStyle(
+          backgroundColor: WidgetStateProperty.all(primaryColor),
+          foregroundColor: WidgetStateProperty.all(material.Colors.white),
+        ),
+      ),
+      
+      dividerTheme: const DividerThemeData(
+        thickness: 1,
+      ),
     );
   }
 }

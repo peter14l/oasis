@@ -152,15 +152,31 @@ class _ProfileScreenState extends State<ProfileScreen>
           return const Scaffold(body: Center(child: Text('Profile not found')));
         }
 
+        if (useFluent) {
+          return Material(
+            type: MaterialType.transparency,
+            child: _buildFluentProfile(
+              profile,
+              themeProvider,
+              colorScheme,
+              profileProvider,
+              userId,
+            ),
+          );
+        }
+
         if (isDesktop) {
-          return _buildDesktopLayout(
-            profile,
-            theme,
-            colorScheme,
-            profileProvider,
-            userId,
-            isM3E,
-            disableTransparency,
+          return Material(
+            type: MaterialType.transparency,
+            child: _buildDesktopLayout(
+              profile,
+              theme,
+              colorScheme,
+              profileProvider,
+              userId,
+              isM3E,
+              disableTransparency,
+            ),
           );
         }
 
@@ -176,6 +192,95 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
+  Widget _buildFluentProfile(
+    UserProfileEntity profile,
+    ThemeProvider themeProvider,
+    ColorScheme colorScheme,
+    ProfileProvider profileProvider,
+    String? userId,
+  ) {
+    return fluent.ScaffoldPage.scrollable(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDesktopAvatar(profile, colorScheme, themeProvider.isM3EEnabled),
+                  const SizedBox(width: 32),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          profile.fullName ?? profile.username,
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        if (profile.bio != null)
+                          Text(
+                            profile.bio!,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            _buildDesktopStatItem('${profile.postsCount}', 'posts'),
+                            const SizedBox(width: 24),
+                            _buildDesktopStatItem(
+                              '${profile.followersCount}',
+                              'followers',
+                              onTap: () => context.push('/profile/${profile.id}/followers'),
+                            ),
+                            const SizedBox(width: 24),
+                            _buildDesktopStatItem(
+                              '${profile.followingCount}',
+                              'following',
+                              onTap: () => context.push('/profile/${profile.id}/following'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        _buildDesktopActionButtons(
+                          profile,
+                          profileProvider,
+                          Theme.of(context),
+                          colorScheme,
+                          userId,
+                          themeProvider.isM3EEnabled,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 40),
+              _buildTabBar(colorScheme),
+              const Divider(),
+              SizedBox(
+                height: 800, // Fixed height for Grid in Scrollable
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildPostsTab(userId, true, themeProvider.isM3EEnabled),
+                    if (isOwnProfile)
+                      _buildSavedTab(userId, true, themeProvider.isM3EEnabled),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+>>>>>>> temp_preserved_work
   Widget _buildDesktopLayout(
     UserProfileEntity profile,
     ThemeData theme,

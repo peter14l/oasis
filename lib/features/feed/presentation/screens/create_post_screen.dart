@@ -13,6 +13,9 @@ import 'package:oasis/features/feed/domain/models/post_mood.dart';
 import 'package:oasis/features/feed/domain/models/enhanced_poll.dart';
 import 'package:oasis/features/feed/presentation/widgets/mood_selector.dart';
 import 'package:oasis/features/feed/presentation/widgets/polls/poll_widgets.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
+import 'package:oasis/widgets/adaptive/adaptive_scaffold.dart';
 
 class CreatePostScreen extends StatefulWidget {
   final String? communityId;
@@ -233,455 +236,240 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
-    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
+    final useFluent = themeProvider.useFluentUI;
 
     final formContent = SingleChildScrollView(
-        padding: EdgeInsets.all(isDesktop ? 32.0 : 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // User info
-            Consumer<AuthService>(
-              builder: (context, authService, child) {
-                final user = authService.currentUser;
-                final displayName =
-                    user?.displayName ?? user?.username ?? 'User';
-                final username =
-                    user?.username != null ? '@${user!.username}' : '';
-                final avatarUrl = user?.photoUrl;
+      padding: EdgeInsets.all(isDesktop ? 32.0 : 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // User info
+          Consumer<AuthService>(
+            builder: (context, authService, child) {
+              final user = authService.currentUser;
+              final displayName = user?.displayName ?? user?.username ?? 'User';
+              final username = user?.username != null ? '@${user!.username}' : '';
+              final avatarUrl = user?.photoUrl;
 
-                return Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: isM3E 
-                      ? (disableTransparency ? colorScheme.surfaceContainer : colorScheme.surfaceContainer.withValues(alpha: 0.5))
+              return Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isM3E
+                      ? colorScheme.surfaceContainer.withValues(alpha: 0.5)
                       : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(isM3E ? 24 : 16),
-                    border: isM3E ? Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.2)) : null,
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: isM3E ? Border.all(color: colorScheme.primary.withValues(alpha: 0.2), width: 2) : null,
-                        ),
-                        padding: EdgeInsets.all(isM3E ? 2 : 0),
-                        child: CircleAvatar(
-                          radius: 24,
-                          backgroundColor: colorScheme.surfaceContainerHighest,
-                          backgroundImage:
-                              avatarUrl != null ? NetworkImage(avatarUrl) : null,
-                          child:
-                              avatarUrl == null
-                                  ? Text(
-                                    displayName.isNotEmpty
-                                        ? displayName[0].toUpperCase()
-                                        : '?',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: isM3E ? FontWeight.w800 : FontWeight.bold,
-                                      color: colorScheme.primary,
-                                    ),
-                                  )
-                                  : null,
-                        ),
+                  borderRadius: BorderRadius.circular(isM3E ? 24 : 16),
+                  border: isM3E ? Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.2)) : null,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: isM3E ? Border.all(color: colorScheme.primary.withValues(alpha: 0.2), width: 2) : null,
                       ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                      padding: EdgeInsets.all(isM3E ? 2 : 0),
+                      child: CircleAvatar(
+                        radius: 24,
+                        backgroundColor: colorScheme.surfaceContainerHighest,
+                        backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                        child: avatarUrl == null
+                            ? Text(
+                                displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: isM3E ? FontWeight.w800 : FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              )
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          displayName,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: isM3E ? FontWeight.bold : FontWeight.w600,
+                            letterSpacing: isM3E ? -0.5 : null,
+                          ),
+                        ),
+                        if (username.isNotEmpty)
                           Text(
-                            displayName,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: isM3E ? FontWeight.bold : FontWeight.w600,
-                              letterSpacing: isM3E ? -0.5 : null,
+                            username,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontWeight: isM3E ? FontWeight.w500 : null,
                             ),
                           ),
-                          if (username.isNotEmpty)
-                            Text(
-                              username,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                                fontWeight: isM3E ? FontWeight.w500 : null,
-                              ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 24),
+          TextField(
+            controller: _captionController,
+            maxLines: 6,
+            minLines: 1,
+            decoration: InputDecoration(
+              hintText: 'What\'s on your mind?',
+              hintStyle: (isM3E ? theme.textTheme.titleMedium : theme.textTheme.bodyLarge)?.copyWith(
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                fontWeight: isM3E ? FontWeight.w500 : null,
+              ),
+              border: InputBorder.none,
+            ),
+            style: (isM3E ? theme.textTheme.titleMedium : theme.textTheme.bodyLarge)?.copyWith(
+              height: 1.5,
+            ),
+            textCapitalization: TextCapitalization.sentences,
+          ),
+          if (_selectedImages.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 200,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _selectedImages.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final image = _selectedImages[index];
+                  return Container(
+                    width: 200,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(isM3E ? 24 : 16),
+                      boxShadow: isM3E ? [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))] : null,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(isM3E ? 24 : 16),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.file(File(image.path), fit: BoxFit.cover),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white, size: 18),
+                              onPressed: () => setState(() => _selectedImages.removeAt(index)),
+                              style: IconButton.styleFrom(backgroundColor: Colors.black.withValues(alpha: 0.5)),
                             ),
+                          ),
                         ],
                       ),
-                    ],
-                  ),
-                );
-              },
-            ),
-
-            const SizedBox(height: 24),
-
-            // Caption field
-            TextField(
-              controller: _captionController,
-              maxLines: 6,
-              minLines: 1,
-              decoration: InputDecoration(
-                hintText: 'What\'s on your mind?',
-                hintStyle: (isM3E ? theme.textTheme.titleMedium : theme.textTheme.bodyLarge)?.copyWith(
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                  fontWeight: isM3E ? FontWeight.w500 : null,
-                ),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
-              style: (isM3E ? theme.textTheme.titleMedium : theme.textTheme.bodyLarge)?.copyWith(
-                height: 1.5,
-              ),
-              textCapitalization: TextCapitalization.sentences,
-            ),
-
-            // Image preview
-            if (_selectedImages.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 200,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _selectedImages.length,
-                  separatorBuilder:
-                      (context, index) => const SizedBox(width: 12),
-                  itemBuilder: (context, index) {
-                    final image = _selectedImages[index];
-                    return Container(
-                      width: 200,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(isM3E ? 24 : 16),
-                        border: Border.all(
-                          color: colorScheme.outlineVariant,
-                          width: 1,
-                        ),
-                        boxShadow: isM3E ? [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          )
-                        ] : null,
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(isM3E ? 24 : 16),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Image.file(File(image.path), fit: BoxFit.cover),
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.5),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: IconButton(
-                                  icon: const Icon(
-                                    Icons.close,
-                                    color: Colors.white,
-                                    size: 18,
-                                  ),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(
-                                    minWidth: 32,
-                                    minHeight: 32,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _selectedImages.removeAt(index);
-                                    });
-                                  },
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 24),
-
-            // Mood selector
-            Text(
-              'How are you feeling?',
-              style: (isM3E ? theme.textTheme.titleSmall : theme.textTheme.titleSmall)?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: isM3E ? FontWeight.bold : FontWeight.w500,
-                letterSpacing: isM3E ? 0.5 : null,
+                    ),
+                  );
+                },
               ),
             ),
-            const SizedBox(height: 12),
-            MoodSelector(
-              selectedMood: _selectedMood,
-              onMoodSelected: (mood) {
-                HapticUtils.selectionClick();
-                setState(() => _selectedMood = mood);
-              },
+          ],
+          const SizedBox(height: 24),
+          MoodSelector(
+            selectedMood: _selectedMood,
+            onMoodSelected: (mood) {
+              HapticUtils.selectionClick();
+              setState(() => _selectedMood = mood);
+            },
+          ),
+          const SizedBox(height: 24),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildActionButton(icon: Icons.photo_library_outlined, label: 'Photo', onPressed: _pickImages, isM3E: isM3E),
+                const SizedBox(width: 8),
+                _buildActionButton(icon: Icons.poll_outlined, label: 'Poll', onPressed: _togglePollCreator, isM3E: isM3E),
+                const SizedBox(width: 8),
+                _buildActionButton(icon: Icons.location_on_outlined, label: 'Location', onPressed: _pickLocation, isM3E: isM3E),
+              ],
             ),
-
-            const SizedBox(height: 24),
-
-            // Add to post options
-            Text(
-              'Add to your post',
-              style: (isM3E ? theme.textTheme.titleSmall : theme.textTheme.titleSmall)?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: isM3E ? FontWeight.bold : FontWeight.w500,
-                letterSpacing: isM3E ? 0.5 : null,
+          ),
+          if (_locationController.text.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(isM3E ? 20 : 12),
               ),
-            ),
-            const SizedBox(height: 12),
-
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildActionButton(
-                    icon: Icons.photo_library_outlined,
-                    label: 'Photo',
-                    onPressed: _pickImages,
-                    isM3E: isM3E,
-                  ),
+                  Icon(Icons.location_on, size: 18, color: colorScheme.secondary),
                   const SizedBox(width: 8),
-                  _buildActionButton(
-                    icon: Icons.poll_outlined,
-                    label: 'Poll',
-                    onPressed: _togglePollCreator,
-                    isM3E: isM3E,
-                  ),
+                  Text(_locationController.text),
                   const SizedBox(width: 8),
-                  _buildActionButton(
-                    icon: Icons.location_on_outlined,
-                    label: _locationController.text.isNotEmpty ? 'Change Location' : 'Location',
-                    onPressed: _pickLocation,
-                    isM3E: isM3E,
-                  ),
+                  InkWell(onTap: () => setState(() => _locationController.clear()), child: const Icon(Icons.close, size: 16)),
                 ],
               ),
             ),
-
-            // Location display
-            if (_locationController.text.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: isM3E ? colorScheme.secondaryContainer : colorScheme.secondaryContainer.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(isM3E ? 20 : 12),
-                  border: Border.all(
-                    color: colorScheme.secondary.withValues(alpha: isM3E ? 0.5 : 0.3),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.location_on, size: 18, color: colorScheme.secondary),
-                    const SizedBox(width: 8),
-                    Text(
-                      _locationController.text,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSecondaryContainer,
-                        fontWeight: isM3E ? FontWeight.bold : FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    InkWell(
-                      onTap: () => setState(() => _locationController.clear()),
-                      child: Icon(Icons.close, size: 16, color: colorScheme.onSecondaryContainer),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            // Poll creator
-            if (_showPollCreator) ...[
-              const SizedBox(height: 16),
-              PollCreator(
-                onPollCreated: _onPollCreated,
-                onCancel: () => setState(() => _showPollCreator = false),
-              ),
-            ],
-
-            // Attached poll preview
-            if (_attachedPoll != null) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isM3E ? colorScheme.primaryContainer : colorScheme.primaryContainer.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(isM3E ? 20 : 12),
-                  border: Border.all(
-                    color: colorScheme.primary.withValues(alpha: isM3E ? 0.5 : 0.3),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.poll, color: colorScheme.onPrimaryContainer),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _attachedPoll!.question,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: isM3E ? FontWeight.bold : null,
-                          color: colorScheme.onPrimaryContainer,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 18),
-                      onPressed: () => setState(() => _attachedPoll = null),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            if (isDesktop) ...[
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: _isLoading ? null : _createPost,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.all(16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isM3E ? 20 : 12)),
-                  ),
-                  child: _isLoading 
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : Text('Post to Feed', style: TextStyle(fontWeight: isM3E ? FontWeight.w800 : FontWeight.bold)),
-                ),
-              ),
-            ],
           ],
-        ),
+          if (_showPollCreator) PollCreator(onPollCreated: _onPollCreated, onCancel: () => setState(() => _showPollCreator = false)),
+          if (_attachedPoll != null) ...[
+            const SizedBox(height: 16),
+            ListTile(
+              tileColor: colorScheme.primaryContainer.withValues(alpha: 0.3),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              leading: const Icon(Icons.poll),
+              title: Text(_attachedPoll!.question),
+              trailing: IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() => _attachedPoll = null)),
+            ),
+          ],
+        ],
+      ),
+    );
+
+    if (useFluent && isDesktop) {
+      return AdaptiveScaffold(
+        title: const Text('Create New Post'),
+        actions: [
+          fluent.Button(
+            onPressed: _isLoading ? null : _createPost,
+            child: _isLoading ? const SizedBox(width: 16, height: 16, child: fluent.ProgressRing(strokeWidth: 2)) : const Text('Post'),
+          ),
+        ],
+        body: formContent,
       );
+    }
 
     if (isDesktop) {
-      return Material(
-        color: Colors.transparent,
-        child: Center(
+      return AdaptiveScaffold(
+        title: const Text('Create New Post'),
+        actions: [
+          FilledButton(
+            onPressed: _isLoading ? null : _createPost,
+            child: _isLoading ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Post'),
+          ),
+        ],
+        body: Center(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 700),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(isM3E ? 36 : 24),
-              border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 40,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Create New Post',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: isM3E ? FontWeight.w800 : FontWeight.bold,
-                          letterSpacing: isM3E ? -1 : null,
-                        ),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => context.pop(),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(),
-                Flexible(child: formContent),
-              ],
-            ),
+            child: formContent,
           ),
         ),
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Create Post',
-          style: (isM3E ? theme.textTheme.headlineSmall : theme.textTheme.titleLarge)?.copyWith(
-            fontWeight: isM3E ? FontWeight.w800 : FontWeight.bold,
-            letterSpacing: isM3E ? -1 : null,
-          ),
-        ),
-        centerTitle: isM3E,
-        elevation: 0,
-        scrolledUnderElevation: isM3E ? 0 : 1,
-        backgroundColor: isM3E ? colorScheme.surface : null,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: Center(
-              child: FilledButton(
-                onPressed: _isLoading ? null : _createPost,
-                style: FilledButton.styleFrom(
-                  backgroundColor:
-                      _isLoading
-                          ? colorScheme.primary.withValues(alpha: 0.1)
-                          : colorScheme.primary,
-                  foregroundColor:
-                      _isLoading
-                          ? colorScheme.onSurface.withValues(alpha: 0.6)
-                          : colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 8,
-                  ),
-                  elevation: isM3E ? 0 : null,
-                ),
-                child:
-                    _isLoading
-                        ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        )
-                        : Text(
-                          'Post',
-                          style: TextStyle(
-                            fontWeight: isM3E ? FontWeight.w800 : FontWeight.w600,
-                            letterSpacing: isM3E ? 0.5 : null,
-                          ),
-                        ),
-              ),
+    return AdaptiveScaffold(
+      title: const Text('Create Post'),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: Center(
+            child: FilledButton(
+              onPressed: _isLoading ? null : _createPost,
+              child: _isLoading ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Post'),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
       body: formContent,
     );
   }
