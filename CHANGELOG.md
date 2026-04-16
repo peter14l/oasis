@@ -18,6 +18,9 @@ All notable changes to this project will be documented in this file.
 - **Interactive Onboarding UI (2026-04-16)** - Enhanced onboarding with dynamic background color transitions, glassmorphic content cards, and staggered animations using `flutter_animate`.
 - **Streamlined Navigation (2026-04-16)** - Consolidated the introductory experience into 4 high-impact interactive slides.
 
+### Removed
+- **Fluent Desktop Profile Top-Bar (2026-04-16) [`af7bef4`]** - Removed the `PageHeader` from the Profile screen in Fluent Desktop mode for a more integrated look.
+
 ### Fixed
 - **Fluent Navigation API Fix (2026-04-16) [`43a776d`]** - Removed non-existent `backButton` parameter from `NavigationPane` to resolve compilation errors with `fluent_ui` v4.15.1.
 - **Adaptive UI Compilation Errors (2026-04-16)** - Resolved namespace conflicts between Material and Fluent UI by standardizing imports and using proper aliasing.
