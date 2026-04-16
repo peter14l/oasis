@@ -1,9 +1,13 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Colors;
+import 'package:fluent_ui/fluent_ui.dart' hide Colors;
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'dart:ui';
+import 'package:provider/provider.dart';
+import 'package:oasis/services/app_initializer.dart';
 
 /// Onboarding Screen
 /// Displays a multi-page introduction to the app's key features
@@ -103,7 +107,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    // final theme = Theme.of(context);
     final isLastPage = _currentPage == _pages.length - 1;
 
     return Scaffold(
@@ -121,18 +125,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   alignment: Alignment.topRight,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: TextButton(
-                      onPressed: _completeOnboarding,
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                      ),
-                      child: const Text(
-                        'Skip',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
+                    child: Builder(
+                      builder: (context) {
+                        return TextButton(
+                          onPressed: _completeOnboarding,
+                          child: const Text(
+                            'Skip',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        );
+                      }
                     ),
                   ),
                 ),
@@ -188,7 +194,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildPage(OnboardingPageData page, int index) {
-    final theme = Theme.of(context);
     final isCurrent = index == _currentPage;
 
     return Padding(
@@ -223,7 +228,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               .animate(target: isCurrent ? 1 : 0)
               .scale(
                 duration: 600.ms,
-                curve: Curves.backOut,
+                curve: Curves.easeOutBack,
                 begin: const Offset(0.5, 0.5),
               )
               .fadeIn()
@@ -249,9 +254,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   children: [
                     Text(
                       page.title,
-                      style: theme.textTheme.headlineMedium?.copyWith(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
+                        fontSize: 28,
                         letterSpacing: 1.2,
                       ),
                       textAlign: TextAlign.center,
@@ -264,7 +270,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                     Text(
                       page.description,
-                      style: theme.textTheme.bodyLarge?.copyWith(
+                      style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.9),
                         height: 1.6,
                         fontSize: 18,
@@ -313,24 +319,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           SizedBox(
             width: double.infinity,
             height: 64,
-            child: ElevatedButton(
-              onPressed: _onNextPage,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: _pages[_currentPage].colors[1],
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: Text(
-                isLastPage ? 'GET STARTED' : 'CONTINUE',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
-                ),
-              ),
+            child: Builder(
+              builder: (context) {
+                return ElevatedButton(
+                  onPressed: _onNextPage,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: _pages[_currentPage].colors[1],
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  child: Text(
+                    isLastPage ? 'GET STARTED' : 'CONTINUE',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                );
+              }
             ).animate(target: isLastPage ? 1 : 0).shake(delay: 200.ms, duration: 500.ms),
           ),
         ],

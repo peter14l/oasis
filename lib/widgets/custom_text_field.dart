@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart' as material;
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
+import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/services/app_initializer.dart';
 
-class CustomTextField extends material.StatelessWidget {
+class CustomTextField extends StatelessWidget {
   final material.TextEditingController controller;
-  final material.FocusNode focusNode;
+  final FocusNode focusNode;
   final String hint;
   final material.IconData? prefixIcon;
-  final material.Widget? suffixIcon;
+  final Widget? suffixIcon;
   final bool obscureText;
   final material.TextInputType? keyboardType;
   final material.TextInputAction? textInputAction;
@@ -66,8 +67,8 @@ class CustomTextField extends material.StatelessWidget {
   });
 
   @override
-  material.Widget build(material.BuildContext context) {
-    final useFluent = material.Provider.of<ThemeProvider>(context).useFluentUI;
+  Widget build(BuildContext context) {
+    final useFluent = Provider.of<ThemeProvider>(context).useFluentUI;
 
     if (useFluent) {
       return _buildFluentTextBox(context);
@@ -75,14 +76,14 @@ class CustomTextField extends material.StatelessWidget {
 
     final theme = material.Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isM3E = material.Provider.of<ThemeProvider>(context).isM3EEnabled;
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
     
     final effectiveFillColor = fillColor ?? (isM3E ? colorScheme.primary.withValues(alpha: 0.05) : theme.inputDecorationTheme.fillColor);
     final effectiveTextColor = textColor ?? colorScheme.onSurface;
     final effectiveHintColor = hintColor ?? colorScheme.onSurfaceVariant.withValues(alpha: 0.6);
     final effectiveRadius = borderRadius ?? (isM3E ? 24.0 : 16.0);
 
-    return material.Container(
+    return Container(
       margin: const material.EdgeInsets.only(bottom: 8),
       child: material.TextFormField(
         controller: controller,
@@ -152,32 +153,34 @@ class CustomTextField extends material.StatelessWidget {
     );
   }
 
-  material.Widget _buildFluentTextBox(material.BuildContext context) {
-    return material.Container(
+  Widget _buildFluentTextBox(BuildContext context) {
+    return Container(
       margin: const material.EdgeInsets.only(bottom: 8),
-      child: fluent.TextBox(
-        controller: controller,
-        focusNode: focusNode,
-        placeholder: hint,
-        header: label,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        textInputAction: textInputAction,
-        onSubmitted: onFieldSubmitted,
-        maxLines: maxLines,
-        maxLength: maxLength,
-        autofocus: autofocus,
-        readOnly: readOnly,
-        showCursor: showCursor,
-        onTap: onTap,
-        onChanged: onChanged,
-        enabled: enabled,
-        prefix: prefixIcon != null ? material.Padding(
-          padding: const material.EdgeInsets.only(left: 8.0),
-          child: material.Icon(prefixIcon, size: 16),
-        ) : null,
-        suffix: suffixIcon,
-        padding: contentPadding as material.EdgeInsets? ?? const material.EdgeInsets.all(8.0),
+      child: fluent.InfoLabel(
+        label: label ?? '',
+        child: fluent.TextBox(
+          controller: controller,
+          focusNode: focusNode,
+          placeholder: hint,
+          obscureText: obscureText,
+          keyboardType: keyboardType,
+          textInputAction: textInputAction,
+          onSubmitted: onFieldSubmitted,
+          maxLines: maxLines,
+          maxLength: maxLength,
+          autofocus: autofocus,
+          readOnly: readOnly,
+          showCursor: showCursor,
+          onTap: onTap,
+          onChanged: onChanged,
+          enabled: enabled,
+          prefix: prefixIcon != null ? material.Padding(
+            padding: const material.EdgeInsets.only(left: 8.0),
+            child: material.Icon(prefixIcon, size: 16),
+          ) : null,
+          suffix: suffixIcon,
+          padding: (contentPadding as material.EdgeInsets?) ?? const material.EdgeInsets.all(8.0),
+        ),
       ),
     );
   }
@@ -185,14 +188,14 @@ class CustomTextField extends material.StatelessWidget {
 
 // Extension for easy creation of common text fields
 extension CustomTextFieldExtension on CustomTextField {
-  static material.Widget email({
+  static Widget email({
     required material.TextEditingController controller,
-    required material.FocusNode focusNode,
+    required FocusNode focusNode,
     required void Function(String) onFieldSubmitted,
     String? Function(String?)? validator,
     String hint = 'Email',
     material.TextInputAction? textInputAction,
-    material.FocusNode? nextFocus,
+    FocusNode? nextFocus,
   }) {
     return CustomTextField(
       controller: controller,
@@ -214,15 +217,16 @@ extension CustomTextFieldExtension on CustomTextField {
       onFieldSubmitted: (value) {
         onFieldSubmitted(value);
         if (nextFocus != null) {
-          material.FocusScope.of(focusNode.context!).requestFocus(nextFocus);
+          focusNode.unfocus();
+          FocusScope.of(focusNode.context!).requestFocus(nextFocus);
         }
       },
     );
   }
 
-  static material.Widget password({
+  static Widget password({
     required material.TextEditingController controller,
-    required material.FocusNode focusNode,
+    required FocusNode focusNode,
     required bool obscureText,
     required material.VoidCallback onToggleVisibility,
     String? Function(String?)? validator,
@@ -258,13 +262,13 @@ extension CustomTextFieldExtension on CustomTextField {
     );
   }
 
-  static material.Widget name({
+  static Widget name({
     required material.TextEditingController controller,
-    required material.FocusNode focusNode,
+    required FocusNode focusNode,
     String? Function(String?)? validator,
     String hint = 'Name',
     material.TextInputAction? textInputAction,
-    material.FocusNode? nextFocus,
+    FocusNode? nextFocus,
   }) {
     return CustomTextField(
       controller: controller,
@@ -281,7 +285,7 @@ extension CustomTextFieldExtension on CustomTextField {
             return null;
           },
       onFieldSubmitted: nextFocus != null
-          ? (_) => material.FocusScope.of(focusNode.context!).requestFocus(nextFocus)
+          ? (_) => FocusScope.of(focusNode.context!).requestFocus(nextFocus)
           : null,
     );
   }

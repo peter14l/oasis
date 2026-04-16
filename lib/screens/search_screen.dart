@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'dart:async';
 import 'package:flutter/material.dart' as material;
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:oasis/services/search_service.dart';
@@ -15,18 +16,18 @@ import 'package:oasis/widgets/custom_snackbar.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:provider/provider.dart';
 
-class SearchScreen extends material.StatefulWidget {
+class SearchScreen extends StatefulWidget {
   final bool isPanel;
   const SearchScreen({super.key, this.isPanel = false});
 
   @override
-  material.State<SearchScreen> createState() => _SearchScreenState();
+  State<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends material.State<SearchScreen>
+class _SearchScreenState extends State<SearchScreen>
     with material.SingleTickerProviderStateMixin {
   final SearchService _searchService = SearchService();
-  final material.TextEditingController _searchController = material.TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   late material.TabController _tabController;
   Timer? _debounce;
 
@@ -100,10 +101,10 @@ class _SearchScreenState extends material.State<SearchScreen>
   }
 
   @override
-  material.Widget build(material.BuildContext context) {
+  Widget build(BuildContext context) {
     final theme = material.Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final themeProvider = material.Provider.of<ThemeProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
     final disableTransparency = themeProvider.isM3ETransparencyDisabled;
     final isDesktop = ResponsiveLayout.isDesktop(context);
@@ -120,41 +121,41 @@ class _SearchScreenState extends material.State<SearchScreen>
           ? colorScheme.surface
           : colorScheme.surface.withValues(alpha: 0.4);
 
-      return material.Padding(
+      return Padding(
         padding: const material.EdgeInsets.all(12),
-        child: material.Container(
+        child: Container(
           decoration: material.BoxDecoration(
             color: desktopBgColor,
-            borderRadius: material.BorderRadius.circular(isM3E ? 32 : 12),
+            borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
             border: material.Border.all(color: material.Colors.white.withValues(alpha: 0.05)),
           ),
-          child: material.ClipRRect(
-            borderRadius: material.BorderRadius.circular(isM3E ? 32 : 12),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
             child: disableTransparency
                 ? material.Scaffold(
                     backgroundColor: material.Colors.transparent,
-                    body: material.Stack(
+                    body: Stack(
                       children: [
-                        material.Column(
+                        Column(
                           children: [
                             _buildNewDesktopHeader(theme, colorScheme, isM3E),
-                            material.Expanded(child: _buildDesktopLayout(isM3E)),
+                            Expanded(child: _buildDesktopLayout(isM3E)),
                           ],
                         ),
                         const LockoutOverlay(pageName: 'Search'),
                       ],
                     ),
                   )
-                : material.BackdropFilter(
-                    filter: material.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                : BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                     child: material.Scaffold(
                       backgroundColor: material.Colors.transparent,
-                      body: material.Stack(
+                      body: Stack(
                         children: [
-                          material.Column(
+                          Column(
                             children: [
                               _buildNewDesktopHeader(theme, colorScheme, isM3E),
-                              material.Expanded(child: _buildDesktopLayout(isM3E)),
+                              Expanded(child: _buildDesktopLayout(isM3E)),
                             ],
                           ),
                           const LockoutOverlay(pageName: 'Search'),
@@ -177,11 +178,11 @@ class _SearchScreenState extends material.State<SearchScreen>
           automaticallyImplyLeading: false,
           elevation: 0,
           toolbarHeight: 60,
-          title: material.Container(
+          title: Container(
             height: 40,
             decoration: material.BoxDecoration(
               color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-              borderRadius: material.BorderRadius.circular(isM3E ? 12 : 20),
+              borderRadius: BorderRadius.circular(isM3E ? 12 : 20),
               border: material.Border.all(
                 color: theme.dividerColor.withValues(alpha: 0.2),
               ),
@@ -210,7 +211,7 @@ class _SearchScreenState extends material.State<SearchScreen>
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface,
               ),
-              textInputAction: material.TextInputAction.search,
+              textInputAction: TextInputAction.search,
             ),
           ),
           actions: [
@@ -222,7 +223,7 @@ class _SearchScreenState extends material.State<SearchScreen>
                   _onSearchChanged('');
                 },
               ),
-            const material.SizedBox(width: 4),
+            const SizedBox(width: 4),
           ],
         ),
         body: _buildPanelLayout(isM3E),
@@ -237,21 +238,21 @@ class _SearchScreenState extends material.State<SearchScreen>
       appBar: material.AppBar(
         backgroundColor: colorScheme.surface,
         automaticallyImplyLeading: !usePanelLayout,
-        flexibleSpace: material.ClipRRect(
+        flexibleSpace: ClipRRect(
           child: disableTransparency
-              ? material.Container(color: material.Colors.transparent)
-              : material.BackdropFilter(
-                  filter: material.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: material.Container(color: material.Colors.transparent),
+              ? Container(color: material.Colors.transparent)
+              : BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(color: material.Colors.transparent),
                 ),
         ),
         elevation: 0,
         toolbarHeight: 80,
-        title: material.Container(
+        title: Container(
           height: 52,
           decoration: material.BoxDecoration(
             color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-            borderRadius: material.BorderRadius.circular(isM3E ? 16 : 26),
+            borderRadius: BorderRadius.circular(isM3E ? 16 : 26),
             border: material.Border.all(
               color: theme.dividerColor.withValues(alpha: 0.2),
             ),
@@ -279,7 +280,7 @@ class _SearchScreenState extends material.State<SearchScreen>
             style: theme.textTheme.bodyLarge?.copyWith(
               color: colorScheme.onSurface,
             ),
-            textInputAction: material.TextInputAction.search,
+            textInputAction: TextInputAction.search,
           ),
         ),
         actions: [
@@ -296,7 +297,7 @@ class _SearchScreenState extends material.State<SearchScreen>
               icon: const material.Icon(material.Icons.filter_list_rounded),
               onPressed: () => _showPanelFilters(context, isM3E),
             ),
-          const material.SizedBox(width: 8),
+          const SizedBox(width: 8),
         ],
         bottom: material.PreferredSize(
           preferredSize: const material.Size.fromHeight(60),
@@ -315,7 +316,7 @@ class _SearchScreenState extends material.State<SearchScreen>
           ),
         ),
       ),
-      body: material.Stack(
+      body: Stack(
         children: [
           _buildMobileLayout(isM3E),
           const LockoutOverlay(pageName: 'Search'),
@@ -324,7 +325,7 @@ class _SearchScreenState extends material.State<SearchScreen>
     );
   }
 
-  material.Widget _buildFluentSearch(material.BuildContext context, ThemeProvider themeProvider) {
+  Widget _buildFluentSearch(BuildContext context, ThemeProvider themeProvider) {
     return fluent.ScaffoldPage.scrollable(
       header: fluent.PageHeader(
         title: const fluent.Text('Search'),
@@ -340,14 +341,14 @@ class _SearchScreenState extends material.State<SearchScreen>
         ),
       ),
       children: [
-        material.Padding(
+        Padding(
           padding: const material.EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
           child: fluent.TextBox(
             controller: _searchController,
             placeholder: 'Search for anything on Oasis...',
             onChanged: _onSearchChanged,
             onSubmitted: _onSearchSubmitted,
-            prefix: const material.Padding(
+            prefix: const Padding(
               padding: material.EdgeInsets.only(left: 12.0),
               child: material.Icon(material.Icons.search, size: 20),
             ),
@@ -360,38 +361,38 @@ class _SearchScreenState extends material.State<SearchScreen>
             ) : null,
           ),
         ),
-        material.Row(
-          crossAxisAlignment: material.CrossAxisAlignment.start,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (_showFilters)
-              material.Container(
+              Container(
                 width: 250,
                 padding: const material.EdgeInsets.all(24),
-                child: material.Column(
-                  crossAxisAlignment: material.CrossAxisAlignment.start,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const fluent.Text('Type', style: material.TextStyle(fontWeight: material.FontWeight.bold)),
+                    const fluent.Text('Type', style: TextStyle(fontWeight: FontWeight.bold)),
                     fluent.RadioButton(
-                      checked: _selectedFilter == 'all',
+                      selected: _selectedFilter == 'all',
                       content: const fluent.Text('All'),
-                      onChanged: (v) => setState(() => _selectedFilter = 'all'),
+                      onChanged: (v) { if(v) setState(() => _selectedFilter = 'all'); },
                     ),
                     fluent.RadioButton(
-                      checked: _selectedFilter == 'users',
+                      selected: _selectedFilter == 'users',
                       content: const fluent.Text('Users'),
-                      onChanged: (v) => setState(() => _selectedFilter = 'users'),
+                      onChanged: (v) { if(v) setState(() => _selectedFilter = 'users'); },
                     ),
                     fluent.RadioButton(
-                      checked: _selectedFilter == 'posts',
+                      selected: _selectedFilter == 'posts',
                       content: const fluent.Text('Posts'),
-                      onChanged: (v) => setState(() => _selectedFilter = 'posts'),
+                      onChanged: (v) { if(v) setState(() => _selectedFilter = 'posts'); },
                     ),
                   ],
                 ),
               ),
-            material.Expanded(
+            Expanded(
               child: _isLoading 
-                ? const material.Center(child: fluent.ProgressRing())
+                ? const Center(child: fluent.ProgressRing())
                 : _query.isEmpty
                   ? _buildSearchSuggestions(themeProvider.isM3EEnabled)
                   : _buildDesktopResults(themeProvider.isM3EEnabled),
@@ -402,12 +403,12 @@ class _SearchScreenState extends material.State<SearchScreen>
     );
   }
 
-  material.Widget _buildNewDesktopHeader(
+  Widget _buildNewDesktopHeader(
     material.ThemeData theme,
     material.ColorScheme colorScheme,
     bool isM3E,
   ) {
-    return material.Column(
+    return Column(
       children: [
         DesktopHeader(
           title: 'Search',
@@ -428,23 +429,23 @@ class _SearchScreenState extends material.State<SearchScreen>
                     ? colorScheme.primary
                     : colorScheme.onSurfaceVariant,
                 shape: material.RoundedRectangleBorder(
-                  borderRadius: material.BorderRadius.circular(isM3E ? 12 : 20),
+                  borderRadius: BorderRadius.circular(isM3E ? 12 : 20),
                 ),
               ),
             ),
           ],
         ),
-        material.Container(
+        Container(
           padding: const material.EdgeInsets.fromLTRB(40, 0, 40, 24),
           child: MaxWidthContainer(
             maxWidth: 1000,
-            child: material.Container(
+            child: Container(
               height: 64,
               decoration: material.BoxDecoration(
                 color: colorScheme.surfaceContainerHighest.withValues(
                   alpha: 0.3,
                 ),
-                borderRadius: material.BorderRadius.circular(isM3E ? 16 : 32),
+                borderRadius: BorderRadius.circular(isM3E ? 16 : 32),
                 border: material.Border.all(
                   color: theme.dividerColor.withValues(alpha: 0.3),
                   width: 1,
@@ -459,7 +460,7 @@ class _SearchScreenState extends material.State<SearchScreen>
                   border: material.InputBorder.none,
                   hintStyle: material.TextStyle(
                     color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                    fontWeight: material.FontWeight.w500,
+                    fontWeight: FontWeight.w500,
                   ),
                   prefixIcon: const material.Icon(material.Icons.search, size: 28),
                   suffixIcon: _query.isNotEmpty
@@ -478,9 +479,9 @@ class _SearchScreenState extends material.State<SearchScreen>
                 ),
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: colorScheme.onSurface,
-                  fontWeight: material.FontWeight.w600,
+                  fontWeight: FontWeight.w600,
                 ),
-                textInputAction: material.TextInputAction.search,
+                textInputAction: TextInputAction.search,
               ),
             ),
           ),
@@ -490,56 +491,56 @@ class _SearchScreenState extends material.State<SearchScreen>
     );
   }
 
-  void _showPanelFilters(material.BuildContext context, bool isM3E) {
+  void _showPanelFilters(BuildContext context, bool isM3E) {
     material.showModalBottomSheet(
       context: context,
       backgroundColor: material.Theme.of(context).colorScheme.surface,
       shape: material.RoundedRectangleBorder(
         borderRadius: material.BorderRadius.vertical(
-          top: material.Radius.circular(isM3E ? 48 : 24),
+          top: Radius.circular(isM3E ? 48 : 24),
         ),
       ),
-      builder: (context) => material.Container(
+      builder: (context) => Container(
         padding: const material.EdgeInsets.all(24),
-        child: material.Column(
-          mainAxisSize: material.MainAxisSize.min,
-          crossAxisAlignment: material.CrossAxisAlignment.start,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             material.Text(
               'Sort Results',
               style: material.Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: isM3E ? material.FontWeight.w900 : material.FontWeight.bold,
+                fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
                 letterSpacing: isM3E ? -0.5 : 0,
               ),
             ),
-            const material.SizedBox(height: 24),
+            const SizedBox(height: 24),
             _buildSortOption('Relevance', 'relevance', material.Icons.star_outline),
             _buildSortOption('Recent', 'recent', material.Icons.access_time),
             _buildSortOption('Popular', 'popular', material.Icons.trending_up),
-            const material.SizedBox(height: 32),
+            const SizedBox(height: 32),
           ],
         ),
       ),
     );
   }
 
-  material.Widget _buildTab(String label, int index, bool isM3E) {
+  Widget _buildTab(String label, int index, bool isM3E) {
     return material.ListenableBuilder(
       listenable: _tabController,
       builder: (context, child) {
         final isSelected = _tabController.index == index;
         final theme = material.Theme.of(context);
-        return material.Container(
-          width: material.double.infinity,
+        return Container(
+          width: double.infinity,
           height: 44,
-          alignment: material.Alignment.center,
+          alignment: Alignment.center,
           decoration: material.BoxDecoration(
             color: isSelected
                 ? theme.colorScheme.primary
                 : theme.colorScheme.surfaceContainerHighest.withValues(
                     alpha: 0.5,
                   ),
-            borderRadius: material.BorderRadius.circular(isM3E ? 12 : 12),
+            borderRadius: BorderRadius.circular(isM3E ? 12 : 12),
           ),
           child: material.Text(
             label,
@@ -548,8 +549,8 @@ class _SearchScreenState extends material.State<SearchScreen>
                   ? material.Colors.white
                   : theme.colorScheme.onSurfaceVariant,
               fontWeight: isSelected
-                  ? (isM3E ? material.FontWeight.w900 : material.FontWeight.bold)
-                  : material.FontWeight.normal,
+                  ? (isM3E ? FontWeight.w900 : FontWeight.bold)
+                  : FontWeight.normal,
             ),
           ),
         );
@@ -557,12 +558,12 @@ class _SearchScreenState extends material.State<SearchScreen>
     );
   }
 
-  material.Widget _buildDesktopLayout(bool isM3E) {
-    return material.Row(
+  Widget _buildDesktopLayout(bool isM3E) {
+    return Row(
       children: [
         // Filters Sidebar
         if (_showFilters)
-          material.Container(
+          Container(
             width: 280,
             decoration: material.BoxDecoration(
               border: material.Border(
@@ -575,9 +576,9 @@ class _SearchScreenState extends material.State<SearchScreen>
             child: _buildFiltersSidebar(isM3E),
           ),
         // Main Content
-        material.Expanded(
+        Expanded(
           child: _isLoading
-              ? const material.Center(child: material.CircularProgressIndicator())
+              ? const Center(child: material.CircularProgressIndicator())
               : _query.isEmpty
               ? _buildSearchSuggestions(isM3E)
               : _buildDesktopResults(isM3E),
@@ -586,9 +587,9 @@ class _SearchScreenState extends material.State<SearchScreen>
     );
   }
 
-  material.Widget _buildMobileLayout(bool isM3E) {
+  Widget _buildMobileLayout(bool isM3E) {
     return _isLoading
-        ? const material.Center(child: material.CircularProgressIndicator())
+        ? const Center(child: material.CircularProgressIndicator())
         : _query.isEmpty
         ? _buildSearchSuggestions(isM3E)
         : material.TabBarView(
@@ -597,57 +598,57 @@ class _SearchScreenState extends material.State<SearchScreen>
           );
   }
 
-  material.Widget _buildPanelLayout(bool isM3E) {
+  Widget _buildPanelLayout(bool isM3E) {
     final theme = material.Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return _isLoading
-        ? const material.Center(child: material.CircularProgressIndicator())
+        ? const Center(child: material.CircularProgressIndicator())
         : _query.isEmpty
-        ? material.Center(
-            child: material.Padding(
+        ? Center(
+            child: Padding(
               padding: const material.EdgeInsets.all(16),
-              child: material.Column(
-                mainAxisAlignment: material.MainAxisAlignment.center,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   material.Icon(
                     material.Icons.search,
                     size: 48,
                     color: colorScheme.primary.withValues(alpha: 0.5),
                   ),
-                  const material.SizedBox(height: 16),
-                  material.Text(
+                  const SizedBox(height: 16),
+                  Text(
                     'Search for people and posts',
                     style: theme.textTheme.titleSmall,
-                    textAlign: material.TextAlign.center,
+                    textAlign: TextAlign.center,
                   ),
-                  const material.SizedBox(height: 8),
-                  material.Text(
+                  const SizedBox(height: 8),
+                  Text(
                     'Enter keywords to find users and posts',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
-                    textAlign: material.TextAlign.center,
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
             ),
           )
-        : material.Column(
+        : Column(
             children: [
               // Simple tab bar
-              material.Padding(
+              Padding(
                 padding: const material.EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                child: material.Row(
+                child: Row(
                   children: [
-                    material.Expanded(child: _buildPanelTab('People', 0, isM3E)),
-                    const material.SizedBox(width: 8),
-                    material.Expanded(child: _buildPanelTab('Posts', 1, isM3E)),
+                    Expanded(child: _buildPanelTab('People', 0, isM3E)),
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildPanelTab('Posts', 1, isM3E)),
                   ],
                 ),
               ),
               // Results
-              material.Expanded(
+              Expanded(
                 child: material.TabBarView(
                   controller: _tabController,
                   children: [_buildPanelUserList(isM3E), _buildPanelPostList()],
@@ -657,7 +658,7 @@ class _SearchScreenState extends material.State<SearchScreen>
           );
   }
 
-  material.Widget _buildPanelTab(String label, int index, bool isM3E) {
+  Widget _buildPanelTab(String label, int index, bool isM3E) {
     return material.ListenableBuilder(
       listenable: _tabController,
       builder: (context, child) {
@@ -665,16 +666,16 @@ class _SearchScreenState extends material.State<SearchScreen>
         final theme = material.Theme.of(context);
         return material.GestureDetector(
           onTap: () => _tabController.animateTo(index),
-          child: material.Container(
+          child: Container(
             height: 36,
-            alignment: material.Alignment.center,
+            alignment: Alignment.center,
             decoration: material.BoxDecoration(
               color: isSelected
                   ? theme.colorScheme.primary
                   : theme.colorScheme.surfaceContainerHighest.withValues(
                       alpha: 0.5,
                     ),
-              borderRadius: material.BorderRadius.circular(isM3E ? 10 : 10),
+              borderRadius: BorderRadius.circular(isM3E ? 10 : 10),
             ),
             child: material.Text(
               label,
@@ -682,7 +683,7 @@ class _SearchScreenState extends material.State<SearchScreen>
                 color: isSelected
                     ? material.Colors.white
                     : theme.colorScheme.onSurfaceVariant,
-                fontWeight: isSelected ? material.FontWeight.w600 : material.FontWeight.normal,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
           ),
@@ -691,9 +692,9 @@ class _SearchScreenState extends material.State<SearchScreen>
     );
   }
 
-  material.Widget _buildPanelUserList(bool isM3E) {
+  Widget _buildPanelUserList(bool isM3E) {
     if (_userResults.isEmpty) {
-      return material.Center(
+      return Center(
         child: material.Text(
           'No users found',
           style: material.Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -727,15 +728,15 @@ class _SearchScreenState extends material.State<SearchScreen>
             user['full_name'] ?? user['username'],
             style: material.Theme.of(
               context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: material.FontWeight.w600),
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
             maxLines: 1,
-            overflow: material.TextOverflow.ellipsis,
+            overflow: TextOverflow.ellipsis,
           ),
           subtitle: material.Text(
             '@${user['username']}',
             style: material.Theme.of(context).textTheme.bodySmall,
             maxLines: 1,
-            overflow: material.TextOverflow.ellipsis,
+            overflow: TextOverflow.ellipsis,
           ),
           onTap: () {
             context.push('/profile/${user['id']}');
@@ -745,9 +746,9 @@ class _SearchScreenState extends material.State<SearchScreen>
     );
   }
 
-  material.Widget _buildPanelPostList() {
+  Widget _buildPanelPostList() {
     if (_postResults.isEmpty) {
-      return material.Center(
+      return Center(
         child: material.Text(
           'No posts found',
           style: material.Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -767,22 +768,22 @@ class _SearchScreenState extends material.State<SearchScreen>
     );
   }
 
-  material.Widget _buildPanelPostCard(Post post) {
+  Widget _buildPanelPostCard(Post post) {
     final theme = material.Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return material.Container(
+    return Container(
       margin: const material.EdgeInsets.only(bottom: 8),
       padding: const material.EdgeInsets.all(12),
       decoration: material.BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: material.BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: material.Column(
-        crossAxisAlignment: material.CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // User info
-          material.Row(
+          Row(
             children: [
               material.CircleAvatar(
                 radius: 14,
@@ -796,35 +797,35 @@ class _SearchScreenState extends material.State<SearchScreen>
                       )
                     : null,
               ),
-              const material.SizedBox(width: 8),
-              material.Expanded(
+              const SizedBox(width: 8),
+              Expanded(
                 child: material.Text(
                   post.username,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    fontWeight: material.FontWeight.w600,
+                    fontWeight: FontWeight.w600,
                   ),
                   maxLines: 1,
-                  overflow: material.TextOverflow.ellipsis,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const material.SizedBox(height: 8),
+          const SizedBox(height: 8),
           // Content
           material.Text(
             post.content ?? '',
             style: theme.textTheme.bodyMedium,
             maxLines: 3,
-            overflow: material.TextOverflow.ellipsis,
+            overflow: TextOverflow.ellipsis,
           ),
           if (post.imageUrl != null && post.imageUrl!.isNotEmpty) ...[
-            const material.SizedBox(height: 8),
-            material.ClipRRect(
-              borderRadius: material.BorderRadius.circular(8),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
               child: CachedNetworkImage(
                 imageUrl: post.imageUrl!,
                 height: 120,
-                width: material.double.infinity,
+                width: double.infinity,
                 fit: material.BoxFit.cover,
               ),
             ),
@@ -834,7 +835,7 @@ class _SearchScreenState extends material.State<SearchScreen>
     );
   }
 
-  material.Widget _buildFiltersSidebar(bool isM3E) {
+  Widget _buildFiltersSidebar(bool isM3E) {
     final theme = material.Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -844,76 +845,76 @@ class _SearchScreenState extends material.State<SearchScreen>
         material.Text(
           'Filters',
           style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: isM3E ? material.FontWeight.w900 : material.FontWeight.bold,
+            fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
           ),
         ),
-        const material.SizedBox(height: 24),
+        const SizedBox(height: 24),
 
         // Filter by Type
         material.Text(
           'Type',
           style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: material.FontWeight.w600,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        const material.SizedBox(height: 8),
+        const SizedBox(height: 8),
         _buildFilterChip('All', 'all'),
         _buildFilterChip('Users', 'users'),
         _buildFilterChip('Posts', 'posts'),
-        const material.SizedBox(height: 24),
+        const SizedBox(height: 24),
 
         // Sort By
         material.Text(
           'Sort By',
           style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: material.FontWeight.w600,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        const material.SizedBox(height: 8),
+        const SizedBox(height: 8),
         _buildSortOption('Relevance', 'relevance', material.Icons.star_outline),
         _buildSortOption('Recent', 'recent', material.Icons.access_time),
         _buildSortOption('Popular', 'popular', material.Icons.trending_up),
-        const material.SizedBox(height: 24),
+        const SizedBox(height: 24),
 
         // Quick Stats
         if (_userResults.isNotEmpty || _postResults.isNotEmpty) ...[
-          material.Container(
+          Container(
             padding: const material.EdgeInsets.all(16),
             decoration: material.BoxDecoration(
               color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-              borderRadius: material.BorderRadius.circular(isM3E ? 16 : 12),
+              borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
             ),
-            child: material.Column(
-              crossAxisAlignment: material.CrossAxisAlignment.start,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 material.Text(
                   'Results',
                   style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: material.FontWeight.w600,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                const material.SizedBox(height: 12),
-                material.Row(
-                  mainAxisAlignment: material.MainAxisAlignment.spaceBetween,
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     material.Text('Users:', style: theme.textTheme.bodyMedium),
                     material.Text(
                       '${_userResults.length}',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: material.FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
-                const material.SizedBox(height: 8),
-                material.Row(
-                  mainAxisAlignment: material.MainAxisAlignment.spaceBetween,
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     material.Text('Posts:', style: theme.textTheme.bodyMedium),
                     material.Text(
                       '${_postResults.length}',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: material.FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
@@ -926,12 +927,12 @@ class _SearchScreenState extends material.State<SearchScreen>
     );
   }
 
-  material.Widget _buildFilterChip(String label, String value) {
+  Widget _buildFilterChip(String label, String value) {
     final isSelected = _selectedFilter == value;
-    return material.Padding(
+    return Padding(
       padding: const material.EdgeInsets.only(bottom: 8),
       child: material.FilterChip(
-        label: material.SizedBox(width: material.double.infinity, child: material.Text(label)),
+        label: SizedBox(width: double.infinity, child: material.Text(label)),
         selected: isSelected,
         onSelected: (selected) {
           setState(() => _selectedFilter = value);
@@ -940,24 +941,24 @@ class _SearchScreenState extends material.State<SearchScreen>
     );
   }
 
-  material.Widget _buildSortOption(String label, String value, material.IconData icon) {
+  Widget _buildSortOption(String label, String value, material.IconData icon) {
     final isSelected = _sortBy == value;
     final theme = material.Theme.of(context);
 
-    return material.Padding(
+    return Padding(
       padding: const material.EdgeInsets.only(bottom: 8),
       child: material.InkWell(
         onTap: () => setState(() => _sortBy = value),
-        borderRadius: material.BorderRadius.circular(8),
-        child: material.Container(
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
           padding: const material.EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: material.BoxDecoration(
             color: isSelected
                 ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
                 : null,
-            borderRadius: material.BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(8),
           ),
-          child: material.Row(
+          child: Row(
             children: [
               material.Icon(
                 icon,
@@ -966,11 +967,11 @@ class _SearchScreenState extends material.State<SearchScreen>
                     ? theme.colorScheme.primary
                     : theme.colorScheme.onSurfaceVariant,
               ),
-              const material.SizedBox(width: 12),
-              material.Text(
+              const SizedBox(width: 12),
+              Text(
                 label,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: isSelected ? material.FontWeight.w600 : material.FontWeight.normal,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                   color: isSelected ? theme.colorScheme.primary : null,
                 ),
               ),
@@ -981,35 +982,35 @@ class _SearchScreenState extends material.State<SearchScreen>
     );
   }
 
-  material.Widget _buildDesktopResults(bool isM3E) {
+  Widget _buildDesktopResults(bool isM3E) {
     if (_selectedFilter == 'users' || _selectedFilter == 'all') {
       if (_selectedFilter == 'users') {
         return _buildUserList(isM3E);
       }
       // Show both
-      return material.SingleChildScrollView(
-        child: material.Column(
-          crossAxisAlignment: material.CrossAxisAlignment.start,
+      return SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (_userResults.isNotEmpty) ...[
-              material.Padding(
+              Padding(
                 padding: const material.EdgeInsets.all(16),
                 child: material.Text(
                   'People',
                   style: material.Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: isM3E ? material.FontWeight.w900 : material.FontWeight.bold,
+                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
                   ),
                 ),
               ),
-              material.SizedBox(height: 200, child: _buildUserList(isM3E)),
+              SizedBox(height: 200, child: _buildUserList(isM3E)),
             ],
             if (_postResults.isNotEmpty) ...[
-              material.Padding(
+              Padding(
                 padding: const material.EdgeInsets.all(16),
                 child: material.Text(
                   'Posts',
                   style: material.Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: isM3E ? material.FontWeight.w900 : material.FontWeight.bold,
+                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
                   ),
                 ),
               ),
@@ -1025,60 +1026,60 @@ class _SearchScreenState extends material.State<SearchScreen>
     }
   }
 
-  material.Widget _buildSearchSuggestions(bool isM3E) {
+  Widget _buildSearchSuggestions(bool isM3E) {
     final theme = material.Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return material.Center(
+    return Center(
       child: MaxWidthContainer(
         maxWidth: 600,
-        child: material.SingleChildScrollView(
-          child: material.Padding(
+        child: SingleChildScrollView(
+          child: Padding(
             padding: const material.EdgeInsets.all(24),
-            child: material.Column(
-              mainAxisAlignment: material.MainAxisAlignment.center,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 material.Icon(
                   material.Icons.search,
                   size: 80,
                   color: colorScheme.primary.withValues(alpha: 0.5),
                 ),
-                const material.SizedBox(height: 24),
+                const SizedBox(height: 24),
                 material.Text(
                   'Search for people and posts',
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: isM3E ? material.FontWeight.w900 : material.FontWeight.bold,
+                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
                   ),
-                  textAlign: material.TextAlign.center,
+                  textAlign: TextAlign.center,
                 ),
-                const material.SizedBox(height: 12),
+                const SizedBox(height: 12),
                 material.Text(
                   'Enter keywords to find users, posts, and more',
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
-                  textAlign: material.TextAlign.center,
+                  textAlign: TextAlign.center,
                 ),
-                const material.SizedBox(height: 32),
+                const SizedBox(height: 32),
                 // Search Tips
-                material.Container(
+                Container(
                   padding: const material.EdgeInsets.all(20),
                   decoration: material.BoxDecoration(
                     color: colorScheme.surfaceContainerHighest.withValues(
                       alpha: 0.5,
                     ),
-                    borderRadius: material.BorderRadius.circular(isM3E ? 24 : 16),
+                    borderRadius: BorderRadius.circular(isM3E ? 24 : 16),
                   ),
-                  child: material.Column(
-                    crossAxisAlignment: material.CrossAxisAlignment.start,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       material.Text(
                         'Search Tips',
                         style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: isM3E ? material.FontWeight.w900 : material.FontWeight.bold,
+                          fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
                         ),
                       ),
-                      const material.SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       _buildSearchTip(
                         material.Icons.person_outline,
                         'Find users by name or username',
@@ -1099,21 +1100,21 @@ class _SearchScreenState extends material.State<SearchScreen>
     );
   }
 
-  material.Widget _buildSearchTip(material.IconData icon, String text) {
+  Widget _buildSearchTip(material.IconData icon, String text) {
     final theme = material.Theme.of(context);
-    return material.Padding(
+    return Padding(
       padding: const material.EdgeInsets.only(bottom: 12),
-      child: material.Row(
+      child: Row(
         children: [
           material.Icon(icon, size: 20, color: theme.colorScheme.primary),
-          const material.SizedBox(width: 12),
-          material.Expanded(child: material.Text(text, style: theme.textTheme.bodyMedium)),
+          const SizedBox(width: 12),
+          Expanded(child: material.Text(text, style: theme.textTheme.bodyMedium)),
         ],
       ),
     );
   }
 
-  material.Widget _buildUserList(bool isM3E) {
+  Widget _buildUserList(bool isM3E) {
     if (_userResults.isEmpty) {
       return _buildEmptyState('No users found');
     }
@@ -1151,11 +1152,11 @@ class _SearchScreenState extends material.State<SearchScreen>
       itemBuilder: (context, index) {
         final user = _userResults[index];
         return material.ListTile(
-          leading: material.Container(
+          leading: Container(
             padding: material.EdgeInsets.all(isM3E ? 2 : 0),
             decoration: material.BoxDecoration(
-              shape: isM3E ? material.BoxShape.rectangle : material.BoxShape.circle,
-              borderRadius: isM3E ? material.BorderRadius.circular(10) : null,
+              shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+              borderRadius: isM3E ? BorderRadius.circular(10) : null,
               border: isM3E
                   ? material.Border.all(
                       color: material.Theme.of(context).colorScheme.primary,
@@ -1163,11 +1164,11 @@ class _SearchScreenState extends material.State<SearchScreen>
                     )
                   : null,
             ),
-            child: material.ClipRRect(
+            child: ClipRRect(
               borderRadius: isM3E
-                  ? material.BorderRadius.circular(8)
-                  : material.BorderRadius.circular(20),
-              child: material.SizedBox(
+                  ? BorderRadius.circular(8)
+                  : BorderRadius.circular(20),
+              child: SizedBox(
                 width: 40,
                 height: 40,
                 child: user['avatar_url'] != null
@@ -1175,15 +1176,15 @@ class _SearchScreenState extends material.State<SearchScreen>
                         imageUrl: user['avatar_url'],
                         fit: material.BoxFit.cover,
                       )
-                    : material.Container(
+                    : Container(
                         color: material.Theme.of(
                           context,
                         ).colorScheme.surfaceContainerHighest,
-                        child: material.Center(
+                        child: Center(
                           child: material.Text(
                             user['username'][0].toUpperCase(),
                             style: material.TextStyle(
-                              fontWeight: material.FontWeight.bold,
+                              fontWeight: FontWeight.bold,
                               color: material.Theme.of(context).colorScheme.primary,
                             ),
                           ),
@@ -1195,7 +1196,7 @@ class _SearchScreenState extends material.State<SearchScreen>
           title: material.Text(
             user['full_name'] ?? user['username'],
             style: material.TextStyle(
-              fontWeight: isM3E ? material.FontWeight.w900 : material.FontWeight.bold,
+              fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
             ),
           ),
           subtitle: material.Text('@${user['username']}'),
@@ -1207,17 +1208,17 @@ class _SearchScreenState extends material.State<SearchScreen>
     );
   }
 
-  material.Widget _buildUserCard(Map<String, dynamic> user, bool isM3E) {
+  Widget _buildUserCard(Map<String, dynamic> user, bool isM3E) {
     final theme = material.Theme.of(context);
 
-    return material.ClipRRect(
-      borderRadius: material.BorderRadius.circular(isM3E ? 24 : 16),
-      child: material.BackdropFilter(
-        filter: material.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: material.Container(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(isM3E ? 24 : 16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
           decoration: material.BoxDecoration(
             color: theme.colorScheme.surface.withValues(alpha: 0.6),
-            borderRadius: material.BorderRadius.circular(isM3E ? 24 : 16),
+            borderRadius: BorderRadius.circular(isM3E ? 24 : 16),
             border: material.Border.all(
               color: theme.dividerColor.withValues(alpha: 0.2),
               width: 1,
@@ -1225,16 +1226,16 @@ class _SearchScreenState extends material.State<SearchScreen>
           ),
           child: material.InkWell(
             onTap: () => context.push('/profile/${user['id']}'),
-            borderRadius: material.BorderRadius.circular(isM3E ? 24 : 12),
-            child: material.Padding(
+            borderRadius: BorderRadius.circular(isM3E ? 24 : 12),
+            child: Padding(
               padding: const material.EdgeInsets.all(16),
-              child: material.Row(
+              child: Row(
                 children: [
-                  material.Container(
+                  Container(
                     padding: material.EdgeInsets.all(isM3E ? 3 : 0),
                     decoration: material.BoxDecoration(
-                      shape: isM3E ? material.BoxShape.rectangle : material.BoxShape.circle,
-                      borderRadius: isM3E ? material.BorderRadius.circular(14) : null,
+                      shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                      borderRadius: isM3E ? BorderRadius.circular(14) : null,
                       border: isM3E
                           ? material.Border.all(
                               color: theme.colorScheme.primary,
@@ -1242,11 +1243,11 @@ class _SearchScreenState extends material.State<SearchScreen>
                             )
                           : null,
                     ),
-                    child: material.ClipRRect(
+                    child: ClipRRect(
                       borderRadius: isM3E
-                          ? material.BorderRadius.circular(11)
-                          : material.BorderRadius.circular(28),
-                      child: material.SizedBox(
+                          ? BorderRadius.circular(11)
+                          : BorderRadius.circular(28),
+                      child: SizedBox(
                         width: 56,
                         height: 56,
                         child: user['avatar_url'] != null
@@ -1254,15 +1255,15 @@ class _SearchScreenState extends material.State<SearchScreen>
                                 imageUrl: user['avatar_url'],
                                 fit: material.BoxFit.cover,
                               )
-                            : material.Container(
+                            : Container(
                                 color:
                                     theme.colorScheme.surfaceContainerHighest,
-                                child: material.Center(
+                                child: Center(
                                   child: material.Text(
                                     user['username'][0].toUpperCase(),
                                     style: theme.textTheme.titleLarge?.copyWith(
                                       color: theme.colorScheme.primary,
-                                      fontWeight: material.FontWeight.bold,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
@@ -1270,31 +1271,31 @@ class _SearchScreenState extends material.State<SearchScreen>
                       ),
                     ),
                   ),
-                  const material.SizedBox(width: 16),
-                  material.Expanded(
-                    child: material.Column(
-                      crossAxisAlignment: material.CrossAxisAlignment.start,
-                      mainAxisAlignment: material.MainAxisAlignment.center,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         material.Text(
                           user['full_name'] ?? user['username'],
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: isM3E
-                                ? material.FontWeight.w900
-                                : material.FontWeight.bold,
+                                ? FontWeight.w900
+                                : FontWeight.bold,
                             letterSpacing: isM3E ? -0.5 : 0,
                           ),
                           maxLines: 1,
-                          overflow: material.TextOverflow.ellipsis,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const material.SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         material.Text(
                           '@${user['username']}',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                           maxLines: 1,
-                          overflow: material.TextOverflow.ellipsis,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -1313,7 +1314,7 @@ class _SearchScreenState extends material.State<SearchScreen>
     );
   }
 
-  material.Widget _buildPostList() {
+  Widget _buildPostList() {
     if (_postResults.isEmpty) {
       return _buildEmptyState('No posts found');
     }
@@ -1335,25 +1336,25 @@ class _SearchScreenState extends material.State<SearchScreen>
         : postList;
   }
 
-  material.Widget _buildEmptyState(String message) {
+  Widget _buildEmptyState(String message) {
     final theme = material.Theme.of(context);
-    return material.Center(
-      child: material.Column(
-        mainAxisAlignment: material.Center,
+    return Center(
+      child: Column(
+        mainAxisAlignment: material.MainAxisAlignment.center,
         children: [
           material.Icon(
             material.Icons.search_off,
             size: 64,
             color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
           ),
-          const material.SizedBox(height: 16),
+          const SizedBox(height: 16),
           material.Text(
             message,
             style: theme.textTheme.titleMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          const material.SizedBox(height: 8),
+          const SizedBox(height: 8),
           material.Text(
             'Try adjusting your search or filters',
             style: theme.textTheme.bodyMedium?.copyWith(

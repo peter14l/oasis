@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' as material;
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/services/app_initializer.dart';
@@ -49,25 +50,25 @@ enum SettingsCategory {
   support,
 }
 
-class SettingsScreen extends material.StatefulWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  material.State<SettingsScreen> createState() => _SettingsScreenState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends material.State<SettingsScreen> {
+class _SettingsScreenState extends State<SettingsScreen> {
   SettingsCategory _selectedCategory = SettingsCategory.account;
-  material.Widget? _selectedSubPage;
+  Widget? _selectedSubPage;
   String? _subPageTitle;
 
   @override
   void initState() {
     super.initState();
-    material.WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authService = material.Provider.of<AuthService>(context, listen: false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authService = Provider.of<AuthService>(context, listen: false);
       if (authService.currentUser != null) {
-        material.Provider.of<ProfileProvider>(
+        Provider.of<ProfileProvider>(
           context,
           listen: false,
         ).loadCurrentProfile(authService.currentUser!.id);
@@ -76,11 +77,11 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
   }
 
   @override
-  material.Widget build(material.BuildContext context) {
+  Widget build(BuildContext context) {
     final theme = material.Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDesktop = ResponsiveLayout.isDesktop(context);
-    final themeProvider = material.Provider.of<ThemeProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
     final useFluent = themeProvider.useFluentUI;
 
@@ -104,7 +105,7 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
           elevation: 0,
         ),
         body: material.ListView(
-          padding: const material.EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           children: [
             _buildSupportEmailNote(),
             _buildSettingsGroup(context, [
@@ -116,35 +117,35 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
                 onTap: () => context.push('/settings/account'),
               ),
             ]),
-            const material.SizedBox(height: 24),
+            const SizedBox(height: 24),
             _buildSectionHeader(context, 'General'),
             _buildGeneralSection(context, index: 0),
-            const material.SizedBox(height: 24),
+            const SizedBox(height: 24),
             _buildSectionHeader(context, 'Privacy & Security'),
             _buildPrivacySection(context, index: 1),
-            const material.SizedBox(height: 24),
+            const SizedBox(height: 24),
             _buildSectionHeader(context, 'Appearance'),
             _buildAppearanceSection(context, index: 2),
-            const material.SizedBox(height: 24),
+            const SizedBox(height: 24),
             _buildSectionHeader(context, 'Data & Storage'),
             _buildDataSection(context, index: 3),
-            const material.SizedBox(height: 24),
+            const SizedBox(height: 24),
             _buildSectionHeader(context, 'Accessibility'),
             _buildAccessibilitySection(context, index: 4),
-            const material.SizedBox(height: 24),
+            const SizedBox(height: 24),
             _buildSectionHeader(context, 'Support & About'),
             _buildSupportSection(context, index: 5),
-            const material.SizedBox(height: 24),
+            const SizedBox(height: 24),
             _buildSignOutButton(context),
-            const material.SizedBox(height: 32),
+            const SizedBox(height: 32),
           ],
         ),
       ),
     );
   }
 
-  material.Widget _buildFluentSettings(
-    material.BuildContext context,
+  Widget _buildFluentSettings(
+    BuildContext context,
     ThemeProvider themeProvider,
     material.ColorScheme colorScheme,
   ) {
@@ -160,61 +161,54 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
         },
         displayMode: fluent.PaneDisplayMode.auto,
         header: fluent.Container(
-          height: kToolbarHeight,
-          padding: const material.EdgeInsets.symmetric(horizontal: 10.0),
+          height: material.kToolbarHeight,
+          padding: const EdgeInsets.symmetric(horizontal: 10.0),
           child: const fluent.Text(
             'Settings',
-            style: material.TextStyle(fontSize: 24, fontWeight: material.FontWeight.bold),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
         ),
         items: [
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.person_24_regular),
-            selectedIcon: const material.Icon(FluentIcons.person_24_filled),
             title: const fluent.Text('Account'),
-            body: material.SizedBox.shrink(),
+            body: const SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.timer_24_regular),
-            selectedIcon: const material.Icon(FluentIcons.timer_24_filled),
             title: const fluent.Text('General'),
-            body: material.SizedBox.shrink(),
+            body: const SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.shield_24_regular),
-            selectedIcon: const material.Icon(FluentIcons.shield_24_filled),
             title: const fluent.Text('Privacy & Security'),
-            body: material.SizedBox.shrink(),
+            body: const SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.paint_brush_24_regular),
-            selectedIcon: const material.Icon(FluentIcons.paint_brush_24_filled),
             title: const fluent.Text('Appearance'),
-            body: material.SizedBox.shrink(),
+            body: const SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.storage_24_regular),
-            selectedIcon: const material.Icon(FluentIcons.storage_24_filled),
             title: const fluent.Text('Data & Storage'),
-            body: material.SizedBox.shrink(),
+            body: const SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.text_font_24_regular),
-            selectedIcon: const material.Icon(FluentIcons.text_font_24_filled),
             title: const fluent.Text('Accessibility'),
-            body: material.SizedBox.shrink(),
+            body: const SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.question_circle_24_regular),
-            selectedIcon: const material.Icon(FluentIcons.question_circle_24_filled),
             title: const fluent.Text('Support & About'),
-            body: material.SizedBox.shrink(),
+            body: const SizedBox.shrink(),
           ),
         ],
         footerItems: [
           fluent.PaneItemAction(
             icon: const material.Icon(FluentIcons.sign_out_24_regular, color: material.Colors.red),
-            title: const fluent.Text('Sign Out', style: material.TextStyle(color: material.Colors.red)),
+            title: const fluent.Text('Sign Out', style: TextStyle(color: material.Colors.red)),
             onTap: _handleSignOut,
           ),
         ],
@@ -232,45 +226,45 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     );
   }
 
-  material.Widget _buildMaterialDesktopSettings(
-    material.BuildContext context,
+  Widget _buildMaterialDesktopSettings(
+    BuildContext context,
     ThemeProvider themeProvider,
     material.ColorScheme colorScheme,
     bool isM3E,
   ) {
     return material.Scaffold(
       backgroundColor: material.Colors.transparent,
-      body: material.Padding(
-        padding: const material.EdgeInsets.all(12),
-        child: material.Container(
-          decoration: material.BoxDecoration(
+      body: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Container(
+          decoration: BoxDecoration(
             color: colorScheme.surface.withValues(alpha: 0.4),
-            borderRadius: material.BorderRadius.circular(isM3E ? 32 : 24),
-            border: material.Border.all(color: material.Colors.white.withValues(alpha: 0.05)),
+            borderRadius: BorderRadius.circular(isM3E ? 32 : 24),
+            border: Border.all(color: material.Colors.white.withValues(alpha: 0.05)),
           ),
-          child: material.ClipRRect(
-            borderRadius: material.BorderRadius.circular(isM3E ? 32 : 24),
-            child: material.BackdropFilter(
-              filter: material.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: material.Row(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(isM3E ? 32 : 24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Row(
                 children: [
                   // Sidebar
-                  material.Container(
+                  Container(
                     width: 320,
-                    decoration: material.BoxDecoration(
+                    decoration: BoxDecoration(
                       color: colorScheme.surfaceContainer.withValues(
                         alpha: 0.2,
                       ),
-                      border: material.Border(
-                        right: material.BorderSide(
+                      border: Border(
+                        right: BorderSide(
                           color: colorScheme.onSurface.withValues(
                             alpha: 0.05,
                           ),
                         ),
                       ),
                     ),
-                    child: material.Column(
-                      crossAxisAlignment: material.CrossAxisAlignment.start,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         DesktopHeader(
                           title: 'Settings',
@@ -288,9 +282,9 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
                             }
                           },
                         ),
-                        material.Expanded(
+                        Expanded(
                           child: material.ListView(
-                            padding: const material.EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 8,
                             ),
@@ -342,8 +336,8 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
                             ],
                           ),
                         ),
-                        material.Padding(
-                          padding: const material.EdgeInsets.all(24),
+                        Padding(
+                          padding: const EdgeInsets.all(24),
                           child: _buildSignOutButton(
                             context,
                             isDesktop: true,
@@ -353,8 +347,8 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
                     ),
                   ),
                   // Content Area
-                  material.Expanded(
-                    child: material.Column(
+                  Expanded(
+                    child: Column(
                       children: [
                         DesktopHeader(
                           title: _selectedSubPage != null
@@ -367,11 +361,11 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
                           }),
                         ),
                         const material.Divider(height: 1),
-                        material.Expanded(
+                        Expanded(
                           child: _selectedSubPage != null
                               ? _selectedSubPage!
-                              : material.SingleChildScrollView(
-                                  padding: const material.EdgeInsets.symmetric(
+                              : SingleChildScrollView(
+                                  padding: const EdgeInsets.symmetric(
                                     horizontal: 40,
                                     vertical: 32,
                                   ),
@@ -423,32 +417,32 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     }
   }
 
-  material.Widget _buildSupportEmailNote() {
-    if (!_showSupportEmailNote) return const material.SizedBox.shrink();
+  Widget _buildSupportEmailNote() {
+    if (!_showSupportEmailNote) return const SizedBox.shrink();
 
     final theme = material.Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return material.Container(
-      margin: const material.EdgeInsets.only(bottom: 24),
-      padding: const material.EdgeInsets.all(16),
-      decoration: material.BoxDecoration(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
         color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
-        borderRadius: material.BorderRadius.circular(16),
-        border: material.Border.all(color: colorScheme.secondary.withValues(alpha: 0.2)),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.secondary.withValues(alpha: 0.2)),
       ),
-      child: material.Column(
-        crossAxisAlignment: material.CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          material.Row(
+          Row(
             children: [
               material.Icon(material.Icons.info_outline, color: colorScheme.secondary),
-              const material.SizedBox(width: 12),
-              material.Expanded(
+              const SizedBox(width: 12),
+              Expanded(
                 child: material.Text(
                   'Important Note',
                   style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: material.FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                     color: colorScheme.secondary,
                   ),
                 ),
@@ -456,22 +450,22 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
               material.IconButton(
                 icon: const material.Icon(material.Icons.close, size: 20),
                 onPressed: _dismissSupportEmailNote,
-                padding: material.EdgeInsets.zero,
-                constraints: const material.BoxConstraints(),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ],
           ),
-          const material.SizedBox(height: 8),
+          const SizedBox(height: 8),
           const material.Text(
             'All feedback, bugs, and reports will be sent to oasis.officialsupport@gmail.com. This is subject to change when our official domain is available.',
-            style: material.TextStyle(fontSize: 13),
+            style: TextStyle(fontSize: 13),
           ),
         ],
       ),
     );
   }
 
-  void _navigateToSubPage(String title, material.Widget page) {
+  void _navigateToSubPage(String title, Widget page) {
     final isDesktop = ResponsiveLayout.isDesktop(context);
     if (isDesktop) {
       setState(() {
@@ -479,11 +473,11 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
         _subPageTitle = title;
       });
     } else {
-      material.Navigator.of(context).push(material.MaterialPageRoute(builder: (context) => page));
+      Navigator.of(context).push(material.MaterialPageRoute(builder: (context) => page));
     }
   }
 
-  material.Widget _buildSidebarItem({
+  Widget _buildSidebarItem({
     required material.IconData icon,
     required material.IconData selectedIcon,
     required String label,
@@ -492,11 +486,11 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     final theme = material.Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isSelected = _selectedCategory == category;
-    final themeProvider = material.Provider.of<ThemeProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
 
-    return material.Padding(
-      padding: const material.EdgeInsets.symmetric(vertical: 4),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: material.Material(
         color: material.Colors.transparent,
         child: material.InkWell(
@@ -505,21 +499,21 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
             _selectedSubPage = null;
             _subPageTitle = null;
           }),
-          borderRadius: material.BorderRadius.circular(isM3E ? 16 : 12),
-          child: material.Container(
-            padding: const material.EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: material.BoxDecoration(
+          borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
               color: isSelected
                   ? colorScheme.primaryContainer.withValues(alpha: 0.3)
                   : material.Colors.transparent,
-              borderRadius: material.BorderRadius.circular(isM3E ? 16 : 12),
+              borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
               border: isSelected
-                  ? material.Border.all(
+                  ? Border.all(
                       color: colorScheme.primary.withValues(alpha: 0.2),
                     )
                   : null,
             ),
-            child: material.Row(
+            child: Row(
               children: [
                 material.Icon(
                   isSelected ? selectedIcon : icon,
@@ -528,11 +522,11 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
                       ? colorScheme.primary
                       : colorScheme.onSurfaceVariant,
                 ),
-                const material.SizedBox(width: 16),
+                const SizedBox(width: 16),
                 material.Text(
                   label,
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: isSelected ? material.FontWeight.w900 : material.FontWeight.w600,
+                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
                     color: isSelected
                         ? colorScheme.primary
                         : colorScheme.onSurfaceVariant,
@@ -565,31 +559,31 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     }
   }
 
-  material.Widget _buildSelectedCategoryContent(material.BuildContext context) {
-    final useFluent = material.Provider.of<ThemeProvider>(context, listen: false).useFluentUI;
+  Widget _buildSelectedCategoryContent(BuildContext context) {
+    final useFluent = Provider.of<ThemeProvider>(context, listen: false).useFluentUI;
     
     switch (_selectedCategory) {
       case SettingsCategory.account:
-        return material.Center(
-          child: material.Column(
-            mainAxisAlignment: material.MainAxisAlignment.center,
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               material.Icon(
                 material.Icons.account_circle_outlined,
                 size: 64,
                 color: material.Theme.of(context).colorScheme.primary,
               ),
-              const material.SizedBox(height: 16),
+              const SizedBox(height: 16),
               material.Text(
                 'Account Management',
                 style: material.Theme.of(context).textTheme.headlineSmall,
               ),
-              const material.SizedBox(height: 8),
+              const SizedBox(height: 8),
               const material.Text(
                 'Manage your profile, subscription, and account security in a dedicated view.',
-                textAlign: material.TextAlign.center,
+                textAlign: TextAlign.center,
               ),
-              const material.SizedBox(height: 24),
+              const SizedBox(height: 24),
               AppButton.primary(
                 onPressed: () => context.push('/settings/account'),
                 icon: const material.Icon(material.Icons.open_in_new),
@@ -613,7 +607,7 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     }
   }
 
-  material.Widget _buildGeneralSection(material.BuildContext context, {int index = 0}) {
+  Widget _buildGeneralSection(BuildContext context, {int index = 0}) {
     return _buildSettingsGroup(context, index: index, [
       _buildSettingsTile(
         context,
@@ -627,9 +621,9 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     ]);
   }
 
-  material.Widget _buildPrivacySection(material.BuildContext context, {int index = 0}) {
+  Widget _buildPrivacySection(BuildContext context, {int index = 0}) {
     final colorScheme = material.Theme.of(context).colorScheme;
-    return material.Column(
+    return Column(
       children: [
         _buildSettingsGroup(context, index: index, [
           _buildSettingsTile(
@@ -704,13 +698,13 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
                 _navigateToSubPage('Download Data', const DownloadDataScreen()),
           ),
         ]),
-        const material.SizedBox(height: 24),
+        const SizedBox(height: 24),
         const PrivacyTransparencyCard(),
       ],
     );
   }
 
-  static const material.List<String> _fonts = [
+  static const List<String> _fonts = [
     'System',
     'Comfortaa',
     'Roboto Flex',
@@ -726,9 +720,9 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     'Work Sans',
   ];
 
-  material.Widget _buildAppearanceSection(material.BuildContext context, {int index = 0}) {
-    final themeProvider = material.Provider.of<ThemeProvider>(context);
-    final userSettingsProvider = material.Provider.of<UserSettingsProvider>(context);
+  Widget _buildAppearanceSection(BuildContext context, {int index = 0}) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final userSettingsProvider = Provider.of<UserSettingsProvider>(context);
     final theme = material.Theme.of(context);
     final colorScheme = theme.colorScheme;
     final useFluent = themeProvider.useFluentUI;
@@ -753,7 +747,7 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
           : material.DropdownButton<material.ThemeMode>(
               value: themeProvider.themeMode,
               dropdownColor: colorScheme.surfaceContainerHigh,
-              underline: const material.SizedBox(),
+              underline: const SizedBox(),
               onChanged: (mode) =>
                   mode != null ? themeProvider.setTheme(mode) : null,
               items: const [
@@ -775,13 +769,13 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
               onChanged: (font) => font != null ? userSettingsProvider.setFontFamily(font) : null,
               items: _fonts.map((font) => fluent.ComboBoxItem(
                 value: font,
-                child: fluent.Text(font, style: material.TextStyle(fontFamily: font == 'System' ? null : font)),
+                child: fluent.Text(font, style: TextStyle(fontFamily: font == 'System' ? null : font)),
               )).toList(),
             )
           : material.DropdownButton<String>(
               value: userSettingsProvider.fontFamily,
               dropdownColor: colorScheme.surfaceContainerHigh,
-              underline: const material.SizedBox(),
+              underline: const SizedBox(),
               onChanged: (font) {
                 if (font != null) {
                   userSettingsProvider.setFontFamily(font);
@@ -792,7 +786,7 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
                   value: font,
                   child: material.Text(
                     font,
-                    style: material.TextStyle(fontFamily: font == 'System' ? null : font),
+                    style: TextStyle(fontFamily: font == 'System' ? null : font),
                   ),
                 );
               }).toList(),
@@ -876,11 +870,11 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
                 onChanged: (p) => p != null ? themeProvider.setColorPalette(p) : null,
                 items: ColorPalette.values.map((p) => fluent.ComboBoxItem(
                   value: p,
-                  child: fluent.Row(
-                    mainAxisSize: material.MainAxisSize.min,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      material.Container(width: 16, height: 16, decoration: material.BoxDecoration(color: _getPaletteColor(p), shape: material.BoxShape.circle)),
-                      const material.SizedBox(width: 8),
+                      Container(width: 16, height: 16, decoration: BoxDecoration(color: _getPaletteColor(p), shape: BoxShape.circle)),
+                      const SizedBox(width: 8),
                       fluent.Text(_getPaletteName(p)),
                     ],
                   ),
@@ -889,7 +883,7 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
             : material.DropdownButton<ColorPalette>(
                 value: themeProvider.colorPalette,
                 dropdownColor: colorScheme.surfaceContainerHigh,
-                underline: const material.SizedBox(),
+                underline: const SizedBox(),
                 onChanged: (palette) {
                   if (palette != null) {
                     themeProvider.setColorPalette(palette);
@@ -898,18 +892,18 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
                 items: ColorPalette.values.map((palette) {
                   return material.DropdownMenuItem(
                     value: palette,
-                    child: material.Row(
-                      mainAxisSize: material.MainAxisSize.min,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        material.Container(
+                        Container(
                           width: 16,
                           height: 16,
-                          decoration: material.BoxDecoration(
+                          decoration: BoxDecoration(
                             color: _getPaletteColor(palette),
-                            shape: material.BoxShape.circle,
+                            shape: BoxShape.circle,
                           ),
                         ),
-                        const material.SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         material.Text(_getPaletteName(palette)),
                       ],
                     ),
@@ -920,9 +914,9 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     ]);
   }
 
-  material.Widget _buildDataSection(material.BuildContext context, {int index = 0}) {
-    final userSettingsProvider = material.Provider.of<UserSettingsProvider>(context);
-    final themeProvider = material.Provider.of<ThemeProvider>(context);
+  Widget _buildDataSection(BuildContext context, {int index = 0}) {
+    final userSettingsProvider = Provider.of<UserSettingsProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     final useFluent = themeProvider.useFluentUI;
 
     return _buildSettingsGroup(context, index: index, [
@@ -954,8 +948,8 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     ]);
   }
 
-  material.Widget _buildAccessibilitySection(material.BuildContext context, {int index = 0}) {
-    final themeProvider = material.Provider.of<ThemeProvider>(context);
+  Widget _buildAccessibilitySection(BuildContext context, {int index = 0}) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     final useFluent = themeProvider.useFluentUI;
 
     return _buildSettingsGroup(context, index: index, [
@@ -986,7 +980,7 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     ]);
   }
 
-  material.Widget _buildSupportSection(material.BuildContext context, {int index = 0}) {
+  Widget _buildSupportSection(BuildContext context, {int index = 0}) {
     return _buildSettingsGroup(context, index: index, [
       _buildSettingsTile(
         context,
@@ -1016,19 +1010,19 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     ]);
   }
 
-  material.Widget _buildSignOutButton(material.BuildContext context, {bool isDesktop = false}) {
-    final themeProvider = material.Provider.of<ThemeProvider>(context, listen: false);
+  Widget _buildSignOutButton(BuildContext context, {bool isDesktop = false}) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     final useFluent = themeProvider.useFluentUI;
 
     if (useFluent) {
       return fluent.Button(
         onPressed: _handleSignOut,
-        child: material.Row(
-          mainAxisSize: material.MainAxisSize.min,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             const material.Icon(FluentIcons.sign_out_24_regular, color: material.Colors.red, size: 20),
-            const material.SizedBox(width: 8),
-            const fluent.Text('Sign Out', style: material.TextStyle(color: material.Colors.red)),
+            const SizedBox(width: 8),
+            const fluent.Text('Sign Out', style: TextStyle(color: material.Colors.red)),
           ],
         ),
       );
@@ -1038,7 +1032,7 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
       leading: const material.Icon(material.Icons.logout, color: material.Colors.red),
       title: const material.Text(
         'Sign Out',
-        style: material.TextStyle(color: material.Colors.red, fontWeight: material.FontWeight.bold),
+        style: TextStyle(color: material.Colors.red, fontWeight: FontWeight.bold),
       ),
       onTap: _handleSignOut,
     );
@@ -1047,11 +1041,11 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
       return material.Material(color: material.Colors.transparent, child: button);
     }
 
-    return material.Container(
-      decoration: material.BoxDecoration(
+    return Container(
+      decoration: BoxDecoration(
         color: material.Colors.red.withValues(alpha: 0.1),
-        borderRadius: material.BorderRadius.circular(16),
-        border: material.Border.all(color: material.Colors.red.withValues(alpha: 0.2)),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: material.Colors.red.withValues(alpha: 0.2)),
       ),
       child: button,
     );
@@ -1067,7 +1061,7 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     );
 
     if (confirmed == true && mounted) {
-      final authService = material.Provider.of<AuthService>(context, listen: false);
+      final authService = Provider.of<AuthService>(context, listen: false);
       _clearProviders(context);
       await authService.signOut();
       if (mounted) {
@@ -1076,7 +1070,7 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     }
   }
 
-  void _clearProviders(material.BuildContext context) {
+  void _clearProviders(BuildContext context) {
     context.read<ConversationProvider>().clear();
     context.read<ProfileProvider>().clear();
     context.read<FeedProvider>().clear();
@@ -1084,14 +1078,14 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     context.read<NotificationProvider>().init(null);
   }
 
-  material.Widget _buildSectionHeader(material.BuildContext context, String title) {
+  Widget _buildSectionHeader(BuildContext context, String title) {
     final theme = material.Theme.of(context);
-    return material.Padding(
-      padding: const material.EdgeInsets.only(left: 4, bottom: 8),
-      child: material.Text(
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(
         title,
         style: theme.textTheme.titleSmall?.copyWith(
-          fontWeight: material.FontWeight.bold,
+          fontWeight: FontWeight.bold,
           color: theme.colorScheme.primary,
           letterSpacing: 0.5,
         ),
@@ -1099,16 +1093,16 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     );
   }
 
-  material.Widget _buildSettingsGroup(
-    material.BuildContext context,
-    material.List<material.Widget> children, {
+  Widget _buildSettingsGroup(
+    BuildContext context,
+    List<Widget> children, {
     int index = 0,
   }) {
-    final themeProvider = material.Provider.of<ThemeProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     final useFluent = themeProvider.useFluentUI;
     
     if (useFluent) {
-      return material.Column(
+      return Column(
         children: children,
       );
     }
@@ -1118,32 +1112,32 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     final isM3E = themeProvider.isM3EEnabled;
     final disableTransparency = themeProvider.isM3ETransparencyDisabled;
 
-    material.BorderRadius borderRadius;
+    BorderRadius borderRadius;
     if (isM3E) {
       switch (index % 3) {
-        case 0: borderRadius = material.BorderRadius.circular(32); break;
-        case 1: borderRadius = const material.BorderRadius.only(topLeft: material.Radius.circular(48), bottomRight: material.Radius.circular(48), topRight: material.Radius.circular(12), bottomLeft: material.Radius.circular(12)); break;
-        case 2: borderRadius = material.BorderRadius.circular(16); break;
-        default: borderRadius = material.BorderRadius.circular(24);
+        case 0: borderRadius = BorderRadius.circular(32); break;
+        case 1: borderRadius = const BorderRadius.only(topLeft: Radius.circular(48), bottomRight: Radius.circular(48), topRight: Radius.circular(12), bottomLeft: Radius.circular(12)); break;
+        case 2: borderRadius = BorderRadius.circular(16); break;
+        default: borderRadius = BorderRadius.circular(24);
       }
     } else {
-      borderRadius = material.BorderRadius.circular(16);
+      borderRadius = BorderRadius.circular(16);
     }
 
     final bgColor = isM3E
         ? (disableTransparency ? (index % 2 == 0 ? colorScheme.surfaceContainerHigh : colorScheme.surfaceContainerLow) : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3))
         : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3);
 
-    return material.Container(
-      decoration: material.BoxDecoration(
+    return Container(
+      decoration: BoxDecoration(
         color: bgColor,
         borderRadius: borderRadius,
-        border: material.Border.all(color: colorScheme.outlineVariant.withValues(alpha: isM3E ? 0.3 : 0.5), width: isM3E ? 1.5 : 1),
+        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: isM3E ? 0.3 : 0.5), width: isM3E ? 1.5 : 1),
       ),
-      child: material.ClipRRect(
+      child: ClipRRect(
         borderRadius: borderRadius,
-        child: material.Column(
-          children: material.List.generate(children.length * 2 - 1, (idx) {
+        child: Column(
+          children: List.generate(children.length * 2 - 1, (idx) {
             if (idx.isOdd) return material.Divider(height: 1, indent: 56, color: colorScheme.outlineVariant.withValues(alpha: 0.3));
             return children[idx ~/ 2];
           }),
@@ -1152,17 +1146,17 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     );
   }
 
-  material.Widget _buildSettingsTile(
-    material.BuildContext context, {
+  Widget _buildSettingsTile(
+    BuildContext context, {
     required material.IconData icon,
     required String title,
     String? subtitle,
     material.Color? iconColor,
     material.Color? textColor,
-    material.Widget? trailing,
-    material.VoidCallback? onTap,
+    Widget? trailing,
+    VoidCallback? onTap,
   }) {
-    final themeProvider = material.Provider.of<ThemeProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     final useFluent = themeProvider.useFluentUI;
 
     if (useFluent) {
@@ -1180,38 +1174,38 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     final isM3E = themeProvider.isM3EEnabled;
 
     return material.ListTile(
-      contentPadding: const material.EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: material.Container(
-        padding: material.EdgeInsets.all(isM3E ? 10 : 8),
-        decoration: material.BoxDecoration(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      leading: Container(
+        padding: EdgeInsets.all(isM3E ? 10 : 8),
+        decoration: BoxDecoration(
           color: (iconColor ?? colorScheme.primary).withValues(alpha: isM3E ? 0.15 : 0.1),
-          borderRadius: material.BorderRadius.circular(isM3E ? 16 : 10),
+          borderRadius: BorderRadius.circular(isM3E ? 16 : 10),
         ),
         child: material.Icon(icon, color: iconColor ?? colorScheme.primary, size: isM3E ? 22 : 24),
       ),
-      title: material.Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: isM3E ? material.FontWeight.w600 : material.FontWeight.w500, color: textColor)),
-      subtitle: subtitle != null ? material.Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)) : null,
+      title: Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: isM3E ? FontWeight.w600 : FontWeight.w500, color: textColor)),
+      subtitle: subtitle != null ? Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)) : null,
       trailing: trailing ?? (onTap != null ? material.Icon(material.Icons.chevron_right, color: colorScheme.onSurfaceVariant) : null),
       onTap: onTap,
     );
   }
 
-  void _showFeedbackDialog(material.BuildContext context) {
-    final useFluent = material.Provider.of<ThemeProvider>(context, listen: false).useFluentUI;
+  void _showFeedbackDialog(BuildContext context) {
+    final useFluent = Provider.of<ThemeProvider>(context, listen: false).useFluentUI;
 
     if (useFluent) {
-      fluent.showContentDialog(
+      fluent.showDialog(
         context: context,
         builder: (context) => fluent.ContentDialog(
           title: const fluent.Text('Send Feedback'),
-          content: material.Column(
-            mainAxisSize: material.MainAxisSize.min,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               fluent.ListTile(
                 leading: const material.Icon(material.Icons.bug_report_outlined, color: material.Colors.red),
                 title: const fluent.Text('Report a Bug'),
                 onPressed: () {
-                  material.Navigator.pop(context);
+                  Navigator.pop(context);
                   _launchEmail('Bug Report', context);
                 },
               ),
@@ -1219,14 +1213,14 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
                 leading: const material.Icon(material.Icons.lightbulb_outline, color: material.Colors.amber),
                 title: const fluent.Text('Suggest a Feature'),
                 onPressed: () {
-                  material.Navigator.pop(context);
+                  Navigator.pop(context);
                   _launchEmail('Feature Suggestion', context);
                 },
               ),
             ],
           ),
           actions: [
-            fluent.Button(child: const fluent.Text('Close'), onPressed: () => material.Navigator.pop(context)),
+            fluent.Button(child: const fluent.Text('Close'), onPressed: () => Navigator.pop(context)),
           ],
         ),
       );
@@ -1237,21 +1231,21 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
       context: context,
       backgroundColor: material.Colors.transparent,
       builder: (context) {
-        return material.Container(
-          decoration: material.BoxDecoration(
+        return Container(
+          decoration: BoxDecoration(
             color: material.Theme.of(context).colorScheme.surface,
-            borderRadius: const material.BorderRadius.vertical(top: material.Radius.circular(20)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          child: material.SafeArea(
-            child: material.Column(
-              mainAxisSize: material.MainAxisSize.min,
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                material.Padding(
-                  padding: const material.EdgeInsets.all(16.0),
-                  child: material.Text(
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
                     'Send Feedback',
                     style: material.Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: material.FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -1259,7 +1253,7 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
                   leading: const material.Icon(material.Icons.bug_report_outlined, color: material.Colors.red),
                   title: const material.Text('Report a Bug'),
                   onTap: () {
-                    material.Navigator.pop(context);
+                    Navigator.pop(context);
                     _launchEmail('Bug Report', context);
                   },
                 ),
@@ -1267,11 +1261,11 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
                   leading: const material.Icon(material.Icons.lightbulb_outline, color: material.Colors.amber),
                   title: const material.Text('Suggest a Feature'),
                   onTap: () {
-                    material.Navigator.pop(context);
+                    Navigator.pop(context);
                     _launchEmail('Feature Suggestion', context);
                   },
                 ),
-                const material.SizedBox(height: 8),
+                const SizedBox(height: 8),
               ],
             ),
           ),
@@ -1280,8 +1274,8 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     );
   }
 
-  Future<void> _launchEmail(String label, material.BuildContext context) async {
-    final authService = material.Provider.of<AuthService>(context, listen: false);
+  Future<void> _launchEmail(String label, BuildContext context) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
     final isPro = authService.currentUser?.isPro == true;
     final prefix = isPro ? '[PRO] ' : '';
 
@@ -1294,7 +1288,7 @@ class _SettingsScreenState extends material.State<SettingsScreen> {
     try {
       await launchUrl(emailLaunchUri);
     } catch (e) {
-      material.debugPrint('Could not launch email client: $e');
+      debugPrint('Could not launch email client: $e');
     }
   }
 

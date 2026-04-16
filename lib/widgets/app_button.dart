@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart' as material;
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
+import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/services/app_initializer.dart';
 
-class AppButton extends material.StatelessWidget {
+class AppButton extends StatelessWidget {
   final String text;
   final material.VoidCallback? onPressed;
   final bool isLoading;
@@ -13,7 +14,7 @@ class AppButton extends material.StatelessWidget {
   final material.Color? textColor;
   final double borderRadius;
   final material.EdgeInsetsGeometry? padding;
-  final material.Widget? icon;
+  final Widget? icon;
   final double? width;
   final double? height;
   final bool disabled;
@@ -36,15 +37,15 @@ class AppButton extends material.StatelessWidget {
   });
 
   @override
-  material.Widget build(material.BuildContext context) {
-    final useFluent = material.Provider.of<ThemeProvider>(context).useFluentUI;
+  Widget build(BuildContext context) {
+    final useFluent = Provider.of<ThemeProvider>(context).useFluentUI;
 
     if (useFluent) {
       return _buildFluentButton(context);
     }
 
     final theme = material.Theme.of(context);
-    final isM3E = material.Provider.of<ThemeProvider>(context).isM3EEnabled;
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
     final buttonStyle = _getMaterialButtonStyle(theme, isM3E);
     final buttonChild = _buildMaterialButtonChild(theme);
 
@@ -61,24 +62,24 @@ class AppButton extends material.StatelessWidget {
           );
 
     if (isFullWidth) {
-      return material.SizedBox(
-        width: width ?? material.double.infinity,
+      return SizedBox(
+        width: width ?? double.infinity,
         height: height,
         child: button,
       );
     }
 
-    return material.SizedBox(
+    return SizedBox(
       width: width,
       height: height,
       child: button,
     );
   }
 
-  material.Widget _buildFluentButton(material.BuildContext context) {
-    final fluentTheme = fluent.FluentTheme.of(context);
+  Widget _buildFluentButton(BuildContext context) {
+    // final fluentTheme = fluent.FluentTheme.of(context);
     
-    material.Widget child = isLoading
+    Widget child = isLoading
         ? const fluent.ProgressRing(strokeWidth: 2)
         : material.Row(
             mainAxisSize: material.MainAxisSize.min,
@@ -92,7 +93,7 @@ class AppButton extends material.StatelessWidget {
             ],
           );
 
-    material.Widget button;
+    Widget button;
     
     if (isOutlined) {
       button = fluent.Button(
@@ -107,23 +108,23 @@ class AppButton extends material.StatelessWidget {
     }
 
     if (isFullWidth) {
-      return material.SizedBox(
-        width: width ?? material.double.infinity,
+      return SizedBox(
+        width: width ?? double.infinity,
         height: height,
         child: button,
       );
     }
 
-    return material.SizedBox(
+    return SizedBox(
       width: width,
       height: height,
       child: button,
     );
   }
 
-  material.Widget _buildMaterialButtonChild(material.ThemeData theme) {
+  Widget _buildMaterialButtonChild(material.ThemeData theme) {
     if (isLoading) {
-      return const material.SizedBox(
+      return const SizedBox(
         width: 24,
         height: 24,
         child: material.CircularProgressIndicator(
@@ -210,7 +211,7 @@ class AppButton extends material.StatelessWidget {
     material.Color? textColor,
     double borderRadius = 28.0,
     material.EdgeInsetsGeometry? padding,
-    material.Widget? icon,
+    Widget? icon,
     double? width,
     double? height = 56.0,
     bool disabled = false,
@@ -244,7 +245,7 @@ class AppButton extends material.StatelessWidget {
     material.Color? textColor,
     double borderRadius = 28.0,
     material.EdgeInsetsGeometry? padding,
-    material.Widget? icon,
+    Widget? icon,
     double? width,
     double? height = 56.0,
     bool disabled = false,

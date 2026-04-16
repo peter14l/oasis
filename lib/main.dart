@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart' as material;
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
+import 'package:flutter/widgets.dart'; // Add this for un-prefixed basic widgets
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -109,7 +110,7 @@ class _LifecycleManagerState extends State<LifecycleManager>
   }
 
   @override
-  Widget build(material.BuildContext context) {
+  Widget build(BuildContext context) {
     return widget.child;
   }
 }
@@ -210,7 +211,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   @override
-  Widget build(material.BuildContext context) {
+  Widget build(BuildContext context) {
     final router = AppRouter.router;
     final themeProvider = Provider.of<ThemeProvider>(context);
     final authService = Provider.of<AuthService>(context, listen: false);
@@ -330,12 +331,12 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class CallNavigator extends material.StatelessWidget {
-  final material.Widget child;
+class CallNavigator extends StatelessWidget {
+  final Widget child;
   const CallNavigator({super.key, required this.child});
 
   @override
-  material.Widget build(material.BuildContext context) {
+  Widget build(BuildContext context) {
     final callProvider = context.watch<CallProvider>();
     final userSettings = context.watch<UserSettingsProvider>();
 
@@ -378,7 +379,7 @@ class CallNavigator extends material.StatelessWidget {
       }
     }
 
-    material.Widget childWidget = child;
+    Widget childWidget = child;
 
     if (Platform.isWindows && userSettings.micaEnabled) {
       final theme = material.Theme.of(context);
@@ -396,7 +397,7 @@ class CallNavigator extends material.StatelessWidget {
         child: childWidget,
       );
 
-      childWidget = material.Container(color: material.Colors.transparent, child: childWidget);
+      childWidget = Container(color: material.Colors.transparent, child: childWidget);
     }
 
     if (userSettings.meshEnabled) {
@@ -404,7 +405,7 @@ class CallNavigator extends material.StatelessWidget {
     } else {
       final isDark = material.Theme.of(context).brightness == material.Brightness.dark;
 
-      return material.Container(
+      return Container(
         color: isDark ? const material.Color(0xFF080A0E) : const material.Color(0xFFF8F9FA),
         child: childWidget,
       );
