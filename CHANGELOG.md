@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Fluent Desktop Settings UI Enhancements (2026-04-16) [`f9c3415`]** - Added a native-feeling close button and navigation pane separators to the Settings screen.
 - **Fluent Desktop Top-Bar Hiding (2026-04-16) [`43a776d`]** - Hidden the global `titleBar` in `NavigationView` and page-level headers in `AdaptiveScaffold` for a cleaner desktop experience.
 - **Adaptive UI Component Architecture (2026-04-16)** - Refactored core widgets (`AppButton`, `CustomTextField`) into adaptive components that automatically switch between Material and Fluent UI based on the platform.
 - **Cross-Platform Native Dialogs (2026-04-16)** - Introduced `AdaptiveDialog` utility to provide native-feeling modal experiences using `ContentDialog` on desktop/web and `AlertDialog` on mobile.
