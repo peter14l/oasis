@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Fluent Desktop Top-Bar Hiding (2026-04-16) [`43a776d`]** - Hidden the global `titleBar` in `NavigationView` and page-level headers in `AdaptiveScaffold` for a cleaner desktop experience.
 - **Adaptive UI Component Architecture (2026-04-16)** - Refactored core widgets (`AppButton`, `CustomTextField`) into adaptive components that automatically switch between Material and Fluent UI based on the platform.
 - **Cross-Platform Native Dialogs (2026-04-16)** - Introduced `AdaptiveDialog` utility to provide native-feeling modal experiences using `ContentDialog` on desktop/web and `AlertDialog` on mobile.
 - **Fluent-Enhanced Settings & Search (2026-04-16)** - Deeply integrated `fluent_ui` into the internal content of Settings and Search screens, providing a seamless native experience on Windows, macOS, and Web.
@@ -16,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - **Streamlined Navigation (2026-04-16)** - Consolidated the introductory experience into 4 high-impact interactive slides.
 
 ### Fixed
+- **Fluent Navigation API Fix (2026-04-16) [`43a776d`]** - Removed non-existent `backButton` parameter from `NavigationPane` to resolve compilation errors with `fluent_ui` v4.15.1.
 - **Adaptive UI Compilation Errors (2026-04-16)** - Resolved namespace conflicts between Material and Fluent UI by standardizing imports and using proper aliasing.
 - **Fluent UI API Mismatches (2026-04-16)** - Fixed incorrect parameter usage in `PaneItem`, `RadioButton`, and `TextBox` components to align with the latest `fluent_ui` package.
 - **Platform-Specific Stability (2026-04-16)** - Ensured core Flutter types (`Widget`, `State`, etc.) are correctly referenced across all adaptive screens.
