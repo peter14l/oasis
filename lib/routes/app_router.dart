@@ -235,23 +235,8 @@ class _MainLayoutState extends State<MainLayout> {
 
         if (useFluent && isDesktop) {
           return fluent.NavigationView(
-            titleBar: fluent.TitleBar(
-              title: const fluent.Text('Oasis'),
-              actions: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  fluent.Tooltip(
-                    message: 'New Post',
-                    child: fluent.IconButton(
-                      icon: const Icon(Icons.add_rounded, size: 20),
-                      onPressed: () => context.pushNamed('create_post'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                ],
-              ),
-            ),
             pane: fluent.NavigationPane(
+              header: const SizedBox.shrink(),
               selected: currentIndex,
               onChanged: (index) => _onDestinationSelected(index, killSwitchActive: killSwitchActive),
               displayMode: _isRailExtended ? fluent.PaneDisplayMode.expanded : fluent.PaneDisplayMode.compact,
@@ -288,6 +273,7 @@ class _MainLayoutState extends State<MainLayout> {
                 ),
               ],
               footerItems: [
+                fluent.PaneItemSeparator(),
                 fluent.PaneItem(
                   icon: const Icon(FluentIcons.settings_24_regular),
                   title: const fluent.Text('Settings'),

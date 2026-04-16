@@ -18,6 +18,11 @@ import 'package:oasis/providers/conversation_provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 import 'package:oasis/providers/presence_provider.dart';
+import 'package:oasis/widgets/adaptive/adaptive_scaffold.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
+import 'package:oasis/widgets/desktop_header.dart';
+import 'package:oasis/widgets/custom_text_field.dart';
 import 'package:oasis/services/app_initializer.dart';
 
 class DirectMessagesScreen extends StatefulWidget {
@@ -43,6 +48,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   Timer? _refreshTimer;
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   double _lastScrollOffset = 0;
   String _searchQuery = '';
   bool _isEditingFavorites = false;
@@ -353,373 +359,195 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
     final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+    final useFluent = themeProvider.useFluentUI;
 
-    Widget content;
-
-    if (isDesktop) {
-      content = Container(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            // Pane 1: Inbox (Floating)
-            Container(
-              width: 350,
+    Widget desktopContent = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: [
+          // Pane 1: Inbox (Floating)
+          Container(
+            width: 350,
+            decoration: BoxDecoration(
+              color: disableTransparency
+                  ? colorScheme.surfaceContainer
+                  : colorScheme.surface.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
+              border: isM3E
+                  ? Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                      width: 1,
+                    )
+                  : Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
+              child: disableTransparency
+                  ? _buildConversationList(isDesktop: true)
+                  : BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: _buildConversationList(isDesktop: true),
+                    ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Pane 2: Chat (Floating)
+          Expanded(
+            child: Container(
               decoration: BoxDecoration(
-                color:
-                    disableTransparency
-                        ? colorScheme.surfaceContainer
-                        : colorScheme.surface.withValues(alpha: 0.4),
+                color: disableTransparency
+                    ? colorScheme.surfaceContainerHigh
+                    : colorScheme.surface.withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
-                border:
-                    isM3E
-                        ? Border.all(
-                          color: colorScheme.outlineVariant.withValues(
-                            alpha: 0.3,
-                          ),
-                          width: 1,
-                        )
-                        : Border.all(
-                          color: Colors.white.withValues(alpha: 0.05),
-                        ),
-                boxShadow:
-                    isM3E && disableTransparency
-                        ? [
-                          BoxShadow(
-                            color: colorScheme.shadow.withValues(alpha: 0.08),
-                            blurRadius: 12,
-                            offset: const Offset(0, 2),
-                          ),
-                        ]
-                        : null,
+                border: isM3E
+                    ? Border.all(
+                        color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                        width: 1,
+                      )
+                    : Border.all(color: Colors.white.withValues(alpha: 0.05)),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
-                child:
-                    disableTransparency
-                        ? Column(
-                          children: [
-                            AppBar(
-                              backgroundColor: Colors.transparent,
-                              elevation: 0,
-                              title: Text(
-                                'Messages',
-                                style: theme.textTheme.headlineSmall?.copyWith(
-                                  fontWeight:
-                                      isM3E ? FontWeight.w600 : FontWeight.w900,
-                                  letterSpacing: isM3E ? 0 : -0.5,
-                                ),
-                              ),
-                              actions: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit_outlined),
-                                  onPressed: () => context.push('/new-message'),
-                                ),
-                              ],
-                            ),
-                            Expanded(
-                              child: _buildConversationList(isDesktop: true),
-                            ),
-                          ],
-                        )
-                        : BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Column(
-                            children: [
-                              AppBar(
-                                backgroundColor: Colors.transparent,
-                                elevation: 0,
-                                title: const Text(
-                                  'Messages',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 24,
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
-                                actions: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit_outlined),
-                                    onPressed:
-                                        () => context.push('/new-message'),
-                                  ),
-                                ],
-                              ),
-                              Expanded(
-                                child: _buildConversationList(isDesktop: true),
-                              ),
-                            ],
-                          ),
-                        ),
+                child: disableTransparency
+                    ? _buildChatPane(isM3E, theme)
+                    : BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: _buildChatPane(isM3E, theme),
+                      ),
               ),
             ),
+          ),
+          // Pane 3: Details (Floating)
+          if (_selectedConversation != null && _showDetails) ...[
             const SizedBox(width: 12),
-            // Pane 2: Chat (Floating)
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color:
-                      disableTransparency
-                          ? colorScheme.surfaceContainerHigh
-                          : colorScheme.surface.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
-                  border:
-                      isM3E
-                          ? Border.all(
-                            color: colorScheme.outlineVariant.withValues(
-                              alpha: 0.3,
-                            ),
-                            width: 1,
-                          )
-                          : Border.all(
-                            color: Colors.white.withValues(alpha: 0.05),
-                          ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
-                  child:
-                      disableTransparency
-                          ? AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 200),
-                            child:
-                                _selectedConversation == null
-                                    ? Center(
-                                      key: const ValueKey('empty'),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                                Icons.chat_bubble_outline,
-                                                size: 80,
-                                                color: Colors.white.withValues(
-                                                  alpha: 0.05,
-                                                ),
-                                              )
-                                              .animate(
-                                                onPlay: (c) => c.repeat(),
-                                              )
-                                              .shimmer(duration: 3.seconds),
-                                          const SizedBox(height: 16),
-                                          Text(
-                                            'SELECT A CONVERSATION',
-                                            style: theme.textTheme.labelLarge
-                                                ?.copyWith(
-                                                  color: Colors.white
-                                                      .withValues(alpha: 0.2),
-                                                  fontWeight: FontWeight.w900,
-                                                  letterSpacing: 2,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                    : Stack(
-                                      key: ValueKey(_selectedConversation!.id),
-                                      children: [
-                                        ChatScreen(
-                                          conversationId:
-                                              _selectedConversation!.id,
-                                          otherUserName:
-                                              _selectedConversation!
-                                                  .otherUserName,
-                                          otherUserAvatar:
-                                              _selectedConversation!
-                                                  .otherUserAvatar,
-                                          otherUserId:
-                                              _selectedConversation!
-                                                  .otherUserId,
-                                          isDetailsOpen: _showDetails,
-                                          onDetailsToggle:
-                                              () => setState(
-                                                () =>
-                                                    _showDetails =
-                                                        !_showDetails,
-                                              ),
-                                          bgOpacity: _bgOpacity,
-                                          bgBrightness: _bgBrightness,
-                                        ),
-                                      ],
-                                    ),
-                          )
-                          : BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 200),
-                              child:
-                                  _selectedConversation == null
-                                      ? Center(
-                                        key: const ValueKey('empty'),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                                  Icons.chat_bubble_outline,
-                                                  size: 80,
-                                                  color: Colors.white
-                                                      .withValues(alpha: 0.05),
-                                                )
-                                                .animate(
-                                                  onPlay: (c) => c.repeat(),
-                                                )
-                                                .shimmer(duration: 3.seconds),
-                                            const SizedBox(height: 16),
-                                            Text(
-                                              'SELECT A CONVERSATION',
-                                              style: theme.textTheme.labelLarge
-                                                  ?.copyWith(
-                                                    color: Colors.white
-                                                        .withValues(alpha: 0.2),
-                                                    fontWeight: FontWeight.w900,
-                                                    letterSpacing: 2,
-                                                  ),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                      : Stack(
-                                        key: ValueKey(
-                                          _selectedConversation!.id,
-                                        ),
-                                        children: [
-                                          ChatScreen(
-                                            conversationId:
-                                                _selectedConversation!.id,
-                                            otherUserName:
-                                                _selectedConversation!
-                                                    .otherUserName,
-                                            otherUserAvatar:
-                                                _selectedConversation!
-                                                    .otherUserAvatar,
-                                            otherUserId:
-                                                _selectedConversation!
-                                                    .otherUserId,
-                                            isDetailsOpen: _showDetails,
-                                            onDetailsToggle:
-                                                () => setState(
-                                                  () =>
-                                                      _showDetails =
-                                                          !_showDetails,
-                                                ),
-                                            bgOpacity: _bgOpacity,
-                                            bgBrightness: _bgBrightness,
-                                          ),
-                                        ],
-                                      ),
-                            ),
-                          ),
-                ),
+            Container(
+              width: 350,
+              decoration: BoxDecoration(
+                color: disableTransparency
+                    ? colorScheme.surfaceContainerHigh
+                    : colorScheme.surface.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
+                border: isM3E
+                    ? Border.all(
+                        color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                        width: 1,
+                      )
+                    : Border.all(color: Colors.white.withValues(alpha: 0.05)),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
+                child: disableTransparency
+                    ? _buildDetailsPane()
+                    : BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: _buildDetailsPane(),
+                      ),
               ),
             ),
-            // Pane 3: Details (Floating)
-            if (isDesktop && _selectedConversation != null && _showDetails) ...[
-              const SizedBox(width: 12),
-              Container(
-                width: 350,
-                decoration: BoxDecoration(
-                  color:
-                      disableTransparency
-                          ? colorScheme.surfaceContainerHigh
-                          : colorScheme.surface.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
-                  border:
-                      isM3E
-                          ? Border.all(
-                            color: colorScheme.outlineVariant.withValues(
-                              alpha: 0.3,
-                            ),
-                            width: 1,
-                          )
-                          : Border.all(
-                            color: Colors.white.withValues(alpha: 0.05),
-                          ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
-                  child:
-                      disableTransparency
-                          ? ChatDetailsScreen(
-                            conversationId: _selectedConversation!.id,
-                            otherUserName: _selectedConversation!.otherUserName,
-                            otherUserAvatar:
-                                _selectedConversation!.otherUserAvatar,
-                            otherUserId: _selectedConversation!.otherUserId,
-                            whisperMode: _selectedConversation!.whisperMode,
-                            onBackgroundSettingsChanged: (opacity, brightness) {
-                              setState(() {
-                                _bgOpacity = opacity;
-                                _bgBrightness = brightness;
-                              });
-                            },
-                          )
-                          : BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            child: ChatDetailsScreen(
-                              conversationId: _selectedConversation!.id,
-                              otherUserName:
-                                  _selectedConversation!.otherUserName,
-                              otherUserAvatar:
-                                  _selectedConversation!.otherUserAvatar,
-                              otherUserId: _selectedConversation!.otherUserId,
-                              whisperMode: _selectedConversation!.whisperMode,
-                              onBackgroundSettingsChanged: (
-                                opacity,
-                                brightness,
-                              ) {
-                                setState(() {
-                                  _bgOpacity = opacity;
-                                  _bgBrightness = brightness;
-                                });
-                              },
-                            ),
-                          ),
-                ),
+          ],
+        ],
+      ),
+    );
+
+    if (useFluent && isDesktop) {
+      return AdaptiveScaffold(
+        title: const Text('Messages'),
+        actions: [
+          fluent.Tooltip(
+            message: 'New Message',
+            child: fluent.IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 20),
+              onPressed: () => context.push('/new-message'),
+            ),
+          ),
+        ],
+        body: Stack(
+          children: [
+            desktopContent,
+            if (_previewConversation != null)
+              _StealthPreviewPopup(
+                conversation: _previewConversation!,
+                position: _previewPosition,
+                onDismiss: _hideStealthPreview,
+                decryptedMessages: _previewDecryptedMessages,
               ),
-            ],
           ],
         ),
       );
-    } else {
-      content = Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: Text(
-            'Messages',
-            style: TextStyle(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.w900,
-              fontSize: 22,
-              letterSpacing: -0.5,
+    }
+
+    if (isDesktop) {
+      return Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Column(
+          children: [
+            DesktopHeader(
+              title: 'Messages',
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  onPressed: () => context.push('/new-message'),
+                ),
+              ],
             ),
-          ),
-          centerTitle: true,
-          actions: [
-            IconButton(
-              icon: Icon(Icons.edit_outlined, color: colorScheme.onSurface),
-              onPressed: () => context.push('/new-message'),
+            const Divider(height: 1),
+            Expanded(
+              child: Stack(
+                children: [
+                  desktopContent,
+                  if (_previewConversation != null)
+                    _StealthPreviewPopup(
+                      conversation: _previewConversation!,
+                      position: _previewPosition,
+                      onDismiss: _hideStealthPreview,
+                      decryptedMessages: _previewDecryptedMessages,
+                    ),
+                ],
+              ),
             ),
           ],
         ),
-        body: _buildConversationList(isDesktop: false),
       );
     }
 
     return Stack(
       children: [
-        content,
+        Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: Text(
+              'Messages',
+              style: TextStyle(
+                color: colorScheme.onSurface,
+                fontWeight: FontWeight.w900,
+                fontSize: 22,
+                letterSpacing: -0.5,
+              ),
+            ),
+            centerTitle: true,
+            actions: [
+              IconButton(
+                icon: Icon(Icons.edit_outlined, color: colorScheme.onSurface),
+                onPressed: () => context.push('/new-message'),
+              ),
+            ],
+          ),
+          body: _buildConversationList(isDesktop: false),
+        ),
         if (_previewConversation != null)
           _StealthPreviewPopup(
             conversation: _previewConversation!,
@@ -728,6 +556,62 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
             decryptedMessages: _previewDecryptedMessages,
           ),
       ],
+    );
+  }
+
+  Widget _buildChatPane(bool isM3E, ThemeData theme) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 200),
+      child: _selectedConversation == null
+          ? Center(
+              key: const ValueKey('empty'),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.chat_bubble_outline,
+                    size: 80,
+                    color: Colors.white.withValues(alpha: 0.05),
+                  ).animate(onPlay: (c) => c.repeat()).shimmer(duration: 3.seconds),
+                  const SizedBox(height: 16),
+                  Text(
+                    'SELECT A CONVERSATION',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : ChatScreen(
+              key: ValueKey(_selectedConversation!.id),
+              conversationId: _selectedConversation!.id,
+              otherUserName: _selectedConversation!.otherUserName,
+              otherUserAvatar: _selectedConversation!.otherUserAvatar,
+              otherUserId: _selectedConversation!.otherUserId,
+              isDetailsOpen: _showDetails,
+              onDetailsToggle: () => setState(() => _showDetails = !_showDetails),
+              bgOpacity: _bgOpacity,
+              bgBrightness: _bgBrightness,
+            ),
+    );
+  }
+
+  Widget _buildDetailsPane() {
+    return ChatDetailsScreen(
+      conversationId: _selectedConversation!.id,
+      otherUserName: _selectedConversation!.otherUserName,
+      otherUserAvatar: _selectedConversation!.otherUserAvatar,
+      otherUserId: _selectedConversation!.otherUserId,
+      whisperMode: _selectedConversation!.whisperMode,
+      onBackgroundSettingsChanged: (opacity, brightness) {
+        setState(() {
+          _bgOpacity = opacity;
+          _bgBrightness = brightness;
+        });
+      },
     );
   }
 
@@ -785,32 +669,17 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
                         ),
                       ),
                     ),
-                    child: TextField(
+                    child: CustomTextField(
                       controller: _searchController,
+                      focusNode: _searchFocusNode,
+                      hint: 'Search...',
+                      prefixIcon: Icons.search_rounded,
                       onChanged: (val) => setState(() => _searchQuery = val),
-                      style: TextStyle(
-                        color: colorScheme.onSurface,
-                        fontSize: 14,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Search...',
-                        hintStyle: TextStyle(
-                          color: colorScheme.onSurfaceVariant.withValues(
-                            alpha: 0.5,
-                          ),
-                          fontSize: 14,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.search_rounded,
-                          color: colorScheme.onSurfaceVariant.withValues(
-                            alpha: 0.5,
-                          ),
-                          size: 18,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                        ),
+                      fillColor: Colors.transparent,
+                      borderRadius: 23,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 16,
                       ),
                     ),
                   ),

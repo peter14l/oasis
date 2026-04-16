@@ -13,7 +13,8 @@ import 'package:oasis/features/feed/presentation/widgets/post_card.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:oasis/features/ripples/presentation/screens/ripples_screen.dart';
 import 'package:oasis/widgets/comments_modal.dart';
-import 'package:oasis/widgets/desktop_header.dart';
+import 'package:oasis/widgets/adaptive/adaptive_scaffold.dart';
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/services/screen_time_service.dart';
@@ -408,6 +409,7 @@ class _FeedScreenState extends State<FeedScreen>
     final disableTransparency = themeProvider.isM3ETransparencyDisabled;
     final isDesktop = ResponsiveLayout.isDesktop(context);
     final settings = context.watch<UserSettingsProvider>();
+    final useFluent = themeProvider.useFluentUI;
 
     Widget layout;
     switch (settings.feedLayout) {
@@ -446,98 +448,81 @@ class _FeedScreenState extends State<FeedScreen>
 
     final feedContent = layout;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          isDesktop
-              ? Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: disableTransparency
-                                ? colorScheme.surfaceContainer
-                                : colorScheme.surface.withValues(alpha: 0.4),
-                            borderRadius: BorderRadius.circular(
-                              isM3E ? 28 : 12,
-                            ),
-                            border: isM3E
-                                ? Border.all(
-                                    color: colorScheme.outlineVariant
-                                        .withValues(alpha: 0.3),
-                                    width: 1,
-                                  )
-                                : null,
-                          ),
-                          child: Column(
-                            children: [
-                              DesktopHeader(
-                                title: 'Feed',
-                                actions: [
-                                  _buildDesktopTabSwitcher(colorScheme, isM3E),
-                                  const SizedBox(width: 12),
-                                  IconButton(
-                                    icon: Icon(settings.feedLayout.icon),
-                                    onPressed: () => _showLayoutSwitcher(context),
-                                    tooltip: 'Change Layout',
-                                  ),
-                                  const SizedBox(width: 12),
-                                  _buildRipplesButton(colorScheme, isM3E),
-                                ],
-                              ),
-                              const Divider(height: 1, thickness: 0.5),
-                              Expanded(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.vertical(
-                                    bottom: Radius.circular(isM3E ? 28 : 12),
-                                  ),
-                                  child: disableTransparency
-                                      ? feedContent
-                                      : BackdropFilter(
-                                          filter: ImageFilter.blur(
-                                            sigmaX: 10,
-                                            sigmaY: 10,
-                                          ),
-                                          child: feedContent,
-                                        ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+    if (useFluent && isDesktop) {
+      return AdaptiveScaffold(
+        title: const Text('Feed'),
+        actions: [
+          _buildDesktopTabSwitcher(colorScheme, isM3E),
+          const SizedBox(width: 12),
+          fluent.Tooltip(
+            message: 'Change Layout',
+            child: fluent.IconButton(
+              icon: Icon(settings.feedLayout.icon, size: 20),
+              onPressed: () => _showLayoutSwitcher(context),
+            ),
+          ),
+          const SizedBox(width: 12),
+          _buildRipplesButton(colorScheme, isM3E),
+        ],
+        body: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: disableTransparency
+                            ? colorScheme.surfaceContainer
+                            : colorScheme.surface.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
+                        border: isM3E
+                            ? Border.all(
+                                color: colorScheme.outlineVariant
+                                    .withValues(alpha: 0.3),
+                                width: 1,
+                              )
+                            : null,
                       ),
-                      const SizedBox(width: 12),
-                      _showCommentPane && _selectedPostId != null
-                          ? _buildDesktopCommentPane(theme, colorScheme, isM3E)
-                          : _buildDesktopSidebar(theme, colorScheme, isM3E),
-                    ],
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
+                        child: disableTransparency
+                            ? feedContent
+                            : BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                child: feedContent,
+                              ),
+                      ),
+                    ),
                   ),
-                )
-              : (ResponsiveLayout.isMobile(context)
-                    ? feedContent
-                    : MaxWidthContainer(
-                        maxWidth: ResponsiveLayout.maxFeedWidth,
-                        child: feedContent,
-                      )),
-
-          if (_showRipplesOverlay && isDesktop)
-            Positioned.fill(
-              child: motion.Animate(
-                effects: const [motion.FadeEffect()],
-                child: RipplesScreen(
-                  onExit: () => setState(() => _showRipplesOverlay = false),
-                ),
+                  const SizedBox(width: 12),
+                  _showCommentPane && _selectedPostId != null
+                      ? _buildDesktopCommentPane(theme, colorScheme, isM3E)
+                      : _buildDesktopSidebar(theme, colorScheme, isM3E),
+                ],
               ),
             ),
+            if (_showRipplesOverlay)
+              Positioned.fill(
+                child: motion.Animate(
+                  effects: const [motion.FadeEffect()],
+                  child: RipplesScreen(
+                    onExit: () => setState(() => _showRipplesOverlay = false),
+                  ),
+                ),
+              ),
+            const LockoutOverlay(pageName: 'Feed'),
+            if (_showWellbeingNudge) _buildWellbeingNudge(),
+            if (_showDeepBreath) _buildDeepBreath(),
+          ],
+        ),
+      );
+    }
 
-          const LockoutOverlay(pageName: 'Feed'),
-          if (_showWellbeingNudge) _buildWellbeingNudge(),
-          if (_showDeepBreath) _buildDeepBreath(),
-        ],
-      ),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: feedContent,
     );
   }
 

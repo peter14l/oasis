@@ -158,24 +158,30 @@ class _ProfileScreenState extends State<ProfileScreen>
         }
 
         if (useFluent) {
-          return _buildFluentProfile(
-            profile,
-            themeProvider,
-            colorScheme,
-            profileProvider,
-            userId,
+          return Material(
+            type: MaterialType.transparency,
+            child: _buildFluentProfile(
+              profile,
+              themeProvider,
+              colorScheme,
+              profileProvider,
+              userId,
+            ),
           );
         }
 
         if (isDesktop) {
-          return _buildDesktopLayout(
-            profile,
-            theme,
-            colorScheme,
-            profileProvider,
-            userId,
-            isM3E,
-            disableTransparency,
+          return Material(
+            type: MaterialType.transparency,
+            child: _buildDesktopLayout(
+              profile,
+              theme,
+              colorScheme,
+              profileProvider,
+              userId,
+              isM3E,
+              disableTransparency,
+            ),
           );
         }
 

@@ -17,6 +17,7 @@ import 'package:oasis/services/app_initializer.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/features/messages/presentation/screens/shared_content_screen.dart';
 import 'package:oasis/widgets/moderation_dialogs.dart';
+import 'package:oasis/widgets/custom_text_field.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String conversationId;
@@ -105,6 +106,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   double _bgBrightness = 0.7;
 
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   List<Message> _allMessages = [];
   List<Message> _searchResults = [];
   RealtimeChannel? _conversationChannel;
@@ -150,6 +152,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       _messagingService.unsubscribeFromMessages(_conversationChannel!);
     }
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -341,35 +344,30 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(20),
-                    child: TextField(
+                    child: CustomTextField(
                       controller: _searchController,
+                      focusNode: _searchFocusNode,
                       autofocus: true,
                       onChanged: (val) {
                         _onSearchChanged(val);
                         setModalState(() {});
                       },
-                      decoration: InputDecoration(
-                        hintText: 'Search in this chat...',
-                        prefixIcon: const Icon(FluentIcons.search_24_regular),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(
-                                  FluentIcons.dismiss_24_regular,
-                                ),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  _onSearchChanged('');
-                                  setModalState(() {});
-                                },
-                              )
-                            : null,
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.05),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
+                      hint: 'Search in this chat...',
+                      prefixIcon: FluentIcons.search_24_regular,
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(
+                                FluentIcons.dismiss_24_regular,
+                              ),
+                              onPressed: () {
+                                _searchController.clear();
+                                _onSearchChanged('');
+                                setModalState(() {});
+                              },
+                            )
+                          : null,
+                      fillColor: Colors.white.withValues(alpha: 0.05),
+                      borderRadius: 20,
                     ),
                   ),
                   Expanded(

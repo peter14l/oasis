@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:oasis/widgets/dotted_border_painter.dart';
+import 'package:oasis/widgets/custom_text_field.dart';
 import 'package:oasis/features/messages/presentation/widgets/shared/recording_dot.dart';
 
 /// Chat input area with text field, attachment button, and send/record toggle.
@@ -149,30 +150,21 @@ class ChatInputArea extends StatelessWidget {
                           }
                         },
                       },
-                      child: TextField(
+                      child: CustomTextField(
                         controller: controller,
                         focusNode: focusNode,
-                        style: TextStyle(color: inputTextColor),
-                        decoration: InputDecoration(
-                          hintText: hintText ?? 'Type a message...',
-                          hintStyle: TextStyle(color: inputHintColor),
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          filled: false,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 10,
-                          ),
-                        ),
-                        minLines: 1,
-                        maxLines: 4,
-                        textCapitalization: TextCapitalization.sentences,
-                        onSubmitted: (_) {
+                        hint: hintText ?? 'Type a message...',
+                        fillColor: Colors.transparent,
+                        onChanged: (val) {
+                          // Update textNotifier manually if needed
+                        },
+                        onFieldSubmitted: (_) {
                           if (controller.text.trim().isNotEmpty || hasAttachment) {
                             onSend();
                           }
                         },
+                        maxLines: 4,
+                        textCapitalization: TextCapitalization.sentences,
                       ),
                     ),
           ),

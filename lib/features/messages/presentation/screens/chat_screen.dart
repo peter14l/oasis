@@ -848,75 +848,78 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                           height: dragProgress > 0 ? 52 : 0,
                                           child:
                                               dragProgress > 0
-                                                  ? Center(
-                                                    child: Stack(
-                                                      alignment:
-                                                          Alignment.center,
-                                                      children: [
-                                                        Container(
-                                                          width: 40,
-                                                          height: 40,
-                                                          decoration:
-                                                              BoxDecoration(
-                                                                shape:
-                                                                    BoxShape
-                                                                        .circle,
-                                                                color: colorScheme
-                                                                    .secondary
-                                                                    .withValues(
-                                                                      alpha:
-                                                                          0.08,
-                                                                    ),
-                                                              ),
-                                                        ),
-                                                        SizedBox(
-                                                          width: 40,
-                                                          height: 40,
-                                                          child: CircularProgressIndicator(
-                                                            value: dragProgress,
-                                                            strokeWidth: 3,
-                                                            backgroundColor:
-                                                                colorScheme
-                                                                    .secondary
-                                                                    .withValues(
-                                                                      alpha:
-                                                                          0.15,
-                                                                    ),
-                                                            valueColor: AlwaysStoppedAnimation<
-                                                              Color
-                                                            >(
-                                                              dragProgress >=
-                                                                      1.0
-                                                                  ? colorScheme
-                                                                      .secondary
-                                                                  : colorScheme
+                                                  ? Material(
+                                                    type: MaterialType.transparency,
+                                                    child: Center(
+                                                      child: Stack(
+                                                        alignment:
+                                                            Alignment.center,
+                                                        children: [
+                                                          Container(
+                                                            width: 40,
+                                                            height: 40,
+                                                            decoration:
+                                                                BoxDecoration(
+                                                                  shape:
+                                                                      BoxShape
+                                                                          .circle,
+                                                                  color: colorScheme
                                                                       .secondary
                                                                       .withValues(
                                                                         alpha:
-                                                                            0.4 +
-                                                                            dragProgress *
-                                                                                0.6,
+                                                                            0.08,
                                                                       ),
+                                                                ),
+                                                          ),
+                                                          SizedBox(
+                                                            width: 40,
+                                                            height: 40,
+                                                            child: CircularProgressIndicator(
+                                                              value: dragProgress,
+                                                              strokeWidth: 3,
+                                                              backgroundColor:
+                                                                  colorScheme
+                                                                      .secondary
+                                                                      .withValues(
+                                                                        alpha:
+                                                                            0.15,
+                                                                      ),
+                                                              valueColor: AlwaysStoppedAnimation<
+                                                                Color
+                                                              >(
+                                                                dragProgress >=
+                                                                        1.0
+                                                                    ? colorScheme
+                                                                        .secondary
+                                                                    : colorScheme
+                                                                        .secondary
+                                                                        .withValues(
+                                                                          alpha:
+                                                                              0.4 +
+                                                                              dragProgress *
+                                                                                  0.6,
+                                                                        ),
+                                                              ),
                                                             ),
                                                           ),
-                                                        ),
-                                                        Icon(
-                                                          dragProgress >= 1.0
-                                                              ? Icons
-                                                                  .auto_delete
-                                                              : Icons
-                                                                  .arrow_upward_rounded,
-                                                          size: 18,
-                                                          color: colorScheme
-                                                              .secondary
-                                                              .withValues(
-                                                                alpha:
-                                                                    0.5 +
-                                                                    dragProgress *
-                                                                        0.5,
-                                                              ),
-                                                        ),
-                                                      ],
+                                                          Icon(
+                                                            dragProgress >= 1.0
+                                                                ? Icons
+                                                                    .auto_delete
+                                                                : Icons
+                                                                    .arrow_upward_rounded,
+                                                            size: 18,
+                                                            color: colorScheme
+                                                                .secondary
+                                                                .withValues(
+                                                                  alpha:
+                                                                      0.5 +
+                                                                      dragProgress *
+                                                                          0.5,
+                                                                ),
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
                                                   )
                                                   : const SizedBox.shrink(),

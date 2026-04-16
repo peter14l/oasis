@@ -52,25 +52,6 @@ class NavigationShell extends material.StatelessWidget {
     int unreadCount,
   ) {
     return fluent.NavigationView(
-      titleBar: fluent.TitleBar(
-        title: const fluent.Text('Oasis'),
-        actions: material.Row(
-          mainAxisAlignment: material.MainAxisAlignment.end,
-          children: [
-            fluent.Tooltip(
-              message: 'Search',
-              child: fluent.IconButton(
-                icon: const material.Icon(
-                  FluentIcons.search_24_regular,
-                  size: 20,
-                ),
-                onPressed: () => context.go('/search'),
-              ),
-            ),
-            const material.SizedBox(width: 12),
-          ],
-        ),
-      ),
       pane: fluent.NavigationPane(
         selected: currentIndex,
         onChanged: (index) => _onDestinationSelected(context, index),
