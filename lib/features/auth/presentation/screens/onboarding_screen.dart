@@ -44,28 +44,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Connect Securely',
       description:
           'Share your life through Feed and Stories, and chat privately with world-class end-to-end encryption.',
-      colors: [Color(0xFF6B9EFF), Color(0xFF8E54E9)],
+      colors: [material.Color(0xFF6B9EFF), material.Color(0xFF8E54E9)],
     ),
     const OnboardingPageData(
       icon: system_icons.FluentIcons.board_24_filled,
       title: 'Creative Canvas',
       description:
           'Experience a new way to create together. Interact in real-time on a shared canvas with timelines and audio.',
-      colors: [Color(0xFFF093FB), Color(0xFFF5576C)],
+      colors: [material.Color(0xFFF093FB), material.Color(0xFFF5576C)],
     ),
     const OnboardingPageData(
       icon: system_icons.FluentIcons.video_clip_24_filled,
       title: 'Mindful Discovery',
       description:
           'Discover short-form videos through Ripples, designed with digital wellbeing limits to keep your usage healthy.',
-      colors: [Color(0xFF4FACFE), Color(0xFF00F2FE)],
+      colors: [material.Color(0xFF4FACFE), material.Color(0xFF00F2FE)],
     ),
     const OnboardingPageData(
       icon: system_icons.FluentIcons.heart_pulse_24_filled,
       title: 'Time & Wellness',
       description:
           'Connect with your future self using Time Capsules and monitor your digital habits in the Wellness Center.',
-      colors: [Color(0xFFF6D365), Color(0xFFFDA085)],
+      colors: [material.Color(0xFFF6D365), material.Color(0xFFFDA085)],
     ),
   ];
 
@@ -176,12 +176,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color.lerp(
+            material.Color.lerp(
               _pages[prevIndex].colors[0],
               _pages[nextIndex].colors[0],
               t,
             )!,
-            Color.lerp(
+            material.Color.lerp(
               _pages[prevIndex].colors[1],
               _pages[nextIndex].colors[1],
               t,
@@ -353,7 +353,7 @@ class OnboardingPageData {
   final IconData icon;
   final String title;
   final String description;
-  final List<Color> colors;
+  final List<material.Color> colors;
 
   const OnboardingPageData({
     required this.icon,

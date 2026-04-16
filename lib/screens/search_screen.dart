@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart' as material;
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter/widgets.dart';
+import 'package:flutter/services.dart'; // For TextInputAction
 import 'package:go_router/go_router.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:oasis/services/search_service.dart';
@@ -121,7 +122,7 @@ class _SearchScreenState extends State<SearchScreen>
           ? colorScheme.surface
           : colorScheme.surface.withValues(alpha: 0.4);
 
-      return material.Padding(
+      return Padding(
         padding: const material.EdgeInsets.all(12),
         child: Container(
           decoration: material.BoxDecoration(
@@ -211,7 +212,7 @@ class _SearchScreenState extends State<SearchScreen>
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface,
               ),
-              textInputAction: material.TextInputAction.search,
+              textInputAction: TextInputAction.search,
             ),
           ),
           actions: [
@@ -253,7 +254,7 @@ class _SearchScreenState extends State<SearchScreen>
           decoration: material.BoxDecoration(
             color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(isM3E ? 16 : 26),
-            border: material.Border.all(
+            border: Border.all(
               color: theme.dividerColor.withValues(alpha: 0.2),
             ),
           ),
@@ -280,7 +281,7 @@ class _SearchScreenState extends State<SearchScreen>
             style: theme.textTheme.bodyLarge?.copyWith(
               color: colorScheme.onSurface,
             ),
-            textInputAction: material.TextInputAction.search,
+            textInputAction: TextInputAction.search,
           ),
         ),
         actions: [
@@ -300,8 +301,8 @@ class _SearchScreenState extends State<SearchScreen>
           const SizedBox(width: 8),
         ],
         bottom: material.PreferredSize(
-          preferredSize: const material.Size.fromHeight(60),
-          child: material.Padding(
+          preferredSize: const Size.fromHeight(60),
+          child: Padding(
             padding: const material.EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             child: material.TabBar(
               controller: _tabController,
@@ -330,7 +331,7 @@ class _SearchScreenState extends State<SearchScreen>
       header: fluent.PageHeader(
         title: const fluent.Text('Search'),
         commandBar: fluent.CommandBar(
-          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisAlignment: material.MainAxisAlignment.end,
           primaryItems: [
             fluent.CommandBarButton(
               icon: material.Icon(_showFilters ? material.Icons.filter_list_off : material.Icons.filter_list, size: 18),
@@ -372,20 +373,29 @@ class _SearchScreenState extends State<SearchScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const fluent.Text('Type', style: TextStyle(fontWeight: FontWeight.bold)),
-                    fluent.RadioButton(
-                      checked: _selectedFilter == 'all',
-                      content: const fluent.Text('All'),
-                      onChanged: (v) { if(v) setState(() => _selectedFilter = 'all'); },
-                    ),
-                    fluent.RadioButton(
-                      checked: _selectedFilter == 'users',
-                      content: const fluent.Text('Users'),
-                      onChanged: (v) { if(v) setState(() => _selectedFilter = 'users'); },
-                    ),
-                    fluent.RadioButton(
-                      checked: _selectedFilter == 'posts',
-                      content: const fluent.Text('Posts'),
-                      onChanged: (v) { if(v) setState(() => _selectedFilter = 'posts'); },
+                    const SizedBox(height: 12),
+                    fluent.RadioGroup<String>(
+                      groupValue: _selectedFilter,
+                      onChanged: (v) { if(v != null) setState(() => _selectedFilter = v); },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          fluent.RadioButton<String>(
+                            value: 'all',
+                            content: const fluent.Text('All'),
+                          ),
+                          const SizedBox(height: 12),
+                          fluent.RadioButton<String>(
+                            value: 'users',
+                            content: const fluent.Text('Users'),
+                          ),
+                          const SizedBox(height: 12),
+                          fluent.RadioButton<String>(
+                            value: 'posts',
+                            content: const fluent.Text('Posts'),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -446,7 +456,7 @@ class _SearchScreenState extends State<SearchScreen>
                   alpha: 0.3,
                 ),
                 borderRadius: BorderRadius.circular(isM3E ? 16 : 32),
-                border: Border.all(
+                border: material.Border.all(
                   color: theme.dividerColor.withValues(alpha: 0.3),
                   width: 1,
                 ),
@@ -481,7 +491,7 @@ class _SearchScreenState extends State<SearchScreen>
                   color: colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
-                textInputAction: material.TextInputAction.search,
+                textInputAction: TextInputAction.search,
               ),
             ),
           ),
@@ -531,7 +541,7 @@ class _SearchScreenState extends State<SearchScreen>
         final isSelected = _tabController.index == index;
         final theme = material.Theme.of(context);
         return Container(
-          width: double.infinity,
+          width: material.double.infinity,
           height: 44,
           alignment: Alignment.center,
           decoration: material.BoxDecoration(
@@ -565,7 +575,7 @@ class _SearchScreenState extends State<SearchScreen>
         if (_showFilters)
           Container(
             width: 280,
-            decoration: material.BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(
                 right: BorderSide(
                   color: material.Theme.of(context).dividerColor.withValues(alpha: 0.1),
@@ -1181,7 +1191,7 @@ class _SearchScreenState extends State<SearchScreen>
                           context,
                         ).colorScheme.surfaceContainerHighest,
                         child: Center(
-                          child: material.Text(
+                          child: Text(
                             user['username'][0].toUpperCase(),
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
@@ -1259,7 +1269,7 @@ class _SearchScreenState extends State<SearchScreen>
                                 color:
                                     theme.colorScheme.surfaceContainerHighest,
                                 child: Center(
-                                  child: material.Text(
+                                  child: Text(
                                     user['username'][0].toUpperCase(),
                                     style: theme.textTheme.titleLarge?.copyWith(
                                       color: theme.colorScheme.primary,
@@ -1340,7 +1350,7 @@ class _SearchScreenState extends State<SearchScreen>
     final theme = material.Theme.of(context);
     return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: material.MainAxisAlignment.center,
         children: [
           material.Icon(
             material.Icons.search_off,
