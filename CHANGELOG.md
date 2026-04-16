@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - **Fluent Desktop Profile Top-Bar (2026-04-16) [`af7bef4`]** - Removed the `PageHeader` from the Profile screen in Fluent Desktop mode for a more integrated look.
 
 ### Fixed
+- **Fluent & Build Cleanup (2026-04-16) [`519a8fd`]** - Removed leftover merge conflict markers and resolved syntax errors in Profile and Router files.
 - **Fluent Navigation API Fix (2026-04-16) [`43a776d`]** - Removed non-existent `backButton` parameter from `NavigationPane` to resolve compilation errors with `fluent_ui` v4.15.1.
 - **Adaptive UI Compilation Errors (2026-04-16)** - Resolved namespace conflicts between Material and Fluent UI by standardizing imports and using proper aliasing.
 - **Fluent UI API Mismatches (2026-04-16)** - Fixed incorrect parameter usage in `PaneItem`, `RadioButton`, and `TextBox` components to align with the latest `fluent_ui` package.
