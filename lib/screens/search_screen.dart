@@ -121,13 +121,13 @@ class _SearchScreenState extends State<SearchScreen>
           ? colorScheme.surface
           : colorScheme.surface.withValues(alpha: 0.4);
 
-      return Padding(
+      return material.Padding(
         padding: const material.EdgeInsets.all(12),
         child: Container(
           decoration: material.BoxDecoration(
             color: desktopBgColor,
             borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
-            border: material.Border.all(color: material.Colors.white.withValues(alpha: 0.05)),
+            border: Border.all(color: material.Colors.white.withValues(alpha: 0.05)),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(isM3E ? 32 : 12),
@@ -183,7 +183,7 @@ class _SearchScreenState extends State<SearchScreen>
             decoration: material.BoxDecoration(
               color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(isM3E ? 12 : 20),
-              border: material.Border.all(
+              border: Border.all(
                 color: theme.dividerColor.withValues(alpha: 0.2),
               ),
             ),
@@ -211,7 +211,7 @@ class _SearchScreenState extends State<SearchScreen>
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface,
               ),
-              textInputAction: TextInputAction.search,
+              textInputAction: material.TextInputAction.search,
             ),
           ),
           actions: [
@@ -280,7 +280,7 @@ class _SearchScreenState extends State<SearchScreen>
             style: theme.textTheme.bodyLarge?.copyWith(
               color: colorScheme.onSurface,
             ),
-            textInputAction: TextInputAction.search,
+            textInputAction: material.TextInputAction.search,
           ),
         ),
         actions: [
@@ -330,7 +330,7 @@ class _SearchScreenState extends State<SearchScreen>
       header: fluent.PageHeader(
         title: const fluent.Text('Search'),
         commandBar: fluent.CommandBar(
-          mainAxisAlignment: material.MainAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.end,
           primaryItems: [
             fluent.CommandBarButton(
               icon: material.Icon(_showFilters ? material.Icons.filter_list_off : material.Icons.filter_list, size: 18),
@@ -373,17 +373,17 @@ class _SearchScreenState extends State<SearchScreen>
                   children: [
                     const fluent.Text('Type', style: TextStyle(fontWeight: FontWeight.bold)),
                     fluent.RadioButton(
-                      selected: _selectedFilter == 'all',
+                      checked: _selectedFilter == 'all',
                       content: const fluent.Text('All'),
                       onChanged: (v) { if(v) setState(() => _selectedFilter = 'all'); },
                     ),
                     fluent.RadioButton(
-                      selected: _selectedFilter == 'users',
+                      checked: _selectedFilter == 'users',
                       content: const fluent.Text('Users'),
                       onChanged: (v) { if(v) setState(() => _selectedFilter = 'users'); },
                     ),
                     fluent.RadioButton(
-                      selected: _selectedFilter == 'posts',
+                      checked: _selectedFilter == 'posts',
                       content: const fluent.Text('Posts'),
                       onChanged: (v) { if(v) setState(() => _selectedFilter = 'posts'); },
                     ),
@@ -446,7 +446,7 @@ class _SearchScreenState extends State<SearchScreen>
                   alpha: 0.3,
                 ),
                 borderRadius: BorderRadius.circular(isM3E ? 16 : 32),
-                border: material.Border.all(
+                border: Border.all(
                   color: theme.dividerColor.withValues(alpha: 0.3),
                   width: 1,
                 ),
@@ -481,7 +481,7 @@ class _SearchScreenState extends State<SearchScreen>
                   color: colorScheme.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
-                textInputAction: TextInputAction.search,
+                textInputAction: material.TextInputAction.search,
               ),
             ),
           ),
@@ -566,8 +566,8 @@ class _SearchScreenState extends State<SearchScreen>
           Container(
             width: 280,
             decoration: material.BoxDecoration(
-              border: material.Border(
-                right: material.BorderSide(
+              border: Border(
+                right: BorderSide(
                   color: material.Theme.of(context).dividerColor.withValues(alpha: 0.1),
                   width: 1,
                 ),
@@ -704,7 +704,7 @@ class _SearchScreenState extends State<SearchScreen>
       );
     }
 
-    return material.ListView.builder(
+    return ListView.builder(
       padding: const material.EdgeInsets.symmetric(horizontal: 8),
       itemCount: _userResults.length,
       itemBuilder: (context, index) {
@@ -721,10 +721,10 @@ class _SearchScreenState extends State<SearchScreen>
                 ? CachedNetworkImageProvider(user['avatar_url'])
                 : null,
             child: user['avatar_url'] == null
-                ? material.Text(user['username'][0].toUpperCase())
+                ? Text(user['username'][0].toUpperCase())
                 : null,
           ),
-          title: material.Text(
+          title: Text(
             user['full_name'] ?? user['username'],
             style: material.Theme.of(
               context,
@@ -732,7 +732,7 @@ class _SearchScreenState extends State<SearchScreen>
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          subtitle: material.Text(
+          subtitle: Text(
             '@${user['username']}',
             style: material.Theme.of(context).textTheme.bodySmall,
             maxLines: 1,
@@ -758,7 +758,7 @@ class _SearchScreenState extends State<SearchScreen>
       );
     }
 
-    return material.ListView.builder(
+    return ListView.builder(
       padding: const material.EdgeInsets.symmetric(horizontal: 8),
       itemCount: _postResults.length,
       itemBuilder: (context, index) {
@@ -791,7 +791,7 @@ class _SearchScreenState extends State<SearchScreen>
                     ? CachedNetworkImageProvider(post.userAvatar)
                     : null,
                 child: post.userAvatar.isEmpty
-                    ? material.Text(
+                    ? Text(
                         post.username[0].toUpperCase(),
                         style: const material.TextStyle(fontSize: 10),
                       )
@@ -799,7 +799,7 @@ class _SearchScreenState extends State<SearchScreen>
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: material.Text(
+                child: Text(
                   post.username,
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w600,
@@ -812,7 +812,7 @@ class _SearchScreenState extends State<SearchScreen>
           ),
           const SizedBox(height: 8),
           // Content
-          material.Text(
+          Text(
             post.content ?? '',
             style: theme.textTheme.bodyMedium,
             maxLines: 3,
@@ -826,7 +826,7 @@ class _SearchScreenState extends State<SearchScreen>
                 imageUrl: post.imageUrl!,
                 height: 120,
                 width: double.infinity,
-                fit: material.BoxFit.cover,
+                fit: BoxFit.cover,
               ),
             ),
           ],
@@ -839,10 +839,10 @@ class _SearchScreenState extends State<SearchScreen>
     final theme = material.Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return material.ListView(
+    return ListView(
       padding: const material.EdgeInsets.all(16),
       children: [
-        material.Text(
+        Text(
           'Filters',
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
@@ -851,7 +851,7 @@ class _SearchScreenState extends State<SearchScreen>
         const SizedBox(height: 24),
 
         // Filter by Type
-        material.Text(
+        Text(
           'Type',
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
@@ -864,7 +864,7 @@ class _SearchScreenState extends State<SearchScreen>
         const SizedBox(height: 24),
 
         // Sort By
-        material.Text(
+        Text(
           'Sort By',
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
@@ -887,7 +887,7 @@ class _SearchScreenState extends State<SearchScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                material.Text(
+                Text(
                   'Results',
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
@@ -897,8 +897,8 @@ class _SearchScreenState extends State<SearchScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    material.Text('Users:', style: theme.textTheme.bodyMedium),
-                    material.Text(
+                    Text('Users:', style: theme.textTheme.bodyMedium),
+                    Text(
                       '${_userResults.length}',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
@@ -910,8 +910,8 @@ class _SearchScreenState extends State<SearchScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    material.Text('Posts:', style: theme.textTheme.bodyMedium),
-                    material.Text(
+                    Text('Posts:', style: theme.textTheme.bodyMedium),
+                    Text(
                       '${_postResults.length}',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
@@ -932,7 +932,7 @@ class _SearchScreenState extends State<SearchScreen>
     return Padding(
       padding: const material.EdgeInsets.only(bottom: 8),
       child: material.FilterChip(
-        label: SizedBox(width: double.infinity, child: material.Text(label)),
+        label: SizedBox(width: double.infinity, child: Text(label)),
         selected: isSelected,
         onSelected: (selected) {
           setState(() => _selectedFilter = value);
@@ -995,7 +995,7 @@ class _SearchScreenState extends State<SearchScreen>
             if (_userResults.isNotEmpty) ...[
               Padding(
                 padding: const material.EdgeInsets.all(16),
-                child: material.Text(
+                child: Text(
                   'People',
                   style: material.Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
@@ -1007,7 +1007,7 @@ class _SearchScreenState extends State<SearchScreen>
             if (_postResults.isNotEmpty) ...[
               Padding(
                 padding: const material.EdgeInsets.all(16),
-                child: material.Text(
+                child: Text(
                   'Posts',
                   style: material.Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
@@ -1045,7 +1045,7 @@ class _SearchScreenState extends State<SearchScreen>
                   color: colorScheme.primary.withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 24),
-                material.Text(
+                Text(
                   'Search for people and posts',
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
@@ -1053,7 +1053,7 @@ class _SearchScreenState extends State<SearchScreen>
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
-                material.Text(
+                Text(
                   'Enter keywords to find users, posts, and more',
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: colorScheme.onSurfaceVariant,
@@ -1073,7 +1073,7 @@ class _SearchScreenState extends State<SearchScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      material.Text(
+                      Text(
                         'Search Tips',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
@@ -1108,7 +1108,7 @@ class _SearchScreenState extends State<SearchScreen>
         children: [
           material.Icon(icon, size: 20, color: theme.colorScheme.primary),
           const SizedBox(width: 12),
-          Expanded(child: material.Text(text, style: theme.textTheme.bodyMedium)),
+          Expanded(child: Text(text, style: theme.textTheme.bodyMedium)),
         ],
       ),
     );
@@ -1147,18 +1147,18 @@ class _SearchScreenState extends State<SearchScreen>
       );
     }
 
-    return material.ListView.builder(
+    return ListView.builder(
       itemCount: _userResults.length,
       itemBuilder: (context, index) {
         final user = _userResults[index];
         return material.ListTile(
           leading: Container(
-            padding: material.EdgeInsets.all(isM3E ? 2 : 0),
+            padding: EdgeInsets.all(isM3E ? 2 : 0),
             decoration: material.BoxDecoration(
               shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
               borderRadius: isM3E ? BorderRadius.circular(10) : null,
               border: isM3E
-                  ? material.Border.all(
+                  ? Border.all(
                       color: material.Theme.of(context).colorScheme.primary,
                       width: 1,
                     )
@@ -1174,7 +1174,7 @@ class _SearchScreenState extends State<SearchScreen>
                 child: user['avatar_url'] != null
                     ? CachedNetworkImage(
                         imageUrl: user['avatar_url'],
-                        fit: material.BoxFit.cover,
+                        fit: BoxFit.cover,
                       )
                     : Container(
                         color: material.Theme.of(
@@ -1183,7 +1183,7 @@ class _SearchScreenState extends State<SearchScreen>
                         child: Center(
                           child: material.Text(
                             user['username'][0].toUpperCase(),
-                            style: material.TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: material.Theme.of(context).colorScheme.primary,
                             ),
@@ -1193,13 +1193,13 @@ class _SearchScreenState extends State<SearchScreen>
               ),
             ),
           ),
-          title: material.Text(
+          title: Text(
             user['full_name'] ?? user['username'],
-            style: material.TextStyle(
+            style: TextStyle(
               fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
             ),
           ),
-          subtitle: material.Text('@${user['username']}'),
+          subtitle: Text('@${user['username']}'),
           onTap: () {
             context.push('/profile/${user['id']}');
           },
@@ -1219,7 +1219,7 @@ class _SearchScreenState extends State<SearchScreen>
           decoration: material.BoxDecoration(
             color: theme.colorScheme.surface.withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(isM3E ? 24 : 16),
-            border: material.Border.all(
+            border: Border.all(
               color: theme.dividerColor.withValues(alpha: 0.2),
               width: 1,
             ),
@@ -1232,12 +1232,12 @@ class _SearchScreenState extends State<SearchScreen>
               child: Row(
                 children: [
                   Container(
-                    padding: material.EdgeInsets.all(isM3E ? 3 : 0),
+                    padding: EdgeInsets.all(isM3E ? 3 : 0),
                     decoration: material.BoxDecoration(
                       shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
                       borderRadius: isM3E ? BorderRadius.circular(14) : null,
                       border: isM3E
-                          ? material.Border.all(
+                          ? Border.all(
                               color: theme.colorScheme.primary,
                               width: 1.5,
                             )
@@ -1253,7 +1253,7 @@ class _SearchScreenState extends State<SearchScreen>
                         child: user['avatar_url'] != null
                             ? CachedNetworkImage(
                                 imageUrl: user['avatar_url'],
-                                fit: material.BoxFit.cover,
+                                fit: BoxFit.cover,
                               )
                             : Container(
                                 color:
@@ -1277,7 +1277,7 @@ class _SearchScreenState extends State<SearchScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        material.Text(
+                        Text(
                           user['full_name'] ?? user['username'],
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: isM3E
@@ -1289,7 +1289,7 @@ class _SearchScreenState extends State<SearchScreen>
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
-                        material.Text(
+                        Text(
                           '@${user['username']}',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
@@ -1319,7 +1319,7 @@ class _SearchScreenState extends State<SearchScreen>
       return _buildEmptyState('No posts found');
     }
 
-    final postList = material.ListView.builder(
+    final postList = ListView.builder(
       padding: const material.EdgeInsets.all(16),
       itemCount: _postResults.length,
       itemBuilder: (context, index) {
@@ -1340,7 +1340,7 @@ class _SearchScreenState extends State<SearchScreen>
     final theme = material.Theme.of(context);
     return Center(
       child: Column(
-        mainAxisAlignment: material.MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           material.Icon(
             material.Icons.search_off,
@@ -1348,14 +1348,14 @@ class _SearchScreenState extends State<SearchScreen>
             color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
-          material.Text(
+          Text(
             message,
             style: theme.textTheme.titleMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
-          material.Text(
+          Text(
             'Try adjusting your search or filters',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,

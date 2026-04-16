@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart' hide Colors;
-import 'package:fluent_ui/fluent_ui.dart' hide Colors;
+import 'package:flutter/material.dart' as material;
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart' as system_icons;
 import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:oasis/services/app_initializer.dart';
@@ -40,28 +40,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<OnboardingPageData> _pages = [
     const OnboardingPageData(
-      icon: FluentIcons.chat_multiple_24_filled,
+      icon: system_icons.FluentIcons.chat_multiple_24_filled,
       title: 'Connect Securely',
       description:
           'Share your life through Feed and Stories, and chat privately with world-class end-to-end encryption.',
       colors: [Color(0xFF6B9EFF), Color(0xFF8E54E9)],
     ),
     const OnboardingPageData(
-      icon: FluentIcons.board_24_filled,
+      icon: system_icons.FluentIcons.board_24_filled,
       title: 'Creative Canvas',
       description:
           'Experience a new way to create together. Interact in real-time on a shared canvas with timelines and audio.',
       colors: [Color(0xFFF093FB), Color(0xFFF5576C)],
     ),
     const OnboardingPageData(
-      icon: FluentIcons.video_clip_24_filled,
+      icon: system_icons.FluentIcons.video_clip_24_filled,
       title: 'Mindful Discovery',
       description:
           'Discover short-form videos through Ripples, designed with digital wellbeing limits to keep your usage healthy.',
       colors: [Color(0xFF4FACFE), Color(0xFF00F2FE)],
     ),
     const OnboardingPageData(
-      icon: FluentIcons.heart_pulse_24_filled,
+      icon: system_icons.FluentIcons.heart_pulse_24_filled,
       title: 'Time & Wellness',
       description:
           'Connect with your future self using Time Capsules and monitor your digital habits in the Wellness Center.',
@@ -107,10 +107,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final theme = Theme.of(context);
     final isLastPage = _currentPage == _pages.length - 1;
 
-    return Scaffold(
+    return material.Scaffold(
       body: Stack(
         children: [
           // Dynamic Background
@@ -127,12 +126,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Builder(
                       builder: (context) {
-                        return TextButton(
+                        return material.TextButton(
                           onPressed: _completeOnboarding,
                           child: const Text(
                             'Skip',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: material.Colors.white,
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
                             ),
@@ -205,15 +204,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: material.Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
+                color: material.Colors.white.withValues(alpha: 0.3),
                 width: 2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: material.Colors.black.withValues(alpha: 0.1),
                   blurRadius: 20,
                   spreadRadius: 5,
                 ),
@@ -222,7 +221,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: Icon(
               page.icon,
               size: 80,
-              color: Colors.white,
+              color: material.Colors.white,
             ),
           )
               .animate(target: isCurrent ? 1 : 0)
@@ -232,7 +231,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 begin: const Offset(0.5, 0.5),
               )
               .fadeIn()
-              .shimmer(delay: 800.ms, duration: 1500.ms, color: Colors.white24),
+              .shimmer(delay: 800.ms, duration: 1500.ms, color: material.Colors.white24),
 
           const SizedBox(height: 60),
 
@@ -244,10 +243,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Container(
                 padding: const EdgeInsets.all(32),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
+                  color: material.Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(32),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: material.Colors.white.withValues(alpha: 0.2),
                   ),
                 ),
                 child: Column(
@@ -255,7 +254,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     Text(
                       page.title,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: material.Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 28,
                         letterSpacing: 1.2,
@@ -271,7 +270,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     Text(
                       page.description,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: material.Colors.white.withValues(alpha: 0.9),
                         height: 1.6,
                         fontSize: 18,
                       ),
@@ -306,7 +305,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 width: isActive ? 32 : 12,
                 height: 12,
                 decoration: BoxDecoration(
-                  color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.3),
+                  color: isActive ? material.Colors.white : material.Colors.white.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(6),
                 ),
               );
@@ -321,14 +320,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             height: 64,
             child: Builder(
               builder: (context) {
-                return ElevatedButton(
+                return material.ElevatedButton(
                   onPressed: _onNextPage,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
+                  style: material.ElevatedButton.styleFrom(
+                    backgroundColor: material.Colors.white,
                     foregroundColor: _pages[_currentPage].colors[1],
                     elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                    shape: material.RoundedRectangleBorder(
+                      borderRadius: material.BorderRadius.circular(20),
                     ),
                   ),
                   child: Text(
