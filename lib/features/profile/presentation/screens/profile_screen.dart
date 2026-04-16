@@ -204,38 +204,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     ProfileProvider profileProvider,
     String? userId,
   ) {
-    final bodyContent = fluent.ScaffoldPage.scrollable(
-      header: fluent.PageHeader(
-        title: fluent.Text(profile.username),
-        leading: widget.userId != null
-            ? fluent.IconButton(
-                icon: const Icon(FluentIcons.chevron_left_24_regular),
-                onPressed: () => context.pop(),
-              )
-            : null,
-        commandBar: fluent.CommandBar(
-          mainAxisAlignment: MainAxisAlignment.end,
-          primaryItems: [
-            if (isOwnProfile)
-              fluent.CommandBarButton(
-                icon: const Icon(FluentIcons.settings_24_regular),
-                label: const fluent.Text('Settings'),
-                onPressed: () => context.push('/settings'),
-              ),
-            fluent.CommandBarButton(
-              icon: const Icon(FluentIcons.share_ios_24_regular),
-              label: const fluent.Text('Share'),
-              onPressed: () {
-                final shareText = isOwnProfile
-                    ? 'Check out my profile on Oasis!'
-                    : 'Check out ${profile.username} on Oasis!';
-                final profileUrl = AppConfig.getWebUrl('/profile/${profile.id}');
-                Share.share('$shareText\n$profileUrl');
-              },
-            ),
-          ],
-        ),
-      ),
+    return fluent.ScaffoldPage.scrollable(
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -313,20 +282,6 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         ),
       ],
-    );
-
-    return fluent.NavigationView(
-      pane: fluent.NavigationPane(
-        selected: 0,
-        displayMode: fluent.PaneDisplayMode.top,
-        items: [
-          fluent.PaneItem(
-            icon: const Icon(FluentIcons.person_24_regular),
-            title: const fluent.Text('Profile'),
-            body: bodyContent,
-          ),
-        ],
-      ),
     );
   }
 
