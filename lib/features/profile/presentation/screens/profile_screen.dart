@@ -280,7 +280,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
->>>>>>> temp_preserved_work
   Widget _buildDesktopLayout(
     UserProfileEntity profile,
     ThemeData theme,

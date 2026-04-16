@@ -391,47 +391,7 @@ class _MainLayoutState extends State<MainLayout> {
                               isMica: isMica,
                               disableTransparency: disableTransparency,
                             ),
-<<<<<<< HEAD
-                          Expanded(
-                            child: Stack(
-                              children: [
-                                mainContent,
-                                // Sliding panels for desktop (search/notifications)
-                                if (isDesktop && _activePanel != null)
-                                  AnimatedPositioned(
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeInOut,
-                                    left: 0,
-                                    top: 0,
-                                    bottom: 0,
-                                    width: 400,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: panelColor,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.3,
-                                            ),
-                                            blurRadius: 20,
-                                            spreadRadius: 5,
-                                          ),
-                                        ],
-                                      ),
-                                      child:
-                                          _activePanel == 'search'
-                                              ? const SearchScreen(isPanel: true)
-                                              : const NotificationsScreen(
-                                                isPanel: true,
-                                              ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-=======
                           Expanded(child: contentWithPanels),
->>>>>>> temp_preserved_work
                         ],
                       ),
                     ),
