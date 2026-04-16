@@ -149,17 +149,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ThemeProvider themeProvider,
     material.ColorScheme colorScheme,
   ) {
-    final bodyContent = _selectedSubPage != null
-        ? _selectedSubPage!
-        : fluent.ScaffoldPage.scrollable(
-            header: fluent.PageHeader(
-              title: fluent.Text(_getCategoryTitle(_selectedCategory)),
-            ),
-            children: [
-              _buildSelectedCategoryContent(context),
-            ],
-          );
-
     return fluent.NavigationView(
       pane: fluent.NavigationPane(
         selected: _selectedCategory.index,
@@ -183,53 +172,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.person_24_regular),
             title: const fluent.Text('Account'),
-            body: bodyContent,
+            body: const SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.timer_24_regular),
             title: const fluent.Text('General'),
-            body: bodyContent,
+            body: const SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.shield_24_regular),
             title: const fluent.Text('Privacy & Security'),
-            body: bodyContent,
+            body: const SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.paint_brush_24_regular),
             title: const fluent.Text('Appearance'),
-            body: bodyContent,
+            body: const SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.storage_24_regular),
             title: const fluent.Text('Data & Storage'),
-            body: bodyContent,
+            body: const SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.text_font_24_regular),
             title: const fluent.Text('Accessibility'),
-            body: bodyContent,
+            body: const SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.question_circle_24_regular),
             title: const fluent.Text('Support & About'),
-            body: bodyContent,
+            body: const SizedBox.shrink(),
           ),
         ],
         footerItems: [
           fluent.PaneItemAction(
-            icon: const material.Icon(
-              FluentIcons.sign_out_24_regular,
-              color: material.Colors.red,
-            ),
-            title: const fluent.Text(
-              'Sign Out',
-              style: TextStyle(color: material.Colors.red),
-            ),
+            icon: const material.Icon(FluentIcons.sign_out_24_regular, color: material.Colors.red),
+            title: const fluent.Text('Sign Out', style: TextStyle(color: material.Colors.red)),
             onTap: _handleSignOut,
           ),
         ],
       ),
+      content: _selectedSubPage != null
+          ? _selectedSubPage!
+          : fluent.ScaffoldPage.scrollable(
+              header: fluent.PageHeader(
+                title: fluent.Text(_getCategoryTitle(_selectedCategory)),
+              ),
+              children: [
+                _buildSelectedCategoryContent(context),
+              ],
+            ),
     );
   }
 

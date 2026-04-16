@@ -104,7 +104,7 @@ class DesktopHeader extends StatelessWidget {
                 filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                 child: Container(
                   width: double.infinity,
-                  color: theme.scaffoldBackgroundColor.withValues(alpha: 1.0),
+                  color: theme.scaffoldBackgroundColor.withValues(alpha: 0.7),
                   child: MaxWidthContainer(
                     maxWidth: maxWidth ?? ResponsiveLayout.maxContentWidth,
                     child: headerContent,

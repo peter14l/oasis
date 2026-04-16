@@ -181,7 +181,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       final desktopBgColor =
           disableTransparency
               ? colorScheme.surface
-              : colorScheme.surface.withValues(alpha: 1.0);
+              : colorScheme.surface.withValues(alpha: 0.4);
 
       return Padding(
         padding: const EdgeInsets.all(12),

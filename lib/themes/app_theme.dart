@@ -184,10 +184,11 @@ class AppTheme {
           ? colorScheme.surfaceContainerHigh
           : (isDark ? OasisColors.moss : _m3eLightSurfaceContainerLow);
       final Color appBarBackground = hasDynamicColor
-          ? colorScheme.surface.withValues(alpha: 1.0)
+          ? colorScheme.surface.withValues(alpha: 0.6)
           : (isDark
-                ? OasisColors.deep.withValues(alpha: 1.0)
-                : _m3eLightSurface);      final Color inputFillColor = hasDynamicColor
+                ? OasisColors.deep.withValues(alpha: 0.6)
+                : _m3eLightSurface);
+      final Color inputFillColor = hasDynamicColor
           ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
           : (isDark
                 ? OasisColors.moss.withValues(alpha: 0.5)

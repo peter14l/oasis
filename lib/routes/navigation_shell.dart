@@ -52,7 +52,8 @@ class NavigationShell extends material.StatelessWidget {
     int unreadCount,
   ) {
     return fluent.NavigationView(
-      titleBar: fluent.TitleBar(
+      appBar: fluent.NavigationAppBar(
+        automaticallyImplyLeading: false,
         title: const fluent.Text('Oasis'),
         actions: material.Row(
           mainAxisAlignment: material.MainAxisAlignment.end,
@@ -60,10 +61,7 @@ class NavigationShell extends material.StatelessWidget {
             fluent.Tooltip(
               message: 'Search',
               child: fluent.IconButton(
-                icon: const material.Icon(
-                  FluentIcons.search_24_regular,
-                  size: 20,
-                ),
+                icon: const material.Icon(FluentIcons.search_24_regular, size: 20),
                 onPressed: () => context.go('/search'),
               ),
             ),
@@ -80,50 +78,49 @@ class NavigationShell extends material.StatelessWidget {
             icon: const material.Icon(FluentIcons.home_24_regular),
             selectedIcon: const material.Icon(FluentIcons.home_24_filled),
             title: const fluent.Text('Feed'),
-            body: child,
+            body: material.SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.people_24_regular),
             selectedIcon: const material.Icon(FluentIcons.people_24_filled),
             title: const fluent.Text('Circles'),
-            body: child,
+            body: material.SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: fluent.InfoBadge(
-              source:
-                  unreadCount > 0 ? fluent.Text(unreadCount.toString()) : null,
+              source: unreadCount > 0 ? fluent.Text(unreadCount.toString()) : null,
               child: const material.Icon(FluentIcons.chat_24_regular),
             ),
             selectedIcon: fluent.InfoBadge(
-              source:
-                  unreadCount > 0 ? fluent.Text(unreadCount.toString()) : null,
+              source: unreadCount > 0 ? fluent.Text(unreadCount.toString()) : null,
               child: const material.Icon(FluentIcons.chat_24_filled),
             ),
             title: const fluent.Text('Messages'),
-            body: child,
+            body: material.SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.alert_24_regular),
             selectedIcon: const material.Icon(FluentIcons.alert_24_filled),
             title: const fluent.Text('Alerts'),
-            body: child,
+            body: material.SizedBox.shrink(),
           ),
         ],
         footerItems: [
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.person_24_regular),
             title: const fluent.Text('Profile'),
-            body: child,
+            body: material.SizedBox.shrink(),
             onTap: () => context.go('/profile'),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.settings_24_regular),
             title: const fluent.Text('Settings'),
-            body: child,
+            body: material.SizedBox.shrink(),
             onTap: () => context.go('/settings'),
           ),
         ],
       ),
+      content: child,
     );
   }
 
