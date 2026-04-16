@@ -1,19 +1,19 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as material;
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:provider/provider.dart';
 import 'package:oasis/services/app_initializer.dart';
 
-class AppButton extends StatelessWidget {
-  // ... (previous fields remain)
+class AppButton extends material.StatelessWidget {
   final String text;
-  final VoidCallback? onPressed;
+  final material.VoidCallback? onPressed;
   final bool isLoading;
   final bool isOutlined;
   final bool isFullWidth;
-  final Color? backgroundColor;
-  final Color? textColor;
+  final material.Color? backgroundColor;
+  final material.Color? textColor;
   final double borderRadius;
-  final EdgeInsetsGeometry? padding;
-  final Widget? icon;
+  final material.EdgeInsetsGeometry? padding;
+  final material.Widget? icon;
   final double? width;
   final double? height;
   final bool disabled;
@@ -36,67 +36,119 @@ class AppButton extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
-    final buttonStyle = _getButtonStyle(theme, isM3E);
-    final buttonChild = _buildButtonChild(theme);
+  material.Widget build(material.BuildContext context) {
+    final useFluent = material.Provider.of<ThemeProvider>(context).useFluentUI;
+
+    if (useFluent) {
+      return _buildFluentButton(context);
+    }
+
+    final theme = material.Theme.of(context);
+    final isM3E = material.Provider.of<ThemeProvider>(context).isM3EEnabled;
+    final buttonStyle = _getMaterialButtonStyle(theme, isM3E);
+    final buttonChild = _buildMaterialButtonChild(theme);
 
     final button = isOutlined
-        ? OutlinedButton(
+        ? material.OutlinedButton(
             onPressed: disabled || isLoading ? null : onPressed,
             style: buttonStyle,
             child: buttonChild,
           )
-        : ElevatedButton(
+        : material.ElevatedButton(
             onPressed: disabled || isLoading ? null : onPressed,
             style: buttonStyle,
             child: buttonChild,
           );
 
     if (isFullWidth) {
-      return SizedBox(
-        width: width ?? double.infinity,
+      return material.SizedBox(
+        width: width ?? material.double.infinity,
         height: height,
         child: button,
       );
     }
 
-    return SizedBox(
+    return material.SizedBox(
       width: width,
       height: height,
       child: button,
     );
   }
 
-  Widget _buildButtonChild(ThemeData theme) {
+  material.Widget _buildFluentButton(material.BuildContext context) {
+    final fluentTheme = fluent.FluentTheme.of(context);
+    
+    material.Widget child = isLoading
+        ? const fluent.ProgressRing(strokeWidth: 2)
+        : material.Row(
+            mainAxisSize: material.MainAxisSize.min,
+            mainAxisAlignment: material.MainAxisAlignment.center,
+            children: [
+              if (icon != null) ...[
+                icon!,
+                const material.SizedBox(width: 8),
+              ],
+              fluent.Text(text),
+            ],
+          );
+
+    material.Widget button;
+    
+    if (isOutlined) {
+      button = fluent.Button(
+        onPressed: disabled || isLoading ? null : onPressed,
+        child: child,
+      );
+    } else {
+      button = fluent.FilledButton(
+        onPressed: disabled || isLoading ? null : onPressed,
+        child: child,
+      );
+    }
+
+    if (isFullWidth) {
+      return material.SizedBox(
+        width: width ?? material.double.infinity,
+        height: height,
+        child: button,
+      );
+    }
+
+    return material.SizedBox(
+      width: width,
+      height: height,
+      child: button,
+    );
+  }
+
+  material.Widget _buildMaterialButtonChild(material.ThemeData theme) {
     if (isLoading) {
-      return const SizedBox(
+      return const material.SizedBox(
         width: 24,
         height: 24,
-        child: CircularProgressIndicator(
+        child: material.CircularProgressIndicator(
           strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          valueColor: material.AlwaysStoppedAnimation<material.Color>(material.Colors.white),
         ),
       );
     }
 
-    final textWidget = Text(
+    final textWidget = material.Text(
       text,
       style: theme.textTheme.labelLarge?.copyWith(
-        color: textColor ?? (isOutlined ? theme.colorScheme.primary : Colors.white),
-        fontWeight: FontWeight.w600,
+        color: textColor ?? (isOutlined ? theme.colorScheme.primary : material.Colors.white),
+        fontWeight: material.FontWeight.w600,
       ),
       maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+      overflow: material.TextOverflow.ellipsis,
     );
 
     if (icon != null) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
+      return material.Row(
+        mainAxisSize: material.MainAxisSize.min,
         children: [
           icon!,
-          const SizedBox(width: 8),
+          const material.SizedBox(width: 8),
           textWidget,
         ],
       );
@@ -105,43 +157,43 @@ class AppButton extends StatelessWidget {
     return textWidget;
   }
 
-  ButtonStyle _getButtonStyle(ThemeData theme, bool isM3E) {
+  material.ButtonStyle _getMaterialButtonStyle(material.ThemeData theme, bool isM3E) {
     final colorScheme = theme.colorScheme;
     final backgroundColor = this.backgroundColor ?? colorScheme.primary;
-    final foregroundColor = textColor ?? (isOutlined ? colorScheme.primary : Colors.white);
-    final shape = isM3E ? const StadiumBorder() : RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(borderRadius),
+    final foregroundColor = textColor ?? (isOutlined ? colorScheme.primary : material.Colors.white);
+    final shape = isM3E ? const material.StadiumBorder() : material.RoundedRectangleBorder(
+              borderRadius: material.BorderRadius.circular(borderRadius),
             );
 
     final baseStyle = isOutlined
-        ? OutlinedButton.styleFrom(
+        ? material.OutlinedButton.styleFrom(
             foregroundColor: foregroundColor,
-            backgroundColor: Colors.transparent,
-            side: BorderSide(
+            backgroundColor: material.Colors.transparent,
+            side: material.BorderSide(
               color: disabled ? colorScheme.onSurface.withValues(alpha: 0.12) : colorScheme.primary,
               width: isM3E ? 2.0 : 1.5,
             ),
-            padding: padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: padding ?? const material.EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             shape: shape,
           )
-        : ElevatedButton.styleFrom(
+        : material.ElevatedButton.styleFrom(
             foregroundColor: foregroundColor,
             backgroundColor: disabled ? colorScheme.onSurface.withValues(alpha: 0.12) : backgroundColor,
-            padding: padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: padding ?? const material.EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             shape: shape,
-            elevation: isM3E ? 0 : 0, // M3E prefers flat but vibrant
+            elevation: isM3E ? 0 : 0,
           );
 
     return baseStyle.copyWith(
-      overlayColor: WidgetStateProperty.resolveWith<Color>(
+      overlayColor: material.WidgetStateProperty.resolveWith<material.Color>(
         (states) {
-          if (states.contains(WidgetState.pressed)) {
+          if (states.contains(material.WidgetState.pressed)) {
             return foregroundColor.withValues(alpha: 0.1);
           }
-          if (states.contains(WidgetState.hovered)) {
+          if (states.contains(material.WidgetState.hovered)) {
             return foregroundColor.withValues(alpha: 0.05);
           }
-          return Colors.transparent;
+          return material.Colors.transparent;
         },
       ),
     );
@@ -149,16 +201,16 @@ class AppButton extends StatelessWidget {
 
   // Primary Button
   factory AppButton.primary({
-    Key? key,
+    material.Key? key,
     required String text,
-    required VoidCallback? onPressed,
+    required material.VoidCallback? onPressed,
     bool isLoading = false,
     bool isFullWidth = true,
-    Color? backgroundColor,
-    Color? textColor,
+    material.Color? backgroundColor,
+    material.Color? textColor,
     double borderRadius = 28.0,
-    EdgeInsetsGeometry? padding,
-    Widget? icon,
+    material.EdgeInsetsGeometry? padding,
+    material.Widget? icon,
     double? width,
     double? height = 56.0,
     bool disabled = false,
@@ -183,16 +235,16 @@ class AppButton extends StatelessWidget {
 
   // Secondary Button
   factory AppButton.secondary({
-    Key? key,
+    material.Key? key,
     required String text,
-    required VoidCallback? onPressed,
+    required material.VoidCallback? onPressed,
     bool isLoading = false,
     bool isFullWidth = true,
-    Color? backgroundColor,
-    Color? textColor,
+    material.Color? backgroundColor,
+    material.Color? textColor,
     double borderRadius = 28.0,
-    EdgeInsetsGeometry? padding,
-    Widget? icon,
+    material.EdgeInsetsGeometry? padding,
+    material.Widget? icon,
     double? width,
     double? height = 56.0,
     bool disabled = false,

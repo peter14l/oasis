@@ -1,21 +1,22 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as material;
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:provider/provider.dart';
 import 'package:oasis/services/app_initializer.dart';
 
-class CustomTextField extends StatelessWidget {
-  final TextEditingController controller;
-  final FocusNode focusNode;
+class CustomTextField extends material.StatelessWidget {
+  final material.TextEditingController controller;
+  final material.FocusNode focusNode;
   final String hint;
-  final IconData? prefixIcon;
-  final Widget? suffixIcon;
+  final material.IconData? prefixIcon;
+  final material.Widget? suffixIcon;
   final bool obscureText;
-  final TextInputType? keyboardType;
-  final TextInputAction? textInputAction;
+  final material.TextInputType? keyboardType;
+  final material.TextInputAction? textInputAction;
   final String? Function(String?)? validator;
   final void Function(String)? onFieldSubmitted;
   final int? maxLines;
   final int? maxLength;
-  final TextCapitalization textCapitalization;
+  final material.TextCapitalization textCapitalization;
   final bool autofocus;
   final bool readOnly;
   final bool showCursor;
@@ -24,13 +25,13 @@ class CustomTextField extends StatelessWidget {
   final String? initialValue;
   final String? label;
   final bool enabled;
-  final Color? fillColor;
-  final Color? textColor;
-  final Color? hintColor;
+  final material.Color? fillColor;
+  final material.Color? textColor;
+  final material.Color? hintColor;
   final double? borderRadius;
-  final EdgeInsetsGeometry? contentPadding;
-  final BoxConstraints? prefixIconConstraints;
-  final BoxConstraints? suffixIconConstraints;
+  final material.EdgeInsetsGeometry? contentPadding;
+  final material.BoxConstraints? prefixIconConstraints;
+  final material.BoxConstraints? suffixIconConstraints;
 
   const CustomTextField({
     super.key,
@@ -46,7 +47,7 @@ class CustomTextField extends StatelessWidget {
     this.onFieldSubmitted,
     this.maxLines = 1,
     this.maxLength,
-    this.textCapitalization = TextCapitalization.none,
+    this.textCapitalization = material.TextCapitalization.none,
     this.autofocus = false,
     this.readOnly = false,
     this.showCursor = true,
@@ -65,19 +66,25 @@ class CustomTextField extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  material.Widget build(material.BuildContext context) {
+    final useFluent = material.Provider.of<ThemeProvider>(context).useFluentUI;
+
+    if (useFluent) {
+      return _buildFluentTextBox(context);
+    }
+
+    final theme = material.Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
+    final isM3E = material.Provider.of<ThemeProvider>(context).isM3EEnabled;
     
     final effectiveFillColor = fillColor ?? (isM3E ? colorScheme.primary.withValues(alpha: 0.05) : theme.inputDecorationTheme.fillColor);
     final effectiveTextColor = textColor ?? colorScheme.onSurface;
     final effectiveHintColor = hintColor ?? colorScheme.onSurfaceVariant.withValues(alpha: 0.6);
     final effectiveRadius = borderRadius ?? (isM3E ? 24.0 : 16.0);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: TextFormField(
+    return material.Container(
+      margin: const material.EdgeInsets.only(bottom: 8),
+      child: material.TextFormField(
         controller: controller,
         focusNode: focusNode,
         obscureText: obscureText,
@@ -98,7 +105,7 @@ class CustomTextField extends StatelessWidget {
         style: theme.textTheme.bodyLarge?.copyWith(
           color: effectiveTextColor,
         ),
-        decoration: InputDecoration(
+        decoration: material.InputDecoration(
           labelText: label,
           hintText: hint,
           hintStyle: theme.textTheme.bodyLarge?.copyWith(
@@ -110,7 +117,7 @@ class CustomTextField extends StatelessWidget {
           filled: true,
           fillColor: effectiveFillColor,
           prefixIcon: prefixIcon != null
-              ? Icon(
+              ? material.Icon(
                   prefixIcon,
                   color: effectiveHintColor,
                 )
@@ -118,24 +125,24 @@ class CustomTextField extends StatelessWidget {
           prefixIconConstraints: prefixIconConstraints,
           suffixIcon: suffixIcon,
           suffixIconConstraints: suffixIconConstraints,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(effectiveRadius),
+          border: material.OutlineInputBorder(
+            borderRadius: material.BorderRadius.circular(effectiveRadius),
             borderSide: isM3E 
-              ? BorderSide(color: colorScheme.primary.withValues(alpha: 0.1))
-              : BorderSide.none,
+              ? material.BorderSide(color: colorScheme.primary.withValues(alpha: 0.1))
+              : material.BorderSide.none,
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(effectiveRadius),
+          enabledBorder: material.OutlineInputBorder(
+            borderRadius: material.BorderRadius.circular(effectiveRadius),
             borderSide: isM3E 
-              ? BorderSide(color: colorScheme.primary.withValues(alpha: 0.1))
-              : BorderSide.none,
+              ? material.BorderSide(color: colorScheme.primary.withValues(alpha: 0.1))
+              : material.BorderSide.none,
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(effectiveRadius),
-            borderSide: BorderSide(color: colorScheme.primary, width: 2),
+          focusedBorder: material.OutlineInputBorder(
+            borderRadius: material.BorderRadius.circular(effectiveRadius),
+            borderSide: material.BorderSide(color: colorScheme.primary, width: 2),
           ),
           contentPadding: contentPadding ??
-              const EdgeInsets.symmetric(
+              const material.EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 16,
               ),
@@ -144,26 +151,56 @@ class CustomTextField extends StatelessWidget {
       ),
     );
   }
+
+  material.Widget _buildFluentTextBox(material.BuildContext context) {
+    return material.Container(
+      margin: const material.EdgeInsets.only(bottom: 8),
+      child: fluent.TextBox(
+        controller: controller,
+        focusNode: focusNode,
+        placeholder: hint,
+        header: label,
+        obscureText: obscureText,
+        keyboardType: keyboardType,
+        textInputAction: textInputAction,
+        onSubmitted: onFieldSubmitted,
+        maxLines: maxLines,
+        maxLength: maxLength,
+        autofocus: autofocus,
+        readOnly: readOnly,
+        showCursor: showCursor,
+        onTap: onTap,
+        onChanged: onChanged,
+        enabled: enabled,
+        prefix: prefixIcon != null ? material.Padding(
+          padding: const material.EdgeInsets.only(left: 8.0),
+          child: material.Icon(prefixIcon, size: 16),
+        ) : null,
+        suffix: suffixIcon,
+        padding: contentPadding as material.EdgeInsets? ?? const material.EdgeInsets.all(8.0),
+      ),
+    );
+  }
 }
 
 // Extension for easy creation of common text fields
 extension CustomTextFieldExtension on CustomTextField {
-  static Widget email({
-    required TextEditingController controller,
-    required FocusNode focusNode,
+  static material.Widget email({
+    required material.TextEditingController controller,
+    required material.FocusNode focusNode,
     required void Function(String) onFieldSubmitted,
     String? Function(String?)? validator,
     String hint = 'Email',
-    TextInputAction? textInputAction,
-    FocusNode? nextFocus,
+    material.TextInputAction? textInputAction,
+    material.FocusNode? nextFocus,
   }) {
     return CustomTextField(
       controller: controller,
       focusNode: focusNode,
       hint: hint,
-      prefixIcon: Icons.email_outlined,
-      keyboardType: TextInputType.emailAddress,
-      textInputAction: textInputAction ?? TextInputAction.next,
+      prefixIcon: material.Icons.email_outlined,
+      keyboardType: material.TextInputType.emailAddress,
+      textInputAction: textInputAction ?? material.TextInputAction.next,
       validator: validator ??
           (value) {
             if (value == null || value.isEmpty) {
@@ -177,29 +214,29 @@ extension CustomTextFieldExtension on CustomTextField {
       onFieldSubmitted: (value) {
         onFieldSubmitted(value);
         if (nextFocus != null) {
-          FocusScope.of(focusNode.context!).requestFocus(nextFocus);
+          material.FocusScope.of(focusNode.context!).requestFocus(nextFocus);
         }
       },
     );
   }
 
-  static Widget password({
-    required TextEditingController controller,
-    required FocusNode focusNode,
+  static material.Widget password({
+    required material.TextEditingController controller,
+    required material.FocusNode focusNode,
     required bool obscureText,
-    required VoidCallback onToggleVisibility,
+    required material.VoidCallback onToggleVisibility,
     String? Function(String?)? validator,
     String hint = 'Password',
-    TextInputAction? textInputAction,
+    material.TextInputAction? textInputAction,
     void Function(String)? onFieldSubmitted,
   }) {
     return CustomTextField(
       controller: controller,
       focusNode: focusNode,
       hint: hint,
-      prefixIcon: Icons.lock_outline,
+      prefixIcon: material.Icons.lock_outline,
       obscureText: obscureText,
-      textInputAction: textInputAction ?? TextInputAction.done,
+      textInputAction: textInputAction ?? material.TextInputAction.done,
       validator: validator ??
           (value) {
             if (value == null || value.isEmpty) {
@@ -211,31 +248,31 @@ extension CustomTextFieldExtension on CustomTextField {
             return null;
           },
       onFieldSubmitted: onFieldSubmitted,
-      suffixIcon: IconButton(
-        icon: Icon(
-          obscureText ? Icons.visibility_off : Icons.visibility,
-          color: const Color(0xFF9DA6B9),
+      suffixIcon: material.IconButton(
+        icon: material.Icon(
+          obscureText ? material.Icons.visibility_off : material.Icons.visibility,
+          color: const material.Color(0xFF9DA6B9),
         ),
         onPressed: onToggleVisibility,
       ),
     );
   }
 
-  static Widget name({
-    required TextEditingController controller,
-    required FocusNode focusNode,
+  static material.Widget name({
+    required material.TextEditingController controller,
+    required material.FocusNode focusNode,
     String? Function(String?)? validator,
     String hint = 'Name',
-    TextInputAction? textInputAction,
-    FocusNode? nextFocus,
+    material.TextInputAction? textInputAction,
+    material.FocusNode? nextFocus,
   }) {
     return CustomTextField(
       controller: controller,
       focusNode: focusNode,
       hint: hint,
-      prefixIcon: Icons.person_outline,
-      textInputAction: textInputAction ?? TextInputAction.next,
-      textCapitalization: TextCapitalization.words,
+      prefixIcon: material.Icons.person_outline,
+      textInputAction: textInputAction ?? material.TextInputAction.next,
+      textCapitalization: material.TextCapitalization.words,
       validator: validator ??
           (value) {
             if (value == null || value.isEmpty) {
@@ -244,7 +281,7 @@ extension CustomTextFieldExtension on CustomTextField {
             return null;
           },
       onFieldSubmitted: nextFocus != null
-          ? (_) => FocusScope.of(focusNode.context!).requestFocus(nextFocus)
+          ? (_) => material.FocusScope.of(focusNode.context!).requestFocus(nextFocus)
           : null,
     );
   }

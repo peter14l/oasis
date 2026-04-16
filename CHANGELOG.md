@@ -5,12 +5,16 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Adaptive UI Component Architecture (2026-04-16)** - Refactored core widgets (`AppButton`, `CustomTextField`) into adaptive components that automatically switch between Material and Fluent UI based on the platform.
+- **Cross-Platform Native Dialogs (2026-04-16)** - Introduced `AdaptiveDialog` utility to provide native-feeling modal experiences using `ContentDialog` on desktop/web and `AlertDialog` on mobile.
+- **Fluent-Enhanced Settings & Search (2026-04-16)** - Deeply integrated `fluent_ui` into the internal content of Settings and Search screens, providing a seamless native experience on Windows, macOS, and Web.
 - **Native Desktop & Web UI Integration (2026-04-16)** - Implemented a Windows-native look and feel for Desktop (Windows, macOS) and Web platforms using the `fluent_ui` package.
 - **Fluent Navigation Experience (2026-04-16)** - Replaced the standard navigation with a comprehensive `NavigationView` and `NavigationPane` specifically for desktop/web users.
 - **Dynamic Fluent Theming (2026-04-16)** - Added `AppFluentTheme` to automatically translate Material color schemes into native Fluent design tokens, supporting both light and dark modes.
 - **Optimized Onboarding Flow (2026-04-16)** - Replaced deprecated slides (Calling, Communities, Pulse Map) with core feature highlights: Secure Connection (Feed/Messages), Creative Canvas, Mindful Discovery (Ripples), and Time & Wellness.
 - **Interactive Onboarding UI (2026-04-16)** - Enhanced onboarding with dynamic background color transitions, glassmorphic content cards, and staggered animations using `flutter_animate`.
 - **Streamlined Navigation (2026-04-16)** - Consolidated the introductory experience into 4 high-impact interactive slides.
+
 
 
 
