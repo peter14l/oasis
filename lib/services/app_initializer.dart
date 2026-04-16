@@ -1,6 +1,6 @@
 import 'dart:async' show unawaited;
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
+import 'package:flutter/foundation.dart' show kDebugMode, debugPrint, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -113,6 +113,13 @@ class ThemeProvider with ChangeNotifier {
   bool get isM3ETransparencyDisabled => _isM3ETransparencyDisabled;
   bool get useMaterialYou => _useMaterialYou;
   ColorPalette get colorPalette => _colorPalette;
+
+  /// Check if the current platform should use Fluent UI (Windows, macOS, or Web)
+  bool get useFluentUI {
+    if (kIsWeb) return true;
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) return true;
+    return false;
+  }
 
   Future<void> loadTheme() async {
     final prefs = await SharedPreferences.getInstance();

@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as material;
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -7,8 +8,8 @@ import 'package:oasis/providers/conversation_provider.dart';
 import 'package:oasis/services/app_initializer.dart';
 
 /// Navigation shell with bottom navigation bar
-class NavigationShell extends StatelessWidget {
-  final Widget child;
+class NavigationShell extends material.StatelessWidget {
+  final material.Widget child;
   final int currentIndex;
 
   const NavigationShell({
@@ -18,14 +19,19 @@ class NavigationShell extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  material.Widget build(material.BuildContext context) {
+    final theme = material.Theme.of(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
     final isDesktop = ResponsiveLayout.isDesktop(context);
+    final useFluent = themeProvider.useFluentUI;
 
     // Get unread count
     final unreadCount = context.watch<ConversationProvider>().totalUnreadCount;
+
+    if (useFluent) {
+      return _buildFluentLayout(context, themeProvider, unreadCount);
+    }
 
     if (isDesktop) {
       return _buildDesktopLayout(context, theme, themeProvider, isM3E);
@@ -40,51 +46,129 @@ class NavigationShell extends StatelessWidget {
     );
   }
 
-  Widget _buildMobileLayout(
-    BuildContext context,
-    ThemeData theme,
+  material.Widget _buildFluentLayout(
+    material.BuildContext context,
+    ThemeProvider themeProvider,
+    int unreadCount,
+  ) {
+    return fluent.NavigationView(
+      appBar: fluent.NavigationAppBar(
+        automaticallyImplyLeading: false,
+        title: const fluent.Text('Oasis'),
+        actions: material.Row(
+          mainAxisAlignment: material.MainAxisAlignment.end,
+          children: [
+            fluent.Tooltip(
+              message: 'Search',
+              child: fluent.IconButton(
+                icon: const material.Icon(FluentIcons.search_24_regular, size: 20),
+                onPressed: () => context.go('/search'),
+              ),
+            ),
+            const material.SizedBox(width: 12),
+          ],
+        ),
+      ),
+      pane: fluent.NavigationPane(
+        selected: currentIndex,
+        onChanged: (index) => _onDestinationSelected(context, index),
+        displayMode: fluent.PaneDisplayMode.auto,
+        items: [
+          fluent.PaneItem(
+            icon: const material.Icon(FluentIcons.home_24_regular),
+            selectedIcon: const material.Icon(FluentIcons.home_24_filled),
+            title: const fluent.Text('Feed'),
+            body: material.SizedBox.shrink(),
+          ),
+          fluent.PaneItem(
+            icon: const material.Icon(FluentIcons.people_24_regular),
+            selectedIcon: const material.Icon(FluentIcons.people_24_filled),
+            title: const fluent.Text('Circles'),
+            body: material.SizedBox.shrink(),
+          ),
+          fluent.PaneItem(
+            icon: fluent.InfoBadge(
+              source: unreadCount > 0 ? fluent.Text(unreadCount.toString()) : null,
+              child: const material.Icon(FluentIcons.chat_24_regular),
+            ),
+            selectedIcon: fluent.InfoBadge(
+              source: unreadCount > 0 ? fluent.Text(unreadCount.toString()) : null,
+              child: const material.Icon(FluentIcons.chat_24_filled),
+            ),
+            title: const fluent.Text('Messages'),
+            body: material.SizedBox.shrink(),
+          ),
+          fluent.PaneItem(
+            icon: const material.Icon(FluentIcons.alert_24_regular),
+            selectedIcon: const material.Icon(FluentIcons.alert_24_filled),
+            title: const fluent.Text('Alerts'),
+            body: material.SizedBox.shrink(),
+          ),
+        ],
+        footerItems: [
+          fluent.PaneItem(
+            icon: const material.Icon(FluentIcons.person_24_regular),
+            title: const fluent.Text('Profile'),
+            body: material.SizedBox.shrink(),
+            onTap: () => context.go('/profile'),
+          ),
+          fluent.PaneItem(
+            icon: const material.Icon(FluentIcons.settings_24_regular),
+            title: const fluent.Text('Settings'),
+            body: material.SizedBox.shrink(),
+            onTap: () => context.go('/settings'),
+          ),
+        ],
+      ),
+      content: child,
+    );
+  }
+
+  material.Widget _buildMobileLayout(
+    material.BuildContext context,
+    material.ThemeData theme,
     ThemeProvider themeProvider,
     bool isM3E,
     int unreadCount,
   ) {
-    return Scaffold(
+    return material.Scaffold(
       body: child,
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: material.NavigationBar(
         selectedIndex: currentIndex,
         onDestinationSelected:
             (index) => _onDestinationSelected(context, index),
         destinations: [
-          const NavigationDestination(
-            icon: Icon(FluentIcons.home_24_regular),
-            selectedIcon: Icon(FluentIcons.home_24_filled),
+          const material.NavigationDestination(
+            icon: material.Icon(FluentIcons.home_24_regular),
+            selectedIcon: material.Icon(FluentIcons.home_24_filled),
             label: 'Feed',
           ),
-          const NavigationDestination(
-            icon: Icon(FluentIcons.search_24_regular),
-            selectedIcon: Icon(FluentIcons.search_24_filled),
+          const material.NavigationDestination(
+            icon: material.Icon(FluentIcons.search_24_regular),
+            selectedIcon: material.Icon(FluentIcons.search_24_filled),
             label: 'Search',
           ),
-          const NavigationDestination(
-            icon: Icon(FluentIcons.people_24_regular),
-            selectedIcon: Icon(FluentIcons.people_24_filled),
+          const material.NavigationDestination(
+            icon: material.Icon(FluentIcons.people_24_regular),
+            selectedIcon: material.Icon(FluentIcons.people_24_filled),
             label: 'Circles',
           ),
-          NavigationDestination(
-            icon: Badge(
+          material.NavigationDestination(
+            icon: material.Badge(
               isLabelVisible: unreadCount > 0,
-              label: Text(unreadCount > 99 ? '99+' : unreadCount.toString()),
-              child: const Icon(FluentIcons.chat_24_regular),
+              label: material.Text(unreadCount > 99 ? '99+' : unreadCount.toString()),
+              child: const material.Icon(FluentIcons.chat_24_regular),
             ),
-            selectedIcon: Badge(
+            selectedIcon: material.Badge(
               isLabelVisible: unreadCount > 0,
-              label: Text(unreadCount > 99 ? '99+' : unreadCount.toString()),
-              child: const Icon(FluentIcons.chat_24_filled),
+              label: material.Text(unreadCount > 99 ? '99+' : unreadCount.toString()),
+              child: const material.Icon(FluentIcons.chat_24_filled),
             ),
             label: 'Messages',
           ),
-          const NavigationDestination(
-            icon: Icon(FluentIcons.alert_24_regular),
-            selectedIcon: Icon(FluentIcons.alert_24_filled),
+          const material.NavigationDestination(
+            icon: material.Icon(FluentIcons.alert_24_regular),
+            selectedIcon: material.Icon(FluentIcons.alert_24_filled),
             label: 'Alerts',
           ),
         ],
@@ -92,57 +176,56 @@ class NavigationShell extends StatelessWidget {
     );
   }
 
-  Widget _buildDesktopLayout(
-    BuildContext context,
-    ThemeData theme,
+  material.Widget _buildDesktopLayout(
+    material.BuildContext context,
+    material.ThemeData theme,
     ThemeProvider themeProvider,
     bool isM3E,
   ) {
-    // Desktop layout - could use NavigationRail
-    return Scaffold(
-      body: Row(
+    return material.Scaffold(
+      body: material.Row(
         children: [
-          NavigationRail(
+          material.NavigationRail(
             selectedIndex: currentIndex,
             onDestinationSelected:
                 (index) => _onDestinationSelected(context, index),
-            labelType: NavigationRailLabelType.all,
+            labelType: material.NavigationRailLabelType.all,
             destinations: const [
-              NavigationRailDestination(
-                icon: Icon(FluentIcons.home_24_regular),
-                selectedIcon: Icon(FluentIcons.home_24_filled),
-                label: Text('Feed'),
+              material.NavigationRailDestination(
+                icon: material.Icon(FluentIcons.home_24_regular),
+                selectedIcon: material.Icon(FluentIcons.home_24_filled),
+                label: material.Text('Feed'),
               ),
-              NavigationRailDestination(
-                icon: Icon(FluentIcons.search_24_regular),
-                selectedIcon: Icon(FluentIcons.search_24_filled),
-                label: Text('Search'),
+              material.NavigationRailDestination(
+                icon: material.Icon(FluentIcons.search_24_regular),
+                selectedIcon: material.Icon(FluentIcons.search_24_filled),
+                label: material.Text('Search'),
               ),
-              NavigationRailDestination(
-                icon: Icon(FluentIcons.people_24_regular),
-                selectedIcon: Icon(FluentIcons.people_24_filled),
-                label: Text('Circles'),
+              material.NavigationRailDestination(
+                icon: material.Icon(FluentIcons.people_24_regular),
+                selectedIcon: material.Icon(FluentIcons.people_24_filled),
+                label: material.Text('Circles'),
               ),
-              NavigationRailDestination(
-                icon: Icon(FluentIcons.chat_24_regular),
-                selectedIcon: Icon(FluentIcons.chat_24_filled),
-                label: Text('Messages'),
+              material.NavigationRailDestination(
+                icon: material.Icon(FluentIcons.chat_24_regular),
+                selectedIcon: material.Icon(FluentIcons.chat_24_filled),
+                label: material.Text('Messages'),
               ),
-              NavigationRailDestination(
-                icon: Icon(FluentIcons.alert_24_regular),
-                selectedIcon: Icon(FluentIcons.alert_24_filled),
-                label: Text('Alerts'),
+              material.NavigationRailDestination(
+                icon: material.Icon(FluentIcons.alert_24_regular),
+                selectedIcon: material.Icon(FluentIcons.alert_24_filled),
+                label: material.Text('Alerts'),
               ),
             ],
           ),
-          const VerticalDivider(thickness: 1, width: 1),
-          Expanded(child: child),
+          const material.VerticalDivider(thickness: 1, width: 1),
+          material.Expanded(child: child),
         ],
       ),
     );
   }
 
-  void _onDestinationSelected(BuildContext context, int index) {
+  void _onDestinationSelected(material.BuildContext context, int index) {
     switch (index) {
       case 0:
         context.go('/feed');
@@ -164,8 +247,8 @@ class NavigationShell extends StatelessWidget {
 }
 
 /// Badge widget for unread messages (extracted from app_router.dart)
-class UnreadMessagesBadge extends StatelessWidget {
-  final Widget child;
+class UnreadMessagesBadge extends material.StatelessWidget {
+  final material.Widget child;
   final bool isSelected;
 
   const UnreadMessagesBadge({
@@ -175,12 +258,12 @@ class UnreadMessagesBadge extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  material.Widget build(material.BuildContext context) {
     return Consumer<ConversationProvider>(
       builder: (context, provider, _) {
-        return Badge(
+        return material.Badge(
           isLabelVisible: provider.totalUnreadCount > 0,
-          label: Text(provider.totalUnreadCount.toString()),
+          label: material.Text(provider.totalUnreadCount.toString()),
           child: child,
         );
       },
