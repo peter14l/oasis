@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'dart:ui';
 
 /// Onboarding Screen
 /// Displays a multi-page introduction to the app's key features
@@ -28,45 +31,51 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
+  double _scrollOffset = 0.0;
   int _currentPage = 0;
 
-  final List<OnboardingPage> _pages = [
-    const OnboardingPage(
-      icon: Icons.dynamic_feed_rounded,
-      title: 'Share Your Moments',
+  final List<OnboardingPageData> _pages = [
+    const OnboardingPageData(
+      icon: FluentIcons.chat_multiple_24_filled,
+      title: 'Connect Securely',
       description:
-          'Post updates, photos, and stories to share your life with friends and followers.',
-      color: Color(0xFF6B9EFF),
+          'Share your life through Feed and Stories, and chat privately with world-class end-to-end encryption.',
+      colors: [Color(0xFF6B9EFF), Color(0xFF8E54E9)],
     ),
-    const OnboardingPage(
-      icon: Icons.lock_rounded,
-      title: 'Private & Secure Messages',
+    const OnboardingPageData(
+      icon: FluentIcons.board_24_filled,
+      title: 'Creative Canvas',
       description:
-          'Your conversations are protected with end-to-end encryption. Only you and your recipient can read your messages.',
-      color: Color(0xFF4CAF50),
+          'Experience a new way to create together. Interact in real-time on a shared canvas with timelines and audio.',
+      colors: [Color(0xFFF093FB), Color(0xFFF5576C)],
     ),
-    const OnboardingPage(
-      icon: Icons.people_rounded,
-      title: 'Join Communities',
+    const OnboardingPageData(
+      icon: FluentIcons.video_clip_24_filled,
+      title: 'Mindful Discovery',
       description:
-          'Connect with like-minded people in communities. Share interests, discuss topics, and make new friends.',
-      color: Color(0xFFFF9800),
+          'Discover short-form videos through Ripples, designed with digital wellbeing limits to keep your usage healthy.',
+      colors: [Color(0xFF4FACFE), Color(0xFF00F2FE)],
     ),
-    const OnboardingPage(
-      icon: Icons.timer_rounded,
-      title: 'Mindful Usage',
+    const OnboardingPageData(
+      icon: FluentIcons.heart_pulse_24_filled,
+      title: 'Time & Wellness',
       description:
-          'Track your screen time and build healthy digital habits with our built-in wellness features.',
-      color: Color(0xFF9C27B0),
-    ),
-    const OnboardingPage(
-      icon: Icons.bookmark_rounded,
-      title: 'Save & Organize',
-      description:
-          'Bookmark posts you love and organize them into collections for easy access later.',
-      color: Color(0xFFE91E63),
+          'Connect with your future self using Time Capsules and monitor your digital habits in the Wellness Center.',
+      colors: [Color(0xFFF6D365), Color(0xFFFDA085)],
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController.addListener(() {
+      if (mounted) {
+        setState(() {
+          _scrollOffset = _pageController.page ?? 0.0;
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -77,16 +86,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _onNextPage() {
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeOutQuint,
       );
     } else {
       _completeOnboarding();
     }
-  }
-
-  void _onSkip() {
-    _completeOnboarding();
   }
 
   Future<void> _completeOnboarding() async {
@@ -99,156 +104,252 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final isLastPage = _currentPage == _pages.length - 1;
 
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Skip button
-            Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: TextButton(
-                  onPressed: _onSkip,
-                  child: Text(
-                    'Skip',
-                    style: TextStyle(color: colorScheme.onSurfaceVariant),
-                  ),
-                ),
-              ),
-            ),
-
-            // Page content
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                onPageChanged: (index) {
-                  setState(() => _currentPage = index);
-                },
-                itemCount: _pages.length,
-                itemBuilder: (context, index) {
-                  return _buildPage(_pages[index]);
-                },
-              ),
-            ),
-
-            // Page indicators
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  _pages.length,
-                  (index) => _buildPageIndicator(index),
-                ),
-              ),
-            ),
-
-            // Next/Get Started button
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _onNextPage,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _pages[_currentPage].color,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: Text(
-                    isLastPage ? 'Get Started' : 'Next',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPage(OnboardingPage page) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      body: Stack(
         children: [
-          // Icon with background
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: page.color.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(page.icon, size: 60, color: page.color),
-          ),
-          const SizedBox(height: 48),
+          // Dynamic Background
+          _buildDynamicBackground(),
 
-          // Title
-          Text(
-            page.title,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
+          // Glassmorphic Content
+          SafeArea(
+            child: Column(
+              children: [
+                // Skip Button
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: TextButton(
+                      onPressed: _completeOnboarding,
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text(
+                        'Skip',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
 
-          // Description
-          Text(
-            page.description,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-              height: 1.5,
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: (index) {
+                      setState(() => _currentPage = index);
+                    },
+                    itemCount: _pages.length,
+                    itemBuilder: (context, index) {
+                      return _buildPage(_pages[index], index);
+                    },
+                  ),
+                ),
+
+                // Footer
+                _buildFooter(isLastPage),
+              ],
             ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPageIndicator(int index) {
-    final isActive = index == _currentPage;
-    final color = _pages[_currentPage].color;
+  Widget _buildDynamicBackground() {
+    final int nextIndex = (_scrollOffset.ceil()).clamp(0, _pages.length - 1);
+    final int prevIndex = (_scrollOffset.floor()).clamp(0, _pages.length - 1);
+    final double t = _scrollOffset - prevIndex;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      width: isActive ? 24 : 8,
-      height: 8,
+    return Container(
       decoration: BoxDecoration(
-        color: isActive ? color : color.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(4),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color.lerp(
+              _pages[prevIndex].colors[0],
+              _pages[nextIndex].colors[0],
+              t,
+            )!,
+            Color.lerp(
+              _pages[prevIndex].colors[1],
+              _pages[nextIndex].colors[1],
+              t,
+            )!,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPage(OnboardingPageData page, int index) {
+    final theme = Theme.of(context);
+    final isCurrent = index == _currentPage;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Animated Icon with Pulse Effect
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.3),
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 20,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            child: Icon(
+              page.icon,
+              size: 80,
+              color: Colors.white,
+            ),
+          )
+              .animate(target: isCurrent ? 1 : 0)
+              .scale(
+                duration: 600.ms,
+                curve: Curves.backOut,
+                begin: const Offset(0.5, 0.5),
+              )
+              .fadeIn()
+              .shimmer(delay: 800.ms, duration: 1500.ms, color: Colors.white24),
+
+          const SizedBox(height: 60),
+
+          // Glassmorphic Content Box
+          ClipRRect(
+            borderRadius: BorderRadius.circular(32),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      page.title,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                      textAlign: TextAlign.center,
+                    )
+                        .animate(target: isCurrent ? 1 : 0)
+                        .fadeIn(delay: 200.ms)
+                        .slideY(begin: 0.2, curve: Curves.easeOutQuad),
+
+                    const SizedBox(height: 20),
+
+                    Text(
+                      page.description,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        height: 1.6,
+                        fontSize: 18,
+                      ),
+                      textAlign: TextAlign.center,
+                    )
+                        .animate(target: isCurrent ? 1 : 0)
+                        .fadeIn(delay: 400.ms)
+                        .slideY(begin: 0.2, curve: Curves.easeOutQuad),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooter(bool isLastPage) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(40, 0, 40, 48),
+      child: Column(
+        children: [
+          // Animated Page Indicators
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(_pages.length, (index) {
+              final isActive = index == _currentPage;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: const EdgeInsets.symmetric(horizontal: 6),
+                width: isActive ? 32 : 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              );
+            }),
+          ),
+
+          const SizedBox(height: 48),
+
+          // Primary Action Button
+          SizedBox(
+            width: double.infinity,
+            height: 64,
+            child: ElevatedButton(
+              onPressed: _onNextPage,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: _pages[_currentPage].colors[1],
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              child: Text(
+                isLastPage ? 'GET STARTED' : 'CONTINUE',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
+                ),
+              ),
+            ).animate(target: isLastPage ? 1 : 0).shake(delay: 200.ms, duration: 500.ms),
+          ),
+        ],
       ),
     );
   }
 }
 
 /// Data class for onboarding page content
-class OnboardingPage {
+class OnboardingPageData {
   final IconData icon;
   final String title;
   final String description;
-  final Color color;
+  final List<Color> colors;
 
-  const OnboardingPage({
+  const OnboardingPageData({
     required this.icon,
     required this.title,
     required this.description,
-    required this.color,
+    required this.colors,
   });
 }

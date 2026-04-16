@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Optimized Onboarding Flow (2026-04-16)** - Replaced deprecated slides (Calling, Communities, Pulse Map) with core feature highlights: Secure Connection (Feed/Messages), Creative Canvas, Mindful Discovery (Ripples), and Time & Wellness.
+- **Interactive Onboarding UI (2026-04-16)** - Enhanced onboarding with dynamic background color transitions, glassmorphic content cards, and staggered animations using `flutter_animate`.
+- **Streamlined Navigation (2026-04-16)** - Consolidated the introductory experience into 4 high-impact interactive slides.
+
+
 ## [4.2.0] - 2026-04-15
 
 ### Added
