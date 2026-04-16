@@ -89,7 +89,7 @@ class AppButton extends StatelessWidget {
                 icon!,
                 const material.SizedBox(width: 8),
               ],
-              fluent.Text(text),
+              Text(text),
             ],
           );
 

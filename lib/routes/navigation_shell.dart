@@ -60,44 +60,44 @@ class NavigationShell extends material.StatelessWidget {
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.home_24_regular),
             selectedIcon: const material.Icon(FluentIcons.home_24_filled),
-            title: const fluent.Text('Feed'),
+            title: const Text('Feed'),
             body: material.SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.people_24_regular),
             selectedIcon: const material.Icon(FluentIcons.people_24_filled),
-            title: const fluent.Text('Circles'),
+            title: const Text('Circles'),
             body: material.SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: fluent.InfoBadge(
-              source: unreadCount > 0 ? fluent.Text(unreadCount.toString()) : null,
+              source: unreadCount > 0 ? Text(unreadCount.toString()) : null,
               child: const material.Icon(FluentIcons.chat_24_regular),
             ),
             selectedIcon: fluent.InfoBadge(
-              source: unreadCount > 0 ? fluent.Text(unreadCount.toString()) : null,
+              source: unreadCount > 0 ? Text(unreadCount.toString()) : null,
               child: const material.Icon(FluentIcons.chat_24_filled),
             ),
-            title: const fluent.Text('Messages'),
+            title: const Text('Messages'),
             body: material.SizedBox.shrink(),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.alert_24_regular),
             selectedIcon: const material.Icon(FluentIcons.alert_24_filled),
-            title: const fluent.Text('Alerts'),
+            title: const Text('Alerts'),
             body: material.SizedBox.shrink(),
           ),
         ],
         footerItems: [
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.person_24_regular),
-            title: const fluent.Text('Profile'),
+            title: const Text('Profile'),
             body: material.SizedBox.shrink(),
             onTap: () => context.go('/profile'),
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.settings_24_regular),
-            title: const fluent.Text('Settings'),
+            title: const Text('Settings'),
             body: material.SizedBox.shrink(),
             onTap: () => context.go('/settings'),
           ),

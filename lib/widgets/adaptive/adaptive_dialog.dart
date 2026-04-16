@@ -49,19 +49,19 @@ class AdaptiveDialog {
       return fluent.showDialog<bool>(
         context: context,
         builder: (context) => fluent.ContentDialog(
-          title: fluent.Text(title),
-          content: fluent.Text(content),
+          title: Text(title),
+          content: Text(content),
           actions: [
             fluent.Button(
               onPressed: () => Navigator.pop(context, false),
-              child: fluent.Text(cancelLabel),
+              child: Text(cancelLabel),
             ),
             fluent.FilledButton(
               onPressed: () => Navigator.pop(context, true),
               style: isDestructive ? fluent.ButtonStyle(
                 backgroundColor: fluent.WidgetStateProperty.all(fluent.Colors.red),
               ) : null,
-              child: fluent.Text(confirmLabel),
+              child: Text(confirmLabel),
             ),
           ],
         ),

@@ -241,13 +241,13 @@ class _SearchScreenState extends State<SearchScreen>
   Widget _buildFluentSearch(BuildContext context, ThemeProvider themeProvider) {
     return fluent.ScaffoldPage.scrollable(
       header: fluent.PageHeader(
-        title: const fluent.Text('Search'),
+        title: const Text('Search'),
         commandBar: fluent.CommandBar(
           mainAxisAlignment: material.MainAxisAlignment.end,
           primaryItems: [
             fluent.CommandBarButton(
               icon: material.Icon(_showFilters ? material.Icons.filter_list_off : material.Icons.filter_list, size: 18),
-              label: fluent.Text(_showFilters ? 'Hide Filters' : 'Show Filters'),
+              label: Text(_showFilters ? 'Hide Filters' : 'Show Filters'),
               onPressed: () => setState(() => _showFilters = !_showFilters),
             ),
           ],
@@ -284,7 +284,7 @@ class _SearchScreenState extends State<SearchScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const fluent.Text('Type', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Type', style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 12),
                     fluent.RadioGroup<String>(
                       groupValue: _selectedFilter,
@@ -294,17 +294,17 @@ class _SearchScreenState extends State<SearchScreen>
                         children: [
                           fluent.RadioButton<String>(
                             value: 'all',
-                            content: const fluent.Text('All'),
+                            content: const Text('All'),
                           ),
                           const SizedBox(height: 12),
                           fluent.RadioButton<String>(
                             value: 'users',
-                            content: const fluent.Text('Users'),
+                            content: const Text('Users'),
                           ),
                           const SizedBox(height: 12),
                           fluent.RadioButton<String>(
                             value: 'posts',
-                            content: const fluent.Text('Posts'),
+                            content: const Text('Posts'),
                           ),
                         ],
                       ),

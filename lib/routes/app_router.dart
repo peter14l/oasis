@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:navigation_bar_m3e/navigation_bar_m3e.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -252,6 +253,7 @@ class _MainLayoutState extends State<MainLayout> {
 
     return Consumer3<ScreenTimeService, WellnessService, UserSettingsProvider>(
       builder: (context, svc, wellness, userSettings, _) {
+        final useFluent = themeProvider.useFluentUI;
         final killSwitchActive = wellness.zenModeEnabled;
         final isMica = userSettings.micaEnabled && Platform.isWindows;
 
@@ -306,34 +308,34 @@ class _MainLayoutState extends State<MainLayout> {
               items: [
                 fluent.PaneItem(
                   icon: const Icon(FluentIcons.home_24_regular),
-                  title: const fluent.Text('Feed'),
+                  title: const Text('Feed'),
                   body: contentWithPanels,
                 ),
                 fluent.PaneItem(
                   icon: const Icon(FluentIcons.search_24_regular),
-                  title: const fluent.Text('Search'),
+                  title: const Text('Search'),
                   body: contentWithPanels,
                 ),
                 fluent.PaneItem(
                   icon: const Icon(FluentIcons.channel_24_regular),
-                  title: const fluent.Text('Spaces'),
+                  title: const Text('Spaces'),
                   body: contentWithPanels,
                 ),
                 fluent.PaneItem(
                   icon: UnreadMessagesBadge(
                     child: const Icon(FluentIcons.chat_24_regular),
                   ),
-                  title: const fluent.Text('Messages'),
+                  title: const Text('Messages'),
                   body: contentWithPanels,
                 ),
                 fluent.PaneItem(
                   icon: const Icon(FluentIcons.alert_24_regular),
-                  title: const fluent.Text('Notifications'),
+                  title: const Text('Notifications'),
                   body: contentWithPanels,
                 ),
                 fluent.PaneItem(
                   icon: const Icon(FluentIcons.person_24_regular),
-                  title: const fluent.Text('Profile'),
+                  title: const Text('Profile'),
                   body: contentWithPanels,
                 ),
               ],
@@ -341,7 +343,7 @@ class _MainLayoutState extends State<MainLayout> {
                 fluent.PaneItemSeparator(),
                 fluent.PaneItem(
                   icon: const Icon(FluentIcons.settings_24_regular),
-                  title: const fluent.Text('Settings'),
+                  title: const Text('Settings'),
                   body: contentWithPanels,
                   onTap: () => context.push('/settings'),
                 ),

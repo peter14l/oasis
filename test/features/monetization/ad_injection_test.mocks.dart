@@ -719,6 +719,15 @@ class MockSubscriptionService extends _i1.Mock
   );
 
   @override
+  _i5.Future<void> updateProStatus(bool? status) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateProStatus, [status]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
   _i5.Future<void> init() =>
       (super.noSuchMethod(
             Invocation.method(#init, []),

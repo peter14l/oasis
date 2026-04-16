@@ -149,6 +149,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ThemeProvider themeProvider,
     material.ColorScheme colorScheme,
   ) {
+    final bodyContent = _selectedSubPage != null
+        ? _selectedSubPage!
+        : fluent.ScaffoldPage.scrollable(
+            header: fluent.PageHeader(
+              title: Text(_getCategoryTitle(_selectedCategory)),
+            ),
+            children: [
+              _buildSelectedCategoryContent(context),
+            ],
+          );
+
     return fluent.NavigationView(
       pane: fluent.NavigationPane(
         selected: _selectedCategory.index,
@@ -166,7 +177,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Row(
             children: [
               const Expanded(
-                child: fluent.Text(
+                child: Text(
                   'Settings',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
@@ -181,59 +192,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
         items: [
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.person_24_regular),
-            title: const fluent.Text('Account'),
-            body: const SizedBox.shrink(),
+            title: const Text('Account'),
+            body: bodyContent,
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.timer_24_regular),
-            title: const fluent.Text('General'),
-            body: const SizedBox.shrink(),
+            title: const Text('General'),
+            body: bodyContent,
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.shield_24_regular),
-            title: const fluent.Text('Privacy & Security'),
-            body: const SizedBox.shrink(),
+            title: const Text('Privacy & Security'),
+            body: bodyContent,
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.paint_brush_24_regular),
-            title: const fluent.Text('Appearance'),
-            body: const SizedBox.shrink(),
+            title: const Text('Appearance'),
+            body: bodyContent,
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.storage_24_regular),
-            title: const fluent.Text('Data & Storage'),
-            body: const SizedBox.shrink(),
+            title: const Text('Data & Storage'),
+            body: bodyContent,
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.text_font_24_regular),
-            title: const fluent.Text('Accessibility'),
-            body: const SizedBox.shrink(),
+            title: const Text('Accessibility'),
+            body: bodyContent,
           ),
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.question_circle_24_regular),
-            title: const fluent.Text('Support & About'),
-            body: const SizedBox.shrink(),
+            title: const Text('Support & About'),
+            body: bodyContent,
           ),
         ],
         footerItems: [
           fluent.PaneItemSeparator(),
           fluent.PaneItemAction(
-            icon: const material.Icon(FluentIcons.sign_out_24_regular, color: material.Colors.red),
-            title: const fluent.Text('Sign Out', style: TextStyle(color: material.Colors.red)),
+            icon: const material.Icon(FluentIcons.sign_out_24_regular,
+                color: material.Colors.red),
+            title: const Text('Sign Out',
+                style: TextStyle(color: material.Colors.red)),
             onTap: _handleSignOut,
           ),
         ],
       ),
-      content: _selectedSubPage != null
-          ? _selectedSubPage!
-          : fluent.ScaffoldPage.scrollable(
-              header: fluent.PageHeader(
-                title: fluent.Text(_getCategoryTitle(_selectedCategory)),
-              ),
-              children: [
-                _buildSelectedCategoryContent(context),
-              ],
-            ),
     );
   }
 

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -135,6 +136,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     final disableTransparency = themeProvider.isM3ETransparencyDisabled;
     final userId = _authService.currentUser?.id;
     final isDesktop = ResponsiveLayout.isDesktop(context);
+    final useFluent = themeProvider.useFluentUI;
 
     return Consumer<ProfileProvider>(
       builder: (context, profileProvider, child) {
