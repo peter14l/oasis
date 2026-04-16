@@ -122,7 +122,7 @@ class _SearchScreenState extends State<SearchScreen>
           ? colorScheme.surface
           : colorScheme.surface.withValues(alpha: 0.4);
 
-      return Padding(
+      return material.Padding(
         padding: const material.EdgeInsets.all(12),
         child: Container(
           decoration: material.BoxDecoration(
@@ -224,7 +224,7 @@ class _SearchScreenState extends State<SearchScreen>
                   _onSearchChanged('');
                 },
               ),
-            const SizedBox(width: 4),
+            const material.SizedBox(width: 4),
           ],
         ),
         body: _buildPanelLayout(isM3E),
@@ -541,7 +541,7 @@ class _SearchScreenState extends State<SearchScreen>
         final isSelected = _tabController.index == index;
         final theme = material.Theme.of(context);
         return Container(
-          width: material.double.infinity,
+          width: double.infinity,
           height: 44,
           alignment: Alignment.center,
           decoration: material.BoxDecoration(
@@ -1285,7 +1285,7 @@ class _SearchScreenState extends State<SearchScreen>
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: material.MainAxisAlignment.center,
                       children: [
                         Text(
                           user['full_name'] ?? user['username'],
