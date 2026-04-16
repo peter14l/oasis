@@ -174,9 +174,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         header: fluent.Container(
           height: material.kToolbarHeight,
           padding: const EdgeInsets.symmetric(horizontal: 10.0),
-          child: const fluent.Text(
-            'Settings',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          child: Row(
+            children: [
+              const Expanded(
+                child: fluent.Text(
+                  'Settings',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+              ),
+              fluent.IconButton(
+                icon: const Icon(FluentIcons.dismiss_24_regular, size: 18),
+                onPressed: () => context.pop(),
+              ),
+            ],
           ),
         ),
         items: [
@@ -217,6 +227,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
         footerItems: [
+          fluent.PaneItemSeparator(),
           fluent.PaneItemAction(
             icon: const material.Icon(
               FluentIcons.sign_out_24_regular,
