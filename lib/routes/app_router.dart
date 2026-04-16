@@ -189,6 +189,58 @@ class _MainLayoutState extends State<MainLayout> {
     return 0;
   }
 
+  Widget _buildMainContentWithPanels({
+    required Widget mainContent,
+    required bool isDesktop,
+    required String? activePanel,
+    required Color slidingPanelColor,
+  }) {
+    return Stack(
+      children: [
+        mainContent,
+        if (isDesktop && activePanel != null) ...[
+          // Backdrop to close panel
+          GestureDetector(
+            onTap: () => setState(() => _activePanel = null),
+            behavior: HitTestBehavior.translucent,
+            child: Container(
+              color: Colors.black.withValues(alpha: 0.01),
+            ),
+          ),
+          // Sliding panel
+          motion.Animate(
+            effects: const [
+              motion.SlideEffect(
+                begin: Offset(-1, 0),
+                end: Offset(0, 0),
+                duration: Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              ),
+              motion.FadeEffect(duration: Duration(milliseconds: 300)),
+            ],
+            child: Container(
+              width: 400,
+              decoration: BoxDecoration(
+                color: slidingPanelColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+              child:
+                  activePanel == 'search'
+                      ? const SearchScreen(isPanel: true)
+                      : const NotificationsScreen(isPanel: true),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -232,44 +284,59 @@ class _MainLayoutState extends State<MainLayout> {
         }
 
         Widget mainContent = widget.child;
+        final contentWithPanels = _buildMainContentWithPanels(
+          mainContent: mainContent,
+          isDesktop: isDesktop,
+          activePanel: _activePanel,
+          slidingPanelColor: slidingPanelColor,
+        );
 
         if (useFluent && isDesktop) {
           return fluent.NavigationView(
             pane: fluent.NavigationPane(
               header: const SizedBox.shrink(),
               selected: currentIndex,
-              onChanged: (index) => _onDestinationSelected(index, killSwitchActive: killSwitchActive),
-              displayMode: _isRailExtended ? fluent.PaneDisplayMode.expanded : fluent.PaneDisplayMode.compact,
+              onChanged:
+                  (index) => _onDestinationSelected(
+                    index,
+                    killSwitchActive: killSwitchActive,
+                  ),
+              displayMode:
+                  _isRailExtended
+                      ? fluent.PaneDisplayMode.expanded
+                      : fluent.PaneDisplayMode.compact,
               items: [
                 fluent.PaneItem(
                   icon: const Icon(FluentIcons.home_24_regular),
                   title: const fluent.Text('Feed'),
-                  body: mainContent,
+                  body: contentWithPanels,
                 ),
                 fluent.PaneItem(
                   icon: const Icon(FluentIcons.search_24_regular),
                   title: const fluent.Text('Search'),
-                  body: mainContent,
+                  body: contentWithPanels,
                 ),
                 fluent.PaneItem(
                   icon: const Icon(FluentIcons.channel_24_regular),
                   title: const fluent.Text('Spaces'),
-                  body: mainContent,
+                  body: contentWithPanels,
                 ),
                 fluent.PaneItem(
-                  icon: UnreadMessagesBadge(child: const Icon(FluentIcons.chat_24_regular)),
+                  icon: UnreadMessagesBadge(
+                    child: const Icon(FluentIcons.chat_24_regular),
+                  ),
                   title: const fluent.Text('Messages'),
-                  body: mainContent,
+                  body: contentWithPanels,
                 ),
                 fluent.PaneItem(
                   icon: const Icon(FluentIcons.alert_24_regular),
                   title: const fluent.Text('Notifications'),
-                  body: mainContent,
+                  body: contentWithPanels,
                 ),
                 fluent.PaneItem(
                   icon: const Icon(FluentIcons.person_24_regular),
                   title: const fluent.Text('Profile'),
-                  body: mainContent,
+                  body: contentWithPanels,
                 ),
               ],
               footerItems: [
@@ -277,7 +344,7 @@ class _MainLayoutState extends State<MainLayout> {
                 fluent.PaneItem(
                   icon: const Icon(FluentIcons.settings_24_regular),
                   title: const fluent.Text('Settings'),
-                  body: mainContent,
+                  body: contentWithPanels,
                   onTap: () => context.push('/settings'),
                 ),
               ],
@@ -290,10 +357,14 @@ class _MainLayoutState extends State<MainLayout> {
           body: RawGestureDetector(
             behavior: HitTestBehavior.translucent,
             gestures: {
-              _TwoFingerLongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<_TwoFingerLongPressGestureRecognizer>(
+              _TwoFingerLongPressGestureRecognizer: GestureRecognizerFactoryWithHandlers<
+                _TwoFingerLongPressGestureRecognizer
+              >(
                 () => _TwoFingerLongPressGestureRecognizer(
                   onTwoFingerLongPress: () {
-                    setState(() => _isPrivacyBlurActive = !_isPrivacyBlurActive);
+                    setState(
+                      () => _isPrivacyBlurActive = !_isPrivacyBlurActive,
+                    );
                     if (_isPrivacyBlurActive) {
                       HapticFeedback.heavyImpact();
                     } else {
@@ -322,43 +393,7 @@ class _MainLayoutState extends State<MainLayout> {
                               isMica: isMica,
                               disableTransparency: disableTransparency,
                             ),
-                          Expanded(
-                            child: Stack(
-                              children: [
-                                mainContent,
-                                // Sliding panels for desktop (search/notifications)
-                                if (isDesktop && _activePanel != null)
-                                  AnimatedPositioned(
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeInOut,
-                                    left: 0,
-                                    top: 0,
-                                    bottom: 0,
-                                    width: 400,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: slidingPanelColor,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.3,
-                                            ),
-                                            blurRadius: 20,
-                                            spreadRadius: 5,
-                                          ),
-                                        ],
-                                      ),
-                                      child:
-                                          _activePanel == 'search'
-                                              ? const SearchScreen(isPanel: true)
-                                              : const NotificationsScreen(
-                                                isPanel: true,
-                                              ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
+                          Expanded(child: contentWithPanels),
                         ],
                       ),
                     ),
@@ -884,6 +919,13 @@ class _MainLayoutState extends State<MainLayout> {
               _activePanel == 'notifications' ? null : 'notifications';
         });
         return;
+      }
+
+      // Close active panel if navigating to other destinations
+      if (_activePanel != null) {
+        setState(() {
+          _activePanel = null;
+        });
       }
     }
 
