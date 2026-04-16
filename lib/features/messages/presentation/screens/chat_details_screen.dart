@@ -692,22 +692,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         titleSpacing: isDesktop ? 24 : null,
         automaticallyImplyLeading: false,
         leading: isDesktop
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(FluentIcons.chevron_left_24_regular),
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    tooltip: 'Back to chat',
-                  ),
-                  if (widget.onBackgroundSettingsChanged != null)
-                    IconButton(
-                      icon: const Icon(FluentIcons.dismiss_24_regular),
-                      onPressed: () =>
-                          widget.onBackgroundSettingsChanged!(0, 0),
-                      tooltip: 'Close',
-                    ),
-                ],
+            ? IconButton(
+                icon: const Icon(FluentIcons.chevron_left_24_regular),
+                onPressed: () => Navigator.of(context).maybePop(),
+                tooltip: 'Back to chat',
               )
             : (canPop
                   ? IconButton(
@@ -715,13 +703,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                       onPressed: () => Navigator.of(context).maybePop(),
                     )
                   : null),
-        actions: [
-          if (isDesktop && widget.onBackgroundSettingsChanged != null)
-            IconButton(
-              icon: const Icon(FluentIcons.dismiss_24_regular),
-              onPressed: () {},
-            ),
-        ],
+        actions: const [],
       ),
       body: Center(
         child: Container(

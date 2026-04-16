@@ -120,7 +120,7 @@ class _SearchScreenState extends State<SearchScreen>
       // Full Screen Desktop layout
       final desktopBgColor = disableTransparency
           ? colorScheme.surface
-          : colorScheme.surface.withValues(alpha: 0.4);
+          : colorScheme.surface.withValues(alpha: 1.0);
 
       return material.Padding(
         padding: const material.EdgeInsets.all(12),

@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:navigation_bar_m3e/navigation_bar_m3e.dart';
 import 'package:go_router/go_router.dart';
@@ -197,6 +198,7 @@ class _MainLayoutState extends State<MainLayout> {
         isM3E && themeProvider.isM3ETransparencyDisabled;
     final currentIndex = _getCurrentIndex();
     final isDesktop = ResponsiveLayout.isDesktop(context);
+    final useFluent = themeProvider.useFluentUI;
 
     return Consumer3<ScreenTimeService, WellnessService, UserSettingsProvider>(
       builder: (context, svc, wellness, userSettings, _) {
@@ -205,14 +207,14 @@ class _MainLayoutState extends State<MainLayout> {
 
         final panelColor =
             isMica
-                ? Colors.black.withValues(alpha: 0.1)
+                ? Colors.black
                 : (isM3E
                     ? theme.colorScheme.surfaceContainer
-                    : const Color(0xFF0C0F14).withValues(alpha: 0.8));
+                    : const Color(0xFF0C0F14));
 
         final slidingPanelColor =
             isMica
-                ? Colors.black.withValues(alpha: 0.8)
+                ? Colors.black
                 : (isM3E
                     ? theme.colorScheme.surfaceContainerHigh
                     : const Color(0xFF0C0F14));
@@ -230,6 +232,72 @@ class _MainLayoutState extends State<MainLayout> {
         }
 
         Widget mainContent = widget.child;
+
+        if (useFluent && isDesktop) {
+          return fluent.NavigationView(
+            titleBar: fluent.TitleBar(
+              title: const fluent.Text('Oasis'),
+              actions: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  fluent.Tooltip(
+                    message: 'New Post',
+                    child: fluent.IconButton(
+                      icon: const Icon(Icons.add_rounded, size: 20),
+                      onPressed: () => context.pushNamed('create_post'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+              ),
+            ),
+            pane: fluent.NavigationPane(
+              selected: currentIndex,
+              onChanged: (index) => _onDestinationSelected(index, killSwitchActive: killSwitchActive),
+              displayMode: _isRailExtended ? fluent.PaneDisplayMode.expanded : fluent.PaneDisplayMode.compact,
+              items: [
+                fluent.PaneItem(
+                  icon: const Icon(FluentIcons.home_24_regular),
+                  title: const fluent.Text('Feed'),
+                  body: mainContent,
+                ),
+                fluent.PaneItem(
+                  icon: const Icon(FluentIcons.search_24_regular),
+                  title: const fluent.Text('Search'),
+                  body: mainContent,
+                ),
+                fluent.PaneItem(
+                  icon: const Icon(FluentIcons.channel_24_regular),
+                  title: const fluent.Text('Spaces'),
+                  body: mainContent,
+                ),
+                fluent.PaneItem(
+                  icon: UnreadMessagesBadge(child: const Icon(FluentIcons.chat_24_regular)),
+                  title: const fluent.Text('Messages'),
+                  body: mainContent,
+                ),
+                fluent.PaneItem(
+                  icon: const Icon(FluentIcons.alert_24_regular),
+                  title: const fluent.Text('Notifications'),
+                  body: mainContent,
+                ),
+                fluent.PaneItem(
+                  icon: const Icon(FluentIcons.person_24_regular),
+                  title: const fluent.Text('Profile'),
+                  body: mainContent,
+                ),
+              ],
+              footerItems: [
+                fluent.PaneItem(
+                  icon: const Icon(FluentIcons.settings_24_regular),
+                  title: const fluent.Text('Settings'),
+                  body: mainContent,
+                  onTap: () => context.push('/settings'),
+                ),
+              ],
+            ),
+          );
+        }
 
         return Scaffold(
           extendBody: true,
@@ -283,7 +351,7 @@ class _MainLayoutState extends State<MainLayout> {
                                     width: 400,
                                     child: Container(
                                       decoration: BoxDecoration(
-                                        color: panelColor,
+                                        color: slidingPanelColor,
                                         boxShadow: [
                                           BoxShadow(
                                             color: Colors.black.withValues(
