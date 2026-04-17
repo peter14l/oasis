@@ -63,7 +63,15 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 child: OutlinedButton.icon(
                   onPressed: () async {
                     try {
-                      await Purchases.showManageSubscriptions();
+                      final customerInfo = await Purchases.getCustomerInfo();
+                      if (customerInfo.managementURL != null) {
+                        await launchUrl(
+                          Uri.parse(customerInfo.managementURL!),
+                          mode: LaunchMode.externalApplication,
+                        );
+                      } else {
+                        throw Exception('Management URL not found');
+                      }
                     } catch (e) {
                       debugPrint('Error showing manage subscriptions: $e');
                       if (mounted) {

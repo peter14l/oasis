@@ -27,6 +27,7 @@ class _OasisProScreenState extends State<OasisProScreen> {
   Currency _detectedCurrency = Currency.usd;
   List<PricingPlan> _plans = [];
   bool _isLoading = true;
+  String? _currentSubscriptionId;
 
   @override
   void initState() {
@@ -75,7 +76,7 @@ class _OasisProScreenState extends State<OasisProScreen> {
         body: {
           'razorpay_payment_id': response.paymentId,
           'razorpay_order_id': response.orderId,
-          'razorpay_subscription_id': response.subscriptionId,
+          'razorpay_subscription_id': _currentSubscriptionId,
           'razorpay_signature': response.signature,
         },
       );
@@ -158,6 +159,7 @@ class _OasisProScreenState extends State<OasisProScreen> {
       }
 
       final subscriptionId = response.data['id'];
+      setState(() => _currentSubscriptionId = subscriptionId);
 
       // 2. Open Razorpay via service
       final options = {

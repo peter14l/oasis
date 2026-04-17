@@ -1245,7 +1245,7 @@ class _FeedScreenState extends State<FeedScreen>
               
               if (isFollowing) {
                 return useFluent 
-                  ? fluent.TextButton(onPressed: null, child: const Text('Following'))
+                  ? fluent.HyperlinkButton(onPressed: null, child: const Text('Following'))
                   : const Text('Following', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500));
               }
 
