@@ -112,13 +112,23 @@ class UpdateService {
         'UpdateService: Checking for updates. Current version: $currentVersion',
       );
       debugPrint('UpdateService: Update URL: $_updateCheckUrl');
+      final fullUrl = '$_updateUrl?version=$currentVersion';
+      debugPrint('UpdateService: Fetching full URL: $fullUrl');
 
       final response = await http
-          .get(Uri.parse('$_updateUrl?version=$currentVersion'))
+          .get(Uri.parse(fullUrl))
           .timeout(const Duration(seconds: 10));
 
+      debugPrint('UpdateService: Status code: ${response.statusCode}');
+      if (kDebugMode) {
+        debugPrint('UpdateService: Response body length: ${response.body.length}');
+        if (response.body.length < 500) {
+          debugPrint('UpdateService: Response body: ${response.body}');
+        }
+      }
+
       if (response.statusCode == 200) {
-        final json = await _parseJsonResponse(response.body);
+        final json = _parseJsonResponse(response.body);
         if (json != null) {
           final updateInfo = UpdateInfo.fromJson(json);
           _cachedUpdateInfo = updateInfo;

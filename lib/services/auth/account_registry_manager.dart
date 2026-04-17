@@ -12,8 +12,17 @@ class AccountRegistryManager with ChangeNotifier {
   }
 
   Future<void> loadRegistry() async {
-    _registeredAccounts = await _registry.getAllAccounts();
-    notifyListeners();
+    try {
+      debugPrint('[AccountRegistryManager] loadRegistry starting...');
+      _registeredAccounts = await _registry.getAllAccounts();
+      debugPrint('[AccountRegistryManager] loadRegistry completed. Count: ${_registeredAccounts.length}');
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[AccountRegistryManager] CRITICAL ERROR in loadRegistry: $e');
+      // If it fails, we start with empty to prevent app crash
+      _registeredAccounts = [];
+      notifyListeners();
+    }
   }
 
   Future<void> syncCurrentSessionToRegistry(Session session) async {

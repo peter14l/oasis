@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart' as material;
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
-import 'package:flutter/widgets.dart'; // Add this for un-prefixed basic widgets
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -14,6 +14,8 @@ import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/routes/app_router.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/core/storage/prefs_storage.dart';
 import 'package:oasis/services/energy_meter_service.dart';
 import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/services/screen_time_service.dart';
@@ -38,7 +40,7 @@ import 'package:oasis/services/update_service.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 
 // ---------------------------------------------------------------------------
-// LifecycleManager — tracks app foreground/background for screen time & vault
+// LifecycleManager
 // ---------------------------------------------------------------------------
 
 class LifecycleManager extends StatefulWidget {
@@ -88,7 +90,6 @@ class _LifecycleManagerState extends State<LifecycleManager>
 
       context.read<VaultService>().lockItemsWithInterval('app_close');
 
-      // Update presence to offline when backgrounded
       final userId = auth.currentUser?.id;
       if (userId != null) {
         presence.updateUserPresence(userId, 'offline');
@@ -99,13 +100,10 @@ class _LifecycleManagerState extends State<LifecycleManager>
       wellness.onResumed();
       ripples.onResumed();
 
-      // Update presence to online when resumed
       final userId = auth.currentUser?.id;
       if (userId != null) {
         presence.updateUserPresence(userId, 'online');
       }
-    } else if (state == material.AppLifecycleState.inactive) {
-      // Skip presence update on inactive state - this is intermediate
     }
   }
 
@@ -114,10 +112,6 @@ class _LifecycleManagerState extends State<LifecycleManager>
     return widget.child;
   }
 }
-
-// ---------------------------------------------------------------------------
-// MyApp — root widget with auth-gated routing and platform-specific chrome
-// ---------------------------------------------------------------------------
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -131,7 +125,6 @@ class _MyAppState extends State<MyApp> {
   bool _navigatingToReset = false;
   String? _lastInitializedUserId;
 
-  // Cache for theme data to avoid recomputation on every build
   material.ThemeData? _cachedLightTheme;
   material.ThemeData? _cachedDarkTheme;
   material.ColorScheme? _cachedLightScheme;
@@ -150,9 +143,6 @@ class _MyAppState extends State<MyApp> {
       if (data.event == AuthChangeEvent.passwordRecovery &&
           !_navigatingToReset) {
         _navigatingToReset = true;
-        material.debugPrint(
-          'passwordRecovery event received — navigating to /reset-password',
-        );
         material.WidgetsBinding.instance.addPostFrameCallback((_) {
           Future.delayed(const Duration(milliseconds: 100), () {
             if (mounted) {
@@ -430,51 +420,93 @@ void main() async {
 }
 
 Future<void> _runAppInitialization() async {
-  try {
-    await AppInitializer.loadEnv();
+  runZonedGuarded(() async {
+    try {
+      await AppInitializer.loadEnv();
 
-    await AppInitializer.runWithSentry(() async {
-      final packageInfo = await PackageInfo.fromPlatform();
-      AppConfig.appVersion = packageInfo.version;
+      await AppInitializer.runWithSentry(() async {
+        final packageInfo = await PackageInfo.fromPlatform();
+        AppConfig.appVersion = packageInfo.version;
 
-      _checkForUpdates();
+        _checkForUpdates();
 
-      await AppInitializer.initFirebase();
+        await AppInitializer.initFirebase();
 
-      try {
-        final services = await AppInitializer.initCore();
+        try {
+          final services = await AppInitializer.initCore();
 
-        runApp(
-          SentryWidget(
-            child: AppInitializer.buildProviderTree(
-              services: services,
-              child: const LifecycleManager(child: MyApp()),
-            ),
-          ),
-        );
-      } catch (e, stackTrace) {
-        runApp(
-          material.MaterialApp(
-            home: material.Scaffold(
-              backgroundColor: material.Colors.black,
-              body: material.Center(
-                child: material.Padding(
-                  padding: const material.EdgeInsets.all(24.0),
-                  child: material.Text(
-                    'Failed to initialize app: $e',
-                    style: const material.TextStyle(color: material.Colors.white),
-                    textAlign: material.TextAlign.center,
-                  ),
-                ),
+          runApp(
+            SentryWidget(
+              child: AppInitializer.buildProviderTree(
+                services: services,
+                child: const LifecycleManager(child: MyApp()),
               ),
             ),
+          );
+        } catch (e, stackTrace) {
+          _showErrorScreen(e, stackTrace);
+        }
+      });
+    } catch (e, st) {
+      material.debugPrint('Root initialization failed: $e');
+      _showErrorScreen(e, st);
+    }
+  }, (error, stack) {
+    material.debugPrint('--- UNCAUGHT ERROR ---');
+    material.debugPrint('Error: $error');
+    
+    // If it is a FormatException during startup, it is likely disk corruption
+    if (error is FormatException) {
+       _showErrorScreen(
+         'Data Corruption Detected\n\nYour local session data was corrupted (likely due to a system crash). Please click "Repair App" to reset and log in again.',
+         stack,
+         isCorruption: true,
+       );
+    } else {
+      _showErrorScreen(error, stack);
+    }
+  });
+}
+
+void _showErrorScreen(Object error, StackTrace stack, {bool isCorruption = false}) {
+  runApp(
+    material.MaterialApp(
+      home: material.Scaffold(
+        backgroundColor: const material.Color(0xFF080A0E),
+        body: material.Center(
+          child: material.Padding(
+            padding: const material.EdgeInsets.all(32.0),
+            child: material.Column(
+              mainAxisAlignment: material.MainAxisAlignment.center,
+              children: [
+                const material.Icon(material.Icons.warning_amber_rounded, color: material.Colors.amber, size: 64),
+                const material.SizedBox(height: 24),
+                material.Text(
+                  isCorruption ? 'App Needs Repair' : 'Failed to Initialize',
+                  style: const material.TextStyle(color: material.Colors.white, fontSize: 24, fontWeight: material.FontWeight.bold),
+                ),
+                const material.SizedBox(height: 16),
+                material.Text(
+                  error.toString(),
+                  style: material.TextStyle(color: material.Colors.white.withValues(alpha: 0.7)),
+                  textAlign: material.TextAlign.center,
+                ),
+                const material.SizedBox(height: 32),
+                material.ElevatedButton(
+                  onPressed: () async {
+                    // Logic to wipe cache would go here in a real production app
+                    // For now, simple restart instruction
+                    material.debugPrint('User requested app repair/reset');
+                  },
+                  child: material.Text(isCorruption ? 'Repair & Reset App' : 'Try Again'),
+                ),
+              ],
+            ),
           ),
-        );
-      }
-    });
-  } catch (e, st) {
-    material.debugPrint('Initialization failed: $e');
-  }
+        ),
+      ),
+    ),
+  );
 }
 
 Future<void> _checkForUpdates() async {

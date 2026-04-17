@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage_platform_interface/flutter_secure_storage_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -65,17 +66,39 @@ class FlutterSecureStorageWindows extends FlutterSecureStoragePlatform {
     required Map<String, String> options,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    final encryptedBase64 = prefs.getString('$_storagePrefix$key');
-    if (encryptedBase64 == null) return null;
+    final rawValue = prefs.getString('$_storagePrefix$key');
+    
+    // DEBUG PRINT
+    if (kDebugMode && rawValue != null) {
+      print('STUB: Reading key $key, value length: ${rawValue.length}');
+      if (rawValue.length > 50) {
+        print('STUB: Value starts with: ${rawValue.substring(0, 50)}');
+      }
+    }
+
+    if (rawValue == null) return null;
+
+    // Guard against corrupted files (e.g. file filled with null bytes or zeros)
+    if (rawValue.isEmpty || 
+        rawValue.runes.every((r) => r == 0) || 
+        rawValue.runes.every((r) => r == 48)) { // 48 is ASCII '0'
+      if (kDebugMode) print('STUB: Detected corrupted data for key $key, ignoring.');
+      return null;
+    }
 
     try {
       final encrypter = encrypt.Encrypter(encrypt.AES(_deriveKey()));
       final decrypted = encrypter.decrypt(
-        encrypt.Encrypted.fromBase64(encryptedBase64),
+        encrypt.Encrypted.fromBase64(rawValue),
         iv: _deriveIV(key),
       );
+      
+      // If decrypted content is also just zeros/nulls, ignore it
+      if (decrypted.runes.every((r) => r == 0)) return null;
+      
       return decrypted;
     } catch (e) {
+      if (kDebugMode) print('STUB: Decryption failed for key $key: $e');
       return null;
     }
   }

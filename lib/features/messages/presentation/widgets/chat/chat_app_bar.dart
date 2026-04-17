@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:oasis/providers/presence_provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:go_router/go_router.dart';
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
+import 'package:oasis/services/app_initializer.dart';
 
 /// Chat app bar with avatar, presence indicator, encryption lock, and action buttons.
 /// Extracted floating glassmorphic header from chat_screen.dart.
@@ -39,6 +41,11 @@ class ChatAppBar extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final topPadding = MediaQuery.of(context).padding.top;
+    final useFluent = Provider.of<ThemeProvider>(context).useFluentUI;
+
+    if (useFluent && isDesktop) {
+      return _buildFluentAppBar(context, theme);
+    }
 
     return Positioned(
       top: topPadding + 12,
@@ -211,19 +218,6 @@ class ChatAppBar extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // TODO: Re-enable calling buttons once calling feature is ready
-                    // IconButton(
-                    //   icon: const Icon(FluentIcons.call_24_regular, size: 20),
-                    //   onPressed: onCallPressed,
-                    //   padding: const EdgeInsets.all(8),
-                    //   constraints: const BoxConstraints(),
-                    // ),
-                    // IconButton(
-                    //   icon: const Icon(FluentIcons.video_24_regular, size: 20),
-                    //   onPressed: onVideoCallPressed,
-                    //   padding: const EdgeInsets.all(8),
-                    //   constraints: const BoxConstraints(),
-                    // ),
                     if (isDesktop) ...[
                       const SizedBox(width: 4),
                       IconButton(
@@ -244,6 +238,159 @@ class ChatAppBar extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFluentAppBar(BuildContext context, ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+    final fluentTheme = fluent.FluentTheme.of(context);
+
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        height: 64,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: fluentTheme.scaffoldBackgroundColor.withValues(alpha: 0.8),
+          border: Border(
+            bottom: BorderSide(
+              color: fluentTheme.resources.dividerStrokeColorDefault,
+              width: 1,
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            // Avatar & Name
+            Stack(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: colorScheme.primaryContainer,
+                  backgroundImage: (otherUserAvatar ?? '').isNotEmpty
+                      ? CachedNetworkImageProvider(otherUserAvatar!)
+                      : null,
+                  child: (otherUserAvatar ?? '').isEmpty
+                      ? Text(
+                          (otherUserName.isNotEmpty ? otherUserName[0] : 'U').toUpperCase(),
+                          style: TextStyle(
+                            color: colorScheme.onPrimaryContainer,
+                            fontSize: 14,
+                          ),
+                        )
+                      : null,
+                ),
+                Consumer<PresenceProvider>(
+                  builder: (context, presenceProvider, child) {
+                    final isOnline = otherUserId != null &&
+                        presenceProvider.isUserOnline(otherUserId!);
+                    return Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: isOnline ? Colors.green : Colors.grey,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: colorScheme.surface,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    otherUserName,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  Consumer<PresenceProvider>(
+                    builder: (context, presenceProvider, child) {
+                      final presence = otherUserId != null
+                          ? presenceProvider.getUserPresence(otherUserId!)
+                          : null;
+                      final isOnline = presence?.status == 'online';
+
+                      return Row(
+                        children: [
+                          if (isEncryptionReady) ...[
+                            Icon(
+                              FluentIcons.lock_closed_12_filled,
+                              size: 10,
+                              color: colorScheme.primary.withValues(alpha: 0.7),
+                            ),
+                            const SizedBox(width: 4),
+                          ],
+                          Text(
+                            isOnline
+                                ? 'Online'
+                                : (presence?.lastSeen != null
+                                    ? 'Last seen ${_formatSeenTime(presence!.lastSeen!)}'
+                                    : 'Offline'),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: isOnline
+                                  ? Colors.green.withValues(alpha: 0.8)
+                                  : colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            // Actions
+            fluent.CommandBar(
+              overflowBehavior: fluent.CommandBarOverflowBehavior.noWrap,
+              primaryItems: [
+                fluent.CommandBarButton(
+                  icon: const Icon(FluentIcons.call_24_regular, size: 18),
+                  onPressed: onCallPressed,
+                ),
+                fluent.CommandBarButton(
+                  icon: const Icon(FluentIcons.video_24_regular, size: 18),
+                  onPressed: onVideoCallPressed,
+                ),
+                fluent.CommandBarButton(
+                  icon: const Icon(FluentIcons.search_24_regular, size: 18),
+                  onPressed: onSearchPressed,
+                ),
+                fluent.CommandBarSeparator(),
+                fluent.CommandBarButton(
+                  icon: Icon(
+                    isDetailsOpen
+                        ? FluentIcons.info_24_filled
+                        : FluentIcons.info_24_regular,
+                    size: 18,
+                  ),
+                  onPressed: onDetailsToggle,
+                  label: const Text('Details'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

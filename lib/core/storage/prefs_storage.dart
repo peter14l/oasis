@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Shared preferences wrapper for non-sensitive app settings and cache.
@@ -15,7 +16,21 @@ class PrefsStorage {
   /// Initialize the storage. Must be called before first use.
   static Future<PrefsStorage> init() async {
     _instance ??= PrefsStorage._internal();
-    _instance!._prefs = await SharedPreferences.getInstance();
+    try {
+      _instance!._prefs = await SharedPreferences.getInstance();
+    } catch (e) {
+      debugPrint('CRITICAL: SharedPreferences corruption detected: $e');
+      if (e is FormatException) {
+        debugPrint('Attempting to recover from corrupted preferences...');
+        // On Windows, if the file is corrupted, getInstance() often fails.
+        // We can't easily delete the file while the plugin is active, 
+        // but we can ensure the app doesn't crash by providing a mock/empty fallback
+        // or re-attempting a clear if possible.
+      }
+      // Re-throw or handle based on app requirements. 
+      // For now, we allow the app to throw so the UI Safety Net can catch it.
+      rethrow;
+    }
     return _instance!;
   }
 

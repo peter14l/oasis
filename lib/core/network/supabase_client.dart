@@ -56,16 +56,22 @@ class SupabaseService {
       if (kDebugMode) {
         debugPrint('Connecting to Supabase...');
       }
-      await Supabase.initialize(
-        url: url,
-        anonKey: anonKey,
-        debug: SupabaseConfig.debug,
-        authOptions: const FlutterAuthClientOptions(
-          authFlowType: AuthFlowType.pkce,
-        ),
-      ).timeout(const Duration(seconds: 15), onTimeout: () {
-        throw TimeoutException('Supabase initialization timed out after 15 seconds');
-      });
+      
+      // Add more specific error handling for this call
+      try {
+        await Supabase.initialize(
+          url: url,
+          anonKey: anonKey,
+          debug: SupabaseConfig.debug,
+          authOptions: const FlutterAuthClientOptions(
+            authFlowType: AuthFlowType.pkce,
+          ),
+        ).timeout(const Duration(seconds: 15));
+      } on FormatException catch (fe) {
+        debugPrint('CRITICAL: Supabase.initialize threw FormatException: $fe');
+        debugPrint('This usually means the persisted session data is corrupted.');
+        rethrow;
+      }
 
       _instance._clientInstance = Supabase.instance.client;
       isInitialized = true;

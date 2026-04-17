@@ -955,6 +955,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                                            state.selectedVideo != null || 
                                                            state.selectedAudio != null || 
                                                            state.selectedFile != null,
+                                            isDesktop: isDesktop,
+                                            onPickImage: _pickImage,
+                                            onPickVideo: _pickVideo,
+                                            onPickFile: _pickFile,
+                                            onPickAudio: _pickAudio,
                                           ),
                                         ),
                                       ],

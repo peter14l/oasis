@@ -74,13 +74,27 @@ class SessionRegistryService {
   /// Get all registered accounts
   Future<List<RegisteredAccount>> getAllAccounts() async {
     try {
+      debugPrint('[SessionRegistry] Reading registry from storage...');
       final data = await _storage.read(key: _registryKey);
-      if (data == null) return [];
+      
+      if (data == null) {
+        debugPrint('[SessionRegistry] No registry data found');
+        return [];
+      }
+
+      debugPrint('[SessionRegistry] Raw data length: ${data.length}');
+      
+      // Guard against corrupted files (e.g. file filled with zeros/nulls)
+      if (data.isEmpty || data.runes.every((r) => r == 0) || data.runes.every((r) => r == 48)) {
+        debugPrint('[SessionRegistry] Detected corrupted data (zeros), ignoring.');
+        return [];
+      }
 
       final List<dynamic> decoded = jsonDecode(data);
+      debugPrint('[SessionRegistry] Decoded ${decoded.length} accounts');
       return decoded.map((item) => RegisteredAccount.fromJson(item)).toList();
     } catch (e) {
-      debugPrint('[SessionRegistry] Error reading registry: $e');
+      debugPrint('[SessionRegistry] ERROR parsing registry: $e');
       return [];
     }
   }

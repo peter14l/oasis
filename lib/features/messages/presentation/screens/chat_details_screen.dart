@@ -18,6 +18,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/features/messages/presentation/screens/shared_content_screen.dart';
 import 'package:oasis/widgets/moderation_dialogs.dart';
 import 'package:oasis/widgets/custom_text_field.dart';
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 
 class ChatDetailsScreen extends StatefulWidget {
   final String conversationId;
@@ -667,8 +668,230 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final useFluent = Provider.of<ThemeProvider>(context).useFluentUI;
 
     final canPop = Navigator.of(context).canPop();
+
+    Widget body = Center(
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: isDesktop ? 600 : double.infinity,
+        ),
+        child: ListView(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: isDesktop ? (kToolbarHeight + 20) : 16,
+            bottom: 48,
+          ),
+          children: [
+            _buildProfileHeader(theme, colorScheme),
+            const SizedBox(height: 24),
+            _buildSectionTitle(theme, 'Personalization'),
+            _buildDetailCard(
+              colorScheme,
+              child: Column(
+                children: [
+                  _buildActionTile(
+                    icon: FluentIcons.color_24_regular,
+                    title: 'Chat Background',
+                    subtitle: 'Custom image for this chat',
+                    trailing: _selectedBackground != null
+                        ? const Icon(
+                            FluentIcons.checkmark_circle_24_filled,
+                            color: Colors.green,
+                            size: 20,
+                          )
+                        : null,
+                    onTap: _pickBackground,
+                  ),
+                  if (_selectedBackground != null) ...[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Stack(
+                          children: [
+                            CachedNetworkImage(
+                              imageUrl: _selectedBackground!,
+                              height: 100,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: IconButton(
+                                icon: const Icon(
+                                  FluentIcons.dismiss_12_filled,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
+                                onPressed: _removeBackground,
+                                style: IconButton.styleFrom(
+                                  backgroundColor: Colors.black45,
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size(28, 28),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    _buildSliderTile(
+                      icon: FluentIcons.eye_24_regular,
+                      title: 'Background Opacity',
+                      value: _bgOpacity,
+                      onChanged: _updateBgOpacity,
+                    ),
+                    _buildSliderTile(
+                      icon: FluentIcons.brightness_high_24_regular,
+                      title: 'Background Brightness',
+                      value: _bgBrightness,
+                      onChanged: _updateBgBrightness,
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  _buildActionTile(
+                    icon: FluentIcons.image_24_regular,
+                    title: 'Media, Files & Links',
+                    subtitle: 'Shared content',
+                    onTap: () => _navigateToSharedContent(context),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+            _buildSectionTitle(theme, 'Privacy & Safety'),
+            _buildDetailCard(
+              colorScheme,
+              child: Column(
+                children: [
+                  _buildSwitchTile(
+                    icon: _isLocked
+                        ? FluentIcons.lock_closed_24_filled
+                        : FluentIcons.lock_open_24_regular,
+                    title: 'Vault Lock',
+                    subtitle: 'Hide and protect this chat',
+                    value: _isLocked,
+                    activeColor: Colors.indigo,
+                    onChanged: _toggleChatLock,
+                  ),
+                  if (_isLocked)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(56, 0, 16, 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Lock Interval',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildCompactRadio(
+                            'App close',
+                            'app_close',
+                            colorScheme,
+                          ),
+                          _buildCompactRadio(
+                            'Chat close',
+                            'chat_close',
+                            colorScheme,
+                          ),
+                          _buildCompactRadio('5 mins', '5mins', colorScheme),
+                        ],
+                      ),
+                    ),
+                  const Divider(indent: 56),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+            _buildSectionTitle(theme, 'Manage'),
+            _buildDetailCard(
+              colorScheme,
+              child: Column(
+                children: [
+                  _buildActionTile(
+                    icon: FluentIcons.search_24_regular,
+                    title: 'Search in Chat',
+                    subtitle: 'Find keywords',
+                    onTap: _showSearchModal,
+                  ),
+                  _buildSwitchTile(
+                    icon: _isMuted
+                        ? FluentIcons.alert_off_24_regular
+                        : FluentIcons.alert_24_regular,
+                    title: 'Mute Notifications',
+                    subtitle: 'Silence alerts for this chat',
+                    value: _isMuted,
+                    activeColor: Colors.orange,
+                    onChanged: _toggleMute,
+                  ),
+                  _buildActionTile(
+                    icon: FluentIcons.delete_24_regular,
+                    title: 'Clear Chat',
+                    titleColor: colorScheme.error,
+                    iconColor: colorScheme.error,
+                    onTap: _clearChat,
+                  ),
+                  _buildActionTile(
+                    icon: _isBlocked
+                        ? FluentIcons.person_available_24_regular
+                        : FluentIcons.person_prohibited_24_regular,
+                    title: _isBlocked
+                        ? 'Unblock ${widget.otherUserName}'
+                        : 'Block ${widget.otherUserName}',
+                    titleColor: colorScheme.error,
+                    iconColor: colorScheme.error,
+                    onTap: _toggleBlock,
+                  ),
+                  _buildActionTile(
+                    icon: FluentIcons.flag_24_regular,
+                    title: 'Report ${widget.otherUserName}',
+                    titleColor: colorScheme.error,
+                    iconColor: colorScheme.error,
+                    onTap: () {
+                      ReportDialog.show(context, userId: widget.otherUserId);
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 48),
+          ],
+        ),
+      ),
+    );
+
+    if (useFluent && isDesktop) {
+      return fluent.ScaffoldPage(
+        header: fluent.PageHeader(
+          title: Text(
+            'Details',
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 24,
+              letterSpacing: -0.5,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(FluentIcons.chevron_left_24_regular),
+            onPressed: () => Navigator.of(context).maybePop(),
+          ),
+        ),
+        content: body,
+      );
+    }
 
     return Scaffold(
       backgroundColor: isDesktop ? Colors.transparent : colorScheme.surface,
@@ -713,239 +936,8 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                       onPressed: () => Navigator.of(context).maybePop(),
                     )
                   : null),
-        actions: [
-          if (isDesktop && widget.onBackgroundSettingsChanged != null)
-            IconButton(
-              icon: const Icon(FluentIcons.dismiss_24_regular),
-              onPressed: () {},
-            ),
-        ],
       ),
-      body: Center(
-        child: Container(
-          constraints: BoxConstraints(
-            maxWidth: isDesktop ? 600 : double.infinity,
-          ),
-          child: ListView(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: isDesktop ? (kToolbarHeight + 20) : 16,
-              bottom: 48,
-            ),
-            children: [
-              _buildProfileHeader(theme, colorScheme),
-              const SizedBox(height: 24),
-              _buildSectionTitle(theme, 'Personalization'),
-              _buildDetailCard(
-                colorScheme,
-                child: Column(
-                  children: [
-                    _buildActionTile(
-                      icon: FluentIcons.color_24_regular,
-                      title: 'Chat Background',
-                      subtitle: 'Custom image for this chat',
-                      trailing: _selectedBackground != null
-                          ? const Icon(
-                              FluentIcons.checkmark_circle_24_filled,
-                              color: Colors.green,
-                              size: 20,
-                            )
-                          : null,
-                      onTap: _pickBackground,
-                    ),
-                    if (_selectedBackground != null) ...[
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Stack(
-                            children: [
-                              CachedNetworkImage(
-                                imageUrl: _selectedBackground!,
-                                height: 100,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
-                              Positioned(
-                                top: 4,
-                                right: 4,
-                                child: IconButton(
-                                  icon: const Icon(
-                                    FluentIcons.dismiss_12_filled,
-                                    size: 14,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: _removeBackground,
-                                  style: IconButton.styleFrom(
-                                    backgroundColor: Colors.black45,
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: const Size(28, 28),
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      _buildSliderTile(
-                        icon: FluentIcons.eye_24_regular,
-                        title: 'Background Opacity',
-                        value: _bgOpacity,
-                        onChanged: _updateBgOpacity,
-                      ),
-                      _buildSliderTile(
-                        icon: FluentIcons.brightness_high_24_regular,
-                        title: 'Background Brightness',
-                        value: _bgBrightness,
-                        onChanged: _updateBgBrightness,
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                    _buildActionTile(
-                      icon: FluentIcons.image_24_regular,
-                      title: 'Media, Files & Links',
-                      subtitle: 'Shared content',
-                      onTap: () => _navigateToSharedContent(context),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-              _buildSectionTitle(theme, 'Privacy & Safety'),
-              _buildDetailCard(
-                colorScheme,
-                child: Column(
-                  children: [
-                    _buildSwitchTile(
-                      icon: _isLocked
-                          ? FluentIcons.lock_closed_24_filled
-                          : FluentIcons.lock_open_24_regular,
-                      title: 'Vault Lock',
-                      subtitle: 'Hide and protect this chat',
-                      value: _isLocked,
-                      activeColor: Colors.indigo,
-                      onChanged: _toggleChatLock,
-                    ),
-                    if (_isLocked)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(56, 0, 16, 8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Lock Interval',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            _buildCompactRadio(
-                              'App close',
-                              'app_close',
-                              colorScheme,
-                            ),
-                            _buildCompactRadio(
-                              'Chat close',
-                              'chat_close',
-                              colorScheme,
-                            ),
-                            _buildCompactRadio('5 mins', '5mins', colorScheme),
-                          ],
-                        ),
-                      ),
-                    const Divider(indent: 56),
-                    /*
-                    _buildActionTile(
-                      icon: _whisperMode > 0 ? FluentIcons.delete_dismiss_24_filled : FluentIcons.delete_dismiss_24_regular,
-                      title: 'Whisper Mode',
-                      subtitle: _whisperMode == 1 
-                          ? 'Instant Vanish active' 
-                          : _whisperMode == 2 
-                              ? '24h Vanish active' 
-                              : 'Self-vanishing messages',
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _whisperMode == 1 ? 'Instant' : _whisperMode == 2 ? '24h' : 'Off',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: _whisperMode > 0 ? colorScheme.secondary : colorScheme.onSurfaceVariant,
-                              fontWeight: _whisperMode > 0 ? FontWeight.bold : FontWeight.normal,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(FluentIcons.chevron_right_24_regular, size: 20),
-                        ],
-                      ),
-                      onTap: _toggleWhisperMode,
-                    ),
-                    */
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-              _buildSectionTitle(theme, 'Manage'),
-              _buildDetailCard(
-                colorScheme,
-                child: Column(
-                  children: [
-                    _buildActionTile(
-                      icon: FluentIcons.search_24_regular,
-                      title: 'Search in Chat',
-                      subtitle: 'Find keywords',
-                      onTap: _showSearchModal,
-                    ),
-                    _buildSwitchTile(
-                      icon: _isMuted
-                          ? FluentIcons.alert_off_24_regular
-                          : FluentIcons.alert_24_regular,
-                      title: 'Mute Notifications',
-                      subtitle: 'Silence alerts for this chat',
-                      value: _isMuted,
-                      activeColor: Colors.orange,
-                      onChanged: _toggleMute,
-                    ),
-                    _buildActionTile(
-                      icon: FluentIcons.delete_24_regular,
-                      title: 'Clear Chat',
-                      titleColor: colorScheme.error,
-                      iconColor: colorScheme.error,
-                      onTap: _clearChat,
-                    ),
-                    _buildActionTile(
-                      icon: _isBlocked
-                          ? FluentIcons.person_available_24_regular
-                          : FluentIcons.person_prohibited_24_regular,
-                      title: _isBlocked
-                          ? 'Unblock ${widget.otherUserName}'
-                          : 'Block ${widget.otherUserName}',
-                      titleColor: colorScheme.error,
-                      iconColor: colorScheme.error,
-                      onTap: _toggleBlock,
-                    ),
-                    _buildActionTile(
-                      icon: FluentIcons.flag_24_regular,
-                      title: 'Report ${widget.otherUserName}',
-                      titleColor: colorScheme.error,
-                      iconColor: colorScheme.error,
-                      onTap: () {
-                        ReportDialog.show(context, userId: widget.otherUserId);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 48),
-            ],
-          ),
-        ),
-      ),
+      body: body,
     );
   }
 

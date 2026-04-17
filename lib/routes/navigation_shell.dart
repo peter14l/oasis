@@ -209,6 +209,9 @@ class NavigationShell extends material.StatelessWidget {
   }
 
   void _onDestinationSelected(material.BuildContext context, int index) {
+    // Unfocus to prevent keyboard state sync issues during navigation transitions
+    material.FocusManager.instance.primaryFocus?.unfocus();
+
     switch (index) {
       case 0:
         context.go('/feed');

@@ -31,18 +31,28 @@ class PersistentSignalStore implements SignalProtocolStore {
 
   /// Check if local keys exist and belong to the current user
   static Future<bool> hasKeys() async {
+    debugPrint('[SignalStore] hasKeys check starting...');
     const secureStorage = FlutterSecureStorage();
     final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) return false;
+    if (userId == null) {
+      debugPrint('[SignalStore] hasKeys: No user logged in');
+      return false;
+    }
 
-    final identityKeyString = await secureStorage.read(
-      key: _identityKeyPairKey(userId),
-    );
-    final registrationIdString = await secureStorage.read(
-      key: _localRegistrationIdKey(userId),
-    );
+    try {
+      final identityKeyString = await secureStorage.read(
+        key: _identityKeyPairKey(userId),
+      );
+      final registrationIdString = await secureStorage.read(
+        key: _localRegistrationIdKey(userId),
+      );
 
-    return identityKeyString != null && registrationIdString != null;
+      debugPrint('[SignalStore] hasKeys result: identity=${identityKeyString != null}, registration=${registrationIdString != null}');
+      return identityKeyString != null && registrationIdString != null;
+    } catch (e) {
+      debugPrint('[SignalStore] hasKeys error: $e');
+      return false;
+    }
   }
 
   /// Check if we have any pre-keys stored locally

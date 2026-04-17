@@ -116,6 +116,10 @@ class ThemeProvider with ChangeNotifier {
 
   /// Check if the current platform should use Fluent UI (Windows, macOS, or Web)
   bool get useFluentUI {
+    // Force Material on mobile platforms
+    if (Platform.isAndroid || Platform.isIOS) return false;
+    
+    // On Web, we could further refine this, but kIsWeb is generally desktop-first in this app
     if (kIsWeb) return true;
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) return true;
     return false;
@@ -366,10 +370,10 @@ class AppInitializer {
     }
 
     // Supabase
-    debugPrint('Initializing Supabase...');
+    debugPrint('STEP: Supabase initialization starting...');
     try {
       await SupabaseService.initialize();
-      debugPrint('Supabase initialized successfully');
+      debugPrint('STEP: Supabase initialized successfully');
     } catch (e, st) {
       debugPrint('CRITICAL: Supabase initialization failed: $e');
       debugPrint('Stack trace: $st');
@@ -377,25 +381,32 @@ class AppInitializer {
     }
 
     // PrefsStorage (shared preferences wrapper — required by SessionLocalDatasource)
-    debugPrint('Initializing PrefsStorage...');
+    debugPrint('STEP: PrefsStorage initialization starting...');
     await PrefsStorage.init();
-    debugPrint('PrefsStorage initialized successfully');
+    debugPrint('STEP: PrefsStorage initialized successfully');
 
     // Auth
+    debugPrint('STEP: AuthProvider initialization starting...');
     final authProvider = AuthProvider(repository: AuthRepositoryImpl());
+    debugPrint('STEP: AuthProvider.restoreSession starting...');
     await authProvider.restoreSession();
+    debugPrint('STEP: AuthProvider initialization completed');
 
     // Theme
+    debugPrint('STEP: ThemeProvider initialization starting...');
     final themeProvider = ThemeProvider();
     await themeProvider.loadTheme();
+    debugPrint('STEP: ThemeProvider initialization completed');
 
     // User settings
+    debugPrint('STEP: UserSettingsProvider initialization starting...');
     final settingsRepo = SettingsRepositoryImpl();
     final userSettingsProvider = UserSettingsProvider(
       getSettingsUseCase: GetSettingsUseCase(settingsRepo),
       saveSettingsUseCase: SaveSettingsUseCase(settingsRepo),
     );
     await userSettingsProvider.loadSettings();
+    debugPrint('STEP: UserSettingsProvider initialization completed');
 
     // Desktop Windows enhancements
     if (Platform.isWindows) {

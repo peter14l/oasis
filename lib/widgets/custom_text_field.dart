@@ -31,6 +31,13 @@ class CustomTextField extends StatelessWidget {
   final material.Color? hintColor;
   final double? borderRadius;
   final material.EdgeInsetsGeometry? contentPadding;
+  final material.EdgeInsetsGeometry? margin;
+  final bool isDense;
+  final Widget? prefix;
+  final Widget? suffix;
+  final material.InputBorder? border;
+  final material.InputBorder? enabledBorder;
+  final material.InputBorder? focusedBorder;
   final material.BoxConstraints? prefixIconConstraints;
   final material.BoxConstraints? suffixIconConstraints;
 
@@ -62,6 +69,13 @@ class CustomTextField extends StatelessWidget {
     this.hintColor,
     this.borderRadius,
     this.contentPadding,
+    this.margin,
+    this.isDense = false,
+    this.prefix,
+    this.suffix,
+    this.border,
+    this.enabledBorder,
+    this.focusedBorder,
     this.prefixIconConstraints,
     this.suffixIconConstraints,
   });
@@ -84,7 +98,7 @@ class CustomTextField extends StatelessWidget {
     final effectiveRadius = borderRadius ?? (isM3E ? 24.0 : 16.0);
 
     return Container(
-      margin: const material.EdgeInsets.only(bottom: 8),
+      margin: margin ?? const material.EdgeInsets.only(bottom: 8),
       child: material.TextFormField(
         controller: controller,
         focusNode: focusNode,
@@ -117,28 +131,29 @@ class CustomTextField extends StatelessWidget {
           ),
           filled: true,
           fillColor: effectiveFillColor,
-          prefixIcon: prefixIcon != null
+          isDense: isDense,
+          prefixIcon: prefix ?? (prefixIcon != null
               ? material.Icon(
                   prefixIcon,
                   color: effectiveHintColor,
                 )
-              : null,
+              : null),
           prefixIconConstraints: prefixIconConstraints,
-          suffixIcon: suffixIcon,
+          suffixIcon: suffix ?? suffixIcon,
           suffixIconConstraints: suffixIconConstraints,
-          border: material.OutlineInputBorder(
+          border: border ?? material.OutlineInputBorder(
             borderRadius: material.BorderRadius.circular(effectiveRadius),
             borderSide: isM3E 
               ? material.BorderSide(color: colorScheme.primary.withValues(alpha: 0.1))
               : material.BorderSide.none,
           ),
-          enabledBorder: material.OutlineInputBorder(
+          enabledBorder: enabledBorder ?? material.OutlineInputBorder(
             borderRadius: material.BorderRadius.circular(effectiveRadius),
             borderSide: isM3E 
               ? material.BorderSide(color: colorScheme.primary.withValues(alpha: 0.1))
               : material.BorderSide.none,
           ),
-          focusedBorder: material.OutlineInputBorder(
+          focusedBorder: focusedBorder ?? material.OutlineInputBorder(
             borderRadius: material.BorderRadius.circular(effectiveRadius),
             borderSide: material.BorderSide(color: colorScheme.primary, width: 2),
           ),

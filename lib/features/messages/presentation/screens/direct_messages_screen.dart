@@ -83,10 +83,12 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      // Unfocus on pause/inactive to prevent keyboard sync issues on Windows
+      FocusManager.instance.primaryFocus?.unfocus();
       _refreshTimer?.cancel();
       _refreshTimer = null;
-      debugPrint('DirectMessages: Refresh timer paused (background)');
+      debugPrint('DirectMessages: Refresh timer paused/inactive');
     } else if (state == AppLifecycleState.resumed) {
       _startRefreshTimer();
       debugPrint('DirectMessages: Refresh timer resumed');
@@ -104,6 +106,8 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
 
   void _setInitialConversation() {
     if (!mounted) return;
+    // Unfocus before switching
+    FocusManager.instance.primaryFocus?.unfocus();
     final provider = Provider.of<ConversationProvider>(context, listen: false);
     final convId = widget.initialConversationId!;
 
@@ -473,18 +477,7 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
             ),
           ),
         ],
-        body: Stack(
-          children: [
-            desktopContent,
-            if (_previewConversation != null)
-              _StealthPreviewPopup(
-                conversation: _previewConversation!,
-                position: _previewPosition,
-                onDismiss: _hideStealthPreview,
-                decryptedMessages: _previewDecryptedMessages,
-              ),
-          ],
-        ),
+        body: _buildFluentDesktopContent(context, isM3E, theme),
       );
     }
 
@@ -547,6 +540,62 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
             ],
           ),
           body: _buildConversationList(isDesktop: false),
+        ),
+        if (_previewConversation != null)
+          _StealthPreviewPopup(
+            conversation: _previewConversation!,
+            position: _previewPosition,
+            onDismiss: _hideStealthPreview,
+            decryptedMessages: _previewDecryptedMessages,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildFluentDesktopContent(BuildContext context, bool isM3E, ThemeData theme) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+    final fluentTheme = fluent.FluentTheme.of(context);
+    final dividerColor = fluentTheme.resources.dividerStrokeColorDefault;
+
+    return Stack(
+      children: [
+        Row(
+          children: [
+            // Pane 1: Inbox (Integrated)
+            Container(
+              width: 320,
+              decoration: BoxDecoration(
+                border: Border(
+                  right: BorderSide(
+                    color: dividerColor,
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: _buildConversationList(isDesktop: true),
+            ),
+            
+            // Pane 2: Chat
+            Expanded(
+              child: _buildChatPane(isM3E, theme),
+            ),
+
+            // Pane 3: Details (Integrated)
+            if (_selectedConversation != null && _showDetails)
+              Container(
+                width: 350,
+                decoration: BoxDecoration(
+                  border: Border(
+                    left: BorderSide(
+                      color: dividerColor,
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: _buildDetailsPane(),
+              ),
+          ],
         ),
         if (_previewConversation != null)
           _StealthPreviewPopup(
@@ -844,6 +893,9 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
   // }
 
   void _handleConversationTap(Conversation conversation, bool isDesktop) async {
+    // Unfocus to prevent keyboard state sync issues during transition
+    FocusManager.instance.primaryFocus?.unfocus();
+
     final vaultService = Provider.of<VaultService>(context, listen: false);
     
     // Ensure vault service is initialized
