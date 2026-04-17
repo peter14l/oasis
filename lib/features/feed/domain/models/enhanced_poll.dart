@@ -29,6 +29,34 @@ class EnhancedPoll {
   bool get isExpired => endsAt != null && DateTime.now().isAfter(endsAt!);
   bool get isActive => !isExpired;
 
+  EnhancedPoll copyWith({
+    String? id,
+    String? postId,
+    String? question,
+    PollType? pollType,
+    bool? isAnonymous,
+    DateTime? endsAt,
+    DateTime? createdAt,
+    List<PollOption>? options,
+    int? totalVotes,
+    bool? hasVoted,
+    String? userVotedOptionId,
+  }) {
+    return EnhancedPoll(
+      id: id ?? this.id,
+      postId: postId ?? this.postId,
+      question: question ?? this.question,
+      pollType: pollType ?? this.pollType,
+      isAnonymous: isAnonymous ?? this.isAnonymous,
+      endsAt: endsAt ?? this.endsAt,
+      createdAt: createdAt ?? this.createdAt,
+      options: options ?? this.options,
+      totalVotes: totalVotes ?? this.totalVotes,
+      hasVoted: hasVoted ?? this.hasVoted,
+      userVotedOptionId: userVotedOptionId ?? this.userVotedOptionId,
+    );
+  }
+
   factory EnhancedPoll.fromJson(Map<String, dynamic> json) {
     return EnhancedPoll(
       id: json['id'],
@@ -98,6 +126,26 @@ class PollOption {
     this.voteCount = 0,
     this.percentage = 0,
   });
+
+  PollOption copyWith({
+    String? id,
+    String? pollId,
+    String? text,
+    int? order,
+    bool? isCorrect,
+    int? voteCount,
+    double? percentage,
+  }) {
+    return PollOption(
+      id: id ?? this.id,
+      pollId: pollId ?? this.pollId,
+      text: text ?? this.text,
+      order: order ?? this.order,
+      isCorrect: isCorrect ?? this.isCorrect,
+      voteCount: voteCount ?? this.voteCount,
+      percentage: percentage ?? this.percentage,
+    );
+  }
 
   factory PollOption.fromJson(Map<String, dynamic> json) {
     return PollOption(

@@ -141,6 +141,19 @@ class PostRepositoryImpl implements PostRepository {
     await _remoteDatasource.sharePost(postId);
   }
 
+  @override
+  Future<void> voteInPoll({
+    required String userId,
+    required String pollId,
+    required String optionId,
+  }) async {
+    await _remoteDatasource.voteInPoll(
+      userId: userId,
+      pollId: pollId,
+      optionId: optionId,
+    );
+  }
+
   // ─── Notification helpers ─────────────────────────────────────────
 
   void _notifyFollowers(String userId, String postId) async {

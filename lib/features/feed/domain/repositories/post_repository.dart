@@ -60,4 +60,11 @@ abstract class PostRepository {
 
   /// Share a post (increment share count).
   Future<void> sharePost(String postId);
+
+  /// Vote in a poll.
+  Future<void> voteInPoll({
+    required String userId,
+    required String pollId,
+    required String optionId,
+  });
 }

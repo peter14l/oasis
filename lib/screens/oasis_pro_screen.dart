@@ -42,6 +42,12 @@ class _OasisProScreenState extends State<OasisProScreen> {
 
   @override
   void dispose() {
+    try {
+      final rzp = context.read<RazorpayService>();
+      rzp.removeListener(_onRazorpayUpdate);
+    } catch (e) {
+      debugPrint('Error removing Razorpay listener: $e');
+    }
     super.dispose();
   }
 
@@ -57,22 +63,46 @@ class _OasisProScreenState extends State<OasisProScreen> {
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) async {
-    // Payment successful, update Supabase
+    // Payment successful!
+    // NOTE: We now verify payment on the backend for maximum security.
+    if (mounted) setState(() => _isLoading = true);
+
     try {
-      await context.read<SubscriptionService>().updateProStatus(true);
-      if (mounted) {
-        CustomSnackbar.showSuccess(
-          context,
-          'Payment Successful! You are now Pro.',
-        );
-        context.read<SubscriptionService>().refresh();
-        context.pop();
+      final supabase = SupabaseService().client;
+      
+      final result = await supabase.functions.invoke(
+        'verify-razorpay-payment',
+        body: {
+          'razorpay_payment_id': response.paymentId,
+          'razorpay_order_id': response.orderId,
+          'razorpay_subscription_id': response.subscriptionId,
+          'razorpay_signature': response.signature,
+        },
+      );
+
+      if (result.status == 200 && result.data['success'] == true) {
+        if (mounted) {
+          CustomSnackbar.showSuccess(
+            context,
+            'Payment Verified! Your account has been upgraded.',
+          );
+          await context.read<SubscriptionService>().refresh();
+          if (mounted) context.pop();
+        }
+      } else {
+        throw Exception(result.data['error'] ?? 'Verification failed');
       }
     } catch (e) {
-      debugPrint('Error updating pro status: $e');
+      debugPrint('Payment verification error: $e');
       if (mounted) {
-        CustomSnackbar.showError(context, e);
+        CustomSnackbar.showError(
+          context,
+          'Payment successful, but verification failed: ${e.toString()}',
+        );
+        // Don't pop, let them try refreshing or contacting support
       }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

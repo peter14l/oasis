@@ -1,24 +1,8 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:oasis/features/stories/domain/models/story_entity.dart';
 import 'package:flutter/foundation.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 
 class SpotifyService {
-  static String get _clientId {
-    const fromEnv = String.fromEnvironment('SPOTIFY_CLIENT_ID');
-    if (fromEnv.isNotEmpty) return fromEnv;
-    return '';
-  }
-
-  static String get _clientSecret {
-    const fromEnv = String.fromEnvironment('SPOTIFY_CLIENT_SECRET');
-    if (fromEnv.isNotEmpty) return fromEnv;
-    return '';
-  }
-
-  String? _accessToken;
-  DateTime? _tokenExpiry;
-
   // Popular tracks for mock/fallback
   static final List<StoryMusicEntity> _featuredTracks = [
     StoryMusicEntity(
@@ -51,27 +35,6 @@ class SpotifyService {
           'https://p.scdn.co/mp3-preview/3e0bd2275841774312017366d9817751f78f6920',
       artworkStyle: 'original',
     ),
-    StoryMusicEntity(
-      trackId: '7K3165q8u6mZfX2K8T2K6K',
-      title: 'Cruel Summer',
-      artist: 'Taylor Swift',
-      albumArtUrl:
-          'https://i.scdn.co/image/ab67616d0000b273e787cffec20aa2a096fa0655',
-      previewUrl:
-          'https://p.scdn.co/mp3-preview/f4f9f214220359f1311099434823483984398439',
-      artworkStyle: 'original',
-    ),
-    StoryMusicEntity(
-      trackId: '1BxfuLsSRmSclS9vunvS8S',
-      title: 'Flowers',
-      artist: 'Miley Cyrus',
-      albumArtUrl:
-          'https://i.scdn.co/image/ab67616d0000b273f443997576f9d34343d96924',
-      previewUrl:
-          'https://p.scdn.co/mp3-preview/5f19a15c5e0a3e4d938e2e5bfa2fa1e3ed5def83',
-      artworkStyle: 'original',
-    ),
-
   ];
 
   static const List<String> artworkStyles = [
@@ -81,40 +44,31 @@ class SpotifyService {
     'full',
   ];
 
-  Future<String?> _getAccessToken() async {
+  String? _accessToken;
+  DateTime? _tokenExpiry;
+
+  Future<String?> _getValidToken() async {
     if (_accessToken != null &&
         _tokenExpiry != null &&
         DateTime.now().isBefore(_tokenExpiry!)) {
       return _accessToken;
     }
 
-    if (_clientId.isEmpty ||
-        _clientId == 'your_client_id_here' ||
-        _clientSecret.isEmpty) {
-      return null;
-    }
-
     try {
-      final authStr = base64Encode(utf8.encode('$_clientId:$_clientSecret'));
-      final response = await http.post(
-        Uri.parse('https://accounts.spotify.com/api/token'),
-        headers: {
-          'Authorization': 'Basic $authStr',
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: {'grant_type': 'client_credentials'},
+      // Call our secure backend proxy to get a client credentials token
+      final response = await SupabaseService().client.functions.invoke(
+        'spotify-auth-proxy',
+        body: {}, // Empty body triggers client_credentials flow on backend
       );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        _accessToken = data['access_token'];
-        _tokenExpiry = DateTime.now().add(
-          Duration(seconds: data['expires_in']),
-        );
+      if (response.status == 200 && response.data != null) {
+        _accessToken = response.data['access_token'];
+        final expiresIn = response.data['expires_in'] as int;
+        _tokenExpiry = DateTime.now().add(Duration(seconds: expiresIn - 60));
         return _accessToken;
       }
     } catch (e) {
-      debugPrint('Spotify Auth Error: $e');
+      debugPrint('Spotify Auth Proxy Error: $e');
     }
     return null;
   }
@@ -122,34 +76,36 @@ class SpotifyService {
   Future<List<StoryMusicEntity>> searchTracks(String query) async {
     if (query.isEmpty) return _featuredTracks;
 
-    final token = await _getAccessToken();
+    final token = await _getValidToken();
     if (token == null) {
-      return _featuredTracks
-          .where(
-            (t) =>
-                t.title.toLowerCase().contains(query.toLowerCase()) ||
-                t.artist.toLowerCase().contains(query.toLowerCase()),
-          )
-          .toList();
+      // Fallback if auth fails
+      return _featuredTracks.where((t) => 
+        t.title.toLowerCase().contains(query.toLowerCase()) ||
+        t.artist.toLowerCase().contains(query.toLowerCase())
+      ).toList();
     }
 
     try {
-      final response = await http.get(
-        Uri.parse(
-          'https://api.spotify.com/v1/search?q=${Uri.encodeComponent(query)}&type=track&limit=20',
-        ),
-        headers: {'Authorization': 'Bearer $token'},
+      // We can call Spotify directly with the token, 
+      // or route search through backend if we want to hide queries.
+      // For now, calling Spotify with a valid token is fine as the SECRET is hidden.
+      final response = await SupabaseService().client.functions.invoke(
+        'spotify-search',
+        body: {'query': query, 'limit': 20},
       );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final List<dynamic> items = data['tracks']['items'];
+      if (response.status == 200 && response.data != null) {
+        final List<dynamic> items = response.data['tracks']['items'];
         return items.map((item) => _parseTrack(item)).toList();
       }
     } catch (e) {
       debugPrint('Spotify Search Error: $e');
     }
-    return _featuredTracks;
+    
+    return _featuredTracks.where((t) => 
+      t.title.toLowerCase().contains(query.toLowerCase()) ||
+      t.artist.toLowerCase().contains(query.toLowerCase())
+    ).toList();
   }
 
   StoryMusicEntity _parseTrack(Map<String, dynamic> item) {

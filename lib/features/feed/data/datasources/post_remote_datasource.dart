@@ -320,6 +320,76 @@ class PostRemoteDatasource {
         .eq('id', postId);
   }
 
+  /// Vote in a poll.
+  Future<void> voteInPoll({
+    required String userId,
+    required String pollId,
+    required String optionId,
+  }) async {
+    try {
+      // Check if user has already voted in this poll
+      final existingVote = await _supabase
+          .from(SupabaseConfig.pollVotesTable)
+          .select()
+          .eq('poll_id', pollId)
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      if (existingVote != null) {
+        throw Exception('User has already voted in this poll');
+      }
+
+      await _supabase.from(SupabaseConfig.pollVotesTable).insert({
+        'poll_id': pollId,
+        'option_id': optionId,
+        'user_id': userId,
+      });
+    } catch (e) {
+      debugPrint('[PostRemoteDatasource] Vote in poll error: $e');
+      rethrow;
+    }
+  }
+
+  /// Get poll details with current vote counts.
+  Future<Map<String, dynamic>> getPoll(String pollId, String userId) async {
+    try {
+      final response = await _supabase
+          .from(SupabaseConfig.pollsTable)
+          .select('''
+            *,
+            options:${SupabaseConfig.pollOptionsTable} (*)
+          ''')
+          .eq('id', pollId)
+          .single();
+
+      final pollMap = Map<String, dynamic>.from(response);
+      
+      // Check if current user has voted
+      final voteResponse = await _supabase
+          .from(SupabaseConfig.pollVotesTable)
+          .select('option_id')
+          .eq('poll_id', pollId)
+          .eq('user_id', userId)
+          .maybeSingle();
+      
+      pollMap['has_voted'] = voteResponse != null;
+      pollMap['user_voted_option_id'] = voteResponse?['option_id'];
+
+      // Calculate total votes and percentages if not handled by DB views/triggers
+      final List<dynamic> options = pollMap['options'] ?? [];
+      int totalVotes = 0;
+      for (var opt in options) {
+        totalVotes += (opt['vote_count'] as int? ?? 0);
+      }
+      pollMap['total_votes'] = totalVotes;
+
+      return pollMap;
+    } catch (e) {
+      debugPrint('[PostRemoteDatasource] Get poll error: $e');
+      rethrow;
+    }
+  }
+
   // ─── Helpers ──────────────────────────────────────────────────────
 
   void _enrichWithProfile(Map<String, dynamic> postMap) {

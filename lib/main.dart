@@ -36,6 +36,7 @@ import 'package:oasis/themes/app_theme.dart';
 import 'package:oasis/themes/fluent_theme.dart';
 import 'package:oasis/widgets/mesh_gradient_background.dart';
 import 'package:oasis/widgets/splash_screen.dart';
+import 'package:oasis/widgets/global_wellness_wrapper.dart';
 import 'package:oasis/services/update_service.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 
@@ -291,7 +292,7 @@ class _MyAppState extends State<MyApp> {
                     data: material.MediaQuery.of(context).copyWith(
                       textScaler: material.TextScaler.linear(userSettings.fontSizeFactor),
                     ),
-                    child: CallNavigator(child: child!),
+                    child: GlobalWellnessWrapper(child: CallNavigator(child: child!)),
                   );
                 },
               );
@@ -310,7 +311,7 @@ class _MyAppState extends State<MyApp> {
                     textScaler: material.TextScaler.linear(userSettings.fontSizeFactor),
                     boldText: false,
                   ),
-                  child: CallNavigator(child: child!),
+                  child: GlobalWellnessWrapper(child: CallNavigator(child: child!)),
                 );
               },
             );

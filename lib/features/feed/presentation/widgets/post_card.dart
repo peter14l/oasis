@@ -114,6 +114,7 @@ class PostCard extends StatefulWidget {
   final VoidCallback? onComment;
   final VoidCallback? onShare;
   final VoidCallback? onDelete;
+  final Function(String optionId)? onVote;
   final bool isOwnPost;
 
   const PostCard({
@@ -124,6 +125,7 @@ class PostCard extends StatefulWidget {
     this.onComment,
     this.onShare,
     this.onDelete,
+    this.onVote,
     this.isOwnPost = false,
   });
 
@@ -1063,7 +1065,7 @@ class _PostCardState extends State<PostCard>
                     child: PollDisplay(
                       poll: widget.post.poll!,
                       onVote: (optionId) {
-                        // TODO: Implement voting in PostService/Provider
+                        widget.onVote?.call(optionId);
                       },
                     ),
                   ),

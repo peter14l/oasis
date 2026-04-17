@@ -57,7 +57,8 @@ class SupabaseService {
         debugPrint('Connecting to Supabase...');
       }
       
-      // Add more specific error handling for this call
+      // We removed the hard 15s timeout to prevent crashes on cold starts.
+      // Supabase initialization primarily handles local session restoration.
       try {
         await Supabase.initialize(
           url: url,
@@ -66,11 +67,14 @@ class SupabaseService {
           authOptions: const FlutterAuthClientOptions(
             authFlowType: AuthFlowType.pkce,
           ),
-        ).timeout(const Duration(seconds: 15));
+        );
       } on FormatException catch (fe) {
         debugPrint('CRITICAL: Supabase.initialize threw FormatException: $fe');
         debugPrint('This usually means the persisted session data is corrupted.');
         rethrow;
+      } on TimeoutException catch (te) {
+        debugPrint('Supabase initialization timed out: $te');
+        throw Exception('Connection timed out. Please check your internet and try again.');
       }
 
       _instance._clientInstance = Supabase.instance.client;
@@ -79,7 +83,12 @@ class SupabaseService {
     } catch (e, st) {
       debugPrint('Failed to initialize Supabase: $e');
       debugPrint('Stack trace: $st');
-      throw Exception('Failed to initialize Supabase: $e');
+      
+      if (e.toString().contains('Failed host lookup')) {
+        throw Exception('No internet connection. Oasis requires a connection for the first launch.');
+      }
+      
+      throw Exception('Failed to connect to Oasis servers: $e');
     }
   }
 

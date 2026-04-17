@@ -43,6 +43,7 @@ import 'package:oasis/providers/conversation_provider.dart';
 import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis/features/feed/data/repositories/feed_repository_impl.dart';
 import 'package:oasis/features/feed/data/repositories/post_repository_impl.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/features/feed/data/repositories/comment_repository_impl.dart';
 import 'package:oasis/features/notifications/presentation/providers/notification_provider.dart';
 import 'package:oasis/providers/presence_provider.dart';
@@ -139,6 +140,20 @@ class ThemeProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _syncToSupabase() async {
+    try {
+      final client = SupabaseService().client;
+      final user = client.auth.currentUser;
+      if (user != null) {
+        await client.from('profiles').update({
+          'high_contrast': _highContrast,
+        }).eq('id', user.id);
+      }
+    } catch (e) {
+      debugPrint('ThemeProvider: Failed to sync to Supabase: $e');
+    }
+  }
+
   Future<void> setTheme(ThemeMode mode) async {
     _themeMode = mode;
     final prefs = await SharedPreferences.getInstance();
@@ -151,6 +166,7 @@ class ThemeProvider with ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_highContrastKey, value);
     notifyListeners();
+    _syncToSupabase();
   }
 
   Future<void> setM3EEnabled(bool value) async {

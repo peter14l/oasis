@@ -27,11 +27,13 @@
 
 # Supabase / PostgREST / GoTrue / Serialization
 -keep class io.supabase.** { *; }
+-keep class io.github.jan.supabase.** { *; }
 -keep class com.oasis.app.models.** { *; }
 -keepclassmembers class com.oasis.app.models.** { *; }
 -keepattributes Signature,Annotation,EnclosingMethod,InnerClasses,GenericSignature
 -dontwarn moxy.**
 -dontwarn com.google.errorprone.annotations.**
+-dontwarn io.github.jan.supabase.**
 
 # Firebase
 -keep class com.google.firebase.** { *; }

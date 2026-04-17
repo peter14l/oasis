@@ -5,4 +5,6 @@ abstract class SettingsRepository {
   Future<Result<UserSettingsEntity>> getSettings();
   
   Future<Result<bool>> saveSettings(UserSettingsEntity settings);
+
+  Future<Result<bool>> syncSettings(UserSettingsEntity settings);
 }

@@ -354,6 +354,30 @@ class FeedProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Vote in a poll.
+  Future<void> voteInPoll({
+    required String userId,
+    required String postId,
+    required String pollId,
+    required String optionId,
+  }) async {
+    _updatePostPollStatus(postId, optionId, true);
+    notifyListeners();
+
+    try {
+      await _postRepository.voteInPoll(
+        userId: userId,
+        pollId: pollId,
+        optionId: optionId,
+      );
+    } catch (e) {
+      _updatePostPollStatus(postId, optionId, false);
+      notifyListeners();
+      debugPrint('[FeedProvider] Vote error: $e');
+      rethrow;
+    }
+  }
+
   /// Update comment count for a post.
   void updatePostCommentCount(String postId, int newCount) {
     void updateList(List<Post> posts) {
@@ -446,6 +470,47 @@ class FeedProvider with ChangeNotifier {
       for (int i = 0; i < posts.length; i++) {
         if (posts[i].id == postId) {
           posts[i] = posts[i].copyWith(isBookmarked: isBookmarked);
+          break;
+        }
+      }
+    }
+
+    updateList(_state.forYouPosts);
+    updateList(_state.followingPosts);
+  }
+
+  void _updatePostPollStatus(String postId, String optionId, bool hasVoted) {
+    void updateList(List<Post> posts) {
+      for (int i = 0; i < posts.length; i++) {
+        if (posts[i].id == postId) {
+          final post = posts[i];
+          final poll = post.poll;
+          if (poll == null) return;
+
+          final updatedOptions = poll.options.map((opt) {
+            if (opt.id == optionId) {
+              final newVoteCount = hasVoted ? opt.voteCount + 1 : opt.voteCount - 1;
+              return opt.copyWith(voteCount: newVoteCount < 0 ? 0 : newVoteCount);
+            }
+            return opt;
+          }).toList();
+
+          final totalVotes = updatedOptions.fold<int>(0, (sum, opt) => sum + opt.voteCount);
+          
+          final finalizedOptions = updatedOptions.map((opt) {
+            return opt.copyWith(
+              percentage: totalVotes > 0 ? (opt.voteCount / totalVotes) * 100 : 0,
+            );
+          }).toList();
+
+          posts[i] = post.copyWith(
+            poll: poll.copyWith(
+              options: finalizedOptions,
+              totalVotes: totalVotes,
+              hasVoted: hasVoted,
+              userVotedOptionId: hasVoted ? optionId : null,
+            ),
+          );
           break;
         }
       }

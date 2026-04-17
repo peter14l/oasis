@@ -997,13 +997,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     if (_vaultService.isInVaultSync(widget.conversationId) &&
                         !_vaultService.isItemUnlocked(widget.conversationId))
                       Positioned.fill(
-                        child: GestureDetector(
-                          onTap: () {}, // Prevent taps reaching chat
-                          child: Container(
-                            color: theme.colorScheme.surface,
-                            child: Stack(
-                              children: [
-                                if (state.backgroundUrl != null)
+                        child: Stack(
+                          children: [
+                            const ModalBarrier(
+                              dismissible: false,
+                              color: Colors.transparent,
+                            ),
+                            Container(
+                              color: theme.colorScheme.surface,
+                              child: Stack(
+                                children: [
+                                  if (state.backgroundUrl != null)
                                   ChatBackground(
                                     backgroundUrl: state.backgroundUrl,
                                     bgOpacity: 0.1,

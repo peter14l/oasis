@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:oasis/features/messages/core/chat_api_config.dart';
 
@@ -40,9 +41,9 @@ class KlipyService {
       );
 
       if (_debugMode) {
-        print('[Klipy] Search request: $uri');
-        print('[Klipy] Search response status: ${response.statusCode}');
-        print('[Klipy] Search response body: ${response.body}');
+        debugPrint('[Klipy] Search request: $uri');
+        debugPrint('[Klipy] Search response status: ${response.statusCode}');
+        debugPrint('[Klipy] Search response body: ${response.body}');
       }
 
       if (response.statusCode == 200) {
@@ -80,9 +81,9 @@ class KlipyService {
       );
 
       if (_debugMode) {
-        print('[Klipy] Trending request: $uri');
-        print('[Klipy] Trending response status: ${response.statusCode}');
-        print('[Klipy] Trending response body: ${response.body}');
+        debugPrint('[Klipy] Trending request: $uri');
+        debugPrint('[Klipy] Trending response status: ${response.statusCode}');
+        debugPrint('[Klipy] Trending response body: ${response.body}');
       }
 
       if (response.statusCode == 200) {

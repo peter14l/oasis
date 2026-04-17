@@ -673,6 +673,29 @@ class _FeedScreenState extends State<FeedScreen>
         final deepLink = AppConfig.getWebUrl('/post/${post.id}');
         Share.share('Check out this post on Oasis! $deepLink');
       },
+      onVote: (optionId) async {
+        final userId = _authService.currentUser?.id;
+        if (userId == null) return;
+
+        try {
+          await provider.voteInPoll(
+            userId: userId,
+            postId: post.id,
+            pollId: post.poll!.id,
+            optionId: optionId,
+          );
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to vote: ${e.toString()}'),
+                backgroundColor: Theme.of(context).colorScheme.error,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        }
+      },
     );
   }
 
@@ -1053,10 +1076,10 @@ class _FeedScreenState extends State<FeedScreen>
                 ],
               ),
               const SizedBox(height: 24),
-              _buildSuggestionItem('DesignDaily', '@designdaily'),
-              _buildSuggestionItem('TechNexus', '@technexus'),
-              _buildSuggestionItem('CreativeSoul', '@creative'),
-              _buildSuggestionItem('FutureVibe', '@future'),
+              _buildSuggestionItem('suggested_1', 'DesignDaily', '@designdaily'),
+              _buildSuggestionItem('suggested_2', 'TechNexus', '@technexus'),
+              _buildSuggestionItem('suggested_3', 'CreativeSoul', '@creative'),
+              _buildSuggestionItem('suggested_4', 'FutureVibe', '@future'),
             ],
           ),
         ),
@@ -1123,10 +1146,10 @@ class _FeedScreenState extends State<FeedScreen>
                 ],
               ),
               const SizedBox(height: 24),
-              _buildSuggestionItem('DesignDaily', '@designdaily'),
-              _buildSuggestionItem('TechNexus', '@technexus'),
-              _buildSuggestionItem('CreativeSoul', '@creative'),
-              _buildSuggestionItem('FutureVibe', '@future'),
+              _buildSuggestionItem('suggested_1', 'DesignDaily', '@designdaily'),
+              _buildSuggestionItem('suggested_2', 'TechNexus', '@technexus'),
+              _buildSuggestionItem('suggested_3', 'CreativeSoul', '@creative'),
+              _buildSuggestionItem('suggested_4', 'FutureVibe', '@future'),
             ],
           ),
         ),
@@ -1161,7 +1184,7 @@ class _FeedScreenState extends State<FeedScreen>
     );
   }
 
-  Widget _buildSuggestionItem(String name, String handle) {
+  Widget _buildSuggestionItem(String id, String name, String handle) {
     final useFluent = context.read<ThemeProvider>().useFluentUI;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -1216,17 +1239,49 @@ class _FeedScreenState extends State<FeedScreen>
               ],
             ),
           ),
-          if (useFluent)
-            fluent.Button(onPressed: () {}, child: const Text('Follow'))
-          else
-            TextButton(
-              onPressed: () {},
-              style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
-              child: const Text('Follow'),
-            ),
+          Consumer<ProfileProvider>(
+            builder: (context, profileProvider, child) {
+              final isFollowing = profileProvider.state.following.any((p) => p.id == id);
+              
+              if (isFollowing) {
+                return useFluent 
+                  ? fluent.TextButton(onPressed: null, child: const Text('Following'))
+                  : const Text('Following', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500));
+              }
+
+              return useFluent
+                ? fluent.Button(
+                    onPressed: () => _handleFollow(id),
+                    child: const Text('Follow'),
+                  )
+                : TextButton(
+                    onPressed: () => _handleFollow(id),
+                    style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                    child: const Text('Follow'),
+                  );
+            },
+          ),
         ],
       ),
     );
+  }
+
+  void _handleFollow(String userId) {
+    final currentUserId = _authService.currentUser?.id;
+    if (currentUserId != null) {
+      context.read<ProfileProvider>().followUser(
+            followerId: currentUserId,
+            followingId: userId,
+          );
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Following $userId'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Widget _buildWellbeingNudge() {

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oasis/services/curation_tracking_service.dart';
 import 'package:oasis/services/app_initializer.dart'; // For ThemeProvider
+import 'package:oasis/core/network/supabase_client.dart';
 
 /// Key for sync preference in SharedPreferences
 const String _kCurationSyncEnabled = 'curation_sync_enabled';
@@ -65,17 +66,23 @@ class _PrivacyTransparencyCardState extends State<PrivacyTransparencyCard> {
   Future<void> _syncLocalToServer() async {
     if (_isSyncing) return;
 
+    final supabase = SupabaseService();
+    if (!supabase.isAuthenticated) {
+      debugPrint('[PrivacyTransparency] User not authenticated, skipping sync');
+      return;
+    }
+
     setState(() => _isSyncing = true);
 
     try {
       final service = context.read<CurationTrackingService>();
-      final summary = await service.getTrackingSummary();
+      final syncData = await service.getSyncData();
 
-      // TODO: Call Supabase RPC to sync data when server is ready
-      // For now, we just store the preference
-      // The actual sync would call: supabase.rpc('sync_user_analytics', ...)
+      for (final data in syncData) {
+        await supabase.client.rpc('sync_user_analytics', params: data);
+      }
 
-      debugPrint('[PrivacyTransparency] Sync to server: $summary');
+      debugPrint('[PrivacyTransparency] Sync to server completed: ${syncData.length} categories');
     } catch (e) {
       debugPrint('[PrivacyTransparency] Sync error: $e');
     } finally {
@@ -114,10 +121,11 @@ class _PrivacyTransparencyCardState extends State<PrivacyTransparencyCard> {
   }
 
   Future<void> _deleteServerAnalytics() async {
-    try {
-      // TODO: Call Supabase RPC to delete when server is ready
-      // supabase.rpc('delete_user_analytics')
+    final supabase = SupabaseService();
+    if (!supabase.isAuthenticated) return;
 
+    try {
+      await supabase.client.rpc('delete_user_analytics');
       debugPrint('[PrivacyTransparency] Deleted server analytics');
     } catch (e) {
       debugPrint('[PrivacyTransparency] Delete error: $e');
@@ -171,7 +179,7 @@ class _PrivacyTransparencyCardState extends State<PrivacyTransparencyCard> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Oasis collects data on your interactions (likes, time spent, and categories) to provide personalized curation. This data is stored strictly on your device and is NEVER sent to our servers or shared with third parties.',
+            'Oasis collects data on your interactions (likes, time spent, and categories) to provide personalized curation. This data is stored on your device by default and only synced to our secure servers if you enable Cloud Sync.',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),

@@ -167,6 +167,46 @@ class CurationTrackingService extends ChangeNotifier {
     };
   }
 
+  /// Get full tracking data for server synchronization.
+  /// Returns a list of maps formatted for the 'sync_user_analytics' RPC.
+  Future<List<Map<String, dynamic>>> getSyncData() async {
+    final db = await database;
+    
+    // Get interaction counts
+    final categories = await db.query('category_interactions');
+    
+    // Get liked posts grouped by category
+    final likes = await db.query('post_likes');
+    final likesByCategory = <String, List<String>>{};
+    for (final like in likes) {
+      final categoryId = like['category_id'] as String;
+      final postId = like['post_id'] as String;
+      likesByCategory.putIfAbsent(categoryId, () => []).add(postId);
+    }
+    
+    // Get time spent
+    final timeSpent = await db.query('time_spent');
+    final timeSpentByCategory = <String, int>{};
+    for (final time in timeSpent) {
+      final categoryId = time['category_id'] as String;
+      final seconds = time['total_seconds'] as int;
+      timeSpentByCategory[categoryId] = seconds;
+    }
+    
+    final result = <Map<String, dynamic>>[];
+    for (final category in categories) {
+      final categoryId = category['category_id'] as String;
+      result.add({
+        'p_category_id': categoryId,
+        'p_interaction_count': category['interaction_count'] as int,
+        'p_liked_posts': likesByCategory[categoryId] ?? [],
+        'p_total_seconds': timeSpentByCategory[categoryId] ?? 0,
+      });
+    }
+    
+    return result;
+  }
+
   /// Clear all tracking data (privacy feature)
   Future<void> clearAllData() async {
     final db = await database;
