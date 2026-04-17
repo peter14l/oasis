@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/models/moderation.dart';
 import 'package:oasis/services/moderation_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -56,7 +57,7 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
 
     final content = _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -156,7 +157,7 @@ class _MutedUsersScreenState extends State<MutedUsersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
 
     final content = _isLoading
               ? const Center(child: CircularProgressIndicator())

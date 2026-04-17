@@ -14,6 +14,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/widgets/custom_snackbar.dart';
 
+import 'package:oasis/core/utils/responsive_layout.dart';
+
 class OasisProScreen extends StatefulWidget {
   const OasisProScreen({super.key});
 
@@ -249,7 +251,7 @@ class _OasisProScreenState extends State<OasisProScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
 
     final content = Stack(
       children: [

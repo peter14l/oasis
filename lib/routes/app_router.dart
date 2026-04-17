@@ -1162,7 +1162,7 @@ class AppRouter {
                         state.pathParameters['conversationId']!;
                     final extra = state.extra as Map<String, dynamic>?;
 
-                    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+                    final isDesktop = ResponsiveLayout.isDesktop(context);
 
                     if (isDesktop) {
                       // On Desktop, navigate to messages with the conversation selected

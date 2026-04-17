@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
 
 class FontSizeScreen extends StatelessWidget {
   const FontSizeScreen({super.key});
@@ -8,7 +9,7 @@ class FontSizeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<UserSettingsProvider>(context);
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
 
     final content = Padding(
         padding: const EdgeInsets.all(24.0),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/widgets/custom_snackbar.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
 
 class AccountPrivacyScreen extends StatelessWidget {
   const AccountPrivacyScreen({super.key});
@@ -13,7 +14,7 @@ class AccountPrivacyScreen extends StatelessWidget {
     final authService = Provider.of<AuthService>(context, listen: false);
     final user = authService.currentUser;
     final isPrivate = profileProvider.currentProfile?.isPrivate ?? false;
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
 
     final content = ListView(
         padding: const EdgeInsets.all(16),

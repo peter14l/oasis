@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/features/messages/domain/models/conversation.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/features/messages/data/messaging_service.dart';
@@ -41,7 +42,7 @@ class _ShareToDirectMessageModalState extends State<ShareToDirectMessageModal> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final conversations = context.watch<ConversationProvider>().conversations;
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
 
     final filteredConversations = conversations.where((c) {
       return c.otherUserName.toLowerCase().contains(_searchQuery.toLowerCase());

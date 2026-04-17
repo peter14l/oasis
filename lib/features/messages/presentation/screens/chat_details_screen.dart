@@ -668,7 +668,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDesktop = MediaQuery.of(context).size.width >= 1000;
-    final useFluent = Provider.of<ThemeProvider>(context).useFluentUI;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final useFluent = themeProvider.useFluentUI;
+    final vault = context.watch<VaultService>();
+    final current = vault.getLockInterval(widget.conversationId);
 
     final canPop = Navigator.of(context).canPop();
 
@@ -794,21 +797,43 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          _buildCompactRadio(
-                            'App close',
-                            'app_close',
-                            colorScheme,
+                          fluent.RadioGroup<String>(
+                            groupValue: current,
+                            onChanged: (val) {
+                              if (val != null) {
+                                context.read<VaultService>().setLockInterval(
+                                  widget.conversationId,
+                                  val,
+                                );
+                              }
+                            },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildCompactRadio(
+                                  'App close',
+                                  'app_close',
+                                  colorScheme,
+                                ),
+                                _buildCompactRadio(
+                                  'Chat close',
+                                  'chat_close',
+                                  colorScheme,
+                                ),
+                                _buildCompactRadio(
+                                  '5 mins',
+                                  '5mins',
+                                  colorScheme,
+                                ),
+                              ],
+                            ),
                           ),
-                          _buildCompactRadio(
-                            'Chat close',
-                            'chat_close',
-                            colorScheme,
-                          ),
-                          _buildCompactRadio('5 mins', '5mins', colorScheme),
                         ],
                       ),
                     ),
-                  const Divider(indent: 56),
+                  useFluent && isDesktop
+                      ? const fluent.Divider()
+                      : const Divider(indent: 56),
                 ],
               ),
             ),
@@ -950,20 +975,23 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       ),
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 48,
-            backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
-            backgroundImage: widget.otherUserAvatar.isNotEmpty
-                ? CachedNetworkImageProvider(widget.otherUserAvatar)
-                : null,
-            child: widget.otherUserAvatar.isEmpty
-                ? Text(
-                    widget.otherUserName[0].toUpperCase(),
-                    style: theme.textTheme.headlineLarge?.copyWith(
-                      color: colorScheme.primary,
-                    ),
-                  )
-                : null,
+          Material(
+            type: MaterialType.transparency,
+            child: CircleAvatar(
+              radius: 48,
+              backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+              backgroundImage: widget.otherUserAvatar.isNotEmpty
+                  ? CachedNetworkImageProvider(widget.otherUserAvatar)
+                  : null,
+              child: widget.otherUserAvatar.isEmpty
+                  ? Text(
+                      widget.otherUserName[0].toUpperCase(),
+                      style: theme.textTheme.headlineLarge?.copyWith(
+                        color: colorScheme.primary,
+                      ),
+                    )
+                  : null,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
@@ -1040,6 +1068,29 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     Widget? trailing,
     required VoidCallback onTap,
   }) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final useFluent = themeProvider.useFluentUI;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+
+    if (useFluent && isDesktop) {
+      return fluent.ListTile.selectable(
+        leading: Icon(icon, color: iconColor ?? titleColor),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: titleColor,
+            fontWeight: FontWeight.w500,
+            fontSize: 15,
+          ),
+        ),
+        subtitle: subtitle != null ? Text(subtitle) : null,
+        trailing:
+            trailing ??
+            const Icon(FluentIcons.chevron_right_24_regular, size: 20),
+        onSelectionChange: (_) => onTap(),
+      );
+    }
+
     return ListTile(
       leading: Icon(icon, color: iconColor ?? titleColor),
       title: Text(
@@ -1066,6 +1117,25 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     required Color activeColor,
     required Function(bool) onChanged,
   }) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final useFluent = themeProvider.useFluentUI;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+
+    if (useFluent && isDesktop) {
+      return fluent.ListTile(
+        leading: Icon(icon, color: value ? activeColor : null),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
+        ),
+        subtitle: Text(subtitle),
+        trailing: fluent.ToggleSwitch(
+          checked: value,
+          onChanged: onChanged,
+        ),
+      );
+    }
+
     return SwitchListTile(
       secondary: Icon(icon, color: value ? activeColor : null),
       title: Text(
@@ -1087,7 +1157,51 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   }) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
+    final useFluent = themeProvider.useFluentUI;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
     final colorScheme = Theme.of(context).colorScheme;
+
+    if (useFluent && isDesktop) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            Icon(icon, size: 24, color: colorScheme.onSurfaceVariant),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                    ),
+                  ),
+                  fluent.Slider(
+                    value: value * 100,
+                    onChanged: (v) => onChanged(v / 100),
+                    min: 0,
+                    max: 100,
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Text(
+                '${(value * 100).toInt()}%',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1165,9 +1279,29 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     String value,
     ColorScheme colorScheme,
   ) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final useFluent = themeProvider.useFluentUI;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
     final vault = context.watch<VaultService>();
     final current = vault.getLockInterval(widget.conversationId);
     final isSelected = current == value;
+
+    if (useFluent && isDesktop) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: fluent.RadioButton<String>(
+          value: value,
+          content: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              color: isSelected ? fluent.FluentTheme.of(context).accentColor : colorScheme.onSurface,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ),
+      );
+    }
 
     return GestureDetector(
       onTap: () => context.read<VaultService>().setLockInterval(

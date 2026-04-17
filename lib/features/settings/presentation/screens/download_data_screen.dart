@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/services/data_export_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -79,7 +80,7 @@ class _DownloadDataScreenState extends State<DownloadDataScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
 
     final content = Padding(
       padding: const EdgeInsets.all(24.0),
