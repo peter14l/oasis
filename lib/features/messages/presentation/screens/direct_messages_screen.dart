@@ -696,6 +696,10 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
         final regularConversations =
             filteredConversations.where((c) => !c.isPinned).toList();
 
+        final themeProvider = Provider.of<ThemeProvider>(context);
+        final useFluent = themeProvider.useFluentUI;
+        final isM3E = themeProvider.isM3EEnabled;
+
         return RefreshIndicator(
           onRefresh: () => provider.loadConversations(silent: false),
           child: CustomScrollView(
@@ -707,17 +711,26 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                   child: Container(
                     height: 46,
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest.withValues(
-                        alpha: 0.3,
-                      ),
-                      borderRadius: BorderRadius.circular(23),
-                      border: Border.all(
-                        color: colorScheme.outlineVariant.withValues(
-                          alpha: 0.2,
-                        ),
-                      ),
-                    ),
+                    decoration: useFluent && isDesktop
+                        ? BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.85),
+                            borderRadius: BorderRadius.circular(32),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.1),
+                              width: 1.0,
+                            ),
+                          )
+                        : BoxDecoration(
+                            color: colorScheme.surfaceContainerHighest.withValues(
+                              alpha: 0.3,
+                            ),
+                            borderRadius: BorderRadius.circular(32),
+                            border: Border.all(
+                              color: colorScheme.outlineVariant.withValues(
+                                alpha: 0.2,
+                              ),
+                            ),
+                          ),
                     child: CustomTextField(
                       controller: _searchController,
                       focusNode: _searchFocusNode,
@@ -725,7 +738,11 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
                       prefixIcon: Icons.search_rounded,
                       onChanged: (val) => setState(() => _searchQuery = val),
                       fillColor: Colors.transparent,
-                      borderRadius: 23,
+                      borderRadius: 32,
+                      margin: EdgeInsets.zero,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
                         vertical: 12,
                         horizontal: 16,

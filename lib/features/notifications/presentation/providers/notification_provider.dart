@@ -26,15 +26,14 @@ class NotificationProvider extends ChangeNotifier {
       ),
       _getUnreadCount = GetUnreadNotificationCount(
         repository ?? NotificationRepositoryImpl(),
-      ) {
-    loadNotifications();
-  }
+      );
 
   Future<void> loadNotifications({bool refresh = false}) async {
     if (refresh) {
       _state = _state.copyWith(
         loadingState: NotificationLoadingState.loading,
         currentOffset: 0,
+        notifications: [], // Clear on refresh to avoid showing stale data during reload
       );
     } else {
       _state = _state.copyWith(loadingState: NotificationLoadingState.loading);
@@ -53,15 +52,22 @@ class NotificationProvider extends ChangeNotifier {
           errorMessage: failure.message,
         );
       },
-      onSuccess: (notifications) {
+      onSuccess: (newNotifications) {
+        List<AppNotification> updatedList;
+        if (refresh) {
+          updatedList = newNotifications;
+        } else {
+          // Deduplicate based on notification ID to prevent duplicates
+          final existingIds = _state.notifications.map((n) => n.id).toSet();
+          final uniqueNew = newNotifications.where((n) => !existingIds.contains(n.id)).toList();
+          updatedList = [..._state.notifications, ...uniqueNew];
+        }
+
         _state = _state.copyWith(
           loadingState: NotificationLoadingState.loaded,
-          notifications:
-              refresh
-                  ? notifications
-                  : [..._state.notifications, ...notifications],
-          hasMore: notifications.length >= 50,
-          currentOffset: _state.currentOffset + notifications.length,
+          notifications: updatedList,
+          hasMore: newNotifications.length >= 50,
+          currentOffset: refresh ? newNotifications.length : _state.currentOffset + newNotifications.length,
           errorMessage: null,
         );
       },

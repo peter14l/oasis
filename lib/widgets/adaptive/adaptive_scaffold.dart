@@ -35,7 +35,27 @@ class AdaptiveScaffold extends StatelessWidget {
 
     if (useFluent && isDesktop) {
       return fluent.ScaffoldPage(
-        header: header, // Use provided header or null, but don't auto-build PageHeader
+        header: header ?? (title != null || actions != null
+            ? fluent.PageHeader(
+                title: title ?? const SizedBox.shrink(),
+                commandBar: actions != null
+                    ? fluent.CommandBar(
+                        primaryItems: actions!.map<fluent.CommandBarItem>((w) {
+                          if (w is fluent.CommandBarItem) {
+                            return w as fluent.CommandBarItem;
+                          }
+                          return fluent.CommandBarBuilderItem(
+                            builder: (context, mode, child) => w,
+                            wrappedItem: fluent.CommandBarButton(
+                              onPressed: () {},
+                              icon: const SizedBox.shrink(),
+                            ),
+                          );
+                        }).toList(),
+                      )
+                    : null,
+              )
+            : null),
         content: body,
         bottomBar: footer,
       );

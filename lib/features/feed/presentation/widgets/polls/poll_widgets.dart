@@ -1,6 +1,77 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as material;
+import 'package:flutter/material.dart'
+    show
+        Colors,
+        Theme,
+        ColorScheme,
+        Icons,
+        IconButton,
+        TextButton,
+        FilledButton,
+        OutlinedButton,
+        SingleChildScrollView,
+        Column,
+        Row,
+        Padding,
+        SizedBox,
+        Widget,
+        Stack,
+        Positioned,
+        ClipRRect,
+        BackdropFilter,
+        GestureDetector,
+        Icon,
+        Text,
+        TextStyle,
+        FontWeight,
+        VisualDensity,
+        MouseRegion,
+        AnimatedScale,
+        ScrollController,
+        TextEditingController,
+        DraggableScrollableSheet,
+        ListView,
+        TextField,
+        InputDecoration,
+        OutlineInputBorder,
+        InputBorder,
+        TextCapitalization,
+        MediaQuery,
+        ScaffoldMessenger,
+        SnackBar,
+        Offset,
+        Navigator,
+        VoidCallback,
+        State,
+        StatefulWidget,
+        BuildContext,
+        List,
+        CrossAxisAlignment,
+        MainAxisSize,
+        MainAxisAlignment,
+        Wrap,
+        ChoiceChip,
+        SwitchListTile,
+        ListTile,
+        TimeOfDay,
+        showDatePicker,
+        showTimePicker,
+        StatelessWidget,
+        Expanded,
+        AnimatedContainer,
+        Spacer,
+        EdgeInsets,
+        BorderRadius,
+        BoxDecoration,
+        Container,
+        Border,
+        TextAlign,
+        IconData;
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:oasis/features/feed/domain/models/enhanced_poll.dart';
 import 'package:oasis/core/utils/haptic_utils.dart';
+import 'package:provider/provider.dart';
+import 'package:oasis/services/app_initializer.dart';
 
 /// Widget for creating enhanced polls
 class PollCreator extends StatefulWidget {
@@ -93,6 +164,133 @@ class _PollCreatorState extends State<PollCreator> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final useFluent = context.read<ThemeProvider>().useFluentUI;
+
+    if (useFluent) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Poll Type',
+              style: fluent.FluentTheme.of(context).typography.bodyStrong,
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children:
+                  PollType.values.map((type) {
+                    final isSelected = _selectedType == type;
+                    if (isSelected) {
+                      return fluent.FilledButton(
+                        onPressed: () {
+                          HapticUtils.selectionClick();
+                          setState(() => _selectedType = type);
+                        },
+                        child: Text(type.label),
+                      );
+                    }
+                    return fluent.Button(
+                      onPressed: () {
+                        HapticUtils.selectionClick();
+                        setState(() => _selectedType = type);
+                      },
+                      child: Text(type.label),
+                    );
+                  }).toList(),
+            ),
+            const SizedBox(height: 16),
+            fluent.TextBox(
+              controller: _questionController,
+              placeholder:
+                  _selectedType == PollType.thisOrThat
+                      ? 'Which do you prefer?'
+                      : 'Ask your question...',
+              maxLines: 2,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Options',
+              style: fluent.FluentTheme.of(context).typography.bodyStrong,
+            ),
+            const SizedBox(height: 8),
+            ...List.generate(_optionControllers.length, (index) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    if (_selectedType == PollType.quiz)
+                      fluent.Checkbox(
+                        checked: _correctAnswerIndex == index,
+                        onChanged: (v) {
+                          HapticUtils.selectionClick();
+                          setState(() => _correctAnswerIndex = index);
+                        },
+                      ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: fluent.TextBox(
+                        controller: _optionControllers[index],
+                        placeholder: 'Option ${index + 1}',
+                        suffix:
+                            _optionControllers.length > 2
+                                ? fluent.IconButton(
+                                  icon: const Icon(fluent.FluentIcons.clear),
+                                  onPressed: () => _removeOption(index),
+                                )
+                                : null,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+            if (_optionControllers.length < 6)
+              fluent.Button(
+                onPressed: _addOption,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(fluent.FluentIcons.add, size: 12),
+                    const SizedBox(width: 8),
+                    const Text('Add Option'),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 16),
+            fluent.Checkbox(
+              checked: _isAnonymous,
+              onChanged: (v) {
+                HapticUtils.selectionClick();
+                setState(() => _isAnonymous = v ?? false);
+              },
+              content: const Text('Anonymous Voting'),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                if (widget.onCancel != null) ...[
+                  Expanded(
+                    child: fluent.Button(
+                      onPressed: widget.onCancel,
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: fluent.FilledButton(
+                    onPressed: _createPoll,
+                    child: const Text('Create Poll'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -294,7 +492,54 @@ class PollDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final useFluent = context.read<ThemeProvider>().useFluentUI;
     final showResultsNow = showResults || poll.hasVoted || poll.isExpired;
+
+    if (useFluent) {
+      return fluent.Card(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  _getPollTypeIcon(true),
+                  size: 16,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  poll.pollType.label,
+                  style: fluent.FluentTheme.of(
+                    context,
+                  ).typography.caption?.copyWith(color: colorScheme.primary),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              poll.question,
+              style: fluent.FluentTheme.of(context).typography.bodyStrong,
+            ),
+            const SizedBox(height: 12),
+            if (poll.pollType == PollType.thisOrThat)
+              _buildThisOrThatOptions(context, showResultsNow, true)
+            else
+              ...poll.options.map(
+                (option) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _buildOptionTile(context, option, showResultsNow, true),
+                ),
+              ),
+            const SizedBox(height: 8),
+            Text(
+              '${poll.totalVotes} votes',
+              style: fluent.FluentTheme.of(context).typography.caption,
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -396,11 +641,49 @@ class PollDisplay extends StatelessWidget {
   Widget _buildOptionTile(
     BuildContext context,
     PollOption option,
-    bool showResults,
-  ) {
+    bool showResults, [
+    bool useFluent = false,
+  ]) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isSelected = poll.userVotedOptionId == option.id;
+
+    if (useFluent) {
+      return fluent.Button(
+        onPressed:
+            (!poll.hasVoted && !poll.isExpired && onVote != null)
+                ? () {
+                  HapticUtils.selectionClick();
+                  onVote!(option.id);
+                }
+                : null,
+        style: fluent.ButtonStyle(
+          backgroundColor:
+              isSelected
+                  ? fluent.WidgetStateProperty.all(colorScheme.primaryContainer)
+                  : null,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                option.text,
+                style: fluent.FluentTheme.of(
+                  context,
+                ).typography.bodyStrong?.copyWith(
+                  fontWeight: isSelected ? FontWeight.w900 : null,
+                ),
+              ),
+            ),
+            if (showResults)
+              Text(
+                '${option.percentage.toStringAsFixed(0)}%',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+          ],
+        ),
+      );
+    }
 
     return GestureDetector(
       onTap:
@@ -457,7 +740,11 @@ class PollDisplay extends StatelessWidget {
     );
   }
 
-  Widget _buildThisOrThatOptions(BuildContext context, bool showResults) {
+  Widget _buildThisOrThatOptions(
+    BuildContext context,
+    bool showResults, [
+    bool useFluent = false,
+  ]) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -471,13 +758,16 @@ class PollDisplay extends StatelessWidget {
             poll.options[0],
             showResults,
             isLeft: true,
+            useFluent: useFluent,
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Text(
             'VS',
-            style: theme.textTheme.labelLarge?.copyWith(
+            style: (useFluent
+                ? fluent.FluentTheme.of(context).typography.bodyStrong
+                : theme.textTheme.labelLarge)?.copyWith(
               color: colorScheme.primary,
               fontWeight: FontWeight.bold,
             ),
@@ -489,6 +779,7 @@ class PollDisplay extends StatelessWidget {
             poll.options[1],
             showResults,
             isLeft: false,
+            useFluent: useFluent,
           ),
         ),
       ],
@@ -500,10 +791,42 @@ class PollDisplay extends StatelessWidget {
     PollOption option,
     bool showResults, {
     required bool isLeft,
+    bool useFluent = false,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isSelected = poll.userVotedOptionId == option.id;
+
+    if (useFluent) {
+      return fluent.Button(
+        onPressed:
+            (!poll.hasVoted && !poll.isExpired && onVote != null)
+                ? () {
+                  HapticUtils.selectionClick();
+                  onVote!(option.id);
+                }
+                : null,
+        style: fluent.ButtonStyle(
+          backgroundColor:
+              isSelected
+                  ? fluent.WidgetStateProperty.all(colorScheme.primaryContainer)
+                  : null,
+        ),
+        child: Column(
+          children: [
+            Text(
+              option.text,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            if (showResults)
+              Text(
+                '${option.percentage.toStringAsFixed(0)}%',
+                style: fluent.FluentTheme.of(context).typography.subtitle,
+              ),
+          ],
+        ),
+      );
+    }
 
     return GestureDetector(
       onTap:
@@ -553,7 +876,19 @@ class PollDisplay extends StatelessWidget {
     );
   }
 
-  IconData _getPollTypeIcon() {
+  IconData _getPollTypeIcon([bool useFluent = false]) {
+    if (useFluent) {
+      switch (poll.pollType) {
+        case PollType.single:
+          return fluent.FluentIcons.radio_bullet;
+        case PollType.multiple:
+          return fluent.FluentIcons.checkbox_composite;
+        case PollType.thisOrThat:
+          return fluent.FluentIcons.compare;
+        case PollType.quiz:
+          return fluent.FluentIcons.questionnaire;
+      }
+    }
     switch (poll.pollType) {
       case PollType.single:
         return Icons.radio_button_checked;

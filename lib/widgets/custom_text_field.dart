@@ -169,8 +169,20 @@ class CustomTextField extends StatelessWidget {
   }
 
   Widget _buildFluentTextBox(BuildContext context) {
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
+    final theme = material.Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    final effectiveRadius = borderRadius ?? (isM3E ? 12.0 : 8.0);
+    final effectiveFillColor = fillColor ?? (isM3E ? colorScheme.primary.withValues(alpha: 0.05) : null);
+    
+    // Check if we should hide the border (e.g. when used inside another decorated container)
+    final hideBorder = border == material.InputBorder.none || 
+                      enabledBorder == material.InputBorder.none || 
+                      focusedBorder == material.InputBorder.none;
+
     return Container(
-      margin: const material.EdgeInsets.only(bottom: 8),
+      margin: margin ?? const material.EdgeInsets.only(bottom: 8),
       child: fluent.InfoLabel(
         label: label ?? '',
         child: fluent.TextBox(
@@ -195,6 +207,15 @@ class CustomTextField extends StatelessWidget {
           ) : null,
           suffix: suffixIcon,
           padding: (contentPadding as material.EdgeInsets?) ?? const material.EdgeInsets.all(8.0),
+          decoration: fluent.WidgetStatePropertyAll(hideBorder 
+            ? fluent.BoxDecoration(
+                color: effectiveFillColor,
+                border: const fluent.Border(), // Empty border to hide it
+              )
+            : fluent.BoxDecoration(
+                color: effectiveFillColor,
+                borderRadius: material.BorderRadius.circular(effectiveRadius),
+              )),
         ),
       ),
     );

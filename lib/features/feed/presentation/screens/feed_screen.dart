@@ -471,30 +471,7 @@ class _FeedScreenState extends State<FeedScreen>
               child: Row(
                 children: [
                   Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: disableTransparency
-                            ? colorScheme.surfaceContainer
-                            : colorScheme.surface.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
-                        border: isM3E
-                            ? Border.all(
-                                color: colorScheme.outlineVariant
-                                    .withValues(alpha: 0.3),
-                                width: 1,
-                              )
-                            : null,
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(isM3E ? 28 : 12),
-                        child: disableTransparency
-                            ? feedContent
-                            : BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                                child: feedContent,
-                              ),
-                      ),
-                    ),
+                    child: feedContent,
                   ),
                   const SizedBox(width: 12),
                   _showCommentPane && _selectedPostId != null
@@ -704,6 +681,56 @@ class _FeedScreenState extends State<FeedScreen>
     ColorScheme colorScheme, [
     bool isM3E = false,
   ]) {
+    final useFluent = context.read<ThemeProvider>().useFluentUI;
+
+    if (useFluent) {
+      return Container(
+        width: 450,
+        padding: const EdgeInsets.only(right: 12, bottom: 12, top: 12),
+        child: fluent.Card(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              fluent.CommandBar(
+                primaryItems: [
+                  fluent.CommandBarBuilderItem(
+                    builder: (context, mode, child) => Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Text(
+                        'Comments',
+                        style:
+                            fluent.FluentTheme.of(context).typography.subtitle,
+                      ),
+                    ),
+                    wrappedItem: fluent.CommandBarButton(
+                      onPressed: () {},
+                      icon: const SizedBox.shrink(),
+                    ),
+                  ),
+                ],
+                secondaryItems: [
+                  fluent.CommandBarButton(
+                    icon: const Icon(fluent.FluentIcons.clear),
+                    onPressed: () => setState(() => _showCommentPane = false),
+                  ),
+                ],
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: CommentsModal(
+                  postId: _selectedPostId!,
+                  isSidePane: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Container(
       width: 450,
       decoration: BoxDecoration(
@@ -782,6 +809,22 @@ class _FeedScreenState extends State<FeedScreen>
     ColorScheme colorScheme, [
     bool isM3E = false,
   ]) {
+    final useFluent = context.read<ThemeProvider>().useFluentUI;
+
+    if (useFluent) {
+      return Container(
+        height: 32,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildFluentTabButton('Following', 0),
+            const SizedBox(width: 4),
+            _buildFluentTabButton('Explore', 1),
+          ],
+        ),
+      );
+    }
+
     return Container(
       height: 48,
       padding: const EdgeInsets.all(4),
@@ -799,6 +842,20 @@ class _FeedScreenState extends State<FeedScreen>
           _buildDesktopTabButton('Explore', 1, colorScheme, isM3E),
         ],
       ),
+    );
+  }
+
+  Widget _buildFluentTabButton(String label, int index) {
+    final isSelected = _tabController.index == index;
+    if (isSelected) {
+      return fluent.FilledButton(
+        onPressed: () => setState(() => _tabController.animateTo(index)),
+        child: Text(label),
+      );
+    }
+    return fluent.Button(
+      onPressed: () => setState(() => _tabController.animateTo(index)),
+      child: Text(label),
     );
   }
 
@@ -890,6 +947,15 @@ class _FeedScreenState extends State<FeedScreen>
   }
 
   Widget _buildRipplesButton(ColorScheme colorScheme, [bool isM3E = false]) {
+    final useFluent = context.read<ThemeProvider>().useFluentUI;
+
+    if (useFluent) {
+      return fluent.Button(
+        onPressed: () => _handleRipplesTap(context),
+        child: const Text('Ripples'),
+      );
+    }
+
     return GestureDetector(
       onTap: () => _handleRipplesTap(context),
       child: Container(
@@ -930,6 +996,73 @@ class _FeedScreenState extends State<FeedScreen>
     ColorScheme colorScheme, [
     bool isM3E = false,
   ]) {
+    final useFluent = context.read<ThemeProvider>().useFluentUI;
+
+    if (useFluent) {
+      return Container(
+        width: 400,
+        padding: const EdgeInsets.only(right: 12, bottom: 12, top: 12),
+        child: fluent.Card(
+          padding: const EdgeInsets.all(24),
+          child: ListView(
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    fluent.FluentIcons.trending12,
+                    size: 20,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'TRENDING',
+                    style: fluent.FluentTheme.of(
+                      context,
+                    ).typography.caption?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              _buildTrendingItem('#OasisApp', '2.4k posts'),
+              _buildTrendingItem('#OasisV2', '1.8k posts'),
+              _buildTrendingItem('#FlutterDesktop', '942 posts'),
+              _buildTrendingItem('#CyberDesign', '621 posts'),
+              const SizedBox(height: 48),
+              Row(
+                children: [
+                  Icon(
+                    fluent.FluentIcons.add_friend,
+                    size: 20,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'SUGGESTED',
+                    style: fluent.FluentTheme.of(
+                      context,
+                    ).typography.caption?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              _buildSuggestionItem('DesignDaily', '@designdaily'),
+              _buildSuggestionItem('TechNexus', '@technexus'),
+              _buildSuggestionItem('CreativeSoul', '@creative'),
+              _buildSuggestionItem('FutureVibe', '@future'),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Container(
       width: 400,
       decoration: BoxDecoration(
@@ -1002,6 +1135,7 @@ class _FeedScreenState extends State<FeedScreen>
   }
 
   Widget _buildTrendingItem(String tag, String count) {
+    final useFluent = context.read<ThemeProvider>().useFluentUI;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
@@ -1009,14 +1143,18 @@ class _FeedScreenState extends State<FeedScreen>
         children: [
           Text(
             tag,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            style: useFluent
+                ? fluent.FluentTheme.of(context).typography.bodyStrong
+                : const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
           ),
           Text(
             count,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontSize: 12,
-            ),
+            style: useFluent
+                ? fluent.FluentTheme.of(context).typography.caption
+                : TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 12,
+                ),
           ),
         ],
       ),
@@ -1024,17 +1162,37 @@ class _FeedScreenState extends State<FeedScreen>
   }
 
   Widget _buildSuggestionItem(String name, String handle) {
+    final useFluent = context.read<ThemeProvider>().useFluentUI;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: Theme.of(
-              context,
-            ).colorScheme.primary.withValues(alpha: 0.1),
-            child: Text(name[0], style: const TextStyle(fontSize: 12)),
-          ),
+          if (useFluent)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                width: 36,
+                height: 36,
+                color:
+                    fluent.FluentTheme.of(
+                      context,
+                    ).accentColor.withValues(alpha: 0.1),
+                child: Center(
+                  child: Text(
+                    name[0],
+                    style: fluent.FluentTheme.of(context).typography.body,
+                  ),
+                ),
+              ),
+            )
+          else
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.1),
+              child: Text(name[0], style: const TextStyle(fontSize: 12)),
+            ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -1042,26 +1200,30 @@ class _FeedScreenState extends State<FeedScreen>
               children: [
                 Text(
                   name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
+                  style: useFluent
+                      ? fluent.FluentTheme.of(context).typography.bodyStrong
+                      : const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                 ),
                 Text(
                   handle,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 11,
-                  ),
+                  style: useFluent
+                      ? fluent.FluentTheme.of(context).typography.caption
+                      : TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 11,
+                      ),
                 ),
               ],
             ),
           ),
-          TextButton(
-            onPressed: () {},
-            style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
-            child: const Text('Follow'),
-          ),
+          if (useFluent)
+            fluent.Button(onPressed: () {}, child: const Text('Follow'))
+          else
+            TextButton(
+              onPressed: () {},
+              style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+              child: const Text('Follow'),
+            ),
         ],
       ),
     );
