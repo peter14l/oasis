@@ -69,7 +69,12 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
           // On desktop, we want to go back to DM screen and select the new conversation
           context.go(
             '/messages',
-            extra: {'selectedConversationId': conversationId},
+            extra: {
+              'initialConversationId': conversationId,
+              'otherUserId': user.id,
+              'otherUserName': user.username,
+              'otherUserAvatar': user.avatarUrl ?? '',
+            },
           );
         } else {
           context.go(

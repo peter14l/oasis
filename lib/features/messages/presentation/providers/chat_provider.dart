@@ -542,7 +542,14 @@ class ChatProvider with ChangeNotifier {
       bool usedSignal = false;
 
       if (_encryptionService.isInitialized) {
-        final recipientId = otherUserId ?? state.otherUserId;
+        var recipientId = otherUserId ?? state.otherUserId;
+        
+        // If still missing, try one last fetch before failing
+        if (recipientId == null || recipientId.isEmpty) {
+          await fetchConversationDetails();
+          recipientId = otherUserId ?? state.otherUserId;
+        }
+
         if (recipientId == null || recipientId.isEmpty) {
           throw Exception('Recipient ID is required for encryption');
         }
@@ -575,7 +582,7 @@ class ChatProvider with ChangeNotifier {
 
           if (recipientPublicKey == null) {
             throw Exception(
-              'Recipient has not updated the app to support encrypted messaging yet',
+              'Recipient has not set up their encryption keys yet. They need to open the app once before you can message them.',
             );
           }
 

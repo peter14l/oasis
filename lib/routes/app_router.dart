@@ -1148,10 +1148,15 @@ class AppRouter {
             GoRoute(
               path: '/messages',
               name: 'messages',
-              pageBuilder:
-                  (context, state) => const NoTransitionPage(
-                    child: messages.DirectMessagesScreen(),
+              pageBuilder: (context, state) {
+                final extra = state.extra as Map<String, dynamic>?;
+                return NoTransitionPage(
+                  child: messages.DirectMessagesScreen(
+                    initialConversationId: extra?['initialConversationId'],
+                    initialConversationData: extra,
                   ),
+                );
+              },
               routes: [
                 GoRoute(
                   path: ':conversationId',

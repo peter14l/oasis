@@ -7,8 +7,14 @@ class EncryptionProvisioner {
   /// before the user ever opens a chat (identical to WhatsApp's approach).
   Future<void> provisionEncryptionKeys() async {
     try {
-      final status = await EncryptionService().init();
+      final encryptionService = EncryptionService();
+      final status = await encryptionService.init();
       developer.log('[Auth] Encryption init status after login: $status');
+
+      if (status == EncryptionStatus.needsSetup) {
+        developer.log('[Auth] Automatically setting up encryption for new user...');
+        await encryptionService.setupEncryption();
+      }
     } catch (e) {
       developer.log('[Auth] Encryption init error after login: $e');
     }

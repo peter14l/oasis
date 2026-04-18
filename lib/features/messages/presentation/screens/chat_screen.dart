@@ -17,6 +17,7 @@ import 'package:oasis/features/messages/presentation/screens/chat_details_screen
 import 'package:oasis/providers/conversation_provider.dart';
 import 'package:oasis/widgets/security_pin_sheet.dart';
 import 'package:oasis/features/messages/data/encryption_service.dart';
+import 'package:oasis/services/notification_manager.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/core/utils/haptic_utils.dart';
 import 'package:go_router/go_router.dart';

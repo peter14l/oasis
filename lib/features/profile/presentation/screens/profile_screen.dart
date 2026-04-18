@@ -103,13 +103,17 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
   }
 
-  Future<void> _handleMessage(String currentUserId, String targetId) async {
+  Future<void> _handleMessage(String currentUserId, String targetId, UserProfileEntity? profile) async {
     try {
       final conversationId = await context
           .read<ProfileProvider>()
           .getOrCreateConversation(user1Id: currentUserId, user2Id: targetId);
       if (mounted) {
-        context.push('/messages/$conversationId');
+        context.push('/messages/$conversationId', extra: {
+          'otherUserId': targetId,
+          'otherUserName': profile?.username,
+          'otherUserAvatar': profile?.avatarUrl,
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -806,7 +810,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         const SizedBox(width: 8),
         if (currentUserId != null) ...[
           IconButton.filledTonal(
-            onPressed: () => _handleMessage(currentUserId, profile.id),
+            onPressed: () => _handleMessage(currentUserId, profile.id, profile),
             icon: const Icon(Icons.chat_bubble_outline_rounded, size: 20),
             style: IconButton.styleFrom(
               padding: const EdgeInsets.all(16),
@@ -1156,7 +1160,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         const SizedBox(width: 12),
         if (!isOwnProfile && currentUserId != null) ...[
           IconButton.filledTonal(
-            onPressed: () => _handleMessage(currentUserId, profile.id),
+            onPressed: () => _handleMessage(currentUserId, profile.id, profile),
             icon: const Icon(Icons.chat_bubble_outline_rounded),
             style: IconButton.styleFrom(
               padding: const EdgeInsets.all(16),

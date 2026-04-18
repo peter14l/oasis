@@ -260,6 +260,7 @@ class NotificationManager {
       try {
         // Use flutter_local_notifications for macOS as it supports images better than osascript
         await _showMobileNotification(
+          id: _nextNotificationId++,
           title: title,
           body: body,
           senderAvatar: senderAvatar,
@@ -294,8 +295,8 @@ class NotificationManager {
 
     if (conversationId != null && Platform.isAndroid) {
       final group = _activeMessageGroups[conversationId] ?? [];
-      final List<MessageStyleInformation> messages = group.map((m) => 
-        MessageStyleInformation(
+      final List<Message> messages = group.map((m) => 
+        Message(
           m.content,
           m.timestamp,
           Person(name: m.senderName),

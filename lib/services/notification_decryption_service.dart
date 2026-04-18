@@ -17,7 +17,7 @@ class NotificationDecryptionService {
   final AuthService _authService = AuthService();
 
   /// Decrypts a notification entity (from Supabase Realtime).
-  Future<String?> decryptNotification(NotificationEntity notification) async {
+  Future<String?> decryptNotification(AppNotification notification) async {
     final Map<String, dynamic> data = {
       'body': notification.message,
       'content': notification.message,
