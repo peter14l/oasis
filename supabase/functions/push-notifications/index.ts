@@ -151,7 +151,51 @@ serve(async (req) => {
       dataPayload['call_type'] = record.call_type || 'voice';
     }
 
-    // 5. Send FCM message
+    // 5. Build the final FCM payload
+    // IMPORTANT: We use a "data-only" message (NO 'notification' block)
+    // This ensures that the OS doesn't show a generic system notification,
+    // and instead wakes up our Flutter background handler to decrypt and show it properly.
+    
+    // Add all metadata from the trigger payload to the FCM data payload
+    if (payload.metadata) {
+      for (const [key, value] of Object.entries(payload.metadata)) {
+        if (value !== null && value !== undefined) {
+          // FCM data values must be strings
+          dataPayload[key] = typeof value === 'object' ? JSON.stringify(value) : value.toString();
+        }
+      }
+    }
+
+    // Add title and body to data so the background handler knows what to show if decryption fails
+    dataPayload['title'] = title;
+    dataPayload['body'] = body;
+
+    const fcmPayload = {
+      message: {
+        token: profile.fcm_token,
+        data: dataPayload,
+        android: {
+          priority: "high",
+          // For data-only messages to work consistently on some Android versions
+          // when the app is killed, we sometimes need to set ttl or other flags.
+        },
+        apns: {
+          headers: {
+            "apns-priority": "10", // High priority to wake the app
+            "apns-push-type": "alert",
+          },
+          payload: {
+            aps: {
+              contentAvailable: true, // Crucial for waking up the background handler
+              badge: 1,
+              sound: "default",
+            },
+          },
+        },
+      },
+    };
+
+    // 6. Send FCM message
     const fcmResponse = await fetch(
       `https://fcm.googleapis.com/v1/projects/${firebaseProjectId}/messages:send`,
       {
@@ -160,30 +204,7 @@ serve(async (req) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({
-          message: {
-            token: profile.fcm_token,
-            notification: {
-              title: title,
-              body: body,
-            },
-            data: dataPayload,
-            android: {
-              priority: "high",
-              notification: {
-                sound: "default",
-              },
-            },
-            apns: {
-              payload: {
-                aps: {
-                  sound: "default",
-                  badge: 1,
-                },
-              },
-            },
-          },
-        }),
+        body: JSON.stringify(fcmPayload),
       }
     );
 

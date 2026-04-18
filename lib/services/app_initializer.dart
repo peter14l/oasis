@@ -288,16 +288,19 @@ class AppInitializer {
       await NotificationManager.instance.initialize();
 
       final String title =
-          message.notification?.title ??
           message.data['title'] ??
+          message.notification?.title ??
           'New Notification';
       
       String body =
-          message.notification?.body ?? message.data['body'] ?? '';
+          message.data['body'] ??
+          message.notification?.body ?? 
+          '';
       
       // Decrypt body if it's an encrypted message
+      // Note: encryptMessage metadata is now passed in message.data
       final decryptedBody = await NotificationDecryptionService().decryptMessage(message.data);
-      if (decryptedBody != null) {
+      if (decryptedBody != null && decryptedBody.isNotEmpty) {
         body = decryptedBody;
       }
 
@@ -466,9 +469,6 @@ class AppInitializer {
 
     // Notifications
     await NotificationManager.instance.initialize();
-
-    // Subscribe to DM notifications for local notifications
-    _subscribeToDmNotifications();
 
     // Encryption (fire-and-forget, non-blocking)
     unawaited(
