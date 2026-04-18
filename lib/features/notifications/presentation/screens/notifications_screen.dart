@@ -82,11 +82,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
 
     if (confirmed == true) {
-      // Clear all functionality - would need to add to provider
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Notifications cleared')));
+      try {
+        await context.read<NotificationProvider>().deleteAllNotifications();
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Notifications cleared')));
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+        }
       }
     }
   }

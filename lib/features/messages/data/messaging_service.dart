@@ -230,11 +230,13 @@ class MessagingService extends ChangeNotifier {
     String folder = 'images',
     Uint8List? encryptedBytes,
     String? fileExtension,
+    Function(double)? onProgress,
   }) => _chatMediaService.uploadChatMedia(
     filePath,
     folder: folder,
     encryptedBytes: encryptedBytes,
     fileExtension: fileExtension,
+    onProgress: onProgress,
   );
 
   // --- Operations ---

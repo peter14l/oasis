@@ -11,6 +11,8 @@ class DocumentBubble extends StatelessWidget {
     required this.isMe,
     this.fileSize,
     this.textColor,
+    this.isUploading = false,
+    this.uploadProgress = 0.0,
   });
 
   final String fileName;
@@ -18,6 +20,8 @@ class DocumentBubble extends StatelessWidget {
   final bool isMe;
   final int? fileSize;
   final Color? textColor;
+  final bool isUploading;
+  final double uploadProgress;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +63,7 @@ class DocumentBubble extends StatelessWidget {
         color: isMe ? Colors.black.withValues(alpha: 0.1) : colorScheme.surfaceVariant.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -108,49 +113,66 @@ class DocumentBubble extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Divider(height: 1, color: color.withValues(alpha: 0.1)),
-          InkWell(
-            onTap: mediaUrl != null
-                  ? () async {
-                    final mediaDownloadService = MediaDownloadService();
-                    try {
-                      await mediaDownloadService.downloadDocument(
-                        mediaUrl!,
-                        fileName,
-                        context,
-                      );
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Document downloaded'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Download failed: $e'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    }
-                  }
-                  : null,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.download, size: 16, color: color),
-                  const SizedBox(width: 8),
-                  Text('Download', style: theme.textTheme.labelLarge?.copyWith(color: color)),
-                ],
+          if (isUploading) ...[
+            const SizedBox(height: 4),
+            LinearProgressIndicator(
+              value: uploadProgress,
+              backgroundColor: color.withValues(alpha: 0.1),
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+              minHeight: 2,
+            ),
+            const SizedBox(height: 4),
+            Center(
+              child: Text(
+                'Uploading... ${(uploadProgress * 100).toInt()}%',
+                style: theme.textTheme.labelSmall?.copyWith(color: color.withValues(alpha: 0.7)),
               ),
             ),
-          )
+          ] else ...[
+            Divider(height: 1, color: color.withValues(alpha: 0.1)),
+            InkWell(
+              onTap: mediaUrl != null
+                    ? () async {
+                      final mediaDownloadService = MediaDownloadService();
+                      try {
+                        await mediaDownloadService.downloadDocument(
+                          mediaUrl!,
+                          fileName,
+                          context,
+                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Document downloaded'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Download failed: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    }
+                    : null,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.download, size: 16, color: color),
+                    const SizedBox(width: 8),
+                    Text('Download', style: theme.textTheme.labelLarge?.copyWith(color: color)),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

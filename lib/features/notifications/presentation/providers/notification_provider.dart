@@ -9,6 +9,7 @@ class NotificationProvider extends ChangeNotifier {
   final GetNotifications _getNotifications;
   final MarkNotificationRead _markNotificationRead;
   final MarkAllNotificationsRead _markAllNotificationsRead;
+  final DeleteAllNotifications _deleteAllNotifications;
   final GetUnreadNotificationCount _getUnreadCount;
 
   NotificationState _state = const NotificationState();
@@ -22,6 +23,9 @@ class NotificationProvider extends ChangeNotifier {
         repository ?? NotificationRepositoryImpl(),
       ),
       _markAllNotificationsRead = MarkAllNotificationsRead(
+        repository ?? NotificationRepositoryImpl(),
+      ),
+      _deleteAllNotifications = DeleteAllNotifications(
         repository ?? NotificationRepositoryImpl(),
       ),
       _getUnreadCount = GetUnreadNotificationCount(
@@ -124,6 +128,22 @@ class NotificationProvider extends ChangeNotifier {
         _state = _state.copyWith(
           notifications: updatedNotifications,
           unreadCount: 0,
+        );
+        notifyListeners();
+      },
+    );
+  }
+
+  Future<void> deleteAllNotifications() async {
+    final result = await _deleteAllNotifications();
+    result.fold(
+      onFailure: (_) {},
+      onSuccess: (_) {
+        _state = _state.copyWith(
+          notifications: [],
+          unreadCount: 0,
+          currentOffset: 0,
+          hasMore: false,
         );
         notifyListeners();
       },

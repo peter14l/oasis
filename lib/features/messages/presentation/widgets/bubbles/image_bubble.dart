@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/features/messages/presentation/screens/image_preview_screen.dart';
@@ -18,6 +19,8 @@ class ImageBubble extends StatelessWidget {
     this.currentUserViewCount = 0,
     this.messageId,
     this.textColor,
+    this.isUploading = false,
+    this.uploadProgress = 0.0,
   });
 
   final String imageUrl;
@@ -27,6 +30,8 @@ class ImageBubble extends StatelessWidget {
   final int currentUserViewCount;
   final String? messageId;
   final Color? textColor;
+  final bool isUploading;
+  final double uploadProgress;
 
   bool get _isRestricted => mediaViewMode == 'once' || mediaViewMode == 'twice';
   int get _viewLimit => mediaViewMode == 'once' ? 1 : 2;
@@ -109,7 +114,7 @@ class ImageBubble extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         GestureDetector(
-          onTap: () {
+          onTap: isUploading ? null : () {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder:
@@ -124,26 +129,68 @@ class ImageBubble extends StatelessWidget {
             );
           },
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 300, maxWidth: 300),
-              child: _isLocalFile 
-                ? Image.file(
-                    File(imageUrl),
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
-                  )
-                : CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    placeholder:
-                        (context, url) => const SizedBox(
-                          height: 150,
-                          width: 150,
-                          child: Center(child: CircularProgressIndicator()),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  _isLocalFile 
+                    ? Image.file(
+                        File(imageUrl),
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+                      )
+                    : CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        placeholder:
+                            (context, url) => const SizedBox(
+                              height: 150,
+                              width: 150,
+                              child: Center(child: CircularProgressIndicator()),
+                            ),
+                        errorWidget: (context, url, error) => const Icon(Icons.error),
+                        fit: BoxFit.cover,
+                      ),
+                  if (isUploading) ...[
+                    Positioned.fill(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.5),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '${(uploadProgress * 100).toInt()}%',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                    errorWidget: (context, url, error) => const Icon(Icons.error),
-                    fit: BoxFit.cover,
-                  ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: LinearProgressIndicator(
+                        value: uploadProgress,
+                        backgroundColor: Colors.white24,
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                        minHeight: 4,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ),

@@ -5,35 +5,25 @@ All notable changes to this project will be documented in this file.
 ## [4.3.0] - 2026-04-18
 
 ### Added
+- **Real-time Media Upload Progress (2026-04-18)** - Implemented modern linear progress bars with blurred overlays for image, video, and document uploads in chat.
 - **Optimistic Media Messages (2026-04-18)** - Extended optimistic UI to support images, videos, and documents, showing local previews immediately before upload completion.
+- **Optimistic Voice Messages (2026-04-18)** - Voice messages now show instant sending state with real-time upload progress tracking.
 - **Parallel Message Decryption (2026-04-18)** - Improved chat loading performance by parallelizing end-to-end decryption for message batches.
 - **Smart Message Retries (2026-04-18)** - Added automatic exponential backoff retries for message loading on poor network connections.
 - **Notification Grouping (2026-04-18)** - Implemented native message grouping on Android and multi-line summaries on other platforms for a cleaner notification tray.
 - **Encrypted Notification Previews (2026-04-18)** - Added support for decrypting notification payloads on-the-fly, allowing message previews even for end-to-end encrypted chats.
 - **Accessibility: Open Dyslexic Font (2026-04-18)** - Added native support for the Open Dyslexic font across the entire application.
 - **Expanded Font Selection (2026-04-18)** - Introduced several new system and web font options including Outfit, Lexend, and serif alternatives.
-- **Sliding Search & Notification Panels (2026-04-16) [`97ccc7d`]** - Implemented animated sliding panels for Search and Notifications on desktop, including a backdrop to close them by clicking outside.
-- **Fluent Desktop Settings UI Enhancements (2026-04-16) [`f9c3415`]** - Added a native-feeling close button and navigation pane separators to the Settings screen.
-- **Fluent Desktop Top-Bar Hiding (2026-04-16) [`43a776d`]** - Hidden the global `titleBar` in `NavigationView` and page-level headers in `AdaptiveScaffold` for a cleaner desktop experience.
-- **Adaptive UI Component Architecture (2026-04-16)** - Refactored core widgets (`AppButton`, `CustomTextField`) into adaptive components that automatically switch between Material and Fluent UI based on the platform.
-- **Cross-Platform Native Dialogs (2026-04-16)** - Introduced `AdaptiveDialog` utility to provide native-feeling modal experiences using `ContentDialog` on desktop/web and `AlertDialog` on mobile.
-- **Fluent-Enhanced Settings & Search (2026-04-16)** - Deeply integrated `fluent_ui` into the internal content of Settings and Search screens, providing a seamless native experience on Windows, macOS, and Web.
-- **Native Desktop & Web UI Integration (2026-04-16)** - Implemented a Windows-native look and feel for Desktop (Windows, macOS) and Web platforms using the `fluent_ui` package.
-- **Fluent Navigation Experience (2026-04-16)** - Replaced the standard navigation with a comprehensive `NavigationView` and `NavigationPane` specifically for desktop/web users.
-- **Dynamic Fluent Theming (2026-04-16)** - Added `AppFluentTheme` to automatically translate Material color schemes into native Fluent design tokens, supporting both light and dark modes.
-- **Optimized Onboarding Flow (2026-04-16)** - Replaced deprecated slides (Calling, Communities, Pulse Map) with core feature highlights: Secure Connection (Feed/Messages), Creative Canvas, Mindful Discovery (Ripples), and Time & Wellness.
-- **Interactive Onboarding UI (2026-04-16)** - Enhanced onboarding with dynamic background color transitions, glassmorphic content cards, and staggered animations using `flutter_animate`.
-- **Streamlined Navigation (2026-04-16)** - Consolidated the introductory experience into 4 high-impact interactive slides.
 
 ### Fixed
+- **Global App Performance (2026-04-18)** - Optimized mesh gradient background by caching procedural grain textures, resolving global UI stuttering and delayed touch responses.
+- **Data-Only Notification Regression (2026-04-18)** - Fixed foreground and background notification handlers to correctly process and decrypt data-only FCM messages.
+- **Background Decryption Stability (2026-04-18)** - Ensured Supabase is initialized in background isolates to prevent decryption service crashes.
+- **Chat Reply Context Bug (2026-04-18)** - Fixed a logic issue where reply context would persist after sending a message; implemented Sentinel Pattern for state updates.
+- **Chat Input UI Refinement (2026-04-18)** - Reduced height of the chat text box and improved alignment of action buttons for a more compact and balanced look.
 - **Local Media Playback (2026-04-18)** - Fixed an issue where voice messages and images wouldn't play/display correctly if they were local files (optimistic state).
 - **M3E Theme Readability (2026-04-18)** - Improved contrast for primary/secondary containers in Light mode for better readability.
 - **Responsive Text Input (2026-04-18)** - Adjusted vertical padding in text fields for mobile devices to prevent layout overflows.
-- **Fluent & Build Cleanup (2026-04-16) [`519a8fd`]** - Removed leftover merge conflict markers and resolved syntax errors in Profile and Router files.
-- **Fluent Navigation API Fix (2026-04-16) [`43a776d`]** - Removed non-existent `backButton` parameter from `NavigationPane` to resolve compilation errors with `fluent_ui` v4.15.1.
-- **Adaptive UI Compilation Errors (2026-04-16)** - Resolved namespace conflicts between Material and Fluent UI by standardizing imports and using proper aliasing.
-- **Fluent UI API Mismatches (2026-04-16)** - Fixed incorrect parameter usage in `PaneItem`, `RadioButton`, and `TextBox` components to align with the latest `fluent_ui` package.
-- **Platform-Specific Stability (2026-04-16)** - Ensured core Flutter types (`Widget`, `State`, etc.) are correctly referenced across all adaptive screens.
 
 ### Removed
 - **Fluent Desktop Profile Top-Bar (2026-04-16) [`af7bef4`]** - Removed the `PageHeader` from the Profile screen in Fluent Desktop mode for a more integrated look.

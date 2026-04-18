@@ -65,4 +65,11 @@ class NotificationRemoteDatasource {
 
     return response.length;
   }
+
+  Future<void> deleteAllNotifications(String userId) async {
+    await _supabase
+        .from(SupabaseConfig.notificationsTable)
+        .delete()
+        .eq('user_id', userId);
+  }
 }

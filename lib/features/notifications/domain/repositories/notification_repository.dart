@@ -11,6 +11,8 @@ abstract class NotificationRepository {
 
   Future<Result<void>> markAllAsRead();
 
+  Future<Result<void>> deleteAllNotifications();
+
   Future<Result<int>> getUnreadCount();
 
   Stream<List<AppNotification>> get notificationsStream;

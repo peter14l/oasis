@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:oasis/features/messages/presentation/screens/image_preview_screen.dart';
 
@@ -13,6 +15,8 @@ class VideoBubble extends StatelessWidget {
     this.currentUserViewCount = 0,
     this.messageId,
     this.textColor,
+    this.isUploading = false,
+    this.uploadProgress = 0.0,
   });
 
   final String mediaUrl;
@@ -22,10 +26,13 @@ class VideoBubble extends StatelessWidget {
   final int currentUserViewCount;
   final String? messageId;
   final Color? textColor;
+  final bool isUploading;
+  final double uploadProgress;
 
   bool get _isRestricted => mediaViewMode == 'once' || mediaViewMode == 'twice';
   int get _viewLimit => mediaViewMode == 'once' ? 1 : 2;
   bool get _isViewed => _isRestricted && currentUserViewCount >= _viewLimit;
+  bool get _isLocalFile => !mediaUrl.startsWith('http') && !mediaUrl.startsWith('https');
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +43,7 @@ class VideoBubble extends StatelessWidget {
             ? theme.colorScheme.onPrimaryContainer
             : theme.colorScheme.onSurface);
 
-    if (_isRestricted) {
+    if (_isRestricted && !isUploading) {
       return GestureDetector(
         onTap:
             _isViewed
@@ -88,6 +95,64 @@ class VideoBubble extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
+          ],
+        ),
+      );
+    }
+
+    if (isUploading) {
+      return Container(
+        width: 200,
+        height: 120,
+        decoration: BoxDecoration(
+          color: isMe ? Colors.black.withValues(alpha: 0.1) : theme.colorScheme.surfaceVariant.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.videocam_rounded, color: color, size: 32),
+                const SizedBox(height: 8),
+                Text(
+                  mediaFileName ?? 'Video',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(color: color),
+                ),
+              ],
+            ),
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  child: Center(
+                    child: Text(
+                      '${(uploadProgress * 100).toInt()}%',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: LinearProgressIndicator(
+                value: uploadProgress,
+                backgroundColor: Colors.white24,
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                minHeight: 4,
+              ),
+            ),
           ],
         ),
       );

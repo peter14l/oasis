@@ -32,6 +32,16 @@ class MarkAllNotificationsRead {
   }
 }
 
+class DeleteAllNotifications {
+  final NotificationRepository _repository;
+
+  DeleteAllNotifications(this._repository);
+
+  Future<Result<void>> call() {
+    return _repository.deleteAllNotifications();
+  }
+}
+
 class GetUnreadNotificationCount {
   final NotificationRepository _repository;
 

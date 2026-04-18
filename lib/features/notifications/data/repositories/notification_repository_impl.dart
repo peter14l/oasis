@@ -60,6 +60,21 @@ class NotificationRepositoryImpl implements NotificationRepository {
   }
 
   @override
+  Future<Result<void>> deleteAllNotifications() async {
+    try {
+      final userId = SupabaseService().client.auth.currentUser?.id;
+      if (userId == null) {
+        return Result.failure(message: 'Not authenticated');
+      }
+
+      await _remoteDatasource.deleteAllNotifications(userId);
+      return const Result.success(null);
+    } catch (e) {
+      return Result.failure(message: e.toString());
+    }
+  }
+
+  @override
   Future<Result<int>> getUnreadCount() async {
     try {
       final userId = SupabaseService().client.auth.currentUser?.id;

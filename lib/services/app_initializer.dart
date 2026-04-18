@@ -281,6 +281,14 @@ class AppInitializer {
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
+    // CRITICAL: Initialize Supabase for the background isolate
+    // EncryptionService depends on Supabase client
+    try {
+      await SupabaseService.initialize();
+    } catch (e) {
+      debugPrint('Background Supabase init failed: $e');
+    }
+
     debugPrint('Handling a background message: ${message.messageId}');
 
     // If it's a data-only message or contains data we need to show
@@ -298,7 +306,6 @@ class AppInitializer {
           '';
       
       // Decrypt body if it's an encrypted message
-      // Note: encryptMessage metadata is now passed in message.data
       final decryptedBody = await NotificationDecryptionService().decryptMessage(message.data);
       if (decryptedBody != null && decryptedBody.isNotEmpty) {
         body = decryptedBody;

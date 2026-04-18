@@ -48,6 +48,8 @@ abstract class Message with _$Message {
     @JsonKey(name: 'post_id') String? postId,
     @Default('unlimited') @JsonKey(name: 'media_view_mode') String mediaViewMode,
     @Default(0) @JsonKey(name: 'current_user_view_count') int currentUserViewCount,
+    @Default(false) @JsonKey(includeFromJson: false, includeToJson: false) bool isUploading,
+    @Default(0.0) @JsonKey(includeFromJson: false, includeToJson: false) double uploadProgress,
   }) = _Message;
 
   const Message._();

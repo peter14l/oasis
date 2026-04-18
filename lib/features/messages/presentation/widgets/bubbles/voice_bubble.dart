@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/widgets/messages/voice_message_player.dart';
@@ -12,6 +13,8 @@ class VoiceBubble extends StatefulWidget {
     required this.isMe,
     required this.messageId,
     this.textColor,
+    this.isUploading = false,
+    this.uploadProgress = 0.0,
   });
 
   final String audioUrl;
@@ -19,6 +22,8 @@ class VoiceBubble extends StatefulWidget {
   final bool isMe;
   final String messageId;
   final Color? textColor;
+  final bool isUploading;
+  final double uploadProgress;
 
   @override
   State<VoiceBubble> createState() => _VoiceBubbleState();
@@ -31,7 +36,9 @@ class _VoiceBubbleState extends State<VoiceBubble> {
   @override
   void initState() {
     super.initState();
-    _loadTranscript();
+    if (!widget.isUploading) {
+      _loadTranscript();
+    }
   }
 
   Future<void> _loadTranscript() async {
@@ -77,6 +84,60 @@ class _VoiceBubbleState extends State<VoiceBubble> {
         (widget.isMe
             ? colorScheme.onPrimaryContainer
             : colorScheme.onSurface);
+
+    if (widget.isUploading) {
+      return Container(
+        width: 200,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: widget.isMe ? Colors.black.withValues(alpha: 0.1) : colorScheme.surfaceVariant.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.mic_rounded, color: color, size: 24),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Container(
+                        height: 2,
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(1),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                LinearProgressIndicator(
+                  value: widget.uploadProgress,
+                  backgroundColor: color.withValues(alpha: 0.1),
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                  minHeight: 2,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Sending... ${(widget.uploadProgress * 100).toInt()}%',
+                  style: theme.textTheme.labelSmall?.copyWith(color: color.withValues(alpha: 0.7)),
+                ),
+              ],
+            ),
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                child: Container(color: Colors.transparent),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment:

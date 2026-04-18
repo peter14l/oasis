@@ -518,12 +518,14 @@ class ChatProvider with ChangeNotifier {
       replyToContent: replyMessage?.content,
       replyToSenderName: replyMessage?.senderName,
       mediaViewMode: mediaViewMode,
+      isUploading: imageFile != null || videoFile != null || audioFile != null || docFile != null,
+      uploadProgress: 0.0,
     );
 
     setState(
       (s) => s.copyWith(
         messages: [...s.messages, optimisticMessage],
-        isSending: imageFile != null || videoFile != null || audioFile != null || docFile != null,
+        isSending: false, 
         replyMessage: null,
         selectedImage: null,
         selectedVideo: null,
@@ -602,21 +604,28 @@ class ChatProvider with ChangeNotifier {
       String? remoteMediaUrl;
       String? finalMimeType;
 
+      final onProgress = (double progress) {
+        _updateMessageProgress(optimisticMessage.id, progress);
+      };
+
       if (imageFile != null) {
         remoteMediaUrl = await _messagingService.uploadChatMedia(
           imageFile.path,
           folder: 'images',
+          onProgress: onProgress,
         );
       } else if (videoFile != null) {
         remoteMediaUrl = await _messagingService.uploadChatMedia(
           videoFile.path,
           folder: 'videos',
+          onProgress: onProgress,
         );
       } else if (docFile != null) {
         if (docFile.path != null) {
           remoteMediaUrl = await _messagingService.uploadChatMedia(
             docFile.path!,
             folder: 'files',
+            onProgress: onProgress,
           );
           finalMimeType = docFile.extension;
         }
@@ -624,10 +633,12 @@ class ChatProvider with ChangeNotifier {
         remoteMediaUrl = await _messagingService.uploadChatMedia(
           audioFile.path,
           folder: 'audio',
+          onProgress: onProgress,
         );
       }
 
       // Generate dual-layer fallback (RSA encrypted copy for both sender and recipient)
+      // ... same logic as before ...
       if (_encryptionService.isInitialized && content.isNotEmpty) {
         try {
           final recipientId = otherUserId ?? state.otherUserId;
@@ -699,7 +710,6 @@ class ChatProvider with ChangeNotifier {
             ...s.messages.where((m) => m.id != optimisticMessage.id),
             decrypted,
           ],
-          isSending: false,
         ),
       );
 
@@ -712,10 +722,21 @@ class ChatProvider with ChangeNotifier {
           messages: s.messages
               .where((m) => m.id != optimisticMessage.id)
               .toList(),
-          isSending: false,
         ),
       );
       onError?.call('Failed to send message: $e');
+    }
+  }
+
+  void _updateMessageProgress(String messageId, double progress) {
+    final index = state.messages.indexWhere((m) => m.id == messageId);
+    if (index != -1) {
+      final updatedMessages = List<Message>.from(state.messages);
+      updatedMessages[index] = updatedMessages[index].copyWith(
+        uploadProgress: progress,
+        isUploading: progress < 1.0,
+      );
+      setState((s) => s.copyWith(messages: updatedMessages));
     }
   }
 
@@ -1239,12 +1260,43 @@ class ChatProvider with ChangeNotifier {
     final userId = _authService.currentUser?.id;
     if (userId == null) return;
 
-    setState((s) => s.copyWith(isSending: true, replyMessage: null));
+    // Create and add optimistic message
+    final optimisticMessage = Message(
+      id: 'optimistic_${DateTime.now().millisecondsSinceEpoch}',
+      conversationId: conversationId,
+      senderId: userId,
+      senderName: _authService.currentUser?.username ?? 'Me',
+      senderAvatar: _authService.currentUser?.photoUrl ?? '',
+      content: 'Audio message',
+      timestamp: DateTime.now(),
+      isRead: false,
+      messageType: MessageType.voice,
+      mediaUrl: audioPath,
+      mediaFileName: 'audio_${DateTime.now().millisecondsSinceEpoch}.m4a',
+      voiceDuration: duration,
+      isEphemeral: state.whisperMode > 0,
+      ephemeralDuration: state.ephemeralDuration,
+      replyToId: state.replyMessage?.id,
+      isUploading: true,
+      uploadProgress: 0.0,
+    );
+
+    setState(
+      (s) => s.copyWith(
+        messages: [...s.messages, optimisticMessage],
+        isSending: false,
+        replyMessage: null,
+      ),
+    );
+    scrollToBottom();
 
     try {
       final remoteUrl = await _messagingService.uploadChatMedia(
         audioPath,
         folder: 'audio',
+        onProgress: (progress) {
+          _updateMessageProgress(optimisticMessage.id, progress);
+        },
       );
 
       final sentMessage = await _messagingService.sendMessage(
@@ -1261,14 +1313,21 @@ class ChatProvider with ChangeNotifier {
 
       final decrypted = await _decryptSingleMessage(sentMessage);
       setState(
-        (s) =>
-            s.copyWith(messages: [...s.messages, decrypted], isSending: false),
+        (s) => s.copyWith(
+          messages: [
+            ...s.messages.where((m) => m.id != optimisticMessage.id),
+            decrypted,
+          ],
+        ),
       );
-      scrollToBottom();
       await settingsProvider.saveMessagesToCache(state.messages);
     } catch (e) {
       debugPrint('Error sending audio message: $e');
-      setState((s) => s.copyWith(isSending: false));
+      setState(
+        (s) => s.copyWith(
+          messages: s.messages.where((m) => m.id != optimisticMessage.id).toList(),
+        ),
+      );
       onError?.call('Failed to send audio message: $e');
     }
   }

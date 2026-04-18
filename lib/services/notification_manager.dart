@@ -467,20 +467,23 @@ class NotificationManager {
     // Foreground message handler - works when app is in foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       debugPrint('FCM onMessage received: ${message.messageId}');
-      if (message.notification != null) {
-        String body = message.notification!.body ?? '';
+      
+      if (message.notification != null || message.data.isNotEmpty) {
+        String title = message.notification?.title ?? message.data['title'] ?? 'New Notification';
+        String body = message.notification?.body ?? message.data['body'] ?? '';
         
         // Decrypt body if it's an encrypted message
         final decryptedBody = await NotificationDecryptionService().decryptMessage(message.data);
-        if (decryptedBody != null) {
+        if (decryptedBody != null && decryptedBody.isNotEmpty) {
           body = decryptedBody;
         }
 
         showNotification(
-          title: message.notification!.title ?? 'New Notification',
+          title: title,
           body: body,
           payload: jsonEncode(message.data),
           messageType: message.data['message_type'] ?? message.data['type'],
+          senderAvatar: message.data['sender_avatar'],
         );
       }
     });

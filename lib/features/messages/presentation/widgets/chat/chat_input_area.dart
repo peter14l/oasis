@@ -183,11 +183,11 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     final Widget inputArea = material.Container(
       padding: material.EdgeInsets.symmetric(
         horizontal: widget.isDesktop ? 8 : 4,
-        vertical: widget.isDesktop ? 4 : 4,
+        vertical: widget.isDesktop ? 4 : 2,
       ),
       decoration: decoration,
       child: material.Row(
-        crossAxisAlignment: widget.isDesktop ? material.CrossAxisAlignment.center : material.CrossAxisAlignment.end,
+        crossAxisAlignment: material.CrossAxisAlignment.center,
         children: [
           widget.isDesktop ? 
           fluent.FlyoutTarget(
@@ -302,7 +302,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
                         isDense: true,
                         contentPadding: material.EdgeInsets.symmetric(
                           horizontal: widget.isDesktop ? 4 : 10,
-                          vertical: widget.isDesktop ? 8 : 6,
+                          vertical: widget.isDesktop ? 6 : 4,
                         ),
                         margin: material.EdgeInsets.zero,
                         border: material.InputBorder.none,
@@ -313,7 +313,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
           ),
           const material.SizedBox(width: 4),
           material.Padding(
-            padding: material.EdgeInsets.only(bottom: widget.isDesktop ? 0 : 2),
+            padding: material.EdgeInsets.only(bottom: 0),
             child: buildActionButton(),
           ),
         ],

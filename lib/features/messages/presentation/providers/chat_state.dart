@@ -83,33 +83,33 @@ class ChatState {
     bool? isSending,
     bool? isRecording,
     int? recordDuration,
-    Message? replyMessage,
+    Object? replyMessage = _sentinel,
     List<String>? smartReplies,
     bool? showingSmartReplies,
     ChatTheme? activeTheme,
     int? whisperMode,
     int? lastActiveWhisperMode,
     int? ephemeralDuration,
-    String? backgroundUrl,
+    Object? backgroundUrl = _sentinel,
     double? bgOpacity,
     double? bgBrightness,
     String? mediaViewMode,
-    Color? bubbleColorSent,
-    Color? bubbleColorReceived,
-    Color? textColorSent,
-    Color? textColorReceived,
+    Object? bubbleColorSent = _sentinel,
+    Object? bubbleColorReceived = _sentinel,
+    Object? textColorSent = _sentinel,
+    Object? textColorReceived = _sentinel,
     bool? encryptionReady,
-    XFile? selectedImage,
-    File? selectedVideo,
-    File? selectedAudio,
-    PlatformFile? selectedFile,
+    Object? selectedImage = _sentinel,
+    Object? selectedVideo = _sentinel,
+    Object? selectedAudio = _sentinel,
+    Object? selectedFile = _sentinel,
     double? whisperDragProgress,
     double? whisperDragOffset,
     bool? whisperTriggered,
-    String? otherUserName,
-    String? otherUserId,
-    String? otherUserAvatar,
-    String? highlightedMessageId,
+    Object? otherUserName = _sentinel,
+    Object? otherUserId = _sentinel,
+    Object? otherUserAvatar = _sentinel,
+    Object? highlightedMessageId = _sentinel,
   }) {
     return ChatState(
       messages: messages ?? this.messages,
@@ -117,7 +117,8 @@ class ChatState {
       isSending: isSending ?? this.isSending,
       isRecording: isRecording ?? this.isRecording,
       recordDuration: recordDuration ?? this.recordDuration,
-      replyMessage: replyMessage ?? this.replyMessage,
+      replyMessage:
+          replyMessage == _sentinel ? this.replyMessage : (replyMessage as Message?),
       smartReplies: smartReplies ?? this.smartReplies,
       showingSmartReplies: showingSmartReplies ?? this.showingSmartReplies,
       activeTheme: activeTheme ?? this.activeTheme,
@@ -125,26 +126,41 @@ class ChatState {
       lastActiveWhisperMode:
           lastActiveWhisperMode ?? this.lastActiveWhisperMode,
       ephemeralDuration: ephemeralDuration ?? this.ephemeralDuration,
-      backgroundUrl: backgroundUrl ?? this.backgroundUrl,
+      backgroundUrl:
+          backgroundUrl == _sentinel ? this.backgroundUrl : (backgroundUrl as String?),
       bgOpacity: bgOpacity ?? this.bgOpacity,
       bgBrightness: bgBrightness ?? this.bgBrightness,
       mediaViewMode: mediaViewMode ?? this.mediaViewMode,
-      bubbleColorSent: bubbleColorSent ?? this.bubbleColorSent,
-      bubbleColorReceived: bubbleColorReceived ?? this.bubbleColorReceived,
-      textColorSent: textColorSent ?? this.textColorSent,
-      textColorReceived: textColorReceived ?? this.textColorReceived,
+      bubbleColorSent:
+          bubbleColorSent == _sentinel ? this.bubbleColorSent : (bubbleColorSent as Color?),
+      bubbleColorReceived:
+          bubbleColorReceived == _sentinel ? this.bubbleColorReceived : (bubbleColorReceived as Color?),
+      textColorSent:
+          textColorSent == _sentinel ? this.textColorSent : (textColorSent as Color?),
+      textColorReceived:
+          textColorReceived == _sentinel ? this.textColorReceived : (textColorReceived as Color?),
       encryptionReady: encryptionReady ?? this.encryptionReady,
-      selectedImage: selectedImage ?? this.selectedImage,
-      selectedVideo: selectedVideo ?? this.selectedVideo,
-      selectedAudio: selectedAudio ?? this.selectedAudio,
-      selectedFile: selectedFile ?? this.selectedFile,
+      selectedImage:
+          selectedImage == _sentinel ? this.selectedImage : (selectedImage as XFile?),
+      selectedVideo:
+          selectedVideo == _sentinel ? this.selectedVideo : (selectedVideo as File?),
+      selectedAudio:
+          selectedAudio == _sentinel ? this.selectedAudio : (selectedAudio as File?),
+      selectedFile:
+          selectedFile == _sentinel ? this.selectedFile : (selectedFile as PlatformFile?),
       whisperDragProgress: whisperDragProgress ?? this.whisperDragProgress,
       whisperDragOffset: whisperDragOffset ?? this.whisperDragOffset,
       whisperTriggered: whisperTriggered ?? this.whisperTriggered,
-      otherUserName: otherUserName ?? this.otherUserName,
-      otherUserId: otherUserId ?? this.otherUserId,
-      otherUserAvatar: otherUserAvatar ?? this.otherUserAvatar,
-      highlightedMessageId: highlightedMessageId ?? this.highlightedMessageId,
+      otherUserName:
+          otherUserName == _sentinel ? this.otherUserName : (otherUserName as String?),
+      otherUserId:
+          otherUserId == _sentinel ? this.otherUserId : (otherUserId as String?),
+      otherUserAvatar:
+          otherUserAvatar == _sentinel ? this.otherUserAvatar : (otherUserAvatar as String?),
+      highlightedMessageId:
+          highlightedMessageId == _sentinel ? this.highlightedMessageId : (highlightedMessageId as String?),
     );
   }
 }
+
+const _sentinel = Object();

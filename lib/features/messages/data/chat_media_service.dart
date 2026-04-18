@@ -2,6 +2,7 @@ import 'package:universal_io/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
+import 'package:dio/dio.dart';
 import 'package:oasis/core/config/supabase_config.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/subscription_service.dart';
@@ -9,11 +10,12 @@ import 'package:oasis/services/subscription_service.dart';
 /// Service for managing media attachments in chat.
 /// 
 /// Handles uploading images, documents, and voice messages to Supabase storage,
-/// including support for uploading encrypted byte arrays.
+/// including support for uploading encrypted byte arrays with real progress tracking.
 class ChatMediaService {
   final SupabaseClient _supabase;
   final SubscriptionService _subscriptionService;
   final _uuid = const Uuid();
+  final _dio = Dio();
 
   ChatMediaService({SupabaseClient? client, SubscriptionService? subscriptionService})
       : _supabase = client ?? SupabaseService().client,
@@ -31,26 +33,27 @@ class ChatMediaService {
     String folder = 'images',
     Uint8List? encryptedBytes,
     String? fileExtension,
+    Function(double)? onProgress,
   }) async {
     try {
-      final userId = _supabase.auth.currentUser?.id;
+      final session = _supabase.auth.currentSession;
+      final userId = session?.user.id;
       if (userId == null) throw Exception('Not authenticated');
+
+      final file = File(filePath);
+      int totalSize = 0;
+      
+      if (encryptedBytes != null) {
+        totalSize = encryptedBytes.length;
+      } else if (await file.exists()) {
+        totalSize = await file.length();
+      }
 
       // Check for 2GB limit for Free users
       if (!_subscriptionService.isPro) {
-        final file = File(filePath);
-        if (await file.exists()) {
-          final sizeInBytes = await file.length();
-          const twoGBInBytes = 2 * 1024 * 1024 * 1024;
-          if (sizeInBytes > twoGBInBytes) {
-            throw Exception('Files larger than 2GB require Oasis Pro.');
-          }
-        } else if (encryptedBytes != null) {
-          final sizeInBytes = encryptedBytes.length;
-          const twoGBInBytes = 2 * 1024 * 1024 * 1024;
-          if (sizeInBytes > twoGBInBytes) {
-            throw Exception('Files larger than 2GB require Oasis Pro.');
-          }
+        const twoGBInBytes = 2 * 1024 * 1024 * 1024;
+        if (totalSize > twoGBInBytes) {
+          throw Exception('Files larger than 2GB require Oasis Pro.');
         }
       }
 
@@ -58,15 +61,34 @@ class ChatMediaService {
       final fileName = '${DateTime.now().millisecondsSinceEpoch}_${_uuid.v4()}.$fileExt';
       final storagePath = '$userId/$folder/$fileName';
 
-      if (encryptedBytes != null) {
-        await _supabase.storage
-            .from(SupabaseConfig.messageAttachmentsBucket)
-            .uploadBinary(storagePath, encryptedBytes);
-      } else {
-        await _supabase.storage
-            .from(SupabaseConfig.messageAttachmentsBucket)
-            .upload(storagePath, File(filePath));
-      }
+      // Use Dio for real progress tracking
+      final url = '${SupabaseConfig.supabaseUrl}/storage/v1/object/${SupabaseConfig.messageAttachmentsBucket}/$storagePath';
+      
+      final options = Options(
+        headers: {
+          'Authorization': 'Bearer ${session?.accessToken}',
+          'apikey': SupabaseConfig.supabaseAnonKey,
+          'Content-Type': _getMimeType(fileExt),
+          'x-upsert': 'true',
+        },
+      );
+
+      final dynamic data = encryptedBytes ?? file.openRead();
+
+      await _dio.post(
+        url,
+        data: data,
+        options: options,
+        onSendProgress: (sent, total) {
+          if (onProgress != null && totalSize > 0) {
+            // total parameter in onSendProgress can be -1 for streams
+            final progress = sent / totalSize;
+            onProgress(progress.clamp(0.0, 0.99)); // Keep at 99% until fully done
+          }
+        },
+      );
+
+      onProgress?.call(1.0); // Final completion
 
       return _supabase.storage
           .from(SupabaseConfig.messageAttachmentsBucket)
@@ -74,6 +96,31 @@ class ChatMediaService {
     } catch (e) {
       debugPrint('[ChatMediaService] Upload Error: $e');
       rethrow;
+    }
+  }
+
+  String _getMimeType(String extension) {
+    switch (extension.toLowerCase()) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'mp4':
+        return 'video/mp4';
+      case 'mov':
+        return 'video/quicktime';
+      case 'pdf':
+        return 'application/pdf';
+      case 'm4a':
+      case 'aac':
+        return 'audio/mp4';
+      case 'mp3':
+        return 'audio/mpeg';
+      default:
+        return 'application/octet-stream';
     }
   }
 

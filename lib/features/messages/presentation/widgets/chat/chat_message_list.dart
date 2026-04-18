@@ -390,6 +390,8 @@ class MessageBubble extends StatelessWidget {
           currentUserViewCount: message.currentUserViewCount,
           messageId: message.id,
           textColor: textColor,
+          isUploading: message.isUploading,
+          uploadProgress: message.uploadProgress,
         );
       case MessageType.document:
         if (message.mediaUrl?.contains('videos') ?? false) {
@@ -401,6 +403,8 @@ class MessageBubble extends StatelessWidget {
             currentUserViewCount: message.currentUserViewCount,
             messageId: message.id,
             textColor: textColor,
+            isUploading: message.isUploading,
+            uploadProgress: message.uploadProgress,
           );
         }
         return DocumentBubble(
@@ -409,6 +413,8 @@ class MessageBubble extends StatelessWidget {
           fileSize: message.mediaFileSize,
           isMe: isMe,
           textColor: textColor,
+          isUploading: message.isUploading,
+          uploadProgress: message.uploadProgress,
         );
       case MessageType.voice:
         return VoiceBubble(
@@ -417,6 +423,8 @@ class MessageBubble extends StatelessWidget {
           isMe: isMe,
           messageId: message.id,
           textColor: textColor,
+          isUploading: message.isUploading,
+          uploadProgress: message.uploadProgress,
         );
       case MessageType.postShare:
         return PostShareBubble(message: message, isMe: isMe);
