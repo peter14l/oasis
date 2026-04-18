@@ -15,12 +15,28 @@ class PresenceProvider with ChangeNotifier {
 
   // Polling fallback for user presence (when realtime presence sync fails)
   Timer? _pollingTimer;
+  Timer? _heartbeatTimer;
   static const Duration _pollingInterval = Duration(seconds: 10);
+  static const Duration _heartbeatInterval = Duration(seconds: 30);
+  static const Duration _offlineThreshold = Duration(minutes: 1);
   final Set<String> _trackedUserIds = {};
 
-  UserPresence? getUserPresence(String userId) => _userPresence[userId];
+  UserPresence? getUserPresence(String userId) {
+    final presence = _userPresence[userId];
+    if (presence == null) return null;
 
-  bool isUserOnline(String userId) => _userPresence[userId]?.status == 'online';
+    // Client-side validation: if status is online but last_seen is too old, treat as offline
+    if (presence.status == 'online' && presence.lastSeen != null) {
+      final now = DateTime.now();
+      if (now.difference(presence.lastSeen!) > _offlineThreshold) {
+        return UserPresence(status: 'offline', lastSeen: presence.lastSeen);
+      }
+    }
+
+    return presence;
+  }
+
+  bool isUserOnline(String userId) => getUserPresence(userId)?.status == 'online';
 
   void subscribeToUserPresence(String userId) {
     // Track user ID for polling fallback
@@ -37,8 +53,9 @@ class PresenceProvider with ChangeNotifier {
       },
     );
 
-    // Start polling fallback if not started
+    // Start polling fallback and heartbeat if not started
     _startPollingFallback();
+    _startHeartbeat();
   }
 
   void updateUserPresence(String userId, String status) {
@@ -55,6 +72,8 @@ class PresenceProvider with ChangeNotifier {
     if (_trackedUserIds.isEmpty) {
       _pollingTimer?.cancel();
       _pollingTimer = null;
+      _heartbeatTimer?.cancel();
+      _heartbeatTimer = null;
     }
   }
 
@@ -62,6 +81,8 @@ class PresenceProvider with ChangeNotifier {
   void dispose() {
     _pollingTimer?.cancel();
     _pollingTimer = null;
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
     super.dispose();
   }
 
@@ -71,6 +92,18 @@ class PresenceProvider with ChangeNotifier {
 
     _pollingTimer = Timer.periodic(_pollingInterval, (_) {
       _pollUserPresence();
+    });
+  }
+
+  /// Start heartbeat to keep current user online in the database.
+  void _startHeartbeat() {
+    if (_heartbeatTimer != null) return;
+
+    _heartbeatTimer = Timer.periodic(_heartbeatInterval, (_) {
+      final userId = AuthService().currentUser?.id;
+      if (userId != null) {
+        updateUserPresence(userId, 'online');
+      }
     });
   }
 
