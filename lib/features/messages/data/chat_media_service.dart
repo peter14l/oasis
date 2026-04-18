@@ -64,21 +64,20 @@ class ChatMediaService {
       // Use Dio for real progress tracking
       final url = '${SupabaseConfig.supabaseUrl}/storage/v1/object/${SupabaseConfig.messageAttachmentsBucket}/$storagePath';
       
-      final options = Options(
-        headers: {
-          'Authorization': 'Bearer ${session?.accessToken}',
-          'apikey': SupabaseConfig.supabaseAnonKey,
-          'Content-Type': _getMimeType(fileExt),
-          'x-upsert': 'true',
-        },
-      );
-
       final dynamic data = encryptedBytes ?? file.openRead();
 
       await _dio.post(
         url,
         data: data,
-        options: options,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer ${session?.accessToken}',
+            'apikey': SupabaseConfig.supabaseAnonKey,
+            'Content-Type': _getMimeType(fileExt),
+            'Content-Length': totalSize.toString(),
+            'x-upsert': 'true',
+          },
+        ),
         onSendProgress: (sent, total) {
           if (onProgress != null && totalSize > 0) {
             // total parameter in onSendProgress can be -1 for streams
