@@ -137,6 +137,122 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _listenForPasswordRecovery();
+    _checkForUpdates();
+  }
+
+  Future<void> _checkForUpdates() async {
+    final updateInfo = await UpdateService.instance.checkForUpdates();
+    if (updateInfo != null && updateInfo.isUpdateAvailable) {
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          _showUpdateModalSheet(updateInfo);
+        }
+      });
+    }
+  }
+
+  void _showUpdateModalSheet(UpdateInfo updateInfo) {
+    final context = AppRouter.rootNavigatorKey.currentContext;
+    if (context == null) return;
+
+    material.showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: material.Colors.transparent,
+      builder: (context) => material.Container(
+        padding: const material.EdgeInsets.all(24),
+        decoration: material.BoxDecoration(
+          color: material.Theme.of(context).colorScheme.surface,
+          borderRadius: const material.BorderRadius.vertical(top: material.Radius.circular(32)),
+        ),
+        child: material.Column(
+          mainAxisSize: material.MainAxisSize.min,
+          crossAxisAlignment: material.CrossAxisAlignment.start,
+          children: [
+            material.Center(
+              child: material.Container(
+                width: 40,
+                height: 4,
+                decoration: material.BoxDecoration(
+                  color: material.Theme.of(context).colorScheme.outlineVariant,
+                  borderRadius: material.BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const material.SizedBox(height: 24),
+            material.Row(
+              children: [
+                material.Icon(
+                  material.Icons.system_update,
+                  color: material.Theme.of(context).colorScheme.primary,
+                  size: 32,
+                ),
+                const material.SizedBox(width: 16),
+                material.Expanded(
+                  child: material.Column(
+                    crossAxisAlignment: material.CrossAxisAlignment.start,
+                    children: [
+                      material.Text(
+                        'New Version Available',
+                        style: material.Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: material.FontWeight.bold,
+                            ),
+                      ),
+                      material.Text(
+                        'Version ${updateInfo.latestVersion} is ready',
+                        style: material.Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: material.Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const material.SizedBox(height: 20),
+            if (updateInfo.releaseNotes.isNotEmpty) ...[
+              material.Text(
+                'What\'s New:',
+                style: material.Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: material.FontWeight.bold,
+                    ),
+              ),
+              const material.SizedBox(height: 8),
+              material.Text(
+                updateInfo.releaseNotes,
+                style: material.Theme.of(context).textTheme.bodyMedium,
+                maxLines: 5,
+                overflow: material.TextOverflow.ellipsis,
+              ),
+              const material.SizedBox(height: 20),
+            ],
+            material.Row(
+              children: [
+                if (!updateInfo.isRequired)
+                  material.Expanded(
+                    child: material.OutlinedButton(
+                      onPressed: () => material.Navigator.pop(context),
+                      child: const material.Text('Later'),
+                    ),
+                  ),
+                if (!updateInfo.isRequired) const material.SizedBox(width: 12),
+                material.Expanded(
+                  flex: 2,
+                  child: material.FilledButton(
+                    onPressed: () {
+                      material.Navigator.pop(context);
+                      context.push('/settings/update');
+                    },
+                    child: const material.Text('Update Now'),
+                  ),
+                ),
+              ],
+            ),
+            const material.SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
   }
 
   void _listenForPasswordRecovery() {
@@ -429,8 +545,6 @@ Future<void> _runAppInitialization() async {
         final packageInfo = await PackageInfo.fromPlatform();
         AppConfig.appVersion = packageInfo.version;
 
-        _checkForUpdates();
-
         await AppInitializer.initFirebase();
 
         try {
@@ -510,20 +624,3 @@ void _showErrorScreen(Object error, StackTrace stack, {bool isCorruption = false
   );
 }
 
-Future<void> _checkForUpdates() async {
-  if (!UpdateService.isEnabled) return;
-
-  final updateInfo = await UpdateService.instance.checkForUpdates();
-
-  if (updateInfo != null && updateInfo.isUpdateAvailable) {
-    Future.delayed(const Duration(seconds: 3), () {
-      if (updateInfo.isRequired) {
-        _pendingUpdateInfo = updateInfo;
-      } else {
-        UpdateService.instance.showUpdateNotification(updateInfo);
-      }
-    });
-  }
-}
-
-UpdateInfo? _pendingUpdateInfo;

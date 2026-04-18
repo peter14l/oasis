@@ -1025,6 +1025,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       _buildSettingsTile(
         context,
+        icon: material.Icons.system_update_outlined,
+        title: 'App Updates',
+        subtitle: 'Check for software updates',
+        iconColor: material.Colors.blue,
+        onTap: () => context.push('/settings/update'),
+      ),
+      _buildSettingsTile(
+        context,
         icon: material.Icons.info_outline,
         title: 'About Oasis',
         subtitle: 'Version 4.1.0',

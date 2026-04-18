@@ -35,6 +35,7 @@ import 'package:oasis/services/wellness_service.dart';
 import 'package:oasis/services/curation_tracking_service.dart';
 import 'package:oasis/services/voice_transcript_service.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
+import 'package:oasis/services/update_service.dart';
 import 'package:oasis/features/canvas/presentation/providers/canvas_provider.dart';
 import 'package:oasis/features/capsules/presentation/providers/capsule_provider.dart';
 import 'package:oasis/features/circles/presentation/providers/circle_provider.dart';
@@ -253,6 +254,7 @@ class InitializedServices {
   final DigitalWellbeingService digitalWellbeingService;
   final VaultService vaultService;
   final CurationTrackingService curationTrackingService;
+  final UpdateService updateService;
 
   const InitializedServices({
     required this.themeProvider,
@@ -267,6 +269,7 @@ class InitializedServices {
     required this.digitalWellbeingService,
     required this.vaultService,
     required this.curationTrackingService,
+    required this.updateService,
   });
 }
 
@@ -511,6 +514,7 @@ class AppInitializer {
     }
 
     final curationTrackingService = CurationTrackingService();
+    final updateService = UpdateService.instance;
 
     return InitializedServices(
       themeProvider: themeProvider,
@@ -525,6 +529,7 @@ class AppInitializer {
       digitalWellbeingService: digitalWellbeingService,
       vaultService: vaultService,
       curationTrackingService: curationTrackingService,
+      updateService: updateService,
     );
   }
 
@@ -658,6 +663,9 @@ class AppInitializer {
         ),
         ChangeNotifierProvider<VaultService>.value(
           value: services.vaultService,
+        ),
+        ChangeNotifierProvider<UpdateService>.value(
+          value: services.updateService,
         ),
         ChangeNotifierProvider<CurationTrackingService>.value(
           value: services.curationTrackingService,
