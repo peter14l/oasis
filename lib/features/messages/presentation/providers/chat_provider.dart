@@ -543,7 +543,7 @@ class ChatProvider with ChangeNotifier {
       String? signalSenderContent;
       bool usedSignal = false;
 
-      if (_encryptionService.isInitialized) {
+      if (_encryptionService.isInitialized && content.isNotEmpty) {
         var recipientId = otherUserId ?? state.otherUserId;
         
         // If still missing, try one last fetch before failing
@@ -561,7 +561,7 @@ class ChatProvider with ChangeNotifier {
           try {
             final cipherMessage = await SignalService().encryptMessage(
               recipientId,
-              content.isNotEmpty ? content : '',
+              content,
             );
             finalContent = base64Encode(cipherMessage.serialize());
             signalMessageType = cipherMessage.getType();
@@ -589,7 +589,7 @@ class ChatProvider with ChangeNotifier {
           }
 
           final encrypted = await _encryptionService.encryptMessage(
-            content.isNotEmpty ? content : '',
+            content,
             [recipientPublicKey],
           );
           finalContent = encrypted.encryptedContent;

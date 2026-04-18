@@ -61,23 +61,31 @@ class ChatMediaService {
       final fileName = '${DateTime.now().millisecondsSinceEpoch}_${_uuid.v4()}.$fileExt';
       final storagePath = '$userId/$folder/$fileName';
 
-      if (encryptedBytes != null) {
-        await _supabase.storage
-            .from(SupabaseConfig.messageAttachmentsBucket)
-            .uploadBinary(
-              storagePath,
-              encryptedBytes,
-              fileOptions: const FileOptions(upsert: true),
-            );
-      } else {
-        await _supabase.storage
-            .from(SupabaseConfig.messageAttachmentsBucket)
-            .upload(
-              storagePath,
-              file,
-              fileOptions: const FileOptions(upsert: true),
-            );
-      }
+      // Use Dio for real progress tracking
+      final url = '${SupabaseConfig.supabaseUrl}/storage/v1/object/${SupabaseConfig.messageAttachmentsBucket}/$storagePath';
+      
+      final dynamic data = encryptedBytes ?? file.openRead();
+
+      await _dio.post(
+        url,
+        data: data,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer ${session?.accessToken}',
+            'apikey': SupabaseConfig.supabaseAnonKey,
+            'Content-Type': _getMimeType(fileExt),
+            'Content-Length': totalSize.toString(),
+            'x-upsert': 'true',
+          },
+        ),
+        onSendProgress: (sent, total) {
+          if (onProgress != null && totalSize > 0) {
+            // total parameter in onSendProgress can be -1 for streams
+            final progress = sent / totalSize;
+            onProgress(progress.clamp(0.0, 0.99)); // Keep at 99% until fully done
+          }
+        },
+      );
 
       onProgress?.call(1.0); // Final completion
 

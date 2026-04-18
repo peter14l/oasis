@@ -597,6 +597,8 @@ class EncryptionService {
     Map<String, dynamic> encryptedKeys,
     String ivBase64,
   ) async {
+    if (encryptedContentBase64.isEmpty) return '';
+    
     final key = await _decryptAESKey(encryptedKeys);
     if (key == null) return null;
     try {
