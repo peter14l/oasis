@@ -196,7 +196,7 @@ class ChatProvider with ChangeNotifier {
   // =========================================================================
 
   /// Load messages from the server and decrypt them.
-  Future<void> loadMessages({bool silent = false}) async {
+  Future<void> loadMessages({bool silent = false, int retryCount = 0}) async {
     if (!silent && state.messages.isEmpty) {
       setState((s) => s.copyWith(isLoading: true));
     }
@@ -207,13 +207,10 @@ class ChatProvider with ChangeNotifier {
         sessionStart: _sessionStartTime,
       );
 
-      // Decrypt messages (yield to event loop to prevent UI freeze)
-      final decryptedMessages = <Message>[];
-      for (final message in messages) {
-        await Future.delayed(Duration.zero);
-        final decrypted = await _decryptSingleMessage(message);
-        decryptedMessages.add(decrypted);
-      }
+      // Decrypt messages in parallel for better performance
+      final decryptedMessages = await Future.wait(
+        messages.map((message) => _decryptSingleMessage(message))
+      );
 
       // Filter expired ephemeral messages
       final now = DateTime.now();
@@ -229,9 +226,19 @@ class ChatProvider with ChangeNotifier {
       loadSmartReplies();
       await settingsProvider.saveMessagesToCache(filtered);
     } catch (e) {
-      debugPrint('Error loading messages: $e');
+      debugPrint('Error loading messages (attempt ${retryCount + 1}): $e');
+      
+      // Handle network errors with retries
+      if (retryCount < 3 && (e.toString().contains('SocketException') || e.toString().contains('ClientException'))) {
+        await Future.delayed(Duration(seconds: 1 * (retryCount + 1)));
+        return loadMessages(silent: silent, retryCount: retryCount + 1);
+      }
+
       setState((s) => s.copyWith(isLoading: false));
-      onError?.call('Error loading messages: $e');
+      // Only show error if it's the final attempt and not a silent reload
+      if (!silent) {
+        onError?.call('Error loading messages: $e');
+      }
     }
   }
 
@@ -241,14 +248,6 @@ class ChatProvider with ChangeNotifier {
       conversationId: conversationId,
       onNewMessage: (message) async {
         final currentUserId = _authService.currentUser?.id;
-        final isMe = message.senderId == currentUserId;
-
-        // If message is from me, the optimistic one is already there.
-        // The `sendMessage` function will remove the optimistic message,
-        // and the subscription will add the real one.
-        if (isMe) {
-          return;
-        }
 
         final decryptedMessage = await _decryptSingleMessage(message);
 
@@ -267,12 +266,26 @@ class ChatProvider with ChangeNotifier {
           (m) => m.id == decryptedMessage.id,
         );
 
+        // Also check if there's an optimistic message with the same content/type
+        // that this message might be replacing (though ID matching is preferred)
+        int optimisticIndex = -1;
+        if (index == -1 && decryptedMessage.senderId == currentUserId) {
+          optimisticIndex = state.messages.indexWhere(
+            (m) => m.id.startsWith('optimistic_') && 
+                   m.messageType == decryptedMessage.messageType &&
+                   (m.content == decryptedMessage.content || m.mediaFileName == decryptedMessage.mediaFileName)
+          );
+        }
+
         List<Message> updatedMessages;
-        if (index == -1) {
-          updatedMessages = [...state.messages, decryptedMessage];
-        } else {
+        if (index != -1) {
           updatedMessages = List<Message>.from(state.messages);
           updatedMessages[index] = decryptedMessage;
+        } else if (optimisticIndex != -1) {
+          updatedMessages = List<Message>.from(state.messages);
+          updatedMessages[optimisticIndex] = decryptedMessage;
+        } else {
+          updatedMessages = [...state.messages, decryptedMessage];
         }
 
         setState((s) => s.copyWith(messages: updatedMessages));
@@ -460,50 +473,65 @@ class ChatProvider with ChangeNotifier {
     final userId = _authService.currentUser?.id;
     if (userId == null) return;
 
-    // Optimistic UI for text-only messages
-    Message? optimisticMessage;
-    if (content.isNotEmpty &&
-        imageFile == null &&
-        videoFile == null &&
-        audioFile == null &&
-        docFile == null) {
-      optimisticMessage = Message(
-        id: 'optimistic_${DateTime.now().millisecondsSinceEpoch}',
-        conversationId: conversationId,
-        senderId: userId,
-        senderName: _authService.currentUser?.username ?? 'Me',
-        senderAvatar: _authService.currentUser?.photoUrl ?? '',
-        content: content,
-        timestamp: DateTime.now(),
-        isRead: false,
-        messageType: MessageType.text,
-        isEphemeral: state.whisperMode > 0,
-        ephemeralDuration: state.ephemeralDuration,
-        replyToId: replyMessage?.id,
-        replyToContent: replyMessage?.content,
-        replyToSenderName: replyMessage?.senderName,
-      );
+    // Determine message type and media info for optimistic message
+    MessageType messageType = MessageType.text;
+    String? mediaUrl;
+    String? fileName;
+    int? fileSize;
 
-      setState(
-        (s) => s.copyWith(
-          messages: [...s.messages, optimisticMessage!],
-          isSending: false,
-          replyMessage: null,
-        ),
-      );
-      scrollToBottom();
-    } else {
-      setState(
-        (s) => s.copyWith(
-          isSending: true,
-          selectedImage: null,
-          selectedVideo: null,
-          selectedAudio: null,
-          selectedFile: null,
-          replyMessage: null,
-        ),
-      );
+    if (imageFile != null) {
+      messageType = MessageType.image;
+      mediaUrl = imageFile.path;
+      fileName = imageFile.name;
+    } else if (videoFile != null) {
+      messageType = MessageType.document; // Videos are sent as document type in this app
+      mediaUrl = videoFile.path;
+      fileName = videoFile.path.split(Platform.pathSeparator).last;
+    } else if (audioFile != null) {
+      messageType = MessageType.voice;
+      mediaUrl = audioFile.path;
+      fileName = audioFile.path.split(Platform.pathSeparator).last;
+    } else if (docFile != null) {
+      messageType = MessageType.document;
+      mediaUrl = docFile.path;
+      fileName = docFile.name;
+      fileSize = docFile.size;
     }
+
+    // Create and add optimistic message
+    final optimisticMessage = Message(
+      id: 'optimistic_${DateTime.now().millisecondsSinceEpoch}',
+      conversationId: conversationId,
+      senderId: userId,
+      senderName: _authService.currentUser?.username ?? 'Me',
+      senderAvatar: _authService.currentUser?.photoUrl ?? '',
+      content: content,
+      timestamp: DateTime.now(),
+      isRead: false,
+      messageType: messageType,
+      mediaUrl: mediaUrl,
+      mediaFileName: fileName,
+      mediaFileSize: fileSize,
+      isEphemeral: state.whisperMode > 0,
+      ephemeralDuration: state.ephemeralDuration,
+      replyToId: replyMessage?.id,
+      replyToContent: replyMessage?.content,
+      replyToSenderName: replyMessage?.senderName,
+      mediaViewMode: mediaViewMode,
+    );
+
+    setState(
+      (s) => s.copyWith(
+        messages: [...s.messages, optimisticMessage],
+        isSending: imageFile != null || videoFile != null || audioFile != null || docFile != null,
+        replyMessage: null,
+        selectedImage: null,
+        selectedVideo: null,
+        selectedAudio: null,
+        selectedFile: null,
+      ),
+    );
+    scrollToBottom();
 
     try {
       String? finalContent;
@@ -563,45 +591,33 @@ class ChatProvider with ChangeNotifier {
         finalContent = content;
       }
 
-      // Upload media if present
-      String? mediaUrl;
-      MessageType messageType = MessageType.text;
-      String? fileName;
-      int? fileSize;
-      String? mimeType;
+      // Upload media if present (now we overwrite the local path with the remote URL)
+      String? remoteMediaUrl;
+      String? finalMimeType;
 
       if (imageFile != null) {
-        fileName = imageFile.name;
-        mediaUrl = await _messagingService.uploadChatMedia(
+        remoteMediaUrl = await _messagingService.uploadChatMedia(
           imageFile.path,
           folder: 'images',
         );
-        messageType = MessageType.image;
       } else if (videoFile != null) {
-        fileName = videoFile.path.split(Platform.pathSeparator).last;
-        mediaUrl = await _messagingService.uploadChatMedia(
+        remoteMediaUrl = await _messagingService.uploadChatMedia(
           videoFile.path,
           folder: 'videos',
         );
-        messageType = MessageType.document;
       } else if (docFile != null) {
         if (docFile.path != null) {
-          fileName = docFile.name;
-          mediaUrl = await _messagingService.uploadChatMedia(
+          remoteMediaUrl = await _messagingService.uploadChatMedia(
             docFile.path!,
             folder: 'files',
           );
-          messageType = MessageType.document;
-          fileSize = docFile.size;
-          mimeType = docFile.extension;
+          finalMimeType = docFile.extension;
         }
       } else if (audioFile != null) {
-        fileName = audioFile.path.split(Platform.pathSeparator).last;
-        mediaUrl = await _messagingService.uploadChatMedia(
+        remoteMediaUrl = await _messagingService.uploadChatMedia(
           audioFile.path,
           folder: 'audio',
         );
-        messageType = MessageType.voice;
       }
 
       // Generate dual-layer fallback (RSA encrypted copy for both sender and recipient)
@@ -655,10 +671,10 @@ class ChatProvider with ChangeNotifier {
         senderId: userId,
         content: finalContent ?? '',
         messageType: messageType,
-        mediaUrl: mediaUrl,
+        mediaUrl: remoteMediaUrl,
         mediaFileName: fileName,
         mediaFileSize: fileSize,
-        mediaMimeType: mimeType,
+        mediaMimeType: finalMimeType,
         encryptedKeys: encryptedKeys,
         iv: iv,
         signalMessageType: signalMessageType,
@@ -669,37 +685,29 @@ class ChatProvider with ChangeNotifier {
       );
 
       // Replace optimistic message with the real one
-      if (optimisticMessage != null) {
-        final decrypted = await _decryptSingleMessage(sentMessage);
-        setState(
-          (s) => s.copyWith(
-            messages: [
-              ...s.messages.where((m) => m.id != optimisticMessage!.id),
-              decrypted,
-            ],
-            isSending: false,
-          ),
-        );
-      } else {
-        setState((s) => s.copyWith(isSending: false));
-      }
+      final decrypted = await _decryptSingleMessage(sentMessage);
+      setState(
+        (s) => s.copyWith(
+          messages: [
+            ...s.messages.where((m) => m.id != optimisticMessage.id),
+            decrypted,
+          ],
+          isSending: false,
+        ),
+      );
 
       await settingsProvider.saveMessagesToCache(state.messages);
     } catch (e) {
       debugPrint('Error sending message: $e');
       // Remove optimistic message on failure
-      if (optimisticMessage != null) {
-        setState(
-          (s) => s.copyWith(
-            messages: s.messages
-                .where((m) => m.id != optimisticMessage!.id)
-                .toList(),
-            isSending: false,
-          ),
-        );
-      } else {
-        setState((s) => s.copyWith(isSending: false));
-      }
+      setState(
+        (s) => s.copyWith(
+          messages: s.messages
+              .where((m) => m.id != optimisticMessage.id)
+              .toList(),
+          isSending: false,
+        ),
+      );
       onError?.call('Failed to send message: $e');
     }
   }
@@ -1025,6 +1033,9 @@ class ChatProvider with ChangeNotifier {
     }
     _lastResumeTime = now;
 
+    // Small delay to let the OS re-establish network connectivity
+    await Future.delayed(const Duration(seconds: 1));
+
     // Reload messages silently, reconnect realtime
     await loadMessages(silent: true);
     _reconnectRealtime();
@@ -1158,7 +1169,7 @@ class ChatProvider with ChangeNotifier {
 
   Future<void> shareLiveLocation(Duration duration) async {
     try {
-      setState((s) => s.copyWith(isSending: true));
+      setState((s) => s.copyWith(isSending: true, replyMessage: null));
 
       // Get initial location before sending the message
       double? latitude;
@@ -1194,6 +1205,7 @@ class ChatProvider with ChangeNotifier {
         messageType: MessageType.location,
         mediaViewMode: 'live_location',
         locationData: locationData,
+        replyToId: state.replyMessage?.id,
       );
 
       // Start the tracker
@@ -1210,6 +1222,47 @@ class ChatProvider with ChangeNotifier {
       debugPrint('Error starting live location: $e');
       setState((s) => s.copyWith(isSending: false));
       onError?.call('Failed to share live location: $e');
+    }
+  }
+
+  Future<void> sendAudioMessage({
+    required String audioPath,
+    required int duration,
+  }) async {
+    final userId = _authService.currentUser?.id;
+    if (userId == null) return;
+
+    setState((s) => s.copyWith(isSending: true, replyMessage: null));
+
+    try {
+      final remoteUrl = await _messagingService.uploadChatMedia(
+        audioPath,
+        folder: 'audio',
+      );
+
+      final sentMessage = await _messagingService.sendMessage(
+        conversationId: conversationId,
+        senderId: userId,
+        content: 'Audio message',
+        messageType: MessageType.voice,
+        mediaUrl: remoteUrl,
+        mediaFileName: 'audio_${DateTime.now().millisecondsSinceEpoch}.m4a',
+        voiceDuration: duration,
+        replyToId: state.replyMessage?.id,
+        whisperMode: state.whisperMode,
+      );
+
+      final decrypted = await _decryptSingleMessage(sentMessage);
+      setState(
+        (s) =>
+            s.copyWith(messages: [...s.messages, decrypted], isSending: false),
+      );
+      scrollToBottom();
+      await settingsProvider.saveMessagesToCache(state.messages);
+    } catch (e) {
+      debugPrint('Error sending audio message: $e');
+      setState((s) => s.copyWith(isSending: false));
+      onError?.call('Failed to send audio message: $e');
     }
   }
 

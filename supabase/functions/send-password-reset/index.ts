@@ -20,7 +20,7 @@ serve(async (req) => {
     // Get environment variables
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    const resendApiKey = Deno.env.get("RESEND_API_KEY")!
+    const sendgridApiKey = Deno.env.get("SENDGRID_API_KEY")!
 
     console.log(`Processing password reset for: ${email}`)
 
@@ -52,7 +52,8 @@ serve(async (req) => {
     // IMPORTANT: Use the Supabase auth callback URL, not the app URL directly
     // The auth callback will validate the token and redirect to the app
     const siteUrl = Deno.env.get("SITE_URL") || "https://oasis-web-red.vercel.app"
-    const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "Oasis <noreply@oasis.app>"
+    const fromEmail = Deno.env.get("SENDGRID_FROM_EMAIL") || "noreply@oasis.app"
+    const fromName = Deno.env.get("SENDGRID_FROM_NAME") || "Oasis"
     
     const callbackUrl = `${supabaseUrl}/auth/v1/callback?redirect_to=${siteUrl}/reset-password`
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
@@ -82,7 +83,7 @@ serve(async (req) => {
 
     console.log("Generated reset link successfully")
 
-    // Send email via Resend
+    // Send email via SendGrid
     const emailSubject = type === "magic" 
       ? "Your Magic Sign-in Link" 
       : "Reset your password"
@@ -115,24 +116,32 @@ serve(async (req) => {
         </div>
       `
 
-    // Send via Resend API
-    const resendResponse = await fetch("https://api.resend.com/emails", {
+    // Send via SendGrid API
+    const sendgridResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${resendApiKey}`,
+        "Authorization": `Bearer ${sendgridApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: fromEmail,
-        to: email,
-        subject: emailSubject,
-        html: emailHtml,
+        personalizations: [{
+          to: [{ email: email }],
+          subject: emailSubject,
+        }],
+        from: {
+          email: fromEmail,
+          name: fromName,
+        },
+        content: [{
+          type: "text/html",
+          value: emailHtml,
+        }],
       }),
     })
 
-    if (!resendResponse.ok) {
-      const resendError = await resendResponse.text()
-      console.error("Resend error:", resendError)
+    if (!sendgridResponse.ok) {
+      const sendgridError = await sendgridResponse.text()
+      console.error("SendGrid error:", sendgridError)
       return new Response(JSON.stringify({ error: "Failed to send email" }), {
         status: 500,
       })

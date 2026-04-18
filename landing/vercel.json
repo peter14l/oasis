@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/launch-notify?token=352c2d6249a8192dcfd5e3b75749561c284d54b536bca1ab0b17421b35b4ca51",
+      "schedule": "11 11 30 4 *"
+    }
+  ]
+}

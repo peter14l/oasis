@@ -3,6 +3,7 @@ import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
 
 class CustomTextField extends StatelessWidget {
   final material.TextEditingController controller;
@@ -91,6 +92,7 @@ class CustomTextField extends StatelessWidget {
     final theme = material.Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
+    final isMobile = ResponsiveLayout.isMobile(context);
     
     final effectiveFillColor = fillColor ?? (isM3E ? colorScheme.primary.withValues(alpha: 0.05) : theme.inputDecorationTheme.fillColor);
     final effectiveTextColor = textColor ?? colorScheme.onSurface;
@@ -158,9 +160,9 @@ class CustomTextField extends StatelessWidget {
             borderSide: material.BorderSide(color: colorScheme.primary, width: 2),
           ),
           contentPadding: contentPadding ??
-              const material.EdgeInsets.symmetric(
+              material.EdgeInsets.symmetric(
                 horizontal: 16,
-                vertical: 16,
+                vertical: isMobile ? 12 : 16,
               ),
           counterText: '',
         ),

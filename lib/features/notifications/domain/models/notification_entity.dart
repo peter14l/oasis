@@ -12,6 +12,8 @@ class AppNotification {
   final String? commentId;
   final String? messageId;
   final String? message;
+  final String? conversationId;
+  final Map<String, dynamic>? metadata;
   final bool isRead;
   final DateTime timestamp;
 
@@ -27,6 +29,8 @@ class AppNotification {
     this.commentId,
     this.messageId,
     this.message,
+    this.conversationId,
+    this.metadata,
     this.isRead = false,
     required this.timestamp,
   });
@@ -44,6 +48,8 @@ class AppNotification {
       commentId: json['comment_id'] as String?,
       messageId: json['message_id'] as String?,
       message: (json['content'] ?? json['message']) as String?,
+      conversationId: json['conversation_id'] as String? ?? json['metadata']?['conversation_id'] as String?,
+      metadata: json['metadata'] as Map<String, dynamic>?,
       isRead: json['is_read'] as bool? ?? false,
       timestamp:
           json['created_at'] != null
@@ -65,6 +71,8 @@ class AppNotification {
       'comment_id': commentId,
       'message_id': messageId,
       'message': message,
+      'conversation_id': conversationId,
+      'metadata': metadata,
       'is_read': isRead,
       'created_at': timestamp.toIso8601String(),
     };
@@ -82,6 +90,8 @@ class AppNotification {
     String? commentId,
     String? messageId,
     String? message,
+    String? conversationId,
+    Map<String, dynamic>? metadata,
     bool? isRead,
     DateTime? timestamp,
   }) {
@@ -97,6 +107,8 @@ class AppNotification {
       commentId: commentId ?? this.commentId,
       messageId: messageId ?? this.messageId,
       message: message ?? this.message,
+      conversationId: conversationId ?? this.conversationId,
+      metadata: metadata ?? this.metadata,
       isRead: isRead ?? this.isRead,
       timestamp: timestamp ?? this.timestamp,
     );

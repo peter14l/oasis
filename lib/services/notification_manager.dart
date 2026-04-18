@@ -8,6 +8,20 @@ import 'package:oasis/routes/app_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:oasis/services/notification_decryption_service.dart';
+
+/// Represents a message in a notification group history
+class NotificationMessage {
+  final String senderName;
+  final String content;
+  final DateTime timestamp;
+
+  NotificationMessage({
+    required this.senderName,
+    required this.content,
+    required this.timestamp,
+  });
+}
 
 /// Cross-platform notification manager
 class NotificationManager {
@@ -16,7 +30,14 @@ class NotificationManager {
   bool _isPaused = false;
   final FlutterLocalNotificationsPlugin _localNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
-  int _notificationId = 0;
+  int _notificationId = 1000; // Start at 1000 to avoid conflicts with system IDs
+
+  // Track active message groups (last 5 messages per conversation)
+  final Map<String, List<NotificationMessage>> _activeMessageGroups = {};
+  // Map conversationId to a fixed notificationId to update the same notification
+  final Map<String, int> _conversationToNotificationId = {};
+  // Track system assigned IDs to prevent overflow
+  int _nextNotificationId = 1000;
 
   /// Singleton instance
   static NotificationManager get instance {
@@ -25,6 +46,15 @@ class NotificationManager {
   }
 
   NotificationManager._();
+
+  /// Clear a specific message group when conversation is opened/read
+  void clearGroup(String conversationId) {
+    _activeMessageGroups.remove(conversationId);
+    final id = _conversationToNotificationId.remove(conversationId);
+    if (id != null) {
+      _localNotificationsPlugin.cancel(id);
+    }
+  }
 
   /// Set whether notifications should be suppressed (e.g. during Focus Mode)
   void setPaused(bool paused) {
@@ -120,18 +150,42 @@ class NotificationManager {
         );
         return;
       }
-
-      // If it's a call, we might still want to block it if allowCallsDuringZen is false.
-      // However, we don't have direct access to WellnessService here easily without circular dependencies.
-      // For now, we'll let all calls pass through when paused, as per the mandate "Only Calls are allowed to pass through".
-      // The user toggle "if they wish to stop calls as well" is handled by the caller of setPaused if they want to be strict.
-      // But the requirement says "Only Calls are allowed to pass through that too, based on the choice of the user".
-      // We'll add a boolean to NotificationManager to track this choice.
     }
 
     String finalBody = body;
     if (messageType == 'image' || messageType == 'Photo') {
       finalBody = '📷 Photo';
+    }
+
+    // Handle Grouping for DMs
+    String? conversationId;
+    if (payload != null && (messageType == 'dm' || messageType == 'message' || messageType == 'text')) {
+      try {
+        final data = jsonDecode(payload);
+        conversationId = data['conversation_id'] ?? data['sender_id'] ?? data['actor_id'];
+      } catch (_) {
+        // If payload is just the conversationId string (from some sources)
+        if (payload.length > 20 && !payload.contains('{')) conversationId = payload;
+      }
+    }
+
+    if (conversationId != null) {
+      final group = _activeMessageGroups.putIfAbsent(conversationId, () => []);
+      group.add(NotificationMessage(
+        senderName: title,
+        content: finalBody,
+        timestamp: DateTime.now(),
+      ));
+
+      // Keep only last 5 messages
+      if (group.length > 5) {
+        group.removeAt(0);
+      }
+
+      // On non-Android platforms, we manually build a multi-line body for the group
+      if (!Platform.isAndroid && group.length > 1) {
+        finalBody = group.map((m) => '${m.senderName}: ${m.content}').join('\n');
+      }
     }
 
     try {
@@ -142,11 +196,21 @@ class NotificationManager {
           senderAvatar: senderAvatar,
         );
       } else if (_isMobile) {
+        // Get or assign a notification ID for this conversation
+        int idToUse;
+        if (conversationId != null) {
+          idToUse = _conversationToNotificationId.putIfAbsent(conversationId, () => _nextNotificationId++);
+        } else {
+          idToUse = _nextNotificationId++;
+        }
+
         await _showMobileNotification(
+          id: idToUse,
           title: title,
           body: finalBody,
           payload: payload,
           senderAvatar: senderAvatar,
+          conversationId: conversationId,
         );
       }
     } catch (e) {
@@ -216,17 +280,44 @@ class NotificationManager {
     }
   }
 
-  /// Show a mobile notification (restored exactly as it was)
+  /// Show a mobile notification
   Future<void> _showMobileNotification({
+    required int id,
     required String title,
     required String body,
     String? payload,
     String? senderAvatar,
+    String? conversationId,
   }) async {
     AndroidNotificationDetails? androidDetails;
     DarwinNotificationDetails? darwinDetails;
 
-    if (senderAvatar != null && senderAvatar.isNotEmpty) {
+    if (conversationId != null && Platform.isAndroid) {
+      final group = _activeMessageGroups[conversationId] ?? [];
+      final List<MessageStyleInformation> messages = group.map((m) => 
+        MessageStyleInformation(
+          m.content,
+          m.timestamp,
+          Person(name: m.senderName),
+        )
+      ).toList();
+
+      androidDetails = AndroidNotificationDetails(
+        'oasis_channel',
+        'Oasis Notifications',
+        channelDescription: 'Main notification channel for Oasis',
+        importance: Importance.max,
+        priority: Priority.high,
+        showWhen: true,
+        styleInformation: MessagingStyleInformation(
+          Person(name: 'Me'), // Receiver
+          conversationTitle: group.length > 1 ? 'Messages from $title' : null,
+          messages: messages,
+        ),
+      );
+    }
+
+    if (senderAvatar != null && senderAvatar.isNotEmpty && androidDetails == null) {
       try {
         final String largeIconPath = await _downloadAndSaveImage(
           senderAvatar,
@@ -248,6 +339,7 @@ class NotificationManager {
           presentBadge: true,
           presentSound: true,
           attachments: [DarwinNotificationAttachment(largeIconPath)],
+          threadIdentifier: conversationId,
         );
       } catch (e) {
         debugPrint('Error downloading notification icon: $e');
@@ -266,14 +358,15 @@ class NotificationManager {
       visibility: NotificationVisibility.public,
     );
 
-    darwinDetails ??= const DarwinNotificationDetails(
+    darwinDetails ??= DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
+      threadIdentifier: conversationId,
     );
 
     await _localNotificationsPlugin.show(
-      _notificationId++,
+      id,
       title,
       body,
       NotificationDetails(
@@ -371,12 +464,20 @@ class NotificationManager {
     }
 
     // Foreground message handler - works when app is in foreground
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       debugPrint('FCM onMessage received: ${message.messageId}');
       if (message.notification != null) {
+        String body = message.notification!.body ?? '';
+        
+        // Decrypt body if it's an encrypted message
+        final decryptedBody = await NotificationDecryptionService().decryptMessage(message.data);
+        if (decryptedBody != null) {
+          body = decryptedBody;
+        }
+
         showNotification(
           title: message.notification!.title ?? 'New Notification',
-          body: message.notification!.body ?? '',
+          body: body,
           payload: jsonEncode(message.data),
           messageType: message.data['message_type'] ?? message.data['type'],
         );
@@ -397,7 +498,6 @@ class NotificationManager {
     }
 
     // Windows-specific: when in system tray, we need to ensure we're listening
-    // The app must remain running in the system tray for FCM notifications to work
     debugPrint(
       'FCM initialized - app must run in system tray for background notifications on Windows',
     );
@@ -409,9 +509,14 @@ class NotificationManager {
     try {
       final data = jsonDecode(payload) as Map<String, dynamic>;
       final type = data['type'] as String?;
+      final conversationId = data['conversation_id'] as String?;
+
+      // Clear the group history when the user taps it to open the chat
+      if (conversationId != null) {
+        clearGroup(conversationId);
+      }
 
       if (type == 'call') {
-        // Handle incoming call notification - navigate to call screen
         final callId = data['call_id'] as String?;
         final senderId = data['actor_id'] as String?;
         if (callId != null) {
@@ -425,7 +530,6 @@ class NotificationManager {
       }
 
       if (type == 'dm' || type == 'message') {
-        final conversationId = data['conversation_id'] as String?;
         if (conversationId != null) {
           AppRouter.router.pushNamed(
             'chat_nested',
@@ -465,6 +569,8 @@ class NotificationManager {
 
   Future<void> cancelAll() async {
     await _localNotificationsPlugin.cancelAll();
+    _activeMessageGroups.clear();
+    _conversationToNotificationId.clear();
   }
 
   Future<bool> requestPermission() async {

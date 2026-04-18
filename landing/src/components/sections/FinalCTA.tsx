@@ -6,8 +6,8 @@ import { Loader2, Check, AlertCircle } from "lucide-react";
 import AuthModal from "./AuthModal";
 import { joinBetaTester, joinWaitlist, getBetaTesterCount, getMaxBetaTesters } from "@/app/actions/beta";
 
-// APK Launch date: April 19, 2026 at 11:11 AM IST
-const APK_LAUNCH_DATE = new Date("2026-04-19T11:11:00+05:30").getTime();
+// Downloads Launch date: April 30, 2026 at 11:11 AM IST
+const DOWNLOADS_LAUNCH_DATE = new Date("2026-04-30T11:11:00+05:30").getTime();
 
 // Detect device architecture for APK download
 function getDeviceArchitecture(): "arm64-v8a" | "armeabi-v7a" {
@@ -37,6 +37,18 @@ function handleDownloadAPK() {
   document.body.removeChild(link);
 }
 
+function handleDownloadMSIX() {
+  const downloadPath = `/downloads/windows/oasis-windows.msix`;
+  
+  // Create a temporary link and trigger download
+  const link = document.createElement('a');
+  link.href = downloadPath;
+  link.download = `oasis-windows.msix`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 export default function FinalCTA() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -46,7 +58,7 @@ export default function FinalCTA() {
   const [isBetaFull, setIsBetaFull] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [maxBeta, setMaxBeta] = useState(15);
-  const [isApkUnlocked, setIsApkUnlocked] = useState(false);
+  const [isDownloadsUnlocked, setIsDownloadsUnlocked] = useState(false);
 
   useEffect(() => {
     // Get initial beta count
@@ -61,15 +73,15 @@ export default function FinalCTA() {
     }
     fetchBetaCount();
 
-    // Check APK unlock status
+    // Check downloads unlock status
     const now = Date.now();
-    setIsApkUnlocked(now >= APK_LAUNCH_DATE);
+    setIsDownloadsUnlocked(now >= DOWNLOADS_LAUNCH_DATE);
 
-    // Poll every second to unlock APK at exact time
+    // Poll every second to unlock downloads at exact time
     const interval = setInterval(() => {
       const now = Date.now();
-      if (now >= APK_LAUNCH_DATE) {
-        setIsApkUnlocked(true);
+      if (now >= DOWNLOADS_LAUNCH_DATE) {
+        setIsDownloadsUnlocked(true);
         clearInterval(interval);
       }
     }, 1000);
@@ -220,7 +232,7 @@ export default function FinalCTA() {
               You're In!
             </h3>
             <p className="font-geist text-oasis-mist">
-              Welcome to the beta. Check your email for next steps.
+              Welcome to the beta. Check your email (and spam folder) for next steps.
             </p>
           </motion.div>
         )}
@@ -265,16 +277,29 @@ export default function FinalCTA() {
           transition={{ delay: 0.5 }}
           className="mt-16 flex flex-col sm:flex-row gap-4 items-center justify-center"
         >
-          <button disabled className="flex items-center gap-3 px-6 py-3 bg-oasis-moss/20 border border-oasis-sage/10 rounded-full font-geist text-oasis-mist/30 cursor-not-allowed opacity-50">
-            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
-              <rect x="3" y="3" width="8" height="8" rx="1" />
-              <rect x="13" y="3" width="8" height="8" rx="1" />
-              <rect x="3" y="13" width="8" height="8" rx="1" />
-              <rect x="13" y="13" width="8" height="8" rx="1" />
-            </svg>
-            <span>Windows</span>
-            <span className="px-2 py-0.5 bg-oasis-mist/10 text-oasis-mist/40 text-xs font-space-mono rounded">Coming Soon</span>
-          </button>
+          {isDownloadsUnlocked ? (
+            <button onClick={handleDownloadMSIX} className="flex items-center gap-3 px-6 py-3 bg-oasis-moss/40 border border-oasis-sage/30 rounded-full font-geist text-oasis-mist hover:border-oasis-glow/30 transition-all cursor-pointer">
+              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+                <rect x="3" y="3" width="8" height="8" rx="1" />
+                <rect x="13" y="3" width="8" height="8" rx="1" />
+                <rect x="3" y="13" width="8" height="8" rx="1" />
+                <rect x="13" y="13" width="8" height="8" rx="1" />
+              </svg>
+              <span>Download for Windows</span>
+            </button>
+          ) : (
+            <button disabled className="flex items-center gap-3 px-6 py-3 bg-oasis-moss/20 border border-oasis-sage/10 rounded-full font-geist text-oasis-mist/30 cursor-not-allowed opacity-50">
+              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+                <rect x="3" y="3" width="8" height="8" rx="1" />
+                <rect x="13" y="3" width="8" height="8" rx="1" />
+                <rect x="3" y="13" width="8" height="8" rx="1" />
+                <rect x="13" y="13" width="8" height="8" rx="1" />
+              </svg>
+              <span>Windows</span>
+              <span className="px-2 py-0.5 bg-oasis-mist/10 text-oasis-mist/40 text-xs font-space-mono rounded">Coming Soon</span>
+            </button>
+          )}
+
           <button disabled className="flex items-center gap-3 px-6 py-3 bg-oasis-moss/20 border border-oasis-sage/10 rounded-full font-geist text-oasis-mist/30 cursor-not-allowed opacity-50">
             <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
               <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.02.39-2.15 1.05-3.11z"/>
@@ -282,7 +307,8 @@ export default function FinalCTA() {
             <span>macOS</span>
             <span className="px-2 py-0.5 bg-oasis-mist/10 text-oasis-mist/40 text-xs font-space-mono rounded">Coming Soon</span>
           </button>
-          {isApkUnlocked ? (
+
+          {isDownloadsUnlocked ? (
             <button onClick={handleDownloadAPK} className="flex items-center gap-3 px-6 py-3 bg-oasis-moss/40 border border-oasis-sage/30 rounded-full font-geist text-oasis-mist hover:border-oasis-glow/30 transition-all cursor-pointer">
               <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
                 <path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/>
@@ -298,9 +324,9 @@ export default function FinalCTA() {
               <span className="px-2 py-0.5 bg-oasis-mist/10 text-oasis-mist/40 text-xs font-space-mono rounded">Coming Soon</span>
             </button>
           )}
-          {!isApkUnlocked && (
+          {!isDownloadsUnlocked && (
             <p className="font-space-mono text-xs text-oasis-mist/50 mt-2">
-              APK will unlock at 11:11 AM IST on April 19
+              Downloads will unlock at 11:11 AM IST on April 30
             </p>
           )}
         </motion.div>

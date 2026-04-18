@@ -136,10 +136,22 @@ class AppTheme {
     }
 
     try {
-      return GoogleFonts.getFont(fontFamily, textStyle: style);
+      // Mapping for names to Google Font equivalents
+      String googleFontName = fontFamily;
+      if (fontFamily == 'Times New Roman') googleFontName = 'Tinos';
+      if (fontFamily == 'Arial') googleFontName = 'Arimo';
+      if (fontFamily == 'Garamond') googleFontName = 'EB Garamond';
+      if (fontFamily == 'Courier New') googleFontName = 'Courier Prime';
+      if (fontFamily == 'Comic Sans') googleFontName = 'Comic Neue';
+      if (fontFamily == 'Lucida Console') googleFontName = 'Inconsolata';
+      if (fontFamily == 'Monaco') googleFontName = 'Cousine';
+
+      return GoogleFonts.getFont(googleFontName, textStyle: style);
     } catch (e) {
       debugPrint('Error loading font $fontFamily: $e');
-      return style;
+      // If Google Fonts fail (or font isn't a Google Font like Verdana/Georgia/Open Dyslexic), 
+      // use the fontFamily name directly for system/asset fonts.
+      return style.copyWith(fontFamily: fontFamily);
     }
   }
 
@@ -789,15 +801,15 @@ class AppTheme {
     primary: _m3eLightPrimary,
     onPrimary: _m3eLightOnPrimary,
     primaryContainer: _m3eLightPrimaryContainer,
-    onPrimaryContainer: _m3eLightOnPrimaryContainer,
+    onPrimaryContainer: Colors.black, // Changed from _m3eLightOnPrimaryContainer for better readability
     secondary: _m3eLightSecondary,
     onSecondary: _m3eLightOnSecondary,
     secondaryContainer: _m3eLightSecondaryContainer,
-    onSecondaryContainer: _m3eLightOnSecondaryContainer,
+    onSecondaryContainer: Colors.black, // Changed from _m3eLightOnSecondaryContainer
     tertiary: _m3eLightTertiary,
     onTertiary: _m3eLightOnTertiary,
     tertiaryContainer: _m3eLightTertiaryContainer,
-    onTertiaryContainer: _m3eLightOnTertiaryContainer,
+    onTertiaryContainer: Colors.black, // Changed from _m3eLightOnTertiaryContainer
     error: _m3eLightError,
     onError: _m3eLightOnError,
     errorContainer: _m3eLightErrorContainer,
@@ -812,7 +824,7 @@ class AppTheme {
   static const Color _m3eDarkPrimary = OasisColors.glow;
   static const Color _m3eDarkOnPrimary = OasisColors.deep;
   static const Color _m3eDarkPrimaryContainer = OasisColors.moss;
-  static const Color _m3eDarkOnPrimaryContainer = OasisColors.glow;
+  static const Color _m3eDarkOnPrimaryContainer = OasisColors.white;
   static const Color _m3eDarkSecondary = OasisColors.sage;
   static const Color _m3eDarkOnSecondary = OasisColors.white;
   static const Color _m3eDarkSecondaryContainer = OasisColors.moss;
@@ -904,17 +916,20 @@ class AppTheme {
     onSurface: _lightOnSurfaceColor,
     error: _lightErrorColor,
     onError: Colors.white,
+    onPrimaryContainer: Colors.black, // Added for clarity
+    onSecondaryContainer: Colors.black,
+    onTertiaryContainer: Colors.black,
   );
 
   static const ColorScheme darkColorScheme = ColorScheme(
     brightness: Brightness.dark,
     primary: _darkPrimaryColor,
-    onPrimary: Colors.white,
+    onPrimary: Colors.black,
     secondary: _darkSecondaryColor,
-    onSecondary: Colors.white,
+    onSecondary: Colors.black,
     surface: _darkBackgroundColor,
     onSurface: _darkOnSurfaceColor,
     error: _darkErrorColor,
-    onError: Colors.white,
+    onError: Colors.black,
   );
 }

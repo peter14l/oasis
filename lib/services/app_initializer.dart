@@ -19,6 +19,7 @@ import 'package:oasis/services/energy_meter_service.dart';
 import 'package:oasis/features/messages/data/encryption_service.dart';
 import 'package:oasis/services/notification_manager.dart';
 import 'package:oasis/services/notification_service.dart';
+import 'package:oasis/services/notification_decryption_service.dart';
 
 import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/services/screen_time_service.dart';
@@ -290,8 +291,15 @@ class AppInitializer {
           message.notification?.title ??
           message.data['title'] ??
           'New Notification';
-      final String body =
+      
+      String body =
           message.notification?.body ?? message.data['body'] ?? '';
+      
+      // Decrypt body if it's an encrypted message
+      final decryptedBody = await NotificationDecryptionService().decryptMessage(message.data);
+      if (decryptedBody != null) {
+        body = decryptedBody;
+      }
 
       // For background, we often want the full data as payload for deep linking
       final String? payload = message.data.isNotEmpty
@@ -522,20 +530,34 @@ class AppInitializer {
     final notificationService = NotificationService();
     notificationService.subscribeToNotifications(
       userId: userId,
-      onNewNotification: (notification) {
+      onNewNotification: (notification) async {
         // Only handle DM notifications - other types are handled elsewhere
         if (notification.type == 'dm') {
           // Get sender info for the notification
           final senderName = notification.actorName ?? 'Someone';
           final senderAvatar = notification.actorAvatar;
 
-          // Show local notification
+          String body = notification.message ?? 'New message';
+          
+          // Decrypt body if it's an encrypted message
+          final decryptedBody = await NotificationDecryptionService().decryptNotification(notification);
+          if (decryptedBody != null) {
+            body = decryptedBody;
+          }
+
+          // Show local notification with grouping payload
           NotificationManager.instance.showNotification(
             title: senderName,
-            body: notification.message ?? 'New message',
+            body: body,
             senderAvatar: senderAvatar,
             messageType: 'dm',
-            payload: notification.id,
+            payload: jsonEncode({
+              'type': 'dm',
+              'conversation_id': notification.conversationId ?? notification.actorId,
+              'sender_id': notification.actorId,
+              'sender_name': senderName,
+              'sender_avatar': senderAvatar,
+            }),
           );
         }
       },

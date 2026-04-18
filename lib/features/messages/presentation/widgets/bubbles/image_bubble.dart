@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/features/messages/presentation/screens/image_preview_screen.dart';
@@ -30,6 +31,7 @@ class ImageBubble extends StatelessWidget {
   bool get _isRestricted => mediaViewMode == 'once' || mediaViewMode == 'twice';
   int get _viewLimit => mediaViewMode == 'once' ? 1 : 2;
   bool get _isViewed => _isRestricted && currentUserViewCount >= _viewLimit;
+  bool get _isLocalFile => !imageUrl.startsWith('http') && !imageUrl.startsWith('https');
 
   @override
   Widget build(BuildContext context) {
@@ -125,17 +127,23 @@ class ImageBubble extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 300, maxWidth: 300),
-              child: CachedNetworkImage(
-                imageUrl: imageUrl,
-                placeholder:
-                    (context, url) => const SizedBox(
-                      height: 150,
-                      width: 150,
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
-                fit: BoxFit.cover,
-              ),
+              child: _isLocalFile 
+                ? Image.file(
+                    File(imageUrl),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+                  )
+                : CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    placeholder:
+                        (context, url) => const SizedBox(
+                          height: 150,
+                          width: 150,
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                    errorWidget: (context, url, error) => const Icon(Icons.error),
+                    fit: BoxFit.cover,
+                  ),
             ),
           ),
         ),

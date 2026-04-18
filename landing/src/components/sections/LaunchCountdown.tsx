@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 
-// Launch date: April 19, 2026 at 11:11 AM IST
-const LAUNCH_DATE = new Date("2026-04-19T11:11:00+05:30");
+// Launch date: April 30, 2026 at 11:11 AM IST
+const LAUNCH_DATE = new Date("2026-04-30T11:11:00+05:30");
 
 interface TimeLeft {
   days: number;
@@ -269,7 +269,7 @@ export default function LaunchCountdown() {
 
       {/* Launch Label */}
       <p className="font-space-mono text-xs uppercase tracking-widest text-oasis-mist/60">
-        Launching April 19, 11:11 AM IST
+        Launching April 30, 11:11 AM IST
       </p>
     </motion.div>
   );

@@ -2,6 +2,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
+import { sendConfirmationEmail, sendLaunchEmail } from '@/lib/mail';
 
 export async function getMaxBetaTesters(): Promise<number> {
   return 15;
@@ -62,9 +63,11 @@ export async function joinBetaTester(userEmail: string): Promise<BetaSignupResul
           .update({ status: 'active', updated_at: new Date().toISOString() })
           .eq('email', userEmail);
         
+        await sendConfirmationEmail(userEmail);
+        
         return { 
           success: true, 
-          message: 'You\'re in! Welcome to the beta.', 
+          message: 'You\'re in! Welcome to the beta. Check your email!', 
           isBetaFull: false 
         };
       }
@@ -88,10 +91,12 @@ export async function joinBetaTester(userEmail: string): Promise<BetaSignupResul
       };
     }
 
+    await sendConfirmationEmail(userEmail);
+
     revalidatePath('/');
     return { 
       success: true, 
-      message: 'You\'re in! Welcome to the beta.', 
+      message: 'You\'re in! Welcome to the beta. Check your email!', 
       isBetaFull: false 
     };
 
@@ -139,9 +144,11 @@ export async function joinWaitlist(userEmail: string): Promise<BetaSignupResult>
       };
     }
 
+    await sendConfirmationEmail(userEmail);
+
     return { 
       success: true, 
-      message: 'You\'ve been added to the waitlist! We\'ll notify you when we expand.', 
+      message: 'You\'ve been added to the waitlist! Check your email (and spam).', 
       isBetaFull: true 
     };
 
@@ -169,3 +176,36 @@ export async function getBetaTesterCount(): Promise<number> {
 
   return Math.min(count || 0, maxTesters);
 }
+
+export async function notifyAllUsersOfLaunch() {
+  try {
+    // Fetch all beta testers
+    const { data: betaTesters } = await supabase
+      .from('beta_testers')
+      .select('email');
+
+    // Fetch all waitlist users
+    const { data: waitlistUsers } = await supabase
+      .from('waitlist')
+      .select('email');
+
+    const allEmails = new Set<string>();
+    betaTesters?.forEach(u => allEmails.add(u.email));
+    waitlistUsers?.forEach(u => allEmails.add(u.email));
+
+    const results = await Promise.all(
+      Array.from(allEmails).map(email => sendLaunchEmail(email))
+    );
+
+    const successful = results.filter(r => r.success).length;
+    return { 
+      success: true, 
+      total: allEmails.size, 
+      successful 
+    };
+  } catch (error) {
+    console.error('Error notifying users of launch:', error);
+    return { success: false, message: 'Failed to notify users' };
+  }
+}
+

@@ -221,7 +221,7 @@ class MessageBubble extends StatelessWidget {
                 color:
                     isHighlighted
                         ? colorScheme.primaryContainer
-                        : Colors.white.withValues(alpha: 0.1),
+                        : colorScheme.outlineVariant.withValues(alpha: 0.1),
                 width: isHighlighted ? 2.0 : 0.1,
               ),
               boxShadow: [
@@ -256,7 +256,7 @@ class MessageBubble extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: colorScheme.onSurface.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -265,7 +265,7 @@ class MessageBubble extends StatelessWidget {
                   Container(
                     width: 3,
                     decoration: BoxDecoration(
-                      color: isMe ? Colors.white70 : colorScheme.primary,
+                      color: isMe ? colorScheme.onPrimaryContainer : colorScheme.primary,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -277,7 +277,7 @@ class MessageBubble extends StatelessWidget {
                         Text(
                           message.replyToSenderName ?? 'Unknown',
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: isMe ? Colors.white : colorScheme.primary,
+                            color: isMe ? colorScheme.onPrimaryContainer : colorScheme.primary,
                             fontWeight: FontWeight.bold,
                             fontSize: 10,
                           ),
@@ -289,7 +289,7 @@ class MessageBubble extends StatelessWidget {
                           style: theme.textTheme.bodySmall?.copyWith(
                             color:
                                 isMe
-                                    ? Colors.white.withValues(alpha: 0.7)
+                                    ? colorScheme.onPrimaryContainer.withValues(alpha: 0.7)
                                     : colorScheme.onSurface.withValues(
                                       alpha: 0.6,
                                     ),
@@ -311,7 +311,7 @@ class MessageBubble extends StatelessWidget {
                 child: Icon(
                   Icons.done_all,
                   size: 14,
-                  color: message.isRead ? Colors.blue : Colors.black,
+                  color: message.isRead ? Colors.blue : colorScheme.onPrimaryContainer.withValues(alpha: 0.6),
                 ),
               ),
             ),

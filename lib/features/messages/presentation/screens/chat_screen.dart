@@ -125,15 +125,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
 
     _recordingProvider.onRecordingComplete = (path, duration) async {
-      final userId = AuthService().currentUser?.id;
-      if (userId != null) {
-        await _recordingProvider.sendAudioMessage(
-          audioPath: path,
-          conversationId: widget.conversationId,
-          userId: userId,
-          recordDuration: duration,
-        );
-      }
+      await _chatProvider.sendAudioMessage(
+        audioPath: path,
+        duration: duration,
+      );
     };
 
     _recordingProvider.onError = (error) => _showError(error);
@@ -187,6 +182,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       }
       // Immediately reset unread badge in the inbox — no delay needed
       context.read<ConversationProvider>().markAsRead(widget.conversationId);
+
+      // Clear any active notification group for this chat
+      NotificationManager.instance.clearGroup(widget.conversationId);
 
       // Check if vault needs to be unlocked on entry
       _checkVaultOnEntry();
@@ -378,7 +376,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final content = _messageController.text.trim();
     final state = _chatProvider.state;
 
-    // Capture media state locally before clearing for a snappy UX
+    // Capture media state locally before clearing (for the call to provider)
     final imageFile = state.selectedImage;
     final videoFile = state.selectedVideo;
     final audioFile = state.selectedAudio;
@@ -394,18 +392,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       return;
     }
 
-    // Clear UI state immediately — eliminates the 1-1.5s lag where text persists
+    // Clear text input immediately for snappy UX
     _messageController.clear();
     _textNotifier.value = '';
-    _chatProvider.setState(
-      (s) => s.copyWith(
-        selectedImage: null,
-        selectedVideo: null,
-        selectedAudio: null,
-        selectedFile: null,
-        replyMessage: null,
-      ),
-    );
 
     try {
       await _chatProvider.sendMessage(

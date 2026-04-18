@@ -47,11 +47,13 @@ class TextBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     final color =
         textColor ??
         (isMe
-            ? theme.colorScheme.onPrimaryContainer
-            : theme.colorScheme.onSurface);
+            ? colorScheme.onPrimaryContainer
+            : colorScheme.onSurface);
 
     final Widget textContent = Text(
       content.trim(),

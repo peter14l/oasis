@@ -74,7 +74,11 @@ class VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
 
       // Pre-load the source
       if (widget.audioUrl.isNotEmpty) {
-        await _audioPlayer.setSourceUrl(widget.audioUrl);
+        if (widget.audioUrl.startsWith('http') || widget.audioUrl.startsWith('https')) {
+          await _audioPlayer.setSourceUrl(widget.audioUrl);
+        } else {
+          await _audioPlayer.setSourceDeviceFile(widget.audioUrl);
+        }
       }
     } catch (e) {
       debugPrint('Error initializing audio: $e');
@@ -95,7 +99,14 @@ class VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
           await _audioPlayer.seek(Duration.zero);
         }
         await _audioPlayer.setPlaybackRate(_playbackSpeed);
-        await _audioPlayer.play(UrlSource(widget.audioUrl));
+        
+        Source source;
+        if (widget.audioUrl.startsWith('http') || widget.audioUrl.startsWith('https')) {
+          source = UrlSource(widget.audioUrl);
+        } else {
+          source = DeviceFileSource(widget.audioUrl);
+        }
+        await _audioPlayer.play(source);
       }
     } catch (e) {
       debugPrint('Error playing audio: $e');

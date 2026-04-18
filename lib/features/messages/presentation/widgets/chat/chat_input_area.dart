@@ -85,10 +85,12 @@ class _ChatInputAreaState extends State<ChatInputArea> {
     final decoration = material.BoxDecoration(
       color: widget.isDesktop 
           ? material.Colors.black.withValues(alpha: 0.85)
-          : colorScheme.surface.withValues(alpha: 0.5),
+          : colorScheme.surface.withValues(alpha: 0.8),
       borderRadius: borderRadius,
       border: material.Border.all(
-        color: material.Colors.white.withValues(alpha: 0.1),
+        color: widget.isDesktop 
+            ? material.Colors.white.withValues(alpha: 0.1)
+            : colorScheme.outlineVariant.withValues(alpha: 0.3),
         width: 1.0,
       ),
     );
@@ -102,7 +104,9 @@ class _ChatInputAreaState extends State<ChatInputArea> {
         material.Text(
           'Recording...',
           style: material.TextStyle(
-            color: widget.backgroundUrl != null ? material.Colors.white : material.Colors.red[700],
+            color: widget.backgroundUrl != null 
+                ? material.Colors.white 
+                : colorScheme.error,
             fontWeight: material.FontWeight.bold,
             fontSize: 14,
           ),
@@ -116,7 +120,9 @@ class _ChatInputAreaState extends State<ChatInputArea> {
             return material.Text(
               durationText,
               style: material.TextStyle(
-                color: widget.backgroundUrl != null ? material.Colors.white70 : material.Colors.red[700],
+                color: widget.backgroundUrl != null 
+                    ? material.Colors.white70 
+                    : colorScheme.onSurfaceVariant,
                 fontFeatures: [ui.FontFeature.tabularFigures()],
                 fontWeight: material.FontWeight.w500,
               ),
@@ -153,19 +159,19 @@ class _ChatInputAreaState extends State<ChatInputArea> {
               constraints: widget.isDesktop ? const material.BoxConstraints() : null,
               icon:
                   widget.isSending
-                      ? const material.SizedBox(
+                      ? material.SizedBox(
                         width: 20,
                         height: 20,
                         child: material.CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: material.Colors.white,
+                          color: colorScheme.onPrimary,
                         ),
                       )
                       : material.Icon(
                         showMic
                             ? (widget.isRecording ? material.Icons.stop_rounded : material.Icons.mic)
                             : material.Icons.send_rounded,
-                        color: material.Colors.white,
+                        color: showMic ? colorScheme.onPrimary : colorScheme.onSecondary,
                         size: widget.isDesktop ? 22 : null,
                       ),
             ),

@@ -2,9 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [4.3.0] - 2026-04-18
 
 ### Added
+- **Optimistic Media Messages (2026-04-18)** - Extended optimistic UI to support images, videos, and documents, showing local previews immediately before upload completion.
+- **Parallel Message Decryption (2026-04-18)** - Improved chat loading performance by parallelizing end-to-end decryption for message batches.
+- **Smart Message Retries (2026-04-18)** - Added automatic exponential backoff retries for message loading on poor network connections.
+- **Notification Grouping (2026-04-18)** - Implemented native message grouping on Android and multi-line summaries on other platforms for a cleaner notification tray.
+- **Encrypted Notification Previews (2026-04-18)** - Added support for decrypting notification payloads on-the-fly, allowing message previews even for end-to-end encrypted chats.
+- **Accessibility: Open Dyslexic Font (2026-04-18)** - Added native support for the Open Dyslexic font across the entire application.
+- **Expanded Font Selection (2026-04-18)** - Introduced several new system and web font options including Outfit, Lexend, and serif alternatives.
 - **Sliding Search & Notification Panels (2026-04-16) [`97ccc7d`]** - Implemented animated sliding panels for Search and Notifications on desktop, including a backdrop to close them by clicking outside.
 - **Fluent Desktop Settings UI Enhancements (2026-04-16) [`f9c3415`]** - Added a native-feeling close button and navigation pane separators to the Settings screen.
 - **Fluent Desktop Top-Bar Hiding (2026-04-16) [`43a776d`]** - Hidden the global `titleBar` in `NavigationView` and page-level headers in `AdaptiveScaffold` for a cleaner desktop experience.
@@ -18,21 +25,21 @@ All notable changes to this project will be documented in this file.
 - **Interactive Onboarding UI (2026-04-16)** - Enhanced onboarding with dynamic background color transitions, glassmorphic content cards, and staggered animations using `flutter_animate`.
 - **Streamlined Navigation (2026-04-16)** - Consolidated the introductory experience into 4 high-impact interactive slides.
 
-### Removed
-- **Fluent Desktop Profile Top-Bar (2026-04-16) [`af7bef4`]** - Removed the `PageHeader` from the Profile screen in Fluent Desktop mode for a more integrated look.
-
 ### Fixed
+- **Local Media Playback (2026-04-18)** - Fixed an issue where voice messages and images wouldn't play/display correctly if they were local files (optimistic state).
+- **M3E Theme Readability (2026-04-18)** - Improved contrast for primary/secondary containers in Light mode for better readability.
+- **Responsive Text Input (2026-04-18)** - Adjusted vertical padding in text fields for mobile devices to prevent layout overflows.
 - **Fluent & Build Cleanup (2026-04-16) [`519a8fd`]** - Removed leftover merge conflict markers and resolved syntax errors in Profile and Router files.
 - **Fluent Navigation API Fix (2026-04-16) [`43a776d`]** - Removed non-existent `backButton` parameter from `NavigationPane` to resolve compilation errors with `fluent_ui` v4.15.1.
 - **Adaptive UI Compilation Errors (2026-04-16)** - Resolved namespace conflicts between Material and Fluent UI by standardizing imports and using proper aliasing.
 - **Fluent UI API Mismatches (2026-04-16)** - Fixed incorrect parameter usage in `PaneItem`, `RadioButton`, and `TextBox` components to align with the latest `fluent_ui` package.
 - **Platform-Specific Stability (2026-04-16)** - Ensured core Flutter types (`Widget`, `State`, etc.) are correctly referenced across all adaptive screens.
 
-
-
-
+### Removed
+- **Fluent Desktop Profile Top-Bar (2026-04-16) [`af7bef4`]** - Removed the `PageHeader` from the Profile screen in Fluent Desktop mode for a more integrated look.
 
 ## [4.2.0] - 2026-04-15
+
 
 ### Added
 - **Secure Error Handling (2026-04-15)** - Introduced `ErrorParser` utility to map backend/database exceptions to user-friendly messages, preventing schema and logic leaks via UI SnackBars.

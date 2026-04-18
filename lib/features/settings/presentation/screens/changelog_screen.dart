@@ -41,6 +41,47 @@ class ChangelogScreen extends StatelessWidget {
                   children: [
                     _buildVersionCard(
                       context,
+                      version: '4.3.0+1',
+                      date: 'April 18, 2026',
+                      features: [
+                        'Optimistic Media Messages - Images, videos, and documents show previews immediately',
+                        'Parallel Message Decryption for faster chat loading',
+                        'Smart Message Retries with exponential backoff',
+                        'Notification Grouping for cleaner message alerts',
+                        'Encrypted Notification Previews in real-time',
+                        'Accessibility: Native Open Dyslexic font support',
+                        'Expanded Font Selection (Outfit, Lexend, Tinos, etc.)',
+                      ],
+                      fixes: [
+                        'Fixed local media playback and display for optimistic messages',
+                        'Improved M3E theme contrast and readability in Light mode',
+                        'Adjusted text input padding for mobile devices',
+                        'Desktop UI refinements for Search and Notifications',
+                      ],
+                    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(height: 16),
+                    _buildVersionCard(
+                      context,
+                      version: '4.2.0',
+                      date: 'April 15, 2026',
+                      features: [
+                        'Secure Error Handling system',
+                        'Animated Splash Screen',
+                        'Parallelized Service Initialization',
+                        'In-App Update Notifier',
+                        'Dynamic Theme Color Palettes',
+                        'Interactive Onboarding Flow',
+                      ],
+                      fixes: [
+                        'Release signing configuration improvements',
+                        'Realtime polling fallbacks for Supabase stability',
+                        'Screen time lockout enforcement',
+                        'Messaging architecture decoupling',
+                      ],
+                    ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(height: 16),
+                    _buildVersionCard(
+                      context,
                       version: '4.1.0',
                       date: 'Current Version',
                       features: [
@@ -52,32 +93,6 @@ class ChangelogScreen extends StatelessWidget {
                         'Improved stability for background notifications',
                         'Fixed UI glitches in dark mode',
                       ],
-                    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
-                    const SizedBox(height: 16),
-                    _buildVersionCard(
-                      context,
-                      version: '4.0.5',
-                      date: 'March 2024',
-                      features: [
-                        'Username-based sign-in',
-                        'Redesigned user profiles',
-                      ],
-                      fixes: [
-                        'Fixed password reset flow',
-                        'Optimized feed loading speed',
-                      ],
-                    ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(begin: 0.1, end: 0),
-                    const SizedBox(height: 16),
-                    _buildVersionCard(
-                      context,
-                      version: '4.0.0',
-                      date: 'February 2024',
-                      features: [
-                        'Initial Beta Release',
-                        'Core feed and messaging system',
-                        'Digital wellbeing features',
-                      ],
-                      fixes: [],
                     ).animate().fadeIn(delay: 400.ms, duration: 400.ms).slideY(begin: 0.1, end: 0),
                     const SizedBox(height: 100),
                   ],
