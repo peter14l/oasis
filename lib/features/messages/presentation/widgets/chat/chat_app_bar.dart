@@ -218,6 +218,20 @@ class ChatAppBar extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    if (onCallPressed != null)
+                      IconButton(
+                        icon: const Icon(FluentIcons.call_24_regular, size: 20),
+                        onPressed: onCallPressed,
+                        padding: const EdgeInsets.all(8),
+                        constraints: const BoxConstraints(),
+                      ),
+                    if (onVideoCallPressed != null)
+                      IconButton(
+                        icon: const Icon(FluentIcons.video_24_regular, size: 20),
+                        onPressed: onVideoCallPressed,
+                        padding: const EdgeInsets.all(8),
+                        constraints: const BoxConstraints(),
+                      ),
                     if (isDesktop) ...[
                       const SizedBox(width: 4),
                       IconButton(

@@ -36,7 +36,14 @@ class CallService extends ChangeNotifier {
     'iceServers': [
       {'urls': 'stun:stun.l.google.com:19302'},
       {'urls': 'stun:stun1.l.google.com:19302'},
-    ]
+      // Recommendation 2: Added TURN server for restricted networks
+      {
+        'urls': 'turn:openrelay.metered.ca:80',
+        'username': 'openrelayproject',
+        'credential': 'openrelayproject'
+      },
+    ],
+    'sdpSemantics': 'unified-plan',
   };
 
   // Media state
@@ -51,7 +58,12 @@ class CallService extends ChangeNotifier {
   Future<void> initLocalStream(bool isVideo) async {
     final Map<String, dynamic> constraints = {
       'audio': true,
-      'video': isVideo ? {'facingMode': 'user'} : false,
+      'video': isVideo ? {
+        'facingMode': 'user',
+        'width': {'ideal': 1280},
+        'height': {'ideal': 720},
+        'frameRate': {'ideal': 30},
+      } : false,
     };
 
     _localStream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -76,11 +88,16 @@ class CallService extends ChangeNotifier {
       });
     };
 
-    pc.onTrack = (event) {
+    pc.onTrack = (event) async {
+      // Recommendation: Track Fallback (Section B.1)
+      // Handles cases where tracks arrive without a stream container
       if (event.streams.isNotEmpty) {
         _remoteStreams[remoteUserId] = event.streams[0];
-        notifyListeners();
+      } else {
+        _remoteStreams[remoteUserId] ??= await createLocalMediaStream('remote_$remoteUserId');
+        _remoteStreams[remoteUserId]!.addTrack(event.track);
       }
+      notifyListeners();
     };
 
     pc.onConnectionState = (state) {
@@ -93,6 +110,21 @@ class CallService extends ChangeNotifier {
 
     _peerConnections[remoteUserId] = pc;
     return pc;
+  }
+
+  Future<void> _applyBitrateConstraints(RTCPeerConnection pc) async {
+    // Recommendation 1: Bitrate Constraints (Section E.1)
+    // Limits video bandwidth to 1.5Mbps to save data/battery
+    final senders = await pc.getSenders();
+    for (var sender in senders) {
+      if (sender.track?.kind == 'video') {
+        var parameters = sender.parameters;
+        if (parameters.encodings != null && parameters.encodings!.isNotEmpty) {
+          parameters.encodings![0].maxBitrate = 1500000;
+          await sender.setParameters(parameters);
+        }
+      }
+    }
   }
 
   Future<void> _sendEncryptedSignaling(String recipientId, Map<String, dynamic> data) async {
@@ -108,60 +140,6 @@ class CallService extends ChangeNotifier {
       'candidate': base64Encode(encrypted.serialize()),
       'signal_message_type': encrypted.getType(),
     });
-  }
-
-  Future<CallEntity> initiateCall({
-    required String conversationId,
-    required CallType type,
-    required List<String> participantIds,
-  }) async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) throw Exception('User not authenticated');
-
-    await initLocalStream(type == CallType.video);
-
-    final callId = _uuid.v4();
-    _currentCallId = callId;
-
-    final callData = {
-      'id': callId,
-      'conversation_id': conversationId,
-      'host_id': user.id,
-      'channel_name': 'oasis_$callId',
-      'type': type.name,
-      'status': CallStatus.pinging.name,
-      'started_at': DateTime.now().toIso8601String(),
-      'created_at': DateTime.now().toIso8601String(),
-    };
-
-    final response = await _supabase.from('calls').insert(callData).select().single();
-    
-    // Add participants
-    final now = DateTime.now().toIso8601String();
-    final participantsData = participantIds.map((id) => {
-      'call_id': callId,
-      'user_id': id,
-      'status': 'invited',
-      'created_at': now,
-    }).toList();
-    
-    // Also add self as joined
-    participantsData.add({
-      'call_id': callId,
-      'user_id': user.id,
-      'status': 'joined',
-      'joined_at': now,
-      'created_at': now,
-    });
-
-    await _supabase.from('call_participants').insert(participantsData);
-    
-    _subscribeToSignaling(callId);
-    _subscribeToParticipants(callId);
-    
-    _playRingtone(); // Start ringing for host
-    
-    return CallEntity.fromJson(response);
   }
 
   Future<void> joinCall(CallEntity call) async {
@@ -206,6 +184,11 @@ class CallService extends ChangeNotifier {
                   item['signal_message_type'],
                 );
                 
+                if (decryptedJson.startsWith('🔒')) {
+                  debugPrint('[CallService] Skipping encrypted/invalid signal message');
+                  continue; // Skip processing if decryption failed or session reset is required
+                }
+                
                 final signalData = jsonDecode(decryptedJson);
                 await _handleSignalingData(senderId, signalData);
               } catch (e) {
@@ -225,6 +208,8 @@ class CallService extends ChangeNotifier {
       final answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       
+      await _applyBitrateConstraints(pc);
+      
       _sendEncryptedSignaling(senderId, {
         'type': 'answer',
         'sdp': answer.sdp,
@@ -234,6 +219,7 @@ class CallService extends ChangeNotifier {
       final pc = _peerConnections[senderId];
       if (pc != null) {
         await pc.setRemoteDescription(RTCSessionDescription(data['sdp'], data['sdp_type']));
+        await _applyBitrateConstraints(pc);
       }
     } else if (type == 'candidate') {
       final pc = _peerConnections[senderId];
@@ -278,12 +264,16 @@ class CallService extends ChangeNotifier {
             if (pUserId != userId) {
               if (status == 'joined') {
                 _stopRingtone(); // Stop ringing when someone joins
+                _setAudioForCall();
                 if (!_peerConnections.containsKey(pUserId)) {
-                  await _initiatePeerConnection(pUserId);
+                  if (userId.compareTo(pUserId) > 0) {
+                    await _initiatePeerConnection(pUserId);
+                  }
                 }
               } else if (status == 'rejected' || status == 'left') {
                 // If everyone except us has left or rejected, stop ringing/cleanup
                 _stopRingtone();
+                _removePeer(pUserId);
               }
             }
           }
@@ -579,6 +569,27 @@ class CallService extends ChangeNotifier {
     
     _incomingCall = null;
     notifyListeners();
+  }
+
+  Future<void> _setAudioForCall() async {
+    try {
+      await AudioPlayer.global.setAudioContext(AudioContext(
+        android: AudioContextAndroid(
+          usageType: AndroidUsageType.voiceCommunication,
+          contentType: AndroidContentType.speech,
+          audioFocus: AndroidAudioFocus.gain,
+        ),
+        iOS: AudioContextIOS(
+          category: AVAudioSessionCategory.playAndRecord,
+          options: {
+            AVAudioSessionOptions.allowBluetooth,
+            AVAudioSessionOptions.defaultToSpeaker,
+          },
+        ),
+      ));
+    } catch (e) {
+      debugPrint('[CallService] Error setting audio context: $e');
+    }
   }
 
   Future<void> _playRingtone() async {
