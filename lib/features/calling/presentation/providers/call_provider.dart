@@ -92,6 +92,7 @@ class CallProvider extends ChangeNotifier {
     if (_isEnding) return; // Ignore updates while we are trying to end the call
 
     _state = _state.copyWith(
+      activeCall: _callService.currentCall,
       localStream: _callService.localStream,
       remoteStreams: Map.from(_callService.remoteStreams),
       participants: List.from(_callService.participants),
@@ -175,6 +176,35 @@ class CallProvider extends ChangeNotifier {
       _state = _state.copyWith(isLoading: false, error: e.toString());
       notifyListeners();
       return null;
+    }
+  }
+
+  /// Accept an incoming call
+  Future<void> acceptCall(CallEntity call) async {
+    try {
+      _isEnding = false;
+      _state = _state.copyWith(isLoading: true, clearError: true);
+      notifyListeners();
+
+      // Get current user ID from Supabase directly for simplicity in use case
+      final userId = SupabaseService().client.auth.currentUser?.id;
+      if (userId == null) throw Exception('User not authenticated');
+
+      // Update call status in DB to active
+      await _acceptCall.call(call.id, userId);
+
+      // Join WebRTC session and stop ringtone
+      await _callService.answerCall(call);
+      
+      _state = _state.copyWith(
+        isLoading: false, 
+        activeCall: call, 
+        clearIncomingCall: true
+      );
+      notifyListeners();
+    } catch (e) {
+      _state = _state.copyWith(isLoading: false, error: e.toString());
+      notifyListeners();
     }
   }
 

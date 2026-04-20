@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.5.0] - 2026-04-20
+
+### Added
+- **Instant Call Notifications** - Integrated push notification triggers into `CallRepositoryImpl` to ensure participants receive call invites immediately, even when the app is in the background or closed.
+
+### Fixed
+- **Calling Flow Reliability** - Resolved a critical issue where calls would get stuck in the "pinging" state after being accepted by implementing proper call status synchronization between `CallService` and `CallProvider`.
+- **Persistent Ringtone Bug** - Fixed an issue where the ringtone would continue playing after answering a call by ensuring `stopRingtone()` is called across all participant states when a connection is established.
+- **Call State Synchronization** - Added a real-time subscription to the `calls` table in `CallService` to ensure the caller's UI correctly transitions from "Calling" to the active call grid the moment the recipient joins.
+- **Incoming Call Acceptance** - Implemented the missing `acceptCall` method in `CallProvider` and updated the `CallingScreen` UI to use it, ensuring the correct database state and WebRTC handshake.
+
 ## [4.4.0] - 2026-04-18
 
 ### Added

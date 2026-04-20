@@ -22,10 +22,13 @@ class CallService extends ChangeNotifier {
   final List<CallParticipantEntity> _participants = [];
   MediaStream? _localStream;
   String? _currentCallId;
+  CallEntity? _currentCall;
+  StreamSubscription? _callSubscription;
 
   MediaStream? get localStream => _localStream;
   Map<String, MediaStream> get remoteStreams => _remoteStreams;
   List<CallParticipantEntity> get participants => _participants;
+  CallEntity? get currentCall => _currentCall;
   
   /// Get the first remote stream for 1-on-1 convenience.
   MediaStream? get remoteStream => _remoteStreams.isNotEmpty ? _remoteStreams.values.first : null;
@@ -147,6 +150,7 @@ class CallService extends ChangeNotifier {
     if (user == null) throw Exception('User not authenticated');
 
     _currentCallId = call.id;
+    _currentCall = call;
     await initLocalStream(call.type == CallType.video);
 
     await _supabase.from('call_participants').upsert({
@@ -156,8 +160,23 @@ class CallService extends ChangeNotifier {
       'status': 'joined',
     }, onConflict: 'call_id,user_id');
 
+    _subscribeToCall(call.id);
     _subscribeToSignaling(call.id);
     _subscribeToParticipants(call.id);
+  }
+
+  void _subscribeToCall(String callId) {
+    _callSubscription?.cancel();
+    _callSubscription = _supabase
+        .from('calls')
+        .stream(primaryKey: ['id'])
+        .eq('id', callId)
+        .listen((data) {
+          if (data.isNotEmpty) {
+            _currentCall = CallEntity.fromJson(data.first);
+            notifyListeners();
+          }
+        });
   }
 
   void _subscribeToSignaling(String callId) {
@@ -636,6 +655,7 @@ class CallService extends ChangeNotifier {
   @override
   void dispose() {
     _incomingCallSubscription?.cancel();
+    _callSubscription?.cancel();
     _audioPlayer.dispose();
     super.dispose();
   }

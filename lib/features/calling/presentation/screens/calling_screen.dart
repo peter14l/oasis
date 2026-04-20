@@ -284,7 +284,7 @@ class _CallingScreenState extends State<CallingScreen> {
             onPressed: () {
               final call = provider.incomingCall;
               if (call != null) {
-                provider.joinCall(call);
+                provider.acceptCall(call);
               }
             },
             icon: Icons.call,
