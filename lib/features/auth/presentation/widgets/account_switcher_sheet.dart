@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:provider/provider.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -11,9 +12,15 @@ class AccountSwitcherSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final useFluent = themeProvider.useFluentUI;
+
+    if (useFluent) {
+      return _buildFluentSwitcher(context);
+    }
+
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
     final disableTransparency = themeProvider.isM3ETransparencyDisabled;
     final authProvider = context.watch<AuthProvider>();
@@ -190,7 +197,162 @@ class AccountSwitcherSheet extends StatelessWidget {
     );
   }
 
+  Widget _buildFluentSwitcher(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final currentUserId = authProvider.currentAccount?.userId;
+    final accounts = authProvider.registeredAccounts;
+    final theme = fluent.FluentTheme.of(context);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            'Switch Account',
+            style: theme.typography.subtitle,
+          ),
+        ),
+        const fluent.Divider(),
+        Flexible(
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: accounts.length,
+            itemBuilder: (context, index) {
+              final account = accounts[index];
+              final isCurrent = account.userId == currentUserId;
+
+              return fluent.HoverButton(
+                onPressed: isCurrent
+                    ? null
+                    : () async {
+                        Navigator.pop(context);
+                        await authProvider.switchAccount(account.userId);
+                      },
+                builder: (context, states) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: fluent.ButtonThemeData.uncheckedInputColor(
+                        theme,
+                        states,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: SizedBox(
+                            width: 40,
+                            height: 40,
+                            child: (account.avatarUrl ?? '').isNotEmpty
+                                ? CachedNetworkImage(
+                                    imageUrl: account.avatarUrl!,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(
+                                    color: theme.accentColor.lighter,
+                                    child: Center(
+                                      child: Text(
+                                        account.username[0].toUpperCase(),
+                                        style: TextStyle(
+                                          color: theme.accentColor.darker,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                account.username,
+                                style: theme.typography.body?.copyWith(
+                                  fontWeight: isCurrent ? FontWeight.bold : null,
+                                ),
+                              ),
+                              Text(
+                                account.email,
+                                style: theme.typography.caption,
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isCurrent)
+                          Icon(
+                            fluent.FluentIcons.check_mark,
+                            color: theme.accentColor,
+                            size: 16,
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+        const fluent.Divider(),
+        fluent.HoverButton(
+          onPressed: () {
+            Navigator.pop(context);
+            context.push('/login?add_account=true');
+          },
+          builder: (context, states) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: fluent.ButtonThemeData.uncheckedInputColor(
+                  theme,
+                  states,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.accentColor.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      fluent.FluentIcons.add,
+                      color: theme.accentColor,
+                      size: 16,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Add Account',
+                    style: theme.typography.body,
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
   static Future<void> show(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    
+    if (themeProvider.useFluentUI) {
+      return fluent.showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => const fluent.ContentDialog(
+          content: AccountSwitcherSheet(),
+        ),
+      );
+    }
+
     return showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,

@@ -709,18 +709,45 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                  child: Container(
-                    height: 46,
-                    decoration: useFluent && isDesktop
-                        ? BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.85),
-                            borderRadius: BorderRadius.circular(32),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.1),
-                              width: 1.0,
+                  child: useFluent && isDesktop
+                      ? SizedBox(
+                          height: 36,
+                          child: fluent.TextBox(
+                            controller: _searchController,
+                            focusNode: _searchFocusNode,
+                            placeholder: 'Search...',
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            prefix: const Padding(
+                              padding: EdgeInsets.only(left: 12),
+                              child: Icon(fluent.FluentIcons.search, size: 12),
                             ),
-                          )
-                        : BoxDecoration(
+                            suffix: _searchController.text.isNotEmpty
+                                ? fluent.IconButton(
+                                    icon: const Icon(fluent.FluentIcons.chrome_close, size: 8),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setState(() => _searchQuery = '');
+                                    },
+                                  )
+                                : null,
+                            onChanged: (val) => setState(() => _searchQuery = val),
+                            decoration: fluent.WidgetStateProperty.resolveWith((states) {
+                              return fluent.BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.85),
+                                borderRadius: BorderRadius.circular(32),
+                                border: Border.all(
+                                  color: states.contains(WidgetState.focused)
+                                      ? fluent.FluentTheme.of(context).accentColor
+                                      : Colors.white.withValues(alpha: 0.1),
+                                  width: 1.0,
+                                ),
+                              );
+                            }),
+                          ),
+                        )
+                      : Container(
+                          height: 46,
+                          decoration: BoxDecoration(
                             color: colorScheme.surfaceContainerHighest.withValues(
                               alpha: 0.3,
                             ),
@@ -731,24 +758,24 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
                               ),
                             ),
                           ),
-                    child: CustomTextField(
-                      controller: _searchController,
-                      focusNode: _searchFocusNode,
-                      hint: 'Search...',
-                      prefixIcon: Icons.search_rounded,
-                      onChanged: (val) => setState(() => _searchQuery = val),
-                      fillColor: Colors.transparent,
-                      borderRadius: 32,
-                      margin: EdgeInsets.zero,
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 16,
-                      ),
-                    ),
-                  ),
+                          child: CustomTextField(
+                            controller: _searchController,
+                            focusNode: _searchFocusNode,
+                            hint: 'Search...',
+                            prefixIcon: Icons.search_rounded,
+                            onChanged: (val) => setState(() => _searchQuery = val),
+                            fillColor: Colors.transparent,
+                            borderRadius: 32,
+                            margin: EdgeInsets.zero,
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 16,
+                            ),
+                          ),
+                        ),
                 ),
               ),
               if (pinnedConversations.isNotEmpty) ...[

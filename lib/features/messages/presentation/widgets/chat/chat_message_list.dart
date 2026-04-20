@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
 import 'package:oasis/features/messages/presentation/widgets/bubbles/bubbles.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_reactions_provider.dart';
@@ -192,7 +194,7 @@ class MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
     final isSticker = message.messageType == MessageType.sticker;
 
     final bubbleColor = isHighlighted
@@ -327,8 +329,9 @@ class MessageBubble extends StatelessWidget {
         child: Container(
           margin: const EdgeInsets.only(bottom: 12),
           constraints: BoxConstraints(
-            maxWidth:
-                isDesktop ? 400.0 : MediaQuery.of(context).size.width * 0.75,
+            maxWidth: isDesktop
+                ? MediaQuery.of(context).size.width * 0.85
+                : MediaQuery.of(context).size.width * 0.75,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

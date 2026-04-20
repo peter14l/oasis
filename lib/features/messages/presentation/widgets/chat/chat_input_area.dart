@@ -290,25 +290,56 @@ class _ChatInputAreaState extends State<ChatInputArea> {
                           }
                         },
                       },
-                      child: CustomTextField(
-                        controller: widget.controller,
-                        focusNode: widget.focusNode,
-                        hint: widget.hintText ?? 'Type a message...',
-                        fillColor: material.Colors.transparent,
-                        textColor: widget.isDesktop ? material.Colors.white : null,
-                        hintColor: widget.isDesktop ? material.Colors.white38 : null,
-                        maxLines: widget.isDesktop ? 3 : 2,
-                        textCapitalization: material.TextCapitalization.sentences,
-                        isDense: true,
-                        contentPadding: material.EdgeInsets.symmetric(
-                          horizontal: widget.isDesktop ? 4 : 10,
-                          vertical: widget.isDesktop ? 6 : 4,
-                        ),
-                        margin: material.EdgeInsets.zero,
-                        border: material.InputBorder.none,
-                        enabledBorder: material.InputBorder.none,
-                        focusedBorder: material.InputBorder.none,
-                      ),
+                      child: widget.isDesktop
+                          ? material.SizedBox(
+                              height: 36,
+                              child: fluent.TextBox(
+                                controller: widget.controller,
+                                focusNode: widget.focusNode,
+                                placeholder: widget.hintText ?? 'Type a message...',
+                                padding: const material.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: fluent.WidgetStateProperty.resolveWith((states) {
+                                  return fluent.BoxDecoration(
+                                    color: material.Colors.transparent,
+                                    borderRadius: material.BorderRadius.circular(32),
+                                    border: material.Border.all(
+                                      color: material.Colors.transparent,
+                                      width: 0,
+                                    ),
+                                  );
+                                }),
+                                style: material.TextStyle(
+                                  color: material.Colors.white,
+                                  fontSize: 14,
+                                ),
+                                placeholderStyle: material.TextStyle(
+                                  color: material.Colors.white38,
+                                  fontSize: 14,
+                                ),
+                                cursorColor: fluent.FluentTheme.of(context).accentColor,
+                                scrollPhysics: const material.BouncingScrollPhysics(),
+                                maxLines: 1,
+                              ),
+                            )
+                          : CustomTextField(
+                              controller: widget.controller,
+                              focusNode: widget.focusNode,
+                              hint: widget.hintText ?? 'Type a message...',
+                              fillColor: material.Colors.transparent,
+                              textColor: widget.isDesktop ? material.Colors.white : null,
+                              hintColor: widget.isDesktop ? material.Colors.white38 : null,
+                              maxLines: 2,
+                              textCapitalization: material.TextCapitalization.sentences,
+                              isDense: true,
+                              contentPadding: material.EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              margin: material.EdgeInsets.zero,
+                              border: material.InputBorder.none,
+                              enabledBorder: material.InputBorder.none,
+                              focusedBorder: material.InputBorder.none,
+                            ),
                     ),
           ),
           const material.SizedBox(width: 4),

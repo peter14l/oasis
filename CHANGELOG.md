@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.7.0] - 2026-04-20
+
+### Added
+- **Fluent UI Account Switcher** - Implemented a native-feeling account switcher using `fluent.ContentDialog` for desktop platforms. Users can now trigger the switcher by clicking their username in the profile header.
+- **Desktop Search Refinement** - Replaced Material search bars with native `fluent.TextBox` components in the messaging screen for Windows, macOS, and Web, featuring a thinner, more compact design (36px height).
+- **Spacious Messaging Layout** - Significantly increased message bubble width on desktop platforms to 85% of screen width, optimizing the chat experience for large displays.
+
+### Fixed
+- **Profile Layout Crash** - Resolved a critical `RenderFlex` unbounded height exception in the Profile screen by replacing `fluent.TabView` with a custom, scroll-safe tab implementation.
+- **Navigation Overflow** - Fixed a 2-pixel layout overflow in the Fluent `NavigationPane` by increasing `compactWidth` to 54 and refactoring notification badges to use a `Stack`-based `InfoBadge` implementation.
+- **Interactive Profile Header** - Updated the Fluent UI profile title to be interactive with hover states and a chevron indicator, aligning with desktop UX standards.
+
 ## [4.6.0+1] - 2026-04-20
 
 ### Fixed

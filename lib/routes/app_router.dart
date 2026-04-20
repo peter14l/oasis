@@ -97,11 +97,33 @@ class UnreadMessagesBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final useFluent = Provider.of<ThemeProvider>(context).useFluentUI;
+
     return Consumer<ConversationProvider>(
       builder: (context, provider, _) {
+        final count = provider.totalUnreadCount;
+        if (useFluent) {
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              child,
+              if (count > 0)
+                Positioned(
+                  top: -2,
+                  right: -2,
+                  child: fluent.InfoBadge(
+                    source: Text(
+                      count > 99 ? '99+' : count.toString(),
+                      style: const TextStyle(fontSize: 8, color: Colors.white),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        }
         return Badge(
-          isLabelVisible: provider.totalUnreadCount > 0,
-          label: Text(provider.totalUnreadCount.toString()),
+          isLabelVisible: count > 0,
+          label: Text(count.toString()),
           child: child,
         );
       },
@@ -297,6 +319,9 @@ class _MainLayoutState extends State<MainLayout> {
             pane: fluent.NavigationPane(
               header: const SizedBox.shrink(),
               selected: currentIndex,
+              size: const fluent.NavigationPaneSize(
+                compactWidth: 54,
+              ),
               onChanged:
                   (index) => _onDestinationSelected(
                     index,

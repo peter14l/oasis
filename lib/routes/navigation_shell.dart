@@ -54,6 +54,9 @@ class NavigationShell extends material.StatelessWidget {
     return fluent.NavigationView(
       pane: fluent.NavigationPane(
         selected: currentIndex,
+        size: const fluent.NavigationPaneSize(
+          compactWidth: 54,
+        ),
         onChanged: (index) => _onDestinationSelected(context, index),
         displayMode: fluent.PaneDisplayMode.auto,
         items: [
@@ -70,13 +73,39 @@ class NavigationShell extends material.StatelessWidget {
             body: material.SizedBox.shrink(),
           ),
           fluent.PaneItem(
-            icon: fluent.InfoBadge(
-              source: unreadCount > 0 ? Text(unreadCount.toString()) : null,
-              child: const material.Icon(FluentIcons.chat_24_regular),
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const material.Icon(FluentIcons.chat_24_regular),
+                if (unreadCount > 0)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: fluent.InfoBadge(
+                      source: Text(
+                        unreadCount > 99 ? '99+' : unreadCount.toString(),
+                        style: const TextStyle(fontSize: 8, color: material.Colors.white),
+                      ),
+                    ),
+                  ),
+              ],
             ),
-            selectedIcon: fluent.InfoBadge(
-              source: unreadCount > 0 ? Text(unreadCount.toString()) : null,
-              child: const material.Icon(FluentIcons.chat_24_filled),
+            selectedIcon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const material.Icon(FluentIcons.chat_24_filled),
+                if (unreadCount > 0)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: fluent.InfoBadge(
+                      source: Text(
+                        unreadCount > 99 ? '99+' : unreadCount.toString(),
+                        style: const TextStyle(fontSize: 8, color: material.Colors.white),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             title: const Text('Messages'),
             body: material.SizedBox.shrink(),
@@ -245,11 +274,33 @@ class UnreadMessagesBadge extends material.StatelessWidget {
 
   @override
   material.Widget build(material.BuildContext context) {
+    final useFluent = Provider.of<ThemeProvider>(context).useFluentUI;
+
     return Consumer<ConversationProvider>(
       builder: (context, provider, _) {
+        final count = provider.totalUnreadCount;
+        if (useFluent) {
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              child,
+              if (count > 0)
+                Positioned(
+                  top: -2,
+                  right: -2,
+                  child: fluent.InfoBadge(
+                    source: Text(
+                      count > 99 ? '99+' : count.toString(),
+                      style: const TextStyle(fontSize: 8, color: material.Colors.white),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        }
         return material.Badge(
-          isLabelVisible: provider.totalUnreadCount > 0,
-          label: material.Text(provider.totalUnreadCount.toString()),
+          isLabelVisible: count > 0,
+          label: material.Text(count.toString()),
           child: child,
         );
       },

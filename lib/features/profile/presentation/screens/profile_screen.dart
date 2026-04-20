@@ -210,7 +210,30 @@ class _ProfileScreenState extends State<ProfileScreen>
   ) {
     return fluent.ScaffoldPage(
       header: fluent.PageHeader(
-        title: Text(profile.username),
+        title: fluent.HoverButton(
+          onPressed: isOwnProfile ? () => AccountSwitcherSheet.show(context) : null,
+          builder: (context, states) {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  profile.username,
+                  style: fluent.FluentTheme.of(context).typography.title,
+                ),
+                if (isOwnProfile) ...[
+                  const SizedBox(width: 8),
+                  Icon(
+                    fluent.FluentIcons.chevron_down,
+                    size: 12,
+                    color: states.contains(WidgetState.hovered) 
+                      ? fluent.FluentTheme.of(context).accentColor 
+                      : null,
+                  ),
+                ],
+              ],
+            );
+          },
+        ),
         commandBar: fluent.CommandBar(
           mainAxisAlignment: MainAxisAlignment.end,
           primaryItems: [
@@ -248,25 +271,24 @@ class _ProfileScreenState extends State<ProfileScreen>
                   const SizedBox(height: 48),
                   
                   // Content Pivot
-                  fluent.TabView(
-                    currentIndex: _pivotIndex,
-                    onChanged: (index) => setState(() => _pivotIndex = index),
-                    tabs: [
-                      fluent.Tab(
-                        text: const Text('Posts'),
-                        body: Container(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: _buildFluentPostsGrid(_userPosts, userId, themeProvider.isM3EEnabled),
-                        ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          _buildFluentTabItem('Posts', 0),
+                          if (isOwnProfile) ...[
+                            const SizedBox(width: 32),
+                            _buildFluentTabItem('Saved', 1),
+                          ],
+                        ],
                       ),
-                      if (isOwnProfile)
-                        fluent.Tab(
-                          text: const Text('Saved'),
-                          body: Container(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: _buildFluentPostsGrid(_savedPosts, userId, themeProvider.isM3EEnabled),
-                          ),
-                        ),
+                      const SizedBox(height: 8),
+                      const fluent.Divider(),
+                      const SizedBox(height: 16),
+                      _pivotIndex == 0
+                          ? _buildFluentPostsGrid(_userPosts, userId, themeProvider.isM3EEnabled)
+                          : _buildFluentPostsGrid(_savedPosts, userId, themeProvider.isM3EEnabled),
                     ],
                   ),
                 ],
@@ -275,6 +297,43 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFluentTabItem(String label, int index) {
+    final isSelected = _pivotIndex == index;
+    final theme = fluent.FluentTheme.of(context);
+    
+    return fluent.HoverButton(
+      onPressed: () => setState(() => _pivotIndex = index),
+      builder: (context, states) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+              child: Text(
+                label,
+                style: theme.typography.body?.copyWith(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected 
+                    ? theme.accentColor 
+                    : theme.typography.body?.color?.withValues(alpha: 0.6),
+                ),
+              ),
+            ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height: 3,
+              width: 40,
+              decoration: BoxDecoration(
+                color: isSelected ? theme.accentColor : Colors.transparent,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
