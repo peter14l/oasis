@@ -1,23 +1,1420 @@
-lib/features/feed/presentation/screens/feed_screen.dart(523,20): error G297C951C: Can't find ')' to match '('. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/features/feed/presentation/screens/feed_screen.dart(18,8): error GFAA2A68C: Error when reading 'lib/widgets/max_width_container.dart': The system cannot find the file specified [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/routes/app_router.dart(239,22): error G311314CC: Method not found: 'NavigationAppBar'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/screens/spaces/spaces_screen.dart(50,14): error GE5CFE876: The method 'AdaptiveScaffold' isn't defined for the type '_SpacesScreenState'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/screens/spaces/spaces_screen.dart(101,12): error GE5CFE876: The method 'AdaptiveScaffold' isn't defined for the type '_SpacesScreenState'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/features/notifications/presentation/screens/notifications_screen.dart(213,13): error G4127D1E8: The getter 'fluent' isn't defined for the type '_NotificationsScreenState'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/features/notifications/presentation/screens/notifications_screen.dart(215,22): error G4127D1E8: The getter 'fluent' isn't defined for the type '_NotificationsScreenState'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/features/notifications/presentation/screens/notifications_screen.dart(221,11): error G4127D1E8: The getter 'fluent' isn't defined for the type '_NotificationsScreenState'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/features/notifications/presentation/screens/notifications_screen.dart(223,20): error G4127D1E8: The getter 'fluent' isn't defined for the type '_NotificationsScreenState'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/features/notifications/presentation/screens/notifications_screen.dart(209,14): error GE5CFE876: The method 'AdaptiveScaffold' isn't defined for the type '_NotificationsScreenState'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/features/notifications/presentation/screens/notifications_screen.dart(233,12): error GE5CFE876: The method 'AdaptiveScaffold' isn't defined for the type '_NotificationsScreenState'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/features/feed/presentation/screens/feed_screen.dart(524,42): error G67247B7E: Expected ';' after this. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/features/feed/presentation/screens/feed_screen.dart(451,9): error G4127D1E8: The getter 'useFluent' isn't defined for the type '_FeedScreenState'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/screens/search_screen.dart(144,12): error GE5CFE876: The method 'AdaptiveScaffold' isn't defined for the type '_SearchScreenState'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/features/feed/presentation/screens/create_post_screen.dart(432,39): error GF7CA4DBF: Couldn't find constructor 'fluent.ProgressRing'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/features/feed/presentation/screens/create_post_screen.dart(238,23): error G4127D1E8: The getter 'ResponsiveLayout' isn't defined for the type '_CreatePostScreenState'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/features/feed/presentation/screens/create_post_screen.dart(430,11): error G4127D1E8: The getter 'fluent' isn't defined for the type '_CreatePostScreenState'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/features/feed/presentation/screens/create_post_screen.dart(427,14): error GE5CFE876: The method 'AdaptiveScaffold' isn't defined for the type '_CreatePostScreenState'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/features/feed/presentation/screens/create_post_screen.dart(440,14): error GE5CFE876: The method 'AdaptiveScaffold' isn't defined for the type '_CreatePostScreenState'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/features/feed/presentation/screens/create_post_screen.dart(457,12): error GE5CFE876: The method 'AdaptiveScaffold' isn't defined for the type '_CreatePostScreenState'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(254,5): error MSB8066: Custom build for 'F:\oasis\build\windows\x64\CMakeFiles\e7170a62e9112bbb6969fa870619923d\flutter_windows.dll.rule;F:\oasis\build\windows\x64\CMakeFiles\ff5c00e87728707794e5da30ee167161\flutter_assemble.rule' exited with code 1. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
-Building Windows application...                                    64.9s
-Error: Build process failed.
+Building Windows application...                                   407.0s
+✓ Built build\windows\x64\runner\Debug\oasis.exe
+--- APP STARTING ---
+.env variables injected via dart-define, skipping file load
+runWithSentry: Setting up Sentry options...
+SentryFlutter.init callback started
+Sentry options configured (DSN: provided)
+[sentry] INFO using database path "F:\oasis\.sentry-native"
+[sentry] DEBUG starting transport
+[sentry] DEBUG starting background worker thread
+[sentry] DEBUG starting backend
+[sentry] DEBUG background worker thread started
+[sentry] DEBUG starting crashpad backend with handler "F:\oasis\build\windows\x64\runner\Debug\crashpad_handler.exe"
+[sentry] DEBUG using minidump URL "https://o4509384326774784.ingest.us.sentry.io:443/api/4510527783501824/minidump/?sentry_client=sentry.native.flutter/0.13.2&sentry_key=356d298b7887a400a196e23847931238"
+[sentry] DEBUG registering crashpad WER handler "F:\oasis\build\windows\x64\runner\Debug\crashpad_wer.dll"
+[sentry] INFO started crashpad client handler
+[sentry] DEBUG processing and pruning old runs
+[sentry] DEBUG sending envelope
+[sentry] DEBUG submitting task to background worker thread
+[sentry] DEBUG executing task on worker thread
+[sentry] DEBUG sending request using winhttp to "https://o4509384326774784.ingest.us.sentry.io:443/api/4510527783501824/envelope/":
+x-sentry-auth:Sentry sentry_key=356d298b7887a400a196e23847931238, sentry_version=7, sentry_client=sentry.native.flutter/0.13.2
+
+content-type:application/x-sentry-envelope
+
+content-length:342
+
+
+Sentry appRunner triggered
+Initializing Firebase...
+[sentry] DEBUG received response:
+HTTP/1.1 200 OK
+
+Date: Mon, 20 Apr 2026 12:20:10 GMT
+
+Via: 1.1 google
+
+Content-Length: 2
+
+Content-Type: application/json
+
+Server: nginx
+
+Vary: origin, access-control-request-method, access-control-request-headers
+
+access-control-allow-origin: *
+
+access-control-expose-headers: x-sentry-error,x-sentry-rate-limits,retry-after
+
+cross-origin-resource-policy: cross-origin
+
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+
+Alt-Svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+
+
+
+[sentry] DEBUG request handled in 370ms
+Firebase initialized successfully
+STEP: Critical initialization starting...
+Connecting to Supabase...
+supabase.supabase_flutter: INFO: ***** Supabase init completed *****
+Supabase initialized successfully
+[SessionRegistry] Reading registry from storage...
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+[SessionRegistry] Raw data length: 5370
+[SessionRegistry] Decoded 2 accounts
+STEP: Background initialization starting...
+[AccountRegistryManager] loadRegistry starting...
+[SessionRegistry] Reading registry from storage...
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+[SessionRegistry] Raw data length: 5370
+[SessionRegistry] Decoded 2 accounts
+[AccountRegistryManager] loadRegistry completed. Count: 2
+[SessionRegistry] Reading registry from storage...
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+[SessionRegistry] Raw data length: 5370
+[SessionRegistry] Decoded 2 accounts
+[AccountRegistryManager] loadRegistry starting...
+[SessionRegistry] Reading registry from storage...
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+[SessionRegistry] Raw data length: 5370
+[SessionRegistry] Decoded 2 accounts
+[AccountRegistryManager] loadRegistry completed. Count: 2
+Default App User Model Id: Oasis.Oasis
+Default shell link path: C:\Users\peter\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\
+Default shell link file path: C:\Users\peter\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Oasis.lnk
+NotificationManager: Initialized for desktop (windows)
+IAP not available on this platform: LateInitializationError: Field '_instance@2592396890' has not been initialized.
+IAP not available or timed out, skipping further IAP init
+[SignalStore] hasKeys check starting...
+SentryFlutter.init call completed
+Installation Source: null, isSideloaded: true
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+[SignalStore] hasKeys result: identity=true, registration=true
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+[SignalStore] Loading existing keys for user 59f49bac-aa81-40ab-8dba-4595ad9075fb
+ScreenTime: Session started at 2026-04-20 17:50:14.304647
+UpdateService: Checking for updates...
+GoRouter: INFO: Full paths for routes:
+  => /login
+  => /register
+  => /reset-password
+  => /set-password
+  => /feed
+  => /search
+  => /spaces
+
+══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during runApp:
+Zone mismatch.
+The Flutter bindings were initialized in a different zone than is now being used. This will likely
+cause confusion and bugs as any zone-specific configuration will inconsistently use the
+configuration of the original binding initialization zone or this zone based on hard-to-predict
+factors such as which zone was active when a particular callback was set.
+It is important to use the same zone when calling `ensureInitialized` on the binding as when calling
+`runApp` later.
+To make this warning fatal, set BindingBase.debugZoneErrorsAreFatal to true before the bindings are
+initialized (i.e. as the first statement in `void main() { }`).
+
+When the exception was thrown, this was the stack:
+#0      BindingBase.debugCheckZone.<anonymous closure> (package:flutter/src/foundation/binding.dart:519:31)
+#1      BindingBase.debugCheckZone (package:flutter/src/foundation/binding.dart:525:6)
+#2      _runWidget (package:flutter/src/widgets/binding.dart:1680:18)
+#3      runApp (package:flutter/src/widgets/binding.dart:1616:3)
+#4      _runAppInitialization.<anonymous closure>.<anonymous closure> (package:oasis/main.dart:557:11)
+<asynchronous suspension>
+#5      AppInitializer.runWithSentry.<anonymous closure> (package:oasis/services/app_initializer.dart:374:11)
+<asynchronous suspension>
+#6      Sentry._init (package:sentry/src/sentry.dart:190:9)
+<asynchronous suspension>
+#7      Sentry.init (package:sentry/src/sentry.dart:89:5)
+<asynchronous suspension>
+#8      SentryFlutter.init (package:sentry_flutter/src/sentry_flutter.dart:106:5)
+<asynchronous suspension>
+#9      AppInitializer.runWithSentry (package:oasis/services/app_initializer.dart:358:7)
+<asynchronous suspension>
+#10     _runAppInitialization.<anonymous closure> (package:oasis/main.dart:548:7)
+<asynchronous suspension>
+════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  =>   /spaces/circles/create
+  =>   /spaces/canvas/create
+  =>   /spaces/circles/:circleId
+  =>     /spaces/circles/:circleId/add-commitment
+  =>   /spaces/canvas/:canvasId
+  => /messages
+  =>   /messages/:conversationId
+  => /notifications
+  => /profile
+  => /ripples
+  =>   /ripples/:rippleId
+  => /create-ripple
+  => /oasis-pro
+  => /call/:callId
+  => /create-post
+  => /create-capsule
+  => /capsule/:capsuleId
+  => /circle/join/:circleId
+  => /stories/create
+  => /post/:postId
+  => /post/:postId/comments
+  => /edit-profile
+  => /settings
+  => /settings/account
+  => /subscription
+  => /settings/account-privacy
+  => /settings/blocked-users
+  => /settings/two-factor-auth
+  => /settings/download-data
+  => /settings/storage-usage
+  => /settings/font-size
+  => /settings/help-support
+  => /settings/update
+  => /settings/delete-account
+  => /settings/about
+  =>   /settings/about/privacy-policy
+  =>   /settings/about/terms-of-service
+  =>   /settings/about/changelog
+  => /story/:storyId
+  => /wellness-stats
+  => /profile/:userId
+  => /profile/:userId/followers
+  => /profile/:userId/following
+  => /new-message
+  => /privacy-policy
+  => /terms-of-service
+  => /onboarding
+known full paths for route names:
+  login => /login
+  register => /register
+  reset_password => /reset-password
+  set_password => /set-password
+  feed => /feed
+  search => /search
+  spaces => /spaces
+  create_circle => /spaces/circles/create
+  create_canvas => /spaces/canvas/create
+  circle_detail => /spaces/circles/:circleId
+  create_commitment => /spaces/circles/:circleId/add-commitment
+  canvas_detail => /spaces/canvas/:canvasId
+  messages => /messages
+  chat_nested => /messages/:conversationId
+  notifications => /notifications
+  profile => /profile
+  ripples => /ripples
+  ripple_details => /ripples/:rippleId
+  create_ripple => /create-ripple
+  oasis_pro => /oasis-pro
+  active_call => /call/:callId
+  create_post => /create-post
+  create_capsule => /create-capsule
+  view_capsule => /capsule/:capsuleId
+  join_circle => /circle/join/:circleId
+  create_story => /stories/create
+  post_details => /post/:postId
+  comments => /post/:postId/comments
+  edit_profile => /edit-profile
+  settings => /settings
+  account_management => /settings/account
+  subscription => /subscription
+  account_privacy => /settings/account-privacy
+  blocked_users => /settings/blocked-users
+  two_factor_auth => /settings/two-factor-auth
+  download_data => /settings/download-data
+  storage_usage => /settings/storage-usage
+  font_size => /settings/font-size
+  help_support => /settings/help-support
+  software_update => /settings/update
+  delete_account => /settings/delete-account
+  about => /settings/about
+  privacy_policy_sub => /settings/about/privacy-policy
+  terms_of_service_sub => /settings/about/terms-of-service
+  changelog => /settings/about/changelog
+  story_view => /story/:storyId
+  wellness_stats => /wellness-stats
+  user_profile => /profile/:userId
+  followers => /profile/:userId/followers
+  following => /profile/:userId/following
+  new_message => /new-message
+  privacy_policy => /privacy-policy
+  terms_of_service => /terms-of-service
+  onboarding => /onboarding
+
+GoRouter: INFO: setting initial location /feed
+UpdateService: Current version: 4.3.1
+GoRouter: INFO: Using WidgetsApp configuration
+dynamic_color: Accent color detected.
+DesktopWindowService: Effects disabled
+[Signal] Initialization complete.
+Non-critical background service init warning: MissingPluginException(No implementation found for method setLogLevel on channel purchases_flutter)
+UpdateService: App is up to date
+[CallService] Incoming call stream error: RealtimeSubscribeException(status: RealtimeSubscribeStatus.timedOut, details: null)
+Syncing files to device Windows...                               1,066ms
+
+Flutter run key commands.
+r Hot reload. 🔥🔥🔥
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
+
+A Dart VM Service on Windows is available at: http://127.0.0.1:51873/jU8WrewTpQI=/
+The Flutter DevTools debugger and profiler on Windows is available at:
+http://127.0.0.1:51873/jU8WrewTpQI=/devtools/?uri=ws://127.0.0.1:51873/jU8WrewTpQI=/ws
+[MessageOps] subscribeToReadReceipts timed out. Replication may be missing.
+[MessageOps] subscribeToTypingStatus timed out. Replication may be missing.
+[MessageOps] subscribeToReadReceipts timed out. Replication may be missing.
+[MessageOps] subscribeToTypingStatus timed out. Replication may be missing.
+GoRouter: INFO: going to /messages
+[MessageOps] subscribeToTypingStatus error: null
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+[ChatMessagingService] Subscription timed out for 3875178e-4964-4c38-a7b0-38120176ae71. Table replication or RLS may be missing.
+[MessageOps] subscribeToReactions timed out. Replication may be missing.
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+[ChatMessagingService] Subscription timed out for 3875178e-4964-4c38-a7b0-38120176ae71. Table replication or RLS may be missing.
+[MessageOps] subscribeToReactions timed out. Replication may be missing.
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+DirectMessages: Refresh timer paused/inactive
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24
+[Signal] Decrypting PreKeySignalMessage from 9f8dee97-027a-41be-af95-1bbc5e4c96c9
+[SignalStore] PreKey 1 missing. Supplying dummy to avoid unhandled exception.
+[Signal] Decryption failed for 9f8dee97-027a-41be-af95-1bbc5e4c96c9 (Type 3): InvalidMessageException - No valid sessions. [InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!, InvalidMessageException - Bad Mac!][0]
+[Signal] Message authentication failed (Bad MAC) with 9f8dee97-027a-41be-af95-1bbc5e4c96c9. Resetting session to recover...
+[Signal] Force-refreshing bundle for 9f8dee97-027a-41be-af95-1bbc5e4c96c9...
+STUB: Reading key oasis_account_registry, value length: 7168
+STUB: Value starts with: xatFs/dPB1nPDk1DI6kSuY40v7RGxQe42/l+y0YxKQ0crpl42f
+STUB: Reading key rsa_private_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 2284
+STUB: Value starts with: drcATPTX1idNEn/O+qwVCXdjSSxLxf+KzKZcyiGOUUDmJqBMJD
+STUB: Reading key rsa_public_key_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 620
+STUB: Value starts with: fdu6K1SvPepNMm7B4sQYsGUdv849DEfPgk2bhk/sTimAO+ltzJ
+STUB: Reading key signal_identity_key_pair_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 128
+STUB: Value starts with: SMkRQj5xeMpzTNxjWGeshAKeQhGJwJNa46LXV9o/7FOaS5Z+wl
+STUB: Reading key signal_registration_id_9f8dee97-027a-41be-af95-1bbc5e4c96c9, value length: 24
+STUB: Reading key signal_identity_key_pair_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 128
+STUB: Value starts with: vh7uWi5RLDm/Ntnbb0MjJ7uZXxF63lS/S9wNNamNP/sxsneSeh
+STUB: Reading key signal_registration_id_59f49bac-aa81-40ab-8dba-4595ad9075fb, value length: 24

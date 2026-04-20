@@ -526,7 +526,6 @@ class CallNavigator extends StatelessWidget {
 
 void main() async {
   material.debugPrint('--- APP STARTING ---');
-  material.WidgetsFlutterBinding.ensureInitialized();
 
   runApp(
     material.MaterialApp(
@@ -542,6 +541,7 @@ void main() async {
 
 Future<void> _runAppInitialization() async {
   runZonedGuarded(() async {
+    material.WidgetsFlutterBinding.ensureInitialized();
     try {
       await AppInitializer.loadEnv();
 

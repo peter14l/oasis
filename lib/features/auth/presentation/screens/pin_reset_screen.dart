@@ -63,6 +63,8 @@ class _PINResetScreenState extends State<PINResetScreen> {
   String get _confirmPin => _confirmPinControllers.map((c) => c.text).join();
 
   void _onPinChanged(String value, int index, bool isConfirm) {
+    setState(() {}); // Ensure UI rebuilds to update button enabled state
+
     if (value.length == 1) {
       if (isConfirm && index < 5) {
         _confirmPinFocusNodes[index + 1].requestFocus();
@@ -126,7 +128,7 @@ class _PINResetScreenState extends State<PINResetScreen> {
   }
 
   Future<void> _generateNewKeys() async {
-    final pin = _currentPin;
+    final pin = _confirmPin;
     if (pin.length != 6) return;
 
     setState(() {

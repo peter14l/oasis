@@ -311,17 +311,16 @@ class ChatMessagingService {
           ),
           callback: (payload) {
             final messageData = Map<String, dynamic>.from(payload.newRecord);
-            // Extract sender info directly from the inserted record - no extra DB calls
-            // The sender_id is already present in the message, profile can be fetched lazily only when displaying username
-            final senderId = messageData['sender_id'] as String?;
-            if (senderId != null) {
-              // Store sender_id for lazy profile fetch if needed - but don't block message display
-              messageData['sender_name'] = null;
-              messageData['sender_avatar'] = null;
+            
+            // OPTIMIZATION: Ensure timestamp is set correctly for immediate UI display
+            messageData['created_at'] = messageData['created_at'] ?? DateTime.now().toIso8601String();
+            
+            // OPTIMIZATION: Derive message type early to avoid deep construction lag
+            if (messageData['message_type'] == null) {
+              if (messageData['voice_url'] != null) messageData['message_type'] = 'voice';
+              else if (messageData['image_url'] != null) messageData['message_type'] = 'image';
+              else messageData['message_type'] = 'text';
             }
-
-            // Reply-to is not needed for immediate display - skip to eliminate delay
-            messageData.remove('reply_to_id');
 
             onNewMessage(Message.fromJson(messageData));
           },

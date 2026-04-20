@@ -41,6 +41,21 @@ class ChangelogScreen extends StatelessWidget {
                   children: [
                     _buildVersionCard(
                       context,
+                      version: '4.6.0+1',
+                      date: 'April 20, 2026',
+                      features: [],
+                      fixes: [
+                        'Fixed startup assertion by ensuring WidgetsFlutterBinding is initialized inside runZonedGuarded',
+                        'Resolved severe scrolling lag and UI freezing in chat by caching RSA private keys',
+                        'Chunked decryption workloads in the event loop to prevent UI blocking',
+                        'Fixed a bug where local unread counters incorrectly reset when the other user read a message',
+                        'Fixed silent realtime timeouts by adding missing tables to Supabase Realtime publication',
+                        'Reduced latency when receiving new messages by stripping unnecessary fields',
+                      ],
+                    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(height: 16),
+                    _buildVersionCard(
+                      context,
                       version: '4.3.0+1',
                       date: 'April 18, 2026',
                       features: [

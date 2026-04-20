@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.6.0+1] - 2026-04-20
+
+### Fixed
+- **Zone Mismatch Error** - Fixed startup assertion by ensuring `WidgetsFlutterBinding` is initialized inside `runZonedGuarded`.
+- **Encryption UI Stuttering** - Resolved severe scrolling lag and UI freezing in chat by caching RSA private keys in memory and chunking decryption workloads in the event loop.
+- **Unread Count Sync** - Fixed a bug where local unread counters would incorrectly reset to zero when the *other* user read a message instead of the current user.
+- **Realtime Timeouts** - Fixed silent `subscribeToReadReceipts` and `subscribeToTypingStatus` failures by adding missing tables to the Supabase Realtime publication in the master database migration.
+- **Message Receiving Lag** - Reduced latency when receiving new messages by stripping unnecessary fields in the realtime subscription payload and eliminating redundant network fetches in `ConversationProvider`.
+
 ## [4.5.0] - 2026-04-20
 
 ### Added

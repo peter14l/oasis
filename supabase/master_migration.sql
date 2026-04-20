@@ -2221,6 +2221,10 @@ ALTER PUBLICATION supabase_realtime ADD TABLE commitments;
 ALTER PUBLICATION supabase_realtime ADD TABLE commitment_responses;
 ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
 ALTER PUBLICATION supabase_realtime ADD TABLE chat_themes;
+ALTER PUBLICATION supabase_realtime ADD TABLE messages;
+ALTER PUBLICATION supabase_realtime ADD TABLE message_read_receipts;
+ALTER PUBLICATION supabase_realtime ADD TABLE conversation_participants;
+ALTER PUBLICATION supabase_realtime ADD TABLE call_signaling;
 
 -- =====================================================
 -- SECTION 24: METADATA DEFAULTS

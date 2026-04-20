@@ -169,10 +169,9 @@ class ConversationProvider with ChangeNotifier {
     // Subscribe to unread count changes and participant changes
     _conversationsSubscription = _messagingService.subscribeToConversations(
       userId: _currentUserId!,
-      onUpdate: (conversationId) async {
-        // Add a small delay to ensure DB triggers have finished updating
-        await Future.delayed(const Duration(milliseconds: 300));
-        refreshConversation(conversationId);
+      onUpdate: (conversationId) {
+        // OPTIMIZATION: Trigger a silent, optimistic background refresh instead of a delayed blocking fetch
+        _pollConversations();
       },
     );
   }
@@ -185,7 +184,7 @@ class ConversationProvider with ChangeNotifier {
     final readReceiptChannel = _messagingService.subscribeToReadReceipts(
       conversationId: conversationId,
       onUpdate: (messageId, userId, readAt) {
-        _handleReadReceiptUpdate(conversationId);
+        _handleReadReceiptUpdate(conversationId, userId);
       },
     );
     _readReceiptSubscriptions[conversationId] = readReceiptChannel;
@@ -203,13 +202,17 @@ class ConversationProvider with ChangeNotifier {
   }
 
   /// Handle read receipt updates for a specific conversation
-  Future<void> _handleReadReceiptUpdate(String conversationId) async {
-    // 1. Optimistically zero-out locally right away so the badge responds instantly
-    final index = _conversations.indexWhere((c) => c.id == conversationId);
-    if (index != -1 && _conversations[index].unreadCount > 0) {
-      _conversations[index] = _conversations[index].copyWith(unreadCount: 0);
-      _conversations = List.from(_conversations);
-      notifyListeners();
+  Future<void> _handleReadReceiptUpdate(String conversationId, String readUserId) async {
+    // Only zero out unread counts if WE read the message. If the other user reads our message,
+    // our local unread count (for messages they sent us) shouldn't be cleared!
+    if (readUserId == _currentUserId) {
+      // 1. Optimistically zero-out locally right away so the badge responds instantly
+      final index = _conversations.indexWhere((c) => c.id == conversationId);
+      if (index != -1 && _conversations[index].unreadCount > 0) {
+        _conversations[index] = _conversations[index].copyWith(unreadCount: 0);
+        _conversations = List.from(_conversations);
+        notifyListeners();
+      }
     }
 
     // 2. Async refresh in the background to sync actual server state

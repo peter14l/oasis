@@ -207,10 +207,15 @@ class ChatProvider with ChangeNotifier {
         sessionStart: _sessionStartTime,
       );
 
-      // Decrypt messages in parallel for better performance
-      final decryptedMessages = await Future.wait(
-        messages.map((message) => _decryptSingleMessage(message))
-      );
+      // Decrypt messages progressively to prevent UI thread blocking
+      final List<Message> decryptedMessages = [];
+      for (int i = 0; i < messages.length; i++) {
+        decryptedMessages.add(await _decryptSingleMessage(messages[i]));
+        // Yield to the event loop every 5 messages to keep UI smooth
+        if (i % 5 == 0) {
+          await Future.delayed(Duration.zero);
+        }
+      }
 
       // Filter expired ephemeral messages
       final now = DateTime.now();

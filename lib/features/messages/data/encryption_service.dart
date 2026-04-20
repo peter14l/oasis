@@ -29,6 +29,10 @@ class EncryptionService {
   bool get isInitialized => _isInitialized;
 
   EncryptionStatus? _lastStatus;
+  
+  // Cache for private keys to prevent massive lag during bulk decryption
+  String? _cachedPrimaryKey;
+  Map<String, String>? _cachedAllKeys;
 
   /// Initializes the encryption system.
   ///
@@ -620,19 +624,27 @@ class EncryptionService {
     if (userId == null) return null;
     if (!_isInitialized) await init();
 
-    final primaryKey = await _secureStorage.read(
-      key: KeyManagementService.privateKeyKey(userId),
-    );
-    if (primaryKey != null) {
-      final key = await _tryDecryptWithPrivateKey(primaryKey, encryptedKeys);
+    if (_cachedPrimaryKey == null) {
+      _cachedPrimaryKey = await _secureStorage.read(
+        key: KeyManagementService.privateKeyKey(userId),
+      );
+    }
+    
+    if (_cachedPrimaryKey != null) {
+      final key = await _tryDecryptWithPrivateKey(_cachedPrimaryKey!, encryptedKeys);
       if (key != null) return key;
     }
 
-    final allKeys = await _secureStorage.readAll();
-    for (final entry in allKeys.entries) {
-      if (entry.key.startsWith('rsa_private_key_')) {
-        final key = await _tryDecryptWithPrivateKey(entry.value, encryptedKeys);
-        if (key != null) return key;
+    if (_cachedAllKeys == null) {
+      _cachedAllKeys = await _secureStorage.readAll();
+    }
+    
+    if (_cachedAllKeys != null) {
+      for (final entry in _cachedAllKeys!.entries) {
+        if (entry.key.startsWith('rsa_private_key_')) {
+          final key = await _tryDecryptWithPrivateKey(entry.value, encryptedKeys);
+          if (key != null) return key;
+        }
       }
     }
     return null;
