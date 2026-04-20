@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:oasis/services/call_service.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 import '../../domain/models/call_entity.dart';
 import '../../domain/models/call_participant_entity.dart';
 import '../../domain/usecases/initiate_call.dart';
@@ -191,7 +192,7 @@ class CallProvider extends ChangeNotifier {
       if (userId == null) throw Exception('User not authenticated');
 
       // Update call status in DB to active
-      await _acceptCall.call(call.id, userId);
+      await _acceptCall.call(callId: call.id, userId: userId);
 
       // Join WebRTC session and stop ringtone
       await _callService.answerCall(call);
