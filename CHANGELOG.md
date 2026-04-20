@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - **Startup Jank Waterfall** - Replaced staggered blocking data loads in `main.dart` with unawaited concurrent microtasks to keep the UI thread free during the initial home screen transition.
 - **Splash Screen Latency** - Removed hardcoded timers and optimized animation lifecycle to provide near-instant feedback during initialization.
 - **GPU Painting Optimization** - Isolated the expensive Mesh Gradient background using `RepaintBoundary`, ensuring it doesn't impact list scrolling performance even when enabled.
+- **Predictive Back Gesture** - Enabled Android 13+ predictive back gesture support across all supported screens and optimized `ChatScreen` navigation logic to support smooth back-swipe previews when the keyboard is closed.
 
 ## [4.3.0] - 2026-04-18
 

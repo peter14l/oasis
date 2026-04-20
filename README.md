@@ -1,6 +1,6 @@
 # Oasis: The Future of Private Social Connection
 
-[![Flutter CI](https://github.com/your-repo/oasis/actions/workflows/pr_checks.yml/badge.svg)](https://github.com/your-repo/oasis/actions/workflows/pr_checks.yml)
+[![Flutter CI](https://github.com/your-repo/oasis/actions/workflows/pr_checks.yml/badge.svg)](https://github.com/peter14l/oasis/actions/workflows/pr_checks.yml)
 [![Security: E2EE](https://img.shields.io/badge/Security-E2EE-blueviolet)](SECURITY.md)
 [![Platform: Cross-Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Windows-blue)](https://flutter.dev)
 

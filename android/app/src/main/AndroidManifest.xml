@@ -7,6 +7,7 @@
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
         android:fullBackupContent="false"
+        android:enableOnBackInvokedCallback="true"
         tools:replace="android:allowBackup"
         tools:targetApi="33">
         <activity
