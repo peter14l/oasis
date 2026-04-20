@@ -299,6 +299,14 @@ class AppTheme {
               ? SystemUiOverlayStyle.light
               : SystemUiOverlayStyle.dark,
         ),
+        bottomSheetTheme: BottomSheetThemeData(
+          backgroundColor: isDark ? OasisColors.deep : _m3eLightSurface,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+        ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: inputFillColor,
@@ -412,6 +420,14 @@ class AppTheme {
         systemOverlayStyle: isDark
             ? SystemUiOverlayStyle.light
             : SystemUiOverlayStyle.dark,
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: isDark ? OasisColors.deep : _lightBackgroundColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
       ),
       cardTheme: CardThemeData(
         elevation: 0,

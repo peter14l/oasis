@@ -75,16 +75,22 @@ extension ContextX on BuildContext {
     Color? backgroundColor,
     double? maxHeight,
   }) {
+    final isDark = theme.brightness == Brightness.dark;
+    
     return showModalBottomSheet<T>(
       context: this,
       isScrollControlled: isScrollControlled,
-      backgroundColor: backgroundColor ?? theme.scaffoldBackgroundColor,
+      // On desktop, prioritize opaque backgrounds for readability
+      backgroundColor: backgroundColor ?? 
+          (isDesktopScreen 
+            ? (isDark ? const Color(0xFF0D1F1A) : Colors.white)
+            : Colors.transparent),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
       constraints:
           maxHeight != null ? BoxConstraints(maxHeight: maxHeight) : null,
-      builder: builder,
+      builder: (context) => builder(context),
     );
   }
 

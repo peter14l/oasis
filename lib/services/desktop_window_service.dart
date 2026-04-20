@@ -19,6 +19,9 @@ class DesktopWindowService extends WindowListener with TrayListener {
 
     await windowManager.ensureInitialized();
     await Window.initialize();
+    await Window.makeTitlebarTransparent();
+    await windowManager.setTitleBarStyle(TitleBarStyle.hidden,
+        windowButtonVisibility: false);
 
     // Set title
     await windowManager.setTitle('   Oasis');

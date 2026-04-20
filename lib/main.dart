@@ -34,6 +34,7 @@ import 'package:oasis/features/settings/presentation/providers/user_settings_pro
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/themes/app_theme.dart';
 import 'package:oasis/themes/fluent_theme.dart';
+import 'package:oasis/widgets/windows_title_bar.dart';
 import 'package:oasis/widgets/mesh_gradient_background.dart';
 import 'package:oasis/widgets/splash_screen.dart';
 import 'package:oasis/widgets/global_wellness_wrapper.dart';
@@ -145,15 +146,133 @@ class _MyAppState extends State<MyApp> {
     if (updateInfo != null && updateInfo.isUpdateAvailable) {
       Future.delayed(const Duration(seconds: 3), () {
         if (mounted) {
-          _showUpdateModalSheet(updateInfo);
+          _showUpdateNotification(updateInfo);
         }
       });
     }
   }
 
-  void _showUpdateModalSheet(UpdateInfo updateInfo) {
+  void _showUpdateNotification(UpdateInfo updateInfo) {
     final context = AppRouter.rootNavigatorKey.currentContext;
     if (context == null) return;
+
+    final isDesktop = Platform.isWindows || Platform.isMacOS;
+
+    if (isDesktop) {
+      material.showDialog(
+        context: context,
+        barrierDismissible: !updateInfo.isRequired,
+        builder: (context) => material.Center(
+          child: material.Container(
+            width: 450,
+            padding: const material.EdgeInsets.all(32),
+            decoration: material.BoxDecoration(
+              color: material.Theme.of(context).colorScheme.surface,
+              borderRadius: material.BorderRadius.circular(24),
+              border: material.Border.all(
+                color: material.Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+              boxShadow: [
+                material.BoxShadow(
+                  color: material.Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 20,
+                  offset: const material.Offset(0, 10),
+                ),
+              ],
+            ),
+            child: material.Material(
+              color: material.Colors.transparent,
+              child: material.Column(
+                mainAxisSize: material.MainAxisSize.min,
+                crossAxisAlignment: material.CrossAxisAlignment.start,
+                children: [
+                  material.Row(
+                    children: [
+                      material.Container(
+                        padding: const material.EdgeInsets.all(12),
+                        decoration: material.BoxDecoration(
+                          color: material.Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
+                          borderRadius: material.BorderRadius.circular(16),
+                        ),
+                        child: material.Icon(
+                          material.Icons.system_update,
+                          color: material.Theme.of(context).colorScheme.primary,
+                          size: 28,
+                        ),
+                      ),
+                      const material.SizedBox(width: 20),
+                      material.Expanded(
+                        child: material.Column(
+                          crossAxisAlignment: material.CrossAxisAlignment.start,
+                          children: [
+                            material.Text(
+                              'Update Available',
+                              style: material.Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                    fontWeight: material.FontWeight.bold,
+                                  ),
+                            ),
+                            material.Text(
+                              'Version ${updateInfo.latestVersion} is ready to install',
+                              style: material.Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: material.Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const material.SizedBox(height: 24),
+                  if (updateInfo.releaseNotes.isNotEmpty) ...[
+                    material.Text(
+                      'What\'s New:',
+                      style: material.Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: material.FontWeight.bold,
+                          ),
+                    ),
+                    const material.SizedBox(height: 12),
+                    material.Container(
+                      padding: const material.EdgeInsets.all(16),
+                      decoration: material.BoxDecoration(
+                        color: material.Theme.of(context).colorScheme.surfaceContainerLow,
+                        borderRadius: material.BorderRadius.circular(12),
+                      ),
+                      child: material.Text(
+                        updateInfo.releaseNotes,
+                        style: material.Theme.of(context).textTheme.bodyMedium,
+                        maxLines: 8,
+                        overflow: material.TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const material.SizedBox(height: 32),
+                  ],
+                  material.Row(
+                    mainAxisAlignment: material.MainAxisAlignment.end,
+                    children: [
+                      if (!updateInfo.isRequired)
+                        material.TextButton(
+                          onPressed: () => material.Navigator.pop(context),
+                          child: const material.Text('Later'),
+                        ),
+                      if (!updateInfo.isRequired) const material.SizedBox(width: 12),
+                      material.FilledButton.icon(
+                        onPressed: () {
+                          material.Navigator.pop(context);
+                          context.push('/settings/update');
+                        },
+                        icon: const material.Icon(material.Icons.download, size: 18),
+                        label: const material.Text('Update Now'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      return;
+    }
 
     material.showModalBottomSheet(
       context: context,
@@ -392,11 +511,13 @@ class _MyAppState extends State<MyApp> {
                   material.Brightness.light,
                   materialColorScheme: _cachedLightScheme,
                   fontFamily: userSettings.fontFamily,
+                  micaEnabled: userSettings.micaEnabled,
                 ),
                 darkTheme: AppFluentTheme.getTheme(
                   material.Brightness.dark,
                   materialColorScheme: _cachedDarkScheme,
                   fontFamily: userSettings.fontFamily,
+                  micaEnabled: userSettings.micaEnabled,
                 ),
                 themeMode: themeProvider.themeMode == material.ThemeMode.system
                     ? fluent.ThemeMode.system
@@ -405,11 +526,18 @@ class _MyAppState extends State<MyApp> {
                         : fluent.ThemeMode.light,
                 routerConfig: router,
                 builder: (context, child) {
-                  return material.MediaQuery(
-                    data: material.MediaQuery.of(context).copyWith(
-                      textScaler: material.TextScaler.linear(userSettings.fontSizeFactor),
-                    ),
-                    child: GlobalWellnessWrapper(child: CallNavigator(child: child!)),
+                  return material.Column(
+                    children: [
+                      if (Platform.isWindows) const WindowsTitleBar(height: 48),
+                      material.Expanded(
+                        child: material.MediaQuery(
+                          data: material.MediaQuery.of(context).copyWith(
+                            textScaler: material.TextScaler.linear(userSettings.fontSizeFactor),
+                          ),
+                          child: GlobalWellnessWrapper(child: CallNavigator(child: child!)),
+                        ),
+                      ),
+                    ],
                   );
                 },
               );
@@ -423,12 +551,19 @@ class _MyAppState extends State<MyApp> {
               themeMode: themeProvider.themeMode,
               routerConfig: router,
               builder: (context, child) {
-                return material.MediaQuery(
-                  data: material.MediaQuery.of(context).copyWith(
-                    textScaler: material.TextScaler.linear(userSettings.fontSizeFactor),
-                    boldText: false,
-                  ),
-                  child: GlobalWellnessWrapper(child: CallNavigator(child: child!)),
+                return material.Column(
+                  children: [
+                    if (Platform.isWindows) const WindowsTitleBar(height: 48),
+                    material.Expanded(
+                      child: material.MediaQuery(
+                        data: material.MediaQuery.of(context).copyWith(
+                          textScaler: material.TextScaler.linear(userSettings.fontSizeFactor),
+                          boldText: false,
+                        ),
+                        child: GlobalWellnessWrapper(child: CallNavigator(child: child!)),
+                      ),
+                    ),
+                  ],
                 );
               },
             );
@@ -491,16 +626,33 @@ class CallNavigator extends StatelessWidget {
 
     if (Platform.isWindows && userSettings.micaEnabled) {
       final theme = material.Theme.of(context);
+      final isDark = theme.brightness == material.Brightness.dark;
+      
       childWidget = material.Theme(
         data: theme.copyWith(
           colorScheme: theme.colorScheme.copyWith(
-            surface: material.Colors.black.withValues(alpha: 0.05),
-            surfaceContainer: material.Colors.black.withValues(alpha: 0.02),
-            onSurface: material.Colors.white,
+            // Use more opaque surface for better readability of cards/sheets
+            // while still allowing some Mica translucency for the main background
+            surface: isDark 
+                ? const material.Color(0xFF1A1D24).withValues(alpha: 0.9)
+                : material.Colors.white.withValues(alpha: 0.9),
+            surfaceContainer: isDark
+                ? const material.Color(0xFF111418).withValues(alpha: 0.8)
+                : material.Colors.white.withValues(alpha: 0.8),
+            onSurface: isDark ? material.Colors.white : material.Colors.black,
           ),
           scaffoldBackgroundColor: material.Colors.transparent,
           canvasColor: material.Colors.transparent,
-          cardColor: material.Colors.white.withValues(alpha: 0.02),
+          cardColor: isDark
+              ? material.Colors.white.withValues(alpha: 0.05)
+              : material.Colors.black.withValues(alpha: 0.05),
+          bottomSheetTheme: theme.bottomSheetTheme.copyWith(
+            backgroundColor: isDark 
+                ? const material.Color(0xFF0D1F1A) 
+                : const material.Color(0xFFFEF7FF),
+            surfaceTintColor: material.Colors.transparent,
+            elevation: 8, // Add elevation to desktop sheets
+          ),
         ),
         child: childWidget,
       );
@@ -515,9 +667,12 @@ class CallNavigator extends StatelessWidget {
       );
     } else {
       final isDark = material.Theme.of(context).brightness == material.Brightness.dark;
+      final mica = Platform.isWindows && userSettings.micaEnabled;
 
       return Container(
-        color: isDark ? const material.Color(0xFF080A0E) : const material.Color(0xFFF8F9FA),
+        color: mica 
+            ? material.Colors.transparent 
+            : (isDark ? const material.Color(0xFF080A0E) : const material.Color(0xFFF8F9FA)),
         child: childWidget,
       );
     }

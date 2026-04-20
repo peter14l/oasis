@@ -7,6 +7,7 @@ class AppFluentTheme {
     material.Brightness brightness, {
     material.ColorScheme? materialColorScheme,
     String? fontFamily,
+    bool micaEnabled = false,
   }) {
     final isDark = brightness == material.Brightness.dark;
     
@@ -32,8 +33,8 @@ class AppFluentTheme {
       accentColor: accentColor,
       fontFamily: fontFamily,
       visualDensity: VisualDensity.standard,
-      scaffoldBackgroundColor: scaffoldColor,
-      micaBackgroundColor: scaffoldColor,
+      scaffoldBackgroundColor: micaEnabled ? Colors.transparent : scaffoldColor,
+      micaBackgroundColor: micaEnabled ? Colors.transparent : scaffoldColor,
       
       // Typography synchronized with AppTextStyles
       typography: Typography.fromBrightness(
@@ -42,7 +43,9 @@ class AppFluentTheme {
       ).apply(fontFamily: fontFamily),
 
       navigationPaneTheme: NavigationPaneThemeData(
-        backgroundColor: isDark ? DarkColors.surface : LightColors.surface,
+        backgroundColor: micaEnabled 
+            ? (isDark ? DarkColors.surface.withValues(alpha: 0.7) : LightColors.surface.withValues(alpha: 0.7))
+            : (isDark ? DarkColors.surface : LightColors.surface),
         highlightColor: primaryColor,
         selectedIconColor: WidgetStateProperty.all(primaryColor),
         selectedTextStyle: WidgetStateProperty.all(TextStyle(

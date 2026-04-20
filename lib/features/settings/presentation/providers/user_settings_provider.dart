@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:oasis/features/settings/domain/models/user_settings_entity.dart';
 import 'package:oasis/features/settings/domain/usecases/settings_usecases.dart';
 import 'package:oasis/models/feed_layout_strategy.dart';
+import 'package:oasis/services/desktop_window_service.dart';
+import 'package:universal_io/io.dart';
 
 class UserSettingsProvider with ChangeNotifier {
   final GetSettingsUseCase _getSettingsUseCase;
@@ -58,10 +60,26 @@ class UserSettingsProvider with ChangeNotifier {
 
   Future<void> setMicaEnabled(bool value) async {
     await _updateAndSave(_settings.copyWith(micaEnabled: value));
+    
+    // Apply effect immediately on Windows
+    if (!kIsWeb && Platform.isWindows) {
+      await DesktopWindowService.instance.setWindowEffect(
+        enabled: value,
+        effect: _settings.windowEffect,
+      );
+    }
   }
 
   Future<void> setWindowEffect(String value) async {
     await _updateAndSave(_settings.copyWith(windowEffect: value));
+    
+    // Apply effect immediately on Windows
+    if (!kIsWeb && Platform.isWindows) {
+      await DesktopWindowService.instance.setWindowEffect(
+        enabled: _settings.micaEnabled,
+        effect: value,
+      );
+    }
   }
 
   Future<void> setDailyLimit(int minutes) async {

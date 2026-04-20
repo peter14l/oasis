@@ -13,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/services/notification_manager.dart';
+import 'package:window_manager/window_manager.dart';
 
 /// Model holding update information from remote server
 class UpdateInfo {
@@ -253,12 +254,16 @@ class UpdateService extends ChangeNotifier {
     ));
 
     try {
-      // 1. Prepare download path
+      // 1. Prepare download path based on platform
       final tempDir = await getTemporaryDirectory();
-      final apkPath = '${tempDir.path}/oasis_update.apk';
+      String extension = 'apk';
+      if (Platform.isWindows) extension = 'msix';
+      if (Platform.isMacOS) extension = 'dmg';
       
-      // Delete old APK if exists
-      final oldFile = File(apkPath);
+      final updatePath = '${tempDir.path}/oasis_update.$extension';
+      
+      // Delete old update file if exists
+      final oldFile = File(updatePath);
       if (await oldFile.exists()) {
         await oldFile.delete();
       }
@@ -268,7 +273,7 @@ class UpdateService extends ChangeNotifier {
       // 2. Download
       await _dio.download(
         updateInfo.downloadUrl,
-        apkPath,
+        updatePath,
         onReceiveProgress: (received, total) {
           if (total != -1) {
             final progress = received / total;
@@ -281,21 +286,39 @@ class UpdateService extends ChangeNotifier {
       _addLog('Preparing for installation...');
       _updateState(_currentProgress.copyWith(status: UpdateStatus.installing, progress: 1.0));
 
-      // 3. Install
-      _addLog('Opening APK for installation...');
-      final result = await OpenFilex.open(apkPath);
-      
-      if (result.type == ResultType.done) {
-        _addLog('Installation process started.');
-        _addLog('App will be restarted for the updates to take effect.');
-        _updateState(_currentProgress.copyWith(status: UpdateStatus.completed));
+      // 3. Install based on platform
+      if (Platform.isAndroid) {
+        _addLog('Opening APK for installation...');
+        final result = await OpenFilex.open(updatePath);
         
-        // Give the user time to see the log before quitting
-        await Future.delayed(const Duration(seconds: 3));
+        if (result.type == ResultType.done) {
+          _addLog('Installation process started.');
+          _updateState(_currentProgress.copyWith(status: UpdateStatus.completed));
+          await Future.delayed(const Duration(seconds: 3));
+          _quitApp();
+        } else {
+          _addLog('Installation failed: ${result.message}');
+          _updateState(_currentProgress.copyWith(status: UpdateStatus.failed, error: result.message));
+        }
+      } else if (Platform.isWindows) {
+        _addLog('Launching MSIX installer...');
+        // On Windows, MSIX files can be launched directly
+        await Process.run('explorer.exe', [updatePath]);
+        _addLog('Installer launched.');
+        _updateState(_currentProgress.copyWith(status: UpdateStatus.completed));
+        await Future.delayed(const Duration(seconds: 2));
         _quitApp();
+      } else if (Platform.isMacOS) {
+        _addLog('Opening DMG update package...');
+        // On macOS, DMG files are opened to mount them
+        await Process.run('open', [updatePath]);
+        _addLog('DMG opened. Please drag Oasis to your Applications folder.');
+        _updateState(_currentProgress.copyWith(status: UpdateStatus.completed));
+        // We don't quit on macOS immediately to allow the user to see the DMG
       } else {
-        _addLog('Installation failed: ${result.message}');
-        _updateState(_currentProgress.copyWith(status: UpdateStatus.failed, error: result.message));
+        _addLog('Manual installation required for this platform.');
+        await launchDownloadUrl(updateInfo.downloadUrl);
+        _updateState(_currentProgress.copyWith(status: UpdateStatus.completed));
       }
 
     } catch (e) {
@@ -307,6 +330,9 @@ class UpdateService extends ChangeNotifier {
   void _quitApp() {
     if (Platform.isAndroid || Platform.isIOS) {
       SystemNavigator.pop();
+    } else if (Platform.isWindows) {
+      // Use window_manager to destroy window cleanly
+      windowManager.destroy();
     } else {
       exit(0);
     }
@@ -460,4 +486,3 @@ class UpdateDialog extends StatelessWidget {
     );
   }
 }
-

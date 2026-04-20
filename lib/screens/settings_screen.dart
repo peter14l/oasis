@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter/widgets.dart';
@@ -935,6 +936,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 }).toList(),
               ),
         ),
+      if (kIsWeb == false && Platform.isWindows) ...[
+        const SizedBox(height: 24),
+        _buildSectionHeader(context, 'Windows Effects'),
+        _buildSettingsGroup(context, index: 10, [
+          _buildSettingsTile(
+            context,
+            icon: FluentIcons.window_apps_24_regular,
+            title: 'Window Transparency',
+            subtitle: 'Enable Mica/Acrylic background effects.',
+            iconColor: material.Colors.blue,
+            trailing: useFluent
+                ? fluent.ToggleSwitch(
+                    checked: userSettingsProvider.micaEnabled,
+                    onChanged: (v) => userSettingsProvider.setMicaEnabled(v),
+                  )
+                : material.Switch(
+                    value: userSettingsProvider.micaEnabled,
+                    onChanged: (v) => userSettingsProvider.setMicaEnabled(v),
+                  ),
+          ),
+          if (userSettingsProvider.micaEnabled)
+            _buildSettingsTile(
+              context,
+              icon: FluentIcons.blur_24_regular,
+              title: 'Effect Type',
+              subtitle: userSettingsProvider.windowEffect.toUpperCase(),
+              iconColor: material.Colors.teal,
+              trailing: useFluent
+                  ? fluent.ComboBox<String>(
+                      value: userSettingsProvider.windowEffect,
+                      onChanged: (v) => v != null
+                          ? userSettingsProvider.setWindowEffect(v)
+                          : null,
+                      items: const [
+                        fluent.ComboBoxItem(value: 'mica', child: fluent.Text('Mica (Default)')),
+                        fluent.ComboBoxItem(value: 'acrylic', child: fluent.Text('Acrylic')),
+                      ],
+                    )
+                  : material.DropdownButton<String>(
+                      value: userSettingsProvider.windowEffect,
+                      dropdownColor: colorScheme.surfaceContainerHigh,
+                      underline: const SizedBox(),
+                      onChanged: (v) => v != null
+                          ? userSettingsProvider.setWindowEffect(v)
+                          : null,
+                      items: const [
+                        material.DropdownMenuItem(value: 'mica', child: material.Text('Mica')),
+                        material.DropdownMenuItem(value: 'acrylic', child: material.Text('Acrylic')),
+                      ],
+                    ),
+            ),
+        ]),
+      ],
     ]);
   }
 
