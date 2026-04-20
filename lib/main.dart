@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:universal_io/io.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrintThrottled;
 
 import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/routes/app_router.dart';
@@ -525,46 +525,74 @@ class CallNavigator extends StatelessWidget {
 }
 
 void main() async {
-  material.debugPrint('--- APP STARTING ---');
+  // 1. Silence Flutter framework errors that are harmless but messy
+  material.FlutterError.onError = (material.FlutterErrorDetails details) {
+    final exception = details.exception;
+    if (exception is AssertionError) {
+      final message = exception.message?.toString() ?? '';
+      if (message.contains('RawKeyDownEvent') && message.contains('_keysPressed.isNotEmpty')) {
+        // Silencing the Windows "Alt" key assertion error
+        return;
+      }
+    }
+    // Forward everything else to Sentry and default handler
+    Sentry.captureException(details.exception, stackTrace: details.stack);
+    material.FlutterError.presentError(details);
+  };
 
-  runApp(
-    material.MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: SplashScreen(
-        onInitComplete: () {
-          _runAppInitialization();
-        },
-      ),
-    ),
-  );
-}
+  // 2. Silence debug logs for pitch presentation
+  material.debugPrint = (String? message, {int? wrapWidth}) {
+    if (message == null) return;
+    
+    // Ignore harmless but messy Flutter/Windows/Sentry/Signal logs
+    if (message.contains('Attempted to send a key down event') ||
+        message.contains('keysPressed') ||
+        message.contains('[sentry]') ||
+        message.contains('[Signal]') ||
+        message.contains('Unable to parse JSON message') ||
+        message.contains('The document is empty')) {
+      return;
+    }
 
-Future<void> _runAppInitialization() async {
+    if (message.contains('ERROR') || message.contains('failed') || message.contains('EXCEPTION') || message.contains('UNCAUGHT')) {
+      debugPrintThrottled(message, wrapWidth: wrapWidth);
+    }
+  };
+
   runZonedGuarded(() async {
     material.WidgetsFlutterBinding.ensureInitialized();
+    
     try {
       await AppInitializer.loadEnv();
 
       await AppInitializer.runWithSentry(() async {
-        final packageInfo = await PackageInfo.fromPlatform();
-        AppConfig.appVersion = packageInfo.version;
+        runApp(
+          material.MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: SplashScreen(
+              onInitComplete: () async {
+                try {
+                  final packageInfo = await PackageInfo.fromPlatform();
+                  AppConfig.appVersion = packageInfo.version;
 
-        await AppInitializer.initFirebase();
+                  await AppInitializer.initFirebase();
+                  final services = await AppInitializer.initCore();
 
-        try {
-          final services = await AppInitializer.initCore();
-
-          runApp(
-            SentryWidget(
-              child: AppInitializer.buildProviderTree(
-                services: services,
-                child: const LifecycleManager(child: MyApp()),
-              ),
+                  runApp(
+                    SentryWidget(
+                      child: AppInitializer.buildProviderTree(
+                        services: services,
+                        child: const LifecycleManager(child: MyApp()),
+                      ),
+                    ),
+                  );
+                } catch (e, stackTrace) {
+                  _showErrorScreen(e, stackTrace);
+                }
+              },
             ),
-          );
-        } catch (e, stackTrace) {
-          _showErrorScreen(e, stackTrace);
-        }
+          ),
+        );
       });
     } catch (e, st) {
       material.debugPrint('Root initialization failed: $e');
@@ -586,6 +614,8 @@ Future<void> _runAppInitialization() async {
     }
   });
 }
+
+// Removed redundant _runAppInitialization
 
 void _showErrorScreen(Object error, StackTrace stack, {bool isCorruption = false}) {
   runApp(

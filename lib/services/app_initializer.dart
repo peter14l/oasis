@@ -360,13 +360,11 @@ class AppInitializer {
           debugPrint('SentryFlutter.init callback started');
           const dsn = String.fromEnvironment('SENTRY_DSN');
           options.dsn = dsn.isNotEmpty ? dsn : null;
-          options.tracesSampleRate = kDebugMode ? 1.0 : 0.05;
+          options.tracesSampleRate = kDebugMode ? 0.2 : 0.05;
           options.sendDefaultPii = false;
-          if (kDebugMode) {
-            options.debug = true;
-          }
+          options.debug = false;
           debugPrint(
-            'Sentry options configured (DSN: ${options.dsn != null ? "provided" : "none"})',
+            'Sentry options configured',
           );
         },
         appRunner: () async {

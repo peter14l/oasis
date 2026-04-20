@@ -1,4 +1,4 @@
-import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
 import 'package:oasis/features/messages/data/encryption_service.dart';
 
 class EncryptionProvisioner {
@@ -9,14 +9,14 @@ class EncryptionProvisioner {
     try {
       final encryptionService = EncryptionService();
       final status = await encryptionService.init();
-      developer.log('[Auth] Encryption init status after login: $status');
+      if (kDebugMode) {}
 
       if (status == EncryptionStatus.needsSetup) {
-        developer.log('[Auth] Automatically setting up encryption for new user...');
+        if (kDebugMode) {}
         await encryptionService.setupEncryption();
       }
     } catch (e) {
-      developer.log('[Auth] Encryption init error after login: $e');
+      if (kDebugMode) {}
     }
   }
 }

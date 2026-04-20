@@ -67,22 +67,12 @@ class FlutterSecureStorageWindows extends FlutterSecureStoragePlatform {
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final rawValue = prefs.getString('$_storagePrefix$key');
-    
-    // DEBUG PRINT
-    if (kDebugMode && rawValue != null) {
-      print('STUB: Reading key $key, value length: ${rawValue.length}');
-      if (rawValue.length > 50) {
-        print('STUB: Value starts with: ${rawValue.substring(0, 50)}');
-      }
-    }
 
     if (rawValue == null) return null;
-
     // Guard against corrupted files (e.g. file filled with null bytes or zeros)
     if (rawValue.isEmpty || 
         rawValue.runes.every((r) => r == 0) || 
         rawValue.runes.every((r) => r == 48)) { // 48 is ASCII '0'
-      if (kDebugMode) print('STUB: Detected corrupted data for key $key, ignoring.');
       return null;
     }
 
@@ -98,7 +88,6 @@ class FlutterSecureStorageWindows extends FlutterSecureStoragePlatform {
       
       return decrypted;
     } catch (e) {
-      if (kDebugMode) print('STUB: Decryption failed for key $key: $e');
       return null;
     }
   }

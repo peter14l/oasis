@@ -86,6 +86,7 @@ class _GiphyPickerSheetState extends State<GiphyPickerSheet>
     });
 
     final result = await _klipyService.search(query);
+    if (!mounted) return;
     setState(() {
       if (result.isSuccess) {
         _klipyResults = result.data ?? [];

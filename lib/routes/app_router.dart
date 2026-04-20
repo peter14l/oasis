@@ -986,7 +986,7 @@ class AppRouter {
       navigatorKey: rootNavigatorKey,
       initialLocation: '/feed',
       refreshListenable: AuthService(),
-      debugLogDiagnostics: true,
+      debugLogDiagnostics: false,
       redirect: (context, state) async {
         // Password-reset screen is always reachable once Supabase sets the
         // recovery session — never redirect away from it automatically.

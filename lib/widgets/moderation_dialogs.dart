@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
+import 'package:provider/provider.dart';
+import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/services/moderation_service.dart';
 import 'package:oasis/models/moderation.dart';
 import 'package:oasis/themes/app_colors.dart';
@@ -26,6 +29,20 @@ class ReportDialog extends StatefulWidget {
     String? commentId,
     String? messageId,
   }) {
+    final useFluent = context.read<ThemeProvider>().useFluentUI;
+    if (useFluent) {
+      return fluent.showDialog<bool>(
+        context: context,
+        builder:
+            (context) => FluentReportDialog(
+              userId: userId,
+              postId: postId,
+              commentId: commentId,
+              messageId: messageId,
+            ),
+      );
+    }
+
     return showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -464,6 +481,212 @@ class _MuteUserDialogState extends State<MuteUserDialog> {
                     }
                   },
           child: const Text('Mute'),
+        ),
+      ],
+    );
+  }
+}
+
+class FluentReportDialog extends StatefulWidget {
+  final String? userId;
+  final String? postId;
+  final String? commentId;
+  final String? messageId;
+
+  const FluentReportDialog({
+    super.key,
+    this.userId,
+    this.postId,
+    this.commentId,
+    this.messageId,
+  });
+
+  @override
+  State<FluentReportDialog> createState() => _FluentReportDialogState();
+}
+
+class _FluentReportDialogState extends State<FluentReportDialog> {
+  final _moderationService = ModerationService();
+  final _descriptionController = TextEditingController();
+
+  String _selectedCategory = ReportCategory.spam;
+  bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitReport() async {
+    setState(() => _isSubmitting = true);
+
+    try {
+      final categoryName = ReportCategory.getDisplayName(_selectedCategory);
+      final details = _descriptionController.text.trim();
+
+      final reportId = await _moderationService.submitReport(
+        reportedUserId: widget.userId,
+        postId: widget.postId,
+        commentId: widget.commentId,
+        messageId: widget.messageId,
+        category: _selectedCategory,
+        reason: categoryName,
+        description: details.isEmpty ? null : details,
+      );
+
+      if (reportId != null && mounted) {
+        await _launchSupportEmail(categoryName, details);
+
+        if (mounted) {
+          Navigator.of(context).pop(true);
+          fluent.displayInfoBar(
+            context,
+            builder: (context, close) {
+              return fluent.InfoBar(
+                title: const Text('Success'),
+                content: const Text('Report submitted successfully'),
+                severity: fluent.InfoBarSeverity.success,
+              );
+            },
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        fluent.displayInfoBar(
+          context,
+          builder: (context, close) {
+            return fluent.InfoBar(
+              title: const Text('Error'),
+              content: Text(e.toString()),
+              severity: fluent.InfoBarSeverity.error,
+            );
+          },
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  Future<void> _launchSupportEmail(String category, String details) async {
+    final type =
+        widget.messageId != null
+            ? 'Message'
+            : widget.postId != null
+            ? 'Post'
+            : widget.commentId != null
+            ? 'Comment'
+            : 'User';
+
+    final id =
+        widget.messageId ??
+        widget.postId ??
+        widget.commentId ??
+        widget.userId ??
+        'N/A';
+
+    final body = '''
+New Report Submitted:
+--------------------
+Type: $type
+Target ID: $id
+Reported User ID: ${widget.userId ?? 'N/A'}
+Category: $category
+Details: ${details.isEmpty ? 'None provided' : details}
+
+This report was also submitted to our moderation system.
+''';
+
+    final Uri emailLaunchUri = Uri(
+      scheme: 'mailto',
+      path: 'oasis.officialsupport@gmail.com',
+      query:
+          'subject=${Uri.encodeComponent('New Report: $category ($type)')}&body=${Uri.encodeComponent(body)}',
+    );
+
+    try {
+      if (await canLaunchUrl(emailLaunchUri)) {
+        await launchUrl(emailLaunchUri);
+      }
+    } catch (e) {
+      debugPrint('Could not launch email client: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return fluent.ContentDialog(
+      title: const Text('Report'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Why are you reporting this?',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 16),
+          fluent.RadioGroup<String>(
+            groupValue: _selectedCategory,
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => _selectedCategory = value);
+              }
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ...ReportCategory.all.map((category) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: fluent.RadioButton<String>(
+                      value: category,
+                      content: Text(ReportCategory.getDisplayName(category)),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          fluent.InfoLabel(
+            label: 'Details (Optional)',
+            child: fluent.TextBox(
+              controller: _descriptionController,
+              placeholder: 'Provide more context for our team...',
+              maxLines: 3,
+              minLines: 3,
+              maxLength: 500,
+            ),
+          ),
+          const SizedBox(height: 16),
+          fluent.InfoBar(
+            title: const Text('Note'),
+            content: const Text(
+              'Report details will be shared with Oasis Support via email for further review.',
+            ),
+            severity: fluent.InfoBarSeverity.info,
+            isLong: false,
+          ),
+        ],
+      ),
+      actions: [
+        fluent.Button(
+          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        fluent.FilledButton(
+          onPressed: _isSubmitting ? null : _submitReport,
+          style: fluent.ButtonStyle(
+            backgroundColor: fluent.WidgetStateProperty.all(fluent.Colors.red),
+          ),
+          child: _isSubmitting
+              ? const fluent.ProgressRing()
+              : const Text('Submit Report'),
         ),
       ],
     );

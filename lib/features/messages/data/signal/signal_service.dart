@@ -304,12 +304,34 @@ class SignalService {
       _store,
       address,
     );
-    final ciphertextMessage = await sessionCipher.encrypt(
-      Uint8List.fromList(utf8.encode(plaintext)),
-    );
 
-    return ciphertextMessage;
+    try {
+      final ciphertextMessage = await sessionCipher.encrypt(
+        Uint8List.fromList(utf8.encode(plaintext)),
+      );
+      return ciphertextMessage;
+    } catch (e) {
+      debugPrint('[Signal] Session encryption failed: $e. Rebuilding session...');
+      // If encryption fails (e.g. InvalidKeyException), the session is corrupted.
+      // Delete the session and retry once.
+      await _store.deleteSession(address);
+      await _ensureSession(recipientId, deviceId: deviceId);
+      
+      final retryCipher = SessionCipher(
+        _store,
+        _store,
+        _store,
+        _store,
+        address,
+      );
+      return await retryCipher.encrypt(
+        Uint8List.fromList(utf8.encode(plaintext)),
+      );
+    }
   }
+
+  // Track recent recovery attempts to prevent spamming
+  final Map<String, DateTime> _lastRecoveryAttempt = {};
 
   /// Decrypt an incoming message.
   Future<String> decryptMessage(
@@ -336,40 +358,43 @@ class SignalService {
     try {
       Uint8List plaintextBytes;
       if (type == CiphertextMessage.prekeyType) {
-        debugPrint('[Signal] Decrypting PreKeySignalMessage from $senderId');
         final preKeyMessage = PreKeySignalMessage(ciphertextBytes);
         plaintextBytes = await sessionCipher.decrypt(preKeyMessage);
-        debugPrint(
-          '[Signal] Successfully decrypted PreKeySignalMessage and established session with $senderId',
-        );
       } else if (type == CiphertextMessage.whisperType) {
         final message = SignalMessage.fromSerialized(ciphertextBytes);
         plaintextBytes = await sessionCipher.decryptFromSignal(message);
       } else {
-        debugPrint('[Signal] Unknown message type from $senderId: $type');
-        return '🔒 Message encrypted (Unknown type: $type)';
+        return '🔒 Message encrypted';
       }
       return utf8.decode(plaintextBytes);
     } catch (e) {
       final errorStr = e.toString();
-      debugPrint('[Signal] Decryption failed for $senderId (Type $type): $e');
-
+      
       if (errorStr.contains('Bad Mac')) {
-        debugPrint(
-          '[Signal] Message authentication failed (Bad MAC) with $senderId. Resetting session to recover...',
-        );
-        // Proactive: Trigger a refresh and send a SYNC message to fix the other side
-        forceRefreshBundle(senderId)
-            .then((_) {
-              // Send a hidden empty message to force the remote side to rebuild their session
-              encryptMessage(senderId, 'PROTOCOL_SYNC').catchError((e) {
-                debugPrint('[Signal] Sync send failed: $e');
-                return Future<CiphertextMessage>.error(e);
+        final now = DateTime.now();
+        final lastAttempt = _lastRecoveryAttempt[senderId];
+
+        // Only attempt recovery once every 5 minutes per user to prevent loops and spam
+        if (lastAttempt == null || now.difference(lastAttempt).inMinutes > 5) {
+          _lastRecoveryAttempt[senderId] = now;
+          debugPrint(
+            '[Signal] Message authentication failed (Bad MAC) with $senderId. Resetting session to recover...',
+          );
+
+          // Proactive: Trigger a refresh and send a SYNC message to fix the other side
+          forceRefreshBundle(senderId)
+              .then((_) async {
+                try {
+                  // Send a hidden empty message to force the remote side to rebuild their session
+                  await encryptMessage(senderId, 'PROTOCOL_SYNC');
+                } catch (syncError) {
+                  debugPrint('[Signal] Sync send failed: $syncError');
+                }
+              })
+              .catchError((e) {
+                debugPrint('[Signal] Recovery failed: $e');
               });
-            })
-            .catchError((e) {
-              debugPrint('[Signal] Recovery failed: $e');
-            });
+        }
 
         return '🔒 Optimizing secure connection...';
       } else if (errorStr.contains('No valid sessions') ||
@@ -380,7 +405,6 @@ class SignalService {
         await _store.deleteSession(address);
         return '🔒 Session expired (Resetting...)';
       } else if (errorStr.contains('DuplicateMessageException')) {
-        debugPrint('[Signal] Duplicate message received from $senderId.');
         return '🔒 Message encrypted (Duplicate)';
       } else if (errorStr.contains('InvalidKeyIdException')) {
         debugPrint(

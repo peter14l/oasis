@@ -86,12 +86,11 @@ class _CommentsScreenState extends State<CommentsScreen> {
         if (mounted) {
           try {
             final newComment = Comment.fromJson(commentData);
-            // Only add if it's a top-level comment (not a reply)
-            if (commentData['parent_comment_id'] == null) {
-              setState(() {
+            setState(() {
+              if (!_comments.any((c) => c.id == newComment.id)) {
                 _comments.insert(0, newComment);
-              });
-            }
+              }
+            });
           } catch (e) {
             debugPrint('Error adding comment: $e');
           }

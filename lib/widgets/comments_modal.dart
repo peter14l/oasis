@@ -218,15 +218,20 @@ class _CommentsModalState extends State<CommentsModal> {
     setState(() => _isSubmitting = true);
 
     try {
-      await _commentService.createComment(
+      final comment = await _commentService.createComment(
         userId: userId,
         postId: widget.postId,
         content: content,
         parentCommentId: _replyingTo?.id,
       );
 
-      if (mounted && _replyingTo == null) {
-        context.read<FeedProvider>().incrementCommentCount(widget.postId);
+      if (mounted) {
+        if (!_comments.any((c) => c.id == comment.id)) {
+          _comments.insert(0, comment);
+        }
+        if (_replyingTo == null) {
+          context.read<FeedProvider>().incrementCommentCount(widget.postId);
+        }
       }
 
       _commentController.clear();
@@ -737,173 +742,200 @@ class _CommentsModalState extends State<CommentsModal> {
   ]) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isReply = comment.parentCommentId != null;
+    final parentComment = isReply
+        ? _comments.where((c) => c.id == comment.parentCommentId).firstOrNull
+        : null;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Row(
+      padding: EdgeInsets.only(
+        bottom: 20,
+        left: isReply ? 40.0 : 0.0,
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: EdgeInsets.all(isM3E ? 2 : 0),
-            decoration: BoxDecoration(
-              shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
-              borderRadius: isM3E ? BorderRadius.circular(8) : null,
-              border:
-                  isM3E
-                      ? Border.all(
-                        color: colorScheme.primary.withValues(alpha: 0.5),
-                        width: 1,
-                      )
-                      : null,
+          if (isReply && parentComment != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: [
+                  Icon(
+                    useFluent ? fluent.FluentIcons.reply : material.Icons.reply,
+                    size: 12,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Replying to ${parentComment.username}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            child: ClipRRect(
-              borderRadius:
-                  isM3E ? BorderRadius.circular(6) : BorderRadius.circular(18),
-              child: SizedBox(
-                width: 36,
-                height: 36,
-                child:
-                    comment.userAvatar.isNotEmpty
-                        ? CachedNetworkImage(
-                          imageUrl: comment.userAvatar,
-                          fit: BoxFit.cover,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: EdgeInsets.all(isM3E ? 2 : 0),
+                decoration: BoxDecoration(
+                  shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+                  borderRadius: isM3E ? BorderRadius.circular(8) : null,
+                  border: isM3E
+                      ? Border.all(
+                          color: colorScheme.primary.withValues(alpha: 0.5),
+                          width: 1,
                         )
+                      : null,
+                ),
+                child: ClipRRect(
+                  borderRadius:
+                      isM3E ? BorderRadius.circular(6) : BorderRadius.circular(18),
+                  child: SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: comment.userAvatar.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: comment.userAvatar,
+                            fit: BoxFit.cover,
+                          )
                         : Container(
-                          color: colorScheme.primary.withValues(alpha: 0.1),
-                          child: Center(
-                            child: Text(
-                              comment.username[0].toUpperCase(),
-                              style: TextStyle(
-                                color: colorScheme.primary,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                            color: colorScheme.primary.withValues(alpha: 0.1),
+                            child: Center(
+                              child: Text(
+                                comment.username[0].toUpperCase(),
+                                style: TextStyle(
+                                  color: colorScheme.primary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          comment.username,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          timeago.format(comment.timestamp, locale: 'en_short'),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant.withValues(
+                              alpha: 0.7,
+                            ),
+                            fontSize: 12,
+                          ),
+                        ),
+                        const Spacer(),
+                        fluent.FlyoutTarget(
+                          controller: _flyoutController,
+                          child: GestureDetector(
+                            onTap: () => _showCommentOptions(comment),
+                            child: Icon(
+                              useFluent
+                                  ? fluent.FluentIcons.more
+                                  : FluentIcons.more_horizontal_20_regular,
+                              size: 18,
+                              color: colorScheme.onSurfaceVariant.withValues(
+                                alpha: 0.6,
                               ),
                             ),
                           ),
                         ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
+                      ],
+                    ),
+                    const SizedBox(height: 4),
                     Text(
-                      comment.username,
+                      comment.content,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                        height: 1.4,
                         fontSize: 14,
+                        fontWeight: isM3E ? FontWeight.w500 : FontWeight.normal,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      timeago.format(comment.timestamp, locale: 'en_short'),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant.withValues(
-                          alpha: 0.7,
-                        ),
-                        fontSize: 12,
-                      ),
-                    ),
-                    const Spacer(),
-                    fluent.FlyoutTarget(
-                      controller: _flyoutController,
-                      child: GestureDetector(
-                        onTap: () => _showCommentOptions(comment),
-                        child: Icon(
-                          useFluent
-                              ? fluent.FluentIcons.more
-                              : FluentIcons.more_horizontal_20_regular,
-                          size: 18,
-                          color: colorScheme.onSurfaceVariant.withValues(
-                            alpha: 0.6,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  comment.content,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    height: 1.4,
-                    fontSize: 14,
-                    fontWeight: isM3E ? FontWeight.w500 : FontWeight.normal,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => _likeComment(comment),
-                      child: Row(
-                        children: [
-                          Icon(
-                            comment.isLiked
-                                ? (useFluent
-                                    ? fluent.FluentIcons.heart_fill
-                                    : FluentIcons.heart_16_filled)
-                                : (useFluent
-                                    ? fluent.FluentIcons.heart
-                                    : fluent.FluentIcons.heart),
-                            size: 16,
-                            color:
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => _likeComment(comment),
+                          child: Row(
+                            children: [
+                              Icon(
                                 comment.isLiked
+                                    ? (useFluent
+                                        ? fluent.FluentIcons.heart_fill
+                                        : FluentIcons.heart_16_filled)
+                                    : (useFluent
+                                        ? fluent.FluentIcons.heart
+                                        : fluent.FluentIcons.heart),
+                                size: 16,
+                                color: comment.isLiked
                                     ? (isM3E
                                         ? colorScheme.tertiary
                                         : Colors.red)
                                     : colorScheme.onSurfaceVariant,
-                          ),
-                          if (comment.likes > 0) ...[
-                            const SizedBox(width: 6),
-                            Text(
-                              '${comment.likes}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color:
-                                    comment.isLiked
+                              ),
+                              if (comment.likes > 0) ...[
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${comment.likes}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: comment.isLiked
                                         ? (isM3E
                                             ? colorScheme.tertiary
                                             : Colors.red)
                                         : colorScheme.onSurfaceVariant,
-                                fontWeight:
-                                    (isM3E || comment.isLiked)
+                                    fontWeight: (isM3E || comment.isLiked)
                                         ? FontWeight.bold
                                         : FontWeight.normal,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 24),
-                    GestureDetector(
-                      onTap: () {
-                        setState(() => _replyingTo = comment);
-                      },
-                      child: Text(
-                        'Reply',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurfaceVariant.withValues(
-                            alpha: 0.7,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
-                      ),
+                        const SizedBox(width: 24),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() => _replyingTo = comment);
+                          },
+                          child: Text(
+                            'Reply',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onSurfaceVariant.withValues(
+                                alpha: 0.7,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
-
   @override
   void dispose() {
     if (_commentsChannel != null) {

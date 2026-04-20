@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:oasis/features/messages/data/encryption_service.dart';
+import 'package:oasis/features/messages/data/signal/signal_service.dart';
 import 'package:oasis/widgets/recovery_key_sheet.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -40,6 +41,10 @@ class _PINResetScreenState extends State<PINResetScreen> {
     6,
     (index) => FocusNode(),
   );
+  final List<FocusNode> _keyboardFocusNodes = List.generate(
+    12,
+    (index) => FocusNode(),
+  );
 
   // State
   bool _isLoading = false;
@@ -56,6 +61,7 @@ class _PINResetScreenState extends State<PINResetScreen> {
     for (var c in _confirmPinControllers) c.dispose();
     for (var n in _pinFocusNodes) n.dispose();
     for (var n in _confirmPinFocusNodes) n.dispose();
+    for (var n in _keyboardFocusNodes) n.dispose();
     super.dispose();
   }
 
@@ -71,12 +77,6 @@ class _PINResetScreenState extends State<PINResetScreen> {
       } else if (!isConfirm && index < 5) {
         _pinFocusNodes[index + 1].requestFocus();
       }
-    }
-
-    if (!isConfirm && _currentPin.length == 6 && !_isConfirmingPin) {
-      setState(() {
-        _isConfirmingPin = true;
-      });
     }
   }
 
@@ -143,6 +143,15 @@ class _PINResetScreenState extends State<PINResetScreen> {
 
       if (mounted) {
         if (result.success) {
+          // Reset Signal identity as old sessions are now invalid
+          try {
+            final signalService = SignalService();
+            await signalService.clearData();
+            await signalService.init();
+          } catch (e) {
+            debugPrint('[Signal] Reset error during PIN change: $e');
+          }
+
           // Show recovery key
           if (result.recoveryKey != null) {
             await RecoveryKeySheet.show(
@@ -531,6 +540,9 @@ class _PINResetScreenState extends State<PINResetScreen> {
     bool isConfirm,
     ThemeData theme,
   ) {
+    // Determine which managed focus nodes to use for KeyboardListener
+    final keyboardNodesOffset = isConfirm ? 6 : 0;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: List.generate(
@@ -538,7 +550,7 @@ class _PINResetScreenState extends State<PINResetScreen> {
         (index) => SizedBox(
           width: 45,
           child: KeyboardListener(
-            focusNode: FocusNode(),
+            focusNode: _keyboardFocusNodes[keyboardNodesOffset + index],
             onKeyEvent: (event) {
               if (event is KeyDownEvent &&
                   event.logicalKey == LogicalKeyboardKey.backspace &&

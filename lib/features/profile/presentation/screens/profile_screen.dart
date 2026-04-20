@@ -38,6 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   final List<Post> _savedPosts = [];
   bool _isLoadingPosts = false;
   final ScrollController _scrollController = ScrollController();
+  int _pivotIndex = 0;
 
   bool get isOwnProfile {
     final currentUserId = _authService.currentUser?.id;
@@ -149,6 +150,11 @@ class _ProfileScreenState extends State<ProfileScreen>
             : profileProvider.viewedProfile;
 
         if (profileProvider.isLoading && profile == null) {
+          if (useFluent) {
+            return const fluent.ScaffoldPage(
+              content: Center(child: fluent.ProgressRing()),
+            );
+          }
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
@@ -159,15 +165,12 @@ class _ProfileScreenState extends State<ProfileScreen>
         }
 
         if (useFluent) {
-          return Material(
-            type: MaterialType.transparency,
-            child: _buildFluentProfile(
-              profile,
-              themeProvider,
-              colorScheme,
-              profileProvider,
-              userId,
-            ),
+          return _buildFluentProfile(
+            profile,
+            themeProvider,
+            colorScheme,
+            profileProvider,
+            userId,
           );
         }
 
@@ -205,84 +208,385 @@ class _ProfileScreenState extends State<ProfileScreen>
     ProfileProvider profileProvider,
     String? userId,
   ) {
-    return fluent.ScaffoldPage.scrollable(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+    return fluent.ScaffoldPage(
+      header: fluent.PageHeader(
+        title: Text(profile.username),
+        commandBar: fluent.CommandBar(
+          mainAxisAlignment: MainAxisAlignment.end,
+          primaryItems: [
+            if (isOwnProfile)
+              fluent.CommandBarButton(
+                icon: const Icon(fluent.FluentIcons.settings),
+                label: const Text('Settings'),
+                onPressed: () => context.push('/settings'),
+              ),
+            fluent.CommandBarButton(
+              icon: const Icon(fluent.FluentIcons.share),
+              label: const Text('Share'),
+              onPressed: () {
+                final shareText = isOwnProfile
+                    ? 'Check out my profile on Oasis!'
+                    : 'Check out ${profile.username} on Oasis!';
+                final profileUrl = AppConfig.getWebUrl('/profile/${profile.id}');
+                Share.share('$shareText\n$profileUrl');
+              },
+            ),
+          ],
+        ),
+      ),
+      content: SingleChildScrollView(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1000),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildDesktopAvatar(profile, colorScheme, themeProvider.isM3EEnabled),
-                  const SizedBox(width: 32),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          profile.fullName ?? profile.username,
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
+                  // Hero Header Section
+                  _buildFluentHeroHeader(profile, themeProvider, colorScheme, profileProvider, userId),
+                  const SizedBox(height: 48),
+                  
+                  // Content Pivot
+                  fluent.TabView(
+                    currentIndex: _pivotIndex,
+                    onChanged: (index) => setState(() => _pivotIndex = index),
+                    tabs: [
+                      fluent.Tab(
+                        text: const Text('Posts'),
+                        body: Container(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: _buildFluentPostsGrid(_userPosts, userId, themeProvider.isM3EEnabled),
+                        ),
+                      ),
+                      if (isOwnProfile)
+                        fluent.Tab(
+                          text: const Text('Saved'),
+                          body: Container(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: _buildFluentPostsGrid(_savedPosts, userId, themeProvider.isM3EEnabled),
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        if (profile.bio != null)
-                          Text(
-                            profile.bio!,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            _buildDesktopStatItem('${profile.postsCount}', 'posts'),
-                            const SizedBox(width: 24),
-                            _buildDesktopStatItem(
-                              '${profile.followersCount}',
-                              'followers',
-                              onTap: () => context.push('/profile/${profile.id}/followers'),
-                            ),
-                            const SizedBox(width: 24),
-                            _buildDesktopStatItem(
-                              '${profile.followingCount}',
-                              'following',
-                              onTap: () => context.push('/profile/${profile.id}/following'),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        _buildDesktopActionButtons(
-                          profile,
-                          profileProvider,
-                          Theme.of(context),
-                          colorScheme,
-                          userId,
-                          themeProvider.isM3EEnabled,
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 40),
-              _buildTabBar(colorScheme),
-              const Divider(),
-              SizedBox(
-                height: 800, // Fixed height for Grid in Scrollable
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildPostsTab(userId, true, themeProvider.isM3EEnabled),
-                    if (isOwnProfile)
-                      _buildSavedTab(userId, true, themeProvider.isM3EEnabled),
-                  ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFluentHeroHeader(
+    UserProfileEntity profile,
+    ThemeProvider themeProvider,
+    ColorScheme colorScheme,
+    ProfileProvider profileProvider,
+    String? userId,
+  ) {
+    final isM3E = themeProvider.isM3EEnabled;
+    
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Large Avatar with Fluent Styling
+        _buildFluentAvatar(profile, colorScheme, isM3E),
+        const SizedBox(width: 48),
+        
+        // Profile Info
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                profile.fullName ?? profile.username,
+                style: fluent.FluentTheme.of(context).typography.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '@${profile.username}',
+                style: fluent.FluentTheme.of(context).typography.body?.copyWith(
+                  color: fluent.FluentTheme.of(context).accentColor.lighter,
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (profile.bio != null && profile.bio!.isNotEmpty) ...[
+                Text(
+                  profile.bio!,
+                  style: fluent.FluentTheme.of(context).typography.body,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 16),
+              ],
+              
+              // Stats
+              Row(
+                children: [
+                  _buildFluentStatItem('${profile.postsCount}', 'posts'),
+                  const SizedBox(width: 32),
+                  _buildFluentStatItem(
+                    '${profile.followersCount}',
+                    'followers',
+                    onTap: () => context.push('/profile/${profile.id}/followers'),
+                  ),
+                  const SizedBox(width: 32),
+                  _buildFluentStatItem(
+                    '${profile.followingCount}',
+                    'following',
+                    onTap: () => context.push('/profile/${profile.id}/following'),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Actions
+              _buildFluentActionButtons(
+                profile,
+                profileProvider,
+                colorScheme,
+                userId,
+                isM3E,
               ),
             ],
           ),
         ),
+        
+        // Optional Wellness Summary on the right
+        if (isOwnProfile) ...[
+          const SizedBox(width: 48),
+          _buildFluentWellnessSummary(profile),
+        ],
       ],
+    );
+  }
+
+  Widget _buildFluentAvatar(
+    UserProfileEntity profile,
+    ColorScheme colorScheme,
+    bool isM3E,
+  ) {
+    return Container(
+      width: 180,
+      height: 180,
+      decoration: BoxDecoration(
+        shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
+        borderRadius: isM3E ? BorderRadius.circular(32) : null,
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withValues(alpha: 0.2),
+            blurRadius: 20,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: isM3E ? BorderRadius.circular(32) : BorderRadius.circular(90),
+        child: profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
+            ? CachedNetworkImage(
+                imageUrl: profile.avatarUrl!,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => const fluent.ProgressRing(),
+              )
+            : Container(
+                color: colorScheme.surfaceContainerHighest,
+                child: Center(
+                  child: Text(
+                    profile.username[0].toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 64,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildFluentStatItem(String value, String label, {VoidCallback? onTap}) {
+    final theme = fluent.FluentTheme.of(context);
+    return fluent.HoverButton(
+      onPressed: onTap,
+      builder: (context, states) {
+        return Column(
+          children: [
+            Text(
+              value,
+              style: theme.typography.subtitle?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: states.contains(WidgetState.hovered) ? theme.accentColor : null,
+              ),
+            ),
+            Text(
+              label,
+              style: theme.typography.caption?.copyWith(
+                color: theme.typography.body?.color?.withValues(alpha: 0.6),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildFluentActionButtons(
+    UserProfileEntity profile,
+    ProfileProvider profileProvider,
+    ColorScheme colorScheme,
+    String? currentUserId,
+    bool isM3E,
+  ) {
+    if (isOwnProfile) {
+      return fluent.Button(
+        onPressed: () => context.push('/edit-profile'),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(fluent.FluentIcons.edit, size: 16),
+              SizedBox(width: 8),
+              Text('Edit Profile'),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        fluent.FilledButton(
+          onPressed: () {
+            if (currentUserId != null) {
+              if (profileProvider.isFollowing) {
+                profileProvider.unfollowUser(followerId: currentUserId, followingId: profile.id);
+              } else {
+                profileProvider.followUser(followerId: currentUserId, followingId: profile.id);
+              }
+            }
+          },
+          style: fluent.ButtonStyle(
+            backgroundColor: profileProvider.isFollowing
+                ? fluent.WidgetStateProperty.all(fluent.FluentTheme.of(context).cardColor)
+                : null,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Text(profileProvider.isFollowing ? 'Following' : 'Follow'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        if (currentUserId != null)
+          fluent.Button(
+            onPressed: () => _handleMessage(currentUserId, profile.id, profile),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Icon(fluent.FluentIcons.chat, size: 16),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildFluentWellnessSummary(UserProfileEntity profile) {
+    return Container(
+      width: 200,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: fluent.FluentTheme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: fluent.FluentTheme.of(context).resources.dividerStrokeColorDefault),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'WELLNESS',
+            style: fluent.FluentTheme.of(context).typography.caption?.copyWith(
+              letterSpacing: 1.5,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          WellnessBadge(xp: profile.xp),
+          const SizedBox(height: 16),
+          Text(
+            'Level ${profile.level}',
+            style: fluent.FluentTheme.of(context).typography.body?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFluentPostsGrid(List<Post> posts, String? userId, bool isM3E) {
+    if (_isLoadingPosts) {
+      return const Center(child: fluent.ProgressRing());
+    }
+
+    if (posts.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(fluent.FluentIcons.photo_collection, size: 48, color: Colors.grey),
+            const SizedBox(height: 16),
+            Text(
+              'No posts yet',
+              style: fluent.FluentTheme.of(context).typography.body,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.0,
+      ),
+      itemCount: posts.length,
+      itemBuilder: (context, index) {
+        final post = posts[index];
+        final borderRadius = isM3E ? BorderRadius.circular(16) : BorderRadius.circular(8);
+
+        return fluent.HoverButton(
+          onPressed: () => context.push('/post/${post.id}'),
+          builder: (context, states) {
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              transform: states.contains(WidgetState.hovered) ? (Matrix4.identity()..scale(1.02)) : Matrix4.identity(),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.05),
+                borderRadius: borderRadius,
+                border: states.contains(WidgetState.hovered) 
+                  ? Border.all(color: fluent.FluentTheme.of(context).accentColor, width: 2)
+                  : null,
+              ),
+              child: ClipRRect(
+                borderRadius: borderRadius,
+                child: post.imageUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: post.imageUrl!,
+                        fit: BoxFit.cover,
+                      )
+                    : const Center(child: Icon(fluent.FluentIcons.text_document, size: 20)),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

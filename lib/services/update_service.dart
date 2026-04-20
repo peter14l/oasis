@@ -221,11 +221,18 @@ class UpdateService extends ChangeNotifier {
 
   /// Parse JSON response safely
   Map<String, dynamic>? _parseJsonResponse(String body) {
+    if (body.trim().isEmpty) {
+      debugPrint('UpdateService: Received empty response body');
+      return null;
+    }
     try {
       // Handle potential JSONP wrapper or plain JSON
       final cleanBody = body
           .replaceFirst(RegExp(r'^\s*update\s*\(\s*', multiLine: false), '')
           .replaceFirst(RegExp(r'\s*\)\s*$', multiLine: false), '');
+      
+      if (cleanBody.trim().isEmpty) return null;
+      
       return jsonDecode(cleanBody) as Map<String, dynamic>;
     } catch (e) {
       debugPrint('UpdateService: Failed to parse response: $e');

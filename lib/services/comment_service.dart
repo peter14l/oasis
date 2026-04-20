@@ -30,7 +30,6 @@ class CommentService {
             )
           ''')
           .eq('post_id', postId)
-          .isFilter('parent_comment_id', null) // Only top-level comments
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
 

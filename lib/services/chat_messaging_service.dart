@@ -340,7 +340,7 @@ class ChatMessagingService {
           } else if (status == RealtimeSubscribeStatus.timedOut) {
             debugPrint('[ChatMessagingService] Subscription timed out for $conversationId. Table replication or RLS may be missing.');
           } else if (status == RealtimeSubscribeStatus.subscribed) {
-            debugPrint('[ChatMessagingService] Successfully subscribed to $conversationId');
+            // Silenced for pitch
           }
         });
     return channel;

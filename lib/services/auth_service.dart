@@ -47,12 +47,9 @@ class AuthService with ChangeNotifier {
 
     // Listen to auth state changes
     _authStateSubscription = _supabase.auth.onAuthStateChange.listen((data) {
-      final AuthChangeEvent event = data.event;
       final Session? session = data.session;
-
-      if (kDebugMode) developer.log('Auth state changed: $event');
+      
       if (session != null) {
-        if (kDebugMode) developer.log('User ID: ${session.user.id}');
         _accountRegistry.syncCurrentSessionToRegistry(session);
         // Sync RevenueCat
         if (RevenueCatService().isInitialized) {
@@ -84,7 +81,6 @@ class AuthService with ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      developer.log('Error switching account: $e');
       rethrow;
     }
   }
@@ -121,12 +117,10 @@ class AuthService with ChangeNotifier {
     try {
       final session = _supabase.auth.currentSession;
       if (session != null) {
-        developer.log('Session restored for user: ${session.user.id}');
         _notificationService.updateFcmToken(session.user.id);
       }
       notifyListeners();
     } catch (e) {
-      developer.log('Error restoring session: $e', error: e);
       rethrow;
     }
   }
