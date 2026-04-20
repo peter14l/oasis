@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - **Persistent Ringtone Bug** - Fixed an issue where the ringtone would continue playing after answering a call by ensuring `stopRingtone()` is called across all participant states when a connection is established.
 - **Call State Synchronization** - Added a real-time subscription to the `calls` table in `CallService` to ensure the caller's UI correctly transitions from "Calling" to the active call grid the moment the recipient joins.
 - **Incoming Call Acceptance** - Implemented the missing `acceptCall` method in `CallProvider` and updated the `CallingScreen` UI to use it, ensuring the correct database state and WebRTC handshake.
+- **Splash Screen Aesthetics** - Transformed the startup splash screen from a plain white background to a premium radial gradient extracted from the `app_icon.png` brand colors (Deep Navy to Glow Blue). Synchronized the system navigation bar for a seamless "edge-to-edge" transition.
 
 ## [4.4.0] - 2026-04-18
 
