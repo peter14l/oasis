@@ -62,15 +62,13 @@ class _SplashScreenState extends State<SplashScreen>
     // Start animation
     _controller.forward();
 
-    // Signal init complete after animation
-    _initTimer = Timer(const Duration(milliseconds: 500), () {
-      widget.onInitComplete?.call();
-    });
+    // Signal init complete immediately to start background loading
+    // The animation will continue playing in parallel
+    widget.onInitComplete?.call();
   }
 
   @override
   void dispose() {
-    _initTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }

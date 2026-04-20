@@ -406,115 +406,91 @@ class AppInitializer {
       WebViewPlatform.instance = AndroidWebViewPlatform();
     }
 
-    // Supabase
-    debugPrint('STEP: Supabase initialization starting...');
-    try {
-      await SupabaseService.initialize();
-      debugPrint('STEP: Supabase initialized successfully');
-    } catch (e, st) {
-      debugPrint('CRITICAL: Supabase initialization failed: $e');
-      debugPrint('Stack trace: $st');
-      rethrow;
-    }
+    // --- CRITICAL PHASE: Must complete before UI shows ---
+    debugPrint('STEP: Critical initialization starting...');
+    
+    // 1. Supabase & Storage (Parallel)
+    await Future.wait([
+      SupabaseService.initialize(),
+      PrefsStorage.init(),
+    ]);
 
-    // PrefsStorage (shared preferences wrapper — required by SessionLocalDatasource)
-    debugPrint('STEP: PrefsStorage initialization starting...');
-    await PrefsStorage.init();
-    debugPrint('STEP: PrefsStorage initialized successfully');
-
-    // Auth
-    debugPrint('STEP: AuthProvider initialization starting...');
+    // 2. Auth & Theme & Settings (Parallel)
     final authProvider = AuthProvider(repository: AuthRepositoryImpl());
-    debugPrint('STEP: AuthProvider.restoreSession starting...');
-    await authProvider.restoreSession();
-    debugPrint('STEP: AuthProvider initialization completed');
-
-    // Theme
-    debugPrint('STEP: ThemeProvider initialization starting...');
     final themeProvider = ThemeProvider();
-    await themeProvider.loadTheme();
-    debugPrint('STEP: ThemeProvider initialization completed');
-
-    // User settings
-    debugPrint('STEP: UserSettingsProvider initialization starting...');
     final settingsRepo = SettingsRepositoryImpl();
     final userSettingsProvider = UserSettingsProvider(
       getSettingsUseCase: GetSettingsUseCase(settingsRepo),
       saveSettingsUseCase: SaveSettingsUseCase(settingsRepo),
     );
-    await userSettingsProvider.loadSettings();
-    debugPrint('STEP: UserSettingsProvider initialization completed');
 
-    // Desktop Windows enhancements
+    await Future.wait([
+      authProvider.restoreSession(),
+      themeProvider.loadTheme(),
+      userSettingsProvider.loadSettings(),
+    ]);
+
+    // --- BACKGROUND PHASE: Can finish after splash screen ---
+    debugPrint('STEP: Background initialization starting...');
+
+    // Windows enhancements
     if (Platform.isWindows) {
-      await DesktopWindowService.instance.initialize();
-      await DesktopWindowService.instance.enableCloseToTray();
-      await DesktopWindowService.instance.setWindowEffect(
-        enabled: userSettingsProvider.micaEnabled,
-        effect: userSettingsProvider.windowEffect,
-      );
+      unawaited(DesktopWindowService.instance.initialize().then((_) async {
+        await DesktopWindowService.instance.enableCloseToTray();
+        await DesktopWindowService.instance.setWindowEffect(
+          enabled: userSettingsProvider.micaEnabled,
+          effect: userSettingsProvider.windowEffect,
+        );
+      }));
     }
 
-    // Wellness & tracking services - PARALLELIZE for faster startup
-    // All these services are independent and can run concurrently
+    // Wellness & tracking services - PARALLELIZE
     final screenTimeServiceFuture = ScreenTimeService.init();
     final wellnessServiceFuture = WellnessService.init();
-    final digitalWellbeingServiceFuture = DigitalWellbeingService.init(
-      AuthService(),
-    );
+    final digitalWellbeingServiceFuture = DigitalWellbeingService.init(AuthService());
     final energyMeterServiceFuture = EnergyMeterService.init();
 
-    // Wait for all to complete in parallel
-    final results = await Future.wait([
+    final wellnessResults = await Future.wait([
       screenTimeServiceFuture,
       wellnessServiceFuture,
       digitalWellbeingServiceFuture,
       energyMeterServiceFuture,
     ]);
 
-    final screenTimeService = results[0] as ScreenTimeService;
-    final wellnessService = results[1] as WellnessService;
-    final digitalWellbeingService = results[2] as DigitalWellbeingService;
-    final energyMeterService = results[3] as EnergyMeterService;
+    final screenTimeService = wellnessResults[0] as ScreenTimeService;
+    final wellnessService = wellnessResults[1] as WellnessService;
+    final digitalWellbeingService = wellnessResults[2] as DigitalWellbeingService;
+    final energyMeterService = wellnessResults[3] as EnergyMeterService;
 
-    // Notifications
+    // Pre-initialize basic Notification manager
     await NotificationManager.instance.initialize();
 
-    // Encryption (fire-and-forget, non-blocking)
-    unawaited(
-      Future.wait([
-        EncryptionService().init(),
-        SignalService().init(),
-      ]).catchError((e) {
-        debugPrint('Encryption/Signal init failed: $e');
-        return [EncryptionStatus.error, false];
-      }),
-    );
-
-    // Subscription & Vault
+    // Deferred non-critical services (IAP, Subscriptions, Encryption, etc.)
     final iapService = IAPService();
     final revenueCatService = RevenueCatService();
     final subscriptionService = SubscriptionService();
     final vaultService = VaultService();
     final razorpayService = RazorpayService();
-
-    try {
-      await Future.wait([
-        iapService.init(),
-        revenueCatService.init(),
-        subscriptionService.init(),
-        vaultService.init(),
-      ]).timeout(const Duration(seconds: 8));
-
-      // Razorpay init is quick but needs to be called
-      razorpayService.init();
-    } catch (e) {
-      debugPrint('Warning: Some parallel services failed or timed out: $e');
-      // We continue anyway so the app can start
-    }
-
     final curationTrackingService = CurationTrackingService();
     final updateService = UpdateService.instance;
+
+    unawaited(() async {
+      try {
+        await Future.wait([
+          iapService.init(),
+          revenueCatService.init(),
+          subscriptionService.init(),
+          vaultService.init(),
+          EncryptionService().init(),
+          SignalService().init(),
+        ]).timeout(const Duration(seconds: 15));
+        
+        razorpayService.init();
+        debugPrint('Post-startup background services completed');
+      } catch (e) {
+        debugPrint('Non-critical background service init warning: $e');
+      }
+    }());
 
     return InitializedServices(
       themeProvider: themeProvider,

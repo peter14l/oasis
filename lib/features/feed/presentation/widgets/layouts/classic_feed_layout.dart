@@ -37,6 +37,7 @@ class ClassicFeedLayout extends StatelessWidget {
       child: CustomScrollView(
         controller: scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
+        cacheExtent: 1500, // Pre-render 1.5 screen heights to prevent lag during fast scrolls
         slivers: [
           if (!isDesktop)
             SliverAppBar(
@@ -52,6 +53,7 @@ class ClassicFeedLayout extends StatelessWidget {
               centerTitle: true,
               title: mobileHeader,
             ),
+
 
           SliverToBoxAdapter(child: _buildFeedInfoBanner(context, colorScheme)),
           SliverToBoxAdapter(
@@ -100,7 +102,9 @@ class ClassicFeedLayout extends StatelessWidget {
                     crossAxisSpacing: 24,
                     itemBuilder: (context, index) {
                       final post = posts[index];
-                      return buildPostItem(post, provider, true);
+                      return RepaintBoundary(
+                        child: buildPostItem(post, provider, true),
+                      );
                     },
                     childCount: posts.length,
                   ),
@@ -112,7 +116,9 @@ class ClassicFeedLayout extends StatelessWidget {
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate((context, index) {
                     final post = posts[index];
-                    return buildPostItem(post, provider, false);
+                    return RepaintBoundary(
+                      child: buildPostItem(post, provider, false),
+                    );
                   }, childCount: posts.length),
                 ),
               );

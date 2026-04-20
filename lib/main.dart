@@ -283,32 +283,29 @@ class _MyAppState extends State<MyApp> {
     _lastInitializedUserId = userId;
 
     if (userId != null) {
-      context.read<NotificationProvider>().init(userId);
-      context.read<PresenceProvider>().updateUserPresence(userId, 'online');
+      // Use unawaited to fire off data loads concurrently without blocking UI
+      // We still use slight delays to prioritize the very first frame of the home screen
+      unawaited(Future.microtask(() {
+        if (!mounted) return;
+        context.read<NotificationProvider>().init(userId);
+        context.read<PresenceProvider>().updateUserPresence(userId, 'online');
+      }));
 
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted) {
-          context.read<ConversationProvider>().initialize(userId);
-        }
-      });
+      unawaited(Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) context.read<ConversationProvider>().initialize(userId);
+      }));
 
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          context.read<ProfileProvider>().loadCurrentProfile(userId);
-        }
-      });
+      unawaited(Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted) context.read<ProfileProvider>().loadCurrentProfile(userId);
+      }));
 
-      Future.delayed(const Duration(milliseconds: 800), () {
+      // Non-critical data can wait even longer or be triggered by screen entry
+      unawaited(Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
           context.read<CircleProvider>().loadCircles(userId);
-        }
-      });
-
-      Future.delayed(const Duration(milliseconds: 1200), () {
-        if (mounted) {
           context.read<CanvasProvider>().loadCanvases(userId);
         }
-      });
+      }));
 
       SharingService().init(context);
       DeepLinkService().init();
@@ -325,31 +322,37 @@ class _MyAppState extends State<MyApp> {
 
     return DynamicColorBuilder(
       builder: (material.ColorScheme? lightDynamic, material.ColorScheme? darkDynamic) {
-        material.ColorScheme? lightScheme;
-        material.ColorScheme? darkScheme;
-
         final userSettings = Provider.of<UserSettingsProvider>(context);
 
-        if (themeProvider.useMaterialYou && themeProvider.isM3EEnabled) {
-          lightScheme = lightDynamic;
-          darkScheme = darkDynamic;
-        } else if (themeProvider.colorPalette != ColorPalette.none &&
-            themeProvider.isM3EEnabled) {
-          lightScheme = themeProvider.getPaletteColorScheme(material.Brightness.light);
-          darkScheme = themeProvider.getPaletteColorScheme(material.Brightness.dark);
-        }
-
+        // OPTIMIZATION: Cache theme objects to prevent expensive re-calculation on every rebuild
         final settingsKey =
+            '${themeProvider.themeMode}_'
             '${themeProvider.isM3EEnabled}_'
             '${themeProvider.useMaterialYou}_'
             '${themeProvider.colorPalette}_'
-            '${userSettings.fontFamily}';
+            '${themeProvider.highContrast}_'
+            '${userSettings.fontFamily}_'
+            '${lightDynamic?.primary.value}_'
+            '${darkDynamic?.primary.value}';
 
-        if (_themeSettingsChanged || settingsKey != _cachedSettingsKey) {
+        if (settingsKey != _cachedSettingsKey) {
           _cachedSettingsKey = settingsKey;
-          _themeSettingsChanged = false;
+          
+          material.ColorScheme? lightScheme;
+          material.ColorScheme? darkScheme;
+
+          if (themeProvider.useMaterialYou && themeProvider.isM3EEnabled) {
+            lightScheme = lightDynamic;
+            darkScheme = darkDynamic;
+          } else if (themeProvider.colorPalette != ColorPalette.none &&
+              themeProvider.isM3EEnabled) {
+            lightScheme = themeProvider.getPaletteColorScheme(material.Brightness.light);
+            darkScheme = themeProvider.getPaletteColorScheme(material.Brightness.dark);
+          }
+
           _cachedLightScheme = lightScheme;
           _cachedDarkScheme = darkScheme;
+          
           _cachedLightTheme = AppTheme.getTheme(
             material.Brightness.light,
             isM3E: themeProvider.isM3EEnabled,
@@ -364,9 +367,6 @@ class _MyAppState extends State<MyApp> {
             fontFamily: userSettings.fontFamily,
             dynamicColorScheme: darkScheme,
           );
-        } else {
-          lightScheme = _cachedLightScheme;
-          darkScheme = _cachedDarkScheme;
         }
 
         final theme = _cachedLightTheme ?? material.ThemeData.light();
@@ -379,6 +379,7 @@ class _MyAppState extends State<MyApp> {
                 ? snapshot.data!.session!.user.id
                 : null;
 
+            // Use postFrameCallback to avoid calling setState/init during build
             material.WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) _handleInitialization(userId);
             });
@@ -389,12 +390,12 @@ class _MyAppState extends State<MyApp> {
                 debugShowCheckedModeBanner: false,
                 theme: AppFluentTheme.getTheme(
                   material.Brightness.light,
-                  materialColorScheme: lightScheme,
+                  materialColorScheme: _cachedLightScheme,
                   fontFamily: userSettings.fontFamily,
                 ),
                 darkTheme: AppFluentTheme.getTheme(
                   material.Brightness.dark,
-                  materialColorScheme: darkScheme,
+                  materialColorScheme: _cachedDarkScheme,
                   fontFamily: userSettings.fontFamily,
                 ),
                 themeMode: themeProvider.themeMode == material.ThemeMode.system
@@ -508,7 +509,10 @@ class CallNavigator extends StatelessWidget {
     }
 
     if (userSettings.meshEnabled) {
-      return MeshGradientBackground(child: childWidget);
+      // RepaintBoundary isolates the expensive mesh gradient from the rest of the UI
+      return material.RepaintBoundary(
+        child: MeshGradientBackground(child: childWidget),
+      );
     } else {
       final isDark = material.Theme.of(context).brightness == material.Brightness.dark;
 

@@ -950,11 +950,13 @@ class _RipplesScreenState extends State<RipplesScreen>
             }
             final scale = 1.0 - (value.abs() * 0.2).clamp(0.0, 1.0);
 
-            final videoPlayer = RippleVideoPlayer(
-              rippleId: ripples[index]['id'],
-              videoUrl: ripples[index]['video_url'],
-              isPlaying: _currentIndex == index,
-              progressNotifier: _currentIndex == index ? _rippleProgress : null,
+            final videoPlayer = RepaintBoundary(
+              child: RippleVideoPlayer(
+                rippleId: ripples[index]['id'],
+                videoUrl: ripples[index]['video_url'],
+                isPlaying: _currentIndex == index,
+                progressNotifier: _currentIndex == index ? _rippleProgress : null,
+              ),
             );
 
             final rotation = value * 0.1; // Subtle rotation

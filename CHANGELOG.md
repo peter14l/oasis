@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.4.0] - 2026-04-18
+
+### Added
+- **Startup Performance Overhaul** - Refactored `AppInitializer` to parallelize critical service loading and move non-critical services (IAP, Subscriptions, Encryption) to a deferred post-startup phase, slashing splash screen duration.
+- **VC & Accelerator Readiness** - Created a comprehensive `SECURITY.md` whitepaper detailing the E2EE architecture and Signal Protocol implementation for investor due diligence.
+- **Proprietary IP Protection** - Added a formal proprietary `LICENSE` file and updated `README.md` to serve as a technical pitch deck.
+- **Automated CI/CD** - Implemented `.github/workflows/pr_checks.yml` to automatically enforce formatting, linting, and testing on all pull requests.
+- **Onboarding Support** - Added `.env.example` for secure environment configuration.
+
+### Fixed
+- **Global UI Stuttering** - Optimized theme generation in `main.dart` with a caching layer to prevent expensive re-computations on every build.
+- **Scrolling Lag & Dead Zones** - Added `cacheExtent` to `ClassicFeedLayout` and implemented `RepaintBoundary` on `PostCard` and `RippleVideoPlayer` to isolate heavy painting and ensure smooth fast-scrolling.
+- **Startup Jank Waterfall** - Replaced staggered blocking data loads in `main.dart` with unawaited concurrent microtasks to keep the UI thread free during the initial home screen transition.
+- **Splash Screen Latency** - Removed hardcoded timers and optimized animation lifecycle to provide near-instant feedback during initialization.
+- **GPU Painting Optimization** - Isolated the expensive Mesh Gradient background using `RepaintBoundary`, ensuring it doesn't impact list scrolling performance even when enabled.
+
 ## [4.3.0] - 2026-04-18
 
 ### Added
