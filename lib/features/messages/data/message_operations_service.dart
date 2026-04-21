@@ -107,13 +107,30 @@ class MessageOperationsService {
     }
   }
 
-  /// Updates typing status for the current user.
+  /// Broadcasts typing status to other participants via Realtime Broadcast (Zero IOPS).
+  Future<void> sendTypingStatus(
+    RealtimeChannel channel,
+    String userId,
+    bool isTyping,
+  ) async {
+    try {
+      await channel.sendBroadcastMessage(
+        event: 'typing',
+        payload: {'user_id': userId, 'is_typing': isTyping},
+      );
+    } catch (e) {
+      debugPrint('[MessageOps] Error broadcasting typing status: $e');
+    }
+  }
+
+  /// Updates typing status for the current user. (DEPRECATED: Use sendTypingStatus)
   Future<void> updateTypingStatus(
     String conversationId,
     String userId,
     bool isTyping,
   ) async {
     try {
+      // Keep this for legacy support or until all clients migrate to Broadcast
       await _supabase.from(SupabaseConfig.typingIndicatorsTable).upsert({
         'conversation_id': conversationId,
         'user_id': userId,
@@ -125,13 +142,23 @@ class MessageOperationsService {
     }
   }
 
-  /// Subscribes to typing indicators for a specific conversation.
+  /// Subscribes to typing indicators for a specific conversation using Realtime Broadcast.
   RealtimeChannel subscribeToTypingStatus({
     required String conversationId,
     required Function(String userId, bool isTyping) onTypingUpdate,
   }) {
     final channel = _supabase.channel('typing:$conversationId');
     channel
+        .onBroadcast(
+          event: 'typing',
+          callback: (payload) {
+            final userId = payload['user_id'] as String?;
+            final isTyping = payload['is_typing'] as bool? ?? false;
+            if (userId != null) {
+              onTypingUpdate(userId, isTyping);
+            }
+          },
+        )
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
@@ -142,9 +169,11 @@ class MessageOperationsService {
             value: conversationId,
           ),
           callback: (payload) {
-            final data = payload.newRecord.isNotEmpty
-                ? payload.newRecord
-                : payload.oldRecord;
+            // Support legacy DB-based typing indicators during migration
+            final data =
+                payload.newRecord.isNotEmpty
+                    ? payload.newRecord
+                    : payload.oldRecord;
             if (data.isNotEmpty) {
               final userId = data['user_id'] as String?;
               if (userId != null) {
@@ -158,7 +187,7 @@ class MessageOperationsService {
             debugPrint('[MessageOps] subscribeToTypingStatus error: $error');
           } else if (status == RealtimeSubscribeStatus.timedOut) {
             debugPrint(
-              '[MessageOps] subscribeToTypingStatus timed out. Replication may be missing.',
+              '[MessageOps] subscribeToTypingStatus timed out. Replication or Broadcast may be disabled.',
             );
           }
         });

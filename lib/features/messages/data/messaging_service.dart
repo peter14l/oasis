@@ -260,6 +260,13 @@ class MessagingService extends ChangeNotifier {
     bool isTyping,
   ) => _messageOpsService.updateTypingStatus(conversationId, userId, isTyping);
 
+  /// Broadcasts typing status via a specific Realtime channel (Zero IOPS).
+  Future<void> sendTypingStatus(
+    RealtimeChannel channel,
+    String userId,
+    bool isTyping,
+  ) => _messageOpsService.sendTypingStatus(channel, userId, isTyping);
+
   /// Fetches typing status from database (polling fallback).
   Future<Map<String, dynamic>?> getTypingStatus(
     String conversationId,

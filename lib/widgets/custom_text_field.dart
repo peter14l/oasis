@@ -17,6 +17,7 @@ class CustomTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final void Function(String)? onFieldSubmitted;
   final int? maxLines;
+  final int? minLines;
   final int? maxLength;
   final material.TextCapitalization textCapitalization;
   final bool autofocus;
@@ -55,6 +56,7 @@ class CustomTextField extends StatelessWidget {
     this.validator,
     this.onFieldSubmitted,
     this.maxLines = 1,
+    this.minLines,
     this.maxLength,
     this.textCapitalization = material.TextCapitalization.none,
     this.autofocus = false,
@@ -110,6 +112,7 @@ class CustomTextField extends StatelessWidget {
         onFieldSubmitted: onFieldSubmitted,
         validator: validator,
         maxLines: maxLines,
+        minLines: minLines,
         maxLength: maxLength,
         textCapitalization: textCapitalization,
         autofocus: autofocus,
@@ -196,6 +199,7 @@ class CustomTextField extends StatelessWidget {
           textInputAction: textInputAction,
           onSubmitted: onFieldSubmitted,
           maxLines: maxLines,
+          minLines: minLines,
           maxLength: maxLength,
           autofocus: autofocus,
           readOnly: readOnly,

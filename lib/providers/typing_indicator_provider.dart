@@ -52,12 +52,22 @@ class TypingIndicatorProvider with ChangeNotifier {
       // Cancel existing debounce timer
       _debounceTimers[conversationId]?.cancel();
 
-      // Update typing status in database
-      await _messagingService.updateTypingStatus(
-        conversationId,
-        userId,
-        isTyping,
-      );
+      // Update typing status via Realtime Broadcast (Zero IOPS)
+      final channel = _subscriptions[conversationId];
+      if (channel != null) {
+        await _messagingService.sendTypingStatus(
+          channel,
+          userId,
+          isTyping,
+        );
+      } else {
+        // Fallback to DB if subscription isn't ready (should be rare)
+        await _messagingService.updateTypingStatus(
+          conversationId,
+          userId,
+          isTyping,
+        );
+      }
 
       _lastDatabaseUpdate[conversationId] = DateTime.now();
 

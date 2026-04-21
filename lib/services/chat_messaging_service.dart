@@ -13,8 +13,6 @@ import 'package:oasis/services/notification_service.dart';
 /// messages as read.
 class ChatMessagingService {
   final SupabaseClient _supabase;
-  final _uuid = const Uuid();
-  final NotificationService _notificationService = NotificationService();
 
   ChatMessagingService({SupabaseClient? client})
     : _supabase = client ?? SupabaseService().client;
@@ -162,6 +160,7 @@ class ChatMessagingService {
   }
 
   /// Send a message with all security checks and metadata updates.
+  /// Uses consolidated RPC send_message_v2 for scalability.
   Future<Message> sendMessage({
     required String conversationId,
     required String senderId,
@@ -186,92 +185,37 @@ class ChatMessagingService {
     String mediaViewMode = 'unlimited',
   }) async {
     try {
-      final messageId = _uuid.v4();
+      final response = await _supabase.rpc('send_message_v2', params: {
+        'p_conversation_id': conversationId,
+        'p_sender_id': senderId,
+        'p_content': content,
+        'p_message_type': messageType.name,
+        'p_media_url': mediaUrl,
+        'p_media_file_name': mediaFileName,
+        'p_media_file_size': mediaFileSize,
+        'p_voice_duration': voiceDuration,
+        'p_reply_to_id': replyToId,
+        'p_is_ephemeral': whisperMode > 0,
+        'p_ephemeral_duration': whisperMode == 1 ? 0 : 86400,
+        'p_encrypted_keys': encryptedKeys,
+        'p_iv': iv,
+        'p_signal_message_type': signalMessageType,
+        'p_signal_sender_content': signalSenderContent,
+      });
 
-      // Block check
-      final recipientId = await _getRecipientId(conversationId, senderId);
-      if (recipientId != null && await _isBlockedBy(recipientId, senderId)) {
-        throw Exception('You cannot send messages to this user.');
+      if (response == null) throw Exception('Failed to send message via RPC');
+
+      final messageMap = Map<String, dynamic>.from(response);
+      final profile = messageMap['sender_profile'];
+      if (profile != null) {
+        messageMap['sender_name'] = profile['username'];
+        messageMap['sender_avatar'] = profile['avatar_url'];
       }
 
-      final insertData = {
-        'id': messageId,
-        'conversation_id': conversationId,
-        'sender_id': senderId,
-        'content': content,
-        'file_name': mediaFileName,
-        'file_size': mediaFileSize,
-        'is_ephemeral': whisperMode > 0,
-        'ephemeral_duration': whisperMode == 1 ? 0 : 86400,
-        'call_id': callId,
-        'reply_to_id': replyToId,
-        'ripple_id': rippleId,
-        'story_id': storyId,
-        'post_id': postId,
-        'share_data': shareData,
-        'location_data': locationData,
-        'media_view_mode': mediaViewMode,
-        'encrypted_keys': encryptedKeys,
-        'iv': iv,
-        'signal_message_type': signalMessageType,
-        'signal_sender_content': signalSenderContent,
-      };
-
-      if (mediaUrl != null) {
-        if (messageType == MessageType.image ||
-            messageType == MessageType.ripple) {
-          insertData['image_url'] = mediaUrl;
-        } else if (messageType == MessageType.document) {
-          insertData['file_url'] = mediaUrl;
-        } else if (messageType == MessageType.voice) {
-          insertData['voice_url'] = mediaUrl;
-          insertData['voice_duration'] = voiceDuration;
-        }
-      }
-
-      await _supabase.from(SupabaseConfig.messagesTable).insert(insertData);
-
-      // Fetch created message with details
-      final response =
-          await _supabase
-              .from(SupabaseConfig.messagesTable)
-              .select('''
-            *,
-            sender_profile:sender_id (username, avatar_url),
-            reply_to:reply_to_id (
-              id, content, sender_id, image_url, video_url, file_url, voice_url, 
-              iv, encrypted_keys, signal_message_type, signal_sender_content,
-              profiles:sender_id (username)
-            ),
-            reactions:message_reactions(*)
-          ''')
-              .eq('id', messageId)
-              .single();
-
-      final message = Message.fromJson(Map<String, dynamic>.from(response));
-
-      // Manual sync of conversation timestamp
-      await _supabase
-          .from(SupabaseConfig.conversationsTable)
-          .update({
-            'last_message_id': message.id,
-            'last_message_at': message.timestamp.toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', conversationId);
-
-      // Send notifications
-      _triggerNotifications(
-        conversationId,
-        senderId,
-        content,
-        messageId,
-        encryptedKeys != null || signalMessageType != null,
-      );
-
-      return message;
+      return Message.fromJson(messageMap);
     } catch (e) {
-      debugPrint('[ChatMessagingService] Error sending message: $e');
+      debugPrint('[ChatMessagingService] Error sending message (RPC): $e');
+      // If RPC fails (e.g. not migrated yet), fallback to legacy or rethrow
       rethrow;
     }
   }
@@ -344,68 +288,5 @@ class ChatMessagingService {
           }
         });
     return channel;
-  }
-
-  // --- Helper Methods ---
-
-  Future<String?> _getRecipientId(
-    String conversationId,
-    String senderId,
-  ) async {
-    final response =
-        await _supabase
-            .from('conversation_participants')
-            .select('user_id')
-            .eq('conversation_id', conversationId)
-            .neq('user_id', senderId)
-            .maybeSingle();
-    return response?['user_id'] as String?;
-  }
-
-  Future<bool> _isBlockedBy(String userId, String actorId) async {
-    final response =
-        await _supabase
-            .from('blocked_users')
-            .select('id')
-            .eq('blocker_id', userId)
-            .eq('blocked_id', actorId)
-            .maybeSingle();
-    return response != null;
-  }
-
-  void _triggerNotifications(
-    String conversationId,
-    String senderId,
-    String content,
-    String messageId,
-    bool isEncrypted,
-  ) async {
-    try {
-      final participants = await _supabase
-          .from('conversation_participants')
-          .select('user_id')
-          .eq('conversation_id', conversationId)
-          .neq('user_id', senderId);
-      final senderProfile =
-          await _supabase
-              .from(SupabaseConfig.profilesTable)
-              .select('username')
-              .eq('id', senderId)
-              .single();
-      final senderName = senderProfile['username'] ?? 'Someone';
-
-      for (final p in participants) {
-        await _notificationService.createNotification(
-          userId: p['user_id'],
-          type: 'dm',
-          actorId: senderId,
-          title: senderName,
-          message: isEncrypted ? 'New encrypted message' : content,
-          messageId: messageId,
-        );
-      }
-    } catch (e) {
-      debugPrint('[ChatMessagingService] Notification Error: $e');
-    }
   }
 }

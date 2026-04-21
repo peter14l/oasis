@@ -76,7 +76,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
     bool confirm = false;
 
     if (useFluent && isDesktop) {
-      final result = await fluent.showContentDialog<String>(
+      final result = await fluent.showDialog<String>(
         context: context,
         builder: (context) => fluent.ContentDialog(
           title: const Text('Delete Post'),
