@@ -202,6 +202,13 @@ class ChatMessagingService {
         'p_signal_message_type': signalMessageType,
         'p_signal_sender_content': signalSenderContent,
         'p_whisper_mode': whisperMode == 0 ? 'OFF' : (whisperMode == 1 ? 'INSTANT' : '24_HOURS'),
+        'p_call_id': callId,
+        'p_ripple_id': rippleId,
+        'p_story_id': storyId,
+        'p_post_id': postId,
+        'p_share_data': shareData,
+        'p_location_data': locationData,
+        'p_media_view_mode': mediaViewMode,
       });
 
       if (response == null) throw Exception('Failed to send message via RPC');
