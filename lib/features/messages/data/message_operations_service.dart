@@ -241,6 +241,20 @@ class MessageOperationsService {
   /// Toggles whisper mode for a conversation.
   Future<void> toggleWhisperMode(String conversationId, int whisperMode) async {
     try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return;
+
+      final modeString = whisperMode == 0 ? 'OFF' : (whisperMode == 1 ? 'INSTANT' : '24_HOURS');
+
+      await _supabase.from('chat_sessions').upsert({
+        'conversation_id': conversationId,
+        'user_id': userId,
+        'whisper_mode': modeString,
+        'updated_at': DateTime.now().toIso8601String(),
+      }, onConflict: 'conversation_id,user_id');
+
+      // Also update the main conversation table for real-time sync with other user
+      // Note: In a real app, you might want a trigger to sync these or a more complex logic.
       await _supabase
           .from(SupabaseConfig.conversationsTable)
           .update({'whisper_mode': whisperMode})

@@ -209,7 +209,20 @@ class MessagingService extends ChangeNotifier {
   Future<void> markAsRead({
     required String messageId,
     required String userId,
-  }) => _chatMessagingService.markAsRead(messageId: messageId, userId: userId);
+    bool isWhisper = false,
+  }) async {
+    if (isWhisper) {
+      try {
+        await _supabase.rpc('mark_whisper_message_read', params: {
+          'msg_id': messageId,
+          'reader_id': userId,
+        });
+      } catch (e) {
+        debugPrint('[MessagingService] Error marking whisper read: $e');
+      }
+    }
+    return _chatMessagingService.markAsRead(messageId: messageId, userId: userId);
+  }
 
   /// Listens for incoming messages in a conversation.
   RealtimeChannel subscribeToMessages({

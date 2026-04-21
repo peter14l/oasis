@@ -22,6 +22,7 @@ class ChatSettingsProvider with ChangeNotifier {
   double _bgOpacity = 1.0;
   double _bgBrightness = 0.7;
   int _whisperMode = 0;
+  int _lastActiveWhisperMode = 1; // Default to Instant
   int _ephemeralDuration = 86400;
   ChatTheme? _activeTheme;
 
@@ -29,6 +30,7 @@ class ChatSettingsProvider with ChangeNotifier {
   double get bgOpacity => _bgOpacity;
   double get bgBrightness => _bgBrightness;
   int get whisperMode => _whisperMode;
+  int get lastActiveWhisperMode => _lastActiveWhisperMode;
   int get ephemeralDuration => _ephemeralDuration;
   ChatTheme? get activeTheme => _activeTheme;
 
@@ -41,6 +43,7 @@ class ChatSettingsProvider with ChangeNotifier {
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final bgKey = 'chat_bg_$conversationId';
+    _lastActiveWhisperMode = prefs.getInt('chat_last_whisper_$conversationId') ?? 1;
 
     String? bgUrl = prefs.getString(bgKey);
 
@@ -59,9 +62,30 @@ class ChatSettingsProvider with ChangeNotifier {
             await prefs.remove(bgKey);
           }
         }
+
+        // Load Whisper Mode from Supabase
+        final response = await Supabase.instance.client
+            .from('chat_sessions')
+            .select('whisper_mode')
+            .eq('conversation_id', conversationId)
+            .eq('user_id', currentUserId)
+            .maybeSingle();
+        
+        if (response != null) {
+          final modeStr = response['whisper_mode'] as String?;
+          if (modeStr == 'INSTANT') {
+            _whisperMode = 1;
+            _ephemeralDuration = 0;
+          } else if (modeStr == '24_HOURS') {
+            _whisperMode = 2;
+            _ephemeralDuration = 86400;
+          } else {
+            _whisperMode = 0;
+          }
+        }
       }
     } catch (e) {
-      debugPrint('Error loading chat theme from Supabase: $e');
+      debugPrint('Error loading chat settings from Supabase: $e');
     }
 
     _backgroundUrl = bgUrl;
@@ -95,30 +119,18 @@ class ChatSettingsProvider with ChangeNotifier {
   }
 
   /// Toggle whisper mode (disappearing messages).
-  /// Original: _toggleWhisperMode() in chat_screen.dart
+  /// Toggles between OFF and Last Active mode.
   void toggleWhisperMode({
     int? currentWhisperMode,
-    int? currentLastActive,
     required Function(int newMode, int newEphemeralDuration) onModeChanged,
     Function(String)? onError,
   }) {
     final oldMode = currentWhisperMode ?? _whisperMode;
-    int lastActive = currentLastActive ?? 1;
-
-    // Cycle logic:
-    // If OFF -> Toggle to Last Active (Instant or 24h)
-    // If ON -> Toggle to OFF
-    int newMode;
-    if (oldMode == 0) {
-      newMode = lastActive;
-    } else {
-      newMode = 0;
-    }
+    
+    // Toggle logic: OFF <-> Last Active
+    int newMode = oldMode == 0 ? _lastActiveWhisperMode : 0;
 
     final ephemeralDuration = newMode == 1 ? 0 : 86400;
-    if (newMode > 0) {
-      lastActive = newMode;
-    }
 
     _whisperMode = newMode;
     _ephemeralDuration = ephemeralDuration;
@@ -128,9 +140,30 @@ class ChatSettingsProvider with ChangeNotifier {
 
     // Persist to service
     try {
-      MessagingService().toggleWhisperMode(conversationId, newMode);
+      _messagingService.toggleWhisperMode(conversationId, newMode);
     } catch (e) {
       onError?.call('Failed to toggle whisper mode: $e');
+    }
+  }
+
+  /// Sets a specific whisper mode.
+  Future<void> setWhisperMode(int mode) async {
+    if (mode == _whisperMode) return;
+    
+    _whisperMode = mode;
+    if (mode > 0) {
+      _lastActiveWhisperMode = mode;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('chat_last_whisper_$conversationId', mode);
+    }
+    
+    _ephemeralDuration = mode == 1 ? 0 : 86400;
+    notifyListeners();
+
+    try {
+      await _messagingService.toggleWhisperMode(conversationId, mode);
+    } catch (e) {
+      debugPrint('Failed to set whisper mode: $e');
     }
   }
 

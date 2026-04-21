@@ -807,8 +807,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                   onWhisperToggle: () {
                                     _settingsProvider.toggleWhisperMode(
                                       currentWhisperMode: state.whisperMode,
-                                      currentLastActive:
-                                          state.lastActiveWhisperMode,
                                       onModeChanged: (
                                         newMode,
                                         ephemeralDuration,

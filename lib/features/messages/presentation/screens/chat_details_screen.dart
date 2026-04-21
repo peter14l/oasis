@@ -905,6 +905,88 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             ),
 
             const SizedBox(height: 24),
+            _buildSectionTitle(theme, 'Whisper Mode'),
+            _buildDetailCard(
+              colorScheme,
+              child: Column(
+                children: [
+                  Consumer<ChatProvider>(
+                    builder: (context, chatProvider, _) {
+                      final settings = chatProvider.settingsProvider;
+                      return Column(
+                        children: [
+                          _buildSwitchTile(
+                            icon: settings.whisperMode > 0
+                                ? Icons.auto_delete
+                                : Icons.auto_delete_outlined,
+                            title: 'Whisper Mode',
+                            subtitle: 'Messages disappear after being read',
+                            value: settings.whisperMode > 0,
+                            activeColor: Colors.orange,
+                            onChanged: (val) {
+                              settings.toggleWhisperMode(
+                                currentWhisperMode: settings.whisperMode,
+                                onModeChanged: (newMode, _) {
+                                  chatProvider.setState(
+                                    (s) => s.copyWith(whisperMode: newMode),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                          if (settings.whisperMode > 0)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(56, 0, 16, 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Disappearing Duration',
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: colorScheme.primary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      _buildModeChip(
+                                        context: context,
+                                        label: 'Instant',
+                                        isSelected: settings.whisperMode == 1,
+                                        onTap: () {
+                                          settings.setWhisperMode(1);
+                                          chatProvider.setState(
+                                            (s) => s.copyWith(whisperMode: 1),
+                                          );
+                                        },
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _buildModeChip(
+                                        context: context,
+                                        label: '24 Hours',
+                                        isSelected: settings.whisperMode == 2,
+                                        onTap: () {
+                                          settings.setWhisperMode(2);
+                                          chatProvider.setState(
+                                            (s) => s.copyWith(whisperMode: 2),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
             _buildSectionTitle(theme, 'Manage'),
             _buildDetailCard(
               colorScheme,
@@ -1175,6 +1257,39 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
           trailing ??
           const Icon(FluentIcons.chevron_right_24_regular, size: 20),
       onTap: onTap,
+    );
+  }
+
+  Widget _buildModeChip({
+    required BuildContext context,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? colorScheme.primary : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? colorScheme.primary : colorScheme.outline.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
     );
   }
 

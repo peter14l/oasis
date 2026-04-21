@@ -201,6 +201,7 @@ class ChatMessagingService {
         'p_iv': iv,
         'p_signal_message_type': signalMessageType,
         'p_signal_sender_content': signalSenderContent,
+        'p_whisper_mode': whisperMode == 0 ? 'OFF' : (whisperMode == 1 ? 'INSTANT' : '24_HOURS'),
       });
 
       if (response == null) throw Exception('Failed to send message via RPC');

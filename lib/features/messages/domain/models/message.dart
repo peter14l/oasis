@@ -36,6 +36,7 @@ abstract class Message with _$Message {
     @Default([]) List<MessageReactionModel> reactions,
     @Default(false) @JsonKey(name: 'is_ephemeral') bool isEphemeral,
     @Default(86400) @JsonKey(name: 'ephemeral_duration') int ephemeralDuration,
+    @JsonKey(name: 'whisper_mode') @Default('OFF') String whisperMode,
     @JsonKey(name: 'expires_at') DateTime? expiresAt,
     @JsonKey(name: 'encrypted_keys') Map<String, dynamic>? encryptedKeys,
     String? iv,

@@ -437,14 +437,17 @@ class ChatProvider with ChangeNotifier {
 
     setState((s) => s.copyWith(messages: updatedMessages));
 
-    try {
-      await _messagingService.markMessagesAsRead(
-        conversationId,
-        unreadMessageIds,
-        currentUserId,
-      );
-    } catch (e) {
-      debugPrint('Error marking messages as read: $e');
+    for (final id in unreadMessageIds) {
+      final msg = state.messages.firstWhere((m) => m.id == id);
+      try {
+        await _messagingService.markAsRead(
+          messageId: id,
+          userId: currentUserId,
+          isWhisper: msg.isEphemeral || msg.whisperMode != 'OFF',
+        );
+      } catch (e) {
+        debugPrint('Error marking message $id as read: $e');
+      }
     }
   }
 

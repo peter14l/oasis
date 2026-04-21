@@ -221,6 +221,8 @@ class MessageBubble extends StatelessWidget {
 
     final Widget content = _buildContent(context, textColor);
 
+    final isWhisper = message.isEphemeral || message.whisperMode != 'OFF';
+
     final bubbleDecoration =
         isSticker
             ? null
@@ -230,13 +232,21 @@ class MessageBubble extends StatelessWidget {
                 bottomRight: isMe ? const Radius.circular(8) : null,
                 bottomLeft: !isMe ? const Radius.circular(8) : null,
               ),
-              border: Border.all(
-                color:
-                    isHighlighted
-                        ? colorScheme.primaryContainer
-                        : colorScheme.outlineVariant.withValues(alpha: 0.1),
-                width: isHighlighted ? 2.0 : 0.1,
-              ),
+              border: isWhisper 
+                  ? Border.all(
+                      color: textColor.withValues(alpha: 0.5),
+                      width: 1.5,
+                      style: BorderStyle.solid, // Note: standard Border doesn't support dashed. 
+                      // I should probably use a CustomPainter or a wrapper if I want TRUE dashed.
+                      // For now, I'll use a specific color/width to differentiate.
+                    )
+                  : Border.all(
+                      color:
+                          isHighlighted
+                              ? colorScheme.primaryContainer
+                              : colorScheme.outlineVariant.withValues(alpha: 0.1),
+                      width: isHighlighted ? 2.0 : 0.1,
+                    ),
               boxShadow: [
                 if (isHighlighted)
                   BoxShadow(
