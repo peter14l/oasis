@@ -1304,10 +1304,17 @@ class AppRouter {
           path: '/call/:callId',
           name: 'active_call',
           pageBuilder: (context, state) {
+            final callId = state.pathParameters['callId'];
+            final extra = state.extra as Map<String, dynamic>?;
+            final isIncoming = extra?['isIncoming'] == true;
+
             return MaterialPage(
               key: state.pageKey,
               fullscreenDialog: true,
-              child: const CallingScreen(),
+              child: CallingScreen(
+                callId: callId,
+                isIncoming: isIncoming,
+              ),
             );
           },
         ),

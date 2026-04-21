@@ -187,15 +187,15 @@ class CallProvider extends ChangeNotifier {
       _state = _state.copyWith(isLoading: true, clearError: true);
       notifyListeners();
 
+      // Join WebRTC session and stop ringtone locally FIRST to avoid race condition where stream wipes incomingCall before activeCall is securely assigned
+      await _callService.answerCall(call);
+
       // Get current user ID from Supabase directly for simplicity in use case
       final userId = SupabaseService().client.auth.currentUser?.id;
       if (userId == null) throw Exception('User not authenticated');
 
       // Update call status in DB to active
       await _acceptCall.call(callId: call.id, userId: userId);
-
-      // Join WebRTC session and stop ringtone
-      await _callService.answerCall(call);
       
       _state = _state.copyWith(
         isLoading: false, 
