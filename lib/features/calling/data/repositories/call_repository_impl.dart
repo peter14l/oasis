@@ -55,45 +55,9 @@ class CallRepositoryImpl implements CallRepository {
 
     await _supabase.client.from('call_participants').insert(participantsData);
 
-    // Send notifications to invited participants
-    _sendCallNotifications(
-      callId: callId,
-      hostId: hostId,
-      participantIds: participantIds.where((id) => id != hostId).toList(),
-      type: type,
-    );
-
     return CallEntity.fromJson(response);
   }
 
-  void _sendCallNotifications({
-    required String callId,
-    required String hostId,
-    required List<String> participantIds,
-    required CallType type,
-  }) async {
-    try {
-      final hostProfile =
-          await _supabase.client
-              .from('profiles')
-              .select('username')
-              .eq('id', hostId)
-              .single();
-      final hostName = hostProfile['username'] ?? 'Someone';
-
-      for (final participantId in participantIds) {
-        await _supabase.client.from('notifications').insert({
-          'user_id': participantId,
-          'type': 'call',
-          'actor_id': hostId,
-          'content': 'is calling you...',
-          'message_id': callId, // Using message_id column to store callId for trigger
-        });
-      }
-    } catch (e) {
-      print('Error sending call notifications: $e');
-    }
-  }
 
   @override
   Future<CallEntity?> getCall(String callId) async {
