@@ -16,6 +16,7 @@ import 'package:oasis/services/wellness_service.dart';
 import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
 import 'package:universal_io/io.dart';
 import 'package:oasis/screens/spaces/spaces_screen.dart';
+import 'package:oasis/services/app_analytics.dart';
 import 'package:oasis/themes/app_colors.dart';
 
 import 'package:oasis/features/circles/presentation/screens/circle_detail_screen.dart';
@@ -1011,6 +1012,7 @@ class AppRouter {
       navigatorKey: rootNavigatorKey,
       initialLocation: '/feed',
       refreshListenable: AuthService(),
+      observers: [AppAnalytics.observer],
       debugLogDiagnostics: false,
       redirect: (context, state) async {
         // Password-reset screen is always reachable once Supabase sets the

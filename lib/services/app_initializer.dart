@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kDebugMode, debugPrint, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +13,7 @@ import 'package:universal_io/io.dart';
 
 import 'package:oasis/firebase_options.dart';
 import 'package:oasis/core/config/app_config.dart';
+import 'package:oasis/services/app_analytics.dart';
 import 'package:oasis/features/auth/presentation/providers/auth_provider.dart';
 import 'package:oasis/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:oasis/services/desktop_window_service.dart';
@@ -45,7 +47,6 @@ import 'package:oasis/providers/conversation_provider.dart';
 import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis/features/feed/data/repositories/feed_repository_impl.dart';
 import 'package:oasis/features/feed/data/repositories/post_repository_impl.dart';
-import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/features/feed/data/repositories/comment_repository_impl.dart';
 import 'package:oasis/features/notifications/presentation/providers/notification_provider.dart';
 import 'package:oasis/providers/presence_provider.dart';
@@ -255,6 +256,7 @@ class InitializedServices {
   final VaultService vaultService;
   final CurationTrackingService curationTrackingService;
   final UpdateService updateService;
+  final AppAnalytics appAnalytics;
 
   const InitializedServices({
     required this.themeProvider,
@@ -270,6 +272,7 @@ class InitializedServices {
     required this.vaultService,
     required this.curationTrackingService,
     required this.updateService,
+    required this.appAnalytics,
   });
 }
 
@@ -389,6 +392,10 @@ class AppInitializer {
         options: DefaultFirebaseOptions.currentPlatform,
       );
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      
+      // Log app open to trigger DAU reporting
+      unawaited(AppAnalytics().logAppOpen());
+      
       debugPrint('Firebase initialized successfully');
     } catch (e, st) {
       debugPrint('Firebase initialization failed: $e');
@@ -413,8 +420,12 @@ class AppInitializer {
       PrefsStorage.init(),
     ]);
 
-    // 2. Auth & Theme & Settings (Parallel)
-    final authProvider = AuthProvider(repository: AuthRepositoryImpl());
+    // 2. Auth & Theme & Settings & Analytics (Parallel)
+    final appAnalytics = AppAnalytics();
+    final authProvider = AuthProvider(
+      repository: AuthRepositoryImpl(),
+      analytics: appAnalytics,
+    );
     final themeProvider = ThemeProvider();
     final settingsRepo = SettingsRepositoryImpl();
     final userSettingsProvider = UserSettingsProvider(
@@ -504,6 +515,7 @@ class AppInitializer {
       vaultService: vaultService,
       curationTrackingService: curationTrackingService,
       updateService: updateService,
+      appAnalytics: appAnalytics,
     );
   }
 
@@ -558,6 +570,7 @@ class AppInitializer {
   }) {
     return MultiProvider(
       providers: [
+        Provider<AppAnalytics>.value(value: services.appAnalytics),
         ChangeNotifierProvider<ThemeProvider>.value(
           value: services.themeProvider,
         ),

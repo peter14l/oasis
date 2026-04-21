@@ -4,11 +4,13 @@ import 'package:oasis/features/auth/domain/repositories/auth_repository.dart';
 import 'package:oasis/features/auth/presentation/providers/auth_state.dart'
     as app_auth;
 import 'package:oasis/services/session_registry_service.dart';
+import 'package:oasis/services/app_analytics.dart';
 
 export 'package:oasis/features/auth/presentation/providers/auth_state.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthRepository _repository;
+  final AppAnalytics _analytics;
 
   app_auth.AuthState _state = const app_auth.AuthState();
   app_auth.AuthState get state => _state;
@@ -19,8 +21,11 @@ class AuthProvider with ChangeNotifier {
   bool get isAuthenticated => _state.isAuthenticated;
   String? get error => _state.error;
 
-  AuthProvider({required AuthRepository repository})
-    : _repository = repository {
+  AuthProvider({
+    required AuthRepository repository,
+    required AppAnalytics analytics,
+  }) : _repository = repository,
+       _analytics = analytics {
     _listenToAuthState();
   }
 
@@ -28,9 +33,15 @@ class AuthProvider with ChangeNotifier {
     _repository.onAuthStateChange.listen((event) {
       if (event.session != null) {
         _state = _state.copyWith(isAuthenticated: true);
+        final userId = event.session?.user.id;
+        _analytics.setUserId(userId);
+        if (userId != null) {
+          _analytics.logEvent(name: 'login', parameters: {'method': event.event.name});
+        }
         notifyListeners();
       } else {
         _state = _state.copyWith(isAuthenticated: false, currentAccount: null);
+        _analytics.setUserId(null);
         notifyListeners();
       }
     });
