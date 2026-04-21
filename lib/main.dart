@@ -16,6 +16,7 @@ import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/core/storage/prefs_storage.dart';
+import 'package:oasis/services/desktop_window_service.dart';
 import 'package:oasis/services/energy_meter_service.dart';
 import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/services/screen_time_service.dart';
@@ -503,6 +504,21 @@ class _MyAppState extends State<MyApp> {
               if (mounted) _handleInitialization(userId);
             });
 
+            // Apply window effects whenever the theme or settings change
+            if (Platform.isWindows) {
+              final isDark = themeProvider.themeMode == material.ThemeMode.system
+                  ? material.MediaQuery.platformBrightnessOf(context) == material.Brightness.dark
+                  : themeProvider.themeMode == material.ThemeMode.dark;
+                  
+              material.WidgetsBinding.instance.addPostFrameCallback((_) {
+                DesktopWindowService.instance.setWindowEffect(
+                  enabled: userSettings.micaEnabled,
+                  effect: userSettings.windowEffect,
+                  isDark: isDark,
+                );
+              });
+            }
+
             if (themeProvider.useFluentUI) {
               return fluent.FluentApp.router(
                 title: 'Oasis',
@@ -790,10 +806,15 @@ void _showErrorScreen(Object error, StackTrace stack, {bool isCorruption = false
                   style: const material.TextStyle(color: material.Colors.white, fontSize: 24, fontWeight: material.FontWeight.bold),
                 ),
                 const material.SizedBox(height: 16),
-                material.Text(
-                  error.toString(),
-                  style: material.TextStyle(color: material.Colors.white.withValues(alpha: 0.7)),
-                  textAlign: material.TextAlign.center,
+                material.ConstrainedBox(
+                  constraints: const material.BoxConstraints(maxHeight: 300),
+                  child: material.SingleChildScrollView(
+                    child: material.Text(
+                      error.toString(),
+                      style: material.TextStyle(color: material.Colors.white.withValues(alpha: 0.7)),
+                      textAlign: material.TextAlign.center,
+                    ),
+                  ),
                 ),
                 const material.SizedBox(height: 32),
                 material.ElevatedButton(

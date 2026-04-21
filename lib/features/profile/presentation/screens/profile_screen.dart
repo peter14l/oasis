@@ -165,12 +165,15 @@ class _ProfileScreenState extends State<ProfileScreen>
         }
 
         if (useFluent) {
-          return _buildFluentProfile(
-            profile,
-            themeProvider,
-            colorScheme,
-            profileProvider,
-            userId,
+          return Material(
+            color: Colors.transparent,
+            child: _buildFluentProfile(
+              profile,
+              themeProvider,
+              colorScheme,
+              profileProvider,
+              userId,
+            ),
           );
         }
 

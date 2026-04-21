@@ -1,26 +1,34 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as material;
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oasis/services/curation_tracking_service.dart';
-import 'package:oasis/services/app_initializer.dart'; // For ThemeProvider
+import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/core/network/supabase_client.dart';
+import 'package:universal_io/io.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// Key for sync preference in SharedPreferences
 const String _kCurationSyncEnabled = 'curation_sync_enabled';
 
-class PrivacyTransparencyCard extends StatefulWidget {
+class PrivacyTransparencyCard extends material.StatefulWidget {
   const PrivacyTransparencyCard({super.key});
 
   @override
-  State<PrivacyTransparencyCard> createState() =>
+  material.State<PrivacyTransparencyCard> createState() =>
       _PrivacyTransparencyCardState();
 }
 
-class _PrivacyTransparencyCardState extends State<PrivacyTransparencyCard> {
+class _PrivacyTransparencyCardState extends material.State<PrivacyTransparencyCard> {
   bool _isSyncEnabled = false;
   bool _isLoading = true;
   bool _isSyncing = false;
+
+  bool get _isDesktop {
+    if (kIsWeb) return true;
+    return Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+  }
 
   @override
   void initState() {
@@ -68,7 +76,7 @@ class _PrivacyTransparencyCardState extends State<PrivacyTransparencyCard> {
 
     final supabase = SupabaseService();
     if (!supabase.isAuthenticated) {
-      debugPrint('[PrivacyTransparency] User not authenticated, skipping sync');
+      material.debugPrint('[PrivacyTransparency] User not authenticated, skipping sync');
       return;
     }
 
@@ -82,37 +90,66 @@ class _PrivacyTransparencyCardState extends State<PrivacyTransparencyCard> {
         await supabase.client.rpc('sync_user_analytics', params: data);
       }
 
-      debugPrint('[PrivacyTransparency] Sync to server completed: ${syncData.length} categories');
+      material.debugPrint('[PrivacyTransparency] Sync to server completed: ${syncData.length} categories');
     } catch (e) {
-      debugPrint('[PrivacyTransparency] Sync error: $e');
+      material.debugPrint('[PrivacyTransparency] Sync error: $e');
     } finally {
       if (mounted) setState(() => _isSyncing = false);
     }
   }
 
   Future<bool> _showTurnOffWarning() async {
-    return await showDialog<bool>(
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    if (themeProvider.useFluentUI && _isDesktop) {
+      return await fluent.showDialog<bool>(
+        context: context,
+        builder: (context) => fluent.ContentDialog(
+          title: const material.Text('Disable Cloud Sync?'),
+          content: const material.Text(
+            'Disabling sync will return your data to local-only storage. '
+            'You won\'t receive curated recommendations on new devices, and your '
+            'analytics will be deleted from our servers.\n\n'
+            'Are you sure you want to disable?',
+          ),
+          actions: [
+            fluent.Button(
+              onPressed: () => material.Navigator.pop(context, false),
+              child: const material.Text('Cancel'),
+            ),
+            fluent.FilledButton(
+              onPressed: () => material.Navigator.pop(context, true),
+              style: fluent.ButtonStyle(
+                backgroundColor: fluent.WidgetStateProperty.all(material.Colors.red),
+              ),
+              child: const material.Text('Disable Sync'),
+            ),
+          ],
+        ),
+      ) ?? false;
+    }
+
+    return await material.showDialog<bool>(
           context: context,
           builder:
-              (context) => AlertDialog(
-                title: const Text('Disable Cloud Sync?'),
-                content: const Text(
+              (context) => material.AlertDialog(
+                title: const material.Text('Disable Cloud Sync?'),
+                content: const material.Text(
                   'Disabling sync will return your data to local-only storage. '
                   'You won\'t receive curated recommendations on new devices, and your '
                   'analytics will be deleted from our servers.\n\n'
                   'Are you sure you want to disable?',
                 ),
                 actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: const Text('Cancel'),
+                  material.TextButton(
+                    onPressed: () => material.Navigator.pop(context, false),
+                    child: const material.Text('Cancel'),
                   ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Theme.of(context).colorScheme.error,
+                  material.TextButton(
+                    onPressed: () => material.Navigator.pop(context, true),
+                    style: material.TextButton.styleFrom(
+                      foregroundColor: material.Theme.of(context).colorScheme.error,
                     ),
-                    child: const Text('Disable Sync'),
+                    child: const material.Text('Disable Sync'),
                   ),
                 ],
               ),
@@ -126,139 +163,165 @@ class _PrivacyTransparencyCardState extends State<PrivacyTransparencyCard> {
 
     try {
       await supabase.client.rpc('delete_user_analytics');
-      debugPrint('[PrivacyTransparency] Deleted server analytics');
+      material.debugPrint('[PrivacyTransparency] Deleted server analytics');
     } catch (e) {
-      debugPrint('[PrivacyTransparency] Delete error: $e');
+      material.debugPrint('[PrivacyTransparency] Delete error: $e');
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  material.Widget build(material.BuildContext context) {
+    final theme = material.Theme.of(context);
     final colorScheme = theme.colorScheme;
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
+    final useFluent = themeProvider.useFluentUI && _isDesktop;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
+    return material.Container(
+      padding: const material.EdgeInsets.all(20),
+      decoration: material.BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(isM3E ? 28 : 16),
-        border: Border.all(
+        borderRadius: material.BorderRadius.circular(isM3E ? 28 : 16),
+        border: material.Border.all(
           color: colorScheme.outlineVariant.withValues(alpha: 0.5),
           width: isM3E ? 1.5 : 1,
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: material.Column(
+        crossAxisAlignment: material.CrossAxisAlignment.start,
         children: [
-          Row(
+          material.Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
+              material.Container(
+                padding: const material.EdgeInsets.all(10),
+                decoration: material.BoxDecoration(
                   color: colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: material.BorderRadius.circular(12),
                 ),
-                child: Icon(
+                child: material.Icon(
                   FluentIcons.shield_task_24_regular,
                   color: colorScheme.primary,
                   size: 24,
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
+              const material.SizedBox(width: 16),
+              material.Expanded(
+                child: material.Text(
                   'Privacy Transparency',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: material.FontWeight.bold,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Text(
+          const material.SizedBox(height: 16),
+          material.Text(
             'Oasis collects data on your interactions (likes, time spent, and categories) to provide personalized curation. This data is stored on your device by default and only synced to our secure servers if you enable Cloud Sync.',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 16),
+          const material.SizedBox(height: 16),
 
           // "Your data is NEVER sold" assurance text
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
+          material.Container(
+            padding: const material.EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: material.BoxDecoration(
               color: colorScheme.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: material.BorderRadius.circular(8),
             ),
-            child: Row(
+            child: material.Row(
               children: [
-                Icon(
+                material.Icon(
                   FluentIcons.checkmark_circle_24_regular,
                   color: colorScheme.primary,
                   size: 18,
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
+                const material.SizedBox(width: 8),
+                material.Expanded(
+                  child: material.Text(
                     'Your data is NEVER sold to third parties and is SOLELY used to provide you with curated content.',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.primary,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: material.FontWeight.w500,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const material.SizedBox(height: 16),
 
           // Sync toggle
           if (!_isLoading) ...[
-            const Divider(),
-            const SizedBox(height: 8),
-            SwitchListTile(
-              title: const Text('Sync to Cloud'),
-              subtitle: Text(
-                _isSyncEnabled
-                    ? _isSyncing
-                        ? 'Syncing your analytics...'
-                        : 'Your analytics are backed up for new devices'
-                    : 'Keep analytics local only',
-                style: theme.textTheme.bodySmall,
+            const material.Divider(),
+            const material.SizedBox(height: 8),
+            if (useFluent)
+               fluent.ListTile(
+                title: const material.Text('Sync to Cloud'),
+                subtitle: material.Text(
+                  _isSyncEnabled
+                      ? _isSyncing
+                          ? 'Syncing your analytics...'
+                          : 'Your analytics are backed up for new devices'
+                      : 'Keep analytics local only',
+                  style: theme.textTheme.bodySmall,
+                ),
+                leading: _isSyncing
+                      ? const fluent.ProgressRing(strokeWidth: 2)
+                      : material.Icon(
+                          _isSyncEnabled
+                              ? FluentIcons.cloud_checkmark_24_regular
+                              : FluentIcons.cloud_dismiss_24_regular,
+                          color: _isSyncEnabled ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                        ),
+                trailing: fluent.ToggleSwitch(
+                  checked: _isSyncEnabled,
+                  onChanged: _isSyncing ? null : _toggleSync,
+                ),
+              )
+            else
+              material.SwitchListTile(
+                title: const material.Text('Sync to Cloud'),
+                subtitle: material.Text(
+                  _isSyncEnabled
+                      ? _isSyncing
+                          ? 'Syncing your analytics...'
+                          : 'Your analytics are backed up for new devices'
+                      : 'Keep analytics local only',
+                  style: theme.textTheme.bodySmall,
+                ),
+                value: _isSyncEnabled,
+                onChanged: _isSyncing ? null : _toggleSync,
+                contentPadding: material.EdgeInsets.zero,
+                secondary:
+                    _isSyncing
+                        ? const material.SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: material.CircularProgressIndicator(strokeWidth: 2),
+                        )
+                        : material.Icon(
+                          _isSyncEnabled
+                              ? FluentIcons.cloud_checkmark_24_regular
+                              : FluentIcons.cloud_dismiss_24_regular,
+                          color:
+                              _isSyncEnabled
+                                  ? colorScheme.primary
+                                  : colorScheme.onSurfaceVariant,
+                        ),
               ),
-              value: _isSyncEnabled,
-              onChanged: _isSyncing ? null : _toggleSync,
-              contentPadding: EdgeInsets.zero,
-              secondary:
-                  _isSyncing
-                      ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                      : Icon(
-                        _isSyncEnabled
-                            ? FluentIcons.cloud_checkmark_24_regular
-                            : FluentIcons.cloud_dismiss_24_regular,
-                        color:
-                            _isSyncEnabled
-                                ? colorScheme.primary
-                                : colorScheme.onSurfaceVariant,
-                      ),
-            ),
           ],
 
-          const SizedBox(height: 8),
-          FutureBuilder<Map<String, dynamic>>(
+          const material.SizedBox(height: 8),
+          material.FutureBuilder<Map<String, dynamic>>(
             future:
                 context.read<CurationTrackingService>().getTrackingSummary(),
             builder: (context, snapshot) {
-              if (!snapshot.hasData) return const SizedBox.shrink();
+              if (!snapshot.hasData) return const material.SizedBox.shrink();
               final data = snapshot.data!;
-              return Column(
+              return material.Column(
                 children: [
                   _buildSummaryItem(
                     context,
@@ -277,14 +340,14 @@ class _PrivacyTransparencyCardState extends State<PrivacyTransparencyCard> {
                         ? 'Local + Cloud'
                         : '${data['data_location']}',
                   ),
-                  const SizedBox(height: 12),
-                  TextButton.icon(
+                  const material.SizedBox(height: 12),
+                  material.TextButton.icon(
                     onPressed: () => _confirmClearData(context),
-                    icon: const Icon(FluentIcons.delete_24_regular, size: 18),
-                    label: const Text('Clear Local Tracking Data'),
-                    style: TextButton.styleFrom(
+                    icon: const material.Icon(FluentIcons.delete_24_regular, size: 18),
+                    label: const material.Text('Clear Local Tracking Data'),
+                    style: material.TextButton.styleFrom(
                       foregroundColor: colorScheme.error,
-                      visualDensity: VisualDensity.compact,
+                      visualDensity: material.VisualDensity.compact,
                     ),
                   ),
                 ],
@@ -296,23 +359,23 @@ class _PrivacyTransparencyCardState extends State<PrivacyTransparencyCard> {
     );
   }
 
-  Widget _buildSummaryItem(BuildContext context, String label, String value) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  material.Widget _buildSummaryItem(material.BuildContext context, String label, String value) {
+    final theme = material.Theme.of(context);
+    return material.Padding(
+      padding: const material.EdgeInsets.symmetric(vertical: 4),
+      child: material.Row(
+        mainAxisAlignment: material.MainAxisAlignment.spaceBetween,
         children: [
-          Text(
+          material.Text(
             label,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          Text(
+          material.Text(
             value,
             style: theme.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: material.FontWeight.bold,
             ),
           ),
         ],
@@ -320,28 +383,56 @@ class _PrivacyTransparencyCardState extends State<PrivacyTransparencyCard> {
     );
   }
 
-  void _confirmClearData(BuildContext context) {
-    showDialog(
+  void _confirmClearData(material.BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    if (themeProvider.useFluentUI && _isDesktop) {
+      fluent.showDialog(
+        context: context,
+        builder: (context) => fluent.ContentDialog(
+          title: const material.Text('Clear Tracking Data?'),
+          content: const material.Text('This will remove all locally stored curation data. Your recommendations may become less personalized.'),
+          actions: [
+            fluent.Button(
+              onPressed: () => material.Navigator.pop(context),
+              child: const material.Text('Cancel'),
+            ),
+            fluent.FilledButton(
+              onPressed: () async {
+                await context.read<CurationTrackingService>().clearAllData();
+                if (context.mounted) material.Navigator.pop(context);
+              },
+              style: fluent.ButtonStyle(
+                backgroundColor: fluent.WidgetStateProperty.all(material.Colors.red),
+              ),
+              child: const material.Text('Clear Data'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    material.showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
-            title: const Text('Clear Tracking Data?'),
-            content: const Text(
+          (context) => material.AlertDialog(
+            title: const material.Text('Clear Tracking Data?'),
+            content: const material.Text(
               'This will remove all locally stored curation data. Your recommendations may become less personalized.',
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
+              material.TextButton(
+                onPressed: () => material.Navigator.pop(context),
+                child: const material.Text('Cancel'),
               ),
-              TextButton(
+              material.TextButton(
                 onPressed: () async {
                   await context.read<CurationTrackingService>().clearAllData();
-                  if (context.mounted) Navigator.pop(context);
+                  if (context.mounted) material.Navigator.pop(context);
                 },
-                child: Text(
+                child: material.Text(
                   'Clear Data',
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  style: material.TextStyle(color: material.Theme.of(context).colorScheme.error),
                 ),
               ),
             ],

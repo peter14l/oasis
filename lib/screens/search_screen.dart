@@ -113,7 +113,10 @@ class _SearchScreenState extends State<SearchScreen>
     final usePanelLayout = widget.isPanel;
 
     if (useFluent && isDesktop && !usePanelLayout) {
-      return _buildFluentSearch(context, themeProvider);
+      return material.Material(
+        color: material.Colors.transparent,
+        child: _buildFluentSearch(context, themeProvider),
+      );
     }
 
     if (usePanelLayout) {

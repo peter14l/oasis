@@ -1,4 +1,5 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:oasis/themes/app_colors.dart';
 
@@ -35,12 +36,19 @@ class AppFluentTheme {
       visualDensity: VisualDensity.standard,
       scaffoldBackgroundColor: micaEnabled ? Colors.transparent : scaffoldColor,
       micaBackgroundColor: micaEnabled ? Colors.transparent : scaffoldColor,
+      micaAltBackgroundColor: micaEnabled ? Colors.transparent : scaffoldColor,
       
-      // Typography synchronized with AppTextStyles
+      // Animation curves updated to WinUI 3 "Fluid" motion
+      animationCurve: standardCurve,
+      
+      // Shadows standardized via FluentShadows
+      shadows: FluentShadows.fromBrightness(isDark ? Brightness.dark : Brightness.light),
+
+      // Typography updated to Segoe UI Variable by default
       typography: Typography.fromBrightness(
         brightness: isDark ? Brightness.dark : Brightness.light,
         color: isDark ? DarkColors.onBackground : LightColors.onBackground,
-      ).apply(fontFamily: fontFamily),
+      ).apply(fontFamily: fontFamily ?? (defaultTargetPlatform == material.TargetPlatform.windows ? 'Segoe UI Variable' : 'Segoe UI')),
 
       navigationPaneTheme: NavigationPaneThemeData(
         backgroundColor: micaEnabled 
@@ -65,6 +73,9 @@ class AppFluentTheme {
         filledButtonStyle: ButtonStyle(
           backgroundColor: WidgetStateProperty.all(primaryColor),
           foregroundColor: WidgetStateProperty.all(material.Colors.white),
+          shape: WidgetStateProperty.all(
+            const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8.0))),
+          ),
         ),
       ),
       

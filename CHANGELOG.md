@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.7.1] - 2026-04-21
+
+### Added
+- **Desktop Window Effects** - Integrated Mica and Acrylic window effects for Windows 11/10 via `DesktopWindowService`.
+- **Fluent UI InfoBars** - Replaced Material SnackBars with native `fluent.InfoBar` notifications on desktop platforms.
+- **Passkey Infrastructure** - Added initial configuration and service placeholders for WebAuthn/Passkey authentication in Supabase.
+- **Enhanced Fluent Theme** - Updated desktop theme with Segoe UI Variable typography and WinUI 3 fluid motion curves.
+
+### Fixed
+- **Material Ancestor Crash** - Resolved "No Material widget found" assertions across Fluent UI screens (Profile, Search, Vault Settings, Chat Details) by implementing a transparent `Material` wrapper.
+- **Global Error Handling** - Improved error visibility in the main error screen with scrollable text and better layout constraints.
+- **Google Sign-In Stability** - Fixed Windows startup assertion errors by lazy-initializing Google Sign-In configuration to prevent environment-related failures.
+- **Fluent Onboarding Quiz** - Refactored the interest discovery quiz to use native `fluent.PipsPager` and `fluent.Card` components on desktop.
+
+### Changed
+- **Service Decoupling** - Refactored `AuthRepository` and `AuthProvider` for better testability and cleaner dependency injection.
+- **Fluent UI Integration** - Migrated several dialogs and interactive elements (like data clearing in Privacy settings) to use native Fluent UI components.
+
 ## [4.7.0] - 2026-04-20
 
 ### Added

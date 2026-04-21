@@ -58,7 +58,7 @@ class UserSettingsProvider with ChangeNotifier {
     );
   }
 
-  Future<void> setMicaEnabled(bool value) async {
+  Future<void> setMicaEnabled(bool value, {bool isDark = true}) async {
     await _updateAndSave(_settings.copyWith(micaEnabled: value));
     
     // Apply effect immediately on Windows
@@ -66,11 +66,12 @@ class UserSettingsProvider with ChangeNotifier {
       await DesktopWindowService.instance.setWindowEffect(
         enabled: value,
         effect: _settings.windowEffect,
+        isDark: isDark,
       );
     }
   }
 
-  Future<void> setWindowEffect(String value) async {
+  Future<void> setWindowEffect(String value, {bool isDark = true}) async {
     await _updateAndSave(_settings.copyWith(windowEffect: value));
     
     // Apply effect immediately on Windows
@@ -78,6 +79,7 @@ class UserSettingsProvider with ChangeNotifier {
       await DesktopWindowService.instance.setWindowEffect(
         enabled: _settings.micaEnabled,
         effect: value,
+        isDark: isDark,
       );
     }
   }

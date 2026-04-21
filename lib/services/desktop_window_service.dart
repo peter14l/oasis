@@ -84,6 +84,7 @@ class DesktopWindowService extends WindowListener with TrayListener {
   Future<void> setWindowEffect({
     required bool enabled,
     String effect = 'mica',
+    bool isDark = true,
   }) async {
     if (!Platform.isWindows) return;
 
@@ -93,25 +94,42 @@ class DesktopWindowService extends WindowListener with TrayListener {
       return;
     }
 
-    if (effect == 'acrylic') {
+    WindowEffect windowEffect;
+    Color? color;
+
+    switch (effect) {
+      case 'micaAlt':
+        // Fallback to mica if micaAlt is missing in the current package version
+        windowEffect = WindowEffect.mica;
+        break;
+      case 'acrylic':
+        windowEffect = WindowEffect.acrylic;
+        color = isDark 
+            ? const Color(0xCC1A1D24) 
+            : const Color(0xCCFFFFFF);
+        break;
+      case 'mica':
+      default:
+        windowEffect = WindowEffect.mica;
+        break;
+    }
+
+    try {
       await Window.setEffect(
-        effect: WindowEffect.acrylic,
-        color: const Color(0xCC000000), // Semi-transparent black for Acrylic
+        effect: windowEffect,
+        dark: isDark,
+        color: color ?? (isDark ? Colors.black : Colors.white),
       );
-      debugPrint('DesktopWindowService: Acrylic effect enabled');
-    } else {
-      // Default to Mica
+      debugPrint('DesktopWindowService: $effect effect enabled (dark: $isDark)');
+    } catch (e) {
+      // Fallback to Mica or Acrylic if specific effect is unavailable
+      debugPrint('DesktopWindowService: Effect $effect failed, falling back. Error: $e');
       try {
-        await Window.setEffect(effect: WindowEffect.mica, dark: true);
-        debugPrint('DesktopWindowService: Mica effect enabled');
-      } catch (e) {
-        // Fallback to Acrylic if Mica is unavailable (Win 10)
+        await Window.setEffect(effect: WindowEffect.mica, dark: isDark);
+      } catch (_) {
         await Window.setEffect(
           effect: WindowEffect.acrylic,
-          color: const Color(0xCC000000),
-        );
-        debugPrint(
-          'DesktopWindowService: Mica not supported, fell back to Acrylic',
+          color: isDark ? const Color(0xCC1A1D24) : const Color(0xCCFFFFFF),
         );
       }
     }

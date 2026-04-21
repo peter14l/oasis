@@ -1,137 +1,22 @@
-lib/features/profile/presentation/screens/profile_screen.dart:1732:1: Error:
-Variables must be declared using the keywords 'const', 'final', 'var' or a
-type name.
-Try adding the name of the type of the variable or the keyword 'var'.
-te) {
-^^
-lib/features/profile/presentation/screens/profile_screen.dart:1732:1: Error:
-Expected ';' after this.
-te) {
-^^
-lib/features/profile/presentation/screens/profile_screen.dart:1732:3: Error:
-Expected a declaration, but got ')'.
-te) {
-  ^
-lib/features/profile/presentation/screens/profile_screen.dart:1732:5: Error:
-Expected a declaration, but got '{'.
-te) {
-    ^
-lib/features/profile/presentation/screens/profile_screen.dart:1735:1: Error:
-Expected a declaration, but got '}'.
-}
-^
-lib/widgets/moderation_dialogs.dart:685:13: Error: String starting with '
-must end with '.
-ubmit Report'),
-            ^^^
-lib/widgets/moderation_dialogs.dart:685:7: Error: Expected ';' after this.
-ubmit Report'),
-      ^^^^^^
-lib/widgets/moderation_dialogs.dart:685:13: Error: Expected a declaration,
-but got ''),''.
-ubmit Report'),
-            ^^^
-lib/widgets/moderation_dialogs.dart:686:9: Error: Expected a declaration,
-but got ')'.
-        ),
-        ^
-lib/widgets/moderation_dialogs.dart:686:10: Error: Expected a declaration,
-but got ','.
-        ),
-         ^
-lib/widgets/moderation_dialogs.dart:687:7: Error: Expected a declaration,
-but got ']'.
-      ],
-      ^
-lib/widgets/moderation_dialogs.dart:687:8: Error: Expected a declaration,
-but got ','.
-      ],
-       ^
-lib/widgets/moderation_dialogs.dart:688:5: Error: Expected a declaration,
-but got ')'.
-    );
-    ^
-lib/widgets/moderation_dialogs.dart:688:6: Error: Unexpected token ';'.
-    );
-     ^
-lib/widgets/moderation_dialogs.dart:689:3: Error: Expected a declaration,
-but got '}'.
-  }
-  ^
-lib/widgets/moderation_dialogs.dart:690:1: Error: Expected a declaration,
-but got '}'.
-}
-^
-lib/widgets/comments_modal.dart:757:19: Error: Can't find ']' to match '['.
-        children: [
-                  ^
-lib/widgets/comments_modal.dart:750:19: Error: Can't find ')' to match '('.
-    return Padding(
-                  ^
-lib/widgets/moderation_dialogs.dart:685:1: Error: Type 'ubmit' not found.
-ubmit Report'),
-^^^^^
-lib/features/profile/presentation/screens/profile_screen.dart:255:30: Error:
-Method not found: 'PivotItem'.
-                      fluent.PivotItem(
-                             ^^^^^^^^^
-lib/features/profile/presentation/screens/profile_screen.dart:263:32: Error:
-Method not found: 'PivotItem'.
-                        fluent.PivotItem(
-                               ^^^^^^^^^
-lib/features/profile/presentation/screens/profile_screen.dart:251:26: Error:
-Method not found: 'Pivot'.
-                  fluent.Pivot(
-                         ^^^^^
-lib/features/profile/presentation/screens/profile_screen.dart:423:31: Error:
-The getter 'isHovering' isn't defined for the type 'Set<WidgetState>'.
- - 'Set' is from 'dart:core'.
- - 'WidgetState' is from 'package:flutter/src/widgets/widget_state.dart'
- ('/C:/Users/peter/dev/flutter/packages/flutter/lib/src/widgets/widget_state
- .dart').
-Try correcting the name to the name of an existing getter, or defining a
-getter or field named 'isHovering'.
-                color: states.isHovering ? theme.accentColor : null,
-                              ^^^^^^^^^^
-lib/features/profile/presentation/screens/profile_screen.dart:569:33: Error:
-The getter 'isHovering' isn't defined for the type 'Set<WidgetState>'.
- - 'Set' is from 'dart:core'.
- - 'WidgetState' is from 'package:flutter/src/widgets/widget_state.dart'
- ('/C:/Users/peter/dev/flutter/packages/flutter/lib/src/widgets/widget_state
- .dart').
-Try correcting the name to the name of an existing getter, or defining a
-getter or field named 'isHovering'.
-              transform: states.isHovering ?
-              (Matrix4.identity()..scale(1.02)) : Matrix4.identity(),
-                                ^^^^^^^^^^
-lib/features/profile/presentation/screens/profile_screen.dart:573:32: Error:
-The getter 'isHovering' isn't defined for the type 'Set<WidgetState>'.
- - 'Set' is from 'dart:core'.
- - 'WidgetState' is from 'package:flutter/src/widgets/widget_state.dart'
- ('/C:/Users/peter/dev/flutter/packages/flutter/lib/src/widgets/widget_state
- .dart').
-Try correcting the name to the name of an existing getter, or defining a
-getter or field named 'isHovering'.
-                border: states.isHovering
-                               ^^^^^^^^^^
-lib/widgets/moderation_dialogs.dart:637:17: Error: No named parameter with
-the name 'checked'.
-                checked: _selectedCategory == category,
-                ^^^^^^^
-/F:/DevCaches/Pub/Cache/hosted/pub.dev/fluent_ui-4.15.1/lib/src/controls/inp
-uts/radio_button.dart:96:9: Context: Found this candidate, but the arguments
-don't match.
-  const RadioButton({
-        ^^^^^^^^^^^
-lib/widgets/moderation_dialogs.dart:650:13: Error: No named parameter with
-the name 'header'.
-            header: 'Details (Optional)',
-            ^^^^^^
-/F:/DevCaches/Pub/Cache/hosted/pub.dev/fluent_ui-4.15.1/lib/src/controls/for
-m/text_box.dart:180:9: Context: Found this candidate, but the arguments
-don't match.
-  const TextBox({
-        ^^^^^^^
-lib/widgets/moderation_dialogs.dart:685:1: Error: 'ubmit' isn't a type.
-ubmit Report'),
-^^^^^
+lib/features/auth/presentation/screens/login_screen.dart(2,8): error GFAA2A68C: Error when reading '/F:/DevCaches/Pub/Cache/hosted/pub.dev/passkeys-2.17.4/lib/passkeys.dart': The system cannot find the file specified [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/services/auth/auth_providers_delegate.dart(9,8): error GFAA2A68C: Error when reading '/F:/DevCaches/Pub/Cache/hosted/pub.dev/passkeys-2.17.4/lib/passkeys.dart': The system cannot find the file specified [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/features/auth/presentation/screens/login_screen.dart(4,8): error GFAA2A68C: Error when reading 'lib/providers/auth_provider.dart': The system cannot find the file specified [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/features/auth/presentation/screens/login_screen.dart(5,8): error GFAA2A68C: Error when reading 'lib/widgets/auth/auth_layout_wrapper.dart': The system cannot find the path specified [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/features/auth/presentation/screens/login_screen.dart(29,9): error G5FE39F1E: Type 'pk.PasskeyAuthenticator' not found. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/services/auth/auth_providers_delegate.dart(13,9): error G5FE39F1E: Type 'pk.PasskeyAuthenticator' not found. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/themes/fluent_theme.dart(51,51): error GC9768DF9: Undefined name 'defaultTargetPlatform'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/features/auth/presentation/screens/login_screen.dart(29,12): error G61363BDF: 'PasskeyAuthenticator' isn't a type. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/features/auth/presentation/screens/login_screen.dart(29,60): error G311314CC: Method not found: 'PasskeyAuthenticator'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/features/auth/presentation/screens/login_screen.dart(52,26): error G84BB8395: 'AuthProvider' isn't a type. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/features/auth/presentation/screens/login_screen.dart(85,26): error G84BB8395: 'AuthProvider' isn't a type. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/features/auth/presentation/screens/login_screen.dart(90,35): error G84BB8395: 'AuthProvider' isn't a type. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/features/auth/presentation/screens/login_screen.dart(121,26): error G84BB8395: 'AuthProvider' isn't a type. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/features/auth/presentation/screens/login_screen.dart(124,35): error G84BB8395: 'AuthProvider' isn't a type. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/features/auth/presentation/screens/login_screen.dart(161,28): error G84BB8395: 'AuthProvider' isn't a type. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/features/auth/presentation/screens/login_screen.dart(185,28): error G84BB8395: 'AuthProvider' isn't a type. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/features/auth/presentation/screens/login_screen.dart(378,12): error GE5CFE876: The method 'AuthLayoutWrapper' isn't defined for the type '_LoginScreenState'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/services/auth/auth_providers_delegate.dart(13,12): error G61363BDF: 'PasskeyAuthenticator' isn't a type. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/services/auth/auth_providers_delegate.dart(13,53): error G311314CC: Method not found: 'PasskeyAuthenticator'. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(254,5): error MSB8066: Custom build for 'F:\oasis\build\windows\x64\CMakeFiles\e7170a62e9112bbb6969fa870619923d\flutter_windows.dll.rule;F:\oasis\build\windows\x64\CMakeFiles\ff5c00e87728707794e5da30ee167161\flutter_assemble.rule' exited with code 1. [F:\oasis\build\windows\x64\flutter\flutter_assemble.vcxproj]
+Building Windows application...                                   173.4s
+Error: Build process failed.

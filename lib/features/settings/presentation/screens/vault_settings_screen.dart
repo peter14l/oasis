@@ -1,21 +1,25 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as material;
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter/services.dart';
 import 'package:oasis/services/vault_service.dart';
+import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/widgets/custom_snackbar.dart';
 import 'package:provider/provider.dart';
+import 'package:universal_io/io.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
-class VaultSettingsScreen extends StatefulWidget {
+class VaultSettingsScreen extends material.StatefulWidget {
   const VaultSettingsScreen({super.key});
 
   @override
-  State<VaultSettingsScreen> createState() => _VaultSettingsScreenState();
+  material.State<VaultSettingsScreen> createState() => _VaultSettingsScreenState();
 }
 
-class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
+class _VaultSettingsScreenState extends material.State<VaultSettingsScreen> {
   bool _isLoading = true;
   bool _isEnabled = false;
-  final _pinController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  final _pinController = material.TextEditingController();
+  final _formKey = material.GlobalKey<material.FormState>();
 
   @override
   void initState() {
@@ -34,7 +38,7 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
         });
       }
     } catch (e) {
-      debugPrint('Error checking vault status: $e');
+      material.debugPrint('Error checking vault status: $e');
       if (mounted) {
         setState(() => _isLoading = false);
         CustomSnackbar.showError(context, e);
@@ -91,30 +95,66 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
     }
   }
 
-  Future<bool> _showPinDialog(BuildContext context) async {
-    final controller = TextEditingController();
-    final result = await showDialog<bool>(
+  Future<bool> _showPinDialog(material.BuildContext context) async {
+    final controller = material.TextEditingController();
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isDesktop = kIsWeb || Platform.isWindows || Platform.isMacOS;
+
+    if (themeProvider.useFluentUI && isDesktop) {
+      final result = await fluent.showDialog<bool>(
+        context: context,
+        builder: (context) => fluent.ContentDialog(
+          title: const material.Text('Enter PIN'),
+          content: fluent.TextBox(
+            controller: controller,
+            placeholder: 'Current PIN',
+            obscureText: true,
+            maxLength: 4,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          ),
+          actions: [
+            fluent.Button(
+              onPressed: () => material.Navigator.pop(context, false),
+              child: const material.Text('Cancel'),
+            ),
+            fluent.FilledButton(
+              onPressed: () async {
+                final service = Provider.of<VaultService>(context, listen: false);
+                final isValid = await service.unlockVaultWithPin(controller.text);
+                if (context.mounted) {
+                  material.Navigator.pop(context, isValid);
+                }
+              },
+              child: const material.Text('Confirm'),
+            ),
+          ],
+        ),
+      );
+      return result ?? false;
+    }
+
+    final result = await material.showDialog<bool>(
       context: context,
       builder:
-          (context) => AlertDialog(
-            title: const Text('Enter PIN'),
-            content: TextField(
+          (context) => material.AlertDialog(
+            title: const material.Text('Enter PIN'),
+            content: material.TextField(
               controller: controller,
-              keyboardType: TextInputType.number,
+              keyboardType: material.TextInputType.number,
               obscureText: true,
               maxLength: 4,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(
+              decoration: const material.InputDecoration(
                 hintText: 'Current PIN',
                 counterText: '',
               ),
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+              material.TextButton(
+                onPressed: () => material.Navigator.pop(context, false),
+                child: const material.Text('Cancel'),
               ),
-              TextButton(
+              material.TextButton(
                 onPressed: () async {
                   final service = Provider.of<VaultService>(
                     context,
@@ -124,10 +164,10 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
                     controller.text,
                   );
                   if (context.mounted) {
-                    Navigator.pop(context, isValid);
+                    material.Navigator.pop(context, isValid);
                   }
                 },
-                child: const Text('Confirm'),
+                child: const material.Text('Confirm'),
               ),
             ],
           ),
@@ -136,71 +176,153 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
   }
 
   Future<void> _showChangePinDialog(
-    BuildContext context,
+    material.BuildContext context,
     VaultService service,
   ) async {
-    final currentPinController = TextEditingController();
-    final newPinController = TextEditingController();
-    final confirmPinController = TextEditingController();
+    final currentPinController = material.TextEditingController();
+    final newPinController = material.TextEditingController();
+    final confirmPinController = material.TextEditingController();
     String? errorMessage;
 
-    final result = await showDialog<bool>(
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isDesktop = kIsWeb || Platform.isWindows || Platform.isMacOS;
+
+    if (themeProvider.useFluentUI && isDesktop) {
+      final result = await fluent.showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => material.StatefulBuilder(
+          builder: (context, setDialogState) => fluent.ContentDialog(
+            title: const material.Text('Change PIN'),
+            content: material.Column(
+              mainAxisSize: material.MainAxisSize.min,
+              children: [
+                fluent.TextBox(
+                  controller: currentPinController,
+                  placeholder: 'Current PIN',
+                  obscureText: true,
+                  maxLength: 4,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                ),
+                const material.SizedBox(height: 16),
+                fluent.TextBox(
+                  controller: newPinController,
+                  placeholder: 'New PIN',
+                  obscureText: true,
+                  maxLength: 4,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                ),
+                const material.SizedBox(height: 16),
+                fluent.TextBox(
+                  controller: confirmPinController,
+                  placeholder: 'Confirm New PIN',
+                  obscureText: true,
+                  maxLength: 4,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                ),
+                if (errorMessage != null) ...[
+                  const material.SizedBox(height: 16),
+                  material.Text(
+                    errorMessage!,
+                    style: const material.TextStyle(color: material.Colors.red, fontSize: 12),
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              fluent.Button(
+                onPressed: () => material.Navigator.pop(dialogContext, false),
+                child: const material.Text('Cancel'),
+              ),
+              fluent.FilledButton(
+                onPressed: () async {
+                  if (currentPinController.text.length != 4) {
+                    setDialogState(() => errorMessage = 'Please enter current PIN');
+                    return;
+                  }
+                  if (newPinController.text.length != 4) {
+                    setDialogState(() => errorMessage = 'New PIN must be 4 digits');
+                    return;
+                  }
+                  if (newPinController.text != confirmPinController.text) {
+                    setDialogState(() => errorMessage = 'New PINs do not match');
+                    return;
+                  }
+                  final success = await service.changePin(currentPinController.text, newPinController.text);
+                  if (success) {
+                    material.Navigator.pop(dialogContext, true);
+                  } else {
+                    setDialogState(() => errorMessage = 'Current PIN is incorrect');
+                  }
+                },
+                child: const material.Text('Change'),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (result == true && mounted) {
+        CustomSnackbar.showSuccess(context, 'PIN changed successfully!');
+      }
+      return;
+    }
+
+    final result = await material.showDialog<bool>(
       context: context,
       builder:
-          (dialogContext) => StatefulBuilder(
+          (dialogContext) => material.StatefulBuilder(
             builder:
-                (context, setDialogState) => AlertDialog(
-                  title: const Text('Change PIN'),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
+                (context, setDialogState) => material.AlertDialog(
+                  title: const material.Text('Change PIN'),
+                  content: material.Column(
+                    mainAxisSize: material.MainAxisSize.min,
                     children: [
-                      TextField(
+                      material.TextField(
                         controller: currentPinController,
-                        keyboardType: TextInputType.number,
+                        keyboardType: material.TextInputType.number,
                         obscureText: true,
                         maxLength: 4,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
-                        decoration: const InputDecoration(
+                        decoration: const material.InputDecoration(
                           labelText: 'Current PIN',
                           counterText: '',
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      TextField(
+                      const material.SizedBox(height: 16),
+                      material.TextField(
                         controller: newPinController,
-                        keyboardType: TextInputType.number,
+                        keyboardType: material.TextInputType.number,
                         obscureText: true,
                         maxLength: 4,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
-                        decoration: const InputDecoration(
+                        decoration: const material.InputDecoration(
                           labelText: 'New PIN',
                           counterText: '',
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      TextField(
+                      const material.SizedBox(height: 16),
+                      material.TextField(
                         controller: confirmPinController,
-                        keyboardType: TextInputType.number,
+                        keyboardType: material.TextInputType.number,
                         obscureText: true,
                         maxLength: 4,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
-                        decoration: const InputDecoration(
+                        decoration: const material.InputDecoration(
                           labelText: 'Confirm New PIN',
                           counterText: '',
                         ),
                       ),
                       if (errorMessage != null) ...[
-                        const SizedBox(height: 16),
-                        Text(
+                        const material.SizedBox(height: 16),
+                        material.Text(
                           errorMessage!,
-                          style: const TextStyle(
-                            color: Colors.red,
+                          style: const material.TextStyle(
+                            color: material.Colors.red,
                             fontSize: 12,
                           ),
                         ),
@@ -208,11 +330,11 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
                     ],
                   ),
                   actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(dialogContext, false),
-                      child: const Text('Cancel'),
+                    material.TextButton(
+                      onPressed: () => material.Navigator.pop(dialogContext, false),
+                      child: const material.Text('Cancel'),
                     ),
-                    TextButton(
+                    material.TextButton(
                       onPressed: () async {
                         if (currentPinController.text.length != 4) {
                           setDialogState(
@@ -247,14 +369,14 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
                         );
 
                         if (success) {
-                          Navigator.pop(dialogContext, true);
+                          material.Navigator.pop(dialogContext, true);
                         } else {
                           setDialogState(
                             () => errorMessage = 'Current PIN is incorrect',
                           );
                         }
                       },
-                      child: const Text('Change'),
+                      child: const material.Text('Change'),
                     ),
                   ],
                 ),
@@ -267,53 +389,54 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+  material.Widget build(material.BuildContext context) {
+    final theme = material.Theme.of(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDesktop = kIsWeb || Platform.isWindows || Platform.isMacOS;
 
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const material.Scaffold(body: material.Center(child: material.CircularProgressIndicator()));
     }
 
-    final content = ListView(
-      padding: EdgeInsets.all(isDesktop ? 40 : 16),
+    final content = material.ListView(
+      padding: material.EdgeInsets.all(isDesktop ? 40 : 16),
       children: [
-        Center(
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 800),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        material.Center(
+          child: material.Container(
+            constraints: const material.BoxConstraints(maxWidth: 800),
+            child: material.Column(
+              crossAxisAlignment: material.CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(24),
+                material.Container(
+                  padding: const material.EdgeInsets.all(24),
                   width: double.infinity,
-                  decoration: BoxDecoration(
+                  decoration: material.BoxDecoration(
                     color: theme.colorScheme.surfaceContainerHighest.withValues(
                       alpha: 0.5,
                     ),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: material.BorderRadius.circular(16),
                   ),
-                  child: Column(
+                  child: material.Column(
                     children: [
-                      Icon(
-                        _isEnabled ? Icons.lock : Icons.lock_open,
+                      material.Icon(
+                        _isEnabled ? material.Icons.lock : material.Icons.lock_open,
                         size: 64,
                         color:
                             _isEnabled
                                 ? theme.colorScheme.primary
-                                : Colors.grey,
+                                : material.Colors.grey,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
+                      const material.SizedBox(height: 16),
+                      material.Text(
                         _isEnabled ? 'Vault is Enabled' : 'Vault is Disabled',
                         style: theme.textTheme.headlineSmall,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
+                      const material.SizedBox(height: 8),
+                      material.Text(
                         _isEnabled
                             ? 'Your private content is secured locally'
                             : 'Enable vault to hide sensitive content',
-                        textAlign: TextAlign.center,
+                        textAlign: material.TextAlign.center,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -321,22 +444,22 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 32),
+                const material.SizedBox(height: 32),
                 if (!_isEnabled) ...[
-                  Text('Setup Vault', style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 16),
-                  Form(
+                  material.Text('Setup Vault', style: theme.textTheme.titleMedium),
+                  const material.SizedBox(height: 16),
+                  material.Form(
                     key: _formKey,
-                    child: TextFormField(
+                    child: material.TextFormField(
                       controller: _pinController,
-                      keyboardType: TextInputType.number,
+                      keyboardType: material.TextInputType.number,
                       obscureText: true,
                       maxLength: 4,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: const InputDecoration(
+                      decoration: const material.InputDecoration(
                         labelText: 'Set a 4-digit PIN',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.pin),
+                        border: material.OutlineInputBorder(),
+                        prefixIcon: material.Icon(material.Icons.pin),
                         counterText: '',
                       ),
                       validator: (value) {
@@ -347,35 +470,35 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  SizedBox(
+                  const material.SizedBox(height: 24),
+                  material.SizedBox(
                     width: double.infinity,
-                    child: FilledButton.icon(
+                    child: material.FilledButton.icon(
                       onPressed: _enableVault,
-                      icon: const Icon(Icons.shield),
-                      label: const Text('Enable Vault'),
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.all(16),
+                      icon: const material.Icon(material.Icons.shield),
+                      label: const material.Text('Enable Vault'),
+                      style: material.FilledButton.styleFrom(
+                        padding: const material.EdgeInsets.all(16),
                       ),
                     ),
                   ),
                 ] else ...[
-                  Container(
-                    decoration: BoxDecoration(
+                  material.Container(
+                    decoration: material.BoxDecoration(
                       color: theme.colorScheme.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
+                      borderRadius: material.BorderRadius.circular(16),
+                      border: material.Border.all(
                         color: theme.colorScheme.outlineVariant.withValues(
                           alpha: 0.3,
                         ),
                       ),
                     ),
-                    child: Column(
+                    child: material.Column(
                       children: [
-                        ListTile(
-                          leading: const Icon(Icons.password),
-                          title: const Text('Change PIN'),
-                          trailing: const Icon(Icons.chevron_right),
+                        material.ListTile(
+                          leading: const material.Icon(material.Icons.password),
+                          title: const material.Text('Change PIN'),
+                          trailing: const material.Icon(material.Icons.chevron_right),
                           onTap: () {
                             final service = Provider.of<VaultService>(
                               context,
@@ -384,11 +507,11 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
                             _showChangePinDialog(context, service);
                           },
                         ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(Icons.delete_outline),
-                          title: const Text('Disable Vault'),
-                          subtitle: const Text(
+                        const material.Divider(height: 1),
+                        material.ListTile(
+                          leading: const material.Icon(material.Icons.delete_outline),
+                          title: const material.Text('Disable Vault'),
+                          subtitle: const material.Text(
                             'This will unhide all secluded content',
                           ),
                           textColor: theme.colorScheme.error,
@@ -406,12 +529,18 @@ class _VaultSettingsScreenState extends State<VaultSettingsScreen> {
       ],
     );
 
-    if (isDesktop) {
-      return Material(color: Colors.transparent, child: content);
+    if (themeProvider.useFluentUI && isDesktop) {
+      return fluent.ScaffoldPage(
+        header: const fluent.PageHeader(title: material.Text('Vault Settings')),
+        content: material.Material(
+          color: material.Colors.transparent,
+          child: content,
+        ),
+      );
     }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Vault Settings')),
+    return material.Scaffold(
+      appBar: material.AppBar(title: const material.Text('Vault Settings')),
       body: content,
     );
   }

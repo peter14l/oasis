@@ -119,6 +119,7 @@ dependencies:
   sensors_plus: ^4.0.2  # Gyroscope for Pulse Map parallax
   fluentui_system_icons: ^1.1.273
   local_auth: ^3.0.1
+  # passkeys: ^2.17.4
   flutter_webrtc: ^0.12.1
   permission_handler: ^11.3.1
   receive_sharing_intent: ^1.8.1
@@ -169,6 +170,8 @@ msix_config:
   build_windows: false
 
 dependency_overrides:
+  fluent_ui:
+    path: ./fluent_ui
   flutter_secure_storage_windows:
     path: ./stubs/flutter_secure_storage_windows
   flutter_local_notifications_windows:

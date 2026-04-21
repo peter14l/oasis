@@ -115,4 +115,27 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Stream<AuthState> get onAuthStateChange =>
       _remoteDatasource.onAuthStateChange;
+
+  @override
+  Future<AuthResponse> signInWithPasskey(String email) async {
+    return await _remoteDatasource.signInWithPasskey(email);
+  }
+
+  @override
+  Future<AuthResponse> registerWithPasskey({
+    required String email,
+    required String username,
+    required String fullName,
+  }) async {
+    return await _remoteDatasource.registerWithPasskey(
+      email: email,
+      username: username,
+      fullName: fullName,
+    );
+  }
+
+  @override
+  Future<void> addPasskeyToCurrentUser() async {
+    await _remoteDatasource.addPasskeyToCurrentUser();
+  }
 }

@@ -187,15 +187,30 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       setState(() => _isMuted = value);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              value ? 'Notifications muted' : 'Notifications unmuted',
+        final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+        final useFluent = themeProvider.useFluentUI;
+        final isDesktop = MediaQuery.of(context).size.width >= 1000;
+
+        if (useFluent && isDesktop) {
+          fluent.displayInfoBar(
+            context,
+            builder: (context, close) => fluent.InfoBar(
+              title: Text(value ? 'Muted' : 'Unmuted'),
+              content: Text(value ? 'Notifications for this chat are now silent.' : 'Notifications for this chat are enabled.'),
+              severity: fluent.InfoBarSeverity.info,
             ),
-            backgroundColor: value ? Colors.orange : Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                value ? 'Notifications muted' : 'Notifications unmuted',
+              ),
+              backgroundColor: value ? Colors.orange : Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -207,6 +222,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   }
 
   Future<void> _toggleBlock() async {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final useFluent = themeProvider.useFluentUI;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -246,13 +265,23 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
         setState(() => _isBlocked = !_isBlocked);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(_isBlocked ? 'User blocked' : 'User unblocked'),
-              backgroundColor: _isBlocked ? Colors.red : Colors.green,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          if (useFluent && isDesktop) {
+            fluent.displayInfoBar(
+              context,
+              builder: (context, close) => fluent.InfoBar(
+                title: Text(_isBlocked ? 'User Blocked' : 'User Unblocked'),
+                severity: _isBlocked ? fluent.InfoBarSeverity.error : fluent.InfoBarSeverity.success,
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(_isBlocked ? 'User blocked' : 'User unblocked'),
+                backgroundColor: _isBlocked ? Colors.red : Colors.green,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
         }
       } catch (e) {
         if (mounted) {
@@ -471,14 +500,29 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   Future<void> _toggleChatLock(bool value) async {
     final vaultService = Provider.of<VaultService>(context, listen: false);
     final isVaultEnabled = await vaultService.isVaultEnabled();
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final useFluent = themeProvider.useFluentUI;
+    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+
     if (!isVaultEnabled && value) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please enable Vault in Settings first'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        if (useFluent && isDesktop) {
+          fluent.displayInfoBar(
+            context,
+            builder: (context, close) => const fluent.InfoBar(
+              title: Text('Vault Disabled'),
+              content: Text('Please enable Vault in Settings first'),
+              severity: fluent.InfoBarSeverity.warning,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please enable Vault in Settings first'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
       return;
     }
@@ -496,19 +540,41 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       setState(() => _isLocked = value);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(value ? 'Chat locked to Vault' : 'Chat unlocked'),
-            backgroundColor: value ? Colors.indigo : Colors.grey,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        if (useFluent && isDesktop) {
+          fluent.displayInfoBar(
+            context,
+            builder: (context, close) => fluent.InfoBar(
+              title: Text(value ? 'Chat Locked' : 'Chat Unlocked'),
+              content: Text(value ? 'This conversation is now protected in your Vault.' : 'Conversation removed from Vault.'),
+              severity: value ? fluent.InfoBarSeverity.success : fluent.InfoBarSeverity.info,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(value ? 'Chat locked to Vault' : 'Chat unlocked'),
+              backgroundColor: value ? Colors.indigo : Colors.grey,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error updating vault: $e')));
+        if (useFluent && isDesktop) {
+          fluent.displayInfoBar(
+            context,
+            builder: (context, close) => fluent.InfoBar(
+              title: const Text('Vault Error'),
+              content: Text('Error updating vault: $e'),
+              severity: fluent.InfoBarSeverity.error,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error updating vault: $e')),
+          );
+        }
       }
     }
   }
@@ -914,7 +980,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
             onPressed: () => Navigator.of(context).maybePop(),
           ),
         ),
-        content: body,
+        content: Material(
+          color: Colors.transparent,
+          child: body,
+        ),
       );
     }
 

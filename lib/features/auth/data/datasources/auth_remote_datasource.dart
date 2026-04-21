@@ -9,8 +9,14 @@ import 'package:oasis/features/auth/domain/models/auth_models.dart';
 import 'package:oasis/services/session_registry_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:oasis/services/auth/auth_providers_delegate.dart';
+
 class AuthRemoteDatasource {
   final SupabaseClient _supabase = SupabaseService().client;
+  final AuthProvidersDelegate _authProvidersDelegate;
+
+  AuthRemoteDatasource({AuthProvidersDelegate? authProvidersDelegate})
+      : _authProvidersDelegate = authProvidersDelegate ?? AuthProvidersDelegate(SupabaseService().client);
 
   Future<String?> _getEmailFromUsername(String username) async {
     try {
@@ -302,6 +308,38 @@ class AuthRemoteDatasource {
   }
 
   Stream<AuthState> get onAuthStateChange => _supabase.auth.onAuthStateChange;
+
+  Future<AuthResponse> signInWithPasskey(String email) async {
+    final response = await _authProvidersDelegate.signInWithPasskey(email);
+    final user = response.user;
+    final session = response.session;
+    if (user == null || session == null) {
+      throw Exception('Passkey sign in failed: no user or session returned');
+    }
+    return response;
+  }
+
+  Future<AuthResponse> registerWithPasskey({
+    required String email,
+    required String username,
+    required String fullName,
+  }) async {
+    final response = await _authProvidersDelegate.registerWithPasskey(
+      email: email,
+      username: username,
+      fullName: fullName,
+    );
+    final user = response.user;
+    final session = response.session;
+    if (user == null || session == null) {
+      throw Exception('Passkey registration failed: no user or session returned');
+    }
+    return response;
+  }
+
+  Future<void> addPasskeyToCurrentUser() async {
+    await _authProvidersDelegate.addPasskeyToCurrentUser();
+  }
 
   RegisteredAccount _toRegisteredAccount(User user, Session session) {
     final metadata = user.userMetadata ?? {};

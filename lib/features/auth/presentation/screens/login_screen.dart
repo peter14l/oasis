@@ -1,11 +1,13 @@
-import 'package:oasis/core/config/app_config.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+// import 'package:passkeys/passkeys.dart' as pk;
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/features/auth/presentation/providers/auth_provider.dart';
 import 'package:oasis/features/auth/presentation/widgets/auth_layout_wrapper.dart';
 import 'package:oasis/widgets/app_button.dart';
+import 'package:oasis/core/config/app_config.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:go_router/go_router.dart';
+import 'dart:async';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,6 +22,12 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoggingIn = false;
   bool _isResettingPassword = false;
+  bool _showPasswordField = false;
+  bool _hasPasskeyForEmail = false;
+  bool _usePasskeyLogin = false; // Default to passkey if available
+  bool _emailSubmitted = false;
+  // final pk.PasskeyAuthenticator _passkeyAuthenticator = pk.PasskeyAuthenticator();
+
 
   @override
   void dispose() {
@@ -65,7 +73,111 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _login() async {
+  Future<void> _onEmailSubmitted() async {
+    if (_identifierController.text.trim().isEmpty) return;
+    
+    setState(() => _isLoggingIn = true);
+    
+    try {
+      // We try to initiate passkey sign in to see if one exists
+      // If it fails with 'no credentials', we show password field
+      // Note: This is a bit of a 'probe' - in production you might use a dedicated RPC or Edge Function if available
+      await context.read<AuthProvider>().signInWithPasskey(
+        email: _identifierController.text.trim(),
+      );
+      
+      // If it succeeds, navigation happens in the provider or we handle it here
+      if (mounted && context.read<AuthProvider>().isAuthenticated) {
+        context.go('/feed');
+      }
+    } on AuthException catch (e) {
+      if (e.message.contains('No passkeys found')) {
+        setState(() {
+          _hasPasskeyForEmail = false;
+          _showPasswordField = true;
+          _emailSubmitted = true;
+        });
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.message)),
+          );
+        }
+      }
+    } catch (e) {
+      // Fallback to password field on any error during passkey probe
+      setState(() {
+        _showPasswordField = true;
+        _emailSubmitted = true;
+      });
+    } finally {
+      if (mounted) setState(() => _isLoggingIn = false);
+    }
+  }
+
+  Future<void> _loginWithPasskey() async {
+    setState(() => _isLoggingIn = true);
+    try {
+      await context.read<AuthProvider>().signInWithPasskey(
+        email: _identifierController.text.trim(),
+      );
+      if (mounted && context.read<AuthProvider>().isAuthenticated) {
+        context.go('/feed');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoggingIn = false);
+    }
+  }
+
+  Future<void> _promptPasskeyCreation() async {
+    final bool? result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Enable Passkey?'),
+        content: const Text(
+          'Would you like to create a passkey for faster and more secure logins next time? You can use your fingerprint, face, or screen lock.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Later'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Create Passkey'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true && mounted) {
+      try {
+        await context.read<AuthProvider>().addPasskeyToCurrentUser();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Passkey created successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to create passkey: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _loginWithEmailAndPassword() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoggingIn = true);
       try {
@@ -74,9 +186,14 @@ class _LoginScreenState extends State<LoginScreen> {
           email: _identifierController.text.trim(),
           password: _passwordController.text,
         );
-        debugPrint('[LoginScreen] Sign in completed, navigating to /feed');
+        debugPrint('[LoginScreen] Sign in completed');
+        
         if (mounted) {
-          context.go('/feed');
+          // After successful password login, prompt for passkey creation
+          await _promptPasskeyCreation();
+          if (mounted) {
+            context.go('/feed');
+          }
         }
       } catch (e) {
         debugPrint('[LoginScreen] Sign in failed: $e');
@@ -256,6 +373,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return AuthLayoutWrapper(
       wrapInScroll: true,
       child: Padding(
@@ -270,7 +389,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 16.0),
               Text(
                 'Welcome Back',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
@@ -278,20 +397,33 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 8.0),
               Text(
                 'Sign in to continue',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
+                style: theme.textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 48.0),
+              
+              // Email Field - Always visible
               TextFormField(
                 controller: _identifierController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Username or Email',
-                  prefixIcon: Icon(Icons.person_outline),
-                  border: OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.person_outline),
+                  border: const OutlineInputBorder(),
+                  suffixIcon: _emailSubmitted ? IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    onPressed: () {
+                      setState(() {
+                        _emailSubmitted = false;
+                        _showPasswordField = false;
+                        _hasPasskeyForEmail = false;
+                      });
+                    },
+                  ) : null,
                 ),
+                readOnly: _emailSubmitted,
                 keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) => _onEmailSubmitted(),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your username or email';
@@ -299,61 +431,124 @@ class _LoginScreenState extends State<LoginScreen> {
                   return null;
                 },
               ),
+              
               const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock_outline),
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  if (value.length < 6) {
-                    return 'Password must be at least 6 characters';
-                  }
-                  return null;
-                },
+              
+              // Animated logic for Password or Passkey options
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: !_emailSubmitted 
+                  ? AppButton.primary(
+                      key: const ValueKey('continue_button'),
+                      text: 'Continue',
+                      isLoading: _isLoggingIn,
+                      onPressed: _onEmailSubmitted,
+                    )
+                  : Column(
+                      key: const ValueKey('auth_options_column'),
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (_hasPasskeyForEmail) ...[
+                          // Passkey vs Password Dropdown logic
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: theme.dividerColor),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: ExpansionTile(
+                              title: Row(
+                                children: [
+                                  Icon(Icons.fingerprint, color: theme.primaryColor),
+                                  const SizedBox(width: 12),
+                                  const Text('Use Your Passkey'),
+                                ],
+                              ),
+                              initiallyExpanded: true,
+                              children: [
+                                ListTile(
+                                  leading: const Icon(Icons.lock_outline),
+                                  title: const Text('Use Your Password'),
+                                  onTap: () {
+                                    setState(() {
+                                      _usePasskeyLogin = false;
+                                      _showPasswordField = true;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          if (!_showPasswordField)
+                            AppButton.primary(
+                              text: 'Sign In with Passkey',
+                              isLoading: _isLoggingIn,
+                              onPressed: _loginWithPasskey,
+                            ),
+                        ],
+                        
+                        if (_showPasswordField) ...[
+                          TextFormField(
+                            controller: _passwordController,
+                            decoration: const InputDecoration(
+                              labelText: 'Password',
+                              prefixIcon: Icon(Icons.lock_outline),
+                              border: OutlineInputBorder(),
+                            ),
+                            obscureText: true,
+                            textInputAction: TextInputAction.done,
+                            onFieldSubmitted: (_) => _loginWithEmailAndPassword(),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your password';
+                              }
+                              if (value.length < 6) {
+                                return 'Password must be at least 6 characters';
+                              }
+                              return null;
+                            },
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed:
+                                  (_isLoggingIn || _isResettingPassword)
+                                      ? null
+                                      : _resetPassword,
+                              child:
+                                  _isResettingPassword
+                                      ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      )
+                                      : const Text('Forgot Password?'),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          AppButton.primary(
+                            text: 'Sign In',
+                            isLoading: _isLoggingIn,
+                            onPressed: _loginWithEmailAndPassword,
+                          ),
+                        ],
+                      ],
+                    ),
               ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
+              
+              const SizedBox(height: 8.0),
+              // Google users: set password link
+              if (!_emailSubmitted || _showPasswordField)
+                TextButton(
                   onPressed:
                       (_isLoggingIn || _isResettingPassword)
                           ? null
-                          : _resetPassword,
-                  child:
-                      _isResettingPassword
-                          ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                          : const Text('Forgot Password?'),
+                          : () => _showGoogleSetPasswordDialog(context),
+                  child: const Text(
+                    'Signed up with Google? Set a password',
+                    style: TextStyle(fontSize: 12),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8.0),
-              // Google users: set password link
-              TextButton(
-                onPressed:
-                    (_isLoggingIn || _isResettingPassword)
-                        ? null
-                        : () => _showGoogleSetPasswordDialog(context),
-                child: const Text(
-                  'Signed up with Google? Set a password',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ),
-              const SizedBox(height: 16.0),
-              AppButton.primary(
-                text: 'Sign In',
-                isLoading: _isLoggingIn,
-                onPressed:
-                    (_isLoggingIn || _isResettingPassword) ? null : _login,
-              ),
               const SizedBox(height: 16.0),
               TextButton(
                 onPressed:

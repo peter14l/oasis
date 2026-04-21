@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as material;
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:oasis/core/utils/haptic_utils.dart';
 
 /// Interest categories for onboarding discovery quiz
@@ -6,7 +7,7 @@ class InterestCategory {
   final String id;
   final String name;
   final String emoji;
-  final Color color;
+  final material.Color color;
   final List<String> subcategories;
 
   const InterestCategory({
@@ -253,44 +254,48 @@ class _InterestDiscoveryQuizState extends State<InterestDiscoveryQuiz> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+  Widget build(material.BuildContext context) {
+    final theme = material.Theme.of(context);
+    final fluentTheme = fluent.FluentTheme.of(context);
 
-    return Column(
+    return material.Column(
       children: [
-        // Progress indicator
-        LinearProgressIndicator(
-          value: _currentStep == 0 ? 0.5 : 1.0,
-          backgroundColor: colorScheme.surfaceContainerHighest,
+        // Progress indicator using WinUI 3 PipsPager
+        material.Padding(
+          padding: const material.EdgeInsets.symmetric(vertical: 16),
+          child: fluent.PipsPager(
+            numberOfPages: 2,
+            currentIndex: _currentStep,
+            onPageChanged: (index) => setState(() => _currentStep = index),
+          ),
         ),
 
-        Expanded(
+        material.Expanded(
           child:
               _currentStep == 0
-                  ? _buildCategorySelection(theme, colorScheme)
-                  : _buildSubcategorySelection(theme, colorScheme),
+                  ? _buildCategorySelection(theme, fluentTheme)
+                  : _buildSubcategorySelection(theme, fluentTheme),
         ),
 
         // Navigation buttons
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+        material.Padding(
+          padding: const material.EdgeInsets.all(16),
+          child: material.Row(
             children: [
               if (_currentStep > 0)
-                TextButton(
+                fluent.Button(
                   onPressed: () => setState(() => _currentStep = 0),
-                  child: const Text('Back'),
+                  child: const material.Text('Back'),
                 ),
-              const Spacer(),
-              FilledButton(
+              const material.Spacer(),
+              fluent.FilledButton(
                 onPressed:
                     _currentStep == 0 && _selectedCategories.isNotEmpty
                         ? () => setState(() => _currentStep = 1)
                         : _currentStep == 1
                         ? _complete
                         : null,
-                child: Text(_currentStep == 0 ? 'Next' : 'Done'),
+                child: material.Text(_currentStep == 0 ? 'Next' : 'Done'),
               ),
             ],
           ),
@@ -299,70 +304,65 @@ class _InterestDiscoveryQuizState extends State<InterestDiscoveryQuiz> {
     );
   }
 
-  Widget _buildCategorySelection(ThemeData theme, ColorScheme colorScheme) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  material.Widget _buildCategorySelection(material.ThemeData theme, fluent.FluentThemeData fluentTheme) {
+    return material.SingleChildScrollView(
+      padding: const material.EdgeInsets.all(16),
+      child: material.Column(
+        crossAxisAlignment: material.CrossAxisAlignment.start,
         children: [
-          Text(
+          material.Text(
             'What are you interested in?',
             style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: material.FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
+          const material.SizedBox(height: 8),
+          material.Text(
             'Select at least 3 topics to personalize your feed',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 24),
-          Wrap(
+          const material.SizedBox(height: 24),
+          material.Wrap(
             spacing: 12,
             runSpacing: 12,
             children:
                 InterestCategories.all.map((category) {
                   final isSelected = _selectedCategories.contains(category.id);
-                  return GestureDetector(
-                    onTap: () => _toggleCategory(category.id),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            isSelected
-                                ? category.color.withValues(alpha: 0.2)
-                                : colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color:
-                              isSelected ? category.color : Colors.transparent,
-                          width: 2,
+                  return fluent.Card(
+                    padding: material.EdgeInsets.zero,
+                    backgroundColor: isSelected 
+                        ? category.color.withValues(alpha: 0.1) 
+                        : fluentTheme.cardColor,
+                    borderColor: isSelected ? category.color : null,
+                    child: material.InkWell(
+                      onTap: () => _toggleCategory(category.id),
+                      borderRadius: material.BorderRadius.circular(8),
+                      child: material.Padding(
+                        padding: const material.EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
                         ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            category.emoji,
-                            style: const TextStyle(fontSize: 20),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            category.name,
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              fontWeight:
-                                  isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
+                        child: material.Row(
+                          mainAxisSize: material.MainAxisSize.min,
+                          children: [
+                            material.Text(
+                              category.emoji,
+                              style: const material.TextStyle(fontSize: 20),
                             ),
-                          ),
-                        ],
+                            const material.SizedBox(width: 8),
+                            material.Text(
+                              category.name,
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                fontWeight:
+                                    isSelected
+                                        ? material.FontWeight.bold
+                                        : material.FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -373,33 +373,33 @@ class _InterestDiscoveryQuizState extends State<InterestDiscoveryQuiz> {
     );
   }
 
-  Widget _buildSubcategorySelection(ThemeData theme, ColorScheme colorScheme) {
+  material.Widget _buildSubcategorySelection(material.ThemeData theme, fluent.FluentThemeData fluentTheme) {
     final selectedCategoryList =
         InterestCategories.all
             .where((c) => _selectedCategories.contains(c.id))
             .toList();
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
+    return material.ListView.builder(
+      padding: const material.EdgeInsets.all(16),
       itemCount: selectedCategoryList.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          return material.Padding(
+            padding: const material.EdgeInsets.only(bottom: 16),
+            child: material.Column(
+              crossAxisAlignment: material.CrossAxisAlignment.start,
               children: [
-                Text(
+                material.Text(
                   'Fine-tune your interests',
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: material.FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
+                const material.SizedBox(height: 8),
+                material.Text(
                   'Select specific topics you love',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -410,32 +410,32 @@ class _InterestDiscoveryQuizState extends State<InterestDiscoveryQuiz> {
         final category = selectedCategoryList[index - 1];
         final selectedSubs = _selectedSubcategories[category.id] ?? {};
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        return material.Padding(
+          padding: const material.EdgeInsets.only(bottom: 16),
+          child: material.Column(
+            crossAxisAlignment: material.CrossAxisAlignment.start,
             children: [
-              Row(
+              material.Row(
                 children: [
-                  Text(category.emoji, style: const TextStyle(fontSize: 18)),
-                  const SizedBox(width: 8),
-                  Text(
+                  material.Text(category.emoji, style: const material.TextStyle(fontSize: 18)),
+                  const material.SizedBox(width: 8),
+                  material.Text(
                     category.name,
                     style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: material.FontWeight.bold,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Wrap(
+              const material.SizedBox(height: 8),
+              material.Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children:
                     category.subcategories.map((sub) {
                       final isSelected = selectedSubs.contains(sub);
-                      return FilterChip(
-                        label: Text(sub),
+                      return material.FilterChip(
+                        label: material.Text(sub),
                         selected: isSelected,
                         selectedColor: category.color.withValues(alpha: 0.3),
                         onSelected: (_) => _toggleSubcategory(category.id, sub),
