@@ -10,6 +10,15 @@ class AppConfig {
   /// This is populated at runtime from package_info_plus
   static String appVersion = '0.0.0';
 
+  /// If true, the app runs in "Investor Pitch Mode"
+  /// - Silences harmless debug logs
+  /// - Auto-grants local Pro status for demo purposes
+  /// - Pre-loads demo content triggers
+  static bool get isPitchMode {
+    const fromEnv = bool.fromEnvironment('PITCH_MODE', defaultValue: false);
+    return fromEnv || kDebugMode; // Default to true in debug for testing
+  }
+
   /// The base URL for the web portal/landing page.
   /// Used for deep links, auth callbacks, and checkout redirects.
   static String get webBaseUrl {

@@ -41,7 +41,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Last updated: December 2024',
+                    'Last updated: April 2026',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -50,157 +50,77 @@ class TermsOfServiceScreen extends StatelessWidget {
 
                   _buildSection(
                     context,
-                    '1. Acceptance of Terms',
-                    '''By accessing or using Oasis you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the app.
-
-These terms constitute a legally binding agreement between you and Oasis Please read them carefully before using our services.''',
+                    '1. The Oasis Mission',
+                    '''Oasis is an intentional relationship platform. By using this app, you acknowledge that Oasis is designed to prioritize mental wellbeing over engagement metrics. This means we surgically remove features like infinite feeds, view counts, and public likes to protect your peace.''',
                   ),
 
                   _buildSection(
                     context,
-                    '2. Eligibility',
-                    '''To use Oasisyou must:
-
-• Be at least 13 years of age
-• Have the legal capacity to enter into a binding agreement
-• Not be prohibited from using the service under applicable law
-• Provide accurate and complete registration information''',
+                    '2. Acceptance of Terms',
+                    '''By accessing or using Oasis, you agree to be bound by these Terms of Service. If you do not agree to these terms, including our commitment to data sovereignty and intentionality, please do not use the app.''',
                   ),
 
                   _buildSection(
                     context,
-                    '3. Your Account',
-                    '''You are responsible for:
-
-• Maintaining the confidentiality of your login credentials
-• All activities that occur under your account
-• Immediately notifying us of any unauthorized use
-• Keeping your account information accurate and up-to-date
-
-We reserve the right to suspend or terminate accounts that violate these terms.''',
+                    '3. Eligibility & Children',
+                    '''You must be at least 13 years of age. Users in certain regions (including India under the DPDP Act 2023) between the ages of 13 and 18 may require verifiable parental consent. You represent that you have not been previously suspended or removed from Oasis.''',
                   ),
 
                   _buildSection(
                     context,
-                    '4. User Content',
-                    '''When you post content on Oasis
+                    '4. Encryption & Account Security',
+                    '''Oasis uses End-to-End Encryption (E2EE). 
 
-• You retain ownership of your content
-• You grant us a license to display, store, and distribute your content within the app
-• You are responsible for ensuring you have rights to content you post
-• You agree not to post content that infringes on others' rights''',
+• Responsibility: You are solely responsible for remembering your PIN and securing your Recovery Code.
+• No Recovery: Because Oasis follows a "Zero-Knowledge" architecture, we cannot recover your encrypted messages if you lose your credentials.
+• Security: You must notify us immediately of any unauthorized use of your account.''',
                   ),
 
                   _buildSection(
                     context,
-                    '5. Prohibited Conduct',
+                    '5. The Subscription Covenant',
+                    '''Oasis operates on a subscription-first model. "You pay us so we never have to sell you." 
+
+• Payment: Payments are processed via Razorpay or RevenueCat (App Store/Play Store).
+• Cancellation: You may cancel your subscription at any time.
+• Transparency: We provide annual reports on how subscription funds are used to maintain the platform's mission.''',
+                  ),
+
+                  _buildSection(
+                    context,
+                    '6. Content & Relational Circles',
+                    '''• Ownership: You retain ownership of content you post.
+• Privacy: Content posted to a "Circle" is intended only for that circle.
+• Anti-Virality: You agree not to attempt to circumvent our blocks on content reshare or virality mechanisms. Oasis is for intentional sharing, not broadcast media.''',
+                  ),
+
+                  _buildSection(
+                    context,
+                    '7. Prohibited Conduct',
                     '''You agree not to:
-
-• Harass, bully, or intimidate other users
-• Post illegal, harmful, or offensive content
-• Impersonate others or misrepresent your identity
-• Spam or send unsolicited promotional material
-• Attempt to hack, exploit, or disrupt our services
-• Collect user data without authorization
-• Violate any applicable laws or regulations
-• Circumvent any security measures or access restrictions''',
+• Harass or bully other users.
+• Reverse engineer or attempt to extract our source code (except for our open-source cryptographic components).
+• Use automated scripts to scrape user data.
+• Share illegal or harmful content.''',
                   ),
 
                   _buildSection(
                     context,
-                    '6. Content Moderation',
-                    '''We have the right to:
-
-• Remove content that violates these terms
-• Suspend or terminate accounts for violations
-• Report illegal activity to law enforcement
-• Use automated systems to detect policy violations
-
-We strive to enforce our policies fairly and consistently.''',
+                    '8. Disclaimers & Limitation of Liability',
+                    '''Oasis is provided "as is." While we strive for 100% security, no system is perfect. To the maximum extent permitted by law, Oasis is not liable for data loss caused by lost encryption keys or device failure.''',
                   ),
 
                   _buildSection(
                     context,
-                    '7. Community Guidelines',
-                    '''Users must follow our community guidelines:
-
-• Be respectful in all interactions
-• Report violations through proper channels
-• Use blocking and muting features for unwanted content
-• Contribute positively to communities you join''',
+                    '9. Termination',
+                    '''You may delete your account at any time. Upon deletion, all your data is permanently scrubbed from our active servers in accordance with your "Right to be Forgotten."''',
                   ),
 
                   _buildSection(
                     context,
-                    '8. Intellectual Property',
-                    '''Oasisand its content are protected by:
-
-• Copyright and trademark laws
-• Other intellectual property rights
-
-You may not copy, modify, or distribute our app or branding without permission.''',
-                  ),
-
-                  _buildSection(
-                    context,
-                    '9. Disclaimers',
-                    '''Oasisis provided "as is" without warranties:
-
-• We do not guarantee uninterrupted or error-free service
-• We are not responsible for user-generated content
-• We do not endorse opinions expressed by users
-• Use the app at your own risk''',
-                  ),
-
-                  _buildSection(
-                    context,
-                    '10. Limitation of Liability',
-                    '''To the maximum extent permitted by law:
-
-• We are not liable for indirect, incidental, or consequential damages
-• Our total liability is limited to the amount you paid us (if any)
-• Some jurisdictions may not allow these limitations''',
-                  ),
-
-                  _buildSection(
-                    context,
-                    '11. Indemnification',
-                    '''You agree to indemnify and hold harmless Oasisrom:
-
-• Claims arising from your use of the service
-• Claims arising from your violation of these terms
-• Claims arising from content you post''',
-                  ),
-
-                  _buildSection(
-                    context,
-                    '12. Changes to Terms',
-                    '''We may modify these terms:
-
-• We will notify you of significant changes
-• Continued use constitutes acceptance of changes
-• If you disagree with changes, you may delete your account''',
-                  ),
-
-                  _buildSection(
-                    context,
-                    '13. Termination',
-                    '''Either party may terminate:
-
-• You may delete your account at any time
-• We may suspend or terminate accounts for violations
-• Upon termination, certain provisions survive (e.g., content licenses)''',
-                  ),
-
-                  _buildSection(
-                    context,
-                    '14. Contact Information',
-                    '''For questions about these terms:
-
-• Email: oasis.officialsupport@gmail.com
-• In-app: Settings → Help & Support
-
-We welcome your feedback and questions.''',
+                    '10. Contact',
+                    '''For legal or support inquiries:
+• Email: legal@oasis.com''',
                   ),
 
                   const SizedBox(height: 40),

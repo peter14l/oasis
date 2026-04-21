@@ -211,6 +211,25 @@ class _PostCardState extends State<PostCard>
         builder: (context) {
           return fluent.MenuFlyout(
             items: [
+              fluent.MenuFlyoutItem(
+                onPressed: () {
+                  _handleLike();
+                },
+                leading: Icon(
+                  widget.post.isLiked
+                      ? fluent.FluentIcons.heart_fill
+                      : fluent.FluentIcons.heart,
+                  color: widget.post.isLiked ? Colors.red : null,
+                ),
+                text: Text(widget.post.isLiked ? 'Unlike' : 'Like'),
+              ),
+              fluent.MenuFlyoutItem(
+                onPressed: () {
+                  widget.onComment?.call();
+                },
+                leading: const Icon(fluent.FluentIcons.comment),
+                text: const Text('Comment'),
+              ),
               if (widget.isOwnPost)
                 fluent.MenuFlyoutItem(
                   onPressed: _confirmDelete,
@@ -229,14 +248,18 @@ class _PostCardState extends State<PostCard>
                 text: const Text('Copy Link'),
               ),
               fluent.MenuFlyoutItem(
-                onPressed: _shareToDM,
-                leading: const Icon(fluent.FluentIcons.send),
-                text: const Text('Share to Message'),
-              ),
-              fluent.MenuFlyoutItem(
-                onPressed: () => widget.onShare?.call(),
-                leading: const Icon(fluent.FluentIcons.share),
-                text: const Text('Share via...'),
+                onPressed: () {
+                  // External sharing is disabled for intentionality
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'External sharing is disabled to protect your community privacy.',
+                      ),
+                    ),
+                  );
+                },
+                leading: const Icon(fluent.FluentIcons.lock),
+                text: const Text('Privacy Protected'),
               ),
             ],
           );
@@ -278,6 +301,24 @@ class _PostCardState extends State<PostCard>
           ),
         ),
         items: [
+          PopupMenuItem(
+            onTap: _handleLike,
+            child: _buildMenuRow(
+              widget.post.isLiked
+                  ? FluentIcons.heart_24_filled
+                  : FluentIcons.heart_24_regular,
+              widget.post.isLiked ? 'Unlike' : 'Like',
+              widget.post.isLiked ? Colors.red : colorScheme.onSurface,
+            ),
+          ),
+          PopupMenuItem(
+            onTap: widget.onComment,
+            child: _buildMenuRow(
+              FluentIcons.chat_24_regular,
+              'Comment',
+              colorScheme.onSurface,
+            ),
+          ),
           if (widget.isOwnPost)
             PopupMenuItem(
               onTap: _confirmDelete,
@@ -305,18 +346,14 @@ class _PostCardState extends State<PostCard>
             ),
           ),
           PopupMenuItem(
-            onTap: _shareToDM,
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('External sharing is disabled for your privacy.')),
+              );
+            },
             child: _buildMenuRow(
-              FluentIcons.send_24_regular,
-              'Share to Message',
-              colorScheme.onSurface,
-            ),
-          ),
-          PopupMenuItem(
-            onTap: () => widget.onShare?.call(),
-            child: _buildMenuRow(
-              FluentIcons.share_24_regular,
-              'Share via...',
+              FluentIcons.lock_shield_24_regular,
+              'Privacy Protected',
               colorScheme.onSurface,
             ),
           ),
@@ -354,6 +391,27 @@ class _PostCardState extends State<PostCard>
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
+                  _buildMoreTile(
+                    context,
+                    icon: widget.post.isLiked
+                        ? FluentIcons.heart_24_filled
+                        : FluentIcons.heart_24_regular,
+                    title: widget.post.isLiked ? 'Unlike' : 'Like',
+                    titleColor: widget.post.isLiked ? Colors.red : null,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _handleLike();
+                    },
+                  ),
+                  _buildMoreTile(
+                    context,
+                    icon: FluentIcons.chat_24_regular,
+                    title: 'Comment',
+                    onTap: () {
+                      Navigator.pop(context);
+                      widget.onComment?.call();
+                    },
+                  ),
                   if (widget.isOwnPost) ...[
                     _buildMoreTile(
                       context,
@@ -388,20 +446,13 @@ class _PostCardState extends State<PostCard>
                   ),
                   _buildMoreTile(
                     context,
-                    icon: fluent.FluentIcons.send,
-                    title: 'Share to Message',
+                    icon: fluent.FluentIcons.lock,
+                    title: 'Privacy Protected',
                     onTap: () {
                       Navigator.pop(context);
-                      _shareToDM();
-                    },
-                  ),
-                  _buildMoreTile(
-                    context,
-                    icon: fluent.FluentIcons.share,
-                    title: 'Share via...',
-                    onTap: () {
-                      Navigator.pop(context);
-                      widget.onShare?.call();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Sharing is disabled to protect community privacy.')),
+                      );
                     },
                   ),
                   const SizedBox(height: 12),
@@ -415,25 +466,9 @@ class _PostCardState extends State<PostCard>
   }
 
   void _shareToDM() {
-    showDialog(
-      context: context,
-      builder: (context) => ShareToDirectMessageModal(
-        title: 'Share Post',
-        content: widget.post.content ?? 'Shared a post',
-        messageType: MessageType.postShare,
-        postId: widget.post.id,
-        mediaUrl: widget.post.mediaUrls.isNotEmpty
-            ? widget.post.mediaUrls.first
-            : widget.post.imageUrl,
-        shareData: {
-          'username': widget.post.username,
-          'user_avatar': widget.post.userAvatar,
-          'content': widget.post.content,
-          'media_urls': widget.post.mediaUrls,
-          'image_url': widget.post.imageUrl,
-        },
-      ),
-    );
+     ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Direct sharing is disabled for intentionality.')),
+      );
   }
 
   Widget _buildMenuRow(IconData icon, String label, Color color) {
@@ -669,6 +704,7 @@ class _PostCardState extends State<PostCard>
                         children: [
                           GestureDetector(
                             onDoubleTap: () => _handleLike(forceLike: true),
+                            onLongPress: _showMoreOptions,
                             child: Container(
                               width: double.infinity,
                               constraints: const BoxConstraints(maxHeight: 600),
@@ -740,21 +776,6 @@ class _PostCardState extends State<PostCard>
                           ),
                           onPressed: _handleLike,
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${widget.post.likes}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(width: 20),
-                      fluent.IconButton(
-                        icon: const Icon(fluent.FluentIcons.comment, size: 20),
-                        onPressed: widget.onComment,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${widget.post.comments}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 20),
                       fluent.IconButton(
@@ -960,6 +981,7 @@ class _PostCardState extends State<PostCard>
                         children: [
                           GestureDetector(
                             onDoubleTap: () => _handleLike(forceLike: true),
+                            onLongPress: _showMoreOptions,
                             child: Container(
                               width: double.infinity,
                               constraints: BoxConstraints(
@@ -1099,37 +1121,26 @@ class _PostCardState extends State<PostCard>
                           constraints: null,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${widget.post.likes}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: isM3E ? FontWeight.w900 : FontWeight.w600,
-                          fontSize: isDesktop ? 15 : null,
-                        ),
-                      ),
                       const SizedBox(width: 20),
                       IconButton(
-                        key: const ValueKey('post_card_comment_button'),
+                        key: const ValueKey('post_card_privacy_indicator'),
                         icon: Icon(
-                          FluentIcons.chat_24_regular,
+                          FluentIcons.lock_shield_24_regular,
                           size: isDesktop ? 26 : 28,
+                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                         ),
-                        onPressed: widget.onComment,
+                        onPressed: () {
+                           ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('This post is protected by Oasis Community Privacy.')),
+                          );
+                        },
                         padding: isDesktop
                             ? const EdgeInsets.all(8)
                             : const EdgeInsets.all(8),
                         constraints: null,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${widget.post.comments}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: isM3E ? FontWeight.w900 : FontWeight.w600,
-                          fontSize: isDesktop ? 15 : null,
-                        ),
-                      ),
                       const SizedBox(width: 20),
-                      IconButton(
+                       IconButton(
                         key: const ValueKey('post_card_share_button'),
                         icon: Icon(
                           FluentIcons.share_24_regular,

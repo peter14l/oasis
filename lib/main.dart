@@ -715,6 +715,16 @@ void main() async {
   material.debugPrint = (String? message, {int? wrapWidth}) {
     if (message == null) return;
     
+    // In Pitch Mode, suppress all but critical errors
+    if (AppConfig.isPitchMode) {
+      if (!message.contains('ERROR') && 
+          !message.contains('failed') && 
+          !message.contains('EXCEPTION') && 
+          !message.contains('UNCAUGHT')) {
+        return;
+      }
+    }
+    
     // Ignore harmless but messy Flutter/Windows/Sentry/Signal logs
     if (message.contains('Attempted to send a key down event') ||
         message.contains('keysPressed') ||

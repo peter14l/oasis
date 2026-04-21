@@ -56,9 +56,11 @@ class AdaptiveScaffold extends StatelessWidget {
                     : null,
               )
             : null),
-        content: material.Material(
-          color: material.Colors.transparent,
-          child: body,
+        content: material.ScaffoldMessenger(
+          child: material.Material(
+            color: material.Colors.transparent,
+            child: body,
+          ),
         ),
         bottomBar: footer,
       );

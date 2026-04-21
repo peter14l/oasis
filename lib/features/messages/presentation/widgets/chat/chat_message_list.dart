@@ -9,6 +9,9 @@ import 'package:oasis/features/messages/data/messaging_service.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/widgets/skeleton_container.dart';
 
+import 'package:oasis/features/messages/presentation/widgets/chat/swipe_to_reply.dart';
+import 'dart:io';
+
 /// Chat message list with skeleton loading, empty state, and message rendering.
 class ChatMessageList extends StatelessWidget {
   const ChatMessageList({
@@ -18,6 +21,7 @@ class ChatMessageList extends StatelessWidget {
     required this.currentUserId,
     required this.onMessageLongPress,
     required this.onMessageDoubleTap,
+    required this.onReply,
     this.headerHeight = 72,
     this.bubbleColorSent,
     this.bubbleColorReceived,
@@ -33,6 +37,7 @@ class ChatMessageList extends StatelessWidget {
   final String? currentUserId;
   final Function(Message, Offset?) onMessageLongPress;
   final Function(Message) onMessageDoubleTap;
+  final Function(Message) onReply;
   final double headerHeight;
   final Color? bubbleColorSent;
   final Color? bubbleColorReceived;
@@ -90,17 +95,23 @@ class ChatMessageList extends StatelessWidget {
       );
     }
 
-    return MessageBubble(
-      message: message,
-      isMe: isMe,
-      isHighlighted: isHighlighted,
-      bubbleColorSent: bubbleColorSent,
-      bubbleColorReceived: bubbleColorReceived,
-      textColorSent: textColorSent,
-      textColorReceived: textColorReceived,
-      onLongPress: () => onMessageLongPress(message, null),
-      onDoubleTap: () => onMessageDoubleTap(message),
-      onReactionsTap: onReactionsTap,
+    final isMobile = Platform.isAndroid || Platform.isIOS;
+
+    return SwipeToReply(
+      enabled: isMobile,
+      onReply: () => onReply(message),
+      child: MessageBubble(
+        message: message,
+        isMe: isMe,
+        isHighlighted: isHighlighted,
+        bubbleColorSent: bubbleColorSent,
+        bubbleColorReceived: bubbleColorReceived,
+        textColorSent: textColorSent,
+        textColorReceived: textColorReceived,
+        onLongPress: () => onMessageLongPress(message, null),
+        onDoubleTap: () => onMessageDoubleTap(message),
+        onReactionsTap: onReactionsTap,
+      ),
     );
   }
 

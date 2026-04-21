@@ -1,14 +1,20 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as material;
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:oasis/features/feed/presentation/widgets/post_card.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/services/post_service.dart';
+import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/widgets/adaptive/adaptive_scaffold.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:share_plus/share_plus.dart';
 
 class PostDetailsScreen extends StatefulWidget {
   final String postId;
-  final Post? initialPost; // Optional: Pass full post object if available
+  final Post? initialPost;
 
   const PostDetailsScreen({super.key, required this.postId, this.initialPost});
 
@@ -18,10 +24,11 @@ class PostDetailsScreen extends StatefulWidget {
 
 class _PostDetailsScreenState extends State<PostDetailsScreen> {
   final PostService _postService = PostService();
-  final AuthService _authService = AuthService();
   Post? _post;
   bool _isLoading = true;
   String? _error;
+
+  AuthService get _authService => context.read<AuthService>();
 
   @override
   void initState() {
@@ -43,45 +50,78 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
 
     try {
       final post = await _postService.getPost(widget.postId, userId);
-      setState(() {
-        _post = post;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _post = post;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
   Future<void> _handleDelete() async {
     if (_post == null) return;
 
-    // Show confirmation
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Delete Post'),
-            content: const Text('Are you sure you want to delete this post?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text(
-                  'Delete',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
-          ),
-    );
+    final themeProvider = context.read<ThemeProvider>();
+    final useFluent = themeProvider.useFluentUI;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
 
-    if (confirm != true) return;
+    bool confirm = false;
+
+    if (useFluent && isDesktop) {
+      final result = await fluent.showContentDialog<String>(
+        context: context,
+        builder: (context) => fluent.ContentDialog(
+          title: const Text('Delete Post'),
+          content: const Text('Are you sure you want to delete this post? This action cannot be undone.'),
+          actions: [
+            fluent.Button(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(context, 'cancel'),
+            ),
+            fluent.FilledButton(
+              onPressed: () => Navigator.pop(context, 'delete'),
+              style: fluent.ButtonStyle(
+                backgroundColor: fluent.WidgetStateProperty.all(fluent.Colors.red),
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      );
+      confirm = result == 'delete';
+    } else {
+      final result = await material.showDialog<bool>(
+        context: context,
+        builder: (context) => material.AlertDialog(
+          title: const Text('Delete Post'),
+          content: const Text('Are you sure you want to delete this post?'),
+          actions: [
+            material.TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            material.TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const material.Text(
+                'Delete',
+                style: material.TextStyle(color: material.Colors.red),
+              ),
+            ),
+          ],
+        ),
+      );
+      confirm = result ?? false;
+    }
+
+    if (!confirm) return;
 
     final userId = _authService.currentUser?.id;
     if (userId == null) return;
@@ -89,43 +129,50 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
     try {
       await _postService.deletePost(_post!.id, userId);
       if (mounted) {
-        Navigator.pop(context); // Return to previous screen
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Post deleted')));
+        // Show success notification BEFORE popping or on the parent screen
+        final rootContext = context;
+        Navigator.pop(rootContext);
+        
+        material.ScaffoldMessenger.of(rootContext).showSnackBar(
+          const material.SnackBar(content: Text('Post deleted successfully')),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error deleting post: $e')));
+        material.ScaffoldMessenger.of(context).showSnackBar(
+          material.SnackBar(content: Text('Error deleting post: $e')),
+        );
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Post')),
+    return AdaptiveScaffold(
+      title: const Text('Post Details'),
       body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: material.CircularProgressIndicator());
     }
 
     if (_error != null) {
+      final theme = material.ThemeData.light(); // Fallback or use context theme
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+            const Icon(material.Icons.error_outline, size: 48, color: material.Colors.grey),
             const SizedBox(height: 16),
             Text('Error: $_error'),
             const SizedBox(height: 16),
-            ElevatedButton(onPressed: _loadPost, child: const Text('Retry')),
+            material.ElevatedButton(
+              onPressed: _loadPost,
+              child: const Text('Retry'),
+            ),
           ],
         ),
       );
@@ -139,7 +186,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 24),
-      child: Column(
+      child: material.Column(
         children: [
           PostCard(
             post: _post!,
@@ -167,7 +214,6 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                   await _postService.likePost(userId: userId, postId: _post!.id);
                 }
               } catch (e) {
-                // Revert on error
                 if (mounted) {
                   setState(() {
                     _post = _post!.copyWith(
@@ -194,7 +240,6 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                   await _postService.bookmarkPost(userId: userId, postId: _post!.id);
                 }
               } catch (e) {
-                // Revert on error
                 if (mounted) {
                   setState(() {
                     _post = _post!.copyWith(isBookmarked: wasBookmarked);
@@ -203,13 +248,9 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
               }
             },
             onComment: () {
-              // Already in details, maybe focus comment box?
-              // But PostDetails IS the view.
-              // If we want comment section below, we should show it here.
-              // For now, duplicate behavior: go to comments screen if there is one, or Show modal.
               context.push('/post/${_post!.id}/comments');
             },
-            onShare: () => Share.share('Check out this post!'),
+            onShare: () => Share.share('Check out this post on Oasis!'),
             onDelete: _handleDelete,
           ),
         ],

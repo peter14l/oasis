@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' as material;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -24,6 +25,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _hasAcceptedTerms = false;
   final FocusNode _nameFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
@@ -280,10 +282,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 },
                 onFieldSubmitted: (_) => _register(),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+              // --- Terms and Conditions Checkbox ---
+              material.Theme(
+                data: theme.copyWith(unselectedWidgetColor: colorScheme.onSurfaceVariant),
+                child: CheckboxListTile(
+                  value: _hasAcceptedTerms,
+                  onChanged: (val) => setState(() => _hasAcceptedTerms = val ?? false),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                  activeColor: colorScheme.primary,
+                  title: Wrap(
+                    children: [
+                      const Text(
+                        'I agree to the ',
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
+                      GestureDetector(
+                        onTap: () => context.push('/terms'),
+                        child: Text(
+                          'Terms of Service',
+                          style: TextStyle(
+                            color: colorScheme.primary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                      const Text(
+                        ' and ',
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
+                      GestureDetector(
+                        onTap: () => context.push('/privacy'),
+                        child: Text(
+                          'Privacy Policy',
+                          style: TextStyle(
+                            color: colorScheme.primary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               AppButton.primary(
                 text: 'Sign up with Password',
-                onPressed: _isLoading ? null : _register,
+                onPressed: (_isLoading || !_hasAcceptedTerms) ? null : _register,
                 isLoading: _isLoading,
               ),
               
@@ -301,13 +351,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 16),
               
               OutlinedButton.icon(
-                onPressed: _isLoading ? null : _registerWithPasskey,
+                onPressed: (_isLoading || !_hasAcceptedTerms) ? null : _registerWithPasskey,
                 icon: const Icon(Icons.fingerprint),
                 label: const Text('Sign up with Passkey'),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  side: BorderSide(color: theme.primaryColor),
+                  side: BorderSide(color: (_isLoading || !_hasAcceptedTerms) ? theme.disabledColor : theme.primaryColor),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  foregroundColor: (_isLoading || !_hasAcceptedTerms) ? theme.disabledColor : theme.primaryColor,
                 ),
               ),
 

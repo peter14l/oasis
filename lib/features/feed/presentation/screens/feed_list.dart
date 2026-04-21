@@ -142,21 +142,21 @@ class PostCard extends StatelessWidget {
               children: [
                 _buildActionButton(
                   icon: Icons.favorite_border,
-                  label: '${post['likes']}',
+                  label: '',
                   onPressed: () {
                     // Handle like
                   },
                 ),
                 _buildActionButton(
                   icon: Icons.chat_bubble_outline,
-                  label: '${post['comments']}',
+                  label: '',
                   onPressed: () {
                     // Handle comment
                   },
                 ),
                 _buildActionButton(
                   icon: Icons.share,
-                  label: '${post['shares']}',
+                  label: '',
                   onPressed: () {
                     // Handle share
                   },

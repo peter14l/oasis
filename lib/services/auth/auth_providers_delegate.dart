@@ -133,6 +133,7 @@ class AuthProvidersDelegate {
     required String email,
     required String username,
     required String fullName,
+    Map<String, dynamic>? data,
   }) async {
     throw UnimplementedError('Native Passkey support in Supabase Flutter SDK is still in preview/experimental.');
   }

@@ -95,6 +95,8 @@ class AuthRemoteDatasource {
         data: {
           if (username != null) 'username': username,
           if (fullName != null) 'full_name': fullName,
+          'has_accepted_terms': true,
+          'accepted_terms_at': DateTime.now().toIso8601String(),
         },
       );
 
@@ -328,6 +330,10 @@ class AuthRemoteDatasource {
       email: email,
       username: username,
       fullName: fullName,
+      data: {
+        'has_accepted_terms': true,
+        'accepted_terms_at': DateTime.now().toIso8601String(),
+      },
     );
     final user = response.user;
     final session = response.session;

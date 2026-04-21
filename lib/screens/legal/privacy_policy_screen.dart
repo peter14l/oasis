@@ -43,7 +43,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Last updated: December 2024',
+                    'Last updated: April 2026',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -52,116 +52,79 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
                   _buildSection(
                     context,
-                    '1. Information We Collect',
-                    '''When you use Oasis, we collect the following types of information:
+                    '1. Data Sovereignty & Minimization',
+                    '''Oasis is designed with "Privacy by Architecture." We follow the principle of data minimization:
 
-• Account Information: Your email address, username, display name, and profile picture.
-
-• Content You Create: Posts, comments, messages, stories, and other content you share.
-
-• Usage Data: How you interact with the app, including features you use, time spent, and device information.
-
-• Device Information: Device type, operating system, and app version for improving compatibility.''',
+• We only collect the absolute minimum data required to provide the service.
+• Direct messages and media are End-to-End Encrypted (E2EE).
+• We do not track your location in the background unless explicitly enabled for specific features (like the Pulse Map).
+• We do not sell, rent, or trade your personal data to any third party, ever.''',
                   ),
 
                   _buildSection(
                     context,
-                    '2. How We Use Your Information',
-                    '''We use your information to:
+                    '2. Information We Collect (Data Categories)',
+                    '''To comply with the Indian DPDP Act (2023) and GDPR, we disclose the following categories of data processed:
 
-• Provide and maintain the Oasis service
-• Personalize your experience and content recommendations
-• Enable communication between users
-• Send important notifications about your account
-• Improve our services and develop new features
-• Ensure safety and security of our platform
-• Comply with legal obligations''',
+• Account Identifiers: Email, username, and hashed credentials.
+• Encrypted Content: Your messages and media (stored in encrypted form; we do not hold the keys).
+• Cryptographic Metadata: Public keys and salt used for your E2EE identity.
+• Subscription Data: Managed via Razorpay/RevenueCat to process payments (we do not store your credit card numbers locally).
+• Device Telemetry: Opt-in crash reports (Sentry) and basic device type for compatibility.''',
                   ),
 
                   _buildSection(
                     context,
-                    '3. Message Encryption',
-                    '''Oasis uses end-to-end encryption for direct messages:
+                    '3. End-to-End Encryption (E2EE)',
+                    '''Your privacy is mathematically protected:
 
-• Your messages are encrypted on your device before being sent
-• Only you and the recipient can read your messages
-• We cannot access the content of encrypted messages
-• Encryption keys are protected by your PIN''',
+• Messages and media are encrypted using RSA-2048 and AES-256 before leaving your device.
+• Your private key is encrypted with a key derived from your PIN using the Argon2id protocol.
+• IMPORTANT: Because we do not store your PIN or your unencrypted private key, we cannot recover your messages if you lose both your PIN and your recovery code.''',
                   ),
 
                   _buildSection(
                     context,
-                    '4. Information Sharing',
-                    '''We do not sell your personal information. We may share information:
+                    '4. Your Rights (DPDP & GDPR Compliance)',
+                    '''You have full control over your digital footprint:
 
-• With your consent
-• To comply with legal requirements
-• To protect rights and safety
-• With service providers who help operate our platform (under strict confidentiality agreements)''',
+• Right to Erasure: You can delete your account and all associated data instantly from Settings.
+• Data Portability: You can request a full export of your data (Technical Manifest).
+• Right to Correction: You can update your profile information at any time.
+• Right to Withdraw Consent: You can toggle sync for analytics and wellness data at any time.''',
                   ),
 
                   _buildSection(
                     context,
-                    '5. Data Storage & Security',
-                    '''Your data is stored securely:
+                    '5. Children\'s Privacy (Verifiable Consent)',
+                    '''Oasis is intended for users aged 13 and older. 
 
-• We use industry-standard encryption for data in transit and at rest
-• Access to user data is strictly limited to authorized personnel
-• We regularly review and update our security practices
-• Data is stored on secure servers with appropriate safeguards''',
+• For users between 13 and 18, we may require verifiable parental consent in certain jurisdictions (like India under the DPDP Act).
+• We do not engage in behavioral tracking or targeted advertising directed at minors.''',
                   ),
 
                   _buildSection(
                     context,
-                    '6. Your Rights',
-                    '''You have the right to:
+                    '6. Data Storage & Local-First Media',
+                    '''Oasis prioritizes on-device storage:
 
-• Access your personal data
-• Correct inaccurate data
-• Delete your account and associated data
-• Export your data
-• Control your privacy settings
-• Opt out of certain data collection''',
+• Your shared media is stored locally by default. 
+• Cloud backups are an optional opt-in feature to protect your data during device loss.
+• Data stored on our servers is protected by Row Level Security (RLS) at the database engine level.''',
                   ),
 
                   _buildSection(
                     context,
-                    '7. Screen Time Tracking',
-                    '''Oasis includes screen time features:
-
-• Usage data is stored locally on your device
-• We do not share your screen time data with third parties
-• You can view your usage statistics in the app settings''',
+                    '7. Wellness & Intentionality Data',
+                    '''Digital wellbeing data (Screen Time, Energy Meter) is processed primarily on your device. We do not use this data for profiling or third-party marketing.''',
                   ),
 
                   _buildSection(
                     context,
-                    '8. Children\'s Privacy',
-                    '''Oasis is not intended for children under 13:
-
-• We do not knowingly collect information from children under 13
-• If you believe a child has provided us with personal information, please contact us''',
-                  ),
-
-                  _buildSection(
-                    context,
-                    '9. Changes to This Policy',
-                    '''We may update this policy from time to time:
-
-• We will notify you of significant changes
-• Continued use after changes constitutes acceptance
-• Previous versions are available upon request''',
-                  ),
-
-                  _buildSection(
-                    context,
-                    '10. Contact Us',
-                    '''If you have questions about this privacy policy:
-
-• Email: oasis.officialsupport@gmail.com
-• In-app: Settings → Help & Support
-
-We aim to respond to all inquiries within 48 hours.''',
+                    '8. Contact our Data Protection Officer',
+                    '''For legal inquiries or data requests:
+• Email: privacy@oasis.com
+• Address: Oasis Tech Support, Delhi, India.''',
                   ),
 
                   const SizedBox(height: 40),

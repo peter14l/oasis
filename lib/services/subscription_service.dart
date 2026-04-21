@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/core/config/supabase_config.dart';
 import 'package:oasis/services/revenuecat_service.dart';
+import 'package:oasis/core/config/app_config.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:io';
 
@@ -125,6 +126,12 @@ class SubscriptionService extends ChangeNotifier {
     }
     
     _isPro = status;
+
+    // Pitch Mode Override: Auto-grant Pro locally for demos
+    if (AppConfig.isPitchMode) {
+      _isPro = true;
+    }
+
     notifyListeners();
   }
 

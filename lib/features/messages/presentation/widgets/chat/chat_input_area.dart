@@ -328,12 +328,13 @@ class _ChatInputAreaState extends State<ChatInputArea> {
                               fillColor: material.Colors.transparent,
                               textColor: widget.isDesktop ? material.Colors.white : null,
                               hintColor: widget.isDesktop ? material.Colors.white38 : null,
-                              maxLines: 2,
+                              maxLines: 5,
+                              minLines: 1,
                               textCapitalization: material.TextCapitalization.sentences,
                               isDense: true,
-                              contentPadding: material.EdgeInsets.symmetric(
+                              contentPadding: const material.EdgeInsets.symmetric(
                                 horizontal: 10,
-                                vertical: 4,
+                                vertical: 10,
                               ),
                               margin: material.EdgeInsets.zero,
                               border: material.InputBorder.none,

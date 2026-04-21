@@ -666,6 +666,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                 );
                               }
                             },
+                            onReply: _setReplyMessage,
                             bubbleColorSent: state.bubbleColorSent,
                             bubbleColorReceived: state.bubbleColorReceived,
                             textColorSent: state.textColorSent,

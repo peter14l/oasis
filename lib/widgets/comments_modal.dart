@@ -877,40 +877,23 @@ class _CommentsModalState extends State<CommentsModal> {
                           child: Row(
                             children: [
                               Icon(
-                                comment.isLiked
-                                    ? (useFluent
-                                        ? fluent.FluentIcons.heart_fill
-                                        : FluentIcons.heart_16_filled)
-                                    : (useFluent
-                                        ? fluent.FluentIcons.heart
-                                        : fluent.FluentIcons.heart),
-                                size: 16,
-                                color: comment.isLiked
-                                    ? (isM3E
-                                        ? colorScheme.tertiary
-                                        : Colors.red)
-                                    : colorScheme.onSurfaceVariant,
+                              comment.isLiked
+                                  ? (useFluent
+                                      ? fluent.FluentIcons.heart_fill
+                                      : FluentIcons.heart_16_filled)
+                                  : (useFluent
+                                      ? fluent.FluentIcons.heart
+                                      : fluent.FluentIcons.heart),
+                              size: 16,
+                              color: comment.isLiked
+                                  ? (isM3E
+                                      ? colorScheme.tertiary
+                                      : Colors.red)
+                                  : colorScheme.onSurfaceVariant,
                               ),
-                              if (comment.likes > 0) ...[
-                                const SizedBox(width: 6),
-                                Text(
-                                  '${comment.likes}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: comment.isLiked
-                                        ? (isM3E
-                                            ? colorScheme.tertiary
-                                            : Colors.red)
-                                        : colorScheme.onSurfaceVariant,
-                                    fontWeight: (isM3E || comment.isLiked)
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                  ),
-                                ),
                               ],
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 24),
+                              ),
+                              ),                        const SizedBox(width: 24),
                         GestureDetector(
                           onTap: () {
                             setState(() => _replyingTo = comment);
