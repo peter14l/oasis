@@ -147,9 +147,8 @@ class _CallingScreenState extends State<CallingScreen> {
 
     // Determine if we should show the waiting screen
     final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
-    final isWaiting = state.remoteStreams.isEmpty && 
-                     (state.activeCall?.status == CallStatus.pinging || 
-                      !state.participants.any((p) => p.userId != currentUserId && p.isJoined));
+    // isWaiting should show the WaitingScreen until WebRTC streams successfully establish
+    final isWaiting = state.remoteStreams.isEmpty;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -202,6 +201,14 @@ class _CallingScreenState extends State<CallingScreen> {
         id: '', callId: '', userId: '', createdAt: DateTime.now())
     );
 
+    final isHost = state.activeCall?.hostId == currentUserId;
+    final hasRemoteJoined = state.participants.any((p) => p.userId != currentUserId && p.isJoined);
+    
+    String statusText = 'Connecting...';
+    if (isHost && !hasRemoteJoined) {
+      statusText = 'Calling...';
+    }
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -213,7 +220,7 @@ class _CallingScreenState extends State<CallingScreen> {
           ),
           const SizedBox(height: 40),
           Text(
-            state.activeCall?.status == CallStatus.pinging ? 'Calling...' : 'Waiting for others to join...',
+            statusText,
             style: const TextStyle(color: Colors.white70, fontSize: 18, letterSpacing: 1.2),
           ),
         ],

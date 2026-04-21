@@ -86,15 +86,7 @@ class CallRepositoryImpl implements CallRepository {
 
   @override
   Future<CallEntity> acceptCall(String callId, String userId) async {
-    final response =
-        await _supabase.client
-            .from('calls')
-            .update({'status': CallStatus.active.name})
-            .eq('id', callId)
-            .select()
-            .single();
-
-    // Update participant status
+    // 1. Update participant status locally (allows WebRTC to proceed without RLS crashes)
     await _supabase.client
         .from('call_participants')
         .update({
@@ -104,6 +96,13 @@ class CallRepositoryImpl implements CallRepository {
         .eq('call_id', callId)
         .eq('user_id', userId);
 
+    // 2. Fetch the call context
+    final response = await _supabase.client
+        .from('calls')
+        .select()
+        .eq('id', callId)
+        .single();
+        
     return CallEntity.fromJson(response);
   }
 

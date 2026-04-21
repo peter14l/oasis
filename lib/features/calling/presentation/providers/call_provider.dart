@@ -195,11 +195,11 @@ class CallProvider extends ChangeNotifier {
       if (userId == null) throw Exception('User not authenticated');
 
       // Update call status in DB to active
-      await _acceptCall.call(callId: call.id, userId: userId);
+      final acceptedCall = await _acceptCall.call(callId: call.id, userId: userId);
       
       _state = _state.copyWith(
         isLoading: false, 
-        activeCall: call, 
+        activeCall: acceptedCall, 
         clearIncomingCall: true
       );
       notifyListeners();
