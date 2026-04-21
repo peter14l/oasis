@@ -71,10 +71,12 @@
 	<array>
 		<string>oasis-web-red.vercel.app</string>
 	</array>
-	<!-- Background modes for FCM (required for background/terminated notifications) -->
+	<!-- Background modes for FCM (required for background/terminated notifications) and VoIP -->
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>firebase-cloud-messaging</string>
+		<string>voip</string>
+		<string>remote-notification</string>
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app needs access to location to share your live location in chat.</string>

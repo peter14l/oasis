@@ -108,9 +108,10 @@ class _CallingScreenState extends State<CallingScreen> {
     });
 
     // Determine if we should show the waiting screen
+    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
     final isWaiting = state.remoteStreams.isEmpty && 
                      (state.activeCall?.status == CallStatus.pinging || 
-                      !state.participants.any((p) => p.userId != (state.localStream?.id ?? '') && p.isJoined));
+                      !state.participants.any((p) => p.userId != currentUserId && p.isJoined));
 
     return Scaffold(
       backgroundColor: Colors.black,

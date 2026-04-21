@@ -67,7 +67,7 @@ class NotificationManager {
   bool get isPaused => _isPaused;
 
   /// Initialize the notification manager
-  Future<bool> initialize() async {
+  Future<bool> initialize({bool isBackground = false}) async {
     // If already initialized, we still want to ensure channels are created
     // especially if called from a background isolate
     try {
@@ -97,9 +97,10 @@ class NotificationManager {
             'NotificationManager: Mobile local notifications initialized',
           );
 
-        // Only init FCM if we are in the main isolate (where Firebase.initializeApp was likely called without options)
-        // or if we explicitly want to (the background handler initializes Firebase itself)
-        await _initFCM();
+        // Only init FCM if we are in the main isolate
+        if (!isBackground) {
+          await _initFCM();
+        }
 
         _isInitialized = true;
         return true;
@@ -322,7 +323,7 @@ class NotificationManager {
       try {
         final String largeIconPath = await _downloadAndSaveImage(
           senderAvatar,
-          'notification_icon',
+          'noti_icon_${DateTime.now().millisecondsSinceEpoch}.png',
         );
 
         androidDetails = AndroidNotificationDetails(
@@ -478,11 +479,16 @@ class NotificationManager {
           body = decryptedBody;
         }
 
+        final messageType = message.data['message_type'] ?? message.data['type'];
+        
+        // In-app calling overlay handles foreground calls
+        if (messageType == 'call') return;
+
         showNotification(
           title: title,
           body: body,
           payload: jsonEncode(message.data),
-          messageType: message.data['message_type'] ?? message.data['type'],
+          messageType: messageType,
           senderAvatar: message.data['sender_avatar'],
         );
       }
@@ -586,6 +592,14 @@ class NotificationManager {
         badge: true,
         sound: true,
       );
+      
+      // Request Android 14 full screen intent for incoming call ringing
+      if (Platform.isAndroid) {
+        try {
+          await FlutterCallkitIncoming.requestFullIntentPermission();
+        } catch (_) {}
+      }
+      
       return settings.authorizationStatus == AuthorizationStatus.authorized;
     }
     return false;

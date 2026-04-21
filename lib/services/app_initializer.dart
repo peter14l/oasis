@@ -8,6 +8,11 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
+import 'package:flutter_callkit_incoming/entities/call_event.dart';
+import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
+import 'package:flutter_callkit_incoming/entities/notification_params.dart';
+import 'package:oasis/routes/app_router.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:universal_io/io.dart';
 
@@ -299,7 +304,37 @@ class AppInitializer {
 
     // If it's a data-only message or contains data we need to show
     if (message.data.isNotEmpty || message.notification != null) {
-      await NotificationManager.instance.initialize();
+      final messageType = message.data['message_type'] ?? message.data['type'];
+
+      if (messageType == 'call') {
+        final callId = message.data['call_id'] ?? '';
+        final callerName = message.data['title'] ?? 'Someone';
+        final callerAvatar = message.data['sender_avatar'] ?? '';
+        final callType = message.data['call_type'] == 'video' ? 1 : 0;
+        
+        final params = CallKitParams(
+          id: callId,
+          nameCaller: callerName,
+          appName: 'Oasis',
+          avatar: callerAvatar,
+          handle: 'Incoming Call',
+          type: callType,
+          duration: 30000,
+          textAccept: 'Accept',
+          textDecline: 'Decline',
+          missedCallNotification: const NotificationParams(
+            showNotification: true,
+            isShowCallback: false,
+            subtitle: 'Missed call',
+          ),
+          extra: message.data,
+        );
+        
+        await FlutterCallkitIncoming.showCallkitIncoming(params);
+        return;
+      }
+
+      await NotificationManager.instance.initialize(isBackground: true);
 
       final String title =
           message.data['title'] ??
@@ -419,6 +454,44 @@ class AppInitializer {
       SupabaseService.initialize(),
       PrefsStorage.init(),
     ]);
+
+    // Handle CallKit events
+    FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
+      if (event == null) return;
+      switch (event.event) {
+        case Event.actionCallAccept:
+          final data = event.body['extra'];
+          if (data == null) break;
+          final callId = data['call_id'];
+          final senderId = data['actor_id'];
+          if (callId != null) {
+            Future.delayed(const Duration(milliseconds: 500), () {
+              AppRouter.router.pushNamed(
+                'active_call',
+                pathParameters: {'callId': callId},
+                extra: {'isIncoming': true, 'callerId': senderId},
+              );
+            });
+          }
+          break;
+        case Event.actionCallDecline:
+          final data = event.body['extra'];
+          if (data == null) break;
+          final callId = data['call_id'];
+          if (callId != null) {
+            final userId = SupabaseService().client.auth.currentUser?.id;
+            if (userId != null) {
+              SupabaseService().client
+                .from('call_participants')
+                .update({'status': 'rejected'})
+                .match({'call_id': callId, 'user_id': userId});
+            }
+          }
+          break;
+        default:
+          break;
+      }
+    });
 
     // 2. Auth & Theme & Settings & Analytics (Parallel)
     final appAnalytics = AppAnalytics();

@@ -19,6 +19,7 @@ class CallService extends ChangeNotifier {
 
   // Multi-peer management
   final Map<String, RTCPeerConnection> _peerConnections = {};
+  final Map<String, List<Map<String, dynamic>>> _candidateQueue = {};
   final Map<String, MediaStream> _remoteStreams = {};
   final List<CallParticipantEntity> _participants = [];
   MediaStream? _localStream;
@@ -235,11 +236,17 @@ class CallService extends ChangeNotifier {
         'sdp': answer.sdp,
         'sdp_type': answer.type,
       });
+
+      // Flush any queued candidates that arrived before the connection was created
+      await _flushCandidateQueue(senderId, pc);
     } else if (type == 'answer') {
       final pc = _peerConnections[senderId];
       if (pc != null) {
         await pc.setRemoteDescription(RTCSessionDescription(data['sdp'], data['sdp_type']));
         await _applyBitrateConstraints(pc);
+
+        // Flush any queued candidates
+        await _flushCandidateQueue(senderId, pc);
       }
     } else if (type == 'candidate') {
       final pc = _peerConnections[senderId];
@@ -249,7 +256,24 @@ class CallService extends ChangeNotifier {
           data['sdpMid'],
           data['sdpMLineIndex'],
         ));
+      } else {
+        _candidateQueue[senderId] ??= [];
+        _candidateQueue[senderId]!.add(data);
       }
+    }
+  }
+
+  Future<void> _flushCandidateQueue(String senderId, RTCPeerConnection pc) async {
+    final queue = _candidateQueue[senderId];
+    if (queue != null && queue.isNotEmpty) {
+      for (var candData in queue) {
+        await pc.addCandidate(RTCIceCandidate(
+          candData['candidate'],
+          candData['sdpMid'],
+          candData['sdpMLineIndex'],
+        ));
+      }
+      queue.clear();
     }
   }
 
@@ -334,6 +358,7 @@ class CallService extends ChangeNotifier {
     _peerConnections[userId]?.close();
     _peerConnections.remove(userId);
     _remoteStreams.remove(userId);
+    _candidateQueue.remove(userId);
     notifyListeners();
   }
 
@@ -504,6 +529,7 @@ class CallService extends ChangeNotifier {
     }
     _peerConnections.clear();
     _remoteStreams.clear();
+    _candidateQueue.clear();
     _currentCallId = null;
     _incomingCall = null; // Clear incoming call as well
     _stopRingtone();
