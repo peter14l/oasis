@@ -65,11 +65,72 @@ class VoiceTranscriptService {
   }
 
   /// Transcribe audio using a high-performance multilingual Edge Function (e.g., Whisper)
+  /// This method now uses the asynchronous task queue for better scalability.
   Future<VoiceTranscript> transcribeVoiceMessage(
     String messageId,
     String audioUrl,
   ) async {
-    debugPrint('[Transcription] Requesting transcription for: $audioUrl');
+    // Try async queue-based transcription first (scalable)
+    try {
+      return await queueTranscription(messageId, audioUrl);
+    } catch (e) {
+      debugPrint('[Transcription] Queue method failed, falling back to sync: $e');
+      // Fallback to legacy sync method if queue fails
+      return await transcribeVoiceMessageSync(messageId, audioUrl);
+    }
+  }
+
+  /// Asynchronous transcription using the task queue and Realtime
+  Future<VoiceTranscript> queueTranscription(
+    String messageId,
+    String audioUrl,
+  ) async {
+    debugPrint('[Transcription] Queuing task for: $audioUrl');
+
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('User not authenticated');
+
+    // 1. Insert task into queue
+    final taskResponse = await _supabase.from('task_queue').insert({
+      'task_type': 'transcription',
+      'payload': {
+        'message_id': messageId,
+        'audio_url': audioUrl,
+      },
+      'user_id': userId,
+      'status': 'pending',
+    }).select().single();
+
+    final taskId = taskResponse['id'] as String;
+
+    // 2. Listen for completion via Realtime
+    final completion = _supabase
+        .from('task_queue')
+        .stream(primaryKey: ['id'])
+        .eq('id', taskId)
+        .firstWhere((data) => 
+            data.isNotEmpty && 
+            (data[0]['status'] == 'completed' || data[0]['status'] == 'failed'))
+        .timeout(const Duration(seconds: 30));
+
+    final resultData = await completion;
+    final taskResult = resultData[0];
+
+    if (taskResult['status'] == 'failed') {
+      throw Exception(taskResult['error'] ?? 'Task failed without error message');
+    }
+
+    final transcript = VoiceTranscript.fromJson(taskResult['result']);
+    _cache[messageId] = transcript;
+    return transcript;
+  }
+
+  /// Legacy synchronous transcription method
+  Future<VoiceTranscript> transcribeVoiceMessageSync(
+    String messageId,
+    String audioUrl,
+  ) async {
+    debugPrint('[Transcription] Requesting sync transcription for: $audioUrl');
 
     try {
       // 1. Invoke the Supabase Edge Function

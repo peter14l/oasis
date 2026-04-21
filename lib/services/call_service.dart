@@ -276,25 +276,41 @@ class CallService extends ChangeNotifier {
           notifyListeners();
 
           final userId = _supabase.auth.currentUser!.id;
-          for (var participant in data) {
-            final pUserId = participant['user_id'];
-            final status = participant['status'];
-            
-            if (pUserId != userId) {
-              if (status == 'joined') {
-                _stopRingtone(); // Stop ringing when someone joins
-                _setAudioForCall();
-                if (!_peerConnections.containsKey(pUserId)) {
-                  if (userId.compareTo(pUserId) > 0) {
-                    await _initiatePeerConnection(pUserId);
+
+          // Scalability Optimization: SFU vs Mesh (Section F.1)
+          if (SupabaseConfig.isSFUEnabled) {
+            // SFU MODE: Connect only to the media server
+            // The server acts as a single peer for all participants
+            if (!_peerConnections.containsKey('SFU_SERVER')) {
+              await _initiatePeerConnection('SFU_SERVER');
+              debugPrint('[CallService] Connected to SFU Server for $callId');
+            }
+          } else {
+            // MESH MODE: Full Mesh architecture (n*(n-1)/2 connections)
+            for (var participant in data) {
+              final pUserId = participant['user_id'];
+              final status = participant['status'];
+              
+              if (pUserId != userId) {
+                if (status == 'joined') {
+                  _stopRingtone(); // Stop ringing when someone joins
+                  _setAudioForCall();
+                  if (!_peerConnections.containsKey(pUserId)) {
+                    // Logic to avoid double offer: user with higher ID initiates
+                    if (userId.compareTo(pUserId) > 0) {
+                      await _initiatePeerConnection(pUserId);
+                    }
                   }
+                } else if (status == 'rejected' || status == 'left') {
+                  _removePeer(pUserId);
                 }
-              } else if (status == 'rejected' || status == 'left') {
-                // If everyone except us has left or rejected, stop ringing/cleanup
-                _stopRingtone();
-                _removePeer(pUserId);
               }
             }
+          }
+          
+          // Stop ringtone if we are joined and there are other active participants
+          if (data.any((p) => p['user_id'] != userId && p['status'] == 'joined')) {
+            _stopRingtone();
           }
         });
   }

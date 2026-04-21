@@ -13,6 +13,25 @@ class SupabaseConfig {
     return '';
   }
 
+  static String get cdnUrl {
+    const fromEnv = String.fromEnvironment('CDN_URL');
+    if (fromEnv.isNotEmpty) return fromEnv;
+    // Fallback to supabase storage URL if CDN is not configured
+    return '$supabaseUrl/storage/v1/object/public';
+  }
+
+  /// Whether to use a Selective Forwarding Unit (SFU) for large-scale calls.
+  /// If false, use Peer-to-Peer (Mesh) architecture.
+  static bool get isSFUEnabled {
+    const fromEnv = String.fromEnvironment('SFU_ENABLED');
+    return fromEnv == 'true';
+  }
+
+  static String get sfuServerUrl {
+    const fromEnv = String.fromEnvironment('SFU_SERVER_URL');
+    return fromEnv;
+  }
+
   // Enable debug logging only in development builds
   static bool get debug => kDebugMode;
 
