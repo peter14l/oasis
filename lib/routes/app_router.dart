@@ -2,6 +2,7 @@
 
 import 'dart:ui' as ui;
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
@@ -1027,7 +1028,6 @@ class AppRouter {
 
         // Subdomain Approach: On Web, unauthenticated users hitting '/' go to landing page
         if (kIsWeb && !isLoggedIn && state.uri.path == '/') {
-          // Note: In a real app, you might use oasisapp.com, but using your current Vercel link:
           unawaited(ui.window.open('http://oasisweb-omega.vercel.app/', '_self'));
           return null;
         }
