@@ -560,7 +560,7 @@ class _MyAppState extends State<MyApp> {
                           ),
                         ],
                       ),
-                      const FloatingCallOverlay(),
+                      FloatingCallOverlay(),
                     ],
                   );
                 },
@@ -591,7 +591,7 @@ class _MyAppState extends State<MyApp> {
                         ),
                       ],
                     ),
-                    const FloatingCallOverlay(),
+                    FloatingCallOverlay(),
                   ],
                 );
               },
