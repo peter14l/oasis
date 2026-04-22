@@ -155,21 +155,59 @@ class CallService extends ChangeNotifier {
   Future<void> _sendSignaling(String recipientId, Map<String, dynamic> data) async {
     if (_currentCallId == null || _signalingChannel == null) return;
     
+    try {
+      final encrypted = await _encryptData(recipientId, data);
+
+      await _signalingChannel!.sendBroadcastMessage(
+        event: 'signaling',
+        payload: {
+          'sender_id': _supabase.auth.currentUser!.id,
+          'recipient_id': recipientId,
+          ...encrypted,
+        },
+      );
+    } catch (e) {
+      debugPrint('[CallService] Error sending signaling: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> _encryptData(String recipientId, Map<String, dynamic> data) async {
     final jsonStr = jsonEncode(data);
     final encrypted = await _signal.encryptMessage(recipientId, jsonStr);
     
+    // Mapping for Supabase signaling types: 1 = PreKey, 2 = Whisper
     int dbType = encrypted.getType();
     if (dbType == 3) dbType = 1;
 
-    await _signalingChannel!.sendBroadcastMessage(
-      event: 'signaling',
-      payload: {
-        'sender_id': _supabase.auth.currentUser!.id,
-        'recipient_id': recipientId,
-        'candidate': base64Encode(encrypted.serialize()),
-        'signal_message_type': dbType,
-      },
-    );
+    return {
+      'e2ee': true,
+      'payload': base64Encode(encrypted.serialize()),
+      'signal_message_type': dbType,
+    };
+  }
+
+  Future<Map<String, dynamic>> _decryptData(String senderId, Map<String, dynamic> encryptedData) async {
+    if (encryptedData['e2ee'] != true) return encryptedData;
+    
+    try {
+      int signalType = encryptedData['signal_message_type'];
+      if (signalType == 1) signalType = 3;
+
+      final decryptedJson = await _signal.decryptMessage(
+        senderId,
+        encryptedData['payload'],
+        signalType,
+      );
+
+      if (decryptedJson.startsWith('🔒')) {
+        throw Exception('Decryption failed');
+      }
+
+      return jsonDecode(decryptedJson);
+    } catch (e) {
+      debugPrint('[CallService] Decryption error: $e');
+      rethrow;
+    }
   }
 
   Future<Map<String, dynamic>> createOffer(String remoteUserId) async {
@@ -177,31 +215,33 @@ class CallService extends ChangeNotifier {
     final offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
     
-    return {
+    final rawData = {
       'type': 'offer',
       'sdp': offer.sdp,
       'sdp_type': offer.type,
     };
+
+    return await _encryptData(remoteUserId, rawData);
   }
 
   Future<Map<String, dynamic>> createAnswer(String remoteUserId, Map<String, dynamic> offer) async {
     final pc = await _getOrCreatePeerConnection(remoteUserId);
     
-    if (pc.signalingState != RTCSignalingState.RTCSignalingStateStable) {
-       // If we already have a local offer, we might have a glare condition.
-       // In V2, we follow a strict caller-receiver model, so this shouldn't happen often.
-    }
+    // Decrypt offer if needed
+    final decryptedOffer = await _decryptData(remoteUserId, offer);
 
-    await pc.setRemoteDescription(RTCSessionDescription(offer['sdp'], offer['sdp_type']));
+    await pc.setRemoteDescription(RTCSessionDescription(decryptedOffer['sdp'], decryptedOffer['sdp_type']));
     final answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
     await _applyBitrateConstraints(pc);
     
-    return {
+    final rawData = {
       'type': 'answer',
       'sdp': answer.sdp,
       'sdp_type': answer.type,
     };
+
+    return await _encryptData(remoteUserId, rawData);
   }
 
   Future<void> startSignaling(CallEntity call) async {
@@ -221,7 +261,7 @@ class CallService extends ChangeNotifier {
         .from('calls')
         .stream(primaryKey: ['id'])
         .eq('id', callId)
-        .listen((data) {
+        .listen((data) async {
           if (data.isNotEmpty) {
             final updatedCall = CallEntity.fromJson(data.first);
             final oldCall = _currentCall;
@@ -239,7 +279,12 @@ class CallService extends ChangeNotifier {
                 updatedCall.status == CallStatus.active && 
                 oldCall?.status == CallStatus.ringing &&
                 updatedCall.answer != null) {
-              _handleSignalingData(updatedCall.receiverId, updatedCall.answer!);
+              try {
+                final decryptedAnswer = await _decryptData(updatedCall.receiverId, updatedCall.answer!);
+                await _handleSignalingData(updatedCall.receiverId, decryptedAnswer);
+              } catch (e) {
+                debugPrint('[CallService] Error decrypting answer: $e');
+              }
             }
 
             notifyListeners();
@@ -259,21 +304,10 @@ class CallService extends ChangeNotifier {
       if (recipientId == userId && senderId != userId) {
         Future(() async {
           try {
-            int signalType = payload['signal_message_type'];
-            if (signalType == 1) signalType = 3;
-
-            final decryptedJson = await _signal.decryptMessage(
-              senderId,
-              payload['candidate'],
-              signalType,
-            );
-
-            if (decryptedJson.startsWith('🔒')) return;
-
-            final signalData = jsonDecode(decryptedJson);
-            await _handleSignalingData(senderId, signalData);
+            final decryptedData = await _decryptData(senderId, payload);
+            await _handleSignalingData(senderId, decryptedData);
           } catch (e) {
-            debugPrint('[CallService] Signaling decryption error: $e');
+            debugPrint('[CallService] Signaling processing error: $e');
           }
         });
       }
