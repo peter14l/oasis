@@ -32,6 +32,11 @@ class CallService extends ChangeNotifier {
   // this guard, setRemoteDescription() would be called multiple times causing
   // an InvalidStateError on the RTCPeerConnection.
   final Set<String> _processedSignalIds = {};
+  
+  // Track peer connections currently being initialized to avoid race conditions
+  // during rapid signaling or participant updates.
+  final Set<String> _pendingPeerConnections = {};
+
   final List<CallParticipantEntity> _participants = [];
   MediaStream? _localStream;
   String? _currentCallId;
@@ -178,12 +183,17 @@ class CallService extends ChangeNotifier {
     final jsonStr = jsonEncode(data);
     final encrypted = await _signal.encryptMessage(recipientId, jsonStr);
     
+    // Mapping for Supabase signaling types (as per migration 20260409000000):
+    // 1 = PreKey (Type 3 in library), 2 = Whisper (Type 2 in library)
+    int dbType = encrypted.getType();
+    if (dbType == 3) dbType = 1;
+
     await _supabase.from('call_signaling').insert({
       'call_id': _currentCallId,
       'sender_id': _supabase.auth.currentUser!.id,
-      'recipient_id': recipientId, // Add recipient_id to schema if needed or filter in stream
+      'recipient_id': recipientId,
       'candidate': base64Encode(encrypted.serialize()),
-      'signal_message_type': encrypted.getType(),
+      'signal_message_type': dbType,
     });
   }
 
@@ -260,10 +270,14 @@ class CallService extends ChangeNotifier {
                 _processedSignalIds.add(msgId);
 
                 try {
+                  // Map back from DB type to library type
+                  int signalType = item['signal_message_type'];
+                  if (signalType == 1) signalType = 3;
+
                   final decryptedJson = await _signal.decryptMessage(
                     senderId,
                     item['candidate'],
-                    item['signal_message_type'],
+                    signalType,
                   );
 
                   if (decryptedJson.startsWith('🔒')) {
@@ -289,6 +303,13 @@ class CallService extends ChangeNotifier {
     
     if (type == 'offer') {
       final pc = await _getOrCreatePeerConnection(senderId);
+      
+      // Strict sequence: only accept offer if we are in a stable state
+      if (pc.signalingState != RTCSignalingState.RTCSignalingStateStable) {
+        debugPrint('[CallService] Skipping offer - invalid state: ${pc.signalingState}');
+        return;
+      }
+
       await pc.setRemoteDescription(RTCSessionDescription(data['sdp'], data['sdp_type']));
       final answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
@@ -306,11 +327,14 @@ class CallService extends ChangeNotifier {
     } else if (type == 'answer') {
       final pc = _peerConnections[senderId];
       if (pc != null) {
-        await pc.setRemoteDescription(RTCSessionDescription(data['sdp'], data['sdp_type']));
-        await _applyBitrateConstraints(pc);
+        // Strict sequence: only accept answer if we sent an offer
+        if (pc.signalingState == RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
+          await pc.setRemoteDescription(RTCSessionDescription(data['sdp'], data['sdp_type']));
+          await _applyBitrateConstraints(pc);
 
-        // Flush any queued candidates
-        await _flushCandidateQueue(senderId, pc);
+          // Flush any queued candidates
+          await _flushCandidateQueue(senderId, pc);
+        }
       }
     } else if (type == 'candidate') {
       final pc = _peerConnections[senderId];
@@ -345,10 +369,22 @@ class CallService extends ChangeNotifier {
     if (_peerConnections.containsKey(remoteUserId)) {
       return _peerConnections[remoteUserId]!;
     }
-    // We need to know the call type here, let's assume stored or passed
-    // For now, default to video if local stream has video
-    final hasVideo = _localStream?.getVideoTracks().isNotEmpty ?? false;
-    return _createPeerConnection(remoteUserId, hasVideo ? CallType.video : CallType.voice);
+
+    // Race protection: wait if already being created
+    while (_pendingPeerConnections.contains(remoteUserId)) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (_peerConnections.containsKey(remoteUserId)) {
+        return _peerConnections[remoteUserId]!;
+      }
+    }
+
+    _pendingPeerConnections.add(remoteUserId);
+    try {
+      final hasVideo = _localStream?.getVideoTracks().isNotEmpty ?? false;
+      return await _createPeerConnection(remoteUserId, hasVideo ? CallType.video : CallType.voice);
+    } finally {
+      _pendingPeerConnections.remove(remoteUserId);
+    }
   }
 
   void _subscribeToParticipants(String callId) {
@@ -370,9 +406,14 @@ class CallService extends ChangeNotifier {
             final userId = _supabase.auth.currentUser!.id;
 
             if (SupabaseConfig.isSFUEnabled) {
-              if (!_peerConnections.containsKey('SFU_SERVER')) {
-                await _initiatePeerConnection('SFU_SERVER');
-                debugPrint('[CallService] Connected to SFU Server for $callId');
+              if (!_peerConnections.containsKey('SFU_SERVER') && !_pendingPeerConnections.contains('SFU_SERVER')) {
+                _pendingPeerConnections.add('SFU_SERVER');
+                try {
+                  await _initiatePeerConnection('SFU_SERVER');
+                  debugPrint('[CallService] Connected to SFU Server for $callId');
+                } finally {
+                  _pendingPeerConnections.remove('SFU_SERVER');
+                }
               }
             } else {
               for (var participant in data) {
@@ -383,7 +424,7 @@ class CallService extends ChangeNotifier {
                   if (status == 'joined') {
                     _stopRingtone();
                     _setAudioForCall();
-                    if (!_peerConnections.containsKey(pUserId)) {
+                    if (!_peerConnections.containsKey(pUserId) && !_pendingPeerConnections.contains(pUserId)) {
                       // The HOST (caller) always creates the offer.
                       // The CALLEE (answerer) waits for the offer via the signaling
                       // subscription and responds with an answer.
@@ -393,7 +434,12 @@ class CallService extends ChangeNotifier {
                       // sending an offer when host.uuid < callee.uuid.
                       final isHost = _currentCall?.hostId == userId;
                       if (isHost) {
-                        await _initiatePeerConnection(pUserId);
+                        _pendingPeerConnections.add(pUserId);
+                        try {
+                          await _initiatePeerConnection(pUserId);
+                        } finally {
+                          _pendingPeerConnections.remove(pUserId);
+                        }
                       }
                     }
                   } else if (status == 'rejected' || status == 'left' || status == 'declined') {
