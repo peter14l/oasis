@@ -989,7 +989,8 @@ class AppRouter {
   /// Routes that do NOT require authentication — unauthenticated users can visit
   /// them freely (the login wall doesn't apply).
   static bool _isPublicRoute(String path) {
-    return path == '/login' ||
+    return path == '/' ||
+        path == '/login' ||
         path == '/register' ||
         path == '/splash' ||
         path == '/reset-password' || // accessible with a recovery session
@@ -1021,14 +1022,21 @@ class AppRouter {
         // Same for set-password screen
         if (state.uri.path == '/set-password') return null;
 
+        final authService = Provider.of<AuthService>(context, listen: false);
+        final isLoggedIn = authService.currentUser != null;
+
+        // Subdomain Approach: On Web, unauthenticated users hitting '/' go to landing page
+        if (kIsWeb && !isLoggedIn && state.uri.path == '/') {
+          // Note: In a real app, you might use oasisapp.com, but using your current Vercel link:
+          unawaited(ui.window.open('http://oasisweb-omega.vercel.app/', '_self'));
+          return null;
+        }
+
         // Check onboarding status
         final hasSeenOnboarding = await OnboardingScreen.hasSeenOnboarding();
         if (!hasSeenOnboarding && state.uri.path != '/onboarding') {
           return '/onboarding';
         }
-
-        final authService = Provider.of<AuthService>(context, listen: false);
-        final isLoggedIn = authService.currentUser != null;
 
         // Unauthenticated users trying to reach a protected route → login
         if (!isLoggedIn &&
