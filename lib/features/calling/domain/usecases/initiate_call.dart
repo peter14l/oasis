@@ -10,20 +10,17 @@ class InitiateCall {
   /// Initiate a voice or video call
   Future<CallEntity> call({
     required String conversationId,
-    required String hostId,
+    required String callerId,
+    required String receiverId,
     required CallType type,
-    required List<String> participantIds,
+    required Map<String, dynamic> offer,
   }) {
     return _repository.createCall(
       conversationId: conversationId,
-      hostId: hostId,
+      callerId: callerId,
+      receiverId: receiverId,
       type: type,
-      participantIds: participantIds,
+      offer: offer,
     );
-  }
-
-  /// Get Agora token for joining a call
-  Future<String> getToken(String callId, String userId) {
-    return _repository.getCallToken(callId, userId);
   }
 }

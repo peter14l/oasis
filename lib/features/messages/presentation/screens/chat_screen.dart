@@ -572,9 +572,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     try {
       final call = await callProvider.initiateCall(
         conversationId: widget.conversationId,
-        hostId: currentUserId,
+        callerId: currentUserId,
+        receiverId: otherUserId,
         type: type,
-        participantIds: [otherUserId],
       );
       if (call != null && mounted) {
         context.pushNamed('active_call', pathParameters: {'callId': call.id});

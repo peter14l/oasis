@@ -1,14 +1,14 @@
 import '../models/call_entity.dart';
-import '../models/call_participant_entity.dart';
 
 /// Abstract repository interface for call operations
 abstract class CallRepository {
   /// Create a new call
   Future<CallEntity> createCall({
     required String conversationId,
-    required String hostId,
+    required String callerId,
+    required String receiverId,
     required CallType type,
-    required List<String> participantIds,
+    required Map<String, dynamic> offer,
   });
 
   /// Get call by ID
@@ -18,7 +18,11 @@ abstract class CallRepository {
   Future<List<CallEntity>> getActiveCalls(String userId);
 
   /// Accept incoming call
-  Future<CallEntity> acceptCall(String callId, String userId);
+  Future<CallEntity> acceptCall({
+    required String callId,
+    required String userId,
+    required Map<String, dynamic> answer,
+  });
 
   /// Decline incoming call
   Future<void> declineCall(String callId, String userId);
@@ -26,30 +30,6 @@ abstract class CallRepository {
   /// End a call
   Future<CallEntity> endCall(String callId);
 
-  /// Get call participants
-  Future<List<CallParticipantEntity>> getCallParticipants(String callId);
-
-  /// Add participant to call
-  Future<CallParticipantEntity> addParticipant({
-    required String callId,
-    required String userId,
-  });
-
-  /// Update participant status
-  Future<CallParticipantEntity> updateParticipant({
-    required String participantId,
-    bool? isMuted,
-    bool? isVideoOn,
-    bool? isScreenSharing,
-    String? status,
-  });
-
-  /// Get call token for Agora
-  Future<String> getCallToken(String callId, String userId);
-
   /// Stream of call updates
   Stream<CallEntity> watchCall(String callId);
-
-  /// Stream of call participants
-  Stream<List<CallParticipantEntity>> watchParticipants(String callId);
 }

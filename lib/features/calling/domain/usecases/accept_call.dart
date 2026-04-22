@@ -8,12 +8,15 @@ class AcceptCall {
   AcceptCall(this._repository);
 
   /// Accept an incoming call
-  Future<CallEntity> call({required String callId, required String userId}) {
-    return _repository.acceptCall(callId, userId);
-  }
-
-  /// Get token for joining
-  Future<String> getToken(String callId, String userId) {
-    return _repository.getCallToken(callId, userId);
+  Future<CallEntity> call({
+    required String callId,
+    required String userId,
+    required Map<String, dynamic> answer,
+  }) {
+    return _repository.acceptCall(
+      callId: callId,
+      userId: userId,
+      answer: answer,
+    );
   }
 }

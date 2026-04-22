@@ -3,7 +3,6 @@ import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/features/calling/presentation/providers/call_provider.dart';
 import 'package:oasis/features/calling/domain/models/call_entity.dart';
-import 'package:oasis/features/calling/domain/models/call_participant_entity.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/features/profile/domain/models/user_profile_entity.dart';
 import 'package:oasis/themes/app_theme.dart';
@@ -116,22 +115,13 @@ class _CallingScreenState extends State<CallingScreen> {
   Widget _buildWaitingScreen(CallProvider provider) {
     final state = provider.state;
     final currentUserId = Provider.of<ProfileProvider>(context, listen: false).currentProfile?.id;
-    final otherParticipant = state.participants.firstWhere(
-      (p) => p.userId != currentUserId,
-      orElse: () => state.participants.isNotEmpty ? state.participants.first : CallParticipantEntity(
-        id: '', callId: '', userId: '', createdAt: DateTime.now())
-    );
-
-    final isHost = state.activeCall?.hostId == currentUserId;
-    final hasRemoteJoined = state.participants.any((p) => p.userId != currentUserId && p.isJoined);
+    final call = state.activeCall ?? state.incomingCall;
     
-    // State machine for status text:
-    //   Host (A):   'Calling...'    → B hasn't joined yet
-    //               'Connecting...' → B joined, WebRTC negotiating
-    //   Callee (B): 'Connecting...' → WebRTC negotiating (waiting for host's offer/ICE)
+    final otherUserId = call?.callerId == currentUserId ? call?.receiverId : call?.callerId;
+    
     String statusText;
-    if (isHost && !hasRemoteJoined) {
-      statusText = 'Calling...';
+    if (call?.status == CallStatus.ringing) {
+      statusText = call?.callerId == currentUserId ? 'Calling...' : 'Incoming...';
     } else {
       statusText = 'Connecting...';
     }
@@ -141,7 +131,7 @@ class _CallingScreenState extends State<CallingScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           PulsatingParticipant(
-            userId: otherParticipant.userId,
+            userId: otherUserId,
             isLocal: false,
             size: 200,
           ),
@@ -157,11 +147,7 @@ class _CallingScreenState extends State<CallingScreen> {
 
   Widget _buildParticipantGrid(CallProvider provider) {
     final state = provider.state;
-    
-    // Remote IDs that have streams
     final remoteIds = state.remoteStreams.keys.toList();
-    
-    // Total count: 1 local + all remote streams
     final totalCount = remoteIds.length + 1;
 
     if (totalCount == 1) {
@@ -183,12 +169,9 @@ class _CallingScreenState extends State<CallingScreen> {
         }
         final userId = remoteIds[index - 1];
         final renderer = state.remoteRenderers[userId];
-        final participant = state.participants.firstWhere((p) => p.userId == userId, 
-            orElse: () => CallParticipantEntity(
-              id: '', callId: '', userId: userId, createdAt: DateTime.now(), isVideoOn: true));
         
-        return _buildVideoTile('User ${userId.substring(0, 4)}', renderer, 
-            userId: userId, isVideoOn: participant.isVideoOn);
+        return _buildVideoTile('Remote User', renderer, 
+            userId: userId, isVideoOn: true); // In V2 we can refine video state per user if needed
       },
     );
   }
@@ -215,7 +198,7 @@ class _CallingScreenState extends State<CallingScreen> {
           else
             Positioned.fill(
               child: PulsatingParticipant(
-                userId: userId, // null for local
+                userId: userId,
                 isLocal: isLocal,
               ),
             ),
@@ -240,22 +223,16 @@ class _CallingScreenState extends State<CallingScreen> {
   }
 
   Widget _buildControlBar(CallProvider provider) {
-    // If we're expecting an incoming call but it hasn't arrived yet, show nothing
     if (widget.isIncoming && !provider.hasIncomingCall && !provider.hasActiveCall) {
       return const SizedBox.shrink();
     }
 
-    // Show Accept/Decline if it's an incoming call that hasn't been joined
     if (provider.hasIncomingCall && !provider.hasActiveCall) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _buildControlButton(
             onPressed: () {
-              // Bug #6b: Use declineCall, not endCall.
-              // endCall() marks the entire call as ended in the DB, killing it
-              // for the caller too. declineCall() only marks this participant
-              // as 'rejected', leaving the call alive for the host to cancel.
               final call = provider.incomingCall;
               final userId = context.read<ProfileProvider>().currentProfile?.id;
               if (call != null && userId != null) {

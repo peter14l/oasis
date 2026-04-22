@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:oasis/core/network/supabase_client.dart';
 import '../../domain/models/call_entity.dart';
-import '../../domain/models/call_participant_entity.dart';
 import '../../domain/repositories/call_repository.dart';
 
 /// Implementation of CallRepository using Supabase
@@ -11,53 +10,30 @@ class CallRepositoryImpl implements CallRepository {
   @override
   Future<CallEntity> createCall({
     required String conversationId,
-    required String hostId,
+    required String callerId,
+    required String receiverId,
     required CallType type,
-    required List<String> participantIds,
+    required Map<String, dynamic> offer,
   }) async {
     final now = DateTime.now();
-    final channelName = 'call_${now.millisecondsSinceEpoch}';
 
     final response =
         await _supabase.client
             .from('calls')
             .insert({
               'conversation_id': conversationId,
-              'host_id': hostId,
-              'channel_name': channelName,
+              'caller_id': callerId,
+              'receiver_id': receiverId,
               'type': type.name,
-              'status': CallStatus.pinging.name,
-              'started_at': now.toIso8601String(),
+              'status': CallStatus.ringing.name,
+              'offer': offer,
               'created_at': now.toIso8601String(),
             })
             .select()
             .single();
 
-    final callId = response['id'] as String;
-
-    // Add participants (excluding host if present in participantIds)
-    final participantsData =
-        participantIds.where((id) => id != hostId).map((id) => {
-          'call_id': callId,
-          'user_id': id,
-          'status': 'invited',
-          'created_at': now.toIso8601String(),
-        }).toList();
-
-    // Add host as joined
-    participantsData.add({
-      'call_id': callId,
-      'user_id': hostId,
-      'status': 'joined',
-      'joined_at': now.toIso8601String(),
-      'created_at': now.toIso8601String(),
-    });
-
-    await _supabase.client.from('call_participants').insert(participantsData);
-
     return CallEntity.fromJson(response);
   }
-
 
   @override
   Future<CallEntity?> getCall(String callId) async {
@@ -74,36 +50,31 @@ class CallRepositoryImpl implements CallRepository {
 
   @override
   Future<List<CallEntity>> getActiveCalls(String userId) async {
-    // Get calls where user is host or participant
     final response = await _supabase.client
         .from('calls')
         .select()
-        .or('host_id.eq.$userId,status.eq.${CallStatus.active.name}')
+        .or('caller_id.eq.$userId,receiver_id.eq.$userId')
+        .eq('status', CallStatus.active.name)
         .order('created_at', ascending: false);
 
     return response.map((json) => CallEntity.fromJson(json)).toList();
   }
 
   @override
-  Future<CallEntity> acceptCall(String callId, String userId) async {
-    // NOTE: The participant row is already upserted as 'joined' by CallService.joinCall()
-    // before this use-case is called (via answerCall → joinCall). We must NOT duplicate
-    // that write here — doing so causes a second Supabase Realtime event on the host's
-    // participant listener, which triggers redundant WebRTC peer-connection setup.
-    //
-    // Our sole responsibility here is to promote the call itself to 'active' so:
-    //   a) The call is correctly queryable as active.
-    //   b) B's incoming-call listener ignores it on reconnect (status != 'pinging').
-    await _supabase.client
-        .from('calls')
-        .update({'status': CallStatus.active.name})
-        .eq('id', callId);
-
-    // Return the freshly updated call entity.
+  Future<CallEntity> acceptCall({
+    required String callId,
+    required String userId,
+    required Map<String, dynamic> answer,
+  }) async {
     final response = await _supabase.client
         .from('calls')
-        .select()
+        .update({
+          'status': CallStatus.active.name,
+          'answer': answer,
+          'started_at': DateTime.now().toIso8601String(),
+        })
         .eq('id', callId)
+        .select()
         .single();
 
     return CallEntity.fromJson(response);
@@ -111,13 +82,10 @@ class CallRepositoryImpl implements CallRepository {
 
   @override
   Future<void> declineCall(String callId, String userId) async {
-    // Use 'rejected' to match the status handled in CallService._subscribeToParticipants
-    // which cleans up the host's WebRTC peer for that user.
     await _supabase.client
-        .from('call_participants')
-        .update({'status': 'rejected'})
-        .eq('call_id', callId)
-        .eq('user_id', userId);
+        .from('calls')
+        .update({'status': CallStatus.declined.name})
+        .eq('id', callId);
   }
 
   @override
@@ -137,86 +105,11 @@ class CallRepositoryImpl implements CallRepository {
   }
 
   @override
-  Future<List<CallParticipantEntity>> getCallParticipants(String callId) async {
-    final response = await _supabase.client
-        .from('call_participants')
-        .select()
-        .eq('call_id', callId);
-
-    return response
-        .map((json) => CallParticipantEntity.fromJson(json))
-        .toList();
-  }
-
-  @override
-  Future<CallParticipantEntity> addParticipant({
-    required String callId,
-    required String userId,
-  }) async {
-    final now = DateTime.now();
-    final response =
-        await _supabase.client
-            .from('call_participants')
-            .insert({
-              'call_id': callId,
-              'user_id': userId,
-              'status': 'invited',
-              'created_at': now.toIso8601String(),
-            })
-            .select()
-            .single();
-
-    return CallParticipantEntity.fromJson(response);
-  }
-
-  @override
-  Future<CallParticipantEntity> updateParticipant({
-    required String participantId,
-    bool? isMuted,
-    bool? isVideoOn,
-    bool? isScreenSharing,
-    String? status,
-  }) async {
-    final updates = <String, dynamic>{};
-    if (isMuted != null) updates['is_muted'] = isMuted;
-    if (isVideoOn != null) updates['is_video_on'] = isVideoOn;
-    if (isScreenSharing != null) updates['is_screen_sharing'] = isScreenSharing;
-    if (status != null) {
-      updates['status'] = status;
-      if (status == 'joined') {
-        updates['joined_at'] = DateTime.now().toIso8601String();
-      } else if (status == 'left') {
-        updates['left_at'] = DateTime.now().toIso8601String();
-      }
-    }
-
-    final response =
-        await _supabase.client
-            .from('call_participants')
-            .update(updates)
-            .eq('id', participantId)
-            .select()
-            .single();
-
-    return CallParticipantEntity.fromJson(response);
-  }
-
-  @override
-  Future<String> getCallToken(String callId, String userId) async {
-    // Call Agora/RTC token generation service
-    // This would call a cloud function
-    return '';
-  }
-
-  @override
   Stream<CallEntity> watchCall(String callId) {
-    // Real-time call updates would use Supabase realtime
-    return const Stream.empty();
-  }
-
-  @override
-  Stream<List<CallParticipantEntity>> watchParticipants(String callId) {
-    // Real-time participant updates would use Supabase realtime
-    return const Stream.empty();
+    return _supabase.client
+        .from('calls')
+        .stream(primaryKey: ['id'])
+        .eq('id', callId)
+        .map((data) => CallEntity.fromJson(data.first));
   }
 }

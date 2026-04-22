@@ -1,9 +1,9 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:oasis/services/call_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import '../../domain/models/call_entity.dart';
-import '../../domain/models/call_participant_entity.dart';
 import '../../domain/usecases/initiate_call.dart';
 import '../../domain/usecases/accept_call.dart';
 import '../../domain/usecases/end_call.dart';
@@ -14,7 +14,6 @@ class CallState {
   final CallEntity? activeCall;
   final CallEntity? incomingCall;
   final List<CallEntity> activeCalls;
-  final List<CallParticipantEntity> participants;
   final MediaStream? localStream;
   final Map<String, MediaStream> remoteStreams;
   final Map<String, RTCVideoRenderer> remoteRenderers;
@@ -29,7 +28,6 @@ class CallState {
     this.activeCall,
     this.incomingCall,
     this.activeCalls = const [],
-    this.participants = const [],
     this.localStream,
     this.remoteStreams = const {},
     this.remoteRenderers = const {},
@@ -51,7 +49,6 @@ class CallState {
     CallEntity? incomingCall,
     bool clearIncomingCall = false,
     List<CallEntity>? activeCalls,
-    List<CallParticipantEntity>? participants,
     MediaStream? localStream,
     Map<String, MediaStream>? remoteStreams,
     Map<String, RTCVideoRenderer>? remoteRenderers,
@@ -67,7 +64,6 @@ class CallState {
       activeCall: clearActiveCall ? null : (activeCall ?? this.activeCall),
       incomingCall: clearIncomingCall ? null : (incomingCall ?? this.incomingCall),
       activeCalls: activeCalls ?? this.activeCalls,
-      participants: participants ?? this.participants,
       localStream: localStream ?? this.localStream,
       remoteStreams: remoteStreams ?? this.remoteStreams,
       remoteRenderers: remoteRenderers ?? this.remoteRenderers,
@@ -90,6 +86,7 @@ class CallProvider extends ChangeNotifier {
   late GetActiveCalls _getActiveCalls;
   bool _isInitialized = false;
   bool _isEnding = false;
+  Timer? _ringingTimer;
 
   CallState _state = CallState.initial();
 
@@ -98,7 +95,7 @@ class CallProvider extends ChangeNotifier {
   }
 
   void _onCallServiceUpdate() {
-    if (_isEnding) return; // Ignore updates while we are trying to end the call
+    if (_isEnding) return;
 
     final newState = _state.copyWith(
       activeCall: _callService.currentCall,
@@ -106,7 +103,6 @@ class CallProvider extends ChangeNotifier {
       remoteStreams: Map.from(_callService.remoteStreams),
       remoteRenderers: Map.from(_callService.remoteRenderers),
       localRenderer: _callService.localRenderer,
-      participants: List.from(_callService.participants),
       isMuted: _callService.isMuted,
       isVideoOn: _callService.isVideoOn,
       isScreenSharing: _callService.isScreenSharing,
@@ -115,16 +111,22 @@ class CallProvider extends ChangeNotifier {
       clearActiveCall: _callService.currentCallId == null,
     );
 
-    // Simple optimization: only notify if important state changed
     if (newState.activeCall != _state.activeCall ||
         newState.incomingCall != _state.incomingCall ||
         newState.localStream != _state.localStream ||
         newState.remoteStreams.length != _state.remoteStreams.length ||
-        newState.participants.length != _state.participants.length ||
         newState.isMuted != _state.isMuted ||
         newState.isVideoOn != _state.isVideoOn ||
         newState.isScreenSharing != _state.isScreenSharing ||
         newState.remoteRenderers.length != _state.remoteRenderers.length) {
+      
+      // If call status changed to active, stop ringing timer
+      if (newState.activeCall?.status == CallStatus.active && 
+          _state.activeCall?.status == CallStatus.ringing) {
+        _ringingTimer?.cancel();
+        _callService.stopRingtone();
+      }
+
       _state = newState;
       notifyListeners();
     } else {
@@ -134,6 +136,7 @@ class CallProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _ringingTimer?.cancel();
     _callService.removeListener(_onCallServiceUpdate);
     super.dispose();
   }
@@ -168,30 +171,48 @@ class CallProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Initiate a new multi-participant call
+  /// Initiate a new 1-on-1 call
   Future<CallEntity?> initiateCall({
     required String conversationId,
-    required String hostId,
+    required String callerId,
+    required String receiverId,
     required CallType type,
-    required List<String> participantIds,
   }) async {
     try {
       _isEnding = false;
       _state = _state.copyWith(isLoading: true, clearError: true);
       notifyListeners();
 
+      // 1. Initialize local stream
+      await _callService.initLocalStream(type == CallType.video);
+      
+      // 2. Create WebRTC offer
+      final offer = await _callService.createOffer(receiverId);
+
+      // 3. Create call in DB
       final call = await _initiateCall.call(
         conversationId: conversationId,
-        hostId: hostId,
+        callerId: callerId,
+        receiverId: receiverId,
         type: type,
-        participantIds: participantIds,
+        offer: offer,
       );
 
       if (call != null) {
-        // Now that the call is created in DB, join it to start WebRTC
-        await _callService.joinCall(call);
-        await _callService.startRingtone(); // Start ringing for host
+        // 4. Start signaling and ringtone
+        await _callService.startSignaling(call);
+        await _callService.startRingtone();
+        
         _state = _state.copyWith(activeCall: call, isLoading: false);
+        
+        // 5. Start ringing timeout (30 seconds)
+        _ringingTimer?.cancel();
+        _ringingTimer = Timer(const Duration(seconds: 30), () {
+          debugPrint('[CallProvider] Ringing timeout reached');
+          if (_state.activeCall?.status == CallStatus.ringing) {
+            endCall();
+          }
+        });
       } else {
         _state = _state.copyWith(isLoading: false, error: 'Failed to create call');
       }
@@ -212,39 +233,30 @@ class CallProvider extends ChangeNotifier {
       _state = _state.copyWith(isLoading: true, clearError: true);
       notifyListeners();
 
-      // Join WebRTC session and stop ringtone locally FIRST to avoid race condition where stream wipes incomingCall before activeCall is securely assigned
-      await _callService.answerCall(call);
+      // 1. Stop local ringtone
+      await _callService.stopRingtone();
 
-      // Get current user ID from Supabase directly for simplicity in use case
-      final userId = SupabaseService().client.auth.currentUser?.id;
-      if (userId == null) throw Exception('User not authenticated');
+      // 2. Initialize local stream
+      await _callService.initLocalStream(call.type == CallType.video);
+      
+      // 3. Create WebRTC answer
+      final answer = await _callService.createAnswer(call.callerId, call.offer!);
 
-      // Update call status in DB to active
-      final acceptedCall = await _acceptCall.call(callId: call.id, userId: userId);
+      // 4. Update DB with answer
+      final acceptedCall = await _acceptCall.call(
+        callId: call.id, 
+        userId: call.receiverId,
+        answer: answer,
+      );
+      
+      // 5. Start signaling
+      await _callService.startSignaling(acceptedCall);
       
       _state = _state.copyWith(
         isLoading: false, 
         activeCall: acceptedCall, 
         clearIncomingCall: true
       );
-      notifyListeners();
-    } catch (e) {
-      _state = _state.copyWith(isLoading: false, error: e.toString());
-      notifyListeners();
-    }
-  }
-
-  /// Join an existing call
-  Future<void> joinCall(CallEntity call) async {
-    try {
-      _isEnding = false;
-      _state = _state.copyWith(isLoading: true, clearError: true);
-      notifyListeners();
-
-      // Join via service (which handles WebRTC + DB)
-      await _callService.joinCall(call);
-      
-      _state = _state.copyWith(isLoading: false, activeCall: call);
       notifyListeners();
     } catch (e) {
       _state = _state.copyWith(isLoading: false, error: e.toString());
@@ -260,7 +272,7 @@ class CallProvider extends ChangeNotifier {
       notifyListeners();
 
       await _endCall.decline(callId, userId);
-      await _callService.endCall(); // Clean up WebRTC if needed
+      await _callService.endCall();
 
       _state = _state.copyWith(isLoading: false, clearIncomingCall: true, clearActiveCall: true);
       _isEnding = false;
@@ -278,7 +290,7 @@ class CallProvider extends ChangeNotifier {
       final callId = _state.activeCall?.id ?? _state.incomingCall?.id;
       if (callId == null) return;
       
-      // Clear state immediately to avoid navigation loops
+      _ringingTimer?.cancel();
       _isEnding = true;
       _state = _state.copyWith(
         isLoading: true, 
@@ -288,10 +300,7 @@ class CallProvider extends ChangeNotifier {
       );
       notifyListeners();
 
-      // End in repository
       await _endCall.call(callId);
-      
-      // End in WebRTC service
       await _callService.endCall();
       
       _state = _state.copyWith(isLoading: false);
