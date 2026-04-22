@@ -25,7 +25,7 @@ class CallingScreen extends StatefulWidget {
 
 class _CallingScreenState extends State<CallingScreen> {
   bool _isInitialized = false;
-  bool _isAutoAcceptTimeout = false;
+  bool _isCallDataTimeout = false;
   final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
   final Map<String, RTCVideoRenderer> _remoteRenderers = {};
 
@@ -33,32 +33,15 @@ class _CallingScreenState extends State<CallingScreen> {
   void initState() {
     super.initState();
     _initRenderers();
-    if (widget.isIncoming && widget.callId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _autoAcceptCall();
-      });
-    }
-  }
 
-  Future<void> _autoAcceptCall() async {
-    final provider = context.read<CallProvider>();
-    if (provider.hasActiveCall) return; // Already accepted
-
-    // We wait for up to 10 seconds for the Supabase Realtime stream to deliver the incoming call.
-    // If the app was launched from terminated state, this guarantees we catch the invite.
-    for (int i = 0; i < 20; i++) {
-      if (!mounted) return;
-      if (provider.incomingCall?.id == widget.callId) {
-        provider.acceptCall(provider.incomingCall!);
-        return;
-      }
-      await Future.delayed(const Duration(milliseconds: 500));
-    }
-    
-    // Timeout reached
-    if (mounted) {
-      setState(() {
-        _isAutoAcceptTimeout = true;
+    if (widget.isIncoming) {
+      // Wait for up to 10 seconds for the call data to arrive via Realtime
+      Future.delayed(const Duration(seconds: 10), () {
+        if (mounted && !context.read<CallProvider>().hasIncomingCall && !context.read<CallProvider>().hasActiveCall) {
+          setState(() {
+            _isCallDataTimeout = true;
+          });
+        }
       });
     }
   }
@@ -95,10 +78,10 @@ class _CallingScreenState extends State<CallingScreen> {
       );
     }
 
-    // Automatically pop when the call ends or if auto-accept completely timed out
-    final isAutoAccepting = widget.isIncoming && widget.callId != null && !callProvider.hasActiveCall && !_isAutoAcceptTimeout;
+    // Automatically pop when the call ends or if we timed out waiting for call data
+    final isWaitingForIncomingCall = widget.isIncoming && !callProvider.hasActiveCall && !callProvider.hasIncomingCall && !_isCallDataTimeout;
     
-    if (!isAutoAccepting && !callProvider.hasActiveCall && !callProvider.hasIncomingCall) {
+    if (!isWaitingForIncomingCall && !callProvider.hasActiveCall && !callProvider.hasIncomingCall) {
       debugPrint('[CallingScreen] No active or incoming call, popping screen');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && Navigator.canPop(context)) {
@@ -324,6 +307,11 @@ class _CallingScreenState extends State<CallingScreen> {
   }
 
   Widget _buildControlBar(CallProvider provider) {
+    // If we're expecting an incoming call but it hasn't arrived yet, show nothing
+    if (widget.isIncoming && !provider.hasIncomingCall && !provider.hasActiveCall) {
+      return const SizedBox.shrink();
+    }
+
     // Show Accept/Decline if it's an incoming call that hasn't been joined
     if (provider.hasIncomingCall && !provider.hasActiveCall) {
       return Row(
