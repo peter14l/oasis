@@ -163,12 +163,10 @@ class DesktopCallNotifier {
   /// Decline the call from a macOS notification action.
   static void declineFromNotification(String callId) {
     try {
-      final userId = SupabaseService().client.auth.currentUser?.id;
-      if (userId == null) return;
       SupabaseService().client
-          .from('call_participants')
-          .update({'status': 'rejected'})
-          .match({'call_id': callId, 'user_id': userId});
+          .from('calls')
+          .update({'status': 'declined'})
+          .eq('id', callId);
     } catch (e) {
       debugPrint('[DesktopCallNotifier] declineFromNotification failed: $e');
     }
