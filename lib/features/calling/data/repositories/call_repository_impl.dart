@@ -86,31 +86,36 @@ class CallRepositoryImpl implements CallRepository {
 
   @override
   Future<CallEntity> acceptCall(String callId, String userId) async {
-    // 1. Update participant status locally (allows WebRTC to proceed without RLS crashes)
+    // NOTE: The participant row is already upserted as 'joined' by CallService.joinCall()
+    // before this use-case is called (via answerCall → joinCall). We must NOT duplicate
+    // that write here — doing so causes a second Supabase Realtime event on the host's
+    // participant listener, which triggers redundant WebRTC peer-connection setup.
+    //
+    // Our sole responsibility here is to promote the call itself to 'active' so:
+    //   a) The call is correctly queryable as active.
+    //   b) B's incoming-call listener ignores it on reconnect (status != 'pinging').
     await _supabase.client
-        .from('call_participants')
-        .update({
-          'status': 'joined',
-          'joined_at': DateTime.now().toIso8601String(),
-        })
-        .eq('call_id', callId)
-        .eq('user_id', userId);
+        .from('calls')
+        .update({'status': CallStatus.active.name})
+        .eq('id', callId);
 
-    // 2. Fetch the call context
+    // Return the freshly updated call entity.
     final response = await _supabase.client
         .from('calls')
         .select()
         .eq('id', callId)
         .single();
-        
+
     return CallEntity.fromJson(response);
   }
 
   @override
   Future<void> declineCall(String callId, String userId) async {
+    // Use 'rejected' to match the status handled in CallService._subscribeToParticipants
+    // which cleans up the host's WebRTC peer for that user.
     await _supabase.client
         .from('call_participants')
-        .update({'status': 'declined'})
+        .update({'status': 'rejected'})
         .eq('call_id', callId)
         .eq('user_id', userId);
   }

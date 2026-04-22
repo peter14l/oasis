@@ -123,13 +123,17 @@ class _CallingScreenState extends State<CallingScreen> {
     state.remoteStreams.forEach((userId, stream) {
       if (!_remoteRenderers.containsKey(userId)) {
         final renderer = RTCVideoRenderer();
+        // Capture mounted state reference before async gap to prevent
+        // "deactivated widget's ancestor is unsafe" errors
         renderer.initialize().then((_) {
-          renderer.srcObject = stream;
-          if (mounted) {
-            setState(() {
-              _remoteRenderers[userId] = renderer;
-            });
+          if (!mounted) {
+            renderer.dispose();
+            return;
           }
+          renderer.srcObject = stream;
+          setState(() {
+            _remoteRenderers[userId] = renderer;
+          });
         });
       } else if (_remoteRenderers[userId]!.srcObject != stream) {
         _remoteRenderers[userId]!.srcObject = stream;
@@ -204,9 +208,15 @@ class _CallingScreenState extends State<CallingScreen> {
     final isHost = state.activeCall?.hostId == currentUserId;
     final hasRemoteJoined = state.participants.any((p) => p.userId != currentUserId && p.isJoined);
     
-    String statusText = 'Connecting...';
+    // State machine for status text:
+    //   Host (A):   'Calling...'    → B hasn't joined yet
+    //               'Connecting...' → B joined, WebRTC negotiating
+    //   Callee (B): 'Connecting...' → WebRTC negotiating (waiting for host's offer/ICE)
+    String statusText;
     if (isHost && !hasRemoteJoined) {
       statusText = 'Calling...';
+    } else {
+      statusText = 'Connecting...';
     }
 
     return Center(
@@ -320,7 +330,17 @@ class _CallingScreenState extends State<CallingScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _buildControlButton(
-            onPressed: provider.endCall, // This will decline as per our update
+            onPressed: () {
+              // Bug #6b: Use declineCall, not endCall.
+              // endCall() marks the entire call as ended in the DB, killing it
+              // for the caller too. declineCall() only marks this participant
+              // as 'rejected', leaving the call alive for the host to cancel.
+              final call = provider.incomingCall;
+              final userId = context.read<ProfileProvider>().currentProfile?.id;
+              if (call != null && userId != null) {
+                provider.declineCall(call.id, userId);
+              }
+            },
             icon: Icons.call_end,
             color: Colors.red,
             isLarge: true,

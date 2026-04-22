@@ -455,43 +455,45 @@ class AppInitializer {
       PrefsStorage.init(),
     ]);
 
-    // Handle CallKit events
-    FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
-      if (event == null) return;
-      switch (event.event) {
-        case Event.actionCallAccept:
-          final data = event.body['extra'];
-          if (data == null) break;
-          final callId = data['call_id'];
-          final senderId = data['actor_id'];
-          if (callId != null) {
-            Future.delayed(const Duration(milliseconds: 500), () {
-              AppRouter.router.pushNamed(
-                'active_call',
-                pathParameters: {'callId': callId},
-                extra: {'isIncoming': true, 'callerId': senderId},
-              );
-            });
-          }
-          break;
-        case Event.actionCallDecline:
-          final data = event.body['extra'];
-          if (data == null) break;
-          final callId = data['call_id'];
-          if (callId != null) {
-            final userId = SupabaseService().client.auth.currentUser?.id;
-            if (userId != null) {
-              SupabaseService().client
-                .from('call_participants')
-                .update({'status': 'rejected'})
-                .match({'call_id': callId, 'user_id': userId});
+    // Handle CallKit events (Android/iOS only — plugin doesn't exist on desktop)
+    if (Platform.isAndroid || Platform.isIOS) {
+      FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
+        if (event == null) return;
+        switch (event.event) {
+          case Event.actionCallAccept:
+            final data = event.body['extra'];
+            if (data == null) break;
+            final callId = data['call_id'];
+            final senderId = data['actor_id'];
+            if (callId != null) {
+              Future.delayed(const Duration(milliseconds: 500), () {
+                AppRouter.router.pushNamed(
+                  'active_call',
+                  pathParameters: {'callId': callId},
+                  extra: {'isIncoming': true, 'callerId': senderId},
+                );
+              });
             }
-          }
-          break;
-        default:
-          break;
-      }
-    });
+            break;
+          case Event.actionCallDecline:
+            final data = event.body['extra'];
+            if (data == null) break;
+            final callId = data['call_id'];
+            if (callId != null) {
+              final userId = SupabaseService().client.auth.currentUser?.id;
+              if (userId != null) {
+                SupabaseService().client
+                  .from('call_participants')
+                  .update({'status': 'rejected'})
+                  .match({'call_id': callId, 'user_id': userId});
+              }
+            }
+            break;
+          default:
+            break;
+        }
+      });
+    }
 
     // 2. Auth & Theme & Settings & Analytics (Parallel)
     final appAnalytics = AppAnalytics();
@@ -735,17 +737,27 @@ class AppInitializer {
         ),
         ChangeNotifierProvider<CallService>(create: (_) => CallService()),
         ChangeNotifierProxyProvider<CallService, CallProvider>(
-          create: (context) => CallProvider(context.read<CallService>()),
-          update: (context, service, provider) {
-            final repo = CallRepositoryImpl();
-            provider!.initialize(
-              initiateCall: InitiateCall(repo),
-              acceptCall: AcceptCall(repo),
-              endCall: EndCall(repo),
-              getActiveCalls: GetActiveCalls(repo),
-            );
+          // Bug #7: Initialize exactly once in `create`, not in `update`.
+          // The `update` callback fires on every rebuild that touches CallService,
+          // which was allocating a new CallRepositoryImpl each time and risking
+          // a double startIncomingCallListener() subscription if _isInitialized reset.
+          create: (context) {
+            final provider = CallProvider(context.read<CallService>());
+            // addPostFrameCallback ensures the widget tree is fully built before
+            // we read providers — safe to call initialize() immediately after.
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              final repo = CallRepositoryImpl();
+              provider.initialize(
+                initiateCall: InitiateCall(repo),
+                acceptCall: AcceptCall(repo),
+                endCall: EndCall(repo),
+                getActiveCalls: GetActiveCalls(repo),
+              );
+            });
             return provider;
           },
+          // update just passes the existing provider through — no re-initialization.
+          update: (context, service, provider) => provider!,
         ),
       ],
       child: child,

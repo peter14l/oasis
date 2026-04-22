@@ -21,6 +21,11 @@ class CallService extends ChangeNotifier {
   final Map<String, RTCPeerConnection> _peerConnections = {};
   final Map<String, List<Map<String, dynamic>>> _candidateQueue = {};
   final Map<String, MediaStream> _remoteStreams = {};
+  // Bug #5: Track processed signaling message IDs to avoid reprocessing
+  // Supabase .stream() replays the full table on every change event, so without
+  // this guard, setRemoteDescription() would be called multiple times causing
+  // an InvalidStateError on the RTCPeerConnection.
+  final Set<String> _processedSignalIds = {};
   final List<CallParticipantEntity> _participants = [];
   MediaStream? _localStream;
   String? _currentCallId;
@@ -175,8 +180,18 @@ class CallService extends ChangeNotifier {
         .eq('id', callId)
         .listen((data) {
           if (data.isNotEmpty) {
-            _currentCall = CallEntity.fromJson(data.first);
-            notifyListeners();
+            final updatedCall = CallEntity.fromJson(data.first);
+            _currentCall = updatedCall;
+
+            // Bug #4: If the remote side ended the call, clean up locally.
+            // Without this, non-ending participants are stuck on the call screen
+            // until they manually hang up, even after the host has ended the call.
+            if (updatedCall.status == CallStatus.ended) {
+              debugPrint('[CallService] Remote ended call — cleaning up locally');
+              _cleanup();
+            } else {
+              notifyListeners();
+            }
           }
         });
   }
@@ -191,32 +206,45 @@ class CallService extends ChangeNotifier {
         .handleError((error) {
           debugPrint('[CallService] Signaling stream error: $error');
         })
-        .listen((data) async {
-          for (var item in data) {
-            final senderId = item['sender_id'];
-            final recipientId = item['recipient_id'];
-            
-            // Only process if it's meant for us and not from us
-            if (recipientId == userId && senderId != userId) {
-              try {
-                final decryptedJson = await _signal.decryptMessage(
-                  senderId,
-                  item['candidate'],
-                  item['signal_message_type'],
-                );
-                
-                if (decryptedJson.startsWith('🔒')) {
-                  debugPrint('[CallService] Skipping encrypted/invalid signal message');
-                  continue; // Skip processing if decryption failed or session reset is required
+        .listen((data) {
+          // Run async work in a guarded zone to prevent Zone mismatch crashes
+          Future(() async {
+            for (var item in data) {
+              final senderId = item['sender_id'];
+              final recipientId = item['recipient_id'];
+
+              // Only process if it's meant for us and not from us
+              if (recipientId == userId && senderId != userId) {
+                // Bug #5: Supabase .stream() replays ALL matching rows on every
+                // change event, not just the delta. Without this dedup guard,
+                // RTCPeerConnection.setRemoteDescription() is called multiple
+                // times with the same offer/answer, throwing an InvalidStateError.
+                final msgId = item['id'] as String;
+                if (_processedSignalIds.contains(msgId)) continue;
+                _processedSignalIds.add(msgId);
+
+                try {
+                  final decryptedJson = await _signal.decryptMessage(
+                    senderId,
+                    item['candidate'],
+                    item['signal_message_type'],
+                  );
+
+                  if (decryptedJson.startsWith('🔒')) {
+                    debugPrint('[CallService] Skipping encrypted/invalid signal message');
+                    continue;
+                  }
+
+                  final signalData = jsonDecode(decryptedJson);
+                  await _handleSignalingData(senderId, signalData);
+                } catch (e) {
+                  debugPrint('[CallService] Signaling decryption error: $e');
                 }
-                
-                final signalData = jsonDecode(decryptedJson);
-                await _handleSignalingData(senderId, signalData);
-              } catch (e) {
-                debugPrint('[CallService] Signaling decryption error: $e');
               }
             }
-          }
+          }).catchError((e) {
+            debugPrint('[CallService] Signaling listener error: $e');
+          });
         });
   }
 
@@ -295,53 +323,57 @@ class CallService extends ChangeNotifier {
         .handleError((error) {
           debugPrint('[CallService] Participants stream error: $error');
         })
-        .listen((data) async {
-          _participants.clear();
-          _participants.addAll(data.map((p) => CallParticipantEntity.fromJson(p)));
-          notifyListeners();
+        .listen((data) {
+          // Wrap in Future to prevent Zone mismatch from async callbacks
+          Future(() async {
+            _participants.clear();
+            _participants.addAll(data.map((p) => CallParticipantEntity.fromJson(p)));
+            notifyListeners();
 
-          final userId = _supabase.auth.currentUser!.id;
+            final userId = _supabase.auth.currentUser!.id;
 
-          // Scalability Optimization: SFU vs Mesh (Section F.1)
-          if (SupabaseConfig.isSFUEnabled) {
-            // SFU MODE: Connect only to the media server
-            // The server acts as a single peer for all participants
-            if (!_peerConnections.containsKey('SFU_SERVER')) {
-              await _initiatePeerConnection('SFU_SERVER');
-              debugPrint('[CallService] Connected to SFU Server for $callId');
-            }
-          } else {
-            // MESH MODE: Full Mesh architecture (n*(n-1)/2 connections)
-            for (var participant in data) {
-              final pUserId = participant['user_id'];
-              final status = participant['status'];
-              
-              if (pUserId != userId) {
-                if (status == 'joined') {
-                  _stopRingtone(); // Stop ringing when someone joins
-                  _setAudioForCall();
-                  if (!_peerConnections.containsKey(pUserId)) {
-                    // The joining user always initiates the offer to already-joined participants.
-                    // Using userId > pUserId tiebreaker only to prevent double-offer when
-                    // BOTH users see each other as 'joined' in the same stream snapshot.
-                    // This is safe because the callee always joins after the host.
-                    final isCallee = _currentCall?.hostId != userId;
-                    final shouldOffer = isCallee || userId.compareTo(pUserId) > 0;
-                    if (shouldOffer) {
-                      await _initiatePeerConnection(pUserId);
+            if (SupabaseConfig.isSFUEnabled) {
+              if (!_peerConnections.containsKey('SFU_SERVER')) {
+                await _initiatePeerConnection('SFU_SERVER');
+                debugPrint('[CallService] Connected to SFU Server for $callId');
+              }
+            } else {
+              for (var participant in data) {
+                final pUserId = participant['user_id'];
+                final status = participant['status'];
+                
+                if (pUserId != userId) {
+                  if (status == 'joined') {
+                    _stopRingtone();
+                    _setAudioForCall();
+                    if (!_peerConnections.containsKey(pUserId)) {
+                      // The HOST (caller) always creates the offer.
+                      // The CALLEE (answerer) waits for the offer via the signaling
+                      // subscription and responds with an answer.
+                      // This avoids the glare condition where both sides offer
+                      // simultaneously, and also fixes the bug where the old
+                      // uuid.compareTo() tiebreaker could result in NEITHER side
+                      // sending an offer when host.uuid < callee.uuid.
+                      final isHost = _currentCall?.hostId == userId;
+                      if (isHost) {
+                        await _initiatePeerConnection(pUserId);
+                      }
                     }
+                  } else if (status == 'rejected' || status == 'left' || status == 'declined') {
+                    // Bug #6a: 'declined' was missing — when B declines, A's WebRTC
+                    // peer connection was never cleaned up and the ringtone looped forever.
+                    _removePeer(pUserId);
                   }
-                } else if (status == 'rejected' || status == 'left') {
-                  _removePeer(pUserId);
                 }
               }
             }
-          }
-          
-          // Stop ringtone if we are joined and there are other active participants
-          if (data.any((p) => p['user_id'] != userId && p['status'] == 'joined')) {
-            _stopRingtone();
-          }
+            
+            if (data.any((p) => p['user_id'] != userId && p['status'] == 'joined')) {
+              _stopRingtone();
+            }
+          }).catchError((e) {
+            debugPrint('[CallService] Participants listener error: $e');
+          });
         });
   }
 
@@ -535,8 +567,10 @@ class CallService extends ChangeNotifier {
     _peerConnections.clear();
     _remoteStreams.clear();
     _candidateQueue.clear();
+    _processedSignalIds.clear(); // Bug #5: reset dedup set for next call
     _currentCallId = null;
-    _incomingCall = null; // Clear incoming call as well
+    _currentCall = null;
+    _incomingCall = null;
     _stopRingtone();
     notifyListeners();
   }
@@ -609,7 +643,12 @@ class CallService extends ChangeNotifier {
           }
         }
       }
-      if (_incomingCall != null) {
+      // Bug #2: Only wipe _incomingCall if we are NOT currently in an active call.
+      // Without this guard, when B accepts a call and their participant row changes
+      // from 'invited' to 'joined', this listener fires again, finds no 'invited'
+      // row, and clears _incomingCall — racing with the provider setting activeCall,
+      // potentially causing CallingScreen to pop immediately after answering.
+      if (_incomingCall != null && _currentCallId == null) {
         _incomingCall = null;
         _stopRingtone();
         notifyListeners();
