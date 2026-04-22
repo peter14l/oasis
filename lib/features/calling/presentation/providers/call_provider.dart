@@ -17,6 +17,8 @@ class CallState {
   final List<CallParticipantEntity> participants;
   final MediaStream? localStream;
   final Map<String, MediaStream> remoteStreams;
+  final Map<String, RTCVideoRenderer> remoteRenderers;
+  final RTCVideoRenderer? localRenderer;
   final bool isLoading;
   final String? error;
   final bool isMuted;
@@ -30,6 +32,8 @@ class CallState {
     this.participants = const [],
     this.localStream,
     this.remoteStreams = const {},
+    this.remoteRenderers = const {},
+    this.localRenderer,
     this.isLoading = false,
     this.error,
     this.isMuted = false,
@@ -50,6 +54,8 @@ class CallState {
     List<CallParticipantEntity>? participants,
     MediaStream? localStream,
     Map<String, MediaStream>? remoteStreams,
+    Map<String, RTCVideoRenderer>? remoteRenderers,
+    RTCVideoRenderer? localRenderer,
     bool? isLoading,
     String? error,
     bool clearError = false,
@@ -64,6 +70,8 @@ class CallState {
       participants: participants ?? this.participants,
       localStream: localStream ?? this.localStream,
       remoteStreams: remoteStreams ?? this.remoteStreams,
+      remoteRenderers: remoteRenderers ?? this.remoteRenderers,
+      localRenderer: localRenderer ?? this.localRenderer,
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
       isMuted: isMuted ?? this.isMuted,
@@ -92,10 +100,12 @@ class CallProvider extends ChangeNotifier {
   void _onCallServiceUpdate() {
     if (_isEnding) return; // Ignore updates while we are trying to end the call
 
-    _state = _state.copyWith(
+    final newState = _state.copyWith(
       activeCall: _callService.currentCall,
       localStream: _callService.localStream,
       remoteStreams: Map.from(_callService.remoteStreams),
+      remoteRenderers: Map.from(_callService.remoteRenderers),
+      localRenderer: _callService.localRenderer,
       participants: List.from(_callService.participants),
       isMuted: _callService.isMuted,
       isVideoOn: _callService.isVideoOn,
@@ -104,7 +114,22 @@ class CallProvider extends ChangeNotifier {
       clearIncomingCall: _callService.incomingCall == null,
       clearActiveCall: _callService.currentCallId == null,
     );
-    notifyListeners();
+
+    // Simple optimization: only notify if important state changed
+    if (newState.activeCall != _state.activeCall ||
+        newState.incomingCall != _state.incomingCall ||
+        newState.localStream != _state.localStream ||
+        newState.remoteStreams.length != _state.remoteStreams.length ||
+        newState.participants.length != _state.participants.length ||
+        newState.isMuted != _state.isMuted ||
+        newState.isVideoOn != _state.isVideoOn ||
+        newState.isScreenSharing != _state.isScreenSharing ||
+        newState.remoteRenderers.length != _state.remoteRenderers.length) {
+      _state = newState;
+      notifyListeners();
+    } else {
+      _state = newState;
+    }
   }
 
   @override

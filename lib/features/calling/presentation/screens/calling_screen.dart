@@ -24,15 +24,11 @@ class CallingScreen extends StatefulWidget {
 }
 
 class _CallingScreenState extends State<CallingScreen> {
-  bool _isInitialized = false;
   bool _isCallDataTimeout = false;
-  final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
-  final Map<String, RTCVideoRenderer> _remoteRenderers = {};
 
   @override
   void initState() {
     super.initState();
-    _initRenderers();
 
     if (widget.isIncoming) {
       // Wait for up to 10 seconds for the call data to arrive via Realtime
@@ -46,37 +42,10 @@ class _CallingScreenState extends State<CallingScreen> {
     }
   }
 
-  Future<void> _initRenderers() async {
-    await _localRenderer.initialize();
-    if (mounted) {
-      setState(() {
-        _isInitialized = true;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _localRenderer.dispose();
-    for (var renderer in _remoteRenderers.values) {
-      renderer.dispose();
-    }
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final callProvider = context.watch<CallProvider>();
     final state = callProvider.state;
-
-    if (!_isInitialized) {
-      return const Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(
-          child: CircularProgressIndicator(color: Colors.white),
-        ),
-      );
-    }
 
     // Automatically pop when the call ends or if we timed out waiting for call data
     final isWaitingForIncomingCall = widget.isIncoming && !callProvider.hasActiveCall && !callProvider.hasIncomingCall && !_isCallDataTimeout;
@@ -99,42 +68,7 @@ class _CallingScreenState extends State<CallingScreen> {
       );
     }
     
-    if (_isInitialized && state.localStream != null && _localRenderer.srcObject != state.localStream) {
-      _localRenderer.srcObject = state.localStream;
-    }
-
-    state.remoteStreams.forEach((userId, stream) {
-      if (!_remoteRenderers.containsKey(userId)) {
-        final renderer = RTCVideoRenderer();
-        // Capture mounted state reference before async gap to prevent
-        // "deactivated widget's ancestor is unsafe" errors
-        renderer.initialize().then((_) {
-          if (!mounted) {
-            renderer.dispose();
-            return;
-          }
-          renderer.srcObject = stream;
-          setState(() {
-            _remoteRenderers[userId] = renderer;
-          });
-        });
-      } else if (_remoteRenderers[userId]!.srcObject != stream) {
-        _remoteRenderers[userId]!.srcObject = stream;
-      }
-    });
-
-    // Remove stale renderers
-    _remoteRenderers.removeWhere((userId, renderer) {
-      if (!state.remoteStreams.containsKey(userId)) {
-        renderer.dispose();
-        return true;
-      }
-      return false;
-    });
-
     // Determine if we should show the waiting screen
-    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
-    // isWaiting should show the WaitingScreen until WebRTC streams successfully establish
     final isWaiting = state.remoteStreams.isEmpty;
 
     return Scaffold(
@@ -223,7 +157,6 @@ class _CallingScreenState extends State<CallingScreen> {
 
   Widget _buildParticipantGrid(CallProvider provider) {
     final state = provider.state;
-    final currentUserId = Provider.of<ProfileProvider>(context, listen: false).currentProfile?.id;
     
     // Remote IDs that have streams
     final remoteIds = state.remoteStreams.keys.toList();
@@ -232,7 +165,7 @@ class _CallingScreenState extends State<CallingScreen> {
     final totalCount = remoteIds.length + 1;
 
     if (totalCount == 1) {
-      return _buildVideoTile('You', _localRenderer, isLocal: true, isVideoOn: provider.isVideoOn);
+      return _buildVideoTile('You', state.localRenderer, isLocal: true, isVideoOn: provider.isVideoOn);
     }
 
     return GridView.builder(
@@ -246,10 +179,10 @@ class _CallingScreenState extends State<CallingScreen> {
       itemCount: totalCount,
       itemBuilder: (context, index) {
         if (index == 0) {
-          return _buildVideoTile('You', _localRenderer, isLocal: true, isVideoOn: provider.isVideoOn);
+          return _buildVideoTile('You', state.localRenderer, isLocal: true, isVideoOn: provider.isVideoOn);
         }
         final userId = remoteIds[index - 1];
-        final renderer = _remoteRenderers[userId];
+        final renderer = state.remoteRenderers[userId];
         final participant = state.participants.firstWhere((p) => p.userId == userId, 
             orElse: () => CallParticipantEntity(
               id: '', callId: '', userId: userId, createdAt: DateTime.now(), isVideoOn: true));

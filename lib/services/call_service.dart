@@ -23,6 +23,10 @@ class CallService extends ChangeNotifier {
   final Map<String, RTCPeerConnection> _peerConnections = {};
   final Map<String, List<Map<String, dynamic>>> _candidateQueue = {};
   final Map<String, MediaStream> _remoteStreams = {};
+  final Map<String, RTCVideoRenderer> _remoteRenderers = {};
+  final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
+  bool _localRendererInitialized = false;
+
   // Bug #5: Track processed signaling message IDs to avoid reprocessing
   // Supabase .stream() replays the full table on every change event, so without
   // this guard, setRemoteDescription() would be called multiple times causing
@@ -43,6 +47,8 @@ class CallService extends ChangeNotifier {
 
   MediaStream? get localStream => _localStream;
   Map<String, MediaStream> get remoteStreams => _remoteStreams;
+  Map<String, RTCVideoRenderer> get remoteRenderers => _remoteRenderers;
+  RTCVideoRenderer get localRenderer => _localRenderer;
   List<CallParticipantEntity> get participants => _participants;
   CallEntity? get currentCall => _currentCall;
   
@@ -85,7 +91,13 @@ class CallService extends ChangeNotifier {
       } : false,
     };
 
+    if (!_localRendererInitialized) {
+      await _localRenderer.initialize();
+      _localRendererInitialized = true;
+    }
+
     _localStream = await navigator.mediaDevices.getUserMedia(constraints);
+    _localRenderer.srcObject = _localStream;
     _isVideoOn = isVideo;
     _isMuted = false;
     notifyListeners();
@@ -110,12 +122,26 @@ class CallService extends ChangeNotifier {
     pc.onTrack = (event) async {
       // Recommendation: Track Fallback (Section B.1)
       // Handles cases where tracks arrive without a stream container
+      MediaStream stream;
       if (event.streams.isNotEmpty) {
-        _remoteStreams[remoteUserId] = event.streams[0];
+        stream = event.streams[0];
       } else {
         _remoteStreams[remoteUserId] ??= await createLocalMediaStream('remote_$remoteUserId');
         _remoteStreams[remoteUserId]!.addTrack(event.track);
+        stream = _remoteStreams[remoteUserId]!;
       }
+      _remoteStreams[remoteUserId] = stream;
+
+      // Initialize/Update renderer
+      if (!_remoteRenderers.containsKey(remoteUserId)) {
+        final renderer = RTCVideoRenderer();
+        await renderer.initialize();
+        renderer.srcObject = stream;
+        _remoteRenderers[remoteUserId] = renderer;
+      } else if (_remoteRenderers[remoteUserId]!.srcObject != stream) {
+        _remoteRenderers[remoteUserId]!.srcObject = stream;
+      }
+      
       notifyListeners();
     };
 
@@ -407,6 +433,11 @@ class CallService extends ChangeNotifier {
     _peerConnections.remove(userId);
     _remoteStreams.remove(userId);
     _candidateQueue.remove(userId);
+    
+    // Dispose renderer
+    _remoteRenderers[userId]?.dispose();
+    _remoteRenderers.remove(userId);
+    
     notifyListeners();
   }
 
@@ -589,6 +620,14 @@ class CallService extends ChangeNotifier {
     _peerConnections.clear();
     _remoteStreams.clear();
     _candidateQueue.clear();
+
+    // Dispose remote renderers
+    for (var renderer in _remoteRenderers.values) {
+      renderer.dispose();
+    }
+    _remoteRenderers.clear();
+    _localRenderer.srcObject = null;
+
     _processedSignalIds.clear();
     _participants.clear();
     _currentCallId = null;

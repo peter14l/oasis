@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.7.2] - 2026-04-21
+
+### Fixed
+- **Calling System Architectural Refactor** - Resolved critical "auto-answer" and "Connecting" hang issues by moving `RTCVideoRenderer` management from the UI layer to the `CallService`. This eliminates the rapid-fire build loop and flickering caused by transient renderer initialization in the `CallingScreen`.
+- **Signaling Optimization** - Implemented intelligent change detection in `CallProvider` to suppress redundant UI rebuilds during high-frequency signaling events.
+- **Robust State Management** - Refactored `CallingScreen` to be a stateless consumer of the service-level renderers, ensuring proper cleanup and preventing memory leaks on call termination.
+- **Security Validation** - Audited and verified Supabase RLS policies for `calls` and `call_signaling` tables, confirming that signaling messages are strictly limited to the sender and recipient.
+
 ## [4.7.1] - 2026-04-21
 
 ### Added
