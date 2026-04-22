@@ -161,7 +161,7 @@ class CallService extends ChangeNotifier {
     int dbType = encrypted.getType();
     if (dbType == 3) dbType = 1;
 
-    await _signalingChannel!.sendBroadcast(
+    await _signalingChannel!.sendBroadcastMessage(
       event: 'signaling',
       payload: {
         'sender_id': _supabase.auth.currentUser!.id,
@@ -386,7 +386,6 @@ class CallService extends ChangeNotifier {
     _remoteRenderers.clear();
     _localRenderer.srcObject = null;
 
-    _participants.clear();
     _currentCallId = null;
     _currentCall = null;
     _incomingCall = null;
@@ -408,31 +407,42 @@ class CallService extends ChangeNotifier {
         .from('calls')
         .stream(primaryKey: ['id'])
         .eq('receiver_id', user.id)
-        .eq('status', 'ringing')
         .listen((data) async {
       if (data.isNotEmpty) {
-        final call = CallEntity.fromJson(data.first);
-        _incomingCall = call;
-        _playRingtone();
-        notifyListeners();
+        // Filter for ringing status in memory or using multiple eq if supported
+        // Some versions of supabase_flutter have issues with multiple eq on streams
+        final ringingCalls = data.where((row) => row['status'] == 'ringing').toList();
+        
+        if (ringingCalls.isNotEmpty) {
+          final call = CallEntity.fromJson(ringingCalls.first);
+          _incomingCall = call;
+          _playRingtone();
+          notifyListeners();
 
-        final bool isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
-        if (!isMobile) {
-          String callerName = 'Someone';
-          try {
-            final profile = await _supabase
-                .from('profiles')
-                .select('display_name')
-                .eq('id', call.callerId)
-                .maybeSingle();
-            callerName = (profile?['display_name'] as String?) ?? 'Someone';
-          } catch (_) {}
+          final bool isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+          if (!isMobile) {
+            String callerName = 'Someone';
+            try {
+              final profile = await _supabase
+                  .from('profiles')
+                  .select('display_name')
+                  .eq('id', call.callerId)
+                  .maybeSingle();
+              callerName = (profile?['display_name'] as String?) ?? 'Someone';
+            } catch (_) {}
 
-          DesktopCallNotifier.instance.handleIncomingCall(
-            callId: call.id,
-            callerName: callerName,
-            senderId: call.callerId,
-          );
+            DesktopCallNotifier.instance.handleIncomingCall(
+              callId: call.id,
+              callerName: callerName,
+              senderId: call.callerId,
+            );
+          }
+        } else {
+          if (_incomingCall != null && _currentCallId == null) {
+            _incomingCall = null;
+            _stopRingtone();
+            notifyListeners();
+          }
         }
       } else {
         if (_incomingCall != null && _currentCallId == null) {
