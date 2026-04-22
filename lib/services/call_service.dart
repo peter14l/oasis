@@ -230,33 +230,29 @@ class CallService extends ChangeNotifier {
     final offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
     
-    final rawData = {
+    return {
       'type': 'offer',
       'sdp': offer.sdp,
       'sdp_type': offer.type,
     };
-
-    return await _encryptData(remoteUserId, rawData);
   }
 
   Future<Map<String, dynamic>> createAnswer(String remoteUserId, Map<String, dynamic> offer) async {
     final pc = await _getOrCreatePeerConnection(remoteUserId);
     
-    // Decrypt offer if needed
-    final decryptedOffer = await _decryptData(remoteUserId, offer);
+    // Use raw offer directly (Temporary bypass)
+    final decryptedOffer = offer;
 
     await pc.setRemoteDescription(RTCSessionDescription(decryptedOffer['sdp'], decryptedOffer['sdp_type']));
     final answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
     await _applyBitrateConstraints(pc);
     
-    final rawData = {
+    return {
       'type': 'answer',
       'sdp': answer.sdp,
       'sdp_type': answer.type,
     };
-
-    return await _encryptData(remoteUserId, rawData);
   }
 
   Future<void> startSignaling(CallEntity call) async {
@@ -295,10 +291,10 @@ class CallService extends ChangeNotifier {
                 oldCall?.status == CallStatus.ringing &&
                 updatedCall.answer != null) {
               try {
-                final decryptedAnswer = await _decryptData(updatedCall.receiverId, updatedCall.answer!);
-                await _handleSignalingData(updatedCall.receiverId, decryptedAnswer);
+                // Use raw answer (Temporary bypass)
+                await _handleSignalingData(updatedCall.receiverId, updatedCall.answer!);
               } catch (e) {
-                debugPrint('[CallService] Error decrypting answer: $e');
+                debugPrint('[CallService] Error processing answer: $e');
               }
             }
 
@@ -467,6 +463,9 @@ class CallService extends ChangeNotifier {
           _incomingCall = call;
           _playRingtone();
           notifyListeners();
+
+          // Proactively ensure Signal session is ready for this caller
+          unawaited(_signal.encryptMessage(call.callerId, 'ping').catchError((_) => null));
 
           final bool isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
           if (!isMobile) {
