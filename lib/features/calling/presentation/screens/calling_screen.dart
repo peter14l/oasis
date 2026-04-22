@@ -65,6 +65,18 @@ class _CallingScreenState extends State<CallingScreen> {
     super.dispose();
   }
 
+  void _showError(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final callProvider = context.watch<CallProvider>();
