@@ -186,7 +186,7 @@ class CallService extends ChangeNotifier {
     };
   }
 
-  Future<Map<String, dynamic>> _decryptData(String senderId, Map<String, dynamic> encryptedData) async {
+  Future<Map<String, dynamic>> _decryptData(String senderId, Map<String, dynamic> encryptedData, {int attempt = 0}) async {
     if (encryptedData['e2ee'] != true) return encryptedData;
     
     try {
@@ -200,12 +200,22 @@ class CallService extends ChangeNotifier {
       );
 
       if (decryptedJson.startsWith('🔒')) {
-        throw Exception('Decryption failed');
+        // If this is the first attempt, try one retry after a short delay
+        // (the session might still be establishing)
+        if (attempt < 2) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          return _decryptData(senderId, encryptedData, attempt: attempt + 1);
+        }
+        throw Exception('Decryption failed: Message locked');
       }
 
       return jsonDecode(decryptedJson);
     } catch (e) {
-      debugPrint('[CallService] Decryption error: $e');
+      if (attempt < 2) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        return _decryptData(senderId, encryptedData, attempt: attempt + 1);
+      }
+      debugPrint('[CallService] Decryption error after $attempt attempts: $e');
       rethrow;
     }
   }

@@ -256,7 +256,7 @@ class CallProvider extends ChangeNotifier {
       // 2. Initialize local stream
       await _callService.initLocalStream(call.type == CallType.video);
       
-      // 3. Create WebRTC answer
+      // 3. Create WebRTC answer (this now handles E2EE internally with retry)
       final answer = await _callService.createAnswer(call.callerId, call.offer!);
 
       // 4. Update DB with answer
@@ -276,8 +276,12 @@ class CallProvider extends ChangeNotifier {
       );
       notifyListeners();
     } catch (e) {
-      _state = _state.copyWith(isLoading: false, error: e.toString());
+      debugPrint('[CallProvider] Error accepting call: $e');
+      _state = _state.copyWith(isLoading: false, error: 'Failed to accept call: ${e.toString()}');
       notifyListeners();
+      
+      // If it fails after stopping ringtone, we should cleanup to be safe
+      _callService.stopRingtone();
     }
   }
 
