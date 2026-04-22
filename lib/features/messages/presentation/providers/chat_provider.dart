@@ -708,7 +708,7 @@ class ChatProvider with ChangeNotifier {
         whisperMode: state.whisperMode,
         replyToId: replyMessage?.id,
         mediaViewMode: mediaViewMode,
-      );
+        );
 
       // Replace optimistic message with the real one
       final decrypted = await _decryptSingleMessage(sentMessage);
@@ -829,7 +829,7 @@ class ChatProvider with ChangeNotifier {
         encryptedKeys: encryptedKeys,
         iv: iv,
         signalMessageType: signalMessageType,
-      );
+        );
 
       final decrypted = await _decryptSingleMessage(sentMessage);
       setState(
@@ -905,7 +905,7 @@ class ChatProvider with ChangeNotifier {
         encryptedKeys: encryptedKeys,
         iv: iv,
         signalMessageType: signalMessageType,
-      );
+        );
 
       final decrypted = await _decryptSingleMessage(sentMessage);
       setState(

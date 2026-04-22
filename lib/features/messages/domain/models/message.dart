@@ -43,7 +43,6 @@ abstract class Message with _$Message {
     @JsonKey(name: 'signal_message_type') int? signalMessageType,
     @JsonKey(name: 'signal_sender_content') String? signalSenderContent,
     @JsonKey(name: 'signal_sender_message_type') int? signalSenderMessageType,
-    @JsonKey(name: 'call_id') String? callId,
     @JsonKey(name: 'ripple_id') String? rippleId,
     @JsonKey(name: 'story_id') String? storyId,
     @JsonKey(name: 'post_id') String? postId,
