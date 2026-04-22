@@ -245,10 +245,14 @@ class CallProvider extends ChangeNotifier {
 
   /// Accept an incoming call
   Future<void> acceptCall(CallEntity call) async {
+    if (_state.isLoading) return;
     try {
       _isEnding = false;
       _state = _state.copyWith(isLoading: true, clearError: true);
       notifyListeners();
+
+      // Lock the call ID immediately to prevent race conditions in the incoming call listener
+      _callService.setAnswering(call.id);
 
       // 1. Stop local ringtone
       await _callService.stopRingtone();

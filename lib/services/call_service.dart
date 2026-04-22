@@ -44,6 +44,11 @@ class CallService extends ChangeNotifier {
   CallEntity? get currentCall => _currentCall;
   String? get currentCallId => _currentCallId;
 
+  /// Lock the current call ID when starting to answer, to prevent race conditions.
+  void setAnswering(String callId) {
+    _currentCallId = callId;
+  }
+
   final Map<String, dynamic> _configuration = {
     'iceServers': [
       {'urls': 'stun:stun.l.google.com:19302'},
@@ -482,7 +487,19 @@ class CallService extends ChangeNotifier {
             );
           }
         } else {
+          // No ringing calls. Check if we should clear the incoming call UI.
           if (_incomingCall != null && _currentCallId == null) {
+            // Check if the call we were tracking is now active (being joined)
+            final activeCalls = data.where((row) => row['status'] == 'active').toList();
+            final isJoining = activeCalls.any((c) => c['id'] == _incomingCall!.id);
+            
+            if (isJoining) {
+              // The call is now active, likely because we just accepted it.
+              // Don't clear _incomingCall yet; it will be cleared once startSignaling 
+              // sets _currentCallId and _currentCall.
+              return;
+            }
+
             _incomingCall = null;
             _stopRingtone();
             notifyListeners();
@@ -540,6 +557,8 @@ class CallService extends ChangeNotifier {
   Future<void> _stopRingtone() async {
     _isPlayingRingtone = false;
     await _audioPlayer.stop();
+    // Dismiss any desktop OS notification shown for this call.
+    DesktopCallNotifier.instance.dismissIncomingCall();
   }
 
   Future<void> startRingtone() => _playRingtone();

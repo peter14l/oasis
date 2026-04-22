@@ -39,6 +39,30 @@ class _CallingScreenState extends State<CallingScreen> {
         }
       });
     }
+
+    // Listen for errors from the provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CallProvider>().addListener(_handleProviderUpdate);
+    });
+  }
+
+  void _handleProviderUpdate() {
+    if (!mounted) return;
+    final error = context.read<CallProvider>().state.error;
+    if (error != null) {
+      _showError(error);
+      context.read<CallProvider>().clearError();
+    }
+  }
+
+  @override
+  void dispose() {
+    // Note: Provider listeners don't always need manual removal if the provider
+    // is scoped to the screen, but since this might be a global provider, we remove it.
+    try {
+      context.read<CallProvider>().removeListener(_handleProviderUpdate);
+    } catch (_) {}
+    super.dispose();
   }
 
   @override
