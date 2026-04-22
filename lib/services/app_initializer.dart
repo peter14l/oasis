@@ -124,13 +124,12 @@ class ThemeProvider with ChangeNotifier {
   bool get useMaterialYou => _useMaterialYou;
   ColorPalette get colorPalette => _colorPalette;
 
-  /// Check if the current platform should use Fluent UI (Windows, macOS, or Web)
+  /// Check if the current platform should use Fluent UI (Windows or macOS)
   bool get useFluentUI {
-    // Force Material on mobile platforms
-    if (Platform.isAndroid || Platform.isIOS) return false;
+    // Force Material on mobile platforms and WEB
+    if (kIsWeb || Platform.isAndroid || Platform.isIOS) return false;
     
-    // On Web, we could further refine this, but kIsWeb is generally desktop-first in this app
-    if (kIsWeb) return true;
+    // Only use Fluent UI on desktop OSs
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) return true;
     return false;
   }
