@@ -7,7 +7,9 @@ import 'package:oasis/features/calling/domain/models/call_entity.dart';
 import 'package:oasis/features/calling/domain/models/call_participant_entity.dart';
 import 'package:oasis/features/messages/data/signal/signal_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/services/desktop_call_notifier.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:universal_io/io.dart';
 import 'package:uuid/uuid.dart';
 
 class CallService extends ChangeNotifier {
@@ -30,7 +32,14 @@ class CallService extends ChangeNotifier {
   MediaStream? _localStream;
   String? _currentCallId;
   CallEntity? _currentCall;
+  // All three per-call Supabase Realtime subscriptions stored so they can be
+  // cancelled together in _cleanup(). Previously only _callSubscription was
+  // stored — _signalingSubscription and _participantsSubscription were
+  // discarded immediately, creating un-cancellable listeners that continued
+  // firing after the call ended, causing stale events on subsequent calls.
   StreamSubscription? _callSubscription;
+  StreamSubscription? _signalingSubscription;
+  StreamSubscription? _participantsSubscription;
 
   MediaStream? get localStream => _localStream;
   Map<String, MediaStream> get remoteStreams => _remoteStreams;
@@ -199,7 +208,8 @@ class CallService extends ChangeNotifier {
   void _subscribeToSignaling(String callId) {
     final userId = _supabase.auth.currentUser!.id;
     
-    _supabase
+    _signalingSubscription?.cancel();
+    _signalingSubscription = _supabase
         .from('call_signaling')
         .stream(primaryKey: ['id'])
         .eq('call_id', callId)
@@ -316,7 +326,8 @@ class CallService extends ChangeNotifier {
   }
 
   void _subscribeToParticipants(String callId) {
-    _supabase
+    _participantsSubscription?.cancel();
+    _participantsSubscription = _supabase
         .from('call_participants')
         .stream(primaryKey: ['id'])
         .eq('call_id', callId)
@@ -557,6 +568,17 @@ class CallService extends ChangeNotifier {
   }
 
   void _cleanup() {
+    // Cancel ALL per-call Supabase Realtime subscriptions first.
+    // Previously only _callSubscription was cancelled here — signaling and
+    // participant subscriptions were leaked, processing stale events after
+    // the call ended and interfering with subsequent calls.
+    _callSubscription?.cancel();
+    _signalingSubscription?.cancel();
+    _participantsSubscription?.cancel();
+    _callSubscription = null;
+    _signalingSubscription = null;
+    _participantsSubscription = null;
+
     _localStream?.getTracks().forEach((track) => track.stop());
     _localStream?.dispose();
     _localStream = null;
@@ -567,7 +589,8 @@ class CallService extends ChangeNotifier {
     _peerConnections.clear();
     _remoteStreams.clear();
     _candidateQueue.clear();
-    _processedSignalIds.clear(); // Bug #5: reset dedup set for next call
+    _processedSignalIds.clear();
+    _participants.clear();
     _currentCallId = null;
     _currentCall = null;
     _incomingCall = null;
@@ -627,6 +650,35 @@ class CallService extends ChangeNotifier {
               _incomingCall = call;
               _playRingtone(); // Start ringing for invitee
               notifyListeners();
+
+              // On desktop/web platforms Flutter CallKit is unavailable.
+              // Fire DesktopCallNotifier which:
+              //   a) Shows an OS notification (covers background/systray).
+              //   b) Navigates to the CallingScreen if the app is in the foreground.
+              final bool isMobile =
+                  !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+              if (!isMobile) {
+                // Fetch the caller's display name for the OS notification.
+                String callerName = 'Someone';
+                try {
+                  final profile = await _supabase
+                      .from('profiles')
+                      .select('display_name')
+                      .eq('id', call.hostId)
+                      .maybeSingle();
+                  callerName =
+                      (profile?['display_name'] as String?)?.isNotEmpty == true
+                          ? profile!['display_name'] as String
+                          : 'Someone';
+                } catch (_) {}
+
+                DesktopCallNotifier.instance.handleIncomingCall(
+                  callId: call.id,
+                  callerName: callerName,
+                  senderId: call.hostId,
+                );
+              }
+
               return;
             } else {
               debugPrint('[CallService] Ignoring call $callId with status: ${call.status}');
@@ -658,6 +710,8 @@ class CallService extends ChangeNotifier {
 
   Future<void> answerCall(CallEntity call) async {
     _stopRingtone();
+    // Dismiss any desktop OS notification that was shown for this call.
+    DesktopCallNotifier.instance.dismissIncomingCall();
     await joinCall(call);
     _incomingCall = null;
     notifyListeners();
@@ -665,6 +719,8 @@ class CallService extends ChangeNotifier {
 
   Future<void> rejectCall(CallEntity call) async {
     _stopRingtone();
+    // Dismiss any desktop OS notification shown for this call.
+    DesktopCallNotifier.instance.dismissIncomingCall();
     final user = _supabase.auth.currentUser;
     if (user == null) return;
 
@@ -672,7 +728,7 @@ class CallService extends ChangeNotifier {
         .from('call_participants')
         .update({'status': 'rejected'})
         .match({'call_id': call.id, 'user_id': user.id});
-    
+
     _incomingCall = null;
     notifyListeners();
   }

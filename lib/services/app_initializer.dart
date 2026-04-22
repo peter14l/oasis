@@ -27,6 +27,7 @@ import 'package:oasis/features/messages/data/encryption_service.dart';
 import 'package:oasis/services/notification_manager.dart';
 import 'package:oasis/services/notification_service.dart';
 import 'package:oasis/services/notification_decryption_service.dart';
+import 'package:oasis/services/desktop_call_notifier.dart';
 
 import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/services/screen_time_service.dart';

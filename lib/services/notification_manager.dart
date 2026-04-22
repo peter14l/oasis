@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/services/notification_decryption_service.dart';
+import 'package:oasis/services/desktop_call_notifier.dart';
 
 /// Represents a message in a notification group history
 class NotificationMessage {
@@ -390,26 +391,66 @@ class NotificationManager {
     return filePath;
   }
 
-  /// Initialize local notifications for mobile
+  /// Initialize local notifications for mobile (and macOS)
   Future<void> _initLocalNotifications() async {
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
     const iosSettings = DarwinInitializationSettings();
-    const initSettings = InitializationSettings(
+
+    // macOS: register a dedicated CALL_CATEGORY so incoming-call notifications
+    // show native Accept / Decline action buttons directly on the banner.
+    // NOTE: DarwinNotificationAction.plain is NOT a const factory in FLN ^19.x,
+    // so this entire block must use final rather than const.
+    final macOSSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+      notificationCategories: [
+        DarwinNotificationCategory(
+          'CALL_CATEGORY',
+          actions: [
+            DarwinNotificationAction.plain(
+              'accept_call',
+              'Accept',
+            ),
+            DarwinNotificationAction.plain(
+              'decline_call',
+              'Decline',
+              options: {DarwinNotificationActionOption.destructive},
+            ),
+          ],
+          options: {DarwinNotificationCategoryOption.customDismissAction},
+        ),
+      ],
+    );
+
+    final initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
+      macOS: macOSSettings,
     );
+
 
     await _localNotificationsPlugin.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (response) {
+        // Route call-specific action IDs to DesktopCallNotifier so it can
+        // accept or decline without needing a BuildContext.
+        if (response.actionId == 'accept_call' ||
+            response.actionId == 'decline_call') {
+          _handleCallAction(
+            actionId: response.actionId!,
+            payload: response.payload,
+          );
+          return;
+        }
         _handleNotificationTap(response.payload);
       },
     );
 
     // Create the default channel for Android
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       final androidPlugin = _localNotificationsPlugin
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
@@ -427,6 +468,69 @@ class NotificationManager {
         ),
       );
     }
+  }
+
+  /// Handle accept / decline actions from a macOS call notification.
+  void _handleCallAction({
+    required String actionId,
+    String? payload,
+  }) {
+    if (payload == null) return;
+    try {
+      final data = jsonDecode(payload) as Map<String, dynamic>;
+      final callId = data['call_id'] as String?;
+      if (callId == null) return;
+
+      if (actionId == 'accept_call') {
+        DesktopCallNotifier.acceptFromNotification(
+          callId,
+          data['sender_id'] as String?,
+        );
+      } else if (actionId == 'decline_call') {
+        DesktopCallNotifier.declineFromNotification(callId);
+      }
+    } catch (e) {
+      debugPrint('[NotificationManager] Call action handler error: $e');
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Call notification helpers (used by DesktopCallNotifier)
+  // ---------------------------------------------------------------------------
+
+  static const int _callNotificationId = 9999;
+
+  /// Show a macOS incoming-call notification with Accept / Decline actions.
+  Future<void> showCallNotification({
+    required String callId,
+    required String callerName,
+    String? senderId,
+  }) async {
+    if (!_isInitialized) return;
+    final payload = jsonEncode({
+      'type': 'call',
+      'call_id': callId,
+      'sender_id': senderId ?? '',
+    });
+    await _localNotificationsPlugin.show(
+      _callNotificationId,
+      '📞 Incoming Call',
+      '$callerName is calling...',
+      const NotificationDetails(
+        macOS: DarwinNotificationDetails(
+          categoryIdentifier: 'CALL_CATEGORY',
+          presentAlert: true,
+          presentSound: true,
+          presentBadge: false,
+        ),
+      ),
+      payload: payload,
+    );
+  }
+
+  /// Cancel the persistent incoming-call notification.
+  Future<void> dismissCallNotification() async {
+    await _localNotificationsPlugin.cancel(_callNotificationId);
   }
 
   /// Initialize FCM integration
