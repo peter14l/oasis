@@ -23,6 +23,7 @@ class CallState {
   final bool isMuted;
   final bool isVideoOn;
   final bool isScreenSharing;
+  final bool isMinimized;
 
   const CallState({
     this.activeCall,
@@ -37,6 +38,7 @@ class CallState {
     this.isMuted = false,
     this.isVideoOn = true,
     this.isScreenSharing = false,
+    this.isMinimized = false,
   });
 
   factory CallState.initial() {
@@ -59,6 +61,7 @@ class CallState {
     bool? isMuted,
     bool? isVideoOn,
     bool? isScreenSharing,
+    bool? isMinimized,
   }) {
     return CallState(
       activeCall: clearActiveCall ? null : (activeCall ?? this.activeCall),
@@ -73,6 +76,7 @@ class CallState {
       isMuted: isMuted ?? this.isMuted,
       isVideoOn: isVideoOn ?? this.isVideoOn,
       isScreenSharing: isScreenSharing ?? this.isScreenSharing,
+      isMinimized: isMinimized ?? this.isMinimized,
     );
   }
 }
@@ -346,6 +350,12 @@ class CallProvider extends ChangeNotifier {
   /// Toggle video
   void toggleVideo() {
     _callService.toggleVideo();
+  }
+
+  /// Toggle minimized state (PiP)
+  void toggleMinimize({bool? value}) {
+    _state = _state.copyWith(isMinimized: value ?? !_state.isMinimized);
+    notifyListeners();
   }
 
   /// Toggle screen sharing

@@ -305,6 +305,15 @@ class _CallingScreenState extends State<CallingScreen> {
         ),
         const SizedBox(width: 20),
         _buildControlButton(
+          onPressed: () {
+            provider.toggleMinimize(value: true);
+            Navigator.pop(context);
+          },
+          icon: Icons.close_fullscreen_rounded,
+          color: Colors.white24,
+        ),
+        const SizedBox(width: 20),
+        _buildControlButton(
           onPressed: provider.toggleVideo,
           icon: provider.isVideoOn ? Icons.videocam : Icons.videocam_off,
           color: provider.isVideoOn ? Colors.white24 : Colors.red,

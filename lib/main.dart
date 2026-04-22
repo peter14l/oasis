@@ -545,17 +545,22 @@ class _MyAppState extends State<MyApp> {
                         : fluent.ThemeMode.light,
                 routerConfig: router,
                 builder: (context, child) {
-                  return material.Column(
+                  return material.Stack(
                     children: [
-                      if (Platform.isWindows) const WindowsTitleBar(height: 48),
-                      material.Expanded(
-                        child: material.MediaQuery(
-                          data: material.MediaQuery.of(context).copyWith(
-                            textScaler: material.TextScaler.linear(userSettings.fontSizeFactor),
+                      material.Column(
+                        children: [
+                          if (Platform.isWindows) const WindowsTitleBar(height: 48),
+                          material.Expanded(
+                            child: material.MediaQuery(
+                              data: material.MediaQuery.of(context).copyWith(
+                                textScaler: material.TextScaler.linear(userSettings.fontSizeFactor),
+                              ),
+                              child: GlobalWellnessWrapper(child: CallNavigator(child: child!)),
+                            ),
                           ),
-                          child: GlobalWellnessWrapper(child: CallNavigator(child: child!)),
-                        ),
+                        ],
                       ),
+                      const FloatingCallOverlay(),
                     ],
                   );
                 },
@@ -570,18 +575,23 @@ class _MyAppState extends State<MyApp> {
               themeMode: themeProvider.themeMode,
               routerConfig: router,
               builder: (context, child) {
-                return material.Column(
+                return material.Stack(
                   children: [
-                    if (Platform.isWindows) const WindowsTitleBar(height: 48),
-                    material.Expanded(
-                      child: material.MediaQuery(
-                        data: material.MediaQuery.of(context).copyWith(
-                          textScaler: material.TextScaler.linear(userSettings.fontSizeFactor),
-                          boldText: false,
+                    material.Column(
+                      children: [
+                        if (Platform.isWindows) const WindowsTitleBar(height: 48),
+                        material.Expanded(
+                          child: material.MediaQuery(
+                            data: material.MediaQuery.of(context).copyWith(
+                              textScaler: material.TextScaler.linear(userSettings.fontSizeFactor),
+                              boldText: false,
+                            ),
+                            child: GlobalWellnessWrapper(child: CallNavigator(child: child!)),
+                          ),
                         ),
-                        child: GlobalWellnessWrapper(child: CallNavigator(child: child!)),
-                      ),
+                      ],
                     ),
+                    const FloatingCallOverlay(),
                   ],
                 );
               },
@@ -617,7 +627,7 @@ class CallNavigator extends StatelessWidget {
 
       final onCallScreen = location.startsWith('/call');
 
-      if (!onCallScreen) {
+      if (!onCallScreen && !callProvider.state.isMinimized) {
         material.WidgetsBinding.instance.addPostFrameCallback((_) {
           final activeCallId = callProvider.activeCall?.id;
           final incomingCallId = callProvider.incomingCall?.id;
