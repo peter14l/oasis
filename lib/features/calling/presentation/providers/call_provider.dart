@@ -165,10 +165,27 @@ class CallProvider extends ChangeNotifier {
     _endCall = endCall;
     _getActiveCalls = getActiveCalls;
     _state = _state.copyWith(isLoading: false);
-    _callService.startIncomingCallListener();
+    
+    // Start incoming call listener with basic error handling to prevent 
+    // startup blocking if Realtime has a temporary hiccup.
+    _startListenerWithRetry();
+    
     _isInitialized = true;
     _isEnding = false;
     notifyListeners();
+  }
+
+  Future<void> _startListenerWithRetry({int attempt = 0}) async {
+    try {
+      _callService.startIncomingCallListener();
+    } catch (e) {
+      debugPrint('[CallProvider] Failed to start incoming call listener (attempt $attempt): $e');
+      if (attempt < 5) {
+        // Linear backoff: 2s, 4s, 6s, 8s, 10s
+        await Future.delayed(Duration(seconds: 2 * (attempt + 1)));
+        _startListenerWithRetry(attempt: attempt + 1);
+      }
+    }
   }
 
   /// Initiate a new 1-on-1 call
