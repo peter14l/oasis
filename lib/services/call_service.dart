@@ -465,7 +465,13 @@ class CallService extends ChangeNotifier {
           notifyListeners();
 
           // Proactively ensure Signal session is ready for this caller
-          unawaited(_signal.encryptMessage(call.callerId, 'ping').catchError((_) => null));
+          unawaited(() async {
+            try {
+              await _signal.encryptMessage(call.callerId, 'ping');
+            } catch (e) {
+              debugPrint('[CallService] Proactive session build failed: $e');
+            }
+          }());
 
           final bool isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
           if (!isMobile) {
