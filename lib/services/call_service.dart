@@ -161,14 +161,15 @@ class CallService extends ChangeNotifier {
     if (_currentCallId == null || _signalingChannel == null) return;
     
     try {
-      final encrypted = await _encryptData(recipientId, data);
+      // Use raw signaling data for diagnostics (Temporary bypass)
+      final payload = data;
 
       await _signalingChannel!.sendBroadcastMessage(
         event: 'signaling',
         payload: {
           'sender_id': _supabase.auth.currentUser!.id,
           'recipient_id': recipientId,
-          ...encrypted,
+          ...payload,
         },
       );
     } catch (e) {
