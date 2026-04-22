@@ -321,8 +321,13 @@ class CallService extends ChangeNotifier {
                   _stopRingtone(); // Stop ringing when someone joins
                   _setAudioForCall();
                   if (!_peerConnections.containsKey(pUserId)) {
-                    // Logic to avoid double offer: user with higher ID initiates
-                    if (userId.compareTo(pUserId) > 0) {
+                    // The joining user always initiates the offer to already-joined participants.
+                    // Using userId > pUserId tiebreaker only to prevent double-offer when
+                    // BOTH users see each other as 'joined' in the same stream snapshot.
+                    // This is safe because the callee always joins after the host.
+                    final isCallee = _currentCall?.hostId != userId;
+                    final shouldOffer = isCallee || userId.compareTo(pUserId) > 0;
+                    if (shouldOffer) {
                       await _initiatePeerConnection(pUserId);
                     }
                   }
