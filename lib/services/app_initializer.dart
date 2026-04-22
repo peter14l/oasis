@@ -481,13 +481,10 @@ class AppInitializer {
             if (data == null) break;
             final callId = data['call_id'];
             if (callId != null) {
-              final userId = SupabaseService().client.auth.currentUser?.id;
-              if (userId != null) {
-                SupabaseService().client
-                  .from('call_participants')
-                  .update({'status': 'rejected'})
-                  .match({'call_id': callId, 'user_id': userId});
-              }
+              SupabaseService().client
+                .from('calls')
+                .update({'status': 'declined'})
+                .eq('id', callId);
             }
             break;
           default:
