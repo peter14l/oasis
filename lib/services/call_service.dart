@@ -13,6 +13,31 @@ import 'package:uuid/uuid.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+class DisabledCallService extends CallService {
+  @override
+  Future<void> initLocalStream(bool isVideo) async {}
+  @override
+  void startIncomingCallListener() {}
+  @override
+  Future<void> startSignaling(CallEntity call) async {}
+  @override
+  Future<Map<String, dynamic>> createOffer(String remoteUserId) async => {};
+  @override
+  Future<Map<String, dynamic>> createAnswer(String remoteUserId, Map<String, dynamic> offer) async => {};
+  @override
+  Future<void> endCall() async {}
+  @override
+  void toggleMute() {}
+  @override
+  Future<void> toggleVideo() async {}
+  @override
+  Future<void> toggleScreenShare() async {}
+  @override
+  Future<void> startRingtone() async {}
+  @override
+  Future<void> stopRingtone() async {}
+}
+
 class CallService extends ChangeNotifier {
   final _supabase = SupabaseService().client;
   final _signal = SignalService();
@@ -27,9 +52,6 @@ class CallService extends ChangeNotifier {
   final Map<String, RTCVideoRenderer> _remoteRenderers = {};
   final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
   bool _localRendererInitialized = false;
-
-  // Track peer connections currently being initialized
-  final Set<String> _pendingPeerConnections = {};
 
   MediaStream? _localStream;
   String? _currentCallId;
@@ -51,7 +73,6 @@ class CallService extends ChangeNotifier {
   CallEntity? get incomingCall => _incomingCall;
   String? get currentCallId => _currentCallId;
 
-  /// Lock the current call ID when starting to answer, to prevent race conditions.
   void setAnswering(String callId) {
     _currentCallId = callId;
   }
@@ -78,23 +99,23 @@ class CallService extends ChangeNotifier {
   String? get remoteScreenShareUserId => _remoteScreenShareUserId;
 
   Future<void> initLocalStream(bool isVideo) async {
-    // Check and request permissions for mobile
+    debugPrint('[CallService] Initializing local stream: video=$isVideo');
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       final micStatus = await Permission.microphone.request();
-      if (micStatus != PermissionStatus.granted) {
-        throw Exception('Microphone permission denied');
-      }
+      if (micStatus != PermissionStatus.granted) throw Exception('Microphone permission denied');
 
       if (isVideo) {
         final camStatus = await Permission.camera.request();
-        if (camStatus != PermissionStatus.granted) {
-          throw Exception('Camera permission denied');
-        }
+        if (camStatus != PermissionStatus.granted) throw Exception('Camera permission denied');
       }
     }
 
     final Map<String, dynamic> constraints = {
-      'audio': true,
+      'audio': {
+        'echoCancellation': true,
+        'noiseSuppression': true,
+        'autoGainControl': true,
+      },
       'video': isVideo ? {
         'facingMode': 'user',
         'width': {'ideal': 1280},
@@ -108,32 +129,24 @@ class CallService extends ChangeNotifier {
       _localRendererInitialized = true;
     }
 
+    if (_localStream != null) {
+      _localStream!.getTracks().forEach((t) => t.stop());
+    }
+
     _localStream = await navigator.mediaDevices.getUserMedia(constraints);
     _localRenderer.srcObject = _localStream;
     _isVideoOn = isVideo;
     _isMuted = false;
 
-    // Configure audio session for mobile
     await _configureAudioSession(isVideo);
-
     notifyListeners();
   }
 
   Future<void> _configureAudioSession(bool isVideo) async {
     if (kIsWeb) return;
-
     try {
       if (Platform.isIOS || Platform.isAndroid) {
-        // Use speakerphone by default for video calls, earpiece for voice calls
         await Helper.setSpeakerphoneOn(isVideo);
-        
-        // On Android, we might need to set the audio mode explicitly 
-        // through a small delay to ensure the OS has established the stream.
-        if (Platform.isAndroid) {
-          Future.delayed(const Duration(milliseconds: 500), () {
-            Helper.setSpeakerphoneOn(isVideo);
-          });
-        }
       }
     } catch (e) {
       debugPrint('[CallService] Error configuring audio session: $e');
@@ -141,6 +154,7 @@ class CallService extends ChangeNotifier {
   }
 
   Future<RTCPeerConnection> _createPeerConnection(String remoteUserId) async {
+    debugPrint('[CallService] Creating peer connection for $remoteUserId');
     final pc = await createPeerConnection(_configuration);
     
     _localStream?.getTracks().forEach((track) {
@@ -158,35 +172,57 @@ class CallService extends ChangeNotifier {
 
     pc.onTrack = (event) async {
       debugPrint('[CallService] onTrack: ${event.track.kind} from $remoteUserId');
-      MediaStream stream;
-      if (event.streams.isNotEmpty) {
-        stream = event.streams[0];
-      } else {
-        // Fallback for Unified Plan where streams might be empty
-        _remoteStreams[remoteUserId] ??= await createLocalMediaStream('remote_$remoteUserId');
-        _remoteStreams[remoteUserId]!.addTrack(event.track);
-        stream = _remoteStreams[remoteUserId]!;
-      }
-      _remoteStreams[remoteUserId] = stream;
-
-      if (!_remoteRenderers.containsKey(remoteUserId)) {
-        final renderer = RTCVideoRenderer();
-        await renderer.initialize();
-        renderer.srcObject = stream;
-        _remoteRenderers[remoteUserId] = renderer;
-      } else if (_remoteRenderers[remoteUserId]!.srcObject != stream) {
-        _remoteRenderers[remoteUserId]!.srcObject = stream;
-      }
       
-      // Ensure the audio track is enabled
-      if (event.track.kind == 'audio') {
-        event.track.enabled = true;
-      }
+      // Use microtask to ensure we don't block the native thread
+      Future.microtask(() async {
+        if (event.track.kind == 'audio') {
+          event.track.enabled = true;
+        }
 
-      notifyListeners();
+        MediaStream stream;
+        if (event.streams.isNotEmpty) {
+          stream = event.streams[0];
+        } else {
+          _remoteStreams[remoteUserId] ??= await createLocalMediaStream('remote_$remoteUserId');
+          _remoteStreams[remoteUserId]!.addTrack(event.track);
+          stream = _remoteStreams[remoteUserId]!;
+        }
+        _remoteStreams[remoteUserId] = stream;
+
+        if (!_remoteRenderers.containsKey(remoteUserId)) {
+          final renderer = RTCVideoRenderer();
+          await renderer.initialize();
+          renderer.srcObject = stream;
+          _remoteRenderers[remoteUserId] = renderer;
+        } else {
+          _remoteRenderers[remoteUserId]!.srcObject = stream;
+        }
+        
+        // Ensure UI updates on the next frame
+        notifyListeners();
+      });
+    };
+
+    pc.onRenegotiationNeeded = () async {
+      debugPrint('[CallService] onRenegotiationNeeded for $remoteUserId');
+      // Only initiate renegotiation if the connection is stable to avoid glare
+      if (pc.signalingState != RTCSignalingState.RTCSignalingStateStable) return;
+
+      try {
+        final offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        await _sendSignaling(remoteUserId, {
+          'type': 'offer',
+          'sdp': offer.sdp,
+          'sdp_type': offer.type,
+        });
+      } catch (e) {
+        debugPrint('[CallService] Renegotiation error: $e');
+      }
     };
 
     pc.onConnectionState = (state) {
+      debugPrint('[CallService] Connection state for $remoteUserId: $state');
       if (state == RTCPeerConnectionState.RTCPeerConnectionStateDisconnected ||
           state == RTCPeerConnectionState.RTCPeerConnectionStateFailed ||
           state == RTCPeerConnectionState.RTCPeerConnectionStateClosed) {
@@ -213,17 +249,13 @@ class CallService extends ChangeNotifier {
 
   Future<void> _sendSignaling(String recipientId, Map<String, dynamic> data) async {
     if (_currentCallId == null || _signalingChannel == null) return;
-    
     try {
-      // Use raw signaling data for diagnostics (Temporary bypass)
-      final payload = data;
-
       await _signalingChannel!.sendBroadcastMessage(
         event: 'signaling',
         payload: {
           'sender_id': _supabase.auth.currentUser!.id,
           'recipient_id': recipientId,
-          ...payload,
+          ...data,
         },
       );
     } catch (e) {
@@ -231,51 +263,25 @@ class CallService extends ChangeNotifier {
     }
   }
 
-  Future<Map<String, dynamic>> _encryptData(String recipientId, Map<String, dynamic> data) async {
-    final jsonStr = jsonEncode(data);
-    final encrypted = await _signal.encryptMessage(recipientId, jsonStr);
-    
-    // Mapping for Supabase signaling types: 1 = PreKey, 2 = Whisper
-    int dbType = encrypted.getType();
-    if (dbType == 3) dbType = 1;
-
-    return {
-      'e2ee': true,
-      'payload': base64Encode(encrypted.serialize()),
-      'signal_message_type': dbType,
-    };
-  }
-
   Future<Map<String, dynamic>> _decryptData(String senderId, Map<String, dynamic> encryptedData, {int attempt = 0}) async {
     if (encryptedData['e2ee'] != true) return encryptedData;
-    
     try {
       int signalType = encryptedData['signal_message_type'];
       if (signalType == 1) signalType = 3;
-
-      final decryptedJson = await _signal.decryptMessage(
-        senderId,
-        encryptedData['payload'],
-        signalType,
-      );
-
+      final decryptedJson = await _signal.decryptMessage(senderId, encryptedData['payload'], signalType);
       if (decryptedJson.startsWith('🔒')) {
-        // If this is the first attempt, try one retry after a short delay
-        // (the session might still be establishing)
         if (attempt < 2) {
           await Future.delayed(const Duration(milliseconds: 500));
           return _decryptData(senderId, encryptedData, attempt: attempt + 1);
         }
         throw Exception('Decryption failed: Message locked');
       }
-
       return jsonDecode(decryptedJson);
     } catch (e) {
       if (attempt < 2) {
         await Future.delayed(const Duration(milliseconds: 500));
         return _decryptData(senderId, encryptedData, attempt: attempt + 1);
       }
-      debugPrint('[CallService] Decryption error after $attempt attempts: $e');
       rethrow;
     }
   }
@@ -284,39 +290,23 @@ class CallService extends ChangeNotifier {
     final pc = await _getOrCreatePeerConnection(remoteUserId);
     final offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-    
-    return {
-      'type': 'offer',
-      'sdp': offer.sdp,
-      'sdp_type': offer.type,
-    };
+    return {'type': 'offer', 'sdp': offer.sdp, 'sdp_type': offer.type};
   }
 
   Future<Map<String, dynamic>> createAnswer(String remoteUserId, Map<String, dynamic> offer) async {
     final pc = await _getOrCreatePeerConnection(remoteUserId);
-    
-    // Use raw offer directly (Temporary bypass)
-    final decryptedOffer = offer;
-
-    await pc.setRemoteDescription(RTCSessionDescription(decryptedOffer['sdp'], decryptedOffer['sdp_type']));
+    await pc.setRemoteDescription(RTCSessionDescription(offer['sdp'], offer['sdp_type']));
     final answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
     await _applyBitrateConstraints(pc);
-    
-    return {
-      'type': 'answer',
-      'sdp': answer.sdp,
-      'sdp_type': answer.type,
-    };
+    return {'type': 'answer', 'sdp': answer.sdp, 'sdp_type': answer.type};
   }
 
   Future<void> startSignaling(CallEntity call) async {
     _currentCallId = call.id;
     _currentCall = call;
-    
     _subscribeToCall(call.id);
     _subscribeToSignaling(call.id);
-    
     notifyListeners();
   }
 
@@ -340,19 +330,16 @@ class CallService extends ChangeNotifier {
               return;
             }
 
-            // Caller receives the answer
             if (updatedCall.callerId == userId && 
                 updatedCall.status == CallStatus.active && 
                 oldCall?.status == CallStatus.ringing &&
                 updatedCall.answer != null) {
               try {
-                // Use raw answer (Temporary bypass)
                 await _handleSignalingData(updatedCall.receiverId, updatedCall.answer!);
               } catch (e) {
                 debugPrint('[CallService] Error processing answer: $e');
               }
             }
-
             notifyListeners();
           }
         });
@@ -360,13 +347,10 @@ class CallService extends ChangeNotifier {
 
   void _subscribeToSignaling(String callId) {
     final userId = _supabase.auth.currentUser!.id;
-    
     _signalingChannel = _supabase.channel('call_$callId');
-    
     _signalingChannel!.onBroadcast(event: 'signaling', callback: (payload) {
       final senderId = payload['sender_id'];
       final recipientId = payload['recipient_id'];
-
       if (recipientId == userId && senderId != userId) {
         Future(() async {
           try {
@@ -383,85 +367,54 @@ class CallService extends ChangeNotifier {
   Future<void> toggleScreenShare() async {
     try {
       if (_isScreenSharing) {
-        // Stop screen share
         _isScreenSharing = false;
-        
-        // Revert to camera if video was on
-        await initLocalStream(_isVideoOn);
-        
-        // Replace back in peer connections
-        if (_localStream != null && _localStream!.getVideoTracks().isNotEmpty) {
-          final cameraTrack = _localStream!.getVideoTracks().first;
-          for (var pc in _peerConnections.values) {
-            final senders = await pc.getSenders();
-            final videoSender = senders.cast<RTCRtpSender?>().firstWhere(
-              (s) => s?.track?.kind == 'video',
-              orElse: () => null,
-            );
-            if (videoSender != null) {
-              await videoSender.replaceTrack(cameraTrack);
-            }
-          }
+        if (!kIsWeb && Platform.isAndroid) {
+          try {
+            // Using reflection/dynamic check for older vs newer plugin versions
+            final helper = Helper as dynamic;
+            if (helper.stopForegroundService != null) await helper.stopForegroundService();
+          } catch (_) {}
         }
+        await initLocalStream(_isVideoOn);
       } else {
-        // Start screen share
-        final Map<String, dynamic> mediaConstraints = {
-          'audio': false,
-          'video': true,
-        };
-        
+        if (!kIsWeb && Platform.isAndroid) {
+          try {
+            // Different versions of flutter_webrtc use different methods or params
+            // We attempt the most common ones or ignore if missing to prevent crash
+            final helper = Helper as dynamic;
+            if (helper.startForegroundService != null) {
+              await helper.startForegroundService(
+                notificationId: 123,
+                contentTitle: 'Screen Sharing',
+                contentText: 'Sharing your screen',
+                iconName: 'ic_launcher',
+              );
+            }
+          } catch (_) {}
+        }
+
+        final Map<String, dynamic> mediaConstraints = {'audio': false, 'video': true};
         final MediaStream screenStream = await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
 
         if (screenStream.getVideoTracks().isNotEmpty) {
           final screenTrack = screenStream.getVideoTracks().first;
-          
-          bool needsRenegotiation = false;
-          
-          // Replace track in all peer connections
-          for (var entry in _peerConnections.entries) {
-            final remoteUserId = entry.key;
-            final pc = entry.value;
+          for (var pc in _peerConnections.values) {
             final senders = await pc.getSenders();
             final videoSender = senders.cast<RTCRtpSender?>().firstWhere(
-              (s) => s?.track?.kind == 'video',
-              orElse: () => null,
+              (s) => s?.track?.kind == 'video', orElse: () => null,
             );
-            
             if (videoSender != null) {
               await videoSender.replaceTrack(screenTrack);
             } else {
-              // If no video sender, we MUST add a track and renegotiate
               await pc.addTrack(screenTrack, screenStream);
-              needsRenegotiation = true;
-            }
-
-            if (needsRenegotiation) {
-              final offer = await pc.createOffer();
-              await pc.setLocalDescription(offer);
-              await _sendSignaling(remoteUserId, {
-                'type': 'offer',
-                'sdp': offer.sdp,
-                'sdp_type': offer.type,
-              });
-              needsRenegotiation = false;
             }
           }
-
           _isScreenSharing = true;
-          
-          // Notify remote users about screen share state
           final userId = _supabase.auth.currentUser!.id;
           for (var remoteId in _peerConnections.keys) {
-            await _sendSignaling(remoteId, {
-              'type': 'screen_share_state',
-              'userId': userId,
-              'isSharing': true,
-            });
+            await _sendSignaling(remoteId, {'type': 'screen_share_state', 'userId': userId, 'isSharing': true});
           }
-
-          screenTrack.onEnded = () {
-            if (_isScreenSharing) toggleScreenShare();
-          };
+          screenTrack.onEnded = () { if (_isScreenSharing) toggleScreenShare(); };
         }
       }
       notifyListeners();
@@ -474,52 +427,46 @@ class CallService extends ChangeNotifier {
     final type = data['type'];
     final pc = _peerConnections[senderId];
     
-    if (type == 'offer') {
-      if (pc != null) {
-        await pc.setRemoteDescription(RTCSessionDescription(data['sdp'], data['sdp_type']));
-        final answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        
-        await _sendSignaling(senderId, {
-          'type': 'answer',
-          'sdp': answer.sdp,
-          'sdp_type': answer.type,
-        });
+    Future.microtask(() async {
+      try {
+        if (type == 'offer') {
+          if (pc != null) {
+            await pc.setRemoteDescription(RTCSessionDescription(data['sdp'], data['sdp_type']));
+            final answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            await _sendSignaling(senderId, {'type': 'answer', 'sdp': answer.sdp, 'sdp_type': answer.type});
+          }
+        } else if (type == 'answer') {
+          if (pc != null && (pc.signalingState == RTCSignalingState.RTCSignalingStateHaveLocalOffer || 
+                             pc.signalingState == RTCSignalingState.RTCSignalingStateStable)) {
+            await pc.setRemoteDescription(RTCSessionDescription(data['sdp'], data['sdp_type']));
+            await _applyBitrateConstraints(pc);
+            await _flushCandidateQueue(senderId, pc);
+          }
+        } else if (type == 'candidate') {
+          if (pc != null) {
+            await pc.addCandidate(RTCIceCandidate(data['candidate'], data['sdpMid'], data['sdpMLineIndex']));
+          } else {
+            _candidateQueue[senderId] ??= [];
+            _candidateQueue[senderId]!.add(data);
+          }
+        } else if (type == 'screen_share_state') {
+          final isSharing = data['isSharing'] as bool;
+          if (isSharing) {
+            _remoteScreenShareUserId = data['userId'];
+          } else if (_remoteScreenShareUserId == data['userId']) {
+            _remoteScreenShareUserId = null;
+          }
+          notifyListeners();
+        }
+      } catch (e) {
+        debugPrint('[CallService] Error handling signaling: $e');
       }
-    } else if (type == 'answer') {
-      if (pc != null && pc.signalingState == RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
-        await pc.setRemoteDescription(RTCSessionDescription(data['sdp'], data['sdp_type']));
-        await _applyBitrateConstraints(pc);
-        await _flushCandidateQueue(senderId, pc);
-      }
-    } else if (type == 'candidate') {
-      if (pc != null) {
-        debugPrint('[CallService] Adding ICE candidate from $senderId');
-        await pc.addCandidate(RTCIceCandidate(
-          data['candidate'],
-          data['sdpMid'],
-          data['sdpMLineIndex'],
-        ));
-      } else {
-        debugPrint('[CallService] Queuing ICE candidate from $senderId');
-        _candidateQueue[senderId] ??= [];
-        _candidateQueue[senderId]!.add(data);
-      }
-    } else if (type == 'screen_share_state') {
-      final isSharing = data['isSharing'] as bool;
-      if (isSharing) {
-        _remoteScreenShareUserId = data['userId'];
-      } else if (_remoteScreenShareUserId == data['userId']) {
-        _remoteScreenShareUserId = null;
-      }
-      notifyListeners();
-    }
+    });
   }
 
   Future<RTCPeerConnection> _getOrCreatePeerConnection(String remoteUserId) async {
-    if (_peerConnections.containsKey(remoteUserId)) {
-      return _peerConnections[remoteUserId]!;
-    }
+    if (_peerConnections.containsKey(remoteUserId)) return _peerConnections[remoteUserId]!;
     return await _createPeerConnection(remoteUserId);
   }
 
@@ -527,11 +474,7 @@ class CallService extends ChangeNotifier {
     final candidates = _candidateQueue[senderId];
     if (candidates != null) {
       for (var candidate in candidates) {
-        await pc.addCandidate(RTCIceCandidate(
-          candidate['candidate'],
-          candidate['sdpMid'],
-          candidate['sdpMLineIndex'],
-        ));
+        await pc.addCandidate(RTCIceCandidate(candidate['candidate'], candidate['sdpMid'], candidate['sdpMLineIndex']));
       }
       _candidateQueue.remove(senderId);
     }
@@ -554,148 +497,90 @@ class CallService extends ChangeNotifier {
     _signalingChannel?.unsubscribe();
     _signalingChannel = null;
     
+    if (!kIsWeb && Platform.isAndroid) {
+      try {
+        final helper = Helper as dynamic;
+        if (helper.stopForegroundService != null) helper.stopForegroundService();
+      } catch (_) {}
+    }
+    
     _localStream?.getTracks().forEach((track) => track.stop());
     _localStream = null;
     _localRenderer.srcObject = null;
-    
-    for (var pc in _peerConnections.values) {
-      pc.close();
-    }
+    for (var pc in _peerConnections.values) pc.close();
     _peerConnections.clear();
-    
-    for (var stream in _remoteStreams.values) {
-      stream.getTracks().forEach((track) => track.stop());
-    }
+    for (var stream in _remoteStreams.values) stream.getTracks().forEach((track) => track.stop());
     _remoteStreams.clear();
-    
-    for (var renderer in _remoteRenderers.values) {
-      renderer.dispose();
-    }
+    for (var renderer in _remoteRenderers.values) renderer.dispose();
     _remoteRenderers.clear();
-    
     _currentCallId = null;
     _currentCall = null;
     _incomingCall = null;
     _candidateQueue.clear();
     _isScreenSharing = false;
     _remoteScreenShareUserId = null;
-    
     notifyListeners();
   }
 
   void startIncomingCallListener() {
     final userId = _supabase.auth.currentUser!.id;
     _incomingCallSubscription?.cancel();
-    _incomingCallSubscription = _supabase
-        .from('calls')
-        .stream(primaryKey: ['id'])
-        .eq('receiver_id', userId)
-        .listen((data) {
-          if (data.isNotEmpty) {
-            // Filter by ringing status manually since SupabaseStreamBuilder 
-            // only supports one filter in this version.
-            final ringingCalls = data.where((json) => 
-              json['status'] == CallStatus.ringing.name.toLowerCase()
-            ).toList();
-
-            if (ringingCalls.isNotEmpty) {
-              final call = CallEntity.fromJson(ringingCalls.first);
-              // Only notify if it's a new incoming call and we're not already in a call
-              if (_currentCallId == null && _incomingCall?.id != call.id) {
-                _incomingCall = call;
-                _playRingtone();
-                
-                // Show desktop notification
-                DesktopCallNotifier.instance.handleIncomingCall(
-                  callId: call.id,
-                  callerName: 'Incoming Call', // In a real app, fetch caller name
-                  senderId: call.callerId,
-                );
-                
-                notifyListeners();
-              }
-            } else {
-              if (_incomingCall != null) {
-                _incomingCall = null;
-                _stopRingtone();
-                notifyListeners();
-              }
-            }
-          } else {
-            if (_incomingCall != null) {
-              _incomingCall = null;
-              _stopRingtone();
-              notifyListeners();
-            }
+    _incomingCallSubscription = _supabase.from('calls').stream(primaryKey: ['id']).eq('receiver_id', userId).listen((data) {
+      if (data.isNotEmpty) {
+        final ringingCalls = data.where((json) => json['status'] == CallStatus.ringing.name.toLowerCase()).toList();
+        if (ringingCalls.isNotEmpty) {
+          final call = CallEntity.fromJson(ringingCalls.first);
+          if (_currentCallId == null && _incomingCall?.id != call.id) {
+            _incomingCall = call;
+            _playRingtone();
+            DesktopCallNotifier.instance.handleIncomingCall(callId: call.id, callerName: 'Incoming Call', senderId: call.callerId);
+            notifyListeners();
           }
-        });
+        } else if (_incomingCall != null) {
+          _incomingCall = null;
+          _stopRingtone();
+          notifyListeners();
+        }
+      } else if (_incomingCall != null) {
+        _incomingCall = null;
+        _stopRingtone();
+        notifyListeners();
+      }
+    });
   }
 
-  Future<void> endCall() async {
-    _cleanup();
-  }
+  Future<void> endCall() async { _cleanup(); }
 
   void toggleMute() {
     if (_localStream != null) {
       _isMuted = !_isMuted;
-      for (var track in _localStream!.getAudioTracks()) {
-        track.enabled = !_isMuted;
-      }
+      for (var track in _localStream!.getAudioTracks()) track.enabled = !_isMuted;
       notifyListeners();
     }
   }
 
   Future<void> toggleVideo() async {
     if (_localStream == null) return;
-
     if (_localStream!.getVideoTracks().isEmpty && !_isVideoOn) {
-      // Trying to turn video ON but no track exists (e.g. started as audio call)
       try {
         final videoStream = await navigator.mediaDevices.getUserMedia({
           'audio': false,
-          'video': {
-            'facingMode': 'user',
-            'width': {'ideal': 1280},
-            'height': {'ideal': 720},
-          },
+          'video': {'facingMode': 'user', 'width': {'ideal': 1280}, 'height': {'ideal': 720}}
         });
-        
         if (videoStream.getVideoTracks().isNotEmpty) {
           final videoTrack = videoStream.getVideoTracks().first;
           await _localStream!.addTrack(videoTrack);
           _isVideoOn = true;
-          
-          // Add to all peer connections and renegotiate
-          for (var entry in _peerConnections.entries) {
-            final remoteUserId = entry.key;
-            final pc = entry.value;
-            
-            await pc.addTrack(videoTrack, _localStream!);
-            
-            final offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            await _sendSignaling(remoteUserId, {
-              'type': 'offer',
-              'sdp': offer.sdp,
-              'sdp_type': offer.type,
-            });
-          }
+          for (var pc in _peerConnections.values) await pc.addTrack(videoTrack, _localStream!);
         }
       } catch (e) {
         debugPrint('[CallService] Error enabling video: $e');
       }
     } else {
       _isVideoOn = !_isVideoOn;
-      for (var track in _localStream!.getVideoTracks()) {
-        track.enabled = _isVideoOn;
-      }
+      for (var track in _localStream!.getVideoTracks()) track.enabled = _isVideoOn;
     }
-    
-    // Update speakerphone state when toggling video
-    if (Platform.isAndroid || Platform.isIOS) {
-       await Helper.setSpeakerphoneOn(_isVideoOn);
-    }
-    
+    if (Platform.isAndroid || Platform.isIOS) await Helper.setSpeakerphoneOn(_isVideoOn);
     notifyListeners();
   }
 
@@ -705,15 +590,12 @@ class CallService extends ChangeNotifier {
     try {
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
       await _audioPlayer.play(AssetSource('audio/standardringtone.mp3'));
-    } catch (_) {
-      _isPlayingRingtone = false;
-    }
+    } catch (_) { _isPlayingRingtone = false; }
   }
 
   Future<void> _stopRingtone() async {
     _isPlayingRingtone = false;
     await _audioPlayer.stop();
-    // Dismiss any desktop OS notification shown for this call.
     DesktopCallNotifier.instance.dismissIncomingCall();
   }
 

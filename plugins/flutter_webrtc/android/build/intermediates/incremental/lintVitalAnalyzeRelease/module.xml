@@ -1,0 +1,26 @@
+<lint-module
+    format="1"
+    dir="F:\DevCaches\Pub\Cache\hosted\pub.dev\flutter_webrtc-0.12.12+hotfix.1\android"
+    name=":flutter_webrtc"
+    type="LIBRARY"
+    maven="com.cloudwebrtc.webrtc:flutter_webrtc:1.0-SNAPSHOT"
+    agpVersion="8.9.1"
+    buildFolder="build"
+    bootClassPath="C:\Android\platforms\android-31\android.jar;C:\Android\build-tools\35.0.0\core-lambda-stubs.jar"
+    javaSourceLevel="17"
+    compileTarget="android-31"
+    neverShrinking="true">
+  <lintOptions
+      disable="InvalidPackage"
+      abortOnError="true"
+      absolutePaths="true"
+      checkReleaseBuilds="true"
+      explainIssues="true">
+    <severities>
+      <severity
+        id="InvalidPackage"
+        severity="IGNORE" />
+    </severities>
+  </lintOptions>
+  <variant name="release"/>
+</lint-module>

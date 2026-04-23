@@ -1,0 +1,26 @@
+[
+    {
+        "merged": "com.cloudwebrtc.webrtc.flutter_webrtc-release-24:/animator/fragment_open_exit.xml",
+        "source": "com.cloudwebrtc.webrtc.flutter_webrtc-fragment-1.7.1-2:/animator/fragment_open_exit.xml"
+    },
+    {
+        "merged": "com.cloudwebrtc.webrtc.flutter_webrtc-release-24:/animator/fragment_fade_exit.xml",
+        "source": "com.cloudwebrtc.webrtc.flutter_webrtc-fragment-1.7.1-2:/animator/fragment_fade_exit.xml"
+    },
+    {
+        "merged": "com.cloudwebrtc.webrtc.flutter_webrtc-release-24:/animator/fragment_close_exit.xml",
+        "source": "com.cloudwebrtc.webrtc.flutter_webrtc-fragment-1.7.1-2:/animator/fragment_close_exit.xml"
+    },
+    {
+        "merged": "com.cloudwebrtc.webrtc.flutter_webrtc-release-24:/animator/fragment_fade_enter.xml",
+        "source": "com.cloudwebrtc.webrtc.flutter_webrtc-fragment-1.7.1-2:/animator/fragment_fade_enter.xml"
+    },
+    {
+        "merged": "com.cloudwebrtc.webrtc.flutter_webrtc-release-24:/animator/fragment_open_enter.xml",
+        "source": "com.cloudwebrtc.webrtc.flutter_webrtc-fragment-1.7.1-2:/animator/fragment_open_enter.xml"
+    },
+    {
+        "merged": "com.cloudwebrtc.webrtc.flutter_webrtc-release-24:/animator/fragment_close_enter.xml",
+        "source": "com.cloudwebrtc.webrtc.flutter_webrtc-fragment-1.7.1-2:/animator/fragment_close_enter.xml"
+    }
+]

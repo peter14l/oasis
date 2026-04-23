@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:oasis/services/call_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/core/config/app_config.dart';
 import '../../domain/models/call_entity.dart';
 import '../../domain/usecases/initiate_call.dart';
 import '../../domain/usecases/accept_call.dart';
@@ -207,6 +208,10 @@ class CallProvider extends ChangeNotifier {
     required String receiverId,
     required CallType type,
   }) async {
+    if (!AppConfig.enableCalls) {
+      debugPrint('[CallProvider] Calling is currently disabled in AppConfig');
+      return null;
+    }
     try {
       _isEnding = false;
       _state = _state.copyWith(isLoading: true, clearError: true);

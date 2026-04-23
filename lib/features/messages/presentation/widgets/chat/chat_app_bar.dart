@@ -7,6 +7,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/core/config/app_config.dart';
 
 /// Chat app bar with avatar, presence indicator, encryption lock, and action buttons.
 /// Extracted floating glassmorphic header from chat_screen.dart.
@@ -218,14 +219,14 @@ class ChatAppBar extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (onCallPressed != null)
+                    if (onCallPressed != null && AppConfig.enableCalls)
                       IconButton(
                         icon: const Icon(FluentIcons.call_24_regular, size: 20),
                         onPressed: onCallPressed,
                         padding: const EdgeInsets.all(8),
                         constraints: const BoxConstraints(),
                       ),
-                    if (onVideoCallPressed != null)
+                    if (onVideoCallPressed != null && AppConfig.enableCalls)
                       IconButton(
                         icon: const Icon(FluentIcons.video_24_regular, size: 20),
                         onPressed: onVideoCallPressed,
@@ -378,14 +379,16 @@ class ChatAppBar extends StatelessWidget {
             fluent.CommandBar(
               overflowBehavior: fluent.CommandBarOverflowBehavior.noWrap,
               primaryItems: [
-                fluent.CommandBarButton(
-                  icon: const Icon(FluentIcons.call_24_regular, size: 18),
-                  onPressed: onCallPressed,
-                ),
-                fluent.CommandBarButton(
-                  icon: const Icon(FluentIcons.video_24_regular, size: 18),
-                  onPressed: onVideoCallPressed,
-                ),
+                if (AppConfig.enableCalls) ...[
+                  fluent.CommandBarButton(
+                    icon: const Icon(FluentIcons.call_24_regular, size: 18),
+                    onPressed: onCallPressed,
+                  ),
+                  fluent.CommandBarButton(
+                    icon: const Icon(FluentIcons.video_24_regular, size: 18),
+                    onPressed: onVideoCallPressed,
+                  ),
+                ],
                 fluent.CommandBarButton(
                   icon: const Icon(FluentIcons.search_24_regular, size: 18),
                   onPressed: onSearchPressed,

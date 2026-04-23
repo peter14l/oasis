@@ -426,8 +426,10 @@ class _MyAppState extends State<MyApp> {
           context.read<CircleProvider>().loadCircles(userId);
           context.read<CanvasProvider>().loadCanvases(userId);
           
-          // Eagerly instantiate CallProvider to attach incoming call listeners
-          context.read<CallProvider>();
+          if (AppConfig.enableCalls) {
+            // Eagerly instantiate CallProvider to attach incoming call listeners
+            context.read<CallProvider>();
+          }
         }
       }));
 

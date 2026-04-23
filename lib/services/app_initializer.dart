@@ -732,28 +732,35 @@ class AppInitializer {
         Provider<VoiceTranscriptService>(
           create: (_) => VoiceTranscriptService(),
         ),
-        ChangeNotifierProvider<CallService>(create: (_) => CallService()),
+        ChangeNotifierProvider<CallService>(
+          create: (_) => AppConfig.enableCalls ? CallService() : DisabledCallService(),
+        ),
         ChangeNotifierProxyProvider<CallService, CallProvider>(
-          // Bug #7: Initialize exactly once in `create`, not in `update`.
-          // The `update` callback fires on every rebuild that touches CallService,
-          // which was allocating a new CallRepositoryImpl each time and risking
-          // a double startIncomingCallListener() subscription if _isInitialized reset.
           create: (context) {
-            final provider = CallProvider(context.read<CallService>());
-            // addPostFrameCallback ensures the widget tree is fully built before
-            // we read providers — safe to call initialize() immediately after.
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              final repo = CallRepositoryImpl();
-              provider.initialize(
-                initiateCall: InitiateCall(repo),
-                acceptCall: AcceptCall(repo),
-                endCall: EndCall(repo),
-                getActiveCalls: GetActiveCalls(repo),
-              );
-            });
+            final callService = context.read<CallService>();
+            final provider = CallProvider(callService);
+            
+            if (AppConfig.enableCalls) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                final repo = CallRepositoryImpl();
+                provider.initialize(
+                  initiateCall: InitiateCall(repo),
+                  acceptCall: AcceptCall(repo),
+                  endCall: EndCall(repo),
+                  getActiveCalls: GetActiveCalls(repo),
+                );
+              });
+            } else {
+              // Mark as initialized but don't start any listeners
+              // Use a private microtask to not block create()
+              Future.microtask(() {
+                if (context.mounted) {
+                   provider.clearError(); // Just to trigger a notify if needed
+                }
+              });
+            }
             return provider;
           },
-          // update just passes the existing provider through — no re-initialization.
           update: (context, service, provider) => provider!,
         ),
       ],

@@ -178,6 +178,10 @@ dependency_overrides:
     path: ./stubs/flutter_secure_storage_windows
   flutter_local_notifications_windows:
     path: ./stubs/flutter_local_notifications_windows
+  flutter_webrtc:
+    path: ./plugins/flutter_webrtc
+  audioplayers_windows:
+    path: ./plugins/audioplayers_windows
 
 
 flutter:
