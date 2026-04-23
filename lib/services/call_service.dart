@@ -552,23 +552,36 @@ class CallService extends ChangeNotifier {
         .from('calls')
         .stream(primaryKey: ['id'])
         .eq('receiver_id', userId)
-        .eq('status', CallStatus.ringing.name.toLowerCase())
         .listen((data) {
           if (data.isNotEmpty) {
-            final call = CallEntity.fromJson(data.first);
-            // Only notify if it's a new incoming call and we're not already in a call
-            if (_currentCallId == null && _incomingCall?.id != call.id) {
-              _incomingCall = call;
-              _playRingtone();
-              
-              // Show desktop notification
-              DesktopCallNotifier.instance.handleIncomingCall(
-                callId: call.id,
-                callerName: 'Incoming Call', // In a real app, fetch caller name
-                senderId: call.callerId,
-              );
-              
-              notifyListeners();
+            // Filter by ringing status manually since SupabaseStreamBuilder 
+            // only supports one filter in this version.
+            final ringingCalls = data.where((json) => 
+              json['status'] == CallStatus.ringing.name.toLowerCase()
+            ).toList();
+
+            if (ringingCalls.isNotEmpty) {
+              final call = CallEntity.fromJson(ringingCalls.first);
+              // Only notify if it's a new incoming call and we're not already in a call
+              if (_currentCallId == null && _incomingCall?.id != call.id) {
+                _incomingCall = call;
+                _playRingtone();
+                
+                // Show desktop notification
+                DesktopCallNotifier.instance.handleIncomingCall(
+                  callId: call.id,
+                  callerName: 'Incoming Call', // In a real app, fetch caller name
+                  senderId: call.callerId,
+                );
+                
+                notifyListeners();
+              }
+            } else {
+              if (_incomingCall != null) {
+                _incomingCall = null;
+                _stopRingtone();
+                notifyListeners();
+              }
             }
           } else {
             if (_incomingCall != null) {
