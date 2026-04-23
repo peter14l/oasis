@@ -24,6 +24,7 @@ class CallState {
   final bool isVideoOn;
   final bool isScreenSharing;
   final bool isMinimized;
+  final String? remoteScreenShareUserId;
 
   const CallState({
     this.activeCall,
@@ -39,6 +40,7 @@ class CallState {
     this.isVideoOn = true,
     this.isScreenSharing = false,
     this.isMinimized = false,
+    this.remoteScreenShareUserId,
   });
 
   factory CallState.initial() {
@@ -62,6 +64,8 @@ class CallState {
     bool? isVideoOn,
     bool? isScreenSharing,
     bool? isMinimized,
+    String? remoteScreenShareUserId,
+    bool clearRemoteScreenShare = false,
   }) {
     return CallState(
       activeCall: clearActiveCall ? null : (activeCall ?? this.activeCall),
@@ -77,6 +81,7 @@ class CallState {
       isVideoOn: isVideoOn ?? this.isVideoOn,
       isScreenSharing: isScreenSharing ?? this.isScreenSharing,
       isMinimized: isMinimized ?? this.isMinimized,
+      remoteScreenShareUserId: clearRemoteScreenShare ? null : (remoteScreenShareUserId ?? this.remoteScreenShareUserId),
     );
   }
 }
@@ -111,6 +116,8 @@ class CallProvider extends ChangeNotifier {
       isVideoOn: _callService.isVideoOn,
       isScreenSharing: _callService.isScreenSharing,
       incomingCall: _callService.incomingCall,
+      remoteScreenShareUserId: _callService.remoteScreenShareUserId,
+      clearRemoteScreenShare: _callService.remoteScreenShareUserId == null,
       clearIncomingCall: _callService.incomingCall == null,
       clearActiveCall: _callService.currentCallId == null,
     );
@@ -122,6 +129,7 @@ class CallProvider extends ChangeNotifier {
         newState.isMuted != _state.isMuted ||
         newState.isVideoOn != _state.isVideoOn ||
         newState.isScreenSharing != _state.isScreenSharing ||
+        newState.remoteScreenShareUserId != _state.remoteScreenShareUserId ||
         newState.remoteRenderers.length != _state.remoteRenderers.length) {
       
       // If call status changed to active, stop ringing timer

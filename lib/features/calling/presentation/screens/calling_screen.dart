@@ -184,38 +184,121 @@ class _CallingScreenState extends State<CallingScreen> {
   Widget _buildParticipantGrid(CallProvider provider) {
     final state = provider.state;
     final remoteIds = state.remoteStreams.keys.toList();
-    final totalCount = remoteIds.length + 1;
+    final currentUserId = Provider.of<ProfileProvider>(context, listen: false).currentProfile?.id;
+    
+    // Check if anyone is sharing screen (local or remote)
+    final isLocalSharing = provider.isScreenSharing;
+    final remoteSharingId = state.remoteScreenShareUserId;
+    final someoneSharing = isLocalSharing || remoteSharingId != null;
 
-    if (totalCount == 1) {
-      return _buildVideoTile('You', state.localRenderer, isLocal: true, isVideoOn: provider.isVideoOn);
+    if (someoneSharing) {
+      return _buildScreenShareLayout(provider, remoteIds, isLocalSharing, remoteSharingId);
     }
 
+    if (remoteIds.isEmpty) {
+      return _buildVideoTile('You', state.localRenderer, 
+          isLocal: true, isVideoOn: provider.isVideoOn);
+    }
+
+    if (remoteIds.length == 1) {
+      // 1-on-1 Adaptive Layout (Split screen)
+      return Column(
+        children: [
+          Expanded(
+            child: _buildVideoTile(
+              'You', 
+              state.localRenderer, 
+              isLocal: true, 
+              isVideoOn: provider.isVideoOn
+            ),
+          ),
+          const SizedBox(height: 4),
+          Expanded(
+            child: _buildRemoteParticipantTile(remoteIds[0], state),
+          ),
+        ],
+      );
+    }
+
+    // Grid for 3+ participants
     return GridView.builder(
       padding: const EdgeInsets.fromLTRB(4, 100, 4, 120),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: totalCount <= 2 ? 1 : 2,
-        childAspectRatio: totalCount <= 2 ? 0.8 : 1,
+        crossAxisCount: remoteIds.length + 1 <= 2 ? 1 : 2,
+        childAspectRatio: remoteIds.length + 1 <= 2 ? 0.8 : 1,
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
       ),
-      itemCount: totalCount,
+      itemCount: remoteIds.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {
           return _buildVideoTile('You', state.localRenderer, 
               isLocal: true, isVideoOn: provider.isVideoOn);
         }
         final userId = remoteIds[index - 1];
-        final renderer = state.remoteRenderers[userId];
-        final stream = state.remoteStreams[userId];
-        
-        // Dynamically check if remote user has an active video track
-        final hasRemoteVideo = stream != null && 
-                              stream.getVideoTracks().isNotEmpty && 
-                              stream.getVideoTracks().any((t) => t.enabled);
-        
-        return _buildVideoTile('Remote User', renderer, 
-            userId: userId, isVideoOn: hasRemoteVideo);
+        return _buildRemoteParticipantTile(userId, state);
       },
+    );
+  }
+
+  Widget _buildScreenShareLayout(CallProvider provider, List<String> remoteIds, bool isLocalSharing, String? remoteSharingId) {
+    final state = provider.state;
+    
+    return Stack(
+      children: [
+        // Full screen share
+        Positioned.fill(
+          child: isLocalSharing 
+            ? _buildVideoTile('Your Screen', state.localRenderer, isLocal: true, isVideoOn: true)
+            : _buildRemoteParticipantTile(remoteSharingId!, state, isFull: true),
+        ),
+
+        // PIP for other participants
+        Positioned(
+          top: 100,
+          right: 16,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Local preview if not sharing
+              if (!isLocalSharing)
+                SizedBox(
+                  width: 120,
+                  height: 160,
+                  child: _buildVideoTile('You', state.localRenderer, 
+                      isLocal: true, isVideoOn: provider.isVideoOn),
+                ),
+              
+              // Other remote participants
+              ...remoteIds.where((id) => id != remoteSharingId).map((id) => Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: SizedBox(
+                  width: 120,
+                  height: 160,
+                  child: _buildRemoteParticipantTile(id, state),
+                ),
+              )),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRemoteParticipantTile(String userId, CallState state, {bool isFull = false}) {
+    final renderer = state.remoteRenderers[userId];
+    final stream = state.remoteStreams[userId];
+    
+    // Dynamically check if remote user has an active video track
+    final hasRemoteVideo = stream != null && 
+                          stream.getVideoTracks().isNotEmpty && 
+                          stream.getVideoTracks().any((t) => t.enabled);
+
+    return ParticipantTile(
+      userId: userId,
+      renderer: renderer,
+      isVideoOn: hasRemoteVideo,
+      isFull: isFull,
     );
   }
 
@@ -486,6 +569,110 @@ class _PulsatingParticipantState extends State<PulsatingParticipant> with Single
               : null,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class ParticipantTile extends StatefulWidget {
+  final String userId;
+  final RTCVideoRenderer? renderer;
+  final bool isVideoOn;
+  final bool isFull;
+
+  const ParticipantTile({
+    super.key,
+    required this.userId,
+    this.renderer,
+    required this.isVideoOn,
+    this.isFull = false,
+  });
+
+  @override
+  State<ParticipantTile> createState() => _ParticipantTileState();
+}
+
+class _ParticipantTileState extends State<ParticipantTile> {
+  UserProfileEntity? _profile;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  @override
+  void didUpdateWidget(ParticipantTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.userId != widget.userId) {
+      _loadProfile();
+    }
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final profile = await context.read<ProfileProvider>().getProfile(widget.userId);
+      if (mounted) {
+        setState(() {
+          _profile = profile;
+        });
+      }
+    } catch (e) {
+      debugPrint('[ParticipantTile] Error loading profile: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final name = _profile?.displayName ?? _profile?.username ?? 'Remote User';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: widget.isFull ? BorderRadius.zero : BorderRadius.circular(12),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          // Video View
+          if (widget.renderer != null)
+            Opacity(
+              opacity: widget.isVideoOn ? 1.0 : 0.01,
+              child: RTCVideoView(
+                widget.renderer!,
+                objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+              ),
+            ),
+          
+          // Avatar Overlay
+          if (!widget.isVideoOn)
+            Positioned.fill(
+              child: Container(
+                color: Colors.grey[900],
+                child: PulsatingParticipant(
+                  userId: widget.userId,
+                  size: widget.isFull ? 200 : 80,
+                ),
+              ),
+            ),
+
+          // Name Tag
+          Positioned(
+            bottom: 8,
+            left: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                name,
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

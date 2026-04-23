@@ -63,13 +63,13 @@ class CallService extends ChangeNotifier {
     'sdpSemantics': 'unified-plan',
   };
 
-  bool _isMuted = false;
-  bool _isVideoOn = true;
   bool _isScreenSharing = false;
+  String? _remoteScreenShareUserId;
 
   bool get isMuted => _isMuted;
   bool get isVideoOn => _isVideoOn;
   bool get isScreenSharing => _isScreenSharing;
+  String? get remoteScreenShareUserId => _remoteScreenShareUserId;
 
   Future<void> initLocalStream(bool isVideo) async {
     // Check and request permissions for mobile
@@ -378,6 +378,54 @@ class CallService extends ChangeNotifier {
     }).subscribe();
   }
 
+  Future<void> toggleScreenShare() async {
+    try {
+      if (_isScreenSharing) {
+        // Stop screen share
+        _isScreenSharing = false;
+        
+        // Revert to camera if video was on
+        await initLocalStream(_isVideoOn);
+      } else {
+        // Start screen share
+        final MediaStream screenStream = await navigator.mediaDevices.getDisplayMedia({
+          'video': true,
+          'audio': false,
+        });
+
+        if (screenStream.getVideoTracks().isNotEmpty) {
+          final screenTrack = screenStream.getVideoTracks().first;
+          
+          // Replace track in all peer connections
+          for (var pc in _peerConnections.values) {
+            final senders = await pc.getSenders();
+            final videoSender = senders.firstWhere((s) => s.track?.kind == 'video');
+            await videoSender.replaceTrack(screenTrack);
+          }
+
+          _isScreenSharing = true;
+          
+          // Notify remote users about screen share state
+          final userId = _supabase.auth.currentUser!.id;
+          for (var remoteId in _peerConnections.keys) {
+            await _sendSignaling(remoteId, {
+              'type': 'screen_share_state',
+              'userId': userId,
+              'isSharing': true,
+            });
+          }
+
+          screenTrack.onEnded = () {
+            toggleScreenShare();
+          };
+        }
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[CallService] Error toggling screen share: $e');
+    }
+  }
+
   Future<void> _handleSignalingData(String senderId, Map<String, dynamic> data) async {
     final type = data['type'];
     final pc = _peerConnections[senderId];
@@ -413,267 +461,15 @@ class CallService extends ChangeNotifier {
         _candidateQueue[senderId] ??= [];
         _candidateQueue[senderId]!.add(data);
       }
-    }
-  }
-
-  Future<void> _flushCandidateQueue(String senderId, RTCPeerConnection pc) async {
-    final queue = _candidateQueue[senderId];
-    if (queue != null && queue.isNotEmpty) {
-      for (var candData in queue) {
-        await pc.addCandidate(RTCIceCandidate(
-          candData['candidate'],
-          candData['sdpMid'],
-          candData['sdpMLineIndex'],
-        ));
+    } else if (type == 'screen_share_state') {
+      final isSharing = data['isSharing'] as bool;
+      if (isSharing) {
+        _remoteScreenShareUserId = data['userId'];
+      } else if (_remoteScreenShareUserId == data['userId']) {
+        _remoteScreenShareUserId = null;
       }
-      queue.clear();
+      notifyListeners();
     }
-  }
-
-  Future<RTCPeerConnection> _getOrCreatePeerConnection(String remoteUserId) async {
-    if (_peerConnections.containsKey(remoteUserId)) {
-      return _peerConnections[remoteUserId]!;
-    }
-
-    while (_pendingPeerConnections.contains(remoteUserId)) {
-      await Future.delayed(const Duration(milliseconds: 100));
-      if (_peerConnections.containsKey(remoteUserId)) {
-        return _peerConnections[remoteUserId]!;
-      }
-    }
-
-    _pendingPeerConnections.add(remoteUserId);
-    try {
-      return await _createPeerConnection(remoteUserId);
-    } finally {
-      _pendingPeerConnections.remove(remoteUserId);
-    }
-  }
-
-  void _removePeer(String userId) {
-    _peerConnections[userId]?.close();
-    _peerConnections.remove(userId);
-    _remoteStreams.remove(userId);
-    _candidateQueue.remove(userId);
-    _remoteRenderers[userId]?.dispose();
-    _remoteRenderers.remove(userId);
-    notifyListeners();
-  }
-
-  // Legacy compatibility / simpler join
-  Future<void> joinCall(CallEntity call) async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) return;
-    
-    await initLocalStream(call.type == CallType.video);
-    await startSignaling(call);
-  }
-
-  Future<void> answerCall(CallEntity call) async {
-     // Handled by CallProvider usually, but keeping for logic
-  }
-
-  void _cleanup() {
-    _callSubscription?.cancel();
-    _signalingChannel?.unsubscribe();
-    _callSubscription = null;
-    _signalingChannel = null;
-
-    _localStream?.getTracks().forEach((track) => track.stop());
-    _localStream?.dispose();
-    _localStream = null;
-
-    for (var pc in _peerConnections.values) {
-      pc.close();
-    }
-    _peerConnections.clear();
-    _remoteStreams.clear();
-    _candidateQueue.clear();
-
-    for (var renderer in _remoteRenderers.values) {
-      renderer.dispose();
-    }
-    _remoteRenderers.clear();
-    _localRenderer.srcObject = null;
-
-    _currentCallId = null;
-    _currentCall = null;
-    _incomingCall = null;
-    _stopRingtone();
-    notifyListeners();
-  }
-
-  // Global listener for incoming calls
-  StreamSubscription? _incomingCallSubscription;
-  CallEntity? _incomingCall;
-  CallEntity? get incomingCall => _incomingCall;
-
-  void startIncomingCallListener() {
-    final user = _supabase.auth.currentUser;
-    if (user == null) return;
-
-    _incomingCallSubscription?.cancel();
-    _incomingCallSubscription = _supabase
-        .from('calls')
-        .stream(primaryKey: ['id'])
-        .eq('receiver_id', user.id)
-        .listen((data) async {
-      if (data.isNotEmpty) {
-        // Filter for ringing status in memory or using multiple eq if supported
-        // Some versions of supabase_flutter have issues with multiple eq on streams
-        final ringingCalls = data.where((row) => row['status'] == 'ringing').toList();
-        
-        if (ringingCalls.isNotEmpty) {
-          final call = CallEntity.fromJson(ringingCalls.first);
-          _incomingCall = call;
-          _playRingtone();
-          notifyListeners();
-
-          // Proactively ensure Signal session is ready for this caller
-          unawaited(() async {
-            try {
-              await _signal.encryptMessage(call.callerId, 'ping');
-            } catch (e) {
-              debugPrint('[CallService] Proactive session build failed: $e');
-            }
-          }());
-
-          final bool isMobile = !kIsWeb && (Platform.isAndroid || Platform.isIOS);
-          if (!isMobile) {
-            String callerName = 'Someone';
-            try {
-              final profile = await _supabase
-                  .from('profiles')
-                  .select('display_name')
-                  .eq('id', call.callerId)
-                  .maybeSingle();
-              callerName = (profile?['display_name'] as String?) ?? 'Someone';
-            } catch (_) {}
-
-            DesktopCallNotifier.instance.handleIncomingCall(
-              callId: call.id,
-              callerName: callerName,
-              senderId: call.callerId,
-            );
-          }
-        } else {
-          // No ringing calls. Check if we should clear the incoming call UI.
-          if (_incomingCall != null && _currentCallId == null) {
-            // Check if the call we were tracking is now active (being joined)
-            final activeCalls = data.where((row) => row['status'] == 'active').toList();
-            final isJoining = activeCalls.any((c) => c['id'] == _incomingCall!.id);
-            
-            if (isJoining) {
-              // The call is now active, likely because we just accepted it.
-              // Don't clear _incomingCall yet; it will be cleared once startSignaling 
-              // sets _currentCallId and _currentCall.
-              return;
-            }
-
-            _incomingCall = null;
-            _stopRingtone();
-            notifyListeners();
-          }
-        }
-      } else {
-        if (_incomingCall != null && _currentCallId == null) {
-          _incomingCall = null;
-          _stopRingtone();
-          notifyListeners();
-        }
-      }
-    });
-  }
-
-  Future<void> endCall() async {
-    if (_currentCallId == null) return;
-    final callId = _currentCallId!;
-    _cleanup();
-    await _supabase.from('calls').update({
-      'status': 'ended',
-      'ended_at': DateTime.now().toIso8601String(),
-    }).eq('id', callId);
-  }
-
-  void toggleMute() {
-    if (_localStream == null) return;
-    _isMuted = !_isMuted;
-    _localStream!.getAudioTracks().forEach((track) => track.enabled = !_isMuted);
-    notifyListeners();
-  }
-
-  Future<void> toggleVideo() async {
-    if (_localStream == null) return;
-    
-    final videoTracks = _localStream!.getVideoTracks();
-    
-    if (videoTracks.isEmpty) {
-      // Switch from Voice to Video: Acquisition
-      try {
-        final videoStream = await navigator.mediaDevices.getUserMedia({
-          'audio': false,
-          'video': {
-            'facingMode': 'user',
-            'width': {'ideal': 1280},
-            'height': {'ideal': 720},
-            'frameRate': {'ideal': 30},
-          }
-        });
-        
-        if (videoStream.getVideoTracks().isNotEmpty) {
-          final videoTrack = videoStream.getVideoTracks().first;
-          await _localStream!.addTrack(videoTrack);
-          _isVideoOn = true;
-
-          // Add track to all active peer connections
-          for (var entry in _peerConnections.entries) {
-            final pc = entry.value;
-            final remoteUserId = entry.key;
-            
-            await pc.addTrack(videoTrack, _localStream!);
-            // Trigger renegotiation
-            await _renegotiate(remoteUserId);
-          }
-        }
-      } catch (e) {
-        debugPrint('[CallService] Error switching to video: $e');
-      }
-    } else {
-      // Simple toggle
-      _isVideoOn = !_isVideoOn;
-      for (var track in videoTracks) {
-        track.enabled = _isVideoOn;
-      }
-    }
-    
-    // Update speakerphone based on video state
-    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-      await Helper.setSpeakerphoneOn(_isVideoOn);
-    }
-    
-    notifyListeners();
-  }
-
-  Future<void> _renegotiate(String remoteUserId) async {
-    try {
-      final pc = _peerConnections[remoteUserId];
-      if (pc == null) return;
-
-      final offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      
-      await _sendSignaling(remoteUserId, {
-        'type': 'offer',
-        'sdp': offer.sdp,
-        'sdp_type': offer.type,
-      });
-    } catch (e) {
-      debugPrint('[CallService] Renegotiation error: $e');
-    }
-  }
-
-  Future<void> toggleScreenShare() async {
-     // TODO: Re-implement if needed for V2
   }
 
   Future<void> _playRingtone() async {
