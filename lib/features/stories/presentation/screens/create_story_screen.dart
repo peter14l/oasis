@@ -1291,6 +1291,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   Widget _buildCameraInterface() {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       color: Colors.black,
@@ -2322,10 +2323,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             ),
           ],
         ),
-        child: material.IconButton(
+        child: IconButton(
           onPressed: onTap,
           icon: Icon(icon, color: colorScheme.onPrimaryContainer, size: 22),
-          style: material.IconButton.styleFrom(
+          style: IconButton.styleFrom(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           ),
         ),
@@ -2336,7 +2337,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     return SizedBox(
       width: 48,
       height: 48,
-      child: material.Material(
+      child: Material(
         color: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),

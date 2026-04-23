@@ -513,7 +513,7 @@ class AppInitializer {
 
     // Initialize DM notifications after session is restored
     if (authProvider.isAuthenticated) {
-      _subscribeToDmNotifications();
+      subscribeToDmNotifications();
     }
 
     // --- BACKGROUND PHASE: Can finish after splash screen ---
