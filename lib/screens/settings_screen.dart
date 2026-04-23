@@ -114,7 +114,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 context,
                 icon: material.Icons.person_outline,
                 title: 'Account Details',
-                subtitle: 'Manage profile, subscription and account',
+                subtitle: 'Manage profile and account',
                 onTap: () => context.push('/settings/account'),
               ),
             ]),
@@ -595,7 +595,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 8),
               const material.Text(
-                'Manage your profile, subscription, and account security in a dedicated view.',
+                'Manage your profile and account security in a dedicated view.',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),

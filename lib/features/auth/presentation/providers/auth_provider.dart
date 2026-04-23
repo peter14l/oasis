@@ -5,6 +5,7 @@ import 'package:oasis/features/auth/presentation/providers/auth_state.dart'
     as app_auth;
 import 'package:oasis/services/session_registry_service.dart';
 import 'package:oasis/services/app_analytics.dart';
+import 'package:oasis/services/app_initializer.dart';
 
 export 'package:oasis/features/auth/presentation/providers/auth_state.dart';
 
@@ -37,6 +38,8 @@ class AuthProvider with ChangeNotifier {
         _analytics.setUserId(userId);
         if (userId != null) {
           _analytics.logEvent(name: 'login', parameters: {'method': event.event.name});
+          // Re-subscribe to DM notifications on login/session restoration
+          AppInitializer.subscribeToDmNotifications();
         }
         notifyListeners();
       } else {

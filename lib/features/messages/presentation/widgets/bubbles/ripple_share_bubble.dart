@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oasis/features/messages/presentation/widgets/bubbles/text_bubble.dart' as text_bubble;
 
 /// Ripple share bubble — shows a ripple preview card with thumbnail.
 /// Extracted from _buildRippleBubble() in chat_screen.dart.
@@ -124,11 +125,22 @@ class RippleShareBubble extends StatelessWidget {
                     ),
                     if (caption.isNotEmpty) ...[
                       const SizedBox(height: 4),
-                      Text(
-                        caption,
-                        style: theme.textTheme.bodyMedium,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      Builder(
+                        builder: (context) {
+                          final bool isCiphertext =
+                              text_bubble.MessageTextUtils.isDisplayableCaption(
+                                caption,
+                              ) ==
+                              false;
+                          return Text(
+                            isCiphertext ? '🔒 Message encrypted' : caption,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontStyle: isCiphertext ? FontStyle.italic : null,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          );
+                        },
                       ),
                     ],
                   ],

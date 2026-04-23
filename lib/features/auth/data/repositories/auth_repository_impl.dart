@@ -5,10 +5,12 @@ import 'package:oasis/features/auth/domain/repositories/auth_repository.dart';
 import 'package:oasis/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:oasis/features/auth/data/datasources/session_local_datasource.dart';
 import 'package:oasis/services/session_registry_service.dart';
+import 'package:oasis/services/notification_service.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDatasource _remoteDatasource;
   final SessionLocalDatasource _localDatasource;
+  final NotificationService _notificationService = NotificationService();
 
   AuthRepositoryImpl({
     AuthRemoteDatasource? remoteDatasource,
@@ -23,6 +25,10 @@ class AuthRepositoryImpl implements AuthRepository {
     debugPrint('[AuthRepositoryImpl] Got account: ${account.userId}');
     await _localDatasource.saveAccount(account);
     await _localDatasource.setLastActiveUserId(account.userId);
+    
+    // Update FCM token
+    _notificationService.updateFcmToken(account.userId);
+    
     debugPrint('[AuthRepositoryImpl] Account saved locally');
     return account;
   }
@@ -42,17 +48,29 @@ class AuthRepositoryImpl implements AuthRepository {
     );
     await _localDatasource.saveAccount(account);
     await _localDatasource.setLastActiveUserId(account.userId);
+    
+    // Update FCM token
+    _notificationService.updateFcmToken(account.userId);
+    
     return account;
   }
 
   @override
   Future<void> signInWithGoogle() async {
     await _remoteDatasource.signInWithGoogle();
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      _notificationService.updateFcmToken(user.id);
+    }
   }
 
   @override
   Future<void> signInWithApple() async {
     await _remoteDatasource.signInWithApple();
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      _notificationService.updateFcmToken(user.id);
+    }
   }
 
   @override
@@ -62,7 +80,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<RegisteredAccount?> restoreSession() async {
-    return _remoteDatasource.restoreSession();
+    final account = await _remoteDatasource.restoreSession();
+    if (account != null) {
+      _notificationService.updateFcmToken(account.userId);
+    }
+    return account;
   }
 
   @override
@@ -86,6 +108,8 @@ class AuthRepositoryImpl implements AuthRepository {
     await _remoteDatasource.setSession(account.session.refreshToken!);
     await _localDatasource.markAsUsed(userId);
     await _localDatasource.setLastActiveUserId(userId);
+    
+    _notificationService.updateFcmToken(userId);
   }
 
   @override
@@ -118,7 +142,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<AuthResponse> signInWithPasskey(String email) async {
-    return await _remoteDatasource.signInWithPasskey(email);
+    final response = await _remoteDatasource.signInWithPasskey(email);
+    if (response.user != null) {
+      _notificationService.updateFcmToken(response.user!.id);
+    }
+    return response;
   }
 
   @override
@@ -127,11 +155,15 @@ class AuthRepositoryImpl implements AuthRepository {
     required String username,
     required String fullName,
   }) async {
-    return await _remoteDatasource.registerWithPasskey(
+    final response = await _remoteDatasource.registerWithPasskey(
       email: email,
       username: username,
       fullName: fullName,
     );
+    if (response.user != null) {
+      _notificationService.updateFcmToken(response.user!.id);
+    }
+    return response;
   }
 
   @override

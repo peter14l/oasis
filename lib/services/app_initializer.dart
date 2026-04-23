@@ -511,6 +511,11 @@ class AppInitializer {
       userSettingsProvider.loadSettings(),
     ]);
 
+    // Initialize DM notifications after session is restored
+    if (authProvider.isAuthenticated) {
+      _subscribeToDmNotifications();
+    }
+
     // --- BACKGROUND PHASE: Can finish after splash screen ---
     debugPrint('STEP: Background initialization starting...');
 
@@ -592,7 +597,7 @@ class AppInitializer {
   }
 
   /// Subscribe to DM notifications and display local notifications
-  static void _subscribeToDmNotifications() {
+  static void subscribeToDmNotifications() {
     final supabase = SupabaseService().client;
     final userId = supabase.auth.currentUser?.id;
     if (userId == null) return;

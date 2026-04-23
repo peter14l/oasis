@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oasis/features/messages/presentation/widgets/bubbles/text_bubble.dart' as text_bubble;
 
 /// Post share bubble — shows a post card with thumbnail + author + caption.
 /// Extracted from _buildPostShareBubble() in chat_screen.dart.
@@ -107,11 +108,22 @@ class PostShareBubble extends StatelessWidget {
                   ),
                   if (postContent.isNotEmpty) ...[
                     const SizedBox(height: 4),
-                    Text(
-                      postContent,
-                      style: theme.textTheme.bodyMedium,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    Builder(
+                      builder: (context) {
+                        final bool isCiphertext =
+                            text_bubble.MessageTextUtils.isDisplayableCaption(
+                              postContent,
+                            ) ==
+                            false;
+                        return Text(
+                          isCiphertext ? '🔒 Message encrypted' : postContent,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontStyle: isCiphertext ? FontStyle.italic : null,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      },
                     ),
                   ],
                 ],

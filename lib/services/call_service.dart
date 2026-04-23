@@ -39,11 +39,19 @@ class DisabledCallService extends CallService {
 }
 
 class CallService extends ChangeNotifier {
-  final _supabase = SupabaseService().client;
-  final _signal = SignalService();
+  final SupabaseClient _supabase;
+  final SignalService _signal;
   final _uuid = const Uuid();
-  final _audioPlayer = AudioPlayer();
+  final AudioPlayer _audioPlayer;
   bool _isPlayingRingtone = false;
+
+  CallService({
+    SupabaseClient? supabase,
+    SignalService? signalService,
+    AudioPlayer? audioPlayer,
+  })  : _supabase = supabase ?? SupabaseService().client,
+        _signal = signalService ?? SignalService(),
+        _audioPlayer = audioPlayer ?? AudioPlayer();
 
   // Multi-peer management
   final Map<String, RTCPeerConnection> _peerConnections = {};

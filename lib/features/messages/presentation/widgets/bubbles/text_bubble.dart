@@ -55,11 +55,15 @@ class TextBubble extends StatelessWidget {
             ? colorScheme.onPrimaryContainer
             : colorScheme.onSurface);
 
+    final bool isCiphertext = !MessageTextUtils.isDisplayableCaption(content);
+
     final Widget textContent = Text(
-      content.trim(),
+      isCiphertext ? '🔒 Message encrypted' : content.trim(),
       style: theme.textTheme.bodyMedium?.copyWith(
         color: color,
-        fontStyle: content == '🔒 Message encrypted' ? FontStyle.italic : null,
+        fontStyle: (isCiphertext || content == '🔒 Message encrypted')
+            ? FontStyle.italic
+            : null,
       ),
     );
 

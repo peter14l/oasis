@@ -52,8 +52,8 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
               children: [
                 _buildProfileSection(context),
                 const SizedBox(height: 32),
-                _buildSubscriptionSection(context),
-                const SizedBox(height: 32),
+                // _buildSubscriptionSection(context),
+                // const SizedBox(height: 32),
                 _buildDangerZone(context),
               ],
             ),
@@ -157,7 +157,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
                                   ),
                                 ),
                               ),
-                              if (profile.isPro)
+                              /* if (profile.isPro)
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 8,
@@ -175,7 +175,7 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
                                       fontSize: 10,
                                     ),
                                   ),
-                                ),
+                                ), */
                             ],
                           ),
                           if (profile.fullName != null)

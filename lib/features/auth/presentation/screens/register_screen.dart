@@ -21,21 +21,25 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _hasAcceptedTerms = false;
   final FocusNode _nameFocus = FocusNode();
+  final FocusNode _usernameFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
 
   @override
   void dispose() {
     _nameController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _nameFocus.dispose();
+    _usernameFocus.dispose();
     _emailFocus.dispose();
     _passwordFocus.dispose();
     super.dispose();
@@ -53,10 +57,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await authProvider.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
-        username: _nameController.text.trim().toLowerCase().replaceAll(
-          ' ',
-          '_',
-        ),
+        username: _usernameController.text.trim().toLowerCase(),
         fullName: _nameController.text.trim(),
       );
 
@@ -152,9 +153,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _registerWithPasskey() async {
-    if (_nameController.text.trim().isEmpty || _emailController.text.trim().isEmpty) {
+    if (_nameController.text.trim().isEmpty ||
+        _usernameController.text.trim().isEmpty ||
+        _emailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your name and email first')),
+        const SnackBar(
+          content: Text('Please enter your name, username and email first'),
+        ),
       );
       return;
     }
@@ -164,7 +169,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       await authProvider.registerWithPasskey(
         email: _emailController.text.trim(),
-        username: _nameController.text.trim().toLowerCase().replaceAll(' ', '_'),
+        username: _usernameController.text.trim().toLowerCase(),
         fullName: _nameController.text.trim(),
       );
       
@@ -223,11 +228,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 prefixIcon: Icons.person_outline,
                 textInputAction: TextInputAction.next,
                 onFieldSubmitted: (_) {
-                  FocusScope.of(context).requestFocus(_emailFocus);
+                  FocusScope.of(context).requestFocus(_usernameFocus);
                 },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your name';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8),
+              CustomTextField(
+                controller: _usernameController,
+                focusNode: _usernameFocus,
+                hint: 'Username',
+                prefixIcon: Icons.alternate_email,
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_emailFocus);
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a username';
+                  }
+                  if (value.contains(' ')) {
+                    return 'Username cannot contain spaces';
+                  }
+                  if (value.length < 3) {
+                    return 'Username must be at least 3 characters';
                   }
                   return null;
                 },

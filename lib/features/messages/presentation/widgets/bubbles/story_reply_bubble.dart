@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:oasis/features/messages/presentation/widgets/bubbles/text_bubble.dart' as text_bubble;
 
 /// Story reply bubble — shows a muted story thumbnail with a quote reply.
 /// Extracted from _buildStoryReplyBubble() in chat_screen.dart.
@@ -93,13 +94,23 @@ class StoryReplyBubble extends StatelessWidget {
                 ),
                 if (message.content.isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  Text(
-                    message.content,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface,
-                    ),
+                  Builder(
+                    builder: (context) {
+                      final bool isCiphertext =
+                          text_bubble.MessageTextUtils.isDisplayableCaption(
+                            message.content,
+                          ) ==
+                          false;
+                      return Text(
+                        isCiphertext ? '🔒 Message encrypted' : message.content,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurface,
+                          fontStyle: isCiphertext ? FontStyle.italic : null,
+                        ),
+                      );
+                    },
                   ),
                 ],
                 const SizedBox(height: 4),

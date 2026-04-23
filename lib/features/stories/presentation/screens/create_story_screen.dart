@@ -53,11 +53,9 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   List<CameraDescription> _cameras = [];
   bool _isCameraInitialized = false;
   bool _isCameraAvailable = Platform.isAndroid || Platform.isIOS;
-  int _selectedModeIndex = 1; // 0: POST, 1: STORY, 2: REEL, 3: LIVE
   bool _isFlashOn = false;
   bool _isFrontCamera = true;
   String _activeTool = 'none'; // 'create', 'boomerang', 'layout', 'handsfree'
-  final List<String> _modes = ['POST', 'STORY', 'REEL', 'LIVE'];
 
   // Video Recording State
   bool _isRecordingVideo = false;
@@ -316,6 +314,24 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
 
   Future<void> _switchCamera() async {
     if (_cameras.isEmpty) return;
+
+    // Reset initialization state and clear the current controller reference
+    // to prevent the UI from trying to render a disposed or transitioning controller.
+    setState(() {
+      _isCameraInitialized = false;
+    });
+
+    final oldController = _cameraController;
+    _cameraController = null;
+
+    if (oldController != null) {
+      try {
+        await oldController.dispose();
+      } catch (e) {
+        debugPrint('Error disposing old camera during switch: $e');
+      }
+    }
+
     final description = _isFrontCamera
         ? _cameras.firstWhere(
             (c) => c.lensDirection == CameraLensDirection.front,
@@ -326,31 +342,19 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             orElse: () => _cameras.first,
           );
 
-    final old = _cameraController;
     final newController = CameraController(
       description,
       ResolutionPreset.high,
       enableAudio: true,
+      imageFormatGroup: Platform.isIOS ? ImageFormatGroup.bgra8888 : ImageFormatGroup.jpeg,
     );
     
     try {
       await newController.initialize();
       
-      // If we've already been disposed while waiting for initialization,
-      // cleanup the new controller immediately.
       if (!mounted) {
         await newController.dispose();
         return;
-      }
-
-      // Safeguard dispose of old controller
-      if (old != null) {
-        _isCameraInitialized = false;
-        try {
-          await old.dispose();
-        } catch (e) {
-          debugPrint('Error disposing old camera: $e');
-        }
       }
 
       setState(() {
@@ -364,8 +368,20 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       } catch (disposeError) {
         debugPrint('Error disposing new camera after fail: $disposeError');
       }
-      if (mounted) setState(() => _isCameraAvailable = false);
+      if (mounted) {
+        setState(() {
+          _isCameraAvailable = false;
+          _isCameraInitialized = false;
+        });
+      }
     }
+  }
+
+  int get _nextLayoutSlot {
+    for (int i = 0; i < _layoutImages.length; i++) {
+      if (_layoutImages[i] == null) return i;
+    }
+    return -1;
   }
 
   Future<void> _capturePhoto() async {
@@ -374,6 +390,34 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       HapticUtils.mediumImpact();
       final xfile = await _cameraController!.takePicture();
       final file = File(xfile.path);
+
+      if (_activeTool == 'layout') {
+        final slot = _nextLayoutSlot;
+        if (slot != -1) {
+          setState(() {
+            _layoutImages[slot] = file;
+          });
+          
+          // Check if all slots are full
+          bool allFull = true;
+          int slotsNeeded = 4; // Default for 2x2
+          if (_layoutStyle == 1 || _layoutStyle == 2) slotsNeeded = 2;
+          
+          for (int i = 0; i < slotsNeeded; i++) {
+            if (_layoutImages[i] == null) {
+              allFull = false;
+              break;
+            }
+          }
+          
+          if (allFull) {
+            // Move to edit mode with the composite
+            _finishLayout();
+          }
+          return;
+        }
+      }
+
       setState(() {
         _selectedFile = file;
         _mediaType = 'image';
@@ -393,6 +437,44 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     }
   }
 
+  Future<void> _finishLayout() async {
+    setState(() => _isUploading = true);
+    try {
+      final composite = await _captureCompositeImage();
+      if (composite != null) {
+        setState(() {
+          _selectedFile = composite;
+          _mediaType = 'image';
+          _texts = [];
+          _strokes = [];
+          _currentStroke = [];
+          _selectedFilterIndex = 0;
+          _selectedMusic = null;
+          _activeTool = 'none';
+          _layoutImages = [null, null, null, null];
+        });
+      }
+    } catch (e) {
+      debugPrint('Layout finish error: $e');
+    } finally {
+      setState(() => _isUploading = false);
+    }
+  }
+
+  Widget _buildLayoutSlot(int index) {
+    final image = _layoutImages[index];
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white38, width: 0.5),
+      ),
+      child: image != null
+          ? Image.file(image, fit: BoxFit.cover)
+          : const Center(
+              child: Icon(Icons.add_rounded, color: Colors.white24, size: 32),
+            ),
+    );
+  }
+
   Future<void> _startVideoRecording() async {
     if (_cameraController == null || !_isCameraInitialized) return;
     try {
@@ -402,13 +484,17 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         _isRecordingVideo = true;
         _recordingSeconds = 0;
       });
+      
+      final bool isBoomerang = _activeTool == 'boomerang';
+      final int maxSeconds = isBoomerang ? 2 : 30;
+
       _recordingTimer = Timer.periodic(const Duration(seconds: 1), (t) {
         if (!mounted) {
           t.cancel();
           return;
         }
         setState(() => _recordingSeconds++);
-        if (_recordingSeconds >= 30) _stopVideoRecording();
+        if (_recordingSeconds >= maxSeconds) _stopVideoRecording();
       });
     } catch (e) {
       debugPrint('Video record start error: $e');
@@ -422,6 +508,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       final xfile = await _cameraController!.stopVideoRecording();
       HapticUtils.mediumImpact();
       final videoFile = File(xfile.path);
+      
       _videoController?.dispose();
       _videoController = VideoPlayerController.file(videoFile)
         ..initialize().then((_) {
@@ -429,6 +516,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           _videoController!.play();
           if (mounted) setState(() {});
         });
+
       setState(() {
         _isRecordingVideo = false;
         _recordingSeconds = 0;
@@ -450,7 +538,6 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   void _startHandsFreeCountdown() {
     setState(() {
       _handsFreeCountdown = 3;
-      _activeTool = 'handsfree';
     });
     HapticUtils.selectionClick();
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
@@ -459,7 +546,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
       if (next <= 0) {
         t.cancel();
         setState(() => _handsFreeCountdown = null);
-        _capturePhoto();
+        _startVideoRecording();
       } else {
         setState(() => _handsFreeCountdown = next);
         HapticUtils.selectionClick();
@@ -1215,7 +1302,22 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             Positioned.fill(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(isM3E ? 24 : 16),
-                child: CameraPreview(_cameraController!),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final size = constraints.biggest;
+                    // For portrait, the camera preview aspect ratio is height/width (e.g., 1.77)
+                    // We need to scale it to cover the screen
+                    var scale = 1 / (_cameraController!.value.aspectRatio * size.aspectRatio);
+                    if (scale < 1) scale = 1 / scale;
+                    
+                    return Transform.scale(
+                      scale: scale,
+                      child: Center(
+                        child: CameraPreview(_cameraController!),
+                      ),
+                    );
+                  },
+                ),
               ),
             )
           else if (!_isCameraAvailable)
@@ -1262,22 +1364,40 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
             
           if (_activeTool == 'layout')
             Positioned.fill(
-              child: Column(
+              child: Stack(
                 children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Expanded(child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.white38, width: 1)))),
-                        Expanded(child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.white38, width: 1)))),
-                      ],
-                    ),
+                  Column(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(child: _buildLayoutSlot(0)),
+                            Expanded(child: _buildLayoutSlot(1)),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(child: _buildLayoutSlot(2)),
+                            Expanded(child: _buildLayoutSlot(3)),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Expanded(child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.white38, width: 1)))),
-                        Expanded(child: Container(decoration: BoxDecoration(border: Border.all(color: Colors.white38, width: 1)))),
-                      ],
+                  // Clear Layout button
+                  Positioned(
+                    top: MediaQuery.of(context).padding.top + 80,
+                    right: 16,
+                    child: _buildBlurButton(
+                      icon: Icons.refresh_rounded,
+                      onTap: () {
+                        setState(() {
+                          _layoutImages = [null, null, null, null];
+                        });
+                        HapticUtils.mediumImpact();
+                      },
                     ),
                   ),
                 ],
@@ -1334,11 +1454,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                   label: 'Create',
                   isActive: _activeTool == 'create',
                   onTap: () {
-                    HapticUtils.selectionClick();
                     setState(() => _activeTool = _activeTool == 'create' ? 'none' : 'create');
                   },
                   isM3E: isM3E,
-                  colorScheme: Theme.of(context).colorScheme,
+                  colorScheme: colorScheme,
                 ),
                 const SizedBox(height: 20),
                 if (_isCameraAvailable) ...[
@@ -1347,11 +1466,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     label: 'Boomerang',
                     isActive: _activeTool == 'boomerang',
                     onTap: () {
-                      HapticUtils.selectionClick();
                       setState(() => _activeTool = _activeTool == 'boomerang' ? 'none' : 'boomerang');
                     },
                     isM3E: isM3E,
-                    colorScheme: Theme.of(context).colorScheme,
+                    colorScheme: colorScheme,
                   ),
                   const SizedBox(height: 20),
                   _buildCameraSideTool(
@@ -1359,11 +1477,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     label: 'Layout',
                     isActive: _activeTool == 'layout',
                     onTap: () {
-                      HapticUtils.selectionClick();
                       setState(() => _activeTool = _activeTool == 'layout' ? 'none' : 'layout');
                     },
                     isM3E: isM3E,
-                    colorScheme: Theme.of(context).colorScheme,
+                    colorScheme: colorScheme,
                   ),
                   const SizedBox(height: 20),
                   _buildCameraSideTool(
@@ -1371,11 +1488,10 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                     label: 'Hands-free',
                     isActive: _activeTool == 'handsfree',
                     onTap: () {
-                      HapticUtils.selectionClick();
                       setState(() => _activeTool = _activeTool == 'handsfree' ? 'none' : 'handsfree');
                     },
                     isM3E: isM3E,
-                    colorScheme: Theme.of(context).colorScheme,
+                    colorScheme: colorScheme,
                   ),
                 ],
               ],
@@ -1499,43 +1615,6 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
               ],
             ),
           ),
-
-          // 6. Mode Selector
-          Positioned(
-            bottom: 40,
-            left: 0,
-            right: 0,
-            child: SizedBox(
-              height: 40,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width / 2 - 40),
-                itemCount: _modes.length,
-                itemBuilder: (context, index) {
-                  final isSelected = _selectedModeIndex == index;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() => _selectedModeIndex = index);
-                      HapticUtils.lightImpact();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      alignment: Alignment.center,
-                      child: Text(
-                        _modes[index],
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.white60,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          fontSize: 14,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -1546,38 +1625,77 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     required String label,
     bool isActive = false,
     required VoidCallback onTap,
-    bool isM3E = false,
-    ColorScheme? colorScheme,
+    required bool isM3E,
+    required ColorScheme colorScheme,
   }) {
+    if (isM3E) {
+      // M3 Expressive: High-energy pill shapes with active states
+      return GestureDetector(
+        onTap: () {
+          HapticUtils.selectionClick();
+          onTap();
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.fastOutSlowIn,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isActive 
+                ? colorScheme.primary 
+                : colorScheme.surfaceContainerHighest.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: isActive ? [
+              BoxShadow(
+                color: colorScheme.primary.withValues(alpha: 0.3),
+                blurRadius: 12,
+                spreadRadius: 2,
+              )
+            ] : [],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon, 
+                color: isActive ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                size: 26,
+              ),
+              if (label.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isActive ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900, // Extra bold for M3E
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Classic Tool Style
     return GestureDetector(
       onTap: onTap,
       child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: isActive 
-                  ? (isM3E && colorScheme != null ? colorScheme.primary : Colors.white)
-                  : Colors.black26,
-              borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
-            ),
-            child: Icon(
-              icon, 
-              color: isActive 
-                  ? (isM3E && colorScheme != null ? colorScheme.onPrimary : Colors.black)
-                  : Colors.white, 
-              size: 24,
-            ),
+          _buildBlurButton(
+            icon: icon, 
+            onTap: onTap,
           ),
           if (label.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white, 
                 fontSize: 11,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                shadows: const [Shadow(color: Colors.black54, blurRadius: 4)],
+                fontWeight: FontWeight.bold,
+                shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
               ),
             ),
           ],
@@ -2186,23 +2304,29 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
+    final colorScheme = Theme.of(context).colorScheme;
 
     if (isM3E) {
-      // M3E: use filledTonal IconButton with glassmorphism tint
-      return SizedBox(
-        width: 48,
+      // M3 Expressive: Bold, high-contrast pill/rounded-square with primary container tint
+      return Container(
         height: 48,
-        child: IconButton.filledTonal(
-          onPressed: onTap,
-          icon: Icon(icon, size: 22),
-          style: IconButton.styleFrom(
-            backgroundColor: Colors.white.withValues(alpha: 0.20),
-            foregroundColor: Colors.white,
-            minimumSize: const Size(48, 48),
-            maximumSize: const Size(48, 48),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+        width: 48,
+        decoration: BoxDecoration(
+          color: colorScheme.primaryContainer.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(20), // Expressive Large Rounded
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
+          ],
+        ),
+        child: material.IconButton(
+          onPressed: onTap,
+          icon: Icon(icon, color: colorScheme.onPrimaryContainer, size: 22),
+          style: material.IconButton.styleFrom(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           ),
         ),
       );
@@ -2212,7 +2336,7 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
     return SizedBox(
       width: 48,
       height: 48,
-      child: Material(
+      child: material.Material(
         color: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -2243,28 +2367,53 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    if (isM3E) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: GestureDetector(
+          onTap: () {
+            HapticUtils.lightImpact();
+            onTap();
+          },
+          child: Column(
+            children: [
+              Container(
+                height: 48,
+                width: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(icon, color: Colors.white, size: 24),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Column(
       children: [
-        if (isM3E)
-          IconButton.filledTonal(
-            onPressed: onTap,
-            icon: Icon(icon),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.white.withValues(alpha: 0.15),
-              foregroundColor: Colors.white,
-              minimumSize: const Size(48, 48),
-            ),
-          )
-        else
-          _buildBlurButton(icon: icon, onTap: onTap),
+        _buildBlurButton(icon: icon, onTap: onTap),
         const SizedBox(height: 4),
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 10,
-            fontWeight: isM3E ? FontWeight.w500 : FontWeight.bold,
-            letterSpacing: isM3E ? 0.1 : 0,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ],
