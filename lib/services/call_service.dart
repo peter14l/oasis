@@ -380,7 +380,17 @@ class CallService extends ChangeNotifier {
     final pc = _peerConnections[senderId];
     
     if (type == 'offer') {
-       // Should be handled via calls table initial handshake in V2, but keeping for robustness
+      if (pc != null) {
+        await pc.setRemoteDescription(RTCSessionDescription(data['sdp'], data['sdp_type']));
+        final answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        
+        await _sendSignaling(senderId, {
+          'type': 'answer',
+          'sdp': answer.sdp,
+          'sdp_type': answer.type,
+        });
+      }
     } else if (type == 'answer') {
       if (pc != null && pc.signalingState == RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
         await pc.setRemoteDescription(RTCSessionDescription(data['sdp'], data['sdp_type']));
@@ -591,9 +601,72 @@ class CallService extends ChangeNotifier {
 
   Future<void> toggleVideo() async {
     if (_localStream == null) return;
-    _isVideoOn = !_isVideoOn;
-    _localStream!.getVideoTracks().forEach((track) => track.enabled = _isVideoOn);
+    
+    final videoTracks = _localStream!.getVideoTracks();
+    
+    if (videoTracks.isEmpty) {
+      // Switch from Voice to Video: Acquisition
+      try {
+        final videoStream = await navigator.mediaDevices.getUserMedia({
+          'audio': false,
+          'video': {
+            'facingMode': 'user',
+            'width': {'ideal': 1280},
+            'height': {'ideal': 720},
+            'frameRate': {'ideal': 30},
+          }
+        });
+        
+        if (videoStream.getVideoTracks().isNotEmpty) {
+          final videoTrack = videoStream.getVideoTracks().first;
+          await _localStream!.addTrack(videoTrack);
+          _isVideoOn = true;
+
+          // Add track to all active peer connections
+          for (var entry in _peerConnections.entries) {
+            final pc = entry.value;
+            final remoteUserId = entry.key;
+            
+            await pc.addTrack(videoTrack, _localStream!);
+            // Trigger renegotiation
+            await _renegotiate(remoteUserId);
+          }
+        }
+      } catch (e) {
+        debugPrint('[CallService] Error switching to video: $e');
+      }
+    } else {
+      // Simple toggle
+      _isVideoOn = !_isVideoOn;
+      for (var track in videoTracks) {
+        track.enabled = _isVideoOn;
+      }
+    }
+    
+    // Update speakerphone based on video state
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      await Helper.setSpeakerphoneOn(_isVideoOn);
+    }
+    
     notifyListeners();
+  }
+
+  Future<void> _renegotiate(String remoteUserId) async {
+    try {
+      final pc = _peerConnections[remoteUserId];
+      if (pc == null) return;
+
+      final offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      
+      await _sendSignaling(remoteUserId, {
+        'type': 'offer',
+        'sdp': offer.sdp,
+        'sdp_type': offer.type,
+      });
+    } catch (e) {
+      debugPrint('[CallService] Renegotiation error: $e');
+    }
   }
 
   Future<void> toggleScreenShare() async {

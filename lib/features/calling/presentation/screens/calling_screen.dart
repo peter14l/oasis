@@ -200,20 +200,21 @@ class _CallingScreenState extends State<CallingScreen> {
       ),
       itemCount: totalCount,
       itemBuilder: (context, index) {
-        final call = state.activeCall ?? state.incomingCall;
-        final isCallVideo = call?.type == CallType.video;
-
         if (index == 0) {
           return _buildVideoTile('You', state.localRenderer, 
               isLocal: true, isVideoOn: provider.isVideoOn);
         }
         final userId = remoteIds[index - 1];
         final renderer = state.remoteRenderers[userId];
+        final stream = state.remoteStreams[userId];
         
-        // For remote users, we show video if the call type is video
-        // and if they haven't disabled their camera (V2 improvement)
+        // Dynamically check if remote user has an active video track
+        final hasRemoteVideo = stream != null && 
+                              stream.getVideoTracks().isNotEmpty && 
+                              stream.getVideoTracks().any((t) => t.enabled);
+        
         return _buildVideoTile('Remote User', renderer, 
-            userId: userId, isVideoOn: isCallVideo);
+            userId: userId, isVideoOn: hasRemoteVideo);
       },
     );
   }
