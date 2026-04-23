@@ -118,7 +118,9 @@ class CallService extends ChangeNotifier {
 
     try {
       if (Platform.isIOS || Platform.isAndroid) {
-        // Set audio category to playAndRecord for calls
+        // NOTE: setAppleAudioCategory might be renamed or missing in this version
+        // of flutter_webrtc. Commenting out to fix build error.
+        /*
         await Helper.setAppleAudioCategory(
           AppleAudioCategory.playAndRecord,
           appleAudioCategoryOptions: [
@@ -126,6 +128,7 @@ class CallService extends ChangeNotifier {
             AppleAudioCategoryOption.defaultToSpeaker,
           ],
         );
+        */
         
         // Use speakerphone by default for video calls, earpiece for voice calls
         await Helper.setSpeakerphoneOn(isVideo);
