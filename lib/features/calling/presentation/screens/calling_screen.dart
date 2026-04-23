@@ -5,8 +5,6 @@ import 'package:oasis/features/calling/presentation/providers/call_provider.dart
 import 'package:oasis/features/calling/domain/models/call_entity.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/features/profile/domain/models/user_profile_entity.dart';
-import 'package:oasis/themes/app_theme.dart';
-import 'package:oasis/core/utils/responsive_layout.dart';
 
 class CallingScreen extends StatefulWidget {
   final String? callId;
@@ -30,7 +28,6 @@ class _CallingScreenState extends State<CallingScreen> {
     super.initState();
 
     if (widget.isIncoming) {
-      // Wait for up to 10 seconds for the call data to arrive via Realtime
       Future.delayed(const Duration(seconds: 10), () {
         if (mounted && !context.read<CallProvider>().hasIncomingCall && !context.read<CallProvider>().hasActiveCall) {
           setState(() {
@@ -40,7 +37,6 @@ class _CallingScreenState extends State<CallingScreen> {
       });
     }
 
-    // Listen for errors from the provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CallProvider>().addListener(_handleProviderUpdate);
     });
@@ -57,8 +53,6 @@ class _CallingScreenState extends State<CallingScreen> {
 
   @override
   void dispose() {
-    // Note: Provider listeners don't always need manual removal if the provider
-    // is scoped to the screen, but since this might be a global provider, we remove it.
     try {
       context.read<CallProvider>().removeListener(_handleProviderUpdate);
     } catch (_) {}
@@ -79,14 +73,13 @@ class _CallingScreenState extends State<CallingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final callProvider = context.watch<CallProvider>();
-    final state = callProvider.state;
-
-    // Automatically pop when the call ends or if we timed out waiting for call data
-    final isWaitingForIncomingCall = widget.isIncoming && !callProvider.hasActiveCall && !callProvider.hasIncomingCall && !_isCallDataTimeout;
+    // Optimization: Use select for high-level structure to avoid total rebuilds
+    final hasActiveCall = context.select<CallProvider, bool>((p) => p.hasActiveCall);
+    final hasIncomingCall = context.select<CallProvider, bool>((p) => p.hasIncomingCall);
     
-    if (!isWaitingForIncomingCall && !callProvider.hasActiveCall && !callProvider.hasIncomingCall) {
-      debugPrint('[CallingScreen] No active or incoming call, popping screen');
+    final isWaitingForIncomingCall = widget.isIncoming && !hasActiveCall && !hasIncomingCall && !_isCallDataTimeout;
+    
+    if (!isWaitingForIncomingCall && !hasActiveCall && !hasIncomingCall) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && Navigator.canPop(context)) {
           Navigator.pop(context);
@@ -95,16 +88,10 @@ class _CallingScreenState extends State<CallingScreen> {
       return const Scaffold(
         backgroundColor: Colors.black,
         body: Center(
-          child: Text(
-            'Call ended',
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
+          child: Text('Call ended', style: TextStyle(color: Colors.white)),
         ),
       );
     }
-    
-    // Determine if we should show the waiting screen
-    final isWaiting = state.remoteStreams.isEmpty;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -122,37 +109,118 @@ class _CallingScreenState extends State<CallingScreen> {
         ),
         child: Stack(
           children: [
-            // Participant Grid or Waiting Screen
-            if (isWaiting)
-              _buildWaitingScreen(callProvider)
-            else
-              _buildParticipantGrid(callProvider),
+            // Using a separate widget for the grid to isolate rebuilds
+            const Positioned.fill(child: ParticipantDisplay()),
 
-            // Control Bar
+            // Control Bar - Isolated rebuilds
             Positioned(
               bottom: 40,
               left: 0,
               right: 0,
-              child: _buildControlBar(callProvider),
+              child: CallControlBar(isIncoming: widget.isIncoming),
             ),
 
-            // Call Info
-            Positioned(
+            // Call Header - Isolated rebuilds
+            const Positioned(
               top: 60,
               left: 20,
-              child: _buildCallHeader(state),
+              child: CallHeaderDisplay(),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildWaitingScreen(CallProvider provider) {
-    final state = provider.state;
-    final currentUserId = Provider.of<ProfileProvider>(context, listen: false).currentProfile?.id;
-    final call = state.activeCall ?? state.incomingCall;
+class ParticipantDisplay extends StatelessWidget {
+  const ParticipantDisplay({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Only rebuild if streams or sharing state changes
+    final state = context.watch<CallProvider>().state;
+    final isLocalSharing = context.select<CallProvider, bool>((p) => p.isScreenSharing);
+    final isVideoOn = context.select<CallProvider, bool>((p) => p.isVideoOn);
     
+    final isWaiting = state.remoteStreams.isEmpty;
+    if (isWaiting) {
+      return const WaitingScreen();
+    }
+
+    final remoteIds = state.remoteStreams.keys.toList();
+    final remoteSharingId = state.remoteScreenShareUserId;
+    final someoneSharing = isLocalSharing || remoteSharingId != null;
+
+    if (someoneSharing) {
+      return ScreenShareLayout(
+        remoteIds: remoteIds, 
+        isLocalSharing: isLocalSharing, 
+        remoteSharingId: remoteSharingId,
+        isVideoOn: isVideoOn,
+        localRenderer: state.localRenderer,
+      );
+    }
+
+    if (remoteIds.length == 1) {
+      return Column(
+        children: [
+          Expanded(
+            child: VideoTile(
+              key: const ValueKey('local_tile'),
+              name: 'You', 
+              renderer: state.localRenderer, 
+              isLocal: true, 
+              isVideoOn: isVideoOn
+            ),
+          ),
+          const SizedBox(height: 4),
+          Expanded(
+            child: RemoteParticipantTile(
+              key: ValueKey('remote_${remoteIds[0]}'),
+              userId: remoteIds[0],
+            ),
+          ),
+        ],
+      );
+    }
+
+    return GridView.builder(
+      padding: const EdgeInsets.fromLTRB(4, 100, 4, 120),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: remoteIds.length + 1 <= 2 ? 1 : 2,
+        childAspectRatio: remoteIds.length + 1 <= 2 ? 0.8 : 1,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+      ),
+      itemCount: remoteIds.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return VideoTile(
+            key: const ValueKey('local_tile_grid'),
+            name: 'You', 
+            renderer: state.localRenderer, 
+            isLocal: true, 
+            isVideoOn: isVideoOn
+          );
+        }
+        final userId = remoteIds[index - 1];
+        return RemoteParticipantTile(
+          key: ValueKey('remote_grid_$userId'),
+          userId: userId,
+        );
+      },
+    );
+  }
+}
+
+class WaitingScreen extends StatelessWidget {
+  const WaitingScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final call = context.select<CallProvider, CallEntity?>((p) => p.activeCall ?? p.incomingCall);
+    final currentUserId = context.select<ProfileProvider, String?>((p) => p.currentProfile?.id);
     final otherUserId = call?.callerId == currentUserId ? call?.receiverId : call?.callerId;
     
     String statusText;
@@ -167,6 +235,7 @@ class _CallingScreenState extends State<CallingScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           PulsatingParticipant(
+            key: ValueKey('pulsating_$otherUserId'),
             userId: otherUserId,
             isLocal: false,
             size: 200,
@@ -180,102 +249,70 @@ class _CallingScreenState extends State<CallingScreen> {
       ),
     );
   }
+}
 
-  Widget _buildParticipantGrid(CallProvider provider) {
-    final state = provider.state;
-    final remoteIds = state.remoteStreams.keys.toList();
-    final currentUserId = Provider.of<ProfileProvider>(context, listen: false).currentProfile?.id;
-    
-    // Check if anyone is sharing screen (local or remote)
-    final isLocalSharing = provider.isScreenSharing;
-    final remoteSharingId = state.remoteScreenShareUserId;
-    final someoneSharing = isLocalSharing || remoteSharingId != null;
+class ScreenShareLayout extends StatelessWidget {
+  final List<String> remoteIds;
+  final bool isLocalSharing;
+  final String? remoteSharingId;
+  final bool isVideoOn;
+  final RTCVideoRenderer? localRenderer;
 
-    if (someoneSharing) {
-      return _buildScreenShareLayout(provider, remoteIds, isLocalSharing, remoteSharingId);
-    }
+  const ScreenShareLayout({
+    super.key,
+    required this.remoteIds,
+    required this.isLocalSharing,
+    this.remoteSharingId,
+    required this.isVideoOn,
+    this.localRenderer,
+  });
 
-    if (remoteIds.isEmpty) {
-      return _buildVideoTile('You', state.localRenderer, 
-          isLocal: true, isVideoOn: provider.isVideoOn);
-    }
-
-    if (remoteIds.length == 1) {
-      // 1-on-1 Adaptive Layout (Split screen)
-      return Column(
-        children: [
-          Expanded(
-            child: _buildVideoTile(
-              'You', 
-              state.localRenderer, 
-              isLocal: true, 
-              isVideoOn: provider.isVideoOn
-            ),
-          ),
-          const SizedBox(height: 4),
-          Expanded(
-            child: _buildRemoteParticipantTile(remoteIds[0], state),
-          ),
-        ],
-      );
-    }
-
-    // Grid for 3+ participants
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(4, 100, 4, 120),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: remoteIds.length + 1 <= 2 ? 1 : 2,
-        childAspectRatio: remoteIds.length + 1 <= 2 ? 0.8 : 1,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      itemCount: remoteIds.length + 1,
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return _buildVideoTile('You', state.localRenderer, 
-              isLocal: true, isVideoOn: provider.isVideoOn);
-        }
-        final userId = remoteIds[index - 1];
-        return _buildRemoteParticipantTile(userId, state);
-      },
-    );
-  }
-
-  Widget _buildScreenShareLayout(CallProvider provider, List<String> remoteIds, bool isLocalSharing, String? remoteSharingId) {
-    final state = provider.state;
-    
+  @override
+  Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Full screen share
         Positioned.fill(
           child: isLocalSharing 
-            ? _buildVideoTile('Your Screen', state.localRenderer, isLocal: true, isVideoOn: true)
-            : _buildRemoteParticipantTile(remoteSharingId!, state, isFull: true),
+            ? VideoTile(
+                key: const ValueKey('local_screen_share'),
+                name: 'Your Screen', 
+                renderer: localRenderer, 
+                isLocal: true, 
+                isVideoOn: true
+              )
+            : RemoteParticipantTile(
+                key: ValueKey('remote_screen_share_$remoteSharingId'),
+                userId: remoteSharingId!, 
+                isFull: true
+              ),
         ),
-
-        // PIP for other participants
         Positioned(
           top: 100,
           right: 16,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Local preview if not sharing
               if (!isLocalSharing)
                 SizedBox(
                   width: 120,
                   height: 160,
-                  child: _buildVideoTile('You', state.localRenderer, 
-                      isLocal: true, isVideoOn: provider.isVideoOn),
+                  child: VideoTile(
+                    key: const ValueKey('local_pip'),
+                    name: 'You', 
+                    renderer: localRenderer, 
+                    isLocal: true, 
+                    isVideoOn: isVideoOn
+                  ),
                 ),
-              
-              // Other remote participants
               ...remoteIds.where((id) => id != remoteSharingId).map((id) => Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: SizedBox(
                   width: 120,
                   height: 160,
-                  child: _buildRemoteParticipantTile(id, state),
+                  child: RemoteParticipantTile(
+                    key: ValueKey('remote_pip_$id'),
+                    userId: id,
+                  ),
                 ),
               )),
             ],
@@ -284,29 +321,217 @@ class _CallingScreenState extends State<CallingScreen> {
       ],
     );
   }
+}
 
-  Widget _buildRemoteParticipantTile(String userId, CallState state, {bool isFull = false}) {
-    final renderer = state.remoteRenderers[userId];
-    final stream = state.remoteStreams[userId];
+class RemoteParticipantTile extends StatelessWidget {
+  final String userId;
+  final bool isFull;
+
+  const RemoteParticipantTile({
+    super.key,
+    required this.userId,
+    this.isFull = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Optimization: Select only what's needed for this specific participant
+    final stream = context.select<CallProvider, MediaStream?>((p) => p.state.remoteStreams[userId]);
+    final renderer = context.select<CallProvider, RTCVideoRenderer?>((p) => p.state.remoteRenderers[userId]);
     
-    // Dynamically check if remote user has an active video track
     final hasRemoteVideo = stream != null && 
                           stream.getVideoTracks().isNotEmpty && 
                           stream.getVideoTracks().any((t) => t.enabled);
 
     return ParticipantTile(
+      key: ValueKey('tile_$userId'),
       userId: userId,
       renderer: renderer,
       isVideoOn: hasRemoteVideo,
       isFull: isFull,
     );
   }
+}
 
-  Widget _buildVideoTile(String name, RTCVideoRenderer? renderer, {
-    bool isLocal = false, 
-    String? userId, 
-    required bool isVideoOn
-  }) {
+class CallHeaderDisplay extends StatelessWidget {
+  const CallHeaderDisplay({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final type = context.select<CallProvider, CallType?>((p) => (p.activeCall ?? p.incomingCall)?.type);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          type == CallType.video ? 'Video Call' : 'Voice Call',
+          style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        const Row(
+          children: [
+            Icon(Icons.lock, color: Colors.green, size: 14),
+            SizedBox(width: 4),
+            Text(
+              'End-to-end encrypted',
+              style: TextStyle(color: Colors.green, fontSize: 12),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class CallControlBar extends StatelessWidget {
+  final bool isIncoming;
+  const CallControlBar({super.key, required this.isIncoming});
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.read<CallProvider>();
+    final hasIncomingCall = context.select<CallProvider, bool>((p) => p.hasIncomingCall);
+    final hasActiveCall = context.select<CallProvider, bool>((p) => p.hasActiveCall);
+    final isMuted = context.select<CallProvider, bool>((p) => p.isMuted);
+    final isVideoOn = context.select<CallProvider, bool>((p) => p.isVideoOn);
+    final isSharing = context.select<CallProvider, bool>((p) => p.isScreenSharing);
+
+    if (isIncoming && !hasIncomingCall && !hasActiveCall) {
+      return const SizedBox.shrink();
+    }
+
+    // Optimization: Wrap in RepaintBoundary to avoid unnecessary paints of background elements
+    return RepaintBoundary(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: hasIncomingCall && !hasActiveCall
+            ? _buildIncomingControls(context, provider)
+            : _buildActiveControls(context, provider, isMuted, isVideoOn, isSharing),
+      ),
+    );
+  }
+
+  Widget _buildIncomingControls(BuildContext context, CallProvider provider) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _ControlButton(
+          onPressed: () {
+            final call = provider.incomingCall;
+            final userId = context.read<ProfileProvider>().currentProfile?.id;
+            if (call != null && userId != null) {
+              provider.declineCall(call.id, userId);
+            }
+          },
+          icon: Icons.call_end,
+          color: Colors.red,
+          isLarge: true,
+        ),
+        const SizedBox(width: 60),
+        _ControlButton(
+          onPressed: () {
+            final call = provider.incomingCall;
+            if (call != null) {
+              provider.acceptCall(call);
+            }
+          },
+          icon: Icons.call,
+          color: Colors.green,
+          isLarge: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActiveControls(BuildContext context, CallProvider provider, bool isMuted, bool isVideoOn, bool isSharing) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _ControlButton(
+          onPressed: provider.toggleMute,
+          icon: isMuted ? Icons.mic_off : Icons.mic,
+          color: isMuted ? Colors.red : Colors.white24,
+        ),
+        const SizedBox(width: 20),
+        _ControlButton(
+          onPressed: () {
+            provider.toggleMinimize(value: true);
+            Navigator.pop(context);
+          },
+          icon: Icons.close_fullscreen_rounded,
+          color: Colors.white24,
+        ),
+        const SizedBox(width: 20),
+        _ControlButton(
+          onPressed: provider.toggleVideo,
+          icon: isVideoOn ? Icons.videocam : Icons.videocam_off,
+          color: isVideoOn ? Colors.white24 : Colors.red,
+        ),
+        const SizedBox(width: 20),
+        _ControlButton(
+          onPressed: provider.toggleScreenShare,
+          icon: isSharing ? Icons.screen_share : Icons.stop_screen_share,
+          color: isSharing ? Colors.green : Colors.white24,
+        ),
+        const SizedBox(width: 20),
+        _ControlButton(
+          onPressed: provider.endCall,
+          icon: Icons.call_end,
+          color: Colors.red,
+          isLarge: true,
+        ),
+      ],
+    );
+  }
+}
+
+class _ControlButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final IconData icon;
+  final Color color;
+  final bool isLarge;
+
+  const _ControlButton({
+    required this.onPressed,
+    required this.icon,
+    required this.color,
+    this.isLarge = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        onPressed: onPressed,
+        icon: Icon(icon, color: Colors.white),
+        iconSize: isLarge ? 32 : 24,
+        padding: EdgeInsets.all(isLarge ? 16 : 12),
+      ),
+    );
+  }
+}
+
+class VideoTile extends StatelessWidget {
+  final String name;
+  final RTCVideoRenderer? renderer;
+  final bool isLocal;
+  final String? userId;
+  final bool isVideoOn;
+
+  const VideoTile({
+    super.key,
+    required this.name,
+    this.renderer,
+    this.isLocal = false,
+    this.userId,
+    required this.isVideoOn,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey[900],
@@ -315,18 +540,17 @@ class _CallingScreenState extends State<CallingScreen> {
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          // Always keep RTCVideoView in the tree for audio playback
           if (renderer != null)
             Opacity(
-              opacity: isVideoOn ? 1.0 : 0.01, // Keep it nearly invisible but present
+              opacity: isVideoOn ? 1.0 : 0.01,
               child: RTCVideoView(
-                renderer,
+                renderer!,
                 mirror: isLocal,
                 objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                key: ValueKey('renderer_${renderer!.hashCode}'),
               ),
             ),
           
-          // Show avatar overlay if video is off
           if (!isVideoOn)
             Positioned.fill(
               child: Container(
@@ -355,127 +579,6 @@ class _CallingScreenState extends State<CallingScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildControlBar(CallProvider provider) {
-    if (widget.isIncoming && !provider.hasIncomingCall && !provider.hasActiveCall) {
-      return const SizedBox.shrink();
-    }
-
-    if (provider.hasIncomingCall && !provider.hasActiveCall) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _buildControlButton(
-            onPressed: () {
-              final call = provider.incomingCall;
-              final userId = context.read<ProfileProvider>().currentProfile?.id;
-              if (call != null && userId != null) {
-                provider.declineCall(call.id, userId);
-              }
-            },
-            icon: Icons.call_end,
-            color: Colors.red,
-            isLarge: true,
-          ),
-          const SizedBox(width: 60),
-          _buildControlButton(
-            onPressed: () {
-              final call = provider.incomingCall;
-              if (call != null) {
-                provider.acceptCall(call);
-              }
-            },
-            icon: Icons.call,
-            color: Colors.green,
-            isLarge: true,
-          ),
-        ],
-      );
-    }
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildControlButton(
-          onPressed: provider.toggleMute,
-          icon: provider.isMuted ? Icons.mic_off : Icons.mic,
-          color: provider.isMuted ? Colors.red : Colors.white24,
-        ),
-        const SizedBox(width: 20),
-        _buildControlButton(
-          onPressed: () {
-            provider.toggleMinimize(value: true);
-            Navigator.pop(context);
-          },
-          icon: Icons.close_fullscreen_rounded,
-          color: Colors.white24,
-        ),
-        const SizedBox(width: 20),
-        _buildControlButton(
-          onPressed: provider.toggleVideo,
-          icon: provider.isVideoOn ? Icons.videocam : Icons.videocam_off,
-          color: provider.isVideoOn ? Colors.white24 : Colors.red,
-        ),
-        const SizedBox(width: 20),
-        _buildControlButton(
-          onPressed: provider.toggleScreenShare,
-          icon: provider.isScreenSharing ? Icons.screen_share : Icons.stop_screen_share,
-          color: provider.isScreenSharing ? Colors.green : Colors.white24,
-        ),
-        const SizedBox(width: 20),
-        _buildControlButton(
-          onPressed: provider.endCall,
-          icon: Icons.call_end,
-          color: Colors.red,
-          isLarge: true,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildControlButton({
-    required VoidCallback onPressed,
-    required IconData icon,
-    required Color color,
-    bool isLarge = false,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-      ),
-      child: IconButton(
-        onPressed: onPressed,
-        icon: Icon(icon, color: Colors.white),
-        iconSize: isLarge ? 32 : 24,
-        padding: EdgeInsets.all(isLarge ? 16 : 12),
-      ),
-    );
-  }
-
-  Widget _buildCallHeader(CallState state) {
-    final call = state.activeCall ?? state.incomingCall;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          call?.type == CallType.video ? 'Video Call' : 'Voice Call',
-          style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        const Row(
-          children: [
-            Icon(Icons.lock, color: Colors.green, size: 14),
-            SizedBox(width: 4),
-            Text(
-              'End-to-end encrypted',
-              style: TextStyle(color: Colors.green, fontSize: 12),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }
@@ -511,7 +614,6 @@ class _PulsatingParticipantState extends State<PulsatingParticipant> with Single
     _animation = Tween<double>(begin: 1.0, end: 1.1).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
-
     _loadProfile();
   }
 
@@ -522,11 +624,7 @@ class _PulsatingParticipantState extends State<PulsatingParticipant> with Single
     } else if (widget.userId != null && widget.userId!.isNotEmpty) {
       try {
         final profile = await profileProvider.getProfile(widget.userId!);
-        if (mounted) {
-          setState(() {
-            _profile = profile;
-          });
-        }
+        if (mounted) setState(() => _profile = profile);
       } catch (e) {
         debugPrint('Error loading participant profile: $e');
       }
@@ -561,12 +659,8 @@ class _PulsatingParticipantState extends State<PulsatingParticipant> with Single
           child: CircleAvatar(
             radius: widget.size / 2,
             backgroundColor: Colors.grey[800],
-            backgroundImage: _profile?.avatarUrl != null 
-              ? NetworkImage(_profile!.avatarUrl!) 
-              : null,
-            child: _profile?.avatarUrl == null 
-              ? Icon(Icons.person, size: widget.size / 2, color: Colors.white54)
-              : null,
+            backgroundImage: _profile?.avatarUrl != null ? NetworkImage(_profile!.avatarUrl!) : null,
+            child: _profile?.avatarUrl == null ? Icon(Icons.person, size: widget.size / 2, color: Colors.white54) : null,
           ),
         ),
       ),
@@ -604,19 +698,13 @@ class _ParticipantTileState extends State<ParticipantTile> {
   @override
   void didUpdateWidget(ParticipantTile oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.userId != widget.userId) {
-      _loadProfile();
-    }
+    if (oldWidget.userId != widget.userId) _loadProfile();
   }
 
   Future<void> _loadProfile() async {
     try {
       final profile = await context.read<ProfileProvider>().getProfile(widget.userId);
-      if (mounted) {
-        setState(() {
-          _profile = profile;
-        });
-      }
+      if (mounted) setState(() => _profile = profile);
     } catch (e) {
       debugPrint('[ParticipantTile] Error loading profile: $e');
     }
@@ -634,17 +722,16 @@ class _ParticipantTileState extends State<ParticipantTile> {
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          // Video View
           if (widget.renderer != null)
             Opacity(
               opacity: widget.isVideoOn ? 1.0 : 0.01,
               child: RTCVideoView(
                 widget.renderer!,
                 objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                key: ValueKey('remote_renderer_${widget.renderer!.hashCode}'),
               ),
             ),
           
-          // Avatar Overlay
           if (!widget.isVideoOn)
             Positioned.fill(
               child: Container(
@@ -656,7 +743,6 @@ class _ParticipantTileState extends State<ParticipantTile> {
               ),
             ),
 
-          // Name Tag
           Positioned(
             bottom: 8,
             left: 8,

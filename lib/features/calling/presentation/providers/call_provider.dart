@@ -356,8 +356,8 @@ class CallProvider extends ChangeNotifier {
   }
 
   /// Toggle video
-  void toggleVideo() {
-    _callService.toggleVideo();
+  Future<void> toggleVideo() async {
+    await _callService.toggleVideo();
   }
 
   /// Toggle minimized state (PiP)

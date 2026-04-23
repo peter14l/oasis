@@ -124,20 +124,16 @@ class CallService extends ChangeNotifier {
 
     try {
       if (Platform.isIOS || Platform.isAndroid) {
-        // NOTE: setAppleAudioCategory might be renamed or missing in this version
-        // of flutter_webrtc. Commenting out to fix build error.
-        /*
-        await Helper.setAppleAudioCategory(
-          AppleAudioCategory.playAndRecord,
-          appleAudioCategoryOptions: [
-            AppleAudioCategoryOption.allowBluetooth,
-            AppleAudioCategoryOption.defaultToSpeaker,
-          ],
-        );
-        */
-        
         // Use speakerphone by default for video calls, earpiece for voice calls
         await Helper.setSpeakerphoneOn(isVideo);
+        
+        // On Android, we might need to set the audio mode explicitly 
+        // through a small delay to ensure the OS has established the stream.
+        if (Platform.isAndroid) {
+          Future.delayed(const Duration(milliseconds: 500), () {
+            Helper.setSpeakerphoneOn(isVideo);
+          });
+        }
       }
     } catch (e) {
       debugPrint('[CallService] Error configuring audio session: $e');
@@ -392,21 +388,63 @@ class CallService extends ChangeNotifier {
         
         // Revert to camera if video was on
         await initLocalStream(_isVideoOn);
+        
+        // Replace back in peer connections
+        if (_localStream != null && _localStream!.getVideoTracks().isNotEmpty) {
+          final cameraTrack = _localStream!.getVideoTracks().first;
+          for (var pc in _peerConnections.values) {
+            final senders = await pc.getSenders();
+            final videoSender = senders.cast<RTCRtpSender?>().firstWhere(
+              (s) => s?.track?.kind == 'video',
+              orElse: () => null,
+            );
+            if (videoSender != null) {
+              await videoSender.replaceTrack(cameraTrack);
+            }
+          }
+        }
       } else {
         // Start screen share
-        final MediaStream screenStream = await navigator.mediaDevices.getDisplayMedia({
-          'video': true,
+        final Map<String, dynamic> mediaConstraints = {
           'audio': false,
-        });
+          'video': true,
+        };
+        
+        final MediaStream screenStream = await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
 
         if (screenStream.getVideoTracks().isNotEmpty) {
           final screenTrack = screenStream.getVideoTracks().first;
           
+          bool needsRenegotiation = false;
+          
           // Replace track in all peer connections
-          for (var pc in _peerConnections.values) {
+          for (var entry in _peerConnections.entries) {
+            final remoteUserId = entry.key;
+            final pc = entry.value;
             final senders = await pc.getSenders();
-            final videoSender = senders.firstWhere((s) => s.track?.kind == 'video');
-            await videoSender.replaceTrack(screenTrack);
+            final videoSender = senders.cast<RTCRtpSender?>().firstWhere(
+              (s) => s?.track?.kind == 'video',
+              orElse: () => null,
+            );
+            
+            if (videoSender != null) {
+              await videoSender.replaceTrack(screenTrack);
+            } else {
+              // If no video sender, we MUST add a track and renegotiate
+              await pc.addTrack(screenTrack, screenStream);
+              needsRenegotiation = true;
+            }
+
+            if (needsRenegotiation) {
+              final offer = await pc.createOffer();
+              await pc.setLocalDescription(offer);
+              await _sendSignaling(remoteUserId, {
+                'type': 'offer',
+                'sdp': offer.sdp,
+                'sdp_type': offer.type,
+              });
+              needsRenegotiation = false;
+            }
           }
 
           _isScreenSharing = true;
@@ -422,7 +460,7 @@ class CallService extends ChangeNotifier {
           }
 
           screenTrack.onEnded = () {
-            toggleScreenShare();
+            if (_isScreenSharing) toggleScreenShare();
           };
         }
       }
@@ -607,14 +645,58 @@ class CallService extends ChangeNotifier {
     }
   }
 
-  void toggleVideo() {
-    if (_localStream != null) {
+  Future<void> toggleVideo() async {
+    if (_localStream == null) return;
+
+    if (_localStream!.getVideoTracks().isEmpty && !_isVideoOn) {
+      // Trying to turn video ON but no track exists (e.g. started as audio call)
+      try {
+        final videoStream = await navigator.mediaDevices.getUserMedia({
+          'audio': false,
+          'video': {
+            'facingMode': 'user',
+            'width': {'ideal': 1280},
+            'height': {'ideal': 720},
+          },
+        });
+        
+        if (videoStream.getVideoTracks().isNotEmpty) {
+          final videoTrack = videoStream.getVideoTracks().first;
+          await _localStream!.addTrack(videoTrack);
+          _isVideoOn = true;
+          
+          // Add to all peer connections and renegotiate
+          for (var entry in _peerConnections.entries) {
+            final remoteUserId = entry.key;
+            final pc = entry.value;
+            
+            await pc.addTrack(videoTrack, _localStream!);
+            
+            final offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            await _sendSignaling(remoteUserId, {
+              'type': 'offer',
+              'sdp': offer.sdp,
+              'sdp_type': offer.type,
+            });
+          }
+        }
+      } catch (e) {
+        debugPrint('[CallService] Error enabling video: $e');
+      }
+    } else {
       _isVideoOn = !_isVideoOn;
       for (var track in _localStream!.getVideoTracks()) {
         track.enabled = _isVideoOn;
       }
-      notifyListeners();
     }
+    
+    // Update speakerphone state when toggling video
+    if (Platform.isAndroid || Platform.isIOS) {
+       await Helper.setSpeakerphoneOn(_isVideoOn);
+    }
+    
+    notifyListeners();
   }
 
   Future<void> _playRingtone() async {
