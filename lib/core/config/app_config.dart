@@ -11,7 +11,7 @@ class AppConfig {
   static String appVersion = '0.0.0';
 
   /// If false, calling features are disabled (e.g. during major platform stability fixes)
-  static bool enableCalls = false;
+  static bool enableCalls = true;
 
   /// If true, the app runs in "Investor Pitch Mode"
   /// - Silences harmless debug logs

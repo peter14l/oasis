@@ -82,5 +82,9 @@
 	<string>This app needs access to location to share your live location in chat.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>This app needs access to location to share your live location continuously in the background.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access for video calls and capturing photos.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs microphone access for voice and video calls.</string>
 </dict>
 </plist>

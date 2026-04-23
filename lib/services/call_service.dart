@@ -134,6 +134,12 @@ class CallService extends ChangeNotifier {
     }
 
     _localStream = await navigator.mediaDevices.getUserMedia(constraints);
+    
+    // Explicitly enable audio tracks
+    for (var track in _localStream!.getAudioTracks()) {
+      track.enabled = true;
+    }
+
     _localRenderer.srcObject = _localStream;
     _isVideoOn = isVideo;
     _isMuted = false;
@@ -147,6 +153,8 @@ class CallService extends ChangeNotifier {
     try {
       if (Platform.isIOS || Platform.isAndroid) {
         await Helper.setSpeakerphoneOn(isVideo);
+        // On mobile, ensure the audio session is active and configured for calls
+        // This is often handled by flutter_webrtc internally, but explicit toggle helps.
       }
     } catch (e) {
       debugPrint('[CallService] Error configuring audio session: $e');
@@ -157,9 +165,12 @@ class CallService extends ChangeNotifier {
     debugPrint('[CallService] Creating peer connection for $remoteUserId');
     final pc = await createPeerConnection(_configuration);
     
-    _localStream?.getTracks().forEach((track) {
-      pc.addTrack(track, _localStream!);
-    });
+    // Add local tracks to peer connection
+    if (_localStream != null) {
+      for (var track in _localStream!.getTracks()) {
+        await pc.addTrack(track, _localStream!);
+      }
+    }
 
     pc.onIceCandidate = (candidate) {
       _sendSignaling(remoteUserId, {
@@ -173,22 +184,22 @@ class CallService extends ChangeNotifier {
     pc.onTrack = (event) async {
       debugPrint('[CallService] onTrack: ${event.track.kind} from $remoteUserId');
       
-      // Use microtask to ensure we don't block the native thread
-      Future.microtask(() async {
-        if (event.track.kind == 'audio') {
-          event.track.enabled = true;
-        }
+      if (event.track.kind == 'audio') {
+        event.track.enabled = true;
+      }
 
-        MediaStream stream;
-        if (event.streams.isNotEmpty) {
-          stream = event.streams[0];
-        } else {
-          _remoteStreams[remoteUserId] ??= await createLocalMediaStream('remote_$remoteUserId');
-          _remoteStreams[remoteUserId]!.addTrack(event.track);
-          stream = _remoteStreams[remoteUserId]!;
-        }
-        _remoteStreams[remoteUserId] = stream;
+      MediaStream stream;
+      if (event.streams.isNotEmpty) {
+        stream = event.streams[0];
+      } else {
+        // Fallback for some legacy WebRTC implementations
+        _remoteStreams[remoteUserId] ??= await createLocalMediaStream('remote_$remoteUserId');
+        await _remoteStreams[remoteUserId]!.addTrack(event.track);
+        stream = _remoteStreams[remoteUserId]!;
+      }
+      _remoteStreams[remoteUserId] = stream;
 
+      if (event.track.kind == 'video') {
         if (!_remoteRenderers.containsKey(remoteUserId)) {
           final renderer = RTCVideoRenderer();
           await renderer.initialize();
@@ -197,10 +208,9 @@ class CallService extends ChangeNotifier {
         } else {
           _remoteRenderers[remoteUserId]!.srcObject = stream;
         }
-        
-        // Ensure UI updates on the next frame
-        notifyListeners();
-      });
+      }
+      
+      notifyListeners();
     };
 
     pc.onRenegotiationNeeded = () async {
