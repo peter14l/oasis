@@ -200,14 +200,20 @@ class _CallingScreenState extends State<CallingScreen> {
       ),
       itemCount: totalCount,
       itemBuilder: (context, index) {
+        final call = state.activeCall ?? state.incomingCall;
+        final isCallVideo = call?.type == CallType.video;
+
         if (index == 0) {
-          return _buildVideoTile('You', state.localRenderer, isLocal: true, isVideoOn: provider.isVideoOn);
+          return _buildVideoTile('You', state.localRenderer, 
+              isLocal: true, isVideoOn: provider.isVideoOn);
         }
         final userId = remoteIds[index - 1];
         final renderer = state.remoteRenderers[userId];
         
+        // For remote users, we show video if the call type is video
+        // and if they haven't disabled their camera (V2 improvement)
         return _buildVideoTile('Remote User', renderer, 
-            userId: userId, isVideoOn: true); // In V2 we can refine video state per user if needed
+            userId: userId, isVideoOn: isCallVideo);
       },
     );
   }
@@ -225,19 +231,29 @@ class _CallingScreenState extends State<CallingScreen> {
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          if (isVideoOn && renderer != null)
-            RTCVideoView(
-              renderer,
-              mirror: isLocal,
-              objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
-            )
-          else
-            Positioned.fill(
-              child: PulsatingParticipant(
-                userId: userId,
-                isLocal: isLocal,
+          // Always keep RTCVideoView in the tree for audio playback
+          if (renderer != null)
+            Opacity(
+              opacity: isVideoOn ? 1.0 : 0.01, // Keep it nearly invisible but present
+              child: RTCVideoView(
+                renderer,
+                mirror: isLocal,
+                objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
               ),
             ),
+          
+          // Show avatar overlay if video is off
+          if (!isVideoOn)
+            Positioned.fill(
+              child: Container(
+                color: Colors.grey[900],
+                child: PulsatingParticipant(
+                  userId: userId,
+                  isLocal: isLocal,
+                ),
+              ),
+            ),
+
           Positioned(
             bottom: 8,
             left: 8,

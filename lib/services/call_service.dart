@@ -11,6 +11,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:universal_io/io.dart';
 import 'package:uuid/uuid.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class CallService extends ChangeNotifier {
   final _supabase = SupabaseService().client;
@@ -71,6 +72,21 @@ class CallService extends ChangeNotifier {
   bool get isScreenSharing => _isScreenSharing;
 
   Future<void> initLocalStream(bool isVideo) async {
+    // Check and request permissions for mobile
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      final micStatus = await Permission.microphone.request();
+      if (micStatus != PermissionStatus.granted) {
+        throw Exception('Microphone permission denied');
+      }
+
+      if (isVideo) {
+        final camStatus = await Permission.camera.request();
+        if (camStatus != PermissionStatus.granted) {
+          throw Exception('Camera permission denied');
+        }
+      }
+    }
+
     final Map<String, dynamic> constraints = {
       'audio': true,
       'video': isVideo ? {
@@ -90,7 +106,33 @@ class CallService extends ChangeNotifier {
     _localRenderer.srcObject = _localStream;
     _isVideoOn = isVideo;
     _isMuted = false;
+
+    // Configure audio session for mobile
+    await _configureAudioSession(isVideo);
+
     notifyListeners();
+  }
+
+  Future<void> _configureAudioSession(bool isVideo) async {
+    if (kIsWeb) return;
+
+    try {
+      if (Platform.isIOS || Platform.isAndroid) {
+        // Set audio category to playAndRecord for calls
+        await Helper.setAppleAudioCategory(
+          AppleAudioCategory.playAndRecord,
+          appleAudioCategoryOptions: [
+            AppleAudioCategoryOption.allowBluetooth,
+            AppleAudioCategoryOption.defaultToSpeaker,
+          ],
+        );
+        
+        // Use speakerphone by default for video calls, earpiece for voice calls
+        await Helper.setSpeakerphoneOn(isVideo);
+      }
+    } catch (e) {
+      debugPrint('[CallService] Error configuring audio session: $e');
+    }
   }
 
   Future<RTCPeerConnection> _createPeerConnection(String remoteUserId) async {
@@ -110,10 +152,12 @@ class CallService extends ChangeNotifier {
     };
 
     pc.onTrack = (event) async {
+      debugPrint('[CallService] onTrack: ${event.track.kind} from $remoteUserId');
       MediaStream stream;
       if (event.streams.isNotEmpty) {
         stream = event.streams[0];
       } else {
+        // Fallback for Unified Plan where streams might be empty
         _remoteStreams[remoteUserId] ??= await createLocalMediaStream('remote_$remoteUserId');
         _remoteStreams[remoteUserId]!.addTrack(event.track);
         stream = _remoteStreams[remoteUserId]!;
@@ -129,6 +173,11 @@ class CallService extends ChangeNotifier {
         _remoteRenderers[remoteUserId]!.srcObject = stream;
       }
       
+      // Ensure the audio track is enabled
+      if (event.track.kind == 'audio') {
+        event.track.enabled = true;
+      }
+
       notifyListeners();
     };
 
@@ -340,12 +389,14 @@ class CallService extends ChangeNotifier {
       }
     } else if (type == 'candidate') {
       if (pc != null) {
+        debugPrint('[CallService] Adding ICE candidate from $senderId');
         await pc.addCandidate(RTCIceCandidate(
           data['candidate'],
           data['sdpMid'],
           data['sdpMLineIndex'],
         ));
       } else {
+        debugPrint('[CallService] Queuing ICE candidate from $senderId');
         _candidateQueue[senderId] ??= [];
         _candidateQueue[senderId]!.add(data);
       }
