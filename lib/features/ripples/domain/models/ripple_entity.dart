@@ -62,7 +62,16 @@ class RippleEntity {
       'thumbnail_url': thumbnailUrl,
       'caption': caption,
       'is_private': isPrivate,
+      'likes_count': likesCount,
+      'comments_count': commentsCount,
+      'saves_count': savesCount,
+      'is_liked': isLiked,
+      'is_saved': isSaved,
       'created_at': createdAt.toIso8601String(),
+      'profiles': {
+        'username': username,
+        'avatar_url': avatarUrl,
+      },
     };
   }
 
@@ -139,10 +148,12 @@ class RippleCommentEntity {
       'id': id,
       'ripple_id': rippleId,
       'user_id': userId,
-      'username': username,
-      'avatar_url': avatarUrl,
       'content': content,
       'created_at': createdAt.toIso8601String(),
+      'profiles': {
+        'username': username,
+        'avatar_url': avatarUrl,
+      },
     };
   }
 }

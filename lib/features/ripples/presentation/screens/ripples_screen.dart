@@ -314,7 +314,7 @@ class _RipplesScreenState extends State<RipplesScreen>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      currentRipple['profiles']['username'] ??
+                                      currentRipple['profiles']?['username'] ??
                                           'User',
                                       style: const TextStyle(
                                         color: Colors.white,
@@ -323,13 +323,6 @@ class _RipplesScreenState extends State<RipplesScreen>
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const Text(
-                                      'Original Ripple',
-                                      style: TextStyle(
-                                        color: Colors.white54,
-                                        fontSize: 12,
-                                      ),
                                     ),
                                   ],
                                 ),
@@ -626,14 +619,6 @@ class _RipplesScreenState extends State<RipplesScreen>
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                      ),
-                      const Text(
-                        'Original Ripple',
-                        style: TextStyle(
-                          color: Colors.white60,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                        ),
                       ),
                     ],
                   ),
@@ -985,10 +970,10 @@ class _RipplesScreenState extends State<RipplesScreen>
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(
                     12,
-                    110,
+                    60,
                     12,
-                    200,
-                  ), // More padding between card and username
+                    140,
+                  ), // Adjusted padding to make card bigger while keeping space for bottom pill
                   child: Container(
                     decoration: BoxDecoration(
                       color: disableTransparency
@@ -1285,6 +1270,9 @@ class _RippleCommentsListState extends State<RippleCommentsList> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = Theme.of(context).platform == TargetPlatform.iOS ||
+                     Theme.of(context).platform == TargetPlatform.android;
+    
     return Column(
       children: [
         // Comments list
@@ -1347,9 +1335,9 @@ class _RippleCommentsListState extends State<RippleCommentsList> {
         ),
         // Comment input field
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.fromLTRB(12, 8, 12, MediaQuery.of(context).viewInsets.bottom + 8),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
+            color: isMobile ? Theme.of(context).colorScheme.surface : Colors.white.withValues(alpha: 0.05),
             border: Border(
               top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
             ),
@@ -1360,18 +1348,34 @@ class _RippleCommentsListState extends State<RippleCommentsList> {
                 child: TextField(
                   controller: _commentController,
                   style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Add a comment...',
-                    hintStyle: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.4),
-                    ),
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
+                  decoration: isMobile 
+                    ? InputDecoration(
+                        hintText: 'Add a comment...',
+                        hintStyle: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.4),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white.withValues(alpha: 0.08),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        isDense: true,
+                      )
+                    : InputDecoration(
+                        hintText: 'Add a comment...',
+                        hintStyle: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.4),
+                        ),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
                   onSubmitted: (_) => _postComment(),
                 ),
               ),
+              const SizedBox(width: 8),
               IconButton(
                 icon: _isPosting
                     ? const SizedBox(
@@ -1472,7 +1476,7 @@ class _ComingUpItemState extends State<_ComingUpItem> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.ripple['profiles']['username'] ?? 'User',
+                      widget.ripple['profiles']?['username'] ?? 'User',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
