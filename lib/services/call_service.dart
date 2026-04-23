@@ -34,15 +34,21 @@ class CallService extends ChangeNotifier {
   MediaStream? _localStream;
   String? _currentCallId;
   CallEntity? _currentCall;
+  CallEntity? _incomingCall;
   
   StreamSubscription? _callSubscription;
+  StreamSubscription? _incomingCallSubscription;
   RealtimeChannel? _signalingChannel;
+
+  bool _isMuted = false;
+  bool _isVideoOn = true;
 
   MediaStream? get localStream => _localStream;
   Map<String, MediaStream> get remoteStreams => _remoteStreams;
   Map<String, RTCVideoRenderer> get remoteRenderers => _remoteRenderers;
   RTCVideoRenderer get localRenderer => _localRenderer;
   CallEntity? get currentCall => _currentCall;
+  CallEntity? get incomingCall => _incomingCall;
   String? get currentCallId => _currentCallId;
 
   /// Lock the current call ID when starting to answer, to prevent race conditions.
@@ -467,6 +473,132 @@ class CallService extends ChangeNotifier {
         _remoteScreenShareUserId = data['userId'];
       } else if (_remoteScreenShareUserId == data['userId']) {
         _remoteScreenShareUserId = null;
+      }
+      notifyListeners();
+    }
+  }
+
+  Future<RTCPeerConnection> _getOrCreatePeerConnection(String remoteUserId) async {
+    if (_peerConnections.containsKey(remoteUserId)) {
+      return _peerConnections[remoteUserId]!;
+    }
+    return await _createPeerConnection(remoteUserId);
+  }
+
+  Future<void> _flushCandidateQueue(String senderId, RTCPeerConnection pc) async {
+    final candidates = _candidateQueue[senderId];
+    if (candidates != null) {
+      for (var candidate in candidates) {
+        await pc.addCandidate(RTCIceCandidate(
+          candidate['candidate'],
+          candidate['sdpMid'],
+          candidate['sdpMLineIndex'],
+        ));
+      }
+      _candidateQueue.remove(senderId);
+    }
+  }
+
+  void _removePeer(String remoteUserId) {
+    _peerConnections[remoteUserId]?.close();
+    _peerConnections.remove(remoteUserId);
+    _remoteStreams[remoteUserId]?.getTracks().forEach((t) => t.stop());
+    _remoteStreams.remove(remoteUserId);
+    _remoteRenderers[remoteUserId]?.dispose();
+    _remoteRenderers.remove(remoteUserId);
+    notifyListeners();
+  }
+
+  void _cleanup() {
+    _stopRingtone();
+    _callSubscription?.cancel();
+    _callSubscription = null;
+    _signalingChannel?.unsubscribe();
+    _signalingChannel = null;
+    
+    _localStream?.getTracks().forEach((track) => track.stop());
+    _localStream = null;
+    _localRenderer.srcObject = null;
+    
+    for (var pc in _peerConnections.values) {
+      pc.close();
+    }
+    _peerConnections.clear();
+    
+    for (var stream in _remoteStreams.values) {
+      stream.getTracks().forEach((track) => track.stop());
+    }
+    _remoteStreams.clear();
+    
+    for (var renderer in _remoteRenderers.values) {
+      renderer.dispose();
+    }
+    _remoteRenderers.clear();
+    
+    _currentCallId = null;
+    _currentCall = null;
+    _incomingCall = null;
+    _candidateQueue.clear();
+    _isScreenSharing = false;
+    _remoteScreenShareUserId = null;
+    
+    notifyListeners();
+  }
+
+  void startIncomingCallListener() {
+    final userId = _supabase.auth.currentUser!.id;
+    _incomingCallSubscription?.cancel();
+    _incomingCallSubscription = _supabase
+        .from('calls')
+        .stream(primaryKey: ['id'])
+        .eq('receiver_id', userId)
+        .eq('status', CallStatus.ringing.name.toLowerCase())
+        .listen((data) {
+          if (data.isNotEmpty) {
+            final call = CallEntity.fromJson(data.first);
+            // Only notify if it's a new incoming call and we're not already in a call
+            if (_currentCallId == null && _incomingCall?.id != call.id) {
+              _incomingCall = call;
+              _playRingtone();
+              
+              // Show desktop notification
+              DesktopCallNotifier.instance.handleIncomingCall(
+                callId: call.id,
+                callerName: 'Incoming Call', // In a real app, fetch caller name
+                senderId: call.callerId,
+              );
+              
+              notifyListeners();
+            }
+          } else {
+            if (_incomingCall != null) {
+              _incomingCall = null;
+              _stopRingtone();
+              notifyListeners();
+            }
+          }
+        });
+  }
+
+  Future<void> endCall() async {
+    _cleanup();
+  }
+
+  void toggleMute() {
+    if (_localStream != null) {
+      _isMuted = !_isMuted;
+      for (var track in _localStream!.getAudioTracks()) {
+        track.enabled = !_isMuted;
+      }
+      notifyListeners();
+    }
+  }
+
+  void toggleVideo() {
+    if (_localStream != null) {
+      _isVideoOn = !_isVideoOn;
+      for (var track in _localStream!.getVideoTracks()) {
+        track.enabled = _isVideoOn;
       }
       notifyListeners();
     }

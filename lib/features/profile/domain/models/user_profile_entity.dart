@@ -26,6 +26,8 @@ class UserProfileEntity {
   final bool isPro;
   final DateTime createdAt;
 
+  String get displayName => (fullName != null && fullName!.isNotEmpty) ? fullName! : username;
+
   const UserProfileEntity({
     required this.id,
     required this.username,
