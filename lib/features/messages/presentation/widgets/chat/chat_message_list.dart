@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:oasis/widgets/skeleton_container.dart';
 
 import 'package:oasis/features/messages/presentation/widgets/chat/swipe_to_reply.dart';
+import 'package:oasis/features/messages/presentation/widgets/chat/dissolve_effect.dart';
 import 'dart:io';
 
 /// Chat message list with skeleton loading, empty state, and message rendering.
@@ -302,82 +303,87 @@ class MessageBubble extends StatelessWidget {
               ],
             );
 
-    final Widget bubble = AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      padding:
-          isSticker
-              ? EdgeInsets.zero
-              : const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: bubbleDecoration,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (message.replyToId != null && !isSticker)
-            Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: colorScheme.onSurface.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 3,
-                    decoration: BoxDecoration(
-                      color: isMe ? colorScheme.onPrimaryContainer : colorScheme.primary,
-                      borderRadius: BorderRadius.circular(2),
+    final isOptimistic = message.id.startsWith('optimistic_');
+
+    final Widget bubbleWithEffect = DissolveEffect(
+      isDissolving: isOptimistic,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding:
+            isSticker
+                ? EdgeInsets.zero
+                : const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: bubbleDecoration,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (message.replyToId != null && !isSticker)
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colorScheme.onSurface.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 3,
+                      decoration: BoxDecoration(
+                        color: isMe ? colorScheme.onPrimaryContainer : colorScheme.primary,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          message.replyToSenderName ?? 'Unknown',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: isMe ? colorScheme.onPrimaryContainer : colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 10,
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            message.replyToSenderName ?? 'Unknown',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: isMe ? colorScheme.onPrimaryContainer : colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
                           ),
-                        ),
-                        Text(
-                          message.replyToContent ?? 'Original message',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color:
-                                isMe
-                                    ? colorScheme.onPrimaryContainer.withValues(alpha: 0.7)
-                                    : colorScheme.onSurface.withValues(
-                                      alpha: 0.6,
-                                    ),
-                            fontSize: 11,
+                          Text(
+                            message.replyToContent ?? 'Original message',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color:
+                                  isMe
+                                      ? colorScheme.onPrimaryContainer.withValues(alpha: 0.7)
+                                      : colorScheme.onSurface.withValues(
+                                        alpha: 0.6,
+                                      ),
+                              fontSize: 11,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          content,
-          if (isMe && !isSticker)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Align(
-                alignment: Alignment.bottomRight,
-                child: Icon(
-                  Icons.done_all,
-                  size: 14,
-                  color: message.isRead ? Colors.blue : colorScheme.onPrimaryContainer.withValues(alpha: 0.6),
+                  ],
                 ),
               ),
-            ),
-        ],
+            content,
+            if (isMe && !isSticker)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Align(
+                  alignment: Alignment.bottomRight,
+                  child: Icon(
+                    isOptimistic ? Icons.access_time : Icons.done_all,
+                    size: 14,
+                    color: message.isRead ? Colors.blue : colorScheme.onPrimaryContainer.withValues(alpha: 0.6),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
 
@@ -398,7 +404,7 @@ class MessageBubble extends StatelessWidget {
             crossAxisAlignment:
                 isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
             children: [
-              IntrinsicWidth(child: bubble),
+              IntrinsicWidth(child: bubbleWithEffect),
               // Reaction badges below the bubble
               if (message.reactions.isNotEmpty)
                 _buildReactionBadges(context, isMe),
@@ -455,6 +461,7 @@ class MessageBubble extends StatelessWidget {
           textColor: textColor,
           isUploading: message.isUploading,
           uploadProgress: message.uploadProgress,
+          isSpoiler: message.isSpoiler,
         );
       case MessageType.document:
         if (message.mediaUrl?.contains('videos') ?? false) {
@@ -468,6 +475,7 @@ class MessageBubble extends StatelessWidget {
             textColor: textColor,
             isUploading: message.isUploading,
             uploadProgress: message.uploadProgress,
+            isSpoiler: message.isSpoiler,
           );
         }
         return DocumentBubble(
@@ -478,6 +486,7 @@ class MessageBubble extends StatelessWidget {
           textColor: textColor,
           isUploading: message.isUploading,
           uploadProgress: message.uploadProgress,
+          isSpoiler: message.isSpoiler,
         );
       case MessageType.voice:
         return VoiceBubble(

@@ -17,6 +17,8 @@ abstract class Post with _$Post {
     @JsonKey(name: 'dominant_color') String? dominantColor,
     @Default([]) @JsonKey(name: 'media_urls') List<String> mediaUrls,
     @Default([]) @JsonKey(name: 'media_types') List<String> mediaTypes,
+    @Default([]) List<String> hashtags,
+    @Default(false) @JsonKey(name: 'is_spoiler') bool isSpoiler,
     @JsonKey(name: 'community_id') String? communityId,
     @JsonKey(name: 'community_name') String? communityName,
     required DateTime timestamp,

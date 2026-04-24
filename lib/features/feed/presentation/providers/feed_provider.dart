@@ -13,10 +13,7 @@ import 'package:oasis/services/curation_tracking_service.dart';
 export 'package:oasis/features/feed/presentation/providers/feed_state.dart'
     show FeedType;
 
-/// Feed feature provider managing feed state, posts, and comments.
-///
-/// Orchestrates use cases from the domain layer and exposes
-/// state to the presentation layer.
+/// Feed feature provider managing unified feed state, posts, and comments.
 class FeedProvider with ChangeNotifier {
   final FeedRepository _feedRepository;
   final PostRepository _postRepository;
@@ -29,13 +26,12 @@ class FeedProvider with ChangeNotifier {
   FeedState _state = const FeedState();
   FeedState get state => _state;
 
-  // Proxy getters for convenience (screens access these directly on FeedProvider)
+  // Proxy getters for convenience
   List<Post> get posts => _state.posts;
   bool get isLoading => _state.isLoading;
   bool get isLoadingMore => _state.isLoadingMore;
   bool get hasMore => _state.hasMore;
   String? get error => _state.error;
-  FeedType get currentFeedType => _state.currentFeedType;
 
   FeedProvider({
     required FeedRepository feedRepository,
@@ -60,10 +56,10 @@ class FeedProvider with ChangeNotifier {
     try {
       final cached = await _localDatasource.getFeed();
       if (cached.isNotEmpty) {
-        final posts = cached.map((e) => Post.fromJson(e)).toList();
+        final cachedPosts = cached.map((e) => Post.fromJson(e)).toList();
         _state = _state.copyWith(
-          forYouPosts: posts,
-          forYouOffset: posts.length,
+          posts: cachedPosts,
+          offset: cachedPosts.length,
         );
         notifyListeners();
       }
@@ -74,81 +70,40 @@ class FeedProvider with ChangeNotifier {
 
   // ─── Feed Operations ──────────────────────────────────────────────
 
-  /// Switch between For You and Following feeds.
-  void switchFeedType(FeedType type, {required String userId}) {
-    if (_state.currentFeedType != type) {
-      _state = _state.copyWith(currentFeedType: type);
-      notifyListeners();
-
-      if (_state.posts.isEmpty && !_state.isLoading) {
-        loadFeed(userId: userId);
-      }
-    }
-  }
-
-  /// Load initial feed.
+  /// Load initial unified feed.
   Future<void> loadFeed({required String userId, bool refresh = false}) async {
     if (_state.isLoading) return;
 
     _state = _state.copyWith(isLoading: true, error: null);
     if (refresh) {
-      if (_state.currentFeedType == FeedType.forYou) {
-        _state = _state.copyWith(forYouOffset: 0, hasMoreForYou: true);
-      } else {
-        _state = _state.copyWith(followingOffset: 0, hasMoreFollowing: true);
-      }
+      _state = _state.copyWith(offset: 0, hasMore: true);
     }
     notifyListeners();
 
     try {
-      List<Post> newPosts;
-      if (_state.currentFeedType == FeedType.forYou) {
-        final effectiveRefresh = refresh || _state.forYouPosts.isEmpty;
-        newPosts = await _feedRepository.getFeedPosts(
-          userId: userId,
-          limit: 20,
-          offset: effectiveRefresh ? 0 : _state.forYouOffset,
-        );
+      final effectiveOffset = refresh ? 0 : _state.offset;
+      List<Post> newPosts = await _feedRepository.getUnifiedFeed(
+        userId: userId,
+        limit: 20,
+        offset: effectiveOffset,
+      );
 
-        newPosts = await _injectAds(newPosts);
+      newPosts = await _injectAds(newPosts);
 
-        if (effectiveRefresh) {
-          _state = _state.copyWith(forYouPosts: newPosts);
-          _localDatasource.saveFeed(newPosts.map((e) => e.toJson()).toList());
-        } else {
-          _state = _state.copyWith(
-            forYouPosts: [..._state.forYouPosts, ...newPosts],
-          );
-        }
-        _state = _state.copyWith(
-          forYouOffset: _state.forYouPosts.length,
-          hasMoreForYou: newPosts.length >= 20,
-        );
-        // Track category for curation
-        _trackCategories(newPosts);
+      if (refresh || _state.posts.isEmpty) {
+        _state = _state.copyWith(posts: newPosts);
+        _localDatasource.saveFeed(newPosts.map((e) => e.toJson()).toList());
       } else {
-        newPosts = await _feedRepository.getFollowingFeedPosts(
-          userId: userId,
-          limit: 20,
-          offset: refresh ? 0 : _state.followingOffset,
-        );
-
-        newPosts = await _injectAds(newPosts);
-
-        if (refresh) {
-          _state = _state.copyWith(followingPosts: newPosts);
-        } else {
-          _state = _state.copyWith(
-            followingPosts: [..._state.followingPosts, ...newPosts],
-          );
-        }
         _state = _state.copyWith(
-          followingOffset: _state.followingPosts.length,
-          hasMoreFollowing: newPosts.length >= 20,
+          posts: [..._state.posts, ...newPosts],
         );
-        // Track category for curation
-        _trackCategories(newPosts);
       }
+      _state = _state.copyWith(
+        offset: _state.posts.length,
+        hasMore: newPosts.length >= 20,
+      );
+      // Track category for curation
+      _trackCategories(newPosts);
     } catch (e) {
       _state = _state.copyWith(error: e.toString());
       debugPrint('[FeedProvider] Load feed error: $e');
@@ -166,32 +121,17 @@ class FeedProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      List<Post> newPosts;
-      if (_state.currentFeedType == FeedType.forYou) {
-        newPosts = await _feedRepository.getFeedPosts(
-          userId: userId,
-          limit: 20,
-          offset: _state.forYouOffset,
-        );
-        newPosts = await _injectAds(newPosts);
-        _state = _state.copyWith(
-          forYouPosts: [..._state.forYouPosts, ...newPosts],
-          forYouOffset: _state.forYouOffset + newPosts.length,
-          hasMoreForYou: newPosts.length >= 20,
-        );
-      } else {
-        newPosts = await _feedRepository.getFollowingFeedPosts(
-          userId: userId,
-          limit: 20,
-          offset: _state.followingOffset,
-        );
-        newPosts = await _injectAds(newPosts);
-        _state = _state.copyWith(
-          followingPosts: [..._state.followingPosts, ...newPosts],
-          followingOffset: _state.followingOffset + newPosts.length,
-          hasMoreFollowing: newPosts.length >= 20,
-        );
-      }
+      List<Post> newPosts = await _feedRepository.getUnifiedFeed(
+        userId: userId,
+        limit: 20,
+        offset: _state.offset,
+      );
+      newPosts = await _injectAds(newPosts);
+      _state = _state.copyWith(
+        posts: [..._state.posts, ...newPosts],
+        offset: _state.offset + newPosts.length,
+        hasMore: newPosts.length >= 20,
+      );
     } catch (e) {
       _state = _state.copyWith(error: e.toString());
       debugPrint('[FeedProvider] Load more error: $e');
@@ -226,7 +166,6 @@ class FeedProvider with ChangeNotifier {
 
   // ─── Post Operations ──────────────────────────────────────────────
 
-  /// Like a post with optimistic update.
   Future<void> likePost({
     required String userId,
     required String postId,
@@ -235,10 +174,9 @@ class FeedProvider with ChangeNotifier {
     _updatePostLikeStatus(postId, true);
     notifyListeners();
     _localDatasource.saveFeed(
-      _state.forYouPosts.map((e) => e.toJson()).toList(),
+      _state.posts.map((e) => e.toJson()).toList(),
     );
 
-    // Track like for curation
     if (communityName != null && communityName.isNotEmpty) {
       _trackPostLike(postId, communityName);
     }
@@ -248,15 +186,11 @@ class FeedProvider with ChangeNotifier {
     } catch (e) {
       _updatePostLikeStatus(postId, false);
       notifyListeners();
-      _localDatasource.saveFeed(
-        _state.forYouPosts.map((e) => e.toJson()).toList(),
-      );
       debugPrint('[FeedProvider] Like post error: $e');
       rethrow;
     }
   }
 
-  /// Unlike a post with optimistic update.
   Future<void> unlikePost({
     required String userId,
     required String postId,
@@ -264,7 +198,7 @@ class FeedProvider with ChangeNotifier {
     _updatePostLikeStatus(postId, false);
     notifyListeners();
     _localDatasource.saveFeed(
-      _state.forYouPosts.map((e) => e.toJson()).toList(),
+      _state.posts.map((e) => e.toJson()).toList(),
     );
 
     try {
@@ -272,15 +206,11 @@ class FeedProvider with ChangeNotifier {
     } catch (e) {
       _updatePostLikeStatus(postId, true);
       notifyListeners();
-      _localDatasource.saveFeed(
-        _state.forYouPosts.map((e) => e.toJson()).toList(),
-      );
       debugPrint('[FeedProvider] Unlike post error: $e');
       rethrow;
     }
   }
 
-  /// Bookmark a post.
   Future<void> bookmarkPost({
     required String userId,
     required String postId,
@@ -292,12 +222,10 @@ class FeedProvider with ChangeNotifier {
     } catch (e) {
       _updatePostBookmarkStatus(postId, false);
       notifyListeners();
-      debugPrint('[FeedProvider] Bookmark error: $e');
       rethrow;
     }
   }
 
-  /// Remove bookmark.
   Future<void> unbookmarkPost({
     required String userId,
     required String postId,
@@ -309,19 +237,15 @@ class FeedProvider with ChangeNotifier {
     } catch (e) {
       _updatePostBookmarkStatus(postId, true);
       notifyListeners();
-      debugPrint('[FeedProvider] Unbookmark error: $e');
       rethrow;
     }
   }
 
-  /// Delete a post.
   Future<void> deletePost(String postId) async {
     try {
       await _postRepository.deletePost(postId, '');
       _state = _state.copyWith(
-        forYouPosts: _state.forYouPosts.where((p) => p.id != postId).toList(),
-        followingPosts:
-            _state.followingPosts.where((p) => p.id != postId).toList(),
+        posts: _state.posts.where((p) => p.id != postId).toList(),
       );
       notifyListeners();
     } catch (e) {
@@ -330,31 +254,23 @@ class FeedProvider with ChangeNotifier {
     }
   }
 
-  /// Add a new post to the feed (after creation).
   void addPost(Post post) {
     _state = _state.copyWith(
-      forYouPosts: [post, ..._state.forYouPosts],
-      followingPosts: [post, ..._state.followingPosts],
+      posts: [post, ..._state.posts],
     );
     notifyListeners();
   }
 
-  /// Update a specific post in the feed.
   void updatePost(Post updatedPost) {
     _state = _state.copyWith(
-      forYouPosts:
-          _state.forYouPosts
-              .map((p) => p.id == updatedPost.id ? updatedPost : p)
-              .toList(),
-      followingPosts:
-          _state.followingPosts
+      posts:
+          _state.posts
               .map((p) => p.id == updatedPost.id ? updatedPost : p)
               .toList(),
     );
     notifyListeners();
   }
 
-  /// Vote in a poll.
   Future<void> voteInPoll({
     required String userId,
     required String postId,
@@ -373,45 +289,23 @@ class FeedProvider with ChangeNotifier {
     } catch (e) {
       _updatePostPollStatus(postId, optionId, false);
       notifyListeners();
-      debugPrint('[FeedProvider] Vote error: $e');
       rethrow;
     }
   }
 
-  /// Update comment count for a post.
-  void updatePostCommentCount(String postId, int newCount) {
-    void updateList(List<Post> posts) {
-      for (int i = 0; i < posts.length; i++) {
-        if (posts[i].id == postId) {
-          posts[i] = posts[i].copyWith(comments: newCount);
-          break;
-        }
-      }
-    }
-
-    updateList(_state.forYouPosts);
-    updateList(_state.followingPosts);
-    notifyListeners();
-  }
-
-  /// Increment comment count for a post.
   void incrementCommentCount(String postId) {
-    void updateList(List<Post> posts) {
-      for (int i = 0; i < posts.length; i++) {
-        if (posts[i].id == postId) {
-          final post = posts[i];
-          posts[i] = post.copyWith(comments: post.comments + 1);
-          break;
-        }
+    final newPosts = List<Post>.from(_state.posts);
+    for (int i = 0; i < newPosts.length; i++) {
+      if (newPosts[i].id == postId) {
+        final post = newPosts[i];
+        newPosts[i] = post.copyWith(comments: post.comments + 1);
+        break;
       }
     }
-
-    updateList(_state.forYouPosts);
-    updateList(_state.followingPosts);
+    _state = _state.copyWith(posts: newPosts);
     notifyListeners();
   }
 
-  /// Clear all data.
   void clear() {
     _state = const FeedState();
     notifyListeners();
@@ -448,93 +342,84 @@ class FeedProvider with ChangeNotifier {
   // ─── Helpers ──────────────────────────────────────────────────────
 
   void _updatePostLikeStatus(String postId, bool isLiked) {
-    void updateList(List<Post> posts) {
-      for (int i = 0; i < posts.length; i++) {
-        if (posts[i].id == postId) {
-          final post = posts[i];
-          if (post.isLiked == isLiked) return;
-          int newLikes = isLiked ? post.likes + 1 : post.likes - 1;
-          if (newLikes < 0) newLikes = 0;
-          posts[i] = post.copyWith(isLiked: isLiked, likes: newLikes);
-          break;
-        }
+    final newPosts = List<Post>.from(_state.posts);
+    for (int i = 0; i < newPosts.length; i++) {
+      if (newPosts[i].id == postId) {
+        final post = newPosts[i];
+        if (post.isLiked == isLiked) return;
+        int newLikes = isLiked ? post.likes + 1 : post.likes - 1;
+        newPosts[i] = post.copyWith(isLiked: isLiked, likes: newLikes < 0 ? 0 : newLikes);
+        break;
       }
     }
-
-    updateList(_state.forYouPosts);
-    updateList(_state.followingPosts);
+    _state = _state.copyWith(posts: newPosts);
   }
 
   void _updatePostBookmarkStatus(String postId, bool isBookmarked) {
-    void updateList(List<Post> posts) {
-      for (int i = 0; i < posts.length; i++) {
-        if (posts[i].id == postId) {
-          posts[i] = posts[i].copyWith(isBookmarked: isBookmarked);
-          break;
-        }
+    final newPosts = List<Post>.from(_state.posts);
+    for (int i = 0; i < newPosts.length; i++) {
+      if (newPosts[i].id == postId) {
+        newPosts[i] = newPosts[i].copyWith(isBookmarked: isBookmarked);
+        break;
       }
     }
-
-    updateList(_state.forYouPosts);
-    updateList(_state.followingPosts);
+    _state = _state.copyWith(posts: newPosts);
   }
 
   void _updatePostPollStatus(String postId, String optionId, bool hasVoted) {
-    void updateList(List<Post> posts) {
-      for (int i = 0; i < posts.length; i++) {
-        if (posts[i].id == postId) {
-          final post = posts[i];
-          final poll = post.poll;
-          if (poll == null) return;
+    final newPosts = List<Post>.from(_state.posts);
+    for (int i = 0; i < newPosts.length; i++) {
+      if (newPosts[i].id == postId) {
+        final post = newPosts[i];
+        final poll = post.poll;
+        if (poll == null) return;
 
-          final updatedOptions = poll.options.map((opt) {
-            if (opt.id == optionId) {
-              final newVoteCount = hasVoted ? opt.voteCount + 1 : opt.voteCount - 1;
-              return opt.copyWith(voteCount: newVoteCount < 0 ? 0 : newVoteCount);
-            }
-            return opt;
-          }).toList();
+        final updatedOptions = poll.options.map((opt) {
+          if (opt.id == optionId) {
+            final newVoteCount = hasVoted ? opt.voteCount + 1 : opt.voteCount - 1;
+            return opt.copyWith(voteCount: newVoteCount < 0 ? 0 : newVoteCount);
+          }
+          return opt;
+        }).toList();
 
-          final totalVotes = updatedOptions.fold<int>(0, (sum, opt) => sum + opt.voteCount);
-          
-          final finalizedOptions = updatedOptions.map((opt) {
-            return opt.copyWith(
-              percentage: totalVotes > 0 ? (opt.voteCount / totalVotes) * 100 : 0,
-            );
-          }).toList();
-
-          posts[i] = post.copyWith(
-            poll: poll.copyWith(
-              options: finalizedOptions,
-              totalVotes: totalVotes,
-              hasVoted: hasVoted,
-              userVotedOptionId: hasVoted ? optionId : null,
-            ),
+        final totalVotes = updatedOptions.fold<int>(0, (sum, opt) => sum + opt.voteCount);
+        
+        final finalizedOptions = updatedOptions.map((opt) {
+          return opt.copyWith(
+            percentage: totalVotes > 0 ? (opt.voteCount / totalVotes) * 100 : 0,
           );
-          break;
-        }
+        }).toList();
+
+        newPosts[i] = post.copyWith(
+          poll: poll.copyWith(
+            options: finalizedOptions,
+            totalVotes: totalVotes,
+            hasVoted: hasVoted,
+            userVotedOptionId: hasVoted ? optionId : null,
+          ),
+        );
+        break;
       }
     }
-
-    updateList(_state.forYouPosts);
-    updateList(_state.followingPosts);
+    _state = _state.copyWith(posts: newPosts);
   }
 
   // ─── Curation Tracking ──────────────────────────────────────────────
 
-  /// Track categories from loaded posts for curation.
   Future<void> _trackCategories(List<Post> posts) async {
     if (posts.isEmpty) return;
 
-    // Group unique categories from posts
     final categories = <String>{};
+    final hashtags = <String>{};
     for (final post in posts) {
       if (post.communityName != null && post.communityName!.isNotEmpty) {
         categories.add(post.communityName!.toLowerCase());
       }
+      for (final tag in post.hashtags) {
+        hashtags.add(tag.toLowerCase());
+      }
     }
 
-    // Track each category with weight 1 (viewing)
     for (final category in categories) {
       try {
         await _curationTrackingService.trackCategoryInteraction(category);
@@ -542,9 +427,16 @@ class FeedProvider with ChangeNotifier {
         debugPrint('[FeedProvider] Category tracking error: $e');
       }
     }
+
+    for (final tag in hashtags) {
+      try {
+        await _curationTrackingService.trackCategoryInteraction(tag, weight: 1);
+      } catch (e) {
+        debugPrint('[FeedProvider] Hashtag tracking error: $e');
+      }
+    }
   }
 
-  /// Track when user likes a post.
   Future<void> _trackPostLike(String postId, String communityName) async {
     final category = communityName.toLowerCase();
     if (category.isEmpty) return;

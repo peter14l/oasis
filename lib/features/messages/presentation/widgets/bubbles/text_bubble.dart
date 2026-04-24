@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:any_link_preview/any_link_preview.dart';
 
+import 'package:oasis/widgets/spoiler_widget.dart';
+
 /// Utilities for text message processing.
 /// Extracted from _ChatScreenState helper methods in chat_screen.dart.
 class MessageTextUtils {
@@ -57,15 +59,7 @@ class TextBubble extends StatelessWidget {
 
     final bool isCiphertext = !MessageTextUtils.isDisplayableCaption(content);
 
-    final Widget textContent = Text(
-      isCiphertext ? '🔒 Message encrypted' : content.trim(),
-      style: theme.textTheme.bodyMedium?.copyWith(
-        color: color,
-        fontStyle: (isCiphertext || content == '🔒 Message encrypted')
-            ? FontStyle.italic
-            : null,
-      ),
-    );
+    final Widget textContent = _buildTextContent(context, color, isCiphertext);
 
     // If text contains a URL and is not encrypted, show link preview
     if (content != '🔒 Message encrypted' &&
@@ -115,5 +109,67 @@ class TextBubble extends StatelessWidget {
     }
 
     return textContent;
+  }
+
+  Widget _buildTextContent(BuildContext context, Color color, bool isCiphertext) {
+    final theme = Theme.of(context);
+    final String displayText = isCiphertext ? '🔒 Message encrypted' : content.trim();
+    
+    if (isCiphertext || displayText == '🔒 Message encrypted') {
+      return Text(
+        displayText,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: color,
+          fontStyle: FontStyle.italic,
+        ),
+      );
+    }
+
+    // Parse Discord-style spoilers: ||spoiler||
+    final List<Widget> children = [];
+    final RegExp spoilerRegExp = RegExp(r'\|\|(.*?)\|\|');
+    int lastMatchEnd = 0;
+
+    final Iterable<RegExpMatch> matches = spoilerRegExp.allMatches(displayText);
+
+    if (matches.isEmpty) {
+      return Text(
+        displayText,
+        style: theme.textTheme.bodyMedium?.copyWith(color: color),
+      );
+    }
+
+    for (final match in matches) {
+      // Add text before spoiler
+      if (match.start > lastMatchEnd) {
+        children.add(Text(
+          displayText.substring(lastMatchEnd, match.start),
+          style: theme.textTheme.bodyMedium?.copyWith(color: color),
+        ));
+      }
+
+      // Add spoiler
+      children.add(SpoilerWidget(
+        child: Text(
+          match.group(1) ?? '',
+          style: theme.textTheme.bodyMedium?.copyWith(color: color),
+        ),
+      ));
+
+      lastMatchEnd = match.end;
+    }
+
+    // Add remaining text
+    if (lastMatchEnd < displayText.length) {
+      children.add(Text(
+        displayText.substring(lastMatchEnd),
+        style: theme.textTheme.bodyMedium?.copyWith(color: color),
+      ));
+    }
+
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: children,
+    );
   }
 }

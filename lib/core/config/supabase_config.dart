@@ -83,6 +83,7 @@ class SupabaseConfig {
   // Function names
   static const String getFeedPostsFn = 'get_feed_posts';
   static const String getFollowingFeedPostsFn = 'get_following_feed_posts';
+  static const String getUnifiedFeedFn = 'get_unified_feed';
   static const String getUserConversationsFn = 'get_user_conversations';
   static const String getOrCreateDirectConversationFn =
       'get_or_create_direct_conversation';

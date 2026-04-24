@@ -464,6 +464,7 @@ class ChatProvider with ChangeNotifier {
     PlatformFile? docFile,
     Message? replyMessage,
     String mediaViewMode = 'unlimited',
+    bool isSpoiler = false,
   }) async {
     if (content.isEmpty &&
         imageFile == null &&
@@ -521,6 +522,7 @@ class ChatProvider with ChangeNotifier {
       mediaFileName: fileName,
       mediaFileSize: fileSize,
       isEphemeral: state.whisperMode > 0,
+      isSpoiler: isSpoiler,
       ephemeralDuration: state.ephemeralDuration,
       replyToId: replyMessage?.id,
       replyToContent: replyMessage?.content,
@@ -706,6 +708,7 @@ class ChatProvider with ChangeNotifier {
         signalMessageType: signalMessageType,
         signalSenderContent: signalSenderContent,
         whisperMode: state.whisperMode,
+        isSpoiler: isSpoiler,
         replyToId: replyMessage?.id,
         mediaViewMode: mediaViewMode,
         );

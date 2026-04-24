@@ -182,6 +182,7 @@ class ChatMessagingService {
     Map<String, dynamic>? shareData,
     Map<String, dynamic>? locationData,
     String mediaViewMode = 'unlimited',
+    bool isSpoiler = false,
   }) async {
     try {
       final response = await _supabase.rpc('send_message_v2', params: {
@@ -207,6 +208,7 @@ class ChatMessagingService {
         'p_share_data': shareData,
         'p_location_data': locationData,
         'p_media_view_mode': mediaViewMode,
+        'p_is_spoiler': isSpoiler,
       });
 
       if (response == null) throw Exception('Failed to send message via RPC');

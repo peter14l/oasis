@@ -21,6 +21,8 @@ class PostService {
     List<String>? mediaTypes, // 'image' or 'video'
     String? communityId,
     String? mood,
+    List<String>? hashtags,
+    bool isSpoiler = false,
     EnhancedPoll? poll,
   }) async {
     try {
@@ -82,6 +84,8 @@ class PostService {
         'media_urls': mediaUrls,
         'media_types': mediaTypes ?? [],
         'mood': mood,
+        'hashtags': hashtags ?? [],
+        'is_spoiler': isSpoiler,
       };
 
       await _supabase.from(SupabaseConfig.postsTable).insert(postData);

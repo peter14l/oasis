@@ -47,6 +47,22 @@ class FeedRepositoryImpl implements FeedRepository {
   }
 
   @override
+  Future<List<Post>> getUnifiedFeed({
+    required String userId,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    final rawPosts = await _remoteDatasource.getUnifiedFeed(
+      userId: userId,
+      limit: limit,
+      offset: offset,
+    );
+
+    final posts = rawPosts.map((json) => Post.fromJson(json)).toList();
+    return _injectAdsIfFreeUser(posts);
+  }
+
+  @override
   Stream<List<Post>> watchFeedPosts({required String userId, int limit = 20}) {
     return _remoteDatasource
         .watchFeedPosts(userId: userId, limit: limit)

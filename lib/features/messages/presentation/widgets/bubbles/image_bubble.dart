@@ -7,6 +7,8 @@ import 'package:oasis/features/messages/presentation/widgets/bubbles/text_bubble
 import 'package:provider/provider.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_provider.dart';
 
+import 'package:oasis/widgets/spoiler_widget.dart';
+
 /// Image message bubble with view-once/allow-replay support.
 /// Extracted from the image branch of _buildMessageBubble() in chat_screen.dart.
 class ImageBubble extends StatelessWidget {
@@ -21,6 +23,7 @@ class ImageBubble extends StatelessWidget {
     this.textColor,
     this.isUploading = false,
     this.uploadProgress = 0.0,
+    this.isSpoiler = false,
   });
 
   final String imageUrl;
@@ -32,6 +35,7 @@ class ImageBubble extends StatelessWidget {
   final Color? textColor;
   final bool isUploading;
   final double uploadProgress;
+  final bool isSpoiler;
 
   bool get _isRestricted => mediaViewMode == 'once' || mediaViewMode == 'twice';
   int get _viewLimit => mediaViewMode == 'once' ? 1 : 2;
@@ -132,65 +136,7 @@ class ImageBubble extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 300, maxWidth: 300),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  _isLocalFile 
-                    ? Image.file(
-                        File(imageUrl),
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
-                      )
-                    : CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        placeholder:
-                            (context, url) => const SizedBox(
-                              height: 150,
-                              width: 150,
-                              child: Center(child: CircularProgressIndicator()),
-                            ),
-                        errorWidget: (context, url, error) => const Icon(Icons.error),
-                        fit: BoxFit.cover,
-                      ),
-                  if (isUploading) ...[
-                    Positioned.fill(
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Container(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          child: Center(
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.5),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text(
-                                '${(uploadProgress * 100).toInt()}%',
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: LinearProgressIndicator(
-                        value: uploadProgress,
-                        backgroundColor: Colors.white24,
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                        minHeight: 4,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+              child: _buildImage(context, theme),
             ),
           ),
         ),
@@ -204,5 +150,73 @@ class ImageBubble extends StatelessWidget {
           ),
       ],
     );
+  }
+
+  Widget _buildImage(BuildContext context, ThemeData theme) {
+    final imageContent = Stack(
+      alignment: Alignment.center,
+      children: [
+        _isLocalFile
+            ? Image.file(
+              File(imageUrl),
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+            )
+            : CachedNetworkImage(
+              imageUrl: imageUrl,
+              placeholder:
+                  (context, url) => const SizedBox(
+                    height: 150,
+                    width: 150,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+              errorWidget: (context, url, error) => const Icon(Icons.error),
+              fit: BoxFit.cover,
+            ),
+        if (isUploading) ...[
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.3),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      '${(uploadProgress * 100).toInt()}%',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: LinearProgressIndicator(
+              value: uploadProgress,
+              backgroundColor: Colors.white24,
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+              minHeight: 4,
+            ),
+          ),
+        ],
+      ],
+    );
+
+    if (isSpoiler) {
+      return SpoilerWidget(child: imageContent);
+    }
+
+    return imageContent;
   }
 }

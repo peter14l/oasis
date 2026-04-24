@@ -38,7 +38,6 @@ class FeedScreen extends StatefulWidget {
 
 class _FeedScreenState extends State<FeedScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  late TabController _tabController;
   final ScrollController _scrollController = ScrollController();
   bool _isScrolled = false;
   Timer? _wellbeingTimer;
@@ -60,8 +59,6 @@ class _FeedScreenState extends State<FeedScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(_handleTabSelection);
     _scrollController.addListener(_onScroll);
 
     // Load initial feed
@@ -148,37 +145,11 @@ class _FeedScreenState extends State<FeedScreen>
     }
   }
 
-  void _handleTabSelection() {
-    if (!mounted) return;
-    if (_tabController.indexIsChanging) {
-      _loadFeed();
-    }
-  }
-
-  @override
-  void dispose() {
-    try {
-      _wellbeingService?.stopTracking();
-    } catch (e) {
-      debugPrint('Error stopping wellbeing tracking in dispose: $e');
-    }
-    WidgetsBinding.instance.removeObserver(this);
-    _tabController.dispose();
-    _scrollController.dispose();
-    _wellbeingTimer?.cancel();
-    super.dispose();
-  }
-
   void _loadFeed() {
     final userId = _authService.currentUser?.id;
     if (userId == null) return;
 
-    final provider = context.read<FeedProvider>();
-    if (_tabController.index == 0) {
-      provider.switchFeedType(FeedType.following, userId: userId);
-    } else {
-      provider.switchFeedType(FeedType.forYou, userId: userId);
-    }
+    context.read<FeedProvider>().loadFeed(userId: userId);
   }
 
   void _loadStories() async {
@@ -448,11 +419,9 @@ class _FeedScreenState extends State<FeedScreen>
 
     final feedContent = layout;
 
-    if (useFluent && isDesktop) {
-      return AdaptiveScaffold(
+    return AdaptiveScaffold(
         title: const Text('Feed'),
         actions: [
-          _buildDesktopTabSwitcher(colorScheme, isM3E),
           const SizedBox(width: 12),
           fluent.Tooltip(
             message: 'Change Layout',
@@ -821,151 +790,8 @@ class _FeedScreenState extends State<FeedScreen>
           tooltip: 'Change Layout',
         ),
         const Spacer(),
-        _buildTabSwitcher(colorScheme, isM3E),
-        const Spacer(),
         _buildRipplesButton(colorScheme, isM3E),
       ],
-    );
-  }
-
-  Widget _buildDesktopTabSwitcher(
-    ColorScheme colorScheme, [
-    bool isM3E = false,
-  ]) {
-    final useFluent = context.read<ThemeProvider>().useFluentUI;
-
-    if (useFluent) {
-      return Container(
-        height: 32,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildFluentTabButton('Following', 0),
-            const SizedBox(width: 4),
-            _buildFluentTabButton('Explore', 1),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(isM3E ? 14 : 24),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.2),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildDesktopTabButton('Following', 0, colorScheme, isM3E),
-          _buildDesktopTabButton('Explore', 1, colorScheme, isM3E),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFluentTabButton(String label, int index) {
-    final isSelected = _tabController.index == index;
-    if (isSelected) {
-      return fluent.FilledButton(
-        onPressed: () => setState(() => _tabController.animateTo(index)),
-        child: Text(label),
-      );
-    }
-    return fluent.Button(
-      onPressed: () => setState(() => _tabController.animateTo(index)),
-      child: Text(label),
-    );
-  }
-
-  Widget _buildDesktopTabButton(
-    String label,
-    int index,
-    ColorScheme colorScheme,
-    bool isM3E,
-  ) {
-    final isSelected = _tabController.index == index;
-    return GestureDetector(
-      onTap: () => setState(() => _tabController.animateTo(index)),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? colorScheme.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(isM3E ? 10 : 20),
-        ),
-        child: Text(
-          label.toUpperCase(),
-          style: TextStyle(
-            color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
-            fontWeight: FontWeight.w900,
-            fontSize: 12,
-            letterSpacing: 1.0,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTabSwitcher(ColorScheme colorScheme, [bool isM3E = false]) {
-    return PopupMenuButton<int>(
-      onSelected: (index) => _tabController.animateTo(index),
-      offset: const Offset(0, 45),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(isM3E ? 16 : 20),
-      ),
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: 0,
-          child: Text(
-            'FOLLOWING',
-            style: TextStyle(
-              fontWeight: isM3E ? FontWeight.w600 : FontWeight.bold,
-            ),
-          ),
-        ),
-        PopupMenuItem(
-          value: 1,
-          child: Text(
-            'EXPLORE',
-            style: TextStyle(
-              fontWeight: isM3E ? FontWeight.w600 : FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isM3E
-              ? colorScheme.surfaceContainer
-              : colorScheme.surface.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(isM3E ? 20 : 32),
-          border: isM3E
-              ? Border.all(
-                  color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-                  width: 1,
-                )
-              : Border.all(color: colorScheme.onSurface.withValues(alpha: 0.1)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              _tabController.index == 0 ? 'FOLLOWING' : 'EXPLORE',
-              style: TextStyle(
-                fontWeight: isM3E ? FontWeight.w600 : FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(width: 6),
-            const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
-          ],
-        ),
-      ),
     );
   }
 

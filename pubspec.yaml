@@ -3,7 +3,7 @@ description: "A modern social media app for sharing moments and connecting with 
 
 publish_to: 'none' 
 
-version: 4.6.0+1
+version: 4.7.2+1
 
 environment:
   sdk: ^3.8.0
@@ -163,7 +163,7 @@ msix_config:
   publisher_display_name: Oasis
   publisher: CN=Oasis, O=Oasis, L=Delhi, S=Delhi, C=IN
   identity_name: com.oasis.v2
-  msix_version: 4.6.5.0
+  msix_version: 4.7.2.0
   logo_path: assets/images/logo.png
   capabilities: internetClient, location, microphone, webcam
   architecture: x64

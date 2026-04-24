@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:oasis/features/messages/presentation/screens/image_preview_screen.dart';
 
+import 'package:oasis/widgets/spoiler_widget.dart';
+
 /// Video message bubble with view-once/allow-replay support.
 /// Extracted from the video branch of _buildMessageBubble() in chat_screen.dart.
 class VideoBubble extends StatelessWidget {
@@ -17,6 +19,7 @@ class VideoBubble extends StatelessWidget {
     this.textColor,
     this.isUploading = false,
     this.uploadProgress = 0.0,
+    this.isSpoiler = false,
   });
 
   final String mediaUrl;
@@ -28,6 +31,7 @@ class VideoBubble extends StatelessWidget {
   final Color? textColor;
   final bool isUploading;
   final double uploadProgress;
+  final bool isSpoiler;
 
   bool get _isRestricted => mediaViewMode == 'once' || mediaViewMode == 'twice';
   int get _viewLimit => mediaViewMode == 'once' ? 1 : 2;
@@ -100,8 +104,9 @@ class VideoBubble extends StatelessWidget {
       );
     }
 
+    Widget content;
     if (isUploading) {
-      return Container(
+      content = Container(
         width: 200,
         height: 120,
         decoration: BoxDecoration(
@@ -156,21 +161,26 @@ class VideoBubble extends StatelessWidget {
           ],
         ),
       );
+    } else {
+      content = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.videocam_rounded, color: color),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              mediaFileName ?? 'Video',
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyMedium?.copyWith(color: color),
+            ),
+          ),
+        ],
+      );
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(Icons.videocam_rounded, color: color),
-        const SizedBox(width: 8),
-        Flexible(
-          child: Text(
-            mediaFileName ?? 'Video',
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyMedium?.copyWith(color: color),
-          ),
-        ),
-      ],
-    );
+    if (isSpoiler) {
+      return SpoilerWidget(child: content);
+    }
+    return content;
   }
 }

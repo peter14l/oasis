@@ -41,6 +41,53 @@ class ChangelogScreen extends StatelessWidget {
                   children: [
                     _buildVersionCard(
                       context,
+                      version: '4.7.2',
+                      date: 'April 21, 2026',
+                      features: [],
+                      fixes: [
+                        'Calling System Architectural Refactor - Resolved critical "auto-answer" and "Connecting" hang issues',
+                        'Signaling Optimization - Suppressed redundant UI rebuilds during high-frequency signaling events',
+                        'Robust State Management - Refactored CallingScreen to prevent memory leaks',
+                        'Security Validation - Verified Supabase RLS policies for signaling tables',
+                      ],
+                    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(height: 16),
+                    _buildVersionCard(
+                      context,
+                      version: '4.7.1',
+                      date: 'April 21, 2026',
+                      features: [
+                        'Desktop Window Effects - Integrated Mica and Acrylic window effects for Windows 11/10',
+                        'Fluent UI InfoBars - Native notifications on desktop platforms',
+                        'Passkey Infrastructure - Added initial configuration for WebAuthn/Passkey authentication',
+                        'Enhanced Fluent Theme - Updated with Segoe UI Variable typography',
+                      ],
+                      fixes: [
+                        'Resolved Material Ancestor crashes across several Fluent UI screens',
+                        'Improved Global Error Handling visibility and layout',
+                        'Fixed Google Sign-In stability on Windows startup',
+                        'Refactored Onboarding Quiz with native Fluent components',
+                      ],
+                    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(height: 16),
+                    _buildVersionCard(
+                      context,
+                      version: '4.7.0',
+                      date: 'April 20, 2026',
+                      features: [
+                        'Fluent UI Account Switcher - Native-feeling switcher using ContentDialog',
+                        'Desktop Search Refinement - Native fluent.TextBox components for better performance',
+                        'Spacious Messaging Layout - Increased message bubble width for large displays',
+                      ],
+                      fixes: [
+                        'Resolved Profile Layout RenderFlex unbounded height exceptions',
+                        'Fixed Navigation Overflow in the Fluent NavigationPane',
+                        'Updated Profile Header to be interactive with hover states',
+                      ],
+                    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(height: 16),
+                    _buildVersionCard(
+                      context,
                       version: '4.6.0+1',
                       date: 'April 20, 2026',
                       features: [],

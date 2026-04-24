@@ -19,6 +19,13 @@ abstract class FeedRepository {
     int offset = 0,
   });
 
+  /// Get unified feed posts (merged).
+  Future<List<Post>> getUnifiedFeed({
+    required String userId,
+    int limit = 20,
+    int offset = 0,
+  });
+
   /// Stream feed posts for real-time updates.
   Stream<List<Post>> watchFeedPosts({required String userId, int limit = 20});
 }

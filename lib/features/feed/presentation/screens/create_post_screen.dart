@@ -28,12 +28,14 @@ class CreatePostScreen extends StatefulWidget {
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
   final TextEditingController _captionController = TextEditingController();
+  final TextEditingController _hashtagController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   final PostService _postService = PostService();
   final AuthService _authService = AuthService();
 
   final List<XFile> _selectedImages = [];
   bool _isLoading = false;
+  bool _isSpoiler = false;
 
   // Mood and Poll state
   PostMood? _selectedMood;
@@ -98,6 +100,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     });
 
     try {
+      // Parse hashtags
+      final hashtags = _hashtagController.text
+          .split(RegExp(r'[,\s]+'))
+          .where((tag) => tag.isNotEmpty)
+          .map((tag) => tag.replaceAll('#', '').toLowerCase())
+          .toList();
+
       // Create post
       final post = await _postService.createPost(
         userId: userId,
@@ -109,6 +118,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         mediaFiles: _selectedImages.map((file) => File(file.path)).toList(),
         mediaTypes: List.filled(_selectedImages.length, 'image'),
         mood: _selectedMood?.name,
+        hashtags: hashtags,
+        isSpoiler: _isSpoiler,
         poll: _attachedPoll,
       );
 
@@ -210,6 +221,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     required String label,
     required VoidCallback onPressed,
     bool isM3E = false,
+    bool isActive = false,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -221,13 +233,16 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         label, 
         style: TextStyle(
           fontSize: 14,
-          fontWeight: isM3E ? FontWeight.bold : null,
+          fontWeight: (isM3E || isActive) ? FontWeight.bold : null,
         )
       ),
       style: FilledButton.styleFrom(
         padding: EdgeInsets.symmetric(horizontal: isM3E ? 20 : 16, vertical: isM3E ? 12 : 10),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isM3E ? 16 : 12)),
-        backgroundColor: isM3E ? colorScheme.secondaryContainer.withValues(alpha: 0.7) : null,
+        backgroundColor: isActive 
+          ? colorScheme.primaryContainer 
+          : (isM3E ? colorScheme.secondaryContainer.withValues(alpha: 0.7) : null),
+        foregroundColor: isActive ? colorScheme.onPrimaryContainer : null,
       ),
     );
   }
@@ -331,6 +346,25 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             ),
             textCapitalization: TextCapitalization.sentences,
           ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _hashtagController,
+            decoration: InputDecoration(
+              hintText: 'Add hashtags (e.g. #nature, #travel)',
+              prefixIcon: Icon(Icons.tag, color: colorScheme.primary, size: 20),
+              hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              filled: true,
+              fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+            style: theme.textTheme.bodyMedium,
+          ),
           if (_selectedImages.isNotEmpty) ...[
             const SizedBox(height: 16),
             SizedBox(
@@ -384,6 +418,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             child: Row(
               children: [
                 _buildActionButton(icon: Icons.photo_library_outlined, label: 'Photo', onPressed: _pickImages, isM3E: isM3E),
+                const SizedBox(width: 8),
+                _buildActionButton(
+                  icon: _isSpoiler ? Icons.visibility_off : Icons.visibility_off_outlined,
+                  label: 'Spoiler',
+                  onPressed: () => setState(() => _isSpoiler = !_isSpoiler),
+                  isM3E: isM3E,
+                  isActive: _isSpoiler,
+                ),
                 const SizedBox(width: 8),
                 _buildActionButton(icon: Icons.poll_outlined, label: 'Poll', onPressed: _togglePollCreator, isM3E: isM3E),
                 const SizedBox(width: 8),

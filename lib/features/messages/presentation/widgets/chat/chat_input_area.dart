@@ -23,6 +23,8 @@ class ChatInputArea extends StatefulWidget {
     required this.isSending,
     required this.isWhisperMode,
     required this.onToggleRecording,
+    required this.isSpoiler,
+    required this.onSpoilerToggle,
     this.textNotifier,
     this.backgroundUrl,
     this.textColor,
@@ -197,6 +199,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
         valueListenable: widget.textNotifier ?? ValueNotifier(widget.controller.text),
         builder: (context, text, child) {
           final bool isTyping = text.trim().isNotEmpty;
+          final bool hasSomething = isTyping || widget.hasAttachment;
 
           return material.Row(
             crossAxisAlignment: material.CrossAxisAlignment.center,
@@ -215,12 +218,24 @@ class _ChatInputAreaState extends State<ChatInputArea> {
                     ),
                   );
                 },
-                child: isTyping
+                child: (isTyping && !widget.hasAttachment)
                     ? const material.SizedBox.shrink(key: material.ValueKey('leading-hidden'))
                     : material.Row(
                       key: material.ValueKey('leading-visible'),
                       mainAxisSize: material.MainAxisSize.min,
                       children: [
+                        if (hasSomething)
+                          material.IconButton(
+                            onPressed: widget.onSpoilerToggle,
+                            icon: material.Icon(
+                              widget.isSpoiler ? material.Icons.visibility_off : material.Icons.visibility_off_outlined,
+                              color: widget.isSpoiler ? colorScheme.primary : (widget.isDesktop ? material.Colors.white38 : colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
+                              size: widget.isDesktop ? 22 : 20,
+                            ),
+                            tooltip: 'Mark as Spoiler',
+                            constraints: const material.BoxConstraints(),
+                            padding: const material.EdgeInsets.all(8),
+                          ),
                         widget.isDesktop
                             ? fluent.FlyoutTarget(
                               controller: _flyoutController,

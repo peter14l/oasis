@@ -87,6 +87,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final FocusNode _focusNode = FocusNode();
   final ChatMediaPicker _mediaPicker = ChatMediaPicker();
 
+  bool _isSpoiler = false;
   late VaultService _vaultService;
 
   @override
@@ -948,6 +949,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                             onPickVideo: _pickVideo,
                                             onPickFile: _pickFile,
                                             onPickAudio: _pickAudio,
+                                            isSpoiler: _isSpoiler,
+                                            onSpoilerToggle: () => setState(() => _isSpoiler = !_isSpoiler),
                                           ),
                                         ),
                                       ],

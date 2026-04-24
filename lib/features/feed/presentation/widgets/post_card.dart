@@ -106,6 +106,8 @@ import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/widgets/moderation_dialogs.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/features/feed/presentation/widgets/polls/poll_widgets.dart';
+import 'package:oasis/widgets/spoiler_widget.dart';
+import 'package:oasis/features/messages/presentation/widgets/bubbles/text_bubble.dart';
 
 class PostCard extends StatefulWidget {
   final Post post;
@@ -211,6 +213,7 @@ class _PostCardState extends State<PostCard>
         builder: (context) {
           return fluent.MenuFlyout(
             items: [
+              /*
               fluent.MenuFlyoutItem(
                 onPressed: () {
                   _handleLike();
@@ -230,6 +233,7 @@ class _PostCardState extends State<PostCard>
                 leading: const Icon(fluent.FluentIcons.comment),
                 text: const Text('Comment'),
               ),
+              */
               if (widget.isOwnPost)
                 fluent.MenuFlyoutItem(
                   onPressed: _confirmDelete,
@@ -301,6 +305,7 @@ class _PostCardState extends State<PostCard>
           ),
         ),
         items: [
+          /*
           PopupMenuItem(
             onTap: _handleLike,
             child: _buildMenuRow(
@@ -319,6 +324,7 @@ class _PostCardState extends State<PostCard>
               colorScheme.onSurface,
             ),
           ),
+          */
           if (widget.isOwnPost)
             PopupMenuItem(
               onTap: _confirmDelete,
@@ -391,6 +397,7 @@ class _PostCardState extends State<PostCard>
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
+                  /*
                   _buildMoreTile(
                     context,
                     icon: widget.post.isLiked
@@ -412,6 +419,7 @@ class _PostCardState extends State<PostCard>
                       widget.onComment?.call();
                     },
                   ),
+                  */
                   if (widget.isOwnPost) ...[
                     _buildMoreTile(
                       context,
@@ -703,7 +711,7 @@ class _PostCardState extends State<PostCard>
                       return Column(
                         children: [
                           GestureDetector(
-                            onDoubleTap: () => _handleLike(forceLike: true),
+                            // onDoubleTap: () => _handleLike(forceLike: true),
                             onLongPress: _showMoreOptions,
                             child: Container(
                               width: double.infinity,
@@ -724,10 +732,17 @@ class _PostCardState extends State<PostCard>
                                       )
                                       : Hero(
                                         tag: 'post_${widget.post.id}',
-                                        child: _buildImageItem(
-                                          images.first,
-                                          colorScheme,
-                                        ),
+                                        child: widget.post.isSpoiler
+                                            ? SpoilerWidget(
+                                              child: _buildImageItem(
+                                                images.first,
+                                                colorScheme,
+                                              ),
+                                            )
+                                            : _buildImageItem(
+                                              images.first,
+                                              colorScheme,
+                                            ),
                                       ),
                             ),
                           ),
@@ -741,21 +756,34 @@ class _PostCardState extends State<PostCard>
                 if (widget.post.content != null &&
                     widget.post.content!.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: RichText(
-                      text: TextSpan(
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontSize: 15,
-                          height: 1.4,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: '${widget.post.username} ',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildCaption(context, theme, colorScheme),
+                        if (widget.post.hashtags.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: widget.post.hashtags.map((tag) {
+                              return GestureDetector(
+                                onTap: () {
+                                  // Navigate to hashtag search
+                                },
+                                child: Text(
+                                  '#$tag',
+                                  style: TextStyle(
+                                    color: colorScheme.primary,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
-                          TextSpan(text: widget.post.content),
                         ],
-                      ),
+                      ],
                     ),
                   ),
 
@@ -764,6 +792,7 @@ class _PostCardState extends State<PostCard>
                   padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [
+                      /*
                       ScaleTransition(
                         scale: _likeAnimation,
                         child: fluent.IconButton(
@@ -778,6 +807,7 @@ class _PostCardState extends State<PostCard>
                         ),
                       ),
                       const SizedBox(width: 20),
+                      */
                       fluent.IconButton(
                         icon: const Icon(fluent.FluentIcons.share, size: 20),
                         onPressed: widget.onShare,
@@ -980,7 +1010,7 @@ class _PostCardState extends State<PostCard>
                       return Column(
                         children: [
                           GestureDetector(
-                            onDoubleTap: () => _handleLike(forceLike: true),
+                            // onDoubleTap: () => _handleLike(forceLike: true),
                             onLongPress: _showMoreOptions,
                             child: Container(
                               width: double.infinity,
@@ -1009,10 +1039,17 @@ class _PostCardState extends State<PostCard>
                                       )
                                       : Hero(
                                         tag: 'post_${widget.post.id}',
-                                        child: _buildImageItem(
-                                          images.first,
-                                          colorScheme,
-                                        ),
+                                        child: widget.post.isSpoiler
+                                            ? SpoilerWidget(
+                                              child: _buildImageItem(
+                                                images.first,
+                                                colorScheme,
+                                              ),
+                                            )
+                                            : _buildImageItem(
+                                              images.first,
+                                              colorScheme,
+                                            ),
                                       ),
                             ),
                           ),
@@ -1054,26 +1091,33 @@ class _PostCardState extends State<PostCard>
                       16,
                       isDesktop ? 8 : 8,
                     ),
-                    child: RichText(
-                      text: TextSpan(
-                        style: isDesktop
-                            ? theme.textTheme.bodyMedium?.copyWith(
-                                fontSize: 15,
-                                height: 1.4,
-                              )
-                            : theme.textTheme.bodyMedium,
-                        children: [
-                          TextSpan(
-                            text: '${widget.post.username} ',
-                            style: TextStyle(
-                              fontWeight:
-                                  isM3E ? FontWeight.w900 : FontWeight.w600,
-                              letterSpacing: isM3E ? -0.2 : 0,
-                            ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildCaption(context, theme, colorScheme, isDesktop, isM3E),
+                        if (widget.post.hashtags.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: widget.post.hashtags.map((tag) {
+                              return GestureDetector(
+                                onTap: () {
+                                  // Navigate to hashtag search
+                                },
+                                child: Text(
+                                  '#$tag',
+                                  style: TextStyle(
+                                    color: colorScheme.primary,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
-                          TextSpan(text: widget.post.content),
                         ],
-                      ),
+                      ],
                     ),
                   ),
 
@@ -1101,6 +1145,7 @@ class _PostCardState extends State<PostCard>
                   ),
                   child: Row(
                     children: [
+                      /*
                       ScaleTransition(
                         scale: _likeAnimation,
                         child: IconButton(
@@ -1122,6 +1167,7 @@ class _PostCardState extends State<PostCard>
                         ),
                       ),
                       const SizedBox(width: 20),
+                      */
                       IconButton(
                         key: const ValueKey('post_card_privacy_indicator'),
                         icon: Icon(
@@ -1201,6 +1247,86 @@ class _PostCardState extends State<PostCard>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCaption(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme, [
+    bool isDesktop = true,
+    bool isM3E = false,
+  ]) {
+    final String content = widget.post.username + ' ' + (widget.post.content ?? '');
+    
+    // Parse Discord-style spoilers: ||spoiler||
+    final List<Widget> children = [];
+    final RegExp spoilerRegExp = RegExp(r'\|\|(.*?)\|\|');
+    int lastMatchEnd = 0;
+
+    final Iterable<RegExpMatch> matches = spoilerRegExp.allMatches(content);
+
+    final baseStyle = isDesktop
+        ? theme.textTheme.bodyMedium?.copyWith(fontSize: 15, height: 1.4)
+        : theme.textTheme.bodyMedium;
+    
+    final usernameStyle = TextStyle(
+      fontWeight: isM3E ? FontWeight.w900 : FontWeight.w600,
+      letterSpacing: isM3E ? -0.2 : 0,
+    );
+
+    if (matches.isEmpty) {
+      return RichText(
+        text: TextSpan(
+          style: baseStyle,
+          children: [
+            TextSpan(
+              text: '${widget.post.username} ',
+              style: usernameStyle,
+            ),
+            TextSpan(text: widget.post.content),
+          ],
+        ),
+      );
+    }
+
+    // Since we need to wrap the username separately if it's not part of a spoiler
+    // but the regex works on the whole string, let's just parse the content part.
+    final String postContent = widget.post.content ?? '';
+    final Iterable<RegExpMatch> contentMatches = spoilerRegExp.allMatches(postContent);
+    
+    final List<Widget> wrapChildren = [];
+    wrapChildren.add(Text('${widget.post.username} ', style: baseStyle?.merge(usernameStyle)));
+
+    lastMatchEnd = 0;
+    for (final match in contentMatches) {
+      if (match.start > lastMatchEnd) {
+        wrapChildren.add(Text(
+          postContent.substring(lastMatchEnd, match.start),
+          style: baseStyle,
+        ));
+      }
+
+      wrapChildren.add(SpoilerWidget(
+        child: Text(
+          match.group(1) ?? '',
+          style: baseStyle,
+        ),
+      ));
+
+      lastMatchEnd = match.end;
+    }
+
+    if (lastMatchEnd < postContent.length) {
+      wrapChildren.add(Text(
+        postContent.substring(lastMatchEnd),
+        style: baseStyle,
+      ));
+    }
+
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: wrapChildren,
     );
   }
 }

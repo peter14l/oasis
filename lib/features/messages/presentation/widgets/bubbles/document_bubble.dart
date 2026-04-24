@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:oasis/services/media_download_service.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
 
+import 'package:oasis/widgets/spoiler_widget.dart';
+
 /// Document/file message bubble with download support.
 class DocumentBubble extends StatelessWidget {
   const DocumentBubble({
@@ -13,6 +15,7 @@ class DocumentBubble extends StatelessWidget {
     this.textColor,
     this.isUploading = false,
     this.uploadProgress = 0.0,
+    this.isSpoiler = false,
   });
 
   final String fileName;
@@ -22,6 +25,7 @@ class DocumentBubble extends StatelessWidget {
   final Color? textColor;
   final bool isUploading;
   final double uploadProgress;
+  final bool isSpoiler;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +60,7 @@ class DocumentBubble extends StatelessWidget {
             ? theme.colorScheme.onPrimaryContainer
             : theme.colorScheme.onSurface);
 
-    return Container(
+    final Widget content = Container(
       width: 250,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -176,5 +180,10 @@ class DocumentBubble extends StatelessWidget {
         ],
       ),
     );
+
+    if (isSpoiler) {
+      return SpoilerWidget(child: content);
+    }
+    return content;
   }
 }

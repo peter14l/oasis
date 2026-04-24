@@ -140,6 +140,7 @@ class PostCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
+                /*
                 _buildActionButton(
                   icon: Icons.favorite_border,
                   label: '',
@@ -154,6 +155,7 @@ class PostCard extends StatelessWidget {
                     // Handle comment
                   },
                 ),
+                */
                 _buildActionButton(
                   icon: Icons.share,
                   label: '',

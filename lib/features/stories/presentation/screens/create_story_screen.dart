@@ -1301,14 +1301,15 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
                 if (!_isCaptionVisible && !_isDrawingMode && !_isDraggingText)
                   _buildBottomActionBar(),
                 if (_isDrawingMode) _buildDrawingTools(),
-                if (_isDraggingText) _buildTrashArea(),
+                _buildTrashArea(),
               ],
 
               // Close button now integrated into empty state layout
             ],
           ),
-        );
-      }, // End LayoutBuilder
+        ),
+      );
+    }, // End LayoutBuilder
     );
   }
 

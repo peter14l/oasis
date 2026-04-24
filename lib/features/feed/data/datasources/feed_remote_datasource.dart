@@ -57,6 +57,29 @@ class FeedRemoteDatasource {
     return _hydratePolls(posts);
   }
 
+  /// Fetch unified feed posts (Following + Public).
+  Future<List<Map<String, dynamic>>> getUnifiedFeed({
+    required String userId,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    final response = await _supabase.rpc(
+      SupabaseConfig.getUnifiedFeedFn,
+      params: {'p_user_id': userId, 'p_limit': limit, 'p_offset': offset},
+    );
+
+    if (response == null) return [];
+    final posts = (response as List<dynamic>).map((json) {
+      final map = Map<String, dynamic>.from(json as Map);
+      if (map['comments_count'] == null && map['comments'] != null) {
+        map['comments_count'] = map['comments'];
+      }
+      return map;
+    }).toList();
+
+    return _hydratePolls(posts);
+  }
+
   /// Hydrate posts with their corresponding polls and options.
   Future<List<Map<String, dynamic>>> _hydratePolls(
     List<Map<String, dynamic>> posts,
