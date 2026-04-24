@@ -256,25 +256,44 @@ class _InterestDiscoveryQuizState extends State<InterestDiscoveryQuiz> {
   @override
   Widget build(material.BuildContext context) {
     final theme = material.Theme.of(context);
-    final fluentTheme = fluent.FluentTheme.of(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final useFluent = themeProvider.useFluentUI;
+    final fluentTheme = useFluent ? fluent.FluentTheme.of(context) : null;
 
     return material.Column(
       children: [
-        // Progress indicator using WinUI 3 PipsPager
+        // Progress indicator
         material.Padding(
           padding: const material.EdgeInsets.symmetric(vertical: 16),
-          child: fluent.PipsPager(
-            numberOfPages: 2,
-            currentIndex: _currentStep,
-            onPageChanged: (index) => setState(() => _currentStep = index),
-          ),
+          child: useFluent
+              ? fluent.PipsPager(
+                numberOfPages: 2,
+                currentIndex: _currentStep,
+                onPageChanged: (index) => setState(() => _currentStep = index),
+              )
+              : material.Row(
+                mainAxisAlignment: material.MainAxisAlignment.center,
+                children: List.generate(2, (index) {
+                  return material.Container(
+                    width: 8,
+                    height: 8,
+                    margin: const material.EdgeInsets.symmetric(horizontal: 4),
+                    decoration: material.BoxDecoration(
+                      shape: material.BoxShape.circle,
+                      color: _currentStep == index
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.primary.withValues(alpha: 0.2),
+                    ),
+                  );
+                }),
+              ),
         ),
 
         material.Expanded(
           child:
               _currentStep == 0
-                  ? _buildCategorySelection(theme, fluentTheme)
-                  : _buildSubcategorySelection(theme, fluentTheme),
+                  ? _buildCategorySelection(theme, useFluent, fluentTheme)
+                  : _buildSubcategorySelection(theme, useFluent, fluentTheme),
         ),
 
         // Navigation buttons
@@ -283,20 +302,35 @@ class _InterestDiscoveryQuizState extends State<InterestDiscoveryQuiz> {
           child: material.Row(
             children: [
               if (_currentStep > 0)
-                fluent.Button(
-                  onPressed: () => setState(() => _currentStep = 0),
-                  child: const material.Text('Back'),
-                ),
+                useFluent
+                    ? fluent.Button(
+                      onPressed: () => setState(() => _currentStep = 0),
+                      child: const material.Text('Back'),
+                    )
+                    : material.OutlinedButton(
+                      onPressed: () => setState(() => _currentStep = 0),
+                      child: const material.Text('Back'),
+                    ),
               const material.Spacer(),
-              fluent.FilledButton(
-                onPressed:
-                    _currentStep == 0 && _selectedCategories.isNotEmpty
-                        ? () => setState(() => _currentStep = 1)
-                        : _currentStep == 1
-                        ? _complete
-                        : null,
-                child: material.Text(_currentStep == 0 ? 'Next' : 'Done'),
-              ),
+              useFluent
+                  ? fluent.FilledButton(
+                    onPressed:
+                        _currentStep == 0 && _selectedCategories.isNotEmpty
+                            ? () => setState(() => _currentStep = 1)
+                            : _currentStep == 1
+                            ? _complete
+                            : null,
+                    child: material.Text(_currentStep == 0 ? 'Next' : 'Done'),
+                  )
+                  : material.FilledButton(
+                    onPressed:
+                        _currentStep == 0 && _selectedCategories.isNotEmpty
+                            ? () => setState(() => _currentStep = 1)
+                            : _currentStep == 1
+                            ? _complete
+                            : null,
+                    child: material.Text(_currentStep == 0 ? 'Next' : 'Done'),
+                  ),
             ],
           ),
         ),
@@ -304,7 +338,11 @@ class _InterestDiscoveryQuizState extends State<InterestDiscoveryQuiz> {
     );
   }
 
-  material.Widget _buildCategorySelection(material.ThemeData theme, fluent.FluentThemeData fluentTheme) {
+  material.Widget _buildCategorySelection(
+    material.ThemeData theme,
+    bool useFluent,
+    fluent.FluentThemeData? fluentTheme,
+  ) {
     return material.SingleChildScrollView(
       padding: const material.EdgeInsets.all(16),
       child: material.Column(
@@ -330,39 +368,70 @@ class _InterestDiscoveryQuizState extends State<InterestDiscoveryQuiz> {
             children:
                 InterestCategories.all.map((category) {
                   final isSelected = _selectedCategories.contains(category.id);
-                  return fluent.Card(
-                    padding: material.EdgeInsets.zero,
-                    backgroundColor: isSelected 
-                        ? category.color.withValues(alpha: 0.1) 
-                        : fluentTheme.cardColor,
-                    borderColor: isSelected ? category.color : null,
+                  final cardChild = material.Padding(
+                    padding: const material.EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: material.Row(
+                      mainAxisSize: material.MainAxisSize.min,
+                      children: [
+                        material.Text(
+                          category.emoji,
+                          style: const material.TextStyle(fontSize: 20),
+                        ),
+                        const material.SizedBox(width: 8),
+                        material.Text(
+                          category.name,
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            fontWeight:
+                                isSelected
+                                    ? material.FontWeight.bold
+                                    : material.FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (useFluent) {
+                    return fluent.Card(
+                      padding: material.EdgeInsets.zero,
+                      backgroundColor:
+                          isSelected
+                              ? category.color.withValues(alpha: 0.1)
+                              : fluentTheme?.cardColor,
+                      borderColor: isSelected ? category.color : null,
+                      child: material.InkWell(
+                        onTap: () => _toggleCategory(category.id),
+                        borderRadius: material.BorderRadius.circular(8),
+                        child: cardChild,
+                      ),
+                    );
+                  }
+
+                  return material.Material(
+                    color: Colors.transparent,
                     child: material.InkWell(
                       onTap: () => _toggleCategory(category.id),
-                      borderRadius: material.BorderRadius.circular(8),
-                      child: material.Padding(
-                        padding: const material.EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
+                      borderRadius: material.BorderRadius.circular(16),
+                      child: material.Container(
+                        decoration: material.BoxDecoration(
+                          color:
+                              isSelected
+                                  ? category.color.withValues(alpha: 0.1)
+                                  : theme.colorScheme.surfaceContainerLow,
+                          borderRadius: material.BorderRadius.circular(16),
+                          border: material.Border.all(
+                            color:
+                                isSelected
+                                    ? category.color
+                                    : theme.colorScheme.outlineVariant
+                                        .withValues(alpha: 0.5),
+                            width: 1.5,
+                          ),
                         ),
-                        child: material.Row(
-                          mainAxisSize: material.MainAxisSize.min,
-                          children: [
-                            material.Text(
-                              category.emoji,
-                              style: const material.TextStyle(fontSize: 20),
-                            ),
-                            const material.SizedBox(width: 8),
-                            material.Text(
-                              category.name,
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                fontWeight:
-                                    isSelected
-                                        ? material.FontWeight.bold
-                                        : material.FontWeight.normal,
-                              ),
-                            ),
-                          ],
-                        ),
+                        child: cardChild,
                       ),
                     ),
                   );
@@ -373,7 +442,11 @@ class _InterestDiscoveryQuizState extends State<InterestDiscoveryQuiz> {
     );
   }
 
-  material.Widget _buildSubcategorySelection(material.ThemeData theme, fluent.FluentThemeData fluentTheme) {
+  material.Widget _buildSubcategorySelection(
+    material.ThemeData theme,
+    bool useFluent,
+    fluent.FluentThemeData? fluentTheme,
+  ) {
     final selectedCategoryList =
         InterestCategories.all
             .where((c) => _selectedCategories.contains(c.id))

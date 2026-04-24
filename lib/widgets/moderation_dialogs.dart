@@ -438,23 +438,19 @@ class _MuteUserDialogState extends State<MuteUserDialog> {
             'Duration:',
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
-          RadioGroup<Duration?>(
-            groupValue: _duration,
-            onChanged: (value) {
-              setState(() => _duration = value);
-            },
-            child: Column(
-              children:
-                  _durationOptions.map((option) {
-                    return RadioListTile<Duration?>(
-                      value: option.value,
-                      title: Text(option.key),
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                    );
-                  }).toList(),
-            ),
-          ),
+          const SizedBox(height: 8),
+          ..._durationOptions.map((option) {
+            return RadioListTile<Duration?>(
+              value: option.value,
+              groupValue: _duration,
+              title: Text(option.key),
+              onChanged: (value) {
+                setState(() => _duration = value);
+              },
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+            );
+          }),
         ],
       ),
       actions: [

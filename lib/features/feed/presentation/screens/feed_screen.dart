@@ -419,51 +419,61 @@ class _FeedScreenState extends State<FeedScreen>
 
     final feedContent = layout;
 
-    return AdaptiveScaffold(
-        title: const Text('Feed'),
-        actions: [
-          const SizedBox(width: 12),
-          fluent.Tooltip(
-            message: 'Change Layout',
-            child: fluent.IconButton(
-              icon: Icon(settings.feedLayout.icon, size: 20),
-              onPressed: () => _showLayoutSwitcher(context),
-            ),
+    final actions = [
+      if (useFluent) ...[
+        const SizedBox(width: 12),
+        fluent.Tooltip(
+          message: 'Change Layout',
+          child: fluent.IconButton(
+            icon: Icon(settings.feedLayout.icon, size: 20),
+            onPressed: () => _showLayoutSwitcher(context),
           ),
-          const SizedBox(width: 12),
-          _buildRipplesButton(colorScheme, isM3E),
-        ],
-        body: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: feedContent,
-                  ),
-                  const SizedBox(width: 12),
-                  _showCommentPane && _selectedPostId != null
-                      ? _buildDesktopCommentPane(theme, colorScheme, isM3E)
-                      : _buildDesktopSidebar(theme, colorScheme, isM3E),
-                ],
-              ),
-            ),
-            if (_showRipplesOverlay)
-              Positioned.fill(
-                child: motion.Animate(
-                  effects: const [motion.FadeEffect()],
-                  child: RipplesScreen(
-                    onExit: () => setState(() => _showRipplesOverlay = false),
-                  ),
+        ),
+      ] else ...[
+        IconButton(
+          icon: Icon(settings.feedLayout.icon),
+          onPressed: () => _showLayoutSwitcher(context),
+          tooltip: 'Change Layout',
+        ),
+      ],
+      const SizedBox(width: 12),
+      _buildRipplesButton(colorScheme, isM3E),
+    ];
+
+    return AdaptiveScaffold(
+      title: isDesktop ? const Text('Feed') : null,
+      actions: isDesktop ? actions : null,
+      body: Stack(
+        children: [
+          isDesktop
+              ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    Expanded(child: feedContent),
+                    const SizedBox(width: 12),
+                    _showCommentPane && _selectedPostId != null
+                        ? _buildDesktopCommentPane(theme, colorScheme, isM3E)
+                        : _buildDesktopSidebar(theme, colorScheme, isM3E),
+                  ],
+                ),
+              )
+              : feedContent,
+          if (_showRipplesOverlay)
+            Positioned.fill(
+              child: motion.Animate(
+                effects: const [motion.FadeEffect()],
+                child: RipplesScreen(
+                  onExit: () => setState(() => _showRipplesOverlay = false),
                 ),
               ),
-            const LockoutOverlay(pageName: 'Feed'),
-            if (_showWellbeingNudge) _buildWellbeingNudge(),
-            if (_showDeepBreath) _buildDeepBreath(),
-          ],
-        ),
-      );
+            ),
+          const LockoutOverlay(pageName: 'Feed'),
+          if (_showWellbeingNudge) _buildWellbeingNudge(),
+          if (_showDeepBreath) _buildDeepBreath(),
+        ],
+      ),
+    );
   }
 
   Widget _buildDeepBreath() {
