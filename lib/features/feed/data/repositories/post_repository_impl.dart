@@ -23,6 +23,7 @@ class PostRepositoryImpl implements PostRepository {
     List<String>? mediaTypes,
     String? communityId,
     String? mood,
+    bool isSpoiler = false,
   }) async {
     final postMap = await _remoteDatasource.createPost(
       userId: userId,
@@ -31,6 +32,7 @@ class PostRepositoryImpl implements PostRepository {
       mediaTypes: mediaTypes,
       communityId: communityId,
       mood: mood,
+      isSpoiler: isSpoiler,
     );
 
     final post = Post.fromJson(postMap);

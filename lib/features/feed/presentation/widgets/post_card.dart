@@ -1009,7 +1009,7 @@ class _PostCardState extends State<PostCard>
                           ? widget.post.mediaUrls
                           : [widget.post.imageUrl!];
 
-                      return Column(
+                      final mediaContent = Column(
                         children: [
                           GestureDetector(
                             // onDoubleTap: () => _handleLike(forceLike: true),
@@ -1041,17 +1041,10 @@ class _PostCardState extends State<PostCard>
                                       )
                                       : Hero(
                                         tag: 'post_${widget.post.id}',
-                                        child: widget.post.isSpoiler
-                                            ? SpoilerWidget(
-                                              child: _buildImageItem(
-                                                images.first,
-                                                colorScheme,
-                                              ),
-                                            )
-                                            : _buildImageItem(
-                                              images.first,
-                                              colorScheme,
-                                            ),
+                                        child: _buildImageItem(
+                                          images.first,
+                                          colorScheme,
+                                        ),
                                       ),
                             ),
                           ),
@@ -1079,6 +1072,11 @@ class _PostCardState extends State<PostCard>
                             ),
                         ],
                       );
+
+                      if (widget.post.isSpoiler) {
+                        return SpoilerWidget(child: mediaContent);
+                      }
+                      return mediaContent;
                     },
                   ),
                 ],
@@ -1096,7 +1094,23 @@ class _PostCardState extends State<PostCard>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildCaption(context, theme, colorScheme, isDesktop, isM3E),
+                        widget.post.isSpoiler
+                            ? SpoilerWidget(
+                              child: _buildCaption(
+                                context,
+                                theme,
+                                colorScheme,
+                                isDesktop,
+                                isM3E,
+                              ),
+                            )
+                            : _buildCaption(
+                              context,
+                              theme,
+                              colorScheme,
+                              isDesktop,
+                              isM3E,
+                            ),
                         if (widget.post.hashtags.isNotEmpty) ...[
                           const SizedBox(height: 8),
                           Wrap(

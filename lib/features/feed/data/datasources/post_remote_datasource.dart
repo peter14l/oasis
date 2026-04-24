@@ -19,6 +19,7 @@ class PostRemoteDatasource {
     List<String>? mediaTypes,
     String? communityId,
     String? mood,
+    bool isSpoiler = false,
   }) async {
     final postId = _uuid.v4();
 
@@ -32,6 +33,7 @@ class PostRemoteDatasource {
       'media_urls': mediaUrls ?? [],
       'media_types': mediaTypes ?? [],
       'mood': mood,
+      'is_spoiler': isSpoiler,
     };
 
     await _supabase.from(SupabaseConfig.postsTable).insert(postData);

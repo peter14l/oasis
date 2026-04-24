@@ -433,6 +433,7 @@ class MessageBubble extends StatelessWidget {
           currentUserViewCount: 0,
           messageId: message.id,
           textColor: textColor,
+          isSpoiler: message.isSpoiler,
         );
       case MessageType.sticker:
         return SizedBox(

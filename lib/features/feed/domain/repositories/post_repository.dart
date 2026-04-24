@@ -13,6 +13,7 @@ abstract class PostRepository {
     List<String>? mediaTypes,
     String? communityId,
     String? mood,
+    bool isSpoiler = false,
   });
 
   /// Get a single post by ID with like/bookmark status.

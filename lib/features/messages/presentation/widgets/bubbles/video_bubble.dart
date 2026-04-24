@@ -104,9 +104,9 @@ class VideoBubble extends StatelessWidget {
       );
     }
 
-    Widget content;
+    Widget mainContent;
     if (isUploading) {
-      content = Container(
+      mainContent = Container(
         width: 200,
         height: 120,
         decoration: BoxDecoration(
@@ -162,7 +162,7 @@ class VideoBubble extends StatelessWidget {
         ),
       );
     } else {
-      content = Row(
+      mainContent = Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.videocam_rounded, color: color),
@@ -179,8 +179,9 @@ class VideoBubble extends StatelessWidget {
     }
 
     if (isSpoiler) {
-      return SpoilerWidget(child: content);
+      return SpoilerWidget(child: mainContent);
     }
-    return content;
+
+    return mainContent;
   }
 }

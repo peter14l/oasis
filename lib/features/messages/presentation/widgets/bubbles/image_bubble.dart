@@ -113,7 +113,7 @@ class ImageBubble extends StatelessWidget {
       );
     }
 
-    return Column(
+    final Widget mainContent = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -150,10 +150,16 @@ class ImageBubble extends StatelessWidget {
           ),
       ],
     );
+
+    if (isSpoiler) {
+      return SpoilerWidget(child: mainContent);
+    }
+
+    return mainContent;
   }
 
   Widget _buildImage(BuildContext context, ThemeData theme) {
-    final imageContent = Stack(
+    return Stack(
       alignment: Alignment.center,
       children: [
         _isLocalFile
@@ -212,11 +218,5 @@ class ImageBubble extends StatelessWidget {
         ],
       ],
     );
-
-    if (isSpoiler) {
-      return SpoilerWidget(child: imageContent);
-    }
-
-    return imageContent;
   }
 }

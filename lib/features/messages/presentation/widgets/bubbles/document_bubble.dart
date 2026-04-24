@@ -60,7 +60,7 @@ class DocumentBubble extends StatelessWidget {
             ? theme.colorScheme.onPrimaryContainer
             : theme.colorScheme.onSurface);
 
-    final Widget content = Container(
+    final Widget mainContent = Container(
       width: 250,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -182,8 +182,8 @@ class DocumentBubble extends StatelessWidget {
     );
 
     if (isSpoiler) {
-      return SpoilerWidget(child: content);
+      return SpoilerWidget(child: mainContent);
     }
-    return content;
+    return mainContent;
   }
 }
