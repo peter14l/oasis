@@ -40,11 +40,13 @@ class TextBubble extends StatelessWidget {
     required this.content,
     required this.isMe,
     this.textColor,
+    this.isSpoiler = false,
   });
 
   final String content;
   final bool isMe;
   final Color? textColor;
+  final bool isSpoiler;
 
   @override
   Widget build(BuildContext context) {
@@ -121,6 +123,15 @@ class TextBubble extends StatelessWidget {
         style: theme.textTheme.bodyMedium?.copyWith(
           color: color,
           fontStyle: FontStyle.italic,
+        ),
+      );
+    }
+
+    if (isSpoiler) {
+      return SpoilerWidget(
+        child: Text(
+          displayText,
+          style: theme.textTheme.bodyMedium?.copyWith(color: color),
         ),
       );
     }

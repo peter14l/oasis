@@ -407,10 +407,21 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         docFile: docFile,
         replyMessage: replyMessage,
         mediaViewMode: mediaViewMode,
+        isSpoiler: _isSpoiler,
       );
+      
+      // Reset spoiler state after sending
+      if (_isSpoiler) {
+        setState(() => _isSpoiler = false);
+      }
     } catch (e) {
       _showError('Error sending message: $e');
     }
+  }
+
+  void _toggleSpoiler() {
+    HapticUtils.lightImpact();
+    setState(() => _isSpoiler = !_isSpoiler);
   }
 
   Future<void> _unsendMessage(Message message) async {

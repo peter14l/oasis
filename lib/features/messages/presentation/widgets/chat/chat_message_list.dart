@@ -422,6 +422,7 @@ class MessageBubble extends StatelessWidget {
           content: message.content,
           isMe: isMe,
           textColor: textColor,
+          isSpoiler: message.isSpoiler,
         );
       case MessageType.gif:
         return ImageBubble(

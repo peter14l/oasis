@@ -226,18 +226,6 @@ class _ChatInputAreaState extends State<ChatInputArea> {
                       key: material.ValueKey('leading-visible'),
                       mainAxisSize: material.MainAxisSize.min,
                       children: [
-                        if (hasSomething)
-                          material.IconButton(
-                            onPressed: widget.onSpoilerToggle,
-                            icon: material.Icon(
-                              widget.isSpoiler ? material.Icons.visibility_off : material.Icons.visibility_off_outlined,
-                              color: widget.isSpoiler ? colorScheme.primary : (widget.isDesktop ? material.Colors.white38 : colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
-                              size: widget.isDesktop ? 22 : 20,
-                            ),
-                            tooltip: 'Mark as Spoiler',
-                            constraints: const material.BoxConstraints(),
-                            padding: const material.EdgeInsets.all(8),
-                          ),
                         widget.isDesktop
                             ? fluent.FlyoutTarget(
                               controller: _flyoutController,
@@ -341,6 +329,26 @@ class _ChatInputAreaState extends State<ChatInputArea> {
                       ],
                     ),
               ),
+
+              // Spoiler Toggle
+              material.AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: hasSomething
+                    ? material.IconButton(
+                      key: const material.ValueKey('spoiler-btn'),
+                      onPressed: widget.onSpoilerToggle,
+                      icon: material.Icon(
+                        widget.isSpoiler ? material.Icons.visibility_off : material.Icons.visibility_off_outlined,
+                        color: widget.isSpoiler ? colorScheme.primary : (widget.isDesktop ? material.Colors.white38 : colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
+                        size: widget.isDesktop ? 22 : 20,
+                      ),
+                      tooltip: 'Mark as Spoiler',
+                      constraints: const material.BoxConstraints(),
+                      padding: const material.EdgeInsets.all(8),
+                    )
+                    : const material.SizedBox.shrink(),
+              ),
+
               material.Expanded(
                 child:
                     widget.isRecording
