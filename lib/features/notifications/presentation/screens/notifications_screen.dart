@@ -8,7 +8,7 @@ import 'package:oasis/features/notifications/presentation/providers/notification
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/themes/app_theme.dart';
-import 'package:oasis/providers/theme_provider.dart';
+import 'package:oasis/services/app_initializer.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/widgets/desktop_header.dart';

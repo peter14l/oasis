@@ -450,9 +450,9 @@ class FeedProvider with ChangeNotifier {
 
   /// Updates comment count for a post in the local state.
   void updatePostCommentCount(String postId, int newCount) {
-    final updatedPosts = _state.posts.map((post) {
+    final updatedPosts = _state.posts.map<Post>((post) {
       if (post.id == postId) {
-        return post.copyWith(commentCount: newCount);
+        return post.copyWith(comments: newCount);
       }
       return post;
     }).toList();
