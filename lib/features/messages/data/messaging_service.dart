@@ -189,7 +189,6 @@ class MessagingService extends ChangeNotifier {
     mediaUrl: mediaUrl,
     mediaFileName: mediaFileName,
     mediaFileSize: mediaFileSize,
-    mediaMimeType: mediaMimeType,
     voiceDuration: voiceDuration,
     encryptedKeys: encryptedKeys,
     iv: iv,
