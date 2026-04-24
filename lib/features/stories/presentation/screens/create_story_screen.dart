@@ -110,8 +110,52 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   final double _strokeWidth = 5.0;
   bool _isEraserMode = false;
 
+  // Canvas Mode State
+  bool _isCanvasMode = false;
+  int _canvasColorIndex = 0;
+  final List<List<Color>> _canvasGradients = [
+    [Colors.purple, Colors.orange],
+    [Colors.blue, Colors.teal],
+    [Colors.pink, Colors.redAccent],
+    [Colors.black87, Colors.black],
+    [Colors.indigo, Colors.deepPurple],
+    [Colors.green, Colors.tealAccent],
+  ];
+
   // Filter State
   int _selectedFilterIndex = 0;
+
+  Future<bool?> _showDiscardDialog() {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isM3E = themeProvider.isM3EEnabled;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isM3E ? colorScheme.surface : Colors.grey[900],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isM3E ? 24 : 16)),
+        title: Text(
+          'Discard media?',
+          style: TextStyle(color: isM3E ? colorScheme.onSurface : Colors.white),
+        ),
+        content: Text(
+          'If you go back now, you will lose any changes you\'ve made.',
+          style: TextStyle(color: isM3E ? colorScheme.onSurfaceVariant : Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => context.pop(false),
+            child: Text('Cancel', style: TextStyle(color: isM3E ? colorScheme.onSurface : Colors.white)),
+          ),
+          TextButton(
+            onPressed: () => context.pop(true),
+            child: Text('Discard', style: TextStyle(color: isM3E ? colorScheme.error : Colors.redAccent, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
   final List<Map<String, dynamic>> _filterPresets = [
     {
       'name': 'Normal',
@@ -385,6 +429,16 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }
 
   Future<void> _capturePhoto() async {
+    if (_activeTool == 'create') {
+      setState(() {
+        _isCanvasMode = true;
+        _mediaType = 'image';
+        _activeTool = 'none';
+        _addNewText();
+      });
+      return;
+    }
+
     if (_cameraController == null || !_isCameraInitialized) return;
     try {
       HapticUtils.mediumImpact();
@@ -684,14 +738,18 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
   }
 
   Future<void> _createStory() async {
-    if (_selectedFile == null) return;
+    if (_selectedFile == null && !_isCanvasMode) return;
     setState(() => _isUploading = true);
 
     try {
-      final finalFile =
-          _mediaType == 'video'
-              ? _selectedFile!
-              : (await _captureCompositeImage() ?? _selectedFile!);
+      final File finalFile;
+      if (_mediaType == 'video' && _selectedFile != null) {
+        finalFile = _selectedFile!;
+      } else {
+        final composite = await _captureCompositeImage();
+        if (composite == null) throw Exception('Failed to generate image');
+        finalFile = composite;
+      }
 
       // Prepare interactive metadata for text layers
       final interactiveMetadata =
@@ -857,31 +915,65 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
         IconData getIcon(IconData rounded, IconData standard) =>
             isM3E ? rounded : standard;
 
-        return Scaffold(
-          backgroundColor: isM3E ? colorScheme.surface : Colors.black,
-          resizeToAvoidBottomInset: false,
-          body: Stack(
-            children: [
-              // ── Composite Area (Captured via RepaintBoundary) ──
-              RepaintBoundary(
-                key: _boundaryKey,
-                child: Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  color: isM3E ? colorScheme.surface : Colors.black,
-                  child: Stack(
-                    children: [
-                      if (_selectedFile != null) ...[
-                        Positioned.fill(
-                          child: ColorFiltered(
-                            colorFilter: ui.ColorFilter.matrix(
-                              _filterPresets[_selectedFilterIndex]['matrix'],
-                            ),
-                            child:
-                                _mediaType == 'video' &&
-                                        _videoController != null &&
-                                        _videoController!.value.isInitialized
-                                    ? FittedBox(
+        return PopScope(
+          canPop: !(_selectedFile != null || _isCanvasMode),
+          onPopInvokedWithResult: (didPop, result) async {
+            if (didPop) return;
+            
+            if (_isDrawingMode) {
+              setState(() => _isDrawingMode = false);
+            } else if (_isFilterPickerVisible) {
+              setState(() => _isFilterPickerVisible = false);
+            } else if (_isCaptionVisible) {
+               _finishTextEditing();
+            } else {
+              final discard = await _showDiscardDialog();
+              if (discard == true) {
+                setState(() {
+                  _selectedFile = null;
+                  _isCanvasMode = false;
+                  _texts.clear();
+                  _strokes.clear();
+                  _videoController?.pause();
+                });
+              }
+            }
+          },
+          child: Scaffold(
+            backgroundColor: isM3E ? colorScheme.surface : Colors.black,
+            resizeToAvoidBottomInset: false,
+            body: Stack(
+              children: [
+                // ── Composite Area (Captured via RepaintBoundary) ──
+                RepaintBoundary(
+                  key: _boundaryKey,
+                  child: Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    color: isM3E ? colorScheme.surface : Colors.black,
+                    child: Stack(
+                      children: [
+                        if (_selectedFile != null || _isCanvasMode) ...[
+                          Positioned.fill(
+                            child: _isCanvasMode
+                                ? Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: _canvasGradients[_canvasColorIndex],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                    ),
+                                  )
+                                : ColorFiltered(
+                                    colorFilter: ui.ColorFilter.matrix(
+                                      _filterPresets[_selectedFilterIndex]['matrix'],
+                                    ),
+                                    child:
+                                        _mediaType == 'video' &&
+                                                _videoController != null &&
+                                                _videoController!.value.isInitialized
+                                            ? FittedBox(
                                       fit: BoxFit.cover,
                                       child: SizedBox(
                                         width:
@@ -2065,21 +2157,39 @@ class _CreateStoryScreenState extends State<CreateStoryScreen> {
           children: [
             _buildBlurButton(
               icon: Icons.close_rounded,
-              onTap: () {
+              onTap: () async {
                 if (_isDrawingMode) {
                   setState(() => _isDrawingMode = false);
                 } else if (_isFilterPickerVisible) {
                   setState(() => _isFilterPickerVisible = false);
                 } else {
-                  setState(() {
-                    _selectedFile = null;
-                    _videoController?.pause();
-                  });
+                  final discard = await _showDiscardDialog();
+                  if (discard == true) {
+                    setState(() {
+                      _selectedFile = null;
+                      _isCanvasMode = false;
+                      _texts.clear();
+                      _strokes.clear();
+                      _videoController?.pause();
+                    });
+                  }
                 }
               },
             ),
             if (!_isCaptionVisible && !_isDrawingMode) ...[
               const Spacer(),
+              if (_isCanvasMode) ...[
+                _buildBlurButton(
+                  icon: Icons.color_lens_rounded,
+                  onTap: () {
+                    setState(() {
+                      _canvasColorIndex = (_canvasColorIndex + 1) % _canvasGradients.length;
+                    });
+                    HapticUtils.lightImpact();
+                  },
+                ),
+                const SizedBox(width: 8),
+              ],
               if (isM3E)
                 TextButton(
                   onPressed: () {

@@ -213,13 +213,52 @@ class MessageBubble extends StatelessWidget {
         : isMe
             ? (bubbleColorSent ?? colorScheme.primary)
             : (bubbleColorReceived ?? colorScheme.surfaceContainerHighest);
+
+    // Fallback text color based on bubble luminance if specific text colors aren't provided
+    final Color autoTextColor = bubbleColor.computeLuminance() > 0.5 ? Colors.black87 : Colors.white;
+
     final textColor = isHighlighted
         ? colorScheme.onPrimary
         : isMe
-            ? (textColorSent ?? colorScheme.onPrimaryContainer)
-            : (textColorReceived ?? colorScheme.onSurface);
+            ? (textColorSent ?? (bubbleColorSent != null ? autoTextColor : colorScheme.onPrimaryContainer))
+            : (textColorReceived ?? (bubbleColorReceived != null ? autoTextColor : colorScheme.onSurface));
 
-    final Widget content = _buildContent(context, textColor);
+    // Final safety check: if we are using theme defaults but they are unreadable, force autoTextColor
+    final Color finalTextColor;
+    if (isHighlighted) {
+      finalTextColor = colorScheme.onPrimary;
+    } else if (isMe) {
+      if (textColorSent != null) {
+        finalTextColor = textColorSent!;
+      } else {
+        // If bubble is light but theme says onPrimaryContainer is white (or vice versa), override it
+        final bool isLight = bubbleColor.computeLuminance() > 0.5;
+        final bool isTextLight = colorScheme.onPrimaryContainer.computeLuminance() > 0.5;
+        if (isLight && isTextLight) {
+          finalTextColor = Colors.black87;
+        } else if (!isLight && !isTextLight) {
+          finalTextColor = Colors.white;
+        } else {
+          finalTextColor = colorScheme.onPrimaryContainer;
+        }
+      }
+    } else {
+      if (textColorReceived != null) {
+        finalTextColor = textColorReceived!;
+      } else {
+        final bool isLight = bubbleColor.computeLuminance() > 0.5;
+        final bool isTextLight = colorScheme.onSurface.computeLuminance() > 0.5;
+        if (isLight && isTextLight) {
+          finalTextColor = Colors.black87;
+        } else if (!isLight && !isTextLight) {
+          finalTextColor = Colors.white;
+        } else {
+          finalTextColor = colorScheme.onSurface;
+        }
+      }
+    }
+
+    final Widget content = _buildContent(context, finalTextColor);
 
     final isWhisper = message.isEphemeral || message.whisperMode != 'OFF';
 

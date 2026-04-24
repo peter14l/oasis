@@ -743,9 +743,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                     final bubbleColor =
                                         state.bubbleColorSent ??
                                         theme.colorScheme.primaryContainer;
+                                    
+                                    // Use dynamic text color based on bubble luminance
+                                    final bool isLight = bubbleColor.computeLuminance() > 0.5;
                                     final textColor =
                                         state.textColorSent ??
-                                        theme.colorScheme.onPrimaryContainer;
+                                        (isLight ? Colors.black87 : theme.colorScheme.onPrimaryContainer);
 
                                     return GestureDetector(
                                       onTap: () {
