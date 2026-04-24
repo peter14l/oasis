@@ -447,4 +447,16 @@ class FeedProvider with ChangeNotifier {
       debugPrint('[FeedProvider] Post like tracking error: $e');
     }
   }
+
+  /// Updates comment count for a post in the local state.
+  void updatePostCommentCount(String postId, int newCount) {
+    final updatedPosts = _state.posts.map((post) {
+      if (post.id == postId) {
+        return post.copyWith(commentCount: newCount);
+      }
+      return post;
+    }).toList();
+    _state = _state.copyWith(posts: updatedPosts);
+    notifyListeners();
+  }
 }

@@ -47,6 +47,8 @@ class ChatInputArea extends StatefulWidget {
   final bool isSending;
   final int isWhisperMode;
   final VoidCallback onToggleRecording;
+  final bool isSpoiler;
+  final VoidCallback onSpoilerToggle;
   final ValueListenable<String>? textNotifier;
   final String? backgroundUrl;
   final Color? textColor;
