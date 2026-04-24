@@ -126,6 +126,8 @@ class AppNotification {
         return 'New Comment';
       case 'follow':
         return 'New Follower';
+      case 'follow_request':
+        return 'Follow Request';
       case 'mention':
         return 'Mentioned You';
       case 'canvas_pulse':
@@ -143,6 +145,8 @@ class AppNotification {
         return '${actorName ?? 'Someone'} commented on your post';
       case 'follow':
         return '${actorName ?? 'Someone'} started following you';
+      case 'follow_request':
+        return '${actorName ?? 'Someone'} requested to follow you';
       case 'mention':
         return '${actorName ?? 'Someone'} mentioned you in a comment';
       case 'dm':
@@ -162,6 +166,8 @@ class AppNotification {
         return Icons.chat_bubble;
       case 'follow':
         return Icons.person_add;
+      case 'follow_request':
+        return Icons.person_add_alt_1_rounded;
       case 'mention':
         return Icons.alternate_email;
       case 'dm':
@@ -174,7 +180,7 @@ class AppNotification {
   }
 }
 
-enum NotificationType { like, comment, follow, mention, dm, ripple, system }
+enum NotificationType { like, comment, follow, follow_request, mention, dm, ripple, system }
 
 extension NotificationTypeExtension on NotificationType {
   String get displayName {
@@ -185,6 +191,8 @@ extension NotificationTypeExtension on NotificationType {
         return 'Comment';
       case NotificationType.follow:
         return 'Follow';
+      case NotificationType.follow_request:
+        return 'Follow Request';
       case NotificationType.mention:
         return 'Mention';
       case NotificationType.dm:
@@ -204,6 +212,8 @@ extension NotificationTypeExtension on NotificationType {
         return Icons.comment;
       case NotificationType.follow:
         return Icons.person_add;
+      case NotificationType.follow_request:
+        return Icons.person_add_alt_1_rounded;
       case NotificationType.mention:
         return Icons.alternate_email;
       case NotificationType.dm:

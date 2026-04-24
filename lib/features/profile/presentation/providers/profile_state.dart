@@ -7,6 +7,7 @@ class ProfileState {
   final List<UserProfileEntity> following;
   final bool isLoading;
   final bool isFollowing;
+  final bool hasSentRequest;
   final String? error;
 
   const ProfileState({
@@ -16,6 +17,7 @@ class ProfileState {
     this.following = const [],
     this.isLoading = false,
     this.isFollowing = false,
+    this.hasSentRequest = false,
     this.error,
   });
 
@@ -26,6 +28,7 @@ class ProfileState {
     List<UserProfileEntity>? following,
     bool? isLoading,
     bool? isFollowing,
+    bool? hasSentRequest,
     String? error,
   }) {
     return ProfileState(
@@ -35,6 +38,7 @@ class ProfileState {
       following: following ?? this.following,
       isLoading: isLoading ?? this.isLoading,
       isFollowing: isFollowing ?? this.isFollowing,
+      hasSentRequest: hasSentRequest ?? this.hasSentRequest,
       error: error,
     );
   }

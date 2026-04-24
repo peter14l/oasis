@@ -165,6 +165,74 @@ class ProfileRemoteDatasource {
     }
   }
 
+  Future<void> sendFollowRequest({
+    required String followerId,
+    required String followingId,
+  }) async {
+    try {
+      await _supabase.from('follow_requests').insert({
+        'follower_id': followerId,
+        'following_id': followingId,
+        'status': 'pending',
+      });
+    } catch (e) {
+      debugPrint('[ProfileRemoteDatasource] Error sending follow request: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> acceptFollowRequest({
+    required String followerId,
+    required String followingId,
+  }) async {
+    try {
+      await _supabase
+          .from('follow_requests')
+          .update({'status': 'accepted'})
+          .eq('follower_id', followerId)
+          .eq('following_id', followingId);
+    } catch (e) {
+      debugPrint('[ProfileRemoteDatasource] Error accepting follow request: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> declineFollowRequest({
+    required String followerId,
+    required String followingId,
+  }) async {
+    try {
+      await _supabase
+          .from('follow_requests')
+          .update({'status': 'declined'})
+          .eq('follower_id', followerId)
+          .eq('following_id', followingId);
+    } catch (e) {
+      debugPrint('[ProfileRemoteDatasource] Error declining follow request: $e');
+      rethrow;
+    }
+  }
+
+  Future<bool> hasSentFollowRequest({
+    required String followerId,
+    required String followingId,
+  }) async {
+    try {
+      final response = await _supabase
+          .from('follow_requests')
+          .select('id')
+          .eq('follower_id', followerId)
+          .eq('following_id', followingId)
+          .eq('status', 'pending')
+          .maybeSingle();
+
+      return response != null;
+    } catch (e) {
+      debugPrint('[ProfileRemoteDatasource] Error checking follow request: $e');
+      return false;
+    }
+  }
+
   Future<void> unfollowUser({
     required String followerId,
     required String followingId,

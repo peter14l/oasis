@@ -88,6 +88,10 @@ serve(async (req) => {
         title = "New Follower";
         body = `${actorName} started following you`;
         break;
+      case 'follow_request':
+        title = "Follow Request";
+        body = `${actorName} sent you a follow request`;
+        break;
       case 'call':
         // Parse call details from content (stored as JSON string)
         let callDetails = {};

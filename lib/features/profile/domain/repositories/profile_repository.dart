@@ -22,6 +22,26 @@ abstract class ProfileRepository {
     required String followingId,
   });
 
+  Future<void> sendFollowRequest({
+    required String followerId,
+    required String followingId,
+  });
+
+  Future<void> acceptFollowRequest({
+    required String followerId,
+    required String followingId,
+  });
+
+  Future<void> declineFollowRequest({
+    required String followerId,
+    required String followingId,
+  });
+
+  Future<bool> hasSentFollowRequest({
+    required String followerId,
+    required String followingId,
+  });
+
   Future<void> unfollowUser({
     required String followerId,
     required String followingId,

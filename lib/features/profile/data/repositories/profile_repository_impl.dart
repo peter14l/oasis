@@ -58,6 +58,50 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
+  Future<void> sendFollowRequest({
+    required String followerId,
+    required String followingId,
+  }) async {
+    await _remoteDatasource.sendFollowRequest(
+      followerId: followerId,
+      followingId: followingId,
+    );
+  }
+
+  @override
+  Future<void> acceptFollowRequest({
+    required String followerId,
+    required String followingId,
+  }) async {
+    await _remoteDatasource.acceptFollowRequest(
+      followerId: followerId,
+      followingId: followingId,
+    );
+  }
+
+  @override
+  Future<void> declineFollowRequest({
+    required String followerId,
+    required String followingId,
+  }) async {
+    await _remoteDatasource.declineFollowRequest(
+      followerId: followerId,
+      followingId: followingId,
+    );
+  }
+
+  @override
+  Future<bool> hasSentFollowRequest({
+    required String followerId,
+    required String followingId,
+  }) async {
+    return _remoteDatasource.hasSentFollowRequest(
+      followerId: followerId,
+      followingId: followingId,
+    );
+  }
+
+  @override
   Future<void> unfollowUser({
     required String followerId,
     required String followingId,

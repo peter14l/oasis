@@ -113,6 +113,19 @@ class ProfileProvider with ChangeNotifier {
     required String followingId,
   }) async {
     try {
+      final isPrivate = _state.viewedProfile?.isPrivate ?? false;
+      
+      if (isPrivate) {
+        _state = _state.copyWith(hasSentRequest: true);
+        notifyListeners();
+        
+        await _profileRepository.sendFollowRequest(
+          followerId: followerId,
+          followingId: followingId,
+        );
+        return;
+      }
+
       _state = _state.copyWith(isFollowing: true);
       if (_state.viewedProfile != null) {
         _state = _state.copyWith(
@@ -141,17 +154,67 @@ class ProfileProvider with ChangeNotifier {
         followingId: followingId,
       );
     } catch (e) {
-      _state = _state.copyWith(isFollowing: false);
-      if (_state.viewedProfile != null) {
-        _state = _state.copyWith(
-          viewedProfile: _state.viewedProfile!.copyWith(
-            followersCount: _state.viewedProfile!.followersCount - 1,
-          ),
-        );
+      if (_state.viewedProfile?.isPrivate ?? false) {
+        _state = _state.copyWith(hasSentRequest: false);
+      } else {
+        _state = _state.copyWith(isFollowing: false);
+        if (_state.viewedProfile != null) {
+          _state = _state.copyWith(
+            viewedProfile: _state.viewedProfile!.copyWith(
+              followersCount: _state.viewedProfile!.followersCount - 1,
+            ),
+          );
+        }
       }
       notifyListeners();
       debugPrint('[ProfileProvider] Error following user: $e');
       rethrow;
+    }
+  }
+
+  Future<void> acceptFollowRequest({
+    required String followerId,
+    required String followingId,
+  }) async {
+    try {
+      await _profileRepository.acceptFollowRequest(
+        followerId: followerId,
+        followingId: followingId,
+      );
+    } catch (e) {
+      debugPrint('[ProfileProvider] Error accepting follow request: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> declineFollowRequest({
+    required String followerId,
+    required String followingId,
+  }) async {
+    try {
+      await _profileRepository.declineFollowRequest(
+        followerId: followerId,
+        followingId: followingId,
+      );
+    } catch (e) {
+      debugPrint('[ProfileProvider] Error declining follow request: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> checkFollowRequestStatus({
+    required String followerId,
+    required String followingId,
+  }) async {
+    try {
+      final hasSent = await _profileRepository.hasSentFollowRequest(
+        followerId: followerId,
+        followingId: followingId,
+      );
+      _state = _state.copyWith(hasSentRequest: hasSent);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[ProfileProvider] Error checking follow request status: $e');
     }
   }
 

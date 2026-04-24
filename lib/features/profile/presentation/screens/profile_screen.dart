@@ -65,6 +65,10 @@ class _ProfileScreenState extends State<ProfileScreen>
           context.read<ProfileProvider>().loadCurrentProfile(targetId);
         } else if (currentUserId != null) {
           context.read<ProfileProvider>().loadProfile(targetId, currentUserId);
+          context.read<ProfileProvider>().checkFollowRequestStatus(
+                followerId: currentUserId,
+                followingId: targetId,
+              );
         }
       });
     }
@@ -1486,7 +1490,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ),
                   ),
                 )
-              : (profileProvider.isFollowing
+              : profileProvider.isFollowing
                     ? OutlinedButton(
                         onPressed: () {
                           if (currentUserId != null) {
@@ -1503,6 +1507,17 @@ class _ProfileScreenState extends State<ProfileScreen>
                           ),
                         ),
                         child: const Text('Following'),
+                      )
+                    : profileProvider.state.hasSentRequest
+                    ? OutlinedButton(
+                        onPressed: null,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(radius),
+                          ),
+                        ),
+                        child: const Text('Requested'),
                       )
                     : FilledButton(
                         onPressed: () {
@@ -1521,7 +1536,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           ),
                         ),
                         child: const Text('Follow'),
-                      )),
+                      ),
         ),
         const SizedBox(width: 12),
         if (!isOwnProfile && currentUserId != null) ...[
