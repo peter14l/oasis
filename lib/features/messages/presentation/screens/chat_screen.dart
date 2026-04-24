@@ -978,6 +978,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       onDetailsToggle: _openChatDetails,
                       onCallPressed: () => _initiateCall(CallType.voice),
                       onVideoCallPressed: () => _initiateCall(CallType.video),
+                      backgroundUrl: state.backgroundUrl,
                     ),
 
                     // Vault Lock Overlay

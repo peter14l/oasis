@@ -126,7 +126,7 @@ class ChatProvider with ChangeNotifier {
       sessionStart: _sessionStartTime,
       onMessagesLoaded: (cached) {
         setState((s) => s.copyWith(messages: cached));
-        scrollToBottom();
+        scrollToBottom(force: true);
       },
     );
 
@@ -227,7 +227,7 @@ class ChatProvider with ChangeNotifier {
       }).toList();
 
       setState((s) => s.copyWith(messages: filtered, isLoading: false));
-      scrollToBottom();
+      scrollToBottom(force: true);
       loadSmartReplies();
       await settingsProvider.saveMessagesToCache(filtered);
     } catch (e) {
@@ -541,7 +541,7 @@ class ChatProvider with ChangeNotifier {
         selectedFile: null,
       ),
     );
-    scrollToBottom();
+    scrollToBottom(force: true);
 
     try {
       String? finalContent;
@@ -1009,13 +1009,18 @@ class ChatProvider with ChangeNotifier {
   // =========================================================================
 
   /// Scroll the message list to the bottom (latest messages).
-  void scrollToBottom() {
+  void scrollToBottom({bool force = false}) {
     if (scrollController != null && scrollController!.hasClients) {
-      scrollController!.animateTo(
-        0.0, // reverse list: 0 is bottom
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+      final position = scrollController!.position;
+      final isNearBottom = position.pixels <= 100;
+
+      if (force || isNearBottom) {
+        scrollController!.animateTo(
+          0.0, // reverse list: 0 is bottom
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     }
   }
 
@@ -1296,7 +1301,7 @@ class ChatProvider with ChangeNotifier {
         replyMessage: null,
       ),
     );
-    scrollToBottom();
+    scrollToBottom(force: true);
 
     try {
       final remoteUrl = await _messagingService.uploadChatMedia(

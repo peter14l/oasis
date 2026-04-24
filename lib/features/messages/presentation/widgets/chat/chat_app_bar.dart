@@ -24,6 +24,7 @@ class ChatAppBar extends StatelessWidget {
     this.onCallPressed,
     this.onVideoCallPressed,
     this.onSearchPressed,
+    this.backgroundUrl,
   });
 
   final String otherUserName;
@@ -36,6 +37,7 @@ class ChatAppBar extends StatelessWidget {
   final VoidCallback? onCallPressed;
   final VoidCallback? onVideoCallPressed;
   final VoidCallback? onSearchPressed;
+  final String? backgroundUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +60,7 @@ class ChatAppBar extends StatelessWidget {
           if (!isDesktop)
             _FloatingContainer(
               isCircular: true,
+              backgroundUrl: backgroundUrl,
               child: IconButton(
                 icon: const Icon(Icons.arrow_back, size: 20),
                 onPressed: () {
@@ -83,6 +86,7 @@ class ChatAppBar extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               child: _FloatingContainer(
                 isCircular: false,
+                backgroundUrl: backgroundUrl,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -150,6 +154,7 @@ class ChatAppBar extends StatelessWidget {
                                 fontSize: isDesktop ? 15 : 14,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: -0.2,
+                                color: backgroundUrl != null ? Colors.white : null,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -169,9 +174,11 @@ class ChatAppBar extends StatelessWidget {
                                       Icon(
                                         FluentIcons.lock_closed_12_filled,
                                         size: 10,
-                                        color: colorScheme.primary.withValues(
-                                          alpha: 0.7,
-                                        ),
+                                        color: backgroundUrl != null
+                                            ? Colors.white70
+                                            : colorScheme.primary.withValues(
+                                                alpha: 0.7,
+                                              ),
                                       ),
                                       const SizedBox(width: 4),
                                     ],
@@ -187,8 +194,10 @@ class ChatAppBar extends StatelessWidget {
                                                 ? Colors.green.withValues(
                                                     alpha: 0.8,
                                                   )
-                                                : colorScheme.onSurfaceVariant
-                                                      .withValues(alpha: 0.7),
+                                                : (backgroundUrl != null
+                                                    ? Colors.white60
+                                                    : colorScheme.onSurfaceVariant
+                                                      .withValues(alpha: 0.7)),
                                             fontSize: 10,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -212,6 +221,7 @@ class ChatAppBar extends StatelessWidget {
           // Right: Action buttons
           _FloatingContainer(
             isCircular: true,
+            backgroundUrl: backgroundUrl,
             child: ConstrainedBox(
               constraints: const BoxConstraints(minWidth: 40),
               child: Padding(
@@ -225,6 +235,7 @@ class ChatAppBar extends StatelessWidget {
                         onPressed: onCallPressed,
                         padding: const EdgeInsets.all(8),
                         constraints: const BoxConstraints(),
+                        color: backgroundUrl != null ? Colors.white : null,
                       ),
                     if (onVideoCallPressed != null && AppConfig.enableCalls)
                       IconButton(
@@ -232,6 +243,7 @@ class ChatAppBar extends StatelessWidget {
                         onPressed: onVideoCallPressed,
                         padding: const EdgeInsets.all(8),
                         constraints: const BoxConstraints(),
+                        color: backgroundUrl != null ? Colors.white : null,
                       ),
                     if (isDesktop) ...[
                       const SizedBox(width: 4),
@@ -245,6 +257,7 @@ class ChatAppBar extends StatelessWidget {
                         onPressed: onDetailsToggle,
                         padding: const EdgeInsets.all(8),
                         constraints: const BoxConstraints(),
+                        color: backgroundUrl != null ? Colors.white : null,
                       ),
                     ],
                   ],
@@ -425,8 +438,13 @@ class ChatAppBar extends StatelessWidget {
 class _FloatingContainer extends StatelessWidget {
   final Widget child;
   final bool isCircular;
+  final String? backgroundUrl;
 
-  const _FloatingContainer({required this.child, required this.isCircular});
+  const _FloatingContainer({
+    required this.child, 
+    required this.isCircular,
+    this.backgroundUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -434,7 +452,9 @@ class _FloatingContainer extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.6),
+        color: backgroundUrl != null 
+            ? Colors.black.withValues(alpha: 0.3)
+            : colorScheme.surface.withValues(alpha: 0.6),
         borderRadius: isCircular
             ? BorderRadius.circular(20)
             : BorderRadius.circular(24),
