@@ -43,6 +43,7 @@ _Message _$MessageFromJson(Map<String, dynamic> json) => _Message(
           .toList() ??
       const [],
   isEphemeral: json['is_ephemeral'] as bool? ?? false,
+  isSpoiler: json['is_spoiler'] as bool? ?? false,
   ephemeralDuration: (json['ephemeral_duration'] as num?)?.toInt() ?? 86400,
   whisperMode: json['whisper_mode'] as String? ?? 'OFF',
   expiresAt: json['expires_at'] == null
@@ -88,6 +89,7 @@ Map<String, dynamic> _$MessageToJson(_Message instance) => <String, dynamic>{
   'replyToData': instance.replyToData,
   'reactions': instance.reactions,
   'is_ephemeral': instance.isEphemeral,
+  'is_spoiler': instance.isSpoiler,
   'ephemeral_duration': instance.ephemeralDuration,
   'whisper_mode': instance.whisperMode,
   'expires_at': instance.expiresAt?.toIso8601String(),

@@ -28,6 +28,7 @@ _Post _$PostFromJson(Map<String, dynamic> json) => _Post(
   hashtags:
       (json['hashtags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const [],
+  isSpoiler: json['is_spoiler'] as bool? ?? false,
   communityId: json['community_id'] as String?,
   communityName: json['community_name'] as String?,
   timestamp: DateTime.parse(json['timestamp'] as String),
@@ -56,6 +57,7 @@ Map<String, dynamic> _$PostToJson(_Post instance) => <String, dynamic>{
   'media_urls': instance.mediaUrls,
   'media_types': instance.mediaTypes,
   'hashtags': instance.hashtags,
+  'is_spoiler': instance.isSpoiler,
   'community_id': instance.communityId,
   'community_name': instance.communityName,
   'timestamp': instance.timestamp.toIso8601String(),

@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 /// A widget that applies a procedural 'dissolve' (grainy/noise) effect to its child.
@@ -124,4 +125,3 @@ class _DissolvePainter extends CustomPainter {
     return oldDelegate.progress != progress;
   }
 }
-import 'dart:ui' as ui;

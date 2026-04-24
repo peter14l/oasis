@@ -464,12 +464,6 @@ class _FeedScreenState extends State<FeedScreen>
           ],
         ),
       );
-    }
-
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: feedContent,
-    );
   }
 
   Widget _buildDeepBreath() {

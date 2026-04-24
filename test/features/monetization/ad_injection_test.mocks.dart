@@ -232,6 +232,25 @@ class MockFeedRepository extends _i1.Mock implements _i6.FeedRepository {
           as _i5.Future<List<_i2.Post>>);
 
   @override
+  _i5.Future<List<_i2.Post>> getUnifiedFeed({
+    required String? userId,
+    int? limit = 20,
+    int? offset = 0,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getUnifiedFeed, [], {
+              #userId: userId,
+              #limit: limit,
+              #offset: offset,
+            }),
+            returnValue: _i5.Future<List<_i2.Post>>.value(<_i2.Post>[]),
+            returnValueForMissingStub: _i5.Future<List<_i2.Post>>.value(
+              <_i2.Post>[],
+            ),
+          )
+          as _i5.Future<List<_i2.Post>>);
+
+  @override
   _i5.Stream<List<_i2.Post>> watchFeedPosts({
     required String? userId,
     int? limit = 20,
