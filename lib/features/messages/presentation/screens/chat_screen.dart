@@ -194,6 +194,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _checkVaultOnEntry() async {
+    // Ensure vault service is initialized
+    await _vaultService.isReady;
+    
     if (_vaultService.isInVaultSync(widget.conversationId) &&
         !_vaultService.isItemUnlocked(widget.conversationId)) {
       final authenticated = await _vaultService.authenticate(

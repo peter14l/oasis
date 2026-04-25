@@ -173,7 +173,16 @@ class VaultService with ChangeNotifier {
   /// Specialized lock for chat exit
   void lockOnChatClose(String itemId) {
     final id = _normalizeId(itemId);
-    if (getLockInterval(id) == 'chat_close') {
+    
+    // Safety check: if intervals aren't loaded yet, it's safer to lock 
+    // on exit if the item is known to be in the vault.
+    if (!_isInitDone && isInVaultSync(id)) {
+      lockItem(id);
+      return;
+    }
+
+    final interval = getLockInterval(id);
+    if (interval == 'chat_close' || interval == '5mins') {
       lockItem(id);
     }
   }
@@ -181,8 +190,17 @@ class VaultService with ChangeNotifier {
   /// Lock items with a specific interval (e.g. 'app_close')
   void lockItemsWithInterval(String interval) {
     // Collect IDs first to avoid concurrent modification
-    final itemsToLock =
-        _unlockedItemIds.where((id) => getLockInterval(id) == interval).toList();
+    final itemsToLock = _unlockedItemIds.where((id) {
+      if (interval == 'app_close') {
+        // App close MUST lock EVERYTHING for maximum security.
+        // This prevents items with '5mins' or 'chat_close' from staying 
+        // unlocked in memory when the app is backgrounded/closed.
+        return true;
+      }
+      
+      final itemInterval = getLockInterval(id);
+      return itemInterval == interval;
+    }).toList();
     
     for (final id in itemsToLock) {
       _unlockedItemIds.remove(id);
@@ -357,6 +375,10 @@ class VaultService with ChangeNotifier {
     // Default interval
     _itemIntervals[id] = 'app_close';
     await _saveIntervals();
+
+    // Automatically mark as unlocked when first added, since the user 
+    // is currently interacting with the item they just secured.
+    _unlockedItemIds.add(id);
 
     // Sync to server (Pro Only)
     try {

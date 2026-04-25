@@ -95,6 +95,7 @@ class VerticalLineThumbShape extends SliderComponentShape {
 
 class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   late MessagingService _messagingService;
+  late VaultService _vaultService;
   final AuthService _authService = AuthService();
   final ImagePicker _imagePicker = ImagePicker();
 
@@ -118,7 +119,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     _whisperMode = widget.whisperMode;
     _selectedBackground = widget.currentBackground;
     _loadPersistedSettings();
-    _checkLockStatus();
     _checkBlockStatus();
     // Note: messages for search are read from ChatProvider.state.messages
     // (already decrypted) — no re-initialization of SignalService needed here.
@@ -128,9 +128,11 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _messagingService = Provider.of<MessagingService>(context);
+    _vaultService = Provider.of<VaultService>(context);
     if (_conversationChannel == null) {
       _subscribeToConversationUpdates();
       _checkMuteStatus();
+      _checkLockStatus();
     }
   }
 
@@ -154,6 +156,10 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     }
     _searchController.dispose();
     _searchFocusNode.dispose();
+    
+    // Lock chat if interval is set to On Chat Close
+    _vaultService.lockOnChatClose(widget.conversationId);
+    
     super.dispose();
   }
 

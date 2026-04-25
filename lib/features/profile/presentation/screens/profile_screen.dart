@@ -169,6 +169,9 @@ class _ProfileScreenState extends State<ProfileScreen>
         }
 
         if (useFluent) {
+          final isPrivateAndNotFollowing = !isOwnProfile && 
+                                          profile.isPrivate && 
+                                          !profileProvider.isFollowing;
           return Material(
             color: Colors.transparent,
             child: _buildFluentProfile(
@@ -177,9 +180,14 @@ class _ProfileScreenState extends State<ProfileScreen>
               colorScheme,
               profileProvider,
               userId,
+              isPrivateAndNotFollowing,
             ),
           );
         }
+
+        final isPrivateAndNotFollowing = !isOwnProfile && 
+                                        profile.isPrivate && 
+                                        !profileProvider.isFollowing;
 
         if (isDesktop) {
           return Material(
@@ -192,6 +200,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               userId,
               isM3E,
               disableTransparency,
+              isPrivateAndNotFollowing,
             ),
           );
         }
@@ -203,6 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           isM3E,
           disableTransparency,
           userId,
+          isPrivateAndNotFollowing,
         );
       },
     );
@@ -214,6 +224,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     ColorScheme colorScheme,
     ProfileProvider profileProvider,
     String? userId,
+    bool isPrivateAndNotFollowing,
   ) {
     return fluent.ScaffoldPage(
       header: fluent.PageHeader(
@@ -293,15 +304,68 @@ class _ProfileScreenState extends State<ProfileScreen>
                       const SizedBox(height: 8),
                       const fluent.Divider(),
                       const SizedBox(height: 16),
-                      _pivotIndex == 0
-                          ? _buildFluentPostsGrid(_userPosts, userId, themeProvider.isM3EEnabled)
-                          : _buildFluentPostsGrid(_savedPosts, userId, themeProvider.isM3EEnabled),
+                      if (isPrivateAndNotFollowing)
+                        _buildPrivateAccountNotice(isFluent: true)
+                      else
+                        _pivotIndex == 0
+                            ? _buildFluentPostsGrid(_userPosts, userId, themeProvider.isM3EEnabled)
+                            : _buildFluentPostsGrid(_savedPosts, userId, themeProvider.isM3EEnabled),
                     ],
                   ),
                 ],
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrivateAccountNotice({bool isFluent = false}) {
+    if (isFluent) {
+      final theme = fluent.FluentTheme.of(context);
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 64.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(fluent.FluentIcons.lock, size: 48, color: theme.typography.body?.color?.withValues(alpha: 0.5)),
+              const SizedBox(height: 16),
+              Text(
+                'This account is private',
+                style: theme.typography.subtitle?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Follow this account to see their posts',
+                style: theme.typography.body?.copyWith(color: theme.typography.body?.color?.withValues(alpha: 0.6)),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 64.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.lock_outline_rounded, size: 48, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+            const SizedBox(height: 16),
+            Text(
+              'This account is private',
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Follow this account to see their posts',
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+            ),
+          ],
         ),
       ),
     );
@@ -664,6 +728,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     String? userId,
     bool isM3E,
     bool disableTransparency,
+    bool isPrivateAndNotFollowing,
   ) {
     final desktopBgColor = disableTransparency
         ? colorScheme.surface
@@ -688,6 +753,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   userId,
                   isM3E,
                   disableTransparency,
+                  isPrivateAndNotFollowing,
                 )
               : BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -699,6 +765,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     userId,
                     isM3E,
                     disableTransparency,
+                    isPrivateAndNotFollowing,
                   ),
                 ),
         ),
@@ -714,6 +781,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     String? userId,
     bool isM3E,
     bool disableTransparency,
+    bool isPrivateAndNotFollowing,
   ) {
     return Column(
       children: [
@@ -780,13 +848,15 @@ class _ProfileScreenState extends State<ProfileScreen>
                     _buildTabBar(colorScheme),
                     const Divider(height: 1),
                     Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildPostsTab(userId, true, isM3E),
-                          if (isOwnProfile) _buildSavedTab(userId, true, isM3E),
-                        ],
-                      ),
+                      child: isPrivateAndNotFollowing
+                          ? _buildPrivateAccountNotice()
+                          : TabBarView(
+                              controller: _tabController,
+                              children: [
+                                _buildPostsTab(userId, true, isM3E),
+                                if (isOwnProfile) _buildSavedTab(userId, true, isM3E),
+                              ],
+                            ),
                     ),
                   ],
                 ),
@@ -955,6 +1025,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     bool isM3E,
     bool disableTransparency,
     String? userId,
+    bool isPrivateAndNotFollowing,
   ) {
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -1021,13 +1092,15 @@ class _ProfileScreenState extends State<ProfileScreen>
             ),
           ),
           SliverFillRemaining(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildPostsTab(userId, false, isM3E),
-                if (isOwnProfile) _buildSavedTab(userId, false, isM3E),
-              ],
-            ),
+            child: isPrivateAndNotFollowing
+                ? _buildPrivateAccountNotice()
+                : TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildPostsTab(userId, false, isM3E),
+                      if (isOwnProfile) _buildSavedTab(userId, false, isM3E),
+                    ],
+                  ),
           ),
           const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
         ],
