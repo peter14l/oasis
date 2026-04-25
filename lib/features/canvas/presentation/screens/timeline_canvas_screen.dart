@@ -49,6 +49,30 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
   List<DrawingPoint?> _currentPoints = [];
   Timer? _morphTimer;
   Offset? _lastPointerPosition;
+  Color _selectedDrawingColor = Colors.white;
+  double _drawingStrokeWidth = 4.0;
+
+  void _undoLastSegment() {
+    if (_currentPoints.isEmpty) return;
+    setState(() {
+      // Find the last null (segment break) and remove everything after it
+      int lastNullIndex = _currentPoints.lastIndexOf(null);
+      if (lastNullIndex == -1) {
+        _currentPoints = [];
+      } else if (lastNullIndex == _currentPoints.length - 1) {
+        // Last segment is just a null, find the one before it
+        _currentPoints.removeLast();
+        lastNullIndex = _currentPoints.lastIndexOf(null);
+        if (lastNullIndex == -1) {
+          _currentPoints = [];
+        } else {
+          _currentPoints.removeRange(lastNullIndex + 1, _currentPoints.length);
+        }
+      } else {
+        _currentPoints.removeRange(lastNullIndex + 1, _currentPoints.length);
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -226,6 +250,23 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                     color: Colors.white,
                   ),
                 ),
+
+                if (_isDrawingMode)
+                  Positioned(
+                    top: 100,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: _DoodleToolbar(
+                        selectedColor: _selectedDrawingColor,
+                        strokeWidth: _drawingStrokeWidth,
+                        onColorChanged: (color) => setState(() => _selectedDrawingColor = color),
+                        onStrokeWidthChanged: (w) => setState(() => _drawingStrokeWidth = w),
+                        onUndo: _undoLastSegment,
+                        onClose: () => setState(() => _isDrawingMode = false),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -754,10 +795,10 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
           _currentPoints.add(DrawingPoint(
             point: details.localPosition,
             paint: Paint()
-              ..color = Colors.white
+              ..color = _selectedDrawingColor
               ..strokeCap = StrokeCap.round
               ..strokeJoin = StrokeJoin.round
-              ..strokeWidth = 4.0
+              ..strokeWidth = _drawingStrokeWidth
               ..isAntiAlias = true,
           ));
         });
@@ -768,10 +809,10 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
           _currentPoints.add(DrawingPoint(
             point: details.localPosition,
             paint: Paint()
-              ..color = Colors.white
+              ..color = _selectedDrawingColor
               ..strokeCap = StrokeCap.round
               ..strokeJoin = StrokeJoin.round
-              ..strokeWidth = 4.0
+              ..strokeWidth = _drawingStrokeWidth
               ..isAntiAlias = true,
           ));
         });
@@ -852,6 +893,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
       authorId: currentUserId,
       type: CanvasItemType.doodle,
       content: Uri.encodeComponent(content),
+      color: '#${_selectedDrawingColor.value.toRadixString(16).substring(2)}',
       xPos: minX / 3000,
       yPos: minY / 3000,
       metadata: {
@@ -1658,4 +1700,136 @@ class _TimelineAddItemTrayState extends State<_TimelineAddItemTray> {
     );
   }
 }
+
+class _DoodleToolbar extends StatelessWidget {
+  final Color selectedColor;
+  final double strokeWidth;
+  final ValueChanged<Color> onColorChanged;
+  final ValueChanged<double> onStrokeWidthChanged;
+  final VoidCallback onUndo;
+  final VoidCallback onClose;
+
+  const _DoodleToolbar({
+    required this.selectedColor,
+    required this.strokeWidth,
+    required this.onColorChanged,
+    required this.onStrokeWidthChanged,
+    required this.onUndo,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = [
+      Colors.white,
+      Colors.redAccent,
+      Colors.orangeAccent,
+      Colors.yellowAccent,
+      Colors.greenAccent,
+      Colors.blueAccent,
+      Colors.purpleAccent,
+      Colors.pinkAccent,
+    ];
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.5),
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ...colors.map((color) => _DoodleColorButton(
+                color: color,
+                isSelected: selectedColor == color,
+                onTap: () => onColorChanged(color),
+              )),
+              const VerticalDivider(width: 20, color: Colors.white24),
+              IconButton(
+                icon: const Icon(Icons.undo, color: Colors.white),
+                onPressed: onUndo,
+                tooltip: 'Undo',
+              ),
+              IconButton(
+                icon: const Icon(Icons.check, color: Colors.greenAccent),
+                onPressed: onClose,
+                tooltip: 'Finish',
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.line_weight, color: Colors.white70, size: 16),
+              const SizedBox(width: 12),
+              SizedBox(
+                width: 150,
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 2,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                  ),
+                  child: Slider(
+                    value: strokeWidth,
+                    min: 1.0,
+                    max: 15.0,
+                    onChanged: onStrokeWidthChanged,
+                    activeColor: Colors.white,
+                    inactiveColor: Colors.white24,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DoodleColorButton extends StatelessWidget {
+  final Color color;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _DoodleColorButton({
+    required this.color,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected ? Colors.white : Colors.transparent,
+            width: 2,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 
