@@ -223,6 +223,7 @@ class CanvasProvider extends ChangeNotifier {
     double rotation = 0.0,
     String color = '#252930',
     DateTime? unlockAt,
+    Map<String, dynamic> metadata = const {},
   }) async {
     if (_state.activeCanvas == null) return;
     try {
@@ -236,6 +237,7 @@ class CanvasProvider extends ChangeNotifier {
         rotation: rotation,
         color: color,
         unlockAt: unlockAt,
+        metadata: metadata,
       );
       _state = _state.copyWith(activeItems: [..._state.activeItems, item]);
       notifyListeners();

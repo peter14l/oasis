@@ -201,6 +201,7 @@ class CanvasRemoteDatasource {
     double scale = 1.0,
     String color = '#252930',
     DateTime? unlockAt,
+    Map<String, dynamic> metadata = const {},
   }) async {
     try {
       final Map<String, dynamic> insertData = {
@@ -213,6 +214,7 @@ class CanvasRemoteDatasource {
         'rotation': rotation,
         'scale': scale,
         'color': color,
+        'metadata': metadata,
       };
 
       if (unlockAt != null) {

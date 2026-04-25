@@ -48,6 +48,7 @@ abstract class CanvasRepository {
     double scale = 1.0,
     String color = '#252930',
     DateTime? unlockAt,
+    Map<String, dynamic> metadata = const {},
   });
 
   /// Update item position/rotation/scale.

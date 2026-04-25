@@ -1,4 +1,4 @@
-enum CanvasItemType { text, photo, voice, sticker, milestone, journal }
+enum CanvasItemType { text, photo, voice, sticker, milestone, journal, doodle, shape }
 
 class CanvasItemEntity {
   final String id;

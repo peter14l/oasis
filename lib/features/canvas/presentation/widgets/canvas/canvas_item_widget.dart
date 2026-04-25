@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/features/canvas/domain/models/canvas_models.dart';
 import 'package:oasis/features/canvas/presentation/widgets/canvas/journal_entry_widget.dart';
+import 'package:oasis/painters/canvas_drawing_painter.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -397,6 +398,135 @@ class _CanvasItemWidgetState extends State<CanvasItemWidget> {
           content: widget.item.content,
           createdAt: widget.item.createdAt,
         );
+
+      case CanvasItemType.doodle:
+        return _buildDoodleContent();
+
+      case CanvasItemType.shape:
+        return _buildShapeContent();
     }
   }
+
+  Widget _buildDoodleContent() {
+    try {
+      final List<dynamic> data =
+          Uri.decodeComponent(widget.item.content)
+              .split(';')
+              .map((s) => s.split(','))
+              .toList();
+      final points =
+          data.map((p) {
+            if (p.length < 2) return null;
+            return DrawingPoint(
+              point: Offset(double.parse(p[0]), double.parse(p[1])),
+              paint:
+                  Paint()
+                    ..color = Color(
+                      int.parse(
+                        'FF${widget.item.color.replaceAll('#', '')}',
+                        radix: 16,
+                      ),
+                    )
+                    ..strokeWidth = 4.0
+                    ..strokeCap = StrokeCap.round
+                    ..strokeJoin = StrokeJoin.round
+                    ..isAntiAlias = true,
+            );
+          }).toList();
+
+      return CustomPaint(
+        painter: CanvasDrawingPainter(pointsList: points),
+        size: Size(widget.item.metadata['w'] ?? 100, widget.item.metadata['h'] ?? 100),
+      );
+    } catch (e) {
+      return const Icon(Icons.gesture, color: Colors.white);
+    }
+  }
+
+  Widget _buildShapeContent() {
+    final color = Color(
+      int.parse('FF${widget.item.color.replaceAll('#', '')}', radix: 16),
+    );
+    final w = (widget.item.metadata['w'] as num?)?.toDouble() ?? 100.0;
+    final h = (widget.item.metadata['h'] as num?)?.toDouble() ?? 100.0;
+
+    switch (widget.item.content) {
+      case 'circle':
+        return Container(
+          width: w,
+          height: h,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: color, width: 2),
+            color: color.withValues(alpha: 0.1),
+          ),
+        );
+      case 'rectangle':
+        return Container(
+          width: w,
+          height: h,
+          decoration: BoxDecoration(
+            border: Border.all(color: color, width: 2),
+            color: color.withValues(alpha: 0.1),
+          ),
+        );
+      case 'triangle':
+        return CustomPaint(
+          size: Size(w, h),
+          painter: _TrianglePainter(color: color),
+        );
+      case 'line':
+        return CustomPaint(
+          size: Size(w, h),
+          painter: _LinePainter(color: color),
+        );
+      default:
+        return const Icon(Icons.help_outline, color: Colors.white);
+    }
+  }
+}
+
+class _TrianglePainter extends CustomPainter {
+  final Color color;
+  _TrianglePainter({required this.color});
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2;
+    final path = Path();
+    path.moveTo(size.width / 2, 0);
+    path.lineTo(size.width, size.height);
+    path.lineTo(0, size.height);
+    path.close();
+    canvas.drawPath(path, paint);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color.withValues(alpha: 0.1)
+        ..style = PaintingStyle.fill,
+    );
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
+class _LinePainter extends CustomPainter {
+  final Color color;
+  _LinePainter({required this.color});
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = color
+          ..strokeWidth = 2
+          ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset.zero, Offset(size.width, size.height), paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

@@ -21,6 +21,8 @@ import 'package:oasis/services/notification_service.dart';
 import 'package:oasis/features/canvas/presentation/widgets/canvas/scattered_polaroid_spread.dart';
 import 'package:oasis/features/canvas/presentation/widgets/canvas/canvas_item_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:oasis/features/canvas/domain/utils/shape_recognizer.dart';
+import 'package:oasis/painters/canvas_drawing_painter.dart';
 
 class _PulseData {
   final String id;
@@ -42,7 +44,11 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
   final List<_PulseData> _pulses = [];
   RealtimeChannel? _pulseChannel;
   final AudioRecorder _audioRecorder = AudioRecorder();
-  bool _isMapMode = false;
+  bool _isMapMode = true;
+  bool _isDrawingMode = false;
+  List<DrawingPoint?> _currentPoints = [];
+  Timer? _morphTimer;
+  Offset? _lastPointerPosition;
 
   @override
   void initState() {
@@ -235,6 +241,8 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                 onAddSticker: () => _showStickerPicker(context),
                 onAddMilestone: () => _showAddMilestone(context),
                 onAddJournal: () => _showAddJournal(context),
+                onToggleDrawing: () => setState(() => _isDrawingMode = !_isDrawingMode),
+                isDrawingMode: _isDrawingMode,
               ),
     );
   }
@@ -319,7 +327,9 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
             onAddSticker: () => _showStickerPicker(context),
             onAddMilestone: () => _showAddMilestone(context),
             onToggleView: () => setState(() => _isMapMode = !_isMapMode),
+            onToggleDrawing: () => setState(() => _isDrawingMode = !_isDrawingMode),
             isMapMode: _isMapMode,
+            isDrawingMode: _isDrawingMode,
           ),
           const SizedBox(width: 16),
           FilledButton.icon(
@@ -702,44 +712,155 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
       boundaryMargin: const EdgeInsets.all(1000),
       minScale: 0.1,
       maxScale: 2.0,
+      panEnabled: !_isDrawingMode,
+      scaleEnabled: !_isDrawingMode,
       child: SizedBox(
         width: 3000,
         height: 3000,
         child: Stack(
-          children:
-              provider.activeItems.map((item) {
-                return Positioned(
-                  left: item.xPos,
-                  top: item.yPos,
-                  child: CanvasItemWidget(
-                    item: item,
-                    onMoved: (dx, dy, rotation) {
-                      context.read<CanvasProvider>().moveItem(
-                        itemId: item.id,
-                        xPos: dx / 3000,
-                        yPos: dy / 3000,
-                        rotation: rotation,
-                        lastModifiedBy: currentUserId,
-                      );
-                    },
-                    onDelete:
-                        () =>
-                            context.read<CanvasProvider>().deleteItem(item.id),
-                    onReact:
-                        (emoji) => context
-                            .read<CanvasProvider>()
-                            .toggleReaction(item.id, currentUserId!, emoji),
-                    onLock:
-                        (lock) => context.read<CanvasProvider>().setItemLock(
-                          item.id,
-                          lock,
-                        ),
-                  ),
-                );
-              }).toList(),
+          children: [
+            ...provider.activeItems.map((item) {
+              return Positioned(
+                left: item.xPos * 3000,
+                top: item.yPos * 3000,
+                child: CanvasItemWidget(
+                  item: item,
+                  onMoved: (dx, dy, rotation) {
+                    context.read<CanvasProvider>().moveItem(
+                      itemId: item.id,
+                      xPos: dx / 3000,
+                      yPos: dy / 3000,
+                      rotation: rotation,
+                      lastModifiedBy: currentUserId,
+                    );
+                  },
+                  onDelete: () => context.read<CanvasProvider>().deleteItem(item.id),
+                  onReact: (emoji) => context.read<CanvasProvider>().toggleReaction(item.id, currentUserId!, emoji),
+                  onLock: (lock) => context.read<CanvasProvider>().setItemLock(item.id, lock),
+                ),
+              );
+            }).toList(),
+            if (_isDrawingMode) _buildDrawingLayer(),
+          ],
         ),
       ),
     );
+  }
+
+  Widget _buildDrawingLayer() {
+    return GestureDetector(
+      onPanStart: (details) {
+        setState(() {
+          _currentPoints.add(DrawingPoint(
+            point: details.localPosition,
+            paint: Paint()
+              ..color = Colors.white
+              ..strokeCap = StrokeCap.round
+              ..strokeJoin = StrokeJoin.round
+              ..strokeWidth = 4.0
+              ..isAntiAlias = true,
+          ));
+        });
+        _startMorphTimer();
+      },
+      onPanUpdate: (details) {
+        setState(() {
+          _currentPoints.add(DrawingPoint(
+            point: details.localPosition,
+            paint: Paint()
+              ..color = Colors.white
+              ..strokeCap = StrokeCap.round
+              ..strokeJoin = StrokeJoin.round
+              ..strokeWidth = 4.0
+              ..isAntiAlias = true,
+          ));
+        });
+        _lastPointerPosition = details.localPosition;
+      },
+      onPanEnd: (details) {
+        _morphTimer?.cancel();
+        _currentPoints.add(null);
+        _finishDoodle();
+      },
+      child: CustomPaint(
+        painter: CanvasDrawingPainter(pointsList: _currentPoints),
+        size: Size.infinite,
+      ),
+    );
+  }
+
+  void _startMorphTimer() {
+    _morphTimer?.cancel();
+    _morphTimer = Timer(const Duration(milliseconds: 800), () {
+      if (_currentPoints.isNotEmpty) {
+        _tryMorphShape();
+      }
+    });
+  }
+
+  void _tryMorphShape() {
+    final points = _currentPoints.where((p) => p != null).map((p) => p!.point).toList();
+    if (points.isEmpty) return;
+
+    final shape = ShapeRecognizer.recognize(points);
+    if (shape.type != RecognizedShapeType.unknown) {
+      final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
+      if (currentUserId == null) return;
+
+      context.read<CanvasProvider>().addItem(
+        authorId: currentUserId,
+        type: CanvasItemType.shape,
+        content: shape.type.name,
+        xPos: shape.bounds.left / 3000,
+        yPos: shape.bounds.top / 3000,
+        metadata: {
+          'w': shape.bounds.width,
+          'h': shape.bounds.height,
+        },
+      );
+
+      setState(() {
+        _currentPoints = [];
+        _isDrawingMode = false;
+      });
+      _morphTimer?.cancel();
+    }
+  }
+
+  void _finishDoodle() {
+    if (_currentPoints.isEmpty) return;
+    final points = _currentPoints.where((p) => p != null).map((p) => p!.point).toList();
+    if (points.length < 5) {
+      setState(() => _currentPoints = []);
+      return;
+    }
+
+    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
+    if (currentUserId == null) return;
+
+    double minX = points[0].dx;
+    double minY = points[0].dy;
+    for (var p in points) {
+      if (p.dx < minX) minX = p.dx;
+      if (p.dy < minY) minY = p.dy;
+    }
+
+    final relativePoints = points.map((p) => Offset(p.dx - minX, p.dy - minY)).toList();
+    final content = relativePoints.map((p) => '${p.dx.toStringAsFixed(1)},${p.dy.toStringAsFixed(1)}').join(';');
+
+    context.read<CanvasProvider>().addItem(
+      authorId: currentUserId,
+      type: CanvasItemType.doodle,
+      content: Uri.encodeComponent(content),
+      xPos: minX / 3000,
+      yPos: minY / 3000,
+      metadata: {
+        'w': points.map((p) => p.dx).reduce(max) - minX,
+        'h': points.map((p) => p.dy).reduce(max) - minY,
+      },
+    );
+
+    setState(() => _currentPoints = []);
   }
 
   Widget _buildEmptyState() {
@@ -1300,7 +1421,9 @@ class _DesktopCanvasToolbar extends StatelessWidget {
   final VoidCallback onAddSticker;
   final VoidCallback onAddMilestone;
   final VoidCallback onToggleView;
+  final VoidCallback onToggleDrawing;
   final bool isMapMode;
+  final bool isDrawingMode;
 
   const _DesktopCanvasToolbar({
     required this.onAddText,
@@ -1309,7 +1432,9 @@ class _DesktopCanvasToolbar extends StatelessWidget {
     required this.onAddSticker,
     required this.onAddMilestone,
     required this.onToggleView,
+    required this.onToggleDrawing,
     required this.isMapMode,
+    required this.isDrawingMode,
   });
 
   @override
@@ -1348,6 +1473,12 @@ class _DesktopCanvasToolbar extends StatelessWidget {
             icon: FluentIcons.star_24_regular,
             label: 'Milestone',
             onTap: onAddMilestone,
+          ),
+          _ToolbarAction(
+            icon: FluentIcons.gesture_24_regular,
+            label: 'Doodle',
+            onTap: onToggleDrawing,
+            isVibrant: isDrawingMode,
           ),
           const VerticalDivider(
             width: 24,
@@ -1410,6 +1541,8 @@ class _TimelineAddItemTray extends StatefulWidget {
   final VoidCallback onAddSticker;
   final VoidCallback onAddMilestone;
   final VoidCallback onAddJournal;
+  final VoidCallback onToggleDrawing;
+  final bool isDrawingMode;
 
   const _TimelineAddItemTray({
     required this.onAddText,
@@ -1418,6 +1551,8 @@ class _TimelineAddItemTray extends StatefulWidget {
     required this.onAddSticker,
     required this.onAddMilestone,
     required this.onAddJournal,
+    required this.onToggleDrawing,
+    required this.isDrawingMode,
   });
 
   @override
@@ -1464,6 +1599,19 @@ class _TimelineAddItemTrayState extends State<_TimelineAddItemTray> {
             child: const Icon(
               FluentIcons.sticker_24_regular,
               color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton.small(
+            heroTag: 'doodle',
+            onPressed: () {
+              setState(() => _expanded = false);
+              widget.onToggleDrawing();
+            },
+            backgroundColor: widget.isDrawingMode ? Colors.blueAccent : Colors.white,
+            child: Icon(
+              FluentIcons.gesture_24_regular,
+              color: widget.isDrawingMode ? Colors.white : Colors.black,
             ),
           ),
           const SizedBox(height: 12),

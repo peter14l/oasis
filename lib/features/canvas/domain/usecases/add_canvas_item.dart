@@ -18,6 +18,7 @@ class AddCanvasItem {
     double scale = 1.0,
     String color = '#252930',
     DateTime? unlockAt,
+    Map<String, dynamic> metadata = const {},
   }) {
     return _repository.addCanvasItem(
       canvasId: canvasId,
@@ -30,6 +31,7 @@ class AddCanvasItem {
       scale: scale,
       color: color,
       unlockAt: unlockAt,
+      metadata: metadata,
     );
   }
 }

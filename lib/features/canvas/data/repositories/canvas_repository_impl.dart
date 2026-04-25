@@ -79,6 +79,7 @@ class CanvasRepositoryImpl implements CanvasRepository {
     double scale = 1.0,
     String color = '#252930',
     DateTime? unlockAt,
+    Map<String, dynamic> metadata = const {},
   }) {
     return _remoteDatasource.addCanvasItem(
       canvasId: canvasId,
@@ -91,6 +92,7 @@ class CanvasRepositoryImpl implements CanvasRepository {
       scale: scale,
       color: color,
       unlockAt: unlockAt,
+      metadata: metadata,
     );
   }
 
