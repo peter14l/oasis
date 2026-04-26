@@ -744,30 +744,12 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
 
     final canPop = Navigator.of(context).canPop();
 
-    return PopScope(
-      canPop: !_searchFocusNode.hasFocus,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        if (_searchFocusNode.hasFocus) {
-          _searchFocusNode.unfocus();
-          setState(() {
-            _searchController.clear();
-            _searchResults = [];
-          });
-        }
-      },
-      child: material.Scaffold(
-        appBar: isDesktop
-            ? null
-            : material.AppBar(
-              title: const material.Text('Details'),
-            ),
-        body: Center(
-          child: Container(
-            constraints: BoxConstraints(
-              maxWidth: isDesktop ? 600 : double.infinity,
-            ),
-            child: ListView(
+    final Widget body = Center(
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: isDesktop ? 600 : double.infinity,
+        ),
+        child: ListView(
           padding: EdgeInsets.only(
             left: 16,
             right: 16,
@@ -1064,9 +1046,29 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
           ],
         ),
       ),
-    ),
-  ),
-);
+    );
+
+    final result = PopScope(
+      canPop: !_searchFocusNode.hasFocus,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_searchFocusNode.hasFocus) {
+          _searchFocusNode.unfocus();
+          setState(() {
+            _searchController.clear();
+            _searchResults = [];
+          });
+        }
+      },
+      child: isDesktop
+          ? body
+          : Scaffold(
+              appBar: AppBar(
+                title: const Text('Details'),
+              ),
+              body: body,
+            ),
+    );
 
     if (useFluent && isDesktop) {
       return fluent.ScaffoldPage(
@@ -1080,14 +1082,14 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
               color: colorScheme.onSurface,
             ),
           ),
-          leading: IconButton(
-            icon: const Icon(FluentIcons.chevron_left_24_regular),
+          leading: fluent.IconButton(
+            icon: const Icon(fluent.FluentIcons.chevron_left),
             onPressed: () => Navigator.of(context).maybePop(),
           ),
         ),
         content: Material(
           color: Colors.transparent,
-          child: body,
+          child: result,
         ),
       );
     }
@@ -1136,7 +1138,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                     )
                   : null),
       ),
-      body: body,
+      body: result,
     );
   }
 

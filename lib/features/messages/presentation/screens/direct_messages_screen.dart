@@ -25,6 +25,9 @@ import 'package:oasis/widgets/desktop_header.dart';
 import 'package:oasis/widgets/custom_text_field.dart';
 import 'package:oasis/services/app_initializer.dart';
 
+import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/routes/app_router.dart';
+
 class DirectMessagesScreen extends StatefulWidget {
   final String? initialConversationId;
   final Map<String, dynamic>? initialConversationData;
@@ -1067,7 +1070,7 @@ class _BentoItem extends StatelessWidget {
     final isLocked = vault.isInVaultSync(conversation.id) && !vault.isItemUnlocked(conversation.id);
     
     // Current user ID for 'You: ' prefix
-    final currentUserId = AppInitializer.navigatorKey.currentContext?.read<ConversationProvider>().conversations.firstWhere((c) => c.id == conversation.id).lastMessageSenderId == AuthService().currentUser?.id ? AuthService().currentUser?.id : null;
+    final currentUserId = AppRouter.rootNavigatorKey.currentContext?.read<ConversationProvider>().conversations.where((c) => c.id == conversation.id).firstOrNull?.lastMessageSenderId == AuthService().currentUser?.id ? AuthService().currentUser?.id : null;
 
     return GestureDetector(
           onTap: onTap,
