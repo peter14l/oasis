@@ -278,6 +278,7 @@ class MockPostRepository extends _i1.Mock implements _i7.PostRepository {
     List<String>? mediaTypes,
     String? communityId,
     String? mood,
+    bool? isSpoiler = false,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#createPost, [], {
@@ -287,6 +288,7 @@ class MockPostRepository extends _i1.Mock implements _i7.PostRepository {
               #mediaTypes: mediaTypes,
               #communityId: communityId,
               #mood: mood,
+              #isSpoiler: isSpoiler,
             }),
             returnValue: _i5.Future<_i2.Post>.value(
               _FakePost_0(
@@ -298,6 +300,7 @@ class MockPostRepository extends _i1.Mock implements _i7.PostRepository {
                   #mediaTypes: mediaTypes,
                   #communityId: communityId,
                   #mood: mood,
+                  #isSpoiler: isSpoiler,
                 }),
               ),
             ),
@@ -311,6 +314,7 @@ class MockPostRepository extends _i1.Mock implements _i7.PostRepository {
                   #mediaTypes: mediaTypes,
                   #communityId: communityId,
                   #mood: mood,
+                  #isSpoiler: isSpoiler,
                 }),
               ),
             ),

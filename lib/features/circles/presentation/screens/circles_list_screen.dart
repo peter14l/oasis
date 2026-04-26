@@ -157,7 +157,7 @@ class _CirclesListScreenState extends State<CirclesListScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 }
 

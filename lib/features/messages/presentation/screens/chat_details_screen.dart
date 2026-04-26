@@ -1064,7 +1064,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
 
     if (useFluent && isDesktop) {
       return fluent.ScaffoldPage(

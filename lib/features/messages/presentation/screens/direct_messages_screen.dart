@@ -1070,7 +1070,7 @@ class _BentoItem extends StatelessWidget {
     final currentUserId = AppInitializer.navigatorKey.currentContext?.read<ConversationProvider>().conversations.firstWhere((c) => c.id == conversation.id).lastMessageSenderId == AuthService().currentUser?.id ? AuthService().currentUser?.id : null;
 
     return GestureDetector(
-          onTap: onTap;
+          onTap: onTap,
           onLongPress: onLongPress,
           onSecondaryTapDown: (details) {
             // Desktop right-click support

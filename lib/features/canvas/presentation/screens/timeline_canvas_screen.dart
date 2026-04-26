@@ -200,7 +200,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
               onToggleDrawing: () => setState(() => _isDrawingMode = !_isDrawingMode),
               isDrawingMode: _isDrawingMode,
             ),
-    );
+    ));
   }
 
   Widget _buildHeaderOverlay(OasisCanvas? canvas, bool isDesktop, CanvasProvider provider) {
