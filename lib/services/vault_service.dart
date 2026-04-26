@@ -58,7 +58,8 @@ class VaultService with ChangeNotifier {
       try {
         final Map<String, dynamic> decoded = jsonDecode(intervalsJson);
         decoded.forEach((key, value) {
-          _itemIntervals[key] = value.toString();
+          // Ensure keys are normalized when loading from storage
+          _itemIntervals[_normalizeId(key)] = value.toString();
         });
       } catch (e) {
         debugPrint('Error loading intervals: $e');
@@ -67,6 +68,7 @@ class VaultService with ChangeNotifier {
   }
 
   Future<void> _saveIntervals() async {
+    // Keys in _itemIntervals are already normalized by setLockInterval
     await _storage.write(
       key: _vaultIntervalsKey,
       value: jsonEncode(_itemIntervals),
@@ -497,7 +499,7 @@ class VaultService with ChangeNotifier {
           response
               .map<VaultItem>(
                 (v) => VaultItem(
-                  id: v['item_id'],
+                  id: _normalizeId(v['item_id'].toString()),
                   type: VaultItemType.fromString(v['item_type']),
                   addedAt: DateTime.parse(v['created_at']),
                 ),
@@ -544,11 +546,12 @@ class VaultItem {
   final VaultItemType type;
   final DateTime addedAt;
 
-  VaultItem({required this.id, required this.type, required this.addedAt});
+  VaultItem({required String id, required this.type, required this.addedAt})
+    : id = id.trim().toLowerCase();
 
   factory VaultItem.fromJson(Map<String, dynamic> json) {
     return VaultItem(
-      id: json['id'],
+      id: json['id'].toString(),
       type: VaultItemType.fromString(json['type']),
       addedAt: DateTime.parse(json['added_at']),
     );
