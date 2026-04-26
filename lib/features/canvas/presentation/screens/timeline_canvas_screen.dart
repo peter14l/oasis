@@ -40,6 +40,8 @@ class TimelineCanvasScreen extends StatefulWidget {
   State<TimelineCanvasScreen> createState() => _TimelineCanvasScreenState();
 }
 
+import 'package:oasis/features/canvas/presentation/widgets/canvas/infinite_canvas.dart';
+
 class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
   final ScrollController _scrollController = ScrollController();
   double _scrollOffset = 0;
@@ -54,133 +56,10 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
   Color _selectedDrawingColor = Colors.white;
   double _drawingStrokeWidth = 4.0;
 
-  void _undoLastSegment() {
-    if (_currentPoints.isEmpty) return;
-    setState(() {
-      // Find the last null (segment break) and remove everything after it
-      int lastNullIndex = _currentPoints.lastIndexOf(null);
-      if (lastNullIndex == -1) {
-        _currentPoints = [];
-      } else if (lastNullIndex == _currentPoints.length - 1) {
-        // Last segment is just a null, find the one before it
-        _currentPoints.removeLast();
-        lastNullIndex = _currentPoints.lastIndexOf(null);
-        if (lastNullIndex == -1) {
-          _currentPoints = [];
-        } else {
-          _currentPoints.removeRange(lastNullIndex + 1, _currentPoints.length);
-        }
-      } else {
-        _currentPoints.removeRange(lastNullIndex + 1, _currentPoints.length);
-      }
-    });
-  }
+  // Spatial Canvas Constants
+  static const double _canvasScale = 3000.0;
 
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-    CanvasAudioService().start();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
-      if (currentUserId != null) {
-        await context.read<CanvasProvider>().joinCanvas(
-          widget.canvasId,
-          currentUserId,
-        );
-      }
-      if (mounted) {
-        final canvasProvider = context.read<CanvasProvider>();
-        canvasProvider.openCanvas(widget.canvasId);
-        _setupPulseChannel();
-
-        final canvas = canvasProvider.activeCanvas;
-        if (canvas != null && currentUserId != null) {
-          NotificationService().sendPulseNotification(
-            canvasId: canvas.id,
-            canvasTitle: canvas.title,
-            actorId: currentUserId,
-            memberIds: canvas.memberIds,
-          );
-        }
-      }
-    });
-  }
-
-  void _setupPulseChannel() {
-    final supabase = SupabaseService().client;
-    _pulseChannel = supabase.channel('canvas_pulses:${widget.canvasId}');
-
-    _pulseChannel!
-        .onBroadcast(
-          event: 'pulse',
-          callback: (payload) {
-            if (mounted) {
-              final x = (payload['x'] as num).toDouble();
-              final y = (payload['y'] as num).toDouble();
-              _triggerLocalPulse(Offset(x, y));
-            }
-          },
-        )
-        .subscribe((status, [error]) {
-          if (status == RealtimeSubscribeStatus.channelError) {
-            debugPrint(
-              '[TimelineCanvasScreen] Pulse subscription error: $error',
-            );
-          }
-        });
-  }
-
-  void _triggerLocalPulse(Offset position) {
-    final pulse = _PulseData(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      position: position,
-    );
-    setState(() => _pulses.add(pulse));
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) setState(() => _pulses.remove(pulse));
-    });
-  }
-
-  void _sendPulse(Offset globalPosition) {
-    _triggerLocalPulse(globalPosition);
-    if (_pulseChannel != null) {
-      _pulseChannel!.sendBroadcastMessage(
-        event: 'pulse',
-        payload: {'x': globalPosition.dx, 'y': globalPosition.dy},
-      );
-    }
-  }
-
-  void _onScroll() {
-    setState(() {
-      _scrollOffset = _scrollController.offset;
-    });
-  }
-
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
-    _audioRecorder.dispose();
-    CanvasAudioService().stop();
-    if (_pulseChannel != null) {
-      SupabaseService().client.removeChannel(_pulseChannel!);
-    }
-    super.dispose();
-  }
-
-  void _updatePresence(PointerEvent event) {
-    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
-    if (currentUserId == null) return;
-
-    final x = event.localPosition.dx / MediaQuery.of(context).size.width;
-    final y = event.localPosition.dy / MediaQuery.of(context).size.height;
-
-    // Throttling presence updates implicitly via the service if needed,
-    // but here we just send it.
-    context.read<CanvasProvider>().updatePresence(currentUserId, x, y);
-  }
+  Offset _canvasOffset = Offset.zero;
 
   @override
   Widget build(BuildContext context) {
@@ -191,103 +70,258 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     final isDesktop = MediaQuery.of(context).size.width > 900;
 
     return Scaffold(
-      body: StarryNightBackground(
-        scrollOffset: _scrollOffset,
-        child: MouseRegion(
-          onHover: _updatePresence,
-          child: GestureDetector(
-            onLongPressStart: (details) => _sendPulse(details.localPosition),
-            child: Stack(
-              children: [
-                if (_isMapMode)
-                  _buildMapMode(provider)
+      backgroundColor: const Color(0xFF0F1115),
+      body: Stack(
+        children: [
+          // Background - Starry Night with Parallax support
+          StarryNightBackground(
+            offset: _isMapMode ? _canvasOffset : Offset(0, _scrollOffset),
+          ),
+
+          if (_isMapMode)
+            InfiniteCanvas(
+              items: provider.activeItems,
+              isDrawingMode: _isDrawingMode,
+              onLongPress: (pos) => _sendPulse(pos),
+              onTransformationChanged: (offset) {
+                setState(() => _canvasOffset = offset);
+              },
+              onItemMoved: (itemId, x, y) {
+                context.read<CanvasProvider>().moveItem(
+                      itemId: itemId,
+                      xPos: x,
+                      yPos: y,
+                      lastModifiedBy: currentUserId,
+                    );
+              },
+              drawingLayer: _isDrawingMode ? _buildDrawingLayer() : null,
+            )
+          else
+            CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                if (!isDesktop)
+                  _buildMobileAppBar(canvas, isOwner)
                 else
-                  CustomScrollView(
-                    controller: _scrollController,
-                    slivers: [
-                      if (!isDesktop)
-                        _buildMobileAppBar(canvas, isOwner)
-                      else
-                        SliverToBoxAdapter(
-                          child: _buildDesktopHeader(canvas, provider),
-                        ),
-
-                      if (provider.isLoading)
-                        const SliverFillRemaining(
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                            ),
-                          ),
-                        )
-                      else if (provider.activeItems.isEmpty)
-                        SliverFillRemaining(child: _buildEmptyState())
-                      else
-                        ..._buildTimelineSlivers(provider.activeItems),
-
-                      const SliverToBoxAdapter(child: SizedBox(height: 120)),
-                    ],
+                  SliverToBoxAdapter(
+                    child: _buildDesktopHeader(canvas, provider),
                   ),
-
-                // Collaborative Cursors (Visible only on Map Mode or Desktop)
-                if (_isMapMode || isDesktop) ..._buildPresenceCursors(provider),
-
-                if (provider.activeItems.isNotEmpty && !_isMapMode)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    bottom: 0,
+                if (provider.isLoading)
+                  const SliverFillRemaining(
                     child: Center(
-                      child: TimelineScrubber(
-                        items: provider.activeItems,
-                        scrollController: _scrollController,
-                      ),
+                      child: CircularProgressIndicator(color: Colors.white),
                     ),
-                  ),
+                  )
+                else if (provider.activeItems.isEmpty)
+                  SliverFillRemaining(child: _buildEmptyState())
+                else
+                  ..._buildTimelineSlivers(provider.activeItems),
+                const SliverToBoxAdapter(child: SizedBox(height: 120)),
+              ],
+            ),
 
-                ..._pulses.map(
-                  (p) => PulseRipple(
-                    key: ValueKey(p.id),
-                    position: p.position,
-                    color: Colors.white,
+          // Collaborative Cursors
+          if (_isMapMode || isDesktop) ..._buildPresenceCursors(provider),
+
+          // Pulses
+          ..._pulses.map(
+            (p) => PulseRipple(
+              key: ValueKey(p.id),
+              position: p.position,
+              color: Colors.white,
+            ),
+          ),
+
+          // Floating Controls Overlay
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            left: 16,
+            right: 16,
+            child: _buildHeaderOverlay(canvas, isDesktop, provider),
+          ),
+
+          // Drawing Toolbar
+          if (_isDrawingMode)
+            Positioned(
+              bottom: 120,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: _DoodleToolbar(
+                  selectedColor: _selectedDrawingColor,
+                  strokeWidth: _drawingStrokeWidth,
+                  onColorChanged: (color) => setState(() => _selectedDrawingColor = color),
+                  onStrokeWidthChanged: (w) => setState(() => _drawingStrokeWidth = w),
+                  onUndo: _undoLastSegment,
+                  onClose: () => setState(() => _isDrawingMode = false),
+                ),
+              ),
+            ),
+
+          // Right-side Timeline Scrubber (only in Spatial mode)
+          if (provider.activeItems.isNotEmpty && _isMapMode)
+            Positioned(
+              right: 16,
+              top: 100,
+              bottom: 100,
+              child: Center(
+                child: Container(
+                  width: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white10),
+                  ),
+                  child: TimelineScrubber(
+                    items: provider.activeItems,
+                    scrollController: _scrollController,
                   ),
                 ),
+              ),
+            ),
+        ],
+      ),
+      floatingActionButton: isDesktop
+          ? null
+          : _TimelineAddItemTray(
+              onAddText: () => _showAddNote(context),
+              onAddPhoto: () => _pickAndUploadPhoto(),
+              onAddVoice: () => _showVoiceRecorder(context),
+              onAddSticker: () => _showStickerPicker(context),
+              onAddMilestone: () => _showAddMilestone(context),
+              onAddJournal: () => _showAddJournal(context),
+              onToggleDrawing: () => setState(() => _isDrawingMode = !_isDrawingMode),
+              isDrawingMode: _isDrawingMode,
+            ),
+    );
+  }
 
-                if (_isDrawingMode)
-                  Positioned(
-                    top: 100,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: _DoodleToolbar(
-                        selectedColor: _selectedDrawingColor,
-                        strokeWidth: _drawingStrokeWidth,
-                        onColorChanged: (color) => setState(() => _selectedDrawingColor = color),
-                        onStrokeWidthChanged: (w) => setState(() => _drawingStrokeWidth = w),
-                        onUndo: _undoLastSegment,
-                        onClose: () => setState(() => _isDrawingMode = false),
+  Widget _buildHeaderOverlay(OasisCanvas? canvas, bool isDesktop, CanvasProvider provider) {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => context.pop(),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white10),
+            ),
+            child: const Icon(FluentIcons.chevron_left_24_regular, color: Colors.white, size: 20),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        canvas?.title ?? 'Our Canvas',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                       ),
-                    ),
+                      _buildActiveUsersRow(provider),
+                    ],
                   ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    _isMapMode ? FluentIcons.list_24_regular : FluentIcons.glance_24_regular,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  onPressed: () => setState(() => _isMapMode = !_isMapMode),
+                ),
+                IconButton(
+                  icon: const Icon(FluentIcons.people_add_24_regular, color: Colors.white, size: 20),
+                  onPressed: () => _showInviteSheet(canvas),
+                ),
               ],
             ),
           ),
         ),
-      ),
-      floatingActionButton:
-          isDesktop
-              ? null
-              : _TimelineAddItemTray(
-                onAddText: () => _showAddNote(context),
-                onAddPhoto: () => _pickAndUploadPhoto(),
-                onAddVoice: () => _showVoiceRecorder(context),
-                onAddSticker: () => _showStickerPicker(context),
-                onAddMilestone: () => _showAddMilestone(context),
-                onAddJournal: () => _showAddJournal(context),
-                onToggleDrawing: () => setState(() => _isDrawingMode = !_isDrawingMode),
-                isDrawingMode: _isDrawingMode,
-              ),
+      ],
     );
+  }
+
+  void _sendPulse(Offset canvasPosition) {
+    // CanvasPosition is already in absolute coordinates from InfiniteCanvas
+    _triggerLocalPulse(canvasPosition);
+    if (_pulseChannel != null) {
+      _pulseChannel!.sendBroadcastMessage(
+        event: 'pulse',
+        payload: {'x': canvasPosition.dx, 'y': canvasPosition.dy},
+      );
+    }
+  }
+
+  void _triggerLocalPulse(Offset position) {
+    // We need to map position to screen space if we want to show it on top of everything,
+    // OR we just render it inside the InfiniteCanvas stack.
+    // For now, let's keep it in screen space but this will be tricky with panning.
+    // IMPROVEMENT: Pulse should be an item in InfiniteCanvas stack.
+    final pulse = _PulseData(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      position: position,
+    );
+    setState(() => _pulses.add(pulse));
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _pulses.remove(pulse));
+    });
+  }
+
+  List<Widget> _buildPresenceCursors(CanvasProvider provider) {
+    final List<Widget> cursors = [];
+    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
+
+    provider.presenceState.forEach((userId, stateList) {
+      if (userId == currentUserId) return;
+
+      final state = (stateList as List).first;
+      final x = (state['x'] as num?)?.toDouble() ?? 0.0;
+      final y = (state['y'] as num?)?.toDouble() ?? 0.0;
+
+      // Map from canvas coordinates to screen coordinates
+      // This is complex because cursors need to stay correctly positioned during pan/zoom.
+      // Easiest is to put them INSIDE InfiniteCanvas, but for now we keep them here.
+      // (Simplified mapping for now)
+      cursors.add(
+        Positioned(
+          left: 500 + x, // Temporary placeholder mapping
+          top: 500 + y,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(FluentIcons.cursor_24_filled, size: 20, color: Colors.blueAccent),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.blueAccent,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'Friend',
+                  style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+
+    return cursors;
   }
 
   Widget _buildMobileAppBar(OasisCanvas? canvas, bool isOwner) {
@@ -841,6 +875,26 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     });
   }
 
+  void _undoLastSegment() {
+    if (_currentPoints.isEmpty) return;
+    setState(() {
+      int lastNullIndex = _currentPoints.lastIndexOf(null);
+      if (lastNullIndex == -1) {
+        _currentPoints = [];
+      } else if (lastNullIndex == _currentPoints.length - 1) {
+        _currentPoints.removeLast();
+        lastNullIndex = _currentPoints.lastIndexOf(null);
+        if (lastNullIndex == -1) {
+          _currentPoints = [];
+        } else {
+          _currentPoints.removeRange(lastNullIndex + 1, _currentPoints.length);
+        }
+      } else {
+        _currentPoints.removeRange(lastNullIndex + 1, _currentPoints.length);
+      }
+    });
+  }
+
   void _tryMorphShape() {
     final points = _currentPoints.where((p) => p != null).map((p) => p!.point).toList();
     if (points.isEmpty) return;
@@ -854,8 +908,8 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
         authorId: currentUserId,
         type: CanvasItemType.shape,
         content: shape.type.name,
-        xPos: shape.bounds.left / 3000,
-        yPos: shape.bounds.top / 3000,
+        xPos: shape.bounds.left / _canvasScale,
+        yPos: shape.bounds.top / _canvasScale,
         metadata: {
           'w': shape.bounds.width,
           'h': shape.bounds.height,
@@ -889,15 +943,24 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     }
 
     final relativePoints = points.map((p) => Offset(p.dx - minX, p.dy - minY)).toList();
-    final content = relativePoints.map((p) => '${p.dx.toStringAsFixed(1)},${p.dy.toStringAsFixed(1)}').join(';');
+    // Filter out any invalid points before joining
+    final content = relativePoints
+        .where((p) => p.dx.isFinite && p.dy.isFinite)
+        .map((p) => '${p.dx.toStringAsFixed(1)},${p.dy.toStringAsFixed(1)}')
+        .join(';');
+
+    if (content.isEmpty) {
+      setState(() => _currentPoints = []);
+      return;
+    }
 
     context.read<CanvasProvider>().addItem(
       authorId: currentUserId,
       type: CanvasItemType.doodle,
       content: Uri.encodeComponent(content),
       color: '#${_selectedDrawingColor.value.toRadixString(16).substring(2)}',
-      xPos: minX / 3000,
-      yPos: minY / 3000,
+      xPos: minX / _canvasScale,
+      yPos: minY / _canvasScale,
       metadata: {
         'w': points.map((p) => p.dx).reduce(max) - minX,
         'h': points.map((p) => p.dy).reduce(max) - minY,

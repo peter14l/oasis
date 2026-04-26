@@ -2,12 +2,12 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class StarryNightBackground extends StatefulWidget {
-  final double scrollOffset;
+  final Offset offset;
   final Widget? child;
 
   const StarryNightBackground({
     super.key,
-    this.scrollOffset = 0,
+    this.offset = Offset.zero,
     this.child,
   });
 
@@ -19,7 +19,7 @@ class _StarryNightBackgroundState extends State<StarryNightBackground>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   final List<StarModel> _stars = [];
-  final int _starCount = 150;
+  final int _starCount = 200;
 
   @override
   void initState() {
@@ -41,6 +41,7 @@ class _StarryNightBackgroundState extends State<StarryNightBackground>
         size: random.nextDouble() * 2.5 + 0.5,
         twinkleSpeed: random.nextDouble() * 2 + 1,
         twinkleOffset: random.nextDouble() * pi * 2,
+        parallax: random.nextDouble() * 0.15 + 0.05,
       ));
     }
   }
@@ -55,10 +56,8 @@ class _StarryNightBackgroundState extends State<StarryNightBackground>
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // The deep black background
-        Container(color: const Color(0xFF000000)),
+        Container(color: const Color(0xFF0F1115)), // Slightly lighter black for depth
         
-        // The stars with parallax
         AnimatedBuilder(
           animation: _controller,
           builder: (context, _) {
@@ -66,7 +65,7 @@ class _StarryNightBackgroundState extends State<StarryNightBackground>
               painter: StarPainter(
                 stars: _stars,
                 twinkleProgress: _controller.value,
-                scrollOffset: widget.scrollOffset,
+                offset: widget.offset,
               ),
               size: Size.infinite,
             );
@@ -80,11 +79,12 @@ class _StarryNightBackgroundState extends State<StarryNightBackground>
 }
 
 class StarModel {
-  final double x; // 0.0 - 1.0
-  final double y; // 0.0 - 1.0
+  final double x;
+  final double y;
   final double size;
   final double twinkleSpeed;
   final double twinkleOffset;
+  final double parallax;
 
   StarModel({
     required this.x,
@@ -92,43 +92,41 @@ class StarModel {
     required this.size,
     required this.twinkleSpeed,
     required this.twinkleOffset,
+    required this.parallax,
   });
 }
 
 class StarPainter extends CustomPainter {
   final List<StarModel> stars;
   final double twinkleProgress;
-  final double scrollOffset;
+  final Offset offset;
 
   StarPainter({
     required this.stars,
     required this.twinkleProgress,
-    required this.scrollOffset,
+    required this.offset,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.white;
-
     for (var star in stars) {
-      // Calculate twinkle opacity
       final opacity = (sin(twinkleProgress * 2 * pi * star.twinkleSpeed + star.twinkleOffset) + 1) / 2;
-      paint.color = Colors.white.withValues(alpha: 0.2 + (opacity * 0.8));
+      final paint = Paint()..color = Colors.white.withValues(alpha: 0.2 + (opacity * 0.8));
 
-      // Calculate position with parallax
-      // We wrap the y position to keep stars visible as we scroll
-      final xPos = star.x * size.width;
-      double yPos = (star.y * size.height - (scrollOffset * 0.2)) % size.height;
+      // Calculate position with 2D parallax and wrapping
+      double xPos = (star.x * size.width - (offset.dx * star.parallax)) % size.width;
+      double yPos = (star.y * size.height - (offset.dy * star.parallax)) % size.height;
+      
+      if (xPos < 0) xPos += size.width;
       if (yPos < 0) yPos += size.height;
 
       canvas.drawCircle(Offset(xPos, yPos), star.size / 2, paint);
       
-      // Add a slight glow to larger stars
       if (star.size > 2.0) {
         final glowPaint = Paint()
-          ..color = Colors.white.withValues(alpha: opacity * 0.3)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.0);
-        canvas.drawCircle(Offset(xPos, yPos), star.size, glowPaint);
+          ..color = Colors.white.withValues(alpha: opacity * 0.2)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.0);
+        canvas.drawCircle(Offset(xPos, yPos), star.size * 1.5, glowPaint);
       }
     }
   }
@@ -136,6 +134,6 @@ class StarPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant StarPainter oldDelegate) {
     return oldDelegate.twinkleProgress != twinkleProgress ||
-        oldDelegate.scrollOffset != scrollOffset;
+        oldDelegate.offset != offset;
   }
 }

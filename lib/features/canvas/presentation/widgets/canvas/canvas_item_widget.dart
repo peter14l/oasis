@@ -35,11 +35,14 @@ class _CanvasItemWidgetState extends State<CanvasItemWidget> {
   bool _selected = false;
   bool _isDraggingLocally = false;
 
+  // We use 3000 as the scale factor for normalized coordinates
+  static const double _canvasScale = 3000.0;
+
   @override
   void initState() {
     super.initState();
-    _x = widget.item.xPos;
-    _y = widget.item.yPos;
+    _x = widget.item.xPos * _canvasScale;
+    _y = widget.item.yPos * _canvasScale;
     _rotation = widget.item.rotation;
   }
 
@@ -47,8 +50,8 @@ class _CanvasItemWidgetState extends State<CanvasItemWidget> {
   void didUpdateWidget(CanvasItemWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!_isDraggingLocally) {
-      _x = widget.item.xPos;
-      _y = widget.item.yPos;
+      _x = widget.item.xPos * _canvasScale;
+      _y = widget.item.yPos * _canvasScale;
       _rotation = widget.item.rotation;
     }
   }
@@ -69,7 +72,7 @@ class _CanvasItemWidgetState extends State<CanvasItemWidget> {
   void _onPanEnd(DragEndDetails details) {
     if (widget.item.isLocked) return;
     setState(() => _isDraggingLocally = false);
-    widget.onMoved(_x, _y, _rotation);
+    widget.onMoved(_x / _canvasScale, _y / _canvasScale, _rotation);
   }
 
   void _onLongPress() {
@@ -157,109 +160,133 @@ class _CanvasItemWidgetState extends State<CanvasItemWidget> {
         widget.item.lastModifiedBy != null &&
         widget.item.lastModifiedBy != currentUserId;
 
-    return GestureDetector(
-      onPanStart: _onPanStart,
-      onPanUpdate: _onPanUpdate,
-      onPanEnd: _onPanEnd,
-      onLongPress: _onLongPress,
-      onTap: () => setState(() => _selected = !_selected),
-      child: Transform.rotate(
-        angle: _rotation * 3.14159 / 180,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // Interaction Halo
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color:
-                      isBeingModifiedByOther
-                          ? Colors.blue.withValues(alpha: 0.5)
-                          : (_selected
-                              ? Theme.of(context).colorScheme.primary
-                              : Colors.transparent),
-                  width: 2,
-                ),
-                boxShadow:
-                    isBeingModifiedByOther
-                        ? [
+    return Transform.rotate(
+      angle: _rotation * 3.14159 / 180,
+      child: Transform.scale(
+        scale: widget.item.scale,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque, // Ensure it catches taps anywhere in its bounds
+          onPanStart: _onPanStart,
+          onPanUpdate: _onPanUpdate,
+          onPanEnd: _onPanEnd,
+          onLongPress: _onLongPress,
+          onTap: () => setState(() => _selected = !_selected),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Interaction Halo & Border
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                padding: const EdgeInsets.all(8), // Increased padding for easier grabbing
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isBeingModifiedByOther
+                        ? Colors.blue.withValues(alpha: 0.6)
+                        : (_selected
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.transparent),
+                    width: 2.5,
+                  ),
+                  boxShadow: isBeingModifiedByOther
+                      ? [
                           BoxShadow(
                             color: Colors.blue.withValues(alpha: 0.2),
-                            blurRadius: 10,
-                            spreadRadius: 2,
+                            blurRadius: 15,
+                            spreadRadius: 3,
                           ),
                         ]
-                        : [],
-              ),
-              child: _buildContent(),
-            ),
-
-            // Lock Indicator
-            if (widget.item.isLocked)
-              Positioned(
-                right: -8,
-                top: -8,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Colors.amber,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    FluentIcons.lock_closed_12_filled,
-                    size: 12,
-                    color: Colors.black,
-                  ),
+                      : (_selected
+                          ? [
+                              BoxShadow(
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                                blurRadius: 15,
+                                spreadRadius: 2,
+                              )
+                            ]
+                          : []),
                 ),
+                child: _buildContent(),
               ),
 
-            // Reactions
-            if (widget.item.reactions.isNotEmpty)
-              Positioned(
-                bottom: -12,
-                left: 0,
-                right: 0,
-                child: Wrap(
-                  spacing: 4,
-                  alignment: WrapAlignment.center,
-                  children:
-                      widget.item.reactions.entries.map((entry) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.7),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.white10),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                entry.key,
-                                style: const TextStyle(fontSize: 10),
-                              ),
-                              const SizedBox(width: 2),
-                              Text(
-                                '${entry.value.length}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
+              // Selection / Modification Overlays
+              if (isBeingModifiedByOther)
+                Positioned(
+                  top: -20,
+                  left: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'Friend is moving this...',
+                      style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
-              ),
-          ],
+
+              // Lock Indicator
+              if (widget.item.isLocked)
+                Positioned(
+                  right: -4,
+                  top: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      color: Colors.amber,
+                      shape: BoxShape.circle,
+                      boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                    ),
+                    child: const Icon(
+                      FluentIcons.lock_closed_16_filled,
+                      size: 14,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+
+              // Reactions
+              if (widget.item.reactions.isNotEmpty)
+                Positioned(
+                  bottom: -16,
+                  left: 0,
+                  right: 0,
+                  child: Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    alignment: WrapAlignment.center,
+                    children: widget.item.reactions.entries.map((entry) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.85),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white24),
+                          boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 4)],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(entry.key, style: const TextStyle(fontSize: 12)),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${entry.value.length}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -409,37 +436,51 @@ class _CanvasItemWidgetState extends State<CanvasItemWidget> {
 
   Widget _buildDoodleContent() {
     try {
-      final List<dynamic> data =
-          Uri.decodeComponent(widget.item.content)
-              .split(';')
-              .map((s) => s.split(','))
-              .toList();
-      final points =
-          data.map((p) {
-            if (p.length < 2) return null;
-            return DrawingPoint(
-              point: Offset(double.parse(p[0]), double.parse(p[1])),
-              paint:
-                  Paint()
-                    ..color = Color(
-                      int.parse(
-                        'FF${widget.item.color.replaceAll('#', '')}',
-                        radix: 16,
-                      ),
-                    )
-                    ..strokeWidth = 4.0
-                    ..strokeCap = StrokeCap.round
-                    ..strokeJoin = StrokeJoin.round
-                    ..isAntiAlias = true,
-            );
-          }).toList();
+      final String content = Uri.decodeComponent(widget.item.content);
+      if (content.isEmpty) return const SizedBox.shrink();
 
-      return CustomPaint(
-        painter: CanvasDrawingPainter(pointsList: points),
-        size: Size(widget.item.metadata['w'] ?? 100, widget.item.metadata['h'] ?? 100),
+      final List<String> segments = content.split(';');
+      final List<DrawingPoint?> points = [];
+      
+      final color = Color(
+        int.parse('FF${widget.item.color.replaceAll('#', '')}', radix: 16),
+      );
+
+      for (var segment in segments) {
+        if (segment.isEmpty) continue;
+        final coords = segment.split(',');
+        if (coords.length < 2) continue;
+        
+        points.add(DrawingPoint(
+          point: Offset(double.parse(coords[0]), double.parse(coords[1])),
+          paint: Paint()
+            ..color = color
+            ..strokeWidth = 4.0
+            ..strokeCap = StrokeCap.round
+            ..strokeJoin = StrokeJoin.round
+            ..isAntiAlias = true,
+        ));
+      }
+
+      // Add a null at the end to ensure the last path segment is drawn if needed by painter
+      points.add(null);
+
+      final double w = (widget.item.metadata['w'] as num?)?.toDouble() ?? 200.0;
+      final double h = (widget.item.metadata['h'] as num?)?.toDouble() ?? 200.0;
+
+      return Container(
+        width: w,
+        height: h,
+        // Add a background color during debugging if needed
+        // color: Colors.white10, 
+        child: CustomPaint(
+          painter: CanvasDrawingPainter(pointsList: points),
+          size: Size(w, h),
+        ),
       );
     } catch (e) {
-      return const Icon(Icons.gesture, color: Colors.white);
+      debugPrint('Error building doodle: $e');
+      return const Icon(Icons.gesture, color: Colors.white, size: 32);
     }
   }
 
