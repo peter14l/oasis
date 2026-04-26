@@ -280,49 +280,6 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     });
   }
 
-  List<Widget> _buildPresenceCursors(CanvasProvider provider) {
-    final List<Widget> cursors = [];
-    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
-
-    provider.presenceState.forEach((userId, stateList) {
-      if (userId == currentUserId) return;
-
-      final state = (stateList as List).first;
-      final x = (state['x'] as num?)?.toDouble() ?? 0.0;
-      final y = (state['y'] as num?)?.toDouble() ?? 0.0;
-
-      // Map from canvas coordinates to screen coordinates
-      // This is complex because cursors need to stay correctly positioned during pan/zoom.
-      // Easiest is to put them INSIDE InfiniteCanvas, but for now we keep them here.
-      // (Simplified mapping for now)
-      cursors.add(
-        Positioned(
-          left: 500 + x, // Temporary placeholder mapping
-          top: 500 + y,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(FluentIcons.cursor_24_filled, size: 20, color: Colors.blueAccent),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.blueAccent,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'Friend',
-                  style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    });
-
-    return cursors;
-  }
-
   Widget _buildMobileAppBar(OasisCanvas? canvas, bool isOwner) {
     return SliverAppBar(
       floating: true,

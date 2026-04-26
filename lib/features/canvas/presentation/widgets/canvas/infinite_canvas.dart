@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vector_math/vector_math_64.dart' hide Colors;
 import 'package:oasis/features/canvas/domain/models/canvas_models.dart';
 import 'package:oasis/features/canvas/presentation/widgets/canvas/canvas_item_widget.dart';
 
