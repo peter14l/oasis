@@ -25,6 +25,7 @@ import 'package:oasis/features/canvas/presentation/widgets/canvas/canvas_item_wi
 import 'package:google_fonts/google_fonts.dart';
 import 'package:oasis/features/canvas/domain/utils/shape_recognizer.dart';
 import 'package:oasis/painters/canvas_drawing_painter.dart';
+import 'package:oasis/features/canvas/presentation/widgets/canvas/infinite_canvas.dart';
 
 class _PulseData {
   final String id;
@@ -39,8 +40,6 @@ class TimelineCanvasScreen extends StatefulWidget {
   @override
   State<TimelineCanvasScreen> createState() => _TimelineCanvasScreenState();
 }
-
-import 'package:oasis/features/canvas/presentation/widgets/canvas/infinite_canvas.dart';
 
 class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
   final ScrollController _scrollController = ScrollController();
