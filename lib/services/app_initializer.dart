@@ -498,6 +498,7 @@ class AppInitializer {
       repository: AuthRepositoryImpl(),
       analytics: appAnalytics,
     );
+
     final themeProvider = ThemeProvider();
     final settingsRepo = SettingsRepositoryImpl();
     final userSettingsProvider = UserSettingsProvider(
@@ -511,13 +512,13 @@ class AppInitializer {
       userSettingsProvider.loadSettings(),
     ]);
 
-    // Initialize DM notifications after session is restored
-    if (authProvider.isAuthenticated) {
-      subscribeToDmNotifications();
-    }
-
     // --- BACKGROUND PHASE: Can finish after splash screen ---
     debugPrint('STEP: Background initialization starting...');
+
+    // Initialize DM notifications after session is restored, but don't block
+    if (authProvider.isAuthenticated) {
+      unawaited(Future.microtask(() => subscribeToDmNotifications()));
+    }
 
     // Windows enhancements
     if (Platform.isWindows) {
