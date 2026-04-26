@@ -25,9 +25,7 @@ class VaultService with ChangeNotifier {
   Completer<void>? _initCompleter;
   bool _isInitDone = false;
 
-  VaultService() {
-    init();
-  }
+  VaultService();
 
   Future<void> get isReady async {
     if (_isInitDone) return;
@@ -35,7 +33,7 @@ class VaultService with ChangeNotifier {
   }
 
   Future<void> init() async {
-    if (_initCompleter != null) return;
+    if (_initCompleter != null) return _initCompleter!.future;
     _initCompleter = Completer<void>();
     
     await _loadIntervals();
@@ -43,6 +41,7 @@ class VaultService with ChangeNotifier {
     
     _isInitDone = true;
     _initCompleter!.complete();
+    return _initCompleter!.future;
   }
 
   Future<void> _refreshVaultItemCache() async {
@@ -96,6 +95,14 @@ class VaultService with ChangeNotifier {
     await _storage.delete(key: _vaultPinKey);
     _unlockedItemIds.clear();
     _itemIntervals.clear();
+    
+    // Safety: use toList() for concurrent mod protection
+    final timers = _lockTimers.values.toList();
+    for (final timer in timers) {
+      timer?.cancel();
+    }
+    _lockTimers.clear();
+    
     await _storage.delete(key: _vaultIntervalsKey);
     scheduleMicrotask(() => notifyListeners());
   }
@@ -156,9 +163,12 @@ class VaultService with ChangeNotifier {
   /// Lock specific item
   void lockItem(String itemId) {
     final id = _normalizeId(itemId);
+    if (!_unlockedItemIds.contains(id)) return;
+
     _unlockedItemIds.remove(id);
     _lockTimers[id]?.cancel();
-    _lockTimers[id] = null;
+    _lockTimers.remove(id);
+    
     debugPrint('Vault: Locked item $id');
     scheduleMicrotask(() => notifyListeners());
   }
@@ -166,7 +176,9 @@ class VaultService with ChangeNotifier {
   /// Lock all items (e.g. on logout)
   void lockAll() {
     _unlockedItemIds.clear();
-    for (final timer in _lockTimers.values) {
+    // Safety: iterate over a copy to avoid concurrent modification
+    final timers = _lockTimers.values.toList();
+    for (final timer in timers) {
       timer?.cancel();
     }
     _lockTimers.clear();
@@ -197,11 +209,10 @@ class VaultService with ChangeNotifier {
 
   /// Lock items with a specific interval (e.g. 'app_close')
   void lockItemsWithInterval(String interval) {
-    // Collect IDs first to avoid concurrent modification
+    // Collect IDs first into a new list to avoid concurrent modification
     final itemsToLock = _unlockedItemIds.where((id) {
       if (interval == 'app_close') {
         // App close (lifecycle backgrounding) should lock EVERYTHING for maximum security.
-        // This acts as a global safety fallback.
         return true;
       }
       
@@ -212,7 +223,7 @@ class VaultService with ChangeNotifier {
     for (final id in itemsToLock) {
       _unlockedItemIds.remove(id);
       _lockTimers[id]?.cancel();
-      _lockTimers[id] = null;
+      _lockTimers.remove(id);
     }
     
     if (itemsToLock.isNotEmpty) {
@@ -522,7 +533,8 @@ class VaultService with ChangeNotifier {
 
   @override
   void dispose() {
-    for (final timer in _lockTimers.values) {
+    final timers = _lockTimers.values.toList();
+    for (final timer in timers) {
       timer?.cancel();
     }
     super.dispose();
