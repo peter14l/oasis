@@ -19,6 +19,15 @@ import 'package:oasis/features/messages/presentation/screens/shared_content_scre
 import 'package:oasis/widgets/moderation_dialogs.dart';
 import 'package:oasis/widgets/custom_text_field.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
+import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:oasis/features/canvas/presentation/providers/canvas_provider.dart';
+import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
+import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
+import 'package:oasis/services/notification_manager.dart';
+import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/features/messages/presentation/screens/chat_screen.dart';
+import 'package:oasis/features/messages/presentation/screens/direct_messages_screen.dart';
+import 'package:oasis/routes/app_router.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String conversationId;
@@ -119,6 +128,9 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     _whisperMode = widget.whisperMode;
     _selectedBackground = widget.currentBackground;
     _loadPersistedSettings();
+    _searchFocusNode.addListener(() {
+      if (mounted) setState(() {});
+    });
     // Note: messages for search are read from ChatProvider.state.messages
     // (already decrypted) — no re-initialization of SignalService needed here.
   }
@@ -744,7 +756,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
 
     final canPop = Navigator.of(context).canPop();
 
-    final Widget body = Center(
+    final Widget bodyContent = Center(
       child: Container(
         constraints: BoxConstraints(
           maxWidth: isDesktop ? 600 : double.infinity,
@@ -1048,7 +1060,44 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
       ),
     );
 
-    final result = PopScope(
+    if (useFluent && isDesktop) {
+      return PopScope(
+        canPop: !_searchFocusNode.hasFocus,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          if (_searchFocusNode.hasFocus) {
+            _searchFocusNode.unfocus();
+            setState(() {
+              _searchController.clear();
+              _searchResults = [];
+            });
+          }
+        },
+        child: fluent.ScaffoldPage(
+          header: fluent.PageHeader(
+            title: Text(
+              'Details',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 24,
+                letterSpacing: -0.5,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            leading: fluent.IconButton(
+              icon: const Icon(fluent.FluentIcons.chevron_left),
+              onPressed: () => Navigator.of(context).maybePop(),
+            ),
+          ),
+          content: Material(
+            color: Colors.transparent,
+            child: bodyContent,
+          ),
+        ),
+      );
+    }
+
+    return PopScope(
       canPop: !_searchFocusNode.hasFocus,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
@@ -1060,85 +1109,52 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
           });
         }
       },
-      child: isDesktop
-          ? body
-          : Scaffold(
-              appBar: AppBar(
-                title: const Text('Details'),
-              ),
-              body: body,
-            ),
-    );
-
-    if (useFluent && isDesktop) {
-      return fluent.ScaffoldPage(
-        header: fluent.PageHeader(
+      child: Scaffold(
+        backgroundColor: isDesktop ? Colors.transparent : colorScheme.surface,
+        extendBodyBehindAppBar: isDesktop,
+        appBar: AppBar(
           title: Text(
-            'Details',
+            isDesktop ? 'Details' : 'Chat Details',
             style: TextStyle(
-              fontWeight: FontWeight.w900,
-              fontSize: 24,
-              letterSpacing: -0.5,
+              fontWeight: isDesktop ? FontWeight.w900 : FontWeight.bold,
+              fontSize: isDesktop ? 24 : 18,
+              letterSpacing: isDesktop ? -0.5 : null,
               color: colorScheme.onSurface,
             ),
           ),
-          leading: fluent.IconButton(
-            icon: const Icon(fluent.FluentIcons.chevron_left),
-            onPressed: () => Navigator.of(context).maybePop(),
-          ),
-        ),
-        content: Material(
-          color: Colors.transparent,
-          child: result,
-        ),
-      );
-    }
-
-    return Scaffold(
-      backgroundColor: isDesktop ? Colors.transparent : colorScheme.surface,
-      extendBodyBehindAppBar: isDesktop,
-      appBar: AppBar(
-        title: Text(
-          isDesktop ? 'Details' : 'Chat Details',
-          style: TextStyle(
-            fontWeight: isDesktop ? FontWeight.w900 : FontWeight.bold,
-            fontSize: isDesktop ? 24 : 18,
-            letterSpacing: isDesktop ? -0.5 : null,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        centerTitle: !isDesktop,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: Colors.transparent,
-        titleSpacing: isDesktop ? 24 : null,
-        automaticallyImplyLeading: false,
-        leading: isDesktop
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(FluentIcons.chevron_left_24_regular),
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    tooltip: 'Back to chat',
-                  ),
-                  if (widget.onBackgroundSettingsChanged != null)
+          centerTitle: !isDesktop,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          backgroundColor: Colors.transparent,
+          titleSpacing: isDesktop ? 24 : null,
+          automaticallyImplyLeading: false,
+          leading: isDesktop
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     IconButton(
-                      icon: const Icon(FluentIcons.dismiss_24_regular),
-                      onPressed: () =>
-                          widget.onBackgroundSettingsChanged!(0, 0),
-                      tooltip: 'Close',
-                    ),
-                ],
-              )
-            : (canPop
-                  ? IconButton(
                       icon: const Icon(FluentIcons.chevron_left_24_regular),
                       onPressed: () => Navigator.of(context).maybePop(),
-                    )
-                  : null),
+                      tooltip: 'Back to chat',
+                    ),
+                    if (widget.onBackgroundSettingsChanged != null)
+                      IconButton(
+                        icon: const Icon(FluentIcons.dismiss_24_regular),
+                        onPressed: () =>
+                            widget.onBackgroundSettingsChanged!(0, 0),
+                        tooltip: 'Close',
+                      ),
+                  ],
+                )
+              : (canPop
+                    ? IconButton(
+                        icon: const Icon(FluentIcons.chevron_left_24_regular),
+                        onPressed: () => Navigator.of(context).maybePop(),
+                      )
+                    : null),
+        ),
+        body: bodyContent,
       ),
-      body: result,
     );
   }
 
