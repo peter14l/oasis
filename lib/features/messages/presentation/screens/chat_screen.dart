@@ -215,6 +215,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _vaultService = Provider.of<VaultService>(context);
+    _presenceProvider = Provider.of<PresenceProvider>(context, listen: false);
+    _typingProvider = Provider.of<TypingIndicatorProvider>(context, listen: false);
   }
 
   @override
@@ -232,17 +234,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _scrollController.dispose();
     _focusNode.dispose();
 
-    // Capture provider references before super.dispose() tears down the tree.
-    // context.read() is safe here because we call it BEFORE super.dispose().
+    // Capture IDs before state is gone
     final otherId = widget.otherUserId ?? _chatProvider.state.otherUserId;
     final convId = widget.conversationId;
-    final presenceProvider = context.read<PresenceProvider>();
-    final typingProvider = context.read<TypingIndicatorProvider>();
 
     if (otherId != null) {
-      presenceProvider.unsubscribeFromUserPresence(otherId);
+      _presenceProvider.unsubscribeFromUserPresence(otherId);
     }
-    typingProvider.unsubscribeFromTypingStatus(convId);
+    _typingProvider.unsubscribeFromTypingStatus(convId);
 
     // Lock chat if interval is set to On Chat Close
     _vaultService.lockOnChatClose(widget.conversationId);
