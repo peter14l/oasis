@@ -182,7 +182,7 @@ class VaultService with ChangeNotifier {
     }
 
     final interval = getLockInterval(id);
-    if (interval == 'chat_close' || interval == '5mins') {
+    if (interval == 'chat_close') {
       lockItem(id);
     }
   }
@@ -191,14 +191,15 @@ class VaultService with ChangeNotifier {
   void lockItemsWithInterval(String interval) {
     // Collect IDs first to avoid concurrent modification
     final itemsToLock = _unlockedItemIds.where((id) {
+      final itemInterval = getLockInterval(id);
+      
       if (interval == 'app_close') {
-        // App close MUST lock EVERYTHING for maximum security.
-        // This prevents items with '5mins' or 'chat_close' from staying 
-        // unlocked in memory when the app is backgrounded/closed.
-        return true;
+        // App close (lifecycle backgrounding) should lock items set to 'app_close'.
+        // We also lock 'chat_close' items on app close as a safety fallback,
+        // since the user has effectively 'closed' their interaction session.
+        return itemInterval == 'app_close' || itemInterval == 'chat_close';
       }
       
-      final itemInterval = getLockInterval(id);
       return itemInterval == interval;
     }).toList();
     
@@ -215,6 +216,9 @@ class VaultService with ChangeNotifier {
 
   /// Set lock interval for an item
   Future<void> setLockInterval(String itemId, String interval) async {
+    // Ensure service is initialized before updating settings
+    await isReady;
+    
     final id = _normalizeId(itemId);
     _itemIntervals[id] = interval;
     await _saveIntervals();

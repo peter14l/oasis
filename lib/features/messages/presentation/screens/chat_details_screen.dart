@@ -157,9 +157,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     _searchController.dispose();
     _searchFocusNode.dispose();
     
-    // Lock chat if interval is set to On Chat Close
-    _vaultService.lockOnChatClose(widget.conversationId);
-    
     super.dispose();
   }
 
