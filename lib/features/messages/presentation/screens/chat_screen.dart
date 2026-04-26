@@ -979,11 +979,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                                 state.whisperMode > 0
                                                     ? 'Disappearing message...'
                                                     : 'Type a message...',
-                                            hasAttachment: state.selectedImage != null || 
+                                            hasAttachment: state.selectedImages.isNotEmpty || 
                                                            state.selectedVideo != null || 
                                                            state.selectedAudio != null || 
-                                                           state.selectedFile != null,
-                                            isDesktop: isDesktop,
+                                                           state.selectedFile != null,                                            isDesktop: isDesktop,
                                             onPickImage: _pickImage,
                                             onPickVideo: _pickVideo,
                                             onPickFile: _pickFile,
