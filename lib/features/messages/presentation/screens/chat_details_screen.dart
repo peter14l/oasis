@@ -744,12 +744,30 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
 
     final canPop = Navigator.of(context).canPop();
 
-    Widget body = Center(
-      child: Container(
-        constraints: BoxConstraints(
-          maxWidth: isDesktop ? 600 : double.infinity,
-        ),
-        child: ListView(
+    return PopScope(
+      canPop: !_searchFocusNode.hasFocus,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_searchFocusNode.hasFocus) {
+          _searchFocusNode.unfocus();
+          setState(() {
+            _searchController.clear();
+            _searchResults = [];
+          });
+        }
+      },
+      child: material.Scaffold(
+        appBar: isDesktop
+            ? null
+            : material.AppBar(
+              title: const material.Text('Details'),
+            ),
+        body: Center(
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: isDesktop ? 600 : double.infinity,
+            ),
+            child: ListView(
           padding: EdgeInsets.only(
             left: 16,
             right: 16,

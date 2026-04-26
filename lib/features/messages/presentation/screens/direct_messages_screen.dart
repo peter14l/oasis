@@ -1061,8 +1061,16 @@ class _BentoItem extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final vibeColor = _getVibeColor(conversation.otherUserName);
+    
+    // Vault check
+    final vault = context.watch<VaultService>();
+    final isLocked = vault.isInVaultSync(conversation.id) && !vault.isItemUnlocked(conversation.id);
+    
+    // Current user ID for 'You: ' prefix
+    final currentUserId = AppInitializer.navigatorKey.currentContext?.read<ConversationProvider>().conversations.firstWhere((c) => c.id == conversation.id).lastMessageSenderId == AuthService().currentUser?.id ? AuthService().currentUser?.id : null;
+
     return GestureDetector(
-          onTap: onTap,
+          onTap: onTap;
           onLongPress: onLongPress,
           onSecondaryTapDown: (details) {
             // Desktop right-click support
@@ -1184,7 +1192,11 @@ class _BentoItem extends StatelessWidget {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
-                                    conversation.lastMessage ?? 'No messages',
+                                    isLocked
+                                        ? 'Locked bubble'
+                                        : conversation.getLastMessageDisplay(
+                                          currentUserId,
+                                        ),
                                     style: theme.textTheme.bodySmall?.copyWith(
                                       color: colorScheme.onSurfaceVariant
                                           .withValues(alpha: 0.6),
@@ -1255,7 +1267,12 @@ class _BentoItem extends StatelessWidget {
                                         ),
                                         if (isWide)
                                           Text(
-                                            conversation.lastMessage ?? '',
+                                            isLocked
+                                                ? 'Locked bubble'
+                                                : conversation
+                                                    .getLastMessageDisplay(
+                                                      currentUserId,
+                                                    ),
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
                                                   fontSize: 10,

@@ -75,14 +75,14 @@ class ConversationService {
                 currentUserId: userId,
                 content: lastMsgData['content'] ?? '',
                 encryptedKeys:
-                    lastMsgData['msg_encrypted_keys'] != null
+                    lastMsgData['encrypted_keys'] != null
                         ? Map<String, String>.from(
-                          lastMsgData['msg_encrypted_keys'],
+                          lastMsgData['encrypted_keys'],
                         )
                         : null,
-                iv: lastMsgData['msg_iv'],
-                signalMessageType: lastMsgData['msg_signal_type'],
-                signalSenderContent: lastMsgData['msg_signal_sender_content'],
+                iv: lastMsgData['iv'],
+                signalMessageType: lastMsgData['signal_message_type'],
+                signalSenderContent: lastMsgData['signal_sender_content'],
               );
 
           conversationMap['last_message'] = decryptedContent;

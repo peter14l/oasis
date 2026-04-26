@@ -38,9 +38,10 @@ class _CirclesListScreenState extends State<CirclesListScreen> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SafeArea(
+    return PopScope(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
         child: CustomScrollView(
           slivers: [
             // ── App Bar ────────────────────────────────────────────────────

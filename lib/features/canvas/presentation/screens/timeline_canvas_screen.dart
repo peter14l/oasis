@@ -68,16 +68,24 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     final isOwner = canvas?.createdBy == currentUserId;
     final isDesktop = MediaQuery.of(context).size.width > 900;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0F1115),
-      body: Stack(
-        children: [
+    return PopScope(
+      canPop: !_isDrawingMode,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_isDrawingMode) {
+          setState(() => _isDrawingMode = false);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0F1115),
+        body: Stack(
+          children: [
           // Background - Starry Night with Parallax support
           StarryNightBackground(
             offset: _isMapMode ? _canvasOffset : Offset(0, _scrollOffset),
           ),
 
-          if (_isMapMode)
+          if (_isMapMode) ...[
             InfiniteCanvas(
               items: provider.activeItems,
               isDrawingMode: _isDrawingMode,
@@ -94,8 +102,16 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                     );
               },
               drawingLayer: _isDrawingMode ? _buildDrawingLayer() : null,
-            )
-          else
+            ),
+            
+            // Floating Controls Overlay (Map Mode only)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 10,
+              left: 16,
+              right: 16,
+              child: _buildHeaderOverlay(canvas, isDesktop, provider),
+            ),
+          ] else
             CustomScrollView(
               controller: _scrollController,
               slivers: [
@@ -129,14 +145,6 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
               position: p.position,
               color: Colors.white,
             ),
-          ),
-
-          // Floating Controls Overlay
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 10,
-            left: 16,
-            right: 16,
-            child: _buildHeaderOverlay(canvas, isDesktop, provider),
           ),
 
           // Drawing Toolbar
@@ -739,47 +747,6 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     );
   }
 
-  Widget _buildMapMode(CanvasProvider provider) {
-    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
-    return InteractiveViewer(
-      boundaryMargin: const EdgeInsets.all(1000),
-      minScale: 0.1,
-      maxScale: 2.0,
-      panEnabled: !_isDrawingMode,
-      scaleEnabled: !_isDrawingMode,
-      child: SizedBox(
-        width: 3000,
-        height: 3000,
-        child: Stack(
-          children: [
-            ...provider.activeItems.map((item) {
-              return Positioned(
-                left: item.xPos * 3000,
-                top: item.yPos * 3000,
-                child: CanvasItemWidget(
-                  item: item,
-                  onMoved: (dx, dy, rotation) {
-                    context.read<CanvasProvider>().moveItem(
-                      itemId: item.id,
-                      xPos: dx / 3000,
-                      yPos: dy / 3000,
-                      rotation: rotation,
-                      lastModifiedBy: currentUserId,
-                    );
-                  },
-                  onDelete: () => context.read<CanvasProvider>().deleteItem(item.id),
-                  onReact: (emoji) => context.read<CanvasProvider>().toggleReaction(item.id, currentUserId!, emoji),
-                  onLock: (lock) => context.read<CanvasProvider>().setItemLock(item.id, lock),
-                ),
-              );
-            }).toList(),
-            if (_isDrawingMode) _buildDrawingLayer(),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildDrawingLayer() {
     return GestureDetector(
       onPanStart: (details) {
@@ -1095,8 +1062,8 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                                   type: CanvasItemType.text,
                                   content: controller.text.trim(),
                                   color: selectedColor,
-                                  xPos: 0.5,
-                                  yPos: 0.5,
+                                  xPos: 0,
+                                  yPos: 0,
                                   unlockAt: unlockAt,
                                 );
                                 Navigator.pop(context);
@@ -1311,8 +1278,8 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                                       '',
                                   type: CanvasItemType.sticker,
                                   content: sticker,
-                                  xPos: 0.5,
-                                  yPos: 0.5,
+                                  xPos: 0,
+                                  yPos: 0,
                                 );
                                 Navigator.pop(context);
                               },
@@ -1401,8 +1368,8 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                                     authorId: profile?.id ?? '',
                                     type: CanvasItemType.voice,
                                     content: url,
-                                    xPos: 0.5,
-                                    yPos: 0.5,
+                                    xPos: 0,
+                                    yPos: 0,
                                   );
                                 }
                               } catch (e) {

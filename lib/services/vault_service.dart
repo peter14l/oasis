@@ -159,6 +159,7 @@ class VaultService with ChangeNotifier {
     _unlockedItemIds.remove(id);
     _lockTimers[id]?.cancel();
     _lockTimers[id] = null;
+    debugPrint('Vault: Locked item $id');
     scheduleMicrotask(() => notifyListeners());
   }
 
@@ -169,6 +170,7 @@ class VaultService with ChangeNotifier {
       timer?.cancel();
     }
     _lockTimers.clear();
+    debugPrint('Vault: Locked all items');
     scheduleMicrotask(() => notifyListeners());
   }
 
@@ -178,13 +180,17 @@ class VaultService with ChangeNotifier {
     
     // Safety check: if intervals aren't loaded yet, it's safer to lock 
     // on exit if the item is known to be in the vault.
-    if (!_isInitDone && isInVaultSync(id)) {
-      lockItem(id);
+    if (!_isInitDone) {
+      if (isInVaultSync(id)) {
+        lockItem(id);
+      }
       return;
     }
 
     final interval = getLockInterval(id);
-    if (interval == 'chat_close') {
+    // We lock on chat close if the interval is 'chat_close' or '5mins'.
+    // 'app_close' is the only one that remains unlocked after closing the chat.
+    if (interval != 'app_close') {
       lockItem(id);
     }
   }
@@ -193,15 +199,13 @@ class VaultService with ChangeNotifier {
   void lockItemsWithInterval(String interval) {
     // Collect IDs first to avoid concurrent modification
     final itemsToLock = _unlockedItemIds.where((id) {
-      final itemInterval = getLockInterval(id);
-      
       if (interval == 'app_close') {
-        // App close (lifecycle backgrounding) should lock items set to 'app_close'.
-        // We also lock 'chat_close' items on app close as a safety fallback,
-        // since the user has effectively 'closed' their interaction session.
-        return itemInterval == 'app_close' || itemInterval == 'chat_close';
+        // App close (lifecycle backgrounding) should lock EVERYTHING for maximum security.
+        // This acts as a global safety fallback.
+        return true;
       }
       
+      final itemInterval = getLockInterval(id);
       return itemInterval == interval;
     }).toList();
     
@@ -212,6 +216,7 @@ class VaultService with ChangeNotifier {
     }
     
     if (itemsToLock.isNotEmpty) {
+      debugPrint('Vault: Locked ${itemsToLock.length} items with interval $interval');
       scheduleMicrotask(() => notifyListeners());
     }
   }

@@ -86,63 +86,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final isM3E = themeProvider.isM3EEnabled;
     final useFluent = themeProvider.useFluentUI;
 
+    final Widget layout;
     if (useFluent) {
-      return _buildFluentSettings(context, themeProvider, colorScheme);
+      layout = _buildFluentSettings(context, themeProvider, colorScheme);
+    } else if (isDesktop) {
+      layout = _buildMaterialDesktopSettings(context, themeProvider, colorScheme, isM3E);
+    } else {
+      // Mobile Layout
+      layout = MaxWidthContainer(
+        maxWidth: ResponsiveLayout.maxFormWidth,
+        child: material.Scaffold(
+          backgroundColor: material.Colors.transparent,
+          appBar: material.AppBar(
+            backgroundColor: material.Colors.transparent,
+            title: const material.Text('Settings'),
+            centerTitle: true,
+            elevation: 0,
+          ),
+          body: material.ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              _buildSupportEmailNote(),
+              _buildSettingsGroup(context, [
+                _buildSettingsTile(
+                  context,
+                  icon: material.Icons.person_outline,
+                  title: 'Account Details',
+                  subtitle: 'Manage profile and account',
+                  onTap: () => context.push('/settings/account'),
+                ),
+              ]),
+              const SizedBox(height: 24),
+              _buildSectionHeader(context, 'General'),
+              _buildGeneralSection(context, index: 0),
+              const SizedBox(height: 24),
+              _buildSectionHeader(context, 'Privacy & Security'),
+              _buildPrivacySection(context, index: 1),
+              const SizedBox(height: 24),
+              _buildSectionHeader(context, 'Appearance'),
+              _buildAppearanceSection(context, index: 2),
+              const SizedBox(height: 24),
+              _buildSectionHeader(context, 'Data & Storage'),
+              _buildDataSection(context, index: 3),
+              const SizedBox(height: 24),
+              _buildSectionHeader(context, 'Accessibility'),
+              _buildAccessibilitySection(context, index: 4),
+              const SizedBox(height: 24),
+              _buildSectionHeader(context, 'Support & About'),
+              _buildSupportSection(context, index: 5),
+              const SizedBox(height: 24),
+              _buildSignOutButton(context),
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
+      );
     }
 
-    if (isDesktop) {
-      return _buildMaterialDesktopSettings(context, themeProvider, colorScheme, isM3E);
-    }
-    
-    // Mobile Layout
-    return MaxWidthContainer(
-      maxWidth: ResponsiveLayout.maxFormWidth,
-      child: material.Scaffold(
-        backgroundColor: material.Colors.transparent,
-        appBar: material.AppBar(
-          backgroundColor: material.Colors.transparent,
-          title: const material.Text('Settings'),
-          centerTitle: true,
-          elevation: 0,
-        ),
-        body: material.ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _buildSupportEmailNote(),
-            _buildSettingsGroup(context, [
-              _buildSettingsTile(
-                context,
-                icon: material.Icons.person_outline,
-                title: 'Account Details',
-                subtitle: 'Manage profile and account',
-                onTap: () => context.push('/settings/account'),
-              ),
-            ]),
-            const SizedBox(height: 24),
-            _buildSectionHeader(context, 'General'),
-            _buildGeneralSection(context, index: 0),
-            const SizedBox(height: 24),
-            _buildSectionHeader(context, 'Privacy & Security'),
-            _buildPrivacySection(context, index: 1),
-            const SizedBox(height: 24),
-            _buildSectionHeader(context, 'Appearance'),
-            _buildAppearanceSection(context, index: 2),
-            const SizedBox(height: 24),
-            _buildSectionHeader(context, 'Data & Storage'),
-            _buildDataSection(context, index: 3),
-            const SizedBox(height: 24),
-            _buildSectionHeader(context, 'Accessibility'),
-            _buildAccessibilitySection(context, index: 4),
-            const SizedBox(height: 24),
-            _buildSectionHeader(context, 'Support & About'),
-            _buildSupportSection(context, index: 5),
-            const SizedBox(height: 24),
-            _buildSignOutButton(context),
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
-    );
+    return PopScope(child: layout);
   }
 
   Widget _buildFluentSettings(
