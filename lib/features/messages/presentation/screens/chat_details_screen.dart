@@ -119,7 +119,6 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     _whisperMode = widget.whisperMode;
     _selectedBackground = widget.currentBackground;
     _loadPersistedSettings();
-    _checkBlockStatus();
     // Note: messages for search are read from ChatProvider.state.messages
     // (already decrypted) — no re-initialization of SignalService needed here.
   }
@@ -132,6 +131,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     if (_conversationChannel == null) {
       _subscribeToConversationUpdates();
       _checkMuteStatus();
+      _checkBlockStatus();
       _checkLockStatus();
     }
   }

@@ -89,6 +89,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   bool _isSpoiler = false;
   late VaultService _vaultService;
+  late PresenceProvider _presenceProvider;
+  late TypingIndicatorProvider _typingProvider;
 
   @override
   void initState() {
