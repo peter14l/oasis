@@ -385,7 +385,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final state = _chatProvider.state;
 
     // Capture media state locally before clearing (for the call to provider)
-    final imageFile = state.selectedImage;
+    final images = state.selectedImages;
     final videoFile = state.selectedVideo;
     final audioFile = state.selectedAudio;
     final docFile = state.selectedFile;
@@ -393,7 +393,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final mediaViewMode = state.mediaViewMode;
 
     if (content.isEmpty &&
-        imageFile == null &&
+        images.isEmpty &&
         videoFile == null &&
         audioFile == null &&
         docFile == null) {
@@ -405,16 +405,27 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _textNotifier.value = '';
 
     try {
-      await _chatProvider.sendMessage(
-        content: content,
-        imageFile: imageFile,
-        videoFile: videoFile,
-        audioFile: audioFile,
-        docFile: docFile,
-        replyMessage: replyMessage,
-        mediaViewMode: mediaViewMode,
-        isSpoiler: _isSpoiler,
-      );
+      if (images.isNotEmpty) {
+        for (int i = 0; i < images.length; i++) {
+          await _chatProvider.sendMessage(
+            content: i == 0 ? content : '',
+            imageFile: images[i],
+            replyMessage: i == 0 ? replyMessage : null,
+            mediaViewMode: mediaViewMode,
+            isSpoiler: _isSpoiler,
+          );
+        }
+      } else {
+        await _chatProvider.sendMessage(
+          content: content,
+          videoFile: videoFile,
+          audioFile: audioFile,
+          docFile: docFile,
+          replyMessage: replyMessage,
+          mediaViewMode: mediaViewMode,
+          isSpoiler: _isSpoiler,
+        );
+      }
       
       // Reset spoiler state after sending
       if (_isSpoiler) {
