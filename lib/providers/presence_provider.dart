@@ -108,6 +108,17 @@ class PresenceProvider with ChangeNotifier {
     });
   }
 
+  void pauseHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
+  }
+
+  void resumeHeartbeat() {
+    if (_trackedUserIds.isNotEmpty) {
+      _startHeartbeat();
+    }
+  }
+
   /// Poll user presence directly from database.
   Future<void> _pollUserPresence() async {
     for (final userId in _trackedUserIds) {

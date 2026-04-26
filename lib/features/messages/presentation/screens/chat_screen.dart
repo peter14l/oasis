@@ -751,54 +751,56 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                               horizontal: 16,
                               vertical: 8,
                             ),
-                            child: Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children:
-                                  state.smartReplies.map((reply) {
-                                    final bubbleColor =
-                                        state.bubbleColorSent ??
-                                        theme.colorScheme.primaryContainer;
-                                    
-                                    // Use dynamic text color based on bubble luminance
-                                    final bool isLight = bubbleColor.computeLuminance() > 0.5;
-                                    final textColor =
-                                        state.textColorSent ??
-                                        (isLight ? Colors.black87 : theme.colorScheme.onPrimaryContainer);
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children:
+                                    state.smartReplies.map((reply) {
+                                      final bubbleColor =
+                                          state.bubbleColorSent ??
+                                          theme.colorScheme.primaryContainer;
+                                      
+                                      // Use dynamic text color based on bubble luminance
+                                      final bool isLight = bubbleColor.computeLuminance() > 0.5;
+                                      final textColor =
+                                          state.textColorSent ??
+                                          (isLight ? Colors.black87 : theme.colorScheme.onPrimaryContainer);
 
-                                    return GestureDetector(
-                                      onTap: () {
-                                        _messageController.text = reply;
-                                        _chatProvider.setState(
-                                          (s) => s.copyWith(
-                                            smartReplies: [],
-                                            showingSmartReplies: false,
+                                      return GestureDetector(
+                                        onTap: () {
+                                          _messageController.text = reply;
+                                          _chatProvider.setState(
+                                            (s) => s.copyWith(
+                                              smartReplies: [],
+                                              showingSmartReplies: false,
+                                            ),
+                                          );
+                                          _sendMessage();
+                                        },
+                                        child: Container(
+                                          margin: const EdgeInsets.only(right: 8),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 10,
                                           ),
-                                        );
-                                        _sendMessage();
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 10,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: bubbleColor,
-                                          borderRadius: BorderRadius.circular(
-                                            20,
+                                          decoration: BoxDecoration(
+                                            color: bubbleColor,
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            reply,
+                                            style: theme.textTheme.bodyMedium
+                                                ?.copyWith(
+                                                  color: textColor,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
                                           ),
                                         ),
-                                        child: Text(
-                                          reply,
-                                          style: theme.textTheme.bodyMedium
-                                              ?.copyWith(
-                                                color: textColor,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
+                                      );
+                                    }).toList(),
+                              ),
                             ),
                           ),
 
@@ -1098,6 +1100,25 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                         ),
                                       ],
                                     ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+                                  ),
                                   ),
                                 ),
                               ],

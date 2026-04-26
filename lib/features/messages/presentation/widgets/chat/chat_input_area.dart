@@ -220,7 +220,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
                     ),
                   );
                 },
-                child: (isTyping && !widget.hasAttachment)
+                child: (isTyping || widget.hasAttachment)
                     ? const material.SizedBox.shrink(key: material.ValueKey('leading-hidden'))
                     : material.Row(
                       key: material.ValueKey('leading-visible'),

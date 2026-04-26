@@ -21,13 +21,25 @@ class ChatMediaPicker {
     }
   }
 
-  /// Pick an image from gallery or camera.
-  Future<XFile?> pickImage({ImageSource source = ImageSource.gallery}) async {
+  /// Pick multiple images from gallery.
+  Future<List<XFile>> pickMultiImage({ImageSource source = ImageSource.gallery}) async {
     try {
-      return await _imagePicker.pickImage(source: source, imageQuality: 85);
+      if (Platform.isWindows) {
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.image,
+          allowMultiple: true,
+          initialDirectory: await getInitialDirectory(),
+        );
+        if (result != null && result.paths.isNotEmpty) {
+          return result.paths.where((path) => path != null).map((path) => XFile(path!)).toList();
+        }
+        return [];
+      } else {
+        return await _imagePicker.pickMultiImage(imageQuality: 85);
+      }
     } catch (e) {
-      debugPrint('Error picking image: $e');
-      return null;
+      debugPrint('Error picking images: $e');
+      return [];
     }
   }
 

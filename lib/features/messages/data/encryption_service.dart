@@ -621,18 +621,20 @@ class EncryptionService {
     Map<String, dynamic> encryptedKeys,
   ) async {
     final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) return null;
-    if (!_isInitialized) await init();
-
-    if (_cachedPrimaryKey == null) {
-      _cachedPrimaryKey = await _secureStorage.read(
-        key: KeyManagementService.privateKeyKey(userId),
-      );
-    }
     
-    if (_cachedPrimaryKey != null) {
-      final key = await _tryDecryptWithPrivateKey(_cachedPrimaryKey!, encryptedKeys);
-      if (key != null) return key;
+    if (userId != null) {
+      if (!_isInitialized) await init();
+
+      if (_cachedPrimaryKey == null) {
+        _cachedPrimaryKey = await _secureStorage.read(
+          key: KeyManagementService.privateKeyKey(userId),
+        );
+      }
+      
+      if (_cachedPrimaryKey != null) {
+        final key = await _tryDecryptWithPrivateKey(_cachedPrimaryKey!, encryptedKeys);
+        if (key != null) return key;
+      }
     }
 
     if (_cachedAllKeys == null) {

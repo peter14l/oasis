@@ -98,6 +98,7 @@ class _LifecycleManagerState extends State<LifecycleManager>
       if (userId != null) {
         presence.updateUserPresence(userId, 'offline');
       }
+      presence.pauseHeartbeat();
     } else if (state == material.AppLifecycleState.resumed) {
       screenTime.startTracking();
       energyMeter.onResumed();
@@ -108,6 +109,7 @@ class _LifecycleManagerState extends State<LifecycleManager>
       if (userId != null) {
         presence.updateUserPresence(userId, 'online');
       }
+      presence.resumeHeartbeat();
     }
   }
 

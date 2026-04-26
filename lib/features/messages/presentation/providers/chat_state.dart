@@ -64,7 +64,7 @@ class ChatState {
     this.textColorSent,
     this.textColorReceived,
     this.encryptionReady = false,
-    this.selectedImage,
+    this.selectedImages = const [],
     this.selectedVideo,
     this.selectedAudio,
     this.selectedFile,

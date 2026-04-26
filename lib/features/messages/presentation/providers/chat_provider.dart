@@ -537,7 +537,7 @@ class ChatProvider with ChangeNotifier {
         messages: [...s.messages, optimisticMessage],
         isSending: false, 
         replyMessage: null,
-        selectedImage: null,
+        selectedImages: const [],
         selectedVideo: null,
         selectedAudio: null,
         selectedFile: null,
@@ -714,11 +714,25 @@ class ChatProvider with ChangeNotifier {
         );
 
       // Replace optimistic message with the real one
-      final decrypted = await _decryptSingleMessage(sentMessage);
+      var decrypted = await _decryptSingleMessage(sentMessage);
+      
+      if (decrypted.replyToId != null && decrypted.replyToContent == null) {
+        decrypted = decrypted.copyWith(
+          replyToContent: optimisticMessage.replyToContent,
+          replyToSenderName: optimisticMessage.replyToSenderName,
+        );
+      }
+      if (decrypted.content == '🔒 Message encrypted' || decrypted.content.contains('🔒')) {
+        decrypted = decrypted.copyWith(content: optimisticMessage.content);
+      }
+      if (optimisticMessage.mediaUrl != null && !optimisticMessage.mediaUrl!.startsWith('http')) {
+        decrypted = decrypted.copyWith(mediaUrl: optimisticMessage.mediaUrl);
+      }
+
       setState(
         (s) => s.copyWith(
           messages: [
-            ...s.messages.where((m) => m.id != optimisticMessage.id),
+            ...s.messages.where((m) => m.id != optimisticMessage.id && m.id != decrypted.id),
             decrypted,
           ],
         ),
@@ -1338,6 +1352,44 @@ class ChatProvider with ChangeNotifier {
       );
       await settingsProvider.saveMessagesToCache(state.messages);
     } catch (e) {
+      debugPrint('Error sending audio message: $e');
+      setState(
+        (s) => s.copyWith(
+          messages: s.messages.where((m) => m.id != optimisticMessage.id).toList(),
+        ),
+      );
+      onError?.call('Failed to send audio message: $e');
+    }
+  }
+
+  Future<void> stopLiveLocation() async {
+    try {
+      final activeMsgId = LiveLocationTracker().activeMessageId;
+      await LiveLocationTracker().stopSharing();
+
+      // Optimistically update the UI to show sharing has stopped
+      if (activeMsgId != null) {
+        final index = state.messages.indexWhere((m) => m.id == activeMsgId);
+        if (index != -1) {
+          final msg = state.messages[index];
+          final currentLocData = msg.locationData != null
+              ? Map<String, dynamic>.from(msg.locationData!)
+              : <String, dynamic>{};
+          currentLocData['is_live'] = false;
+
+          final updatedMsg = msg.copyWith(locationData: currentLocData);
+          final newMsgs = List<Message>.from(state.messages);
+          newMsgs[index] = updatedMsg;
+
+          setState((s) => s.copyWith(messages: newMsgs));
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to stop live location: $e');
+    }
+  }
+}
+
       debugPrint('Error sending audio message: $e');
       setState(
         (s) => s.copyWith(

@@ -98,7 +98,10 @@ class NotificationDecryptionService {
     }
 
     // If we reached here, decryption failed or metadata was missing
-    return isGenericPlaceholder ? 'New Encrypted Message' : content;
+    if (isGenericPlaceholder || hasEncryptedKeys || hasSignalType) {
+      return '🔒 Encrypted message';
+    }
+    return content;
   }
 
   Future<String?> _decryptRSAFallback(Map<String, dynamic> data) async {
