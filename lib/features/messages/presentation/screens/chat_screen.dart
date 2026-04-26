@@ -275,17 +275,19 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (Platform.isWindows) {
         final result = await FilePicker.platform.pickFiles(
           type: FileType.image,
+          allowMultiple: true,
           initialDirectory: await _mediaPicker.getInitialDirectory(),
         );
-        if (result != null && result.files.single.path != null) {
+        if (result != null && result.paths.isNotEmpty) {
+          final images = result.paths.where((path) => path != null).map((path) => XFile(path!)).toList();
           _chatProvider.setState(
-            (s) => s.copyWith(selectedImage: XFile(result.files.single.path!)),
+            (s) => s.copyWith(selectedImages: [...s.selectedImages, ...images]),
           );
         }
       } else {
-        final image = await _mediaPicker.pickImage();
-        if (image != null) {
-          _chatProvider.setState((s) => s.copyWith(selectedImage: image));
+        final images = await _mediaPicker.pickMultiImage();
+        if (images.isNotEmpty) {
+          _chatProvider.setState((s) => s.copyWith(selectedImages: [...s.selectedImages, ...images]));
         }
       }
     } catch (e) {
@@ -703,18 +705,27 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           ),
 
                         // Media previews
-                        if (state.selectedImage != null)
-                          ImagePreview(
-                            imagePath: state.selectedImage!.path,
-                            mediaViewMode: state.mediaViewMode,
-                            onDismiss:
-                                () => chatProvider.setState(
-                                  (s) => s.copyWith(selectedImage: null),
-                                ),
-                            onViewModeChanged:
-                                (mode) => chatProvider.setState(
-                                  (s) => s.copyWith(mediaViewMode: mode),
-                                ),
+                        if (state.selectedImages.isNotEmpty)
+                          SizedBox(
+                            height: 150,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: state.selectedImages.length,
+                              itemBuilder: (context, index) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8.0, left: 16.0),
+                                  child: ImagePreview(
+                                    imagePath: state.selectedImages[index].path,
+                                    mediaViewMode: state.mediaViewMode,
+                                    onDismiss: () {
+                                      final newList = List<XFile>.from(state.selectedImages)..removeAt(index);
+                                      chatProvider.setState((s) => s.copyWith(selectedImages: newList));
+                                    },
+                                    onViewModeChanged: (mode) => chatProvider.setState((s) => s.copyWith(mediaViewMode: mode)),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         if (state.selectedVideo != null)
                           VideoPreview(
