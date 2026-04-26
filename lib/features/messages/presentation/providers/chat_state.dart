@@ -99,7 +99,7 @@ class ChatState {
     Object? textColorSent = _sentinel,
     Object? textColorReceived = _sentinel,
     bool? encryptionReady,
-    Object? selectedImages = _sentinel,
+    List<XFile>? selectedImages,
     Object? selectedVideo = _sentinel,
     Object? selectedAudio = _sentinel,
     Object? selectedFile = _sentinel,
@@ -140,8 +140,7 @@ class ChatState {
       textColorReceived:
           textColorReceived == _sentinel ? this.textColorReceived : (textColorReceived as Color?),
       encryptionReady: encryptionReady ?? this.encryptionReady,
-      selectedImages:
-          selectedImages == _sentinel ? this.selectedImages : (selectedImages as List<XFile>),
+      selectedImages: selectedImages ?? this.selectedImages,
       selectedVideo:
           selectedVideo == _sentinel ? this.selectedVideo : (selectedVideo as File?),
       selectedAudio:

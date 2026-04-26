@@ -537,7 +537,7 @@ class ChatProvider with ChangeNotifier {
         messages: [...s.messages, optimisticMessage],
         isSending: false, 
         replyMessage: null,
-        selectedImages: const [],
+        selectedImages: const <XFile>[],
         selectedVideo: null,
         selectedAudio: null,
         selectedFile: null,
