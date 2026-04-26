@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:universal_io/io.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, debugPrintThrottled;
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrintThrottled, kDebugMode;
 
 import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/routes/app_router.dart';
@@ -731,16 +731,6 @@ void main() async {
   material.debugPrint = (String? message, {int? wrapWidth}) {
     if (message == null) return;
     
-    // In Pitch Mode, suppress all but critical errors
-    if (AppConfig.isPitchMode) {
-      if (!message.contains('ERROR') && 
-          !message.contains('failed') && 
-          !message.contains('EXCEPTION') && 
-          !message.contains('UNCAUGHT')) {
-        return;
-      }
-    }
-    
     // Ignore harmless but messy Flutter/Windows/Sentry/Signal logs
     if (message.contains('Attempted to send a key down event') ||
         message.contains('keysPressed') ||
@@ -749,6 +739,22 @@ void main() async {
         message.contains('Unable to parse JSON message') ||
         message.contains('The document is empty')) {
       return;
+    }
+
+    // Always allow everything else in debug mode
+    if (kDebugMode) {
+      debugPrintThrottled(message, wrapWidth: wrapWidth);
+      return;
+    }
+
+    // In Pitch Mode, suppress all but critical errors
+    if (AppConfig.isPitchMode) {
+      if (!message.contains('ERROR') && 
+          !message.contains('failed') && 
+          !message.contains('EXCEPTION') && 
+          !message.contains('UNCAUGHT')) {
+        return;
+      }
     }
 
     if (message.contains('ERROR') || message.contains('failed') || message.contains('EXCEPTION') || message.contains('UNCAUGHT')) {

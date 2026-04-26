@@ -37,11 +37,20 @@ class _InfiniteCanvasState extends State<InfiniteCanvas> {
   @override
   void initState() {
     super.initState();
-    _transformationController.value = Matrix4.translationValues(
-      -_initialOffset + 500, 
-      -_initialOffset + 500,
-      0,
-    );
+    
+    // Initial centering logic:
+    // We want the coordinate (0,0) to be in the middle of the screen.
+    // (0,0) in the Stack is at (_initialOffset, _initialOffset).
+    // To center that, we need to translate by -_initialOffset + (screenWidth / 2).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final size = MediaQuery.of(context).size;
+      _transformationController.value = Matrix4.translationValues(
+        -_initialOffset + (size.width / 2), 
+        -_initialOffset + (size.height / 2),
+        0,
+      );
+    });
+    
     _transformationController.addListener(_onTransformationChanged);
   }
 
@@ -62,17 +71,19 @@ class _InfiniteCanvasState extends State<InfiniteCanvas> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onLongPressStart: (details) {
-        final RenderBox box = context.findRenderObject() as RenderBox;
-        final Offset localOffset = box.globalToLocal(details.globalPosition);
         final Matrix4 matrix = _transformationController.value;
         final Matrix4 invertMatrix = Matrix4.inverted(matrix);
+        
+        // Transform the global touch point into the Stack's coordinate system
         final Vector4 transformedOffset = invertMatrix.transform(
-          Vector4(localOffset.dx, localOffset.dy, 0, 1),
+          Vector4(details.globalPosition.dx, details.globalPosition.dy, 0, 1),
         );
         
+        // Convert from Stack pixels to Canvas relative coordinates
         final canvasX = (transformedOffset.x - _initialOffset) / _canvasScale;
         final canvasY = (transformedOffset.y - _initialOffset) / _canvasScale;
         
+        debugPrint('InfiniteCanvas: LongPress at Canvas ($canvasX, $canvasY)');
         widget.onLongPress(Offset(canvasX, canvasY));
       },
       child: InteractiveViewer(
@@ -104,7 +115,12 @@ class _InfiniteCanvasState extends State<InfiniteCanvas> {
               }),
               
               if (widget.isDrawingMode && widget.drawingLayer != null)
-                Positioned.fill(child: widget.drawingLayer!),
+                Positioned.fill(
+                  child: Padding(
+                    padding: const EdgeInsets.all(0),
+                    child: widget.drawingLayer!,
+                  ),
+                ),
             ],
           ),
         ),

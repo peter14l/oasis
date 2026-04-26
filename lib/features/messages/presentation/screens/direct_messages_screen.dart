@@ -1069,6 +1069,8 @@ class _BentoItem extends StatelessWidget {
     final vault = context.watch<VaultService>();
     final isLocked = vault.isInVaultSync(conversation.id) && !vault.isItemUnlocked(conversation.id);
     
+    debugPrint('BentoItem(${conversation.otherUserName}): isLocked=$isLocked, lastMsg=${conversation.lastMessage?.length} chars');
+
     // Current user ID for 'You: ' prefix
     final currentUserId = AppRouter.rootNavigatorKey.currentContext?.read<ConversationProvider>().conversations.where((c) => c.id == conversation.id).firstOrNull?.lastMessageSenderId == AuthService().currentUser?.id ? AuthService().currentUser?.id : null;
 
