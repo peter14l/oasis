@@ -35,6 +35,7 @@ class AuthService with ChangeNotifier {
   late final AuthProvidersDelegate _providersDelegate;
 
   StreamSubscription<AuthState>? _authStateSubscription;
+  bool _isSwitchingAccount = false;
 
   List<RegisteredAccount> get registeredAccounts => _accountRegistry.registeredAccounts;
 
@@ -47,6 +48,11 @@ class AuthService with ChangeNotifier {
 
     // Listen to auth state changes
     _authStateSubscription = _supabase.auth.onAuthStateChange.listen((data) {
+      if (_isSwitchingAccount) {
+        debugPrint('[AuthService] Skipping registry sync: switch in progress');
+        return;
+      }
+
       final Session? session = data.session;
       
       if (session != null) {
@@ -69,11 +75,25 @@ class AuthService with ChangeNotifier {
 
   /// Switch to a different logged-in account
   Future<void> switchAccount(BuildContext context, String userId) async {
+    if (_isSwitchingAccount) return;
+    
     final account = _accountRegistry.getAccount(userId);
+    final refreshToken = account.session.refreshToken;
+
+    if (refreshToken == null) {
+      throw Exception('Cannot switch account: No refresh token found.');
+    }
 
     try {
+      _isSwitchingAccount = true;
       _resetAllProviders(context);
-      await _supabase.auth.setSession(account.session.refreshToken!);
+      
+      // Use recoverSession which is more robust for switching via refresh token
+      await _supabase.auth.setSession(refreshToken);
+      
+      // Brief delay to allow Supabase internal state to settle
+      await Future.delayed(const Duration(milliseconds: 300));
+      
       await _accountRegistry.markAsUsed(userId);
       
       _encryptionProvisioner.provisionEncryptionKeys();
@@ -81,7 +101,10 @@ class AuthService with ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
+      debugPrint('[AuthService] ERROR switching account: $e');
       rethrow;
+    } finally {
+      _isSwitchingAccount = false;
     }
   }
 
