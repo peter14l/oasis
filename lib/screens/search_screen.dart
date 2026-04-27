@@ -1137,69 +1137,29 @@ class _SearchScreenState extends State<SearchScreen>
         : postList;
   }
 
-  Widget _buildPanelPostCard(Post post) {
+  Widget _buildEmptyState(String message) {
     final theme = material.Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Container(
-      margin: const material.EdgeInsets.only(bottom: 8),
-      padding: const material.EdgeInsets.all(12),
-      decoration: material.BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // User info
-          Row(
-            children: [
-              material.CircleAvatar(
-                radius: 14,
-                backgroundImage: post.userAvatar.isNotEmpty
-                    ? CachedNetworkImageProvider(post.userAvatar)
-                    : null,
-                child: post.userAvatar.isEmpty
-                    ? Text(
-                        post.username[0].toUpperCase(),
-                        style: const material.TextStyle(fontSize: 10),
-                      )
-                    : null,
+    return Center(
+      child: Padding(
+        padding: const material.EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            material.Icon(
+              material.Icons.search_off,
+              size: 64,
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  post.username,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // Content
-          Text(
-            post.content ?? '',
-            style: theme.textTheme.bodyMedium,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-          ),
-          if (post.imageUrl != null && post.imageUrl!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: CachedNetworkImage(
-                imageUrl: post.imageUrl!,
-                height: 120,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+              textAlign: TextAlign.center,
             ),
           ],
-        ],
+        ),
       ),
     );
   }
