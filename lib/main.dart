@@ -769,6 +769,7 @@ void main() async {
     
     try {
       await AppInitializer.loadEnv();
+      await AppInitializer.initFirebase();
 
       await AppInitializer.runWithSentry(() async {
         runApp(
@@ -780,7 +781,6 @@ void main() async {
                   final packageInfo = await PackageInfo.fromPlatform();
                   AppConfig.appVersion = packageInfo.version;
 
-                  await AppInitializer.initFirebase();
                   final services = await AppInitializer.initCore();
 
                   runApp(

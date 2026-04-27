@@ -121,7 +121,8 @@ class PresenceProvider with ChangeNotifier {
 
   /// Poll user presence directly from database.
   Future<void> _pollUserPresence() async {
-    for (final userId in _trackedUserIds) {
+    final userIds = _trackedUserIds.toList();
+    for (final userId in userIds) {
       try {
         final result = await _presenceService.getUserStatus(userId);
 
@@ -141,10 +142,10 @@ class PresenceProvider with ChangeNotifier {
             lastSeen: null,
           );
         }
-        notifyListeners();
       } catch (e) {
         debugPrint('[PresenceProvider] Polling error for $userId: $e');
       }
     }
+    notifyListeners();
   }
 }

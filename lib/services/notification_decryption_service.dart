@@ -101,6 +101,12 @@ class NotificationDecryptionService {
     if (isGenericPlaceholder || hasEncryptedKeys || hasSignalType) {
       return '🔒 Encrypted message';
     }
+
+    // Safety fallback: if content looks like a raw encrypted blob (long, no spaces, likely base64/hex)
+    if (content.length > 60 && !content.contains(' ')) {
+      return '🔒 Encrypted message';
+    }
+
     return content;
   }
 

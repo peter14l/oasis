@@ -287,22 +287,30 @@ class AppInitializer {
   static Future<void> firebaseMessagingBackgroundHandler(
     RemoteMessage message,
   ) async {
-    // Ensure Firebase is initialized for the background isolate
+    // 1. Core initialization for the background isolate
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // CRITICAL: Initialize Supabase for the background isolate
-    // EncryptionService depends on Supabase client
     try {
+      // Supabase is critical for decryption (holds user identity)
       await SupabaseService.initialize();
+      
+      // Give Supabase a tiny moment to restore session from storage
+      int retry = 0;
+      while (Supabase.instance.client.auth.currentUser == null && retry < 10) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        retry++;
+      }
     } catch (e) {
       debugPrint('Background Supabase init failed: $e');
     }
 
+    await NotificationManager.instance.initialize(isBackground: true);
+
     debugPrint('Handling a background message: ${message.messageId}');
 
-    // If it's a data-only message or contains data we need to show
+    // 2. Data processing
     if (message.data.isNotEmpty || message.notification != null) {
       final messageType = message.data['message_type'] ?? message.data['type'];
 
@@ -334,9 +342,8 @@ class AppInitializer {
         return;
       }
 
-      await NotificationManager.instance.initialize(isBackground: true);
-
-      final String title =
+      // 3. Decryption
+      String title =
           message.data['title'] ??
           message.notification?.title ??
           'New Notification';
@@ -347,16 +354,24 @@ class AppInitializer {
           '';
       
       // Decrypt body if it's an encrypted message
-      final decryptedBody = await NotificationDecryptionService().decryptMessage(message.data);
-      if (decryptedBody != null && decryptedBody.isNotEmpty) {
-        body = decryptedBody;
+      try {
+        final decryptedBody = await NotificationDecryptionService().decryptMessage(message.data);
+        if (decryptedBody != null && decryptedBody.isNotEmpty && !decryptedBody.contains('🔒')) {
+          body = decryptedBody;
+        } else if (body.length > 100 && !body.contains(' ')) {
+           // If body looks like a long base64/hex string and decryption failed, 
+           // better show a placeholder than the raw ciphertext.
+           body = '🔒 Encrypted message';
+        }
+      } catch (e) {
+        debugPrint('Background decryption failed: $e');
       }
 
-      // For background, we often want the full data as payload for deep linking
       final String? payload = message.data.isNotEmpty
           ? jsonEncode(message.data)
           : null;
 
+      // 4. Show Notification
       await NotificationManager.instance.showNotification(
         title: title,
         body: body,

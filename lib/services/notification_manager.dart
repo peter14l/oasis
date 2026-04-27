@@ -579,9 +579,17 @@ class NotificationManager {
         String body = message.notification?.body ?? message.data['body'] ?? '';
         
         // Decrypt body if it's an encrypted message
-        final decryptedBody = await NotificationDecryptionService().decryptMessage(message.data);
-        if (decryptedBody != null && decryptedBody.isNotEmpty) {
-          body = decryptedBody;
+        try {
+          final decryptedBody = await NotificationDecryptionService().decryptMessage(message.data);
+          if (decryptedBody != null && decryptedBody.isNotEmpty && !decryptedBody.contains('🔒')) {
+            body = decryptedBody;
+          } else if (body.length > 100 && !body.contains(' ')) {
+             // If body looks like a long base64/hex string and decryption failed, 
+             // better show a placeholder than the raw ciphertext.
+             body = '🔒 Encrypted message';
+          }
+        } catch (e) {
+          debugPrint('Foreground decryption failed: $e');
         }
 
         final messageType = message.data['message_type'] ?? message.data['type'];

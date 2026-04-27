@@ -132,6 +132,7 @@ class TypingIndicatorProvider with ChangeNotifier {
       await _messagingService.unsubscribeFromTypingStatus(channel);
       _subscriptions.remove(conversationId);
       _typingStatus.remove(conversationId);
+      _trackedConversationIds.remove(conversationId);
       _debounceTimers[conversationId]?.cancel();
       _debounceTimers.remove(conversationId);
       notifyListeners();
@@ -144,6 +145,7 @@ class TypingIndicatorProvider with ChangeNotifier {
       await unsubscribeFromTypingStatus(conversationId);
     }
     _typingStatus.clear();
+    _trackedConversationIds.clear();
     for (var timer in _debounceTimers.values) {
       timer.cancel();
     }
@@ -170,7 +172,8 @@ class TypingIndicatorProvider with ChangeNotifier {
 
   /// Poll typing status directly from database.
   Future<void> _pollTypingStatus(String currentUserId) async {
-    for (final conversationId in _trackedConversationIds) {
+    final conversationIds = _trackedConversationIds.toList();
+    for (final conversationId in conversationIds) {
       try {
         final result = await _messagingService.getTypingStatus(
           conversationId,
@@ -183,18 +186,17 @@ class TypingIndicatorProvider with ChangeNotifier {
 
           if (userId != null && userId != currentUserId) {
             _typingStatus[conversationId] = isTyping;
-            notifyListeners();
           }
         } else {
           // No typing - clear
           if (_typingStatus[conversationId] == true) {
             _typingStatus[conversationId] = false;
-            notifyListeners();
           }
         }
       } catch (e) {
         debugPrint('[TypingIndicatorProvider] Polling error: $e');
       }
     }
+    notifyListeners();
   }
 }
