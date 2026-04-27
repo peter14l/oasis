@@ -74,7 +74,7 @@ import '../screens/legal/terms_of_service_screen.dart';
 import '../features/auth/presentation/screens/onboarding_screen.dart';
 import '../features/capsules/presentation/screens/create_capsule_screen.dart';
 import '../features/capsules/presentation/screens/capsule_view_screen.dart';
-import '../features/capsules/presentation/screens/capsule_list_screen.dart';
+import '../features/capsules/presentation/screens/capule_list_screen.dart';
 import '../features/circles/presentation/screens/circle_join_screen.dart';
 import 'package:oasis/features/ripples/presentation/screens/ripples_screen.dart';
 import 'package:oasis/features/ripples/presentation/screens/create_ripple_screen.dart';
@@ -582,7 +582,7 @@ Widget _buildBottomNavigationBar(
     final disableTransparency =
         themeProvider.isM3EEnabled && themeProvider.isM3ETransparencyDisabled;
 
-    // 5-tab layout: Canvas, Vault, Wellness, Messages, Profile
+    // 5-tab layout: Canvas (Home), Vault, Wellness, Messages, Profile
     final navBar = NavigationBarM3E(
       backgroundColor:
           disableTransparency
@@ -595,8 +595,8 @@ Widget _buildBottomNavigationBar(
       labelBehavior: NavBarM3ELabelBehavior.alwaysShow,
       destinations: [
         const NavigationDestinationM3E(
-          icon: Icon(FluentIcons.canvas_24_regular),
-          selectedIcon: Icon(FluentIcons.canvas_24_filled),
+          icon: Icon(FluentIcons.home_24_regular),
+          selectedIcon: Icon(FluentIcons.home_24_filled),
           label: 'Canvas',
         ),
         const NavigationDestinationM3E(

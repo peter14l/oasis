@@ -51,7 +51,7 @@ class NavigationShell extends material.StatelessWidget {
     ThemeProvider themeProvider,
     int unreadCount,
   ) {
-    // 5-tab Fluent layout
+    // 5-tab Fluent layout with working icons
     return fluent.NavigationView(
       pane: fluent.NavigationPane(
         selected: currentIndex,
@@ -62,8 +62,8 @@ class NavigationShell extends material.StatelessWidget {
         displayMode: fluent.PaneDisplayMode.auto,
         items: [
           fluent.PaneItem(
-            icon: const material.Icon(FluentIcons.canvas_24_regular),
-            selectedIcon: const material.Icon(FluentIcons.canvas_24_filled),
+            icon: const material.Icon(FluentIcons.home_24_regular),
+            selectedIcon: const material.Icon(FluentIcons.home_24_filled),
             title: const Text('Canvas'),
             body: material.SizedBox.shrink(),
           ),
@@ -80,40 +80,8 @@ class NavigationShell extends material.StatelessWidget {
             body: material.SizedBox.shrink(),
           ),
           fluent.PaneItem(
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                const material.Icon(FluentIcons.chat_24_regular),
-                if (unreadCount > 0)
-                  Positioned(
-                    top: -2,
-                    right: -2,
-                    child: fluent.InfoBadge(
-                      source: Text(
-                        unreadCount > 99 ? '99+' : unreadCount.toString(),
-                        style: const TextStyle(fontSize: 8, color: material.Colors.white),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            selectedIcon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                const material.Icon(FluentIcons.chat_24_filled),
-                if (unreadCount > 0)
-                  Positioned(
-                    top: -2,
-                    right: -2,
-                    child: fluent.InfoBadge(
-                      source: Text(
-                        unreadCount > 99 ? '99+' : unreadCount.toString(),
-                        style: const TextStyle(fontSize: 8, color: material.Colors.white),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+            icon: _buildUnreadIcon(FluentIcons.chat_24_regular, unreadCount),
+            selectedIcon: _buildUnreadIcon(FluentIcons.chat_24_filled, unreadCount),
             title: const Text('Messages'),
             body: material.SizedBox.shrink(),
           ),
@@ -137,6 +105,26 @@ class NavigationShell extends material.StatelessWidget {
     );
   }
 
+  material.Widget _buildUnreadIcon(IconData icon, int unreadCount) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        material.Icon(icon),
+        if (unreadCount > 0)
+          Positioned(
+            top: -2,
+            right: -2,
+            child: fluent.InfoBadge(
+              source: Text(
+                unreadCount > 99 ? '99+' : unreadCount.toString(),
+                style: const TextStyle(fontSize: 8, color: material.Colors.white),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   material.Widget _buildMobileLayout(
     material.BuildContext context,
     material.ThemeData theme,
@@ -144,7 +132,7 @@ class NavigationShell extends material.StatelessWidget {
     bool isM3E,
     int unreadCount,
   ) {
-    // 5-tab Mobile layout: Canvas, Vault, Wellness, Messages, Profile
+    // 5-tab Mobile layout: Canvas (Home), Vault, Wellness, Messages, Profile
     return material.Scaffold(
       body: child,
       bottomNavigationBar: material.NavigationBar(
@@ -153,8 +141,8 @@ class NavigationShell extends material.StatelessWidget {
             (index) => _onDestinationSelected(context, index),
         destinations: [
           const material.NavigationDestination(
-            icon: material.Icon(FluentIcons.canvas_24_regular),
-            selectedIcon: material.Icon(FluentIcons.canvas_24_filled),
+            icon: material.Icon(FluentIcons.home_24_regular),
+            selectedIcon: material.Icon(FluentIcons.home_24_filled),
             label: 'Canvas',
           ),
           const material.NavigationDestination(
@@ -207,8 +195,8 @@ class NavigationShell extends material.StatelessWidget {
             labelType: material.NavigationRailLabelType.all,
             destinations: const [
               material.NavigationRailDestination(
-                icon: material.Icon(FluentIcons.canvas_24_regular),
-                selectedIcon: material.Icon(FluentIcons.canvas_24_filled),
+                icon: material.Icon(FluentIcons.home_24_regular),
+                selectedIcon: material.Icon(FluentIcons.home_24_filled),
                 label: material.Text('Canvas'),
               ),
               material.NavigationRailDestination(
