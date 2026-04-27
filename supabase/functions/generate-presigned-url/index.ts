@@ -1,5 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { S3Client, PutObjectCommand, GetObjectCommand } from 'https://esm.sh/@aws-sdk/client-s3@3.341.0'
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from 'https://esm.sh/@aws-sdk/client-s3@3.341.0'
 import { getSignedUrl } from 'https://esm.sh/@aws-sdk/s3-request-presigner@3.341.0'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.21.0'
 
@@ -27,7 +27,7 @@ serve(async (req) => {
     const { bucket, fileId, type, method } = await req.json()
     // bucket: 'oasis' (CF), 'oasis-feed' (B2), 'oasis-ripples' (B2)
     // type: 'images', 'videos', 'documents', 'recordings', 'posts', 'ripples'
-    // method: 'PUT' or 'GET'
+    // method: 'PUT', 'GET', or 'DELETE'
     // fileId: should be simple filename for PUT, but for our ChatMediaService it's "userId/filename"
 
     let clientConfig;
@@ -68,6 +68,10 @@ serve(async (req) => {
     if (method === 'PUT') {
       const command = new PutObjectCommand({ Bucket: bucket, Key: key })
       // PUT URLs expire in 5 minutes
+      url = await getSignedUrl(s3Client, command, { expiresIn: 300 })
+    } else if (method === 'DELETE') {
+      const command = new DeleteObjectCommand({ Bucket: bucket, Key: key })
+      // DELETE URLs expire in 5 minutes
       url = await getSignedUrl(s3Client, command, { expiresIn: 300 })
     } else {
       const command = new GetObjectCommand({ Bucket: bucket, Key: key })

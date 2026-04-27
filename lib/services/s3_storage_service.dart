@@ -112,4 +112,30 @@ class S3StorageService {
       rethrow;
     }
   }
+
+  /// Deletes a file from the specified bucket via a pre-signed URL
+  Future<void> deleteFile({
+    required String bucket,
+    required String fileId,
+    required String type,
+  }) async {
+    try {
+      final presignedData = await _getPresignedUrl(
+        bucket: bucket,
+        fileId: fileId,
+        type: type,
+        method: 'DELETE',
+      );
+
+      final String url = presignedData['url'];
+      final response = await _dio.delete(url);
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception('Delete failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('[S3StorageService] Delete error: $e');
+      rethrow;
+    }
+  }
 }

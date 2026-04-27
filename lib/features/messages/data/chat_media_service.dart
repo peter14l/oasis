@@ -151,9 +151,27 @@ class ChatMediaService {
   /// Deletes media from a given remote URL.
   Future<void> deleteMediaFromUrl(String url) async {
     try {
-      debugPrint('[ChatMediaService] Would delete media from url: $url');
-      // To implement actual deletion, you would need to add a DELETE method to
-      // S3StorageService and the corresponding Edge Function.
+      if (!url.startsWith('http')) return;
+
+      // Extract the file path component from the URL to determine type and fileId.
+      // E.g., https://.../images/user-uuid/filename.ext?token=...
+      final uri = Uri.parse(url);
+      final pathSegments = uri.pathSegments;
+
+      if (pathSegments.length >= 3) {
+        // Assuming path is like /images/<userId>/<fileName>
+        final type = pathSegments[pathSegments.length - 3];
+        final userId = pathSegments[pathSegments.length - 2];
+        final fileName = pathSegments.length > 0 ? pathSegments.last : '';
+        
+        final fileId = '$userId/$fileName';
+
+        await _s3StorageService.deleteFile(
+          bucket: R2Config.r2BucketName,
+          fileId: fileId,
+          type: type,
+        );
+      }
     } catch (e) {
       debugPrint('[ChatMediaService] Delete Error: $e');
     }
