@@ -47,9 +47,16 @@ Deno.serve(async (req) => {
       }
     } else if (bucket === 'oasis-feed' || bucket === 'oasis-ripples') {
       // Backblaze B2 Configuration
+      const b2Endpoint = Deno.env.get('B2_ENDPOINT')!;
+      // Extract region from endpoint (e.g. s3.eu-central-003.backblazeb2.com -> eu-central-003)
+      const regionMatch = b2Endpoint.match(/s3\.([^.]+)\.backblazeb2\.com/);
+      const b2Region = regionMatch ? regionMatch[1] : 'us-east-005';
+      
+      const endpoint = b2Endpoint.startsWith('http') ? b2Endpoint : `https://${b2Endpoint}`;
+
       clientConfig = {
-        region: 'us-east-005', // Adjust based on your B2 bucket region
-        endpoint: Deno.env.get('B2_ENDPOINT')!,
+        region: b2Region,
+        endpoint: endpoint,
         credentials: {
           accessKeyId: Deno.env.get('B2_ACCESS_KEY_ID')!,
           secretAccessKey: Deno.env.get('B2_SECRET_ACCESS_KEY')!,
