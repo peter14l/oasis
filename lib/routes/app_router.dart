@@ -487,7 +487,7 @@ class _MainLayoutState extends State<MainLayout> {
     );
   }
 
-  Widget _buildFloatingActionButton(
+  Widget? _buildFloatingActionButton(
     BuildContext context,
     int currentIndex,
     ThemeData theme, {

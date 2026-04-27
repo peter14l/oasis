@@ -149,7 +149,10 @@ class _CapsuleListScreenState extends State<CapsuleListScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      capsule.title ?? 'Time Capsule',
+                      // Use first line of content as title, or default
+                      capsule.content.split('\n').first.isEmpty 
+                          ? 'Time Capsule' 
+                          : capsule.content.split('\n').first,
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
