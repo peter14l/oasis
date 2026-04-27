@@ -119,7 +119,9 @@ class _VideoBubbleState extends State<VideoBubble> {
     }
 
     Widget mainContent;
-    if (widget.message.isUploading || _localPath == null) {
+    final isEncrypted = widget.message.encryptedKeys != null && widget.message.iv != null;
+    
+    if (widget.message.isUploading || (_localPath == null && isEncrypted)) {
       mainContent = Container(
         width: 200,
         height: 120,

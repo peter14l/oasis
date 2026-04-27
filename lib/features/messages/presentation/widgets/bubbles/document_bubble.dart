@@ -146,8 +146,10 @@ class _DocumentBubbleState extends State<DocumentBubble> {
             ? theme.colorScheme.onPrimaryContainer
             : theme.colorScheme.onSurface);
 
+    final isEncrypted = widget.message.encryptedKeys != null && widget.message.iv != null;
+
     final Widget mainContent = InkWell(
-      onTap: _localPath != null ? _openFile : null,
+      onTap: _localPath != null || !isEncrypted ? _openFile : null,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         width: 250,

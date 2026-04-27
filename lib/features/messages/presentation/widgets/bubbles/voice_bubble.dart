@@ -153,7 +153,9 @@ class _VoiceBubbleState extends State<VoiceBubble> {
             ? colorScheme.onPrimaryContainer
             : colorScheme.onSurface);
 
-    if (widget.message.isUploading || _localPath == null) {
+    final isEncrypted = widget.message.encryptedKeys != null && widget.message.iv != null;
+
+    if (widget.message.isUploading || (_localPath == null && isEncrypted)) {
       return Container(
         width: 200,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
