@@ -138,6 +138,11 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
             InfiniteCanvas(
               items: provider.activeItems,
               isDrawingMode: _isDrawingMode,
+              currentUserId: currentUserId,
+              presenceState: provider.presenceState,
+              onPresenceUpdate: (x, y) {
+                context.read<CanvasProvider>().updatePresence(currentUserId, x, y);
+              },
               onLongPress: (pos) => _sendPulse(pos),
               onTransformationChanged: (offset) {
                 setState(() => _canvasOffset = offset);

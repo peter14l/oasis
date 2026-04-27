@@ -184,18 +184,18 @@ class _MainLayoutState extends State<MainLayout> {
     final location = GoRouterState.of(context).uri.path;
     final screenTimeService = context.read<ScreenTimeService>();
 
-    if (location.startsWith('/feed')) {
-      screenTimeService.setCurrentCategory('Feed');
-      return 0;
-    }
-    if (location.startsWith('/search')) {
-      screenTimeService.setCurrentCategory('Feed'); // Search is discovery
-      return 1;
-    }
     if (location.startsWith('/spaces') ||
         location.startsWith('/circles') ||
         location.startsWith('/communities')) {
       screenTimeService.setCurrentCategory('Communities');
+      return 0;
+    }
+    if (location.startsWith('/capsule')) {
+      screenTimeService.setCurrentCategory('Vault');
+      return 1;
+    }
+    if (location.startsWith('/wellness')) {
+      screenTimeService.setCurrentCategory('Wellness');
       return 2;
     }
     if (location.startsWith('/messages')) {
@@ -603,22 +603,20 @@ class _MainLayoutState extends State<MainLayout> {
           (i) => _onDestinationSelected(i, killSwitchActive: killSwitchActive),
       labelBehavior: NavBarM3ELabelBehavior.alwaysShow,
       destinations: [
-        NavigationDestinationM3E(
-          icon: restrictedIcon(const Icon(FluentIcons.home_24_regular)),
-          selectedIcon: restrictedIcon(const Icon(FluentIcons.home_24_filled)),
-          label: 'Feed',
-        ),
-        NavigationDestinationM3E(
-          icon: restrictedIcon(const Icon(FluentIcons.search_24_regular)),
-          selectedIcon: restrictedIcon(
-            const Icon(FluentIcons.search_24_filled),
-          ),
-          label: 'Search',
+        const NavigationDestinationM3E(
+          icon: Icon(FluentIcons.canvas_24_regular),
+          selectedIcon: Icon(FluentIcons.canvas_24_filled),
+          label: 'Spaces',
         ),
         const NavigationDestinationM3E(
-          icon: Icon(FluentIcons.channel_24_regular),
-          selectedIcon: Icon(FluentIcons.channel_24_filled),
-          label: 'Spaces',
+          icon: Icon(FluentIcons.box_24_regular),
+          selectedIcon: Icon(FluentIcons.box_24_filled),
+          label: 'Vault',
+        ),
+        const NavigationDestinationM3E(
+          icon: Icon(FluentIcons.leaf_one_24_regular),
+          selectedIcon: Icon(FluentIcons.leaf_one_24_filled),
+          label: 'Wellness',
         ),
         const NavigationDestinationM3E(
           icon: UnreadMessagesBadge(child: Icon(FluentIcons.chat_24_regular)),
@@ -926,19 +924,12 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   void _onDestinationSelected(int index, {bool killSwitchActive = false}) {
-    // Block interaction with Feed (0) and Search (1) when kill-switch is active.
-    if (killSwitchActive && (index == 0 || index == 1)) return;
-
+    // Block interaction with Restricted areas when kill-switch is active.
+    // (Feed/Search are removed from main nav but still exist as routes)
+    
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
     if (isDesktop) {
-      if (index == 1) {
-        // Search
-        setState(() {
-          _activePanel = _activePanel == 'search' ? null : 'search';
-        });
-        return;
-      }
       if (index == 4) {
         // Notifications
         setState(() {
@@ -959,13 +950,15 @@ class _MainLayoutState extends State<MainLayout> {
     // Normal navigation for non-panel items or non-desktop
     switch (index) {
       case 0:
-        context.go('/feed');
+        context.go('/spaces');
         break;
       case 1:
-        context.go('/search');
+        // For now, redirect index 1 to create capsule or a list if it exists.
+        // If a dedicated list screen doesn't exist, we might need to add one or use a placeholder.
+        context.pushNamed('create_capsule'); 
         break;
       case 2:
-        context.go('/spaces');
+        context.pushNamed('wellness_stats'); // Or wellness_center_screen
         break;
       case 3:
         context.go('/messages');
@@ -1010,7 +1003,7 @@ class AppRouter {
   static GoRouter get router {
     _router ??= GoRouter(
       navigatorKey: rootNavigatorKey,
-      initialLocation: '/feed',
+      initialLocation: '/spaces',
       refreshListenable: AuthService(),
       observers: [AppAnalytics.observer],
       debugLogDiagnostics: false,

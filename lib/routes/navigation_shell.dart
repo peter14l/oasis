@@ -61,15 +61,21 @@ class NavigationShell extends material.StatelessWidget {
         displayMode: fluent.PaneDisplayMode.auto,
         items: [
           fluent.PaneItem(
-            icon: const material.Icon(FluentIcons.home_24_regular),
-            selectedIcon: const material.Icon(FluentIcons.home_24_filled),
-            title: const Text('Feed'),
+            icon: const material.Icon(FluentIcons.canvas_24_regular),
+            selectedIcon: const material.Icon(FluentIcons.canvas_24_filled),
+            title: const Text('Spaces'),
             body: material.SizedBox.shrink(),
           ),
           fluent.PaneItem(
-            icon: const material.Icon(FluentIcons.people_24_regular),
-            selectedIcon: const material.Icon(FluentIcons.people_24_filled),
-            title: const Text('Circles'),
+            icon: const material.Icon(FluentIcons.box_24_regular),
+            selectedIcon: const material.Icon(FluentIcons.box_24_filled),
+            title: const Text('Vault'),
+            body: material.SizedBox.shrink(),
+          ),
+          fluent.PaneItem(
+            icon: const material.Icon(FluentIcons.leaf_one_24_regular),
+            selectedIcon: const material.Icon(FluentIcons.leaf_one_24_filled),
+            title: const Text('Wellness'),
             body: material.SizedBox.shrink(),
           ),
           fluent.PaneItem(
@@ -151,19 +157,19 @@ class NavigationShell extends material.StatelessWidget {
             (index) => _onDestinationSelected(context, index),
         destinations: [
           const material.NavigationDestination(
-            icon: material.Icon(FluentIcons.home_24_regular),
-            selectedIcon: material.Icon(FluentIcons.home_24_filled),
-            label: 'Feed',
+            icon: material.Icon(FluentIcons.canvas_24_regular),
+            selectedIcon: material.Icon(FluentIcons.canvas_24_filled),
+            label: 'Spaces',
           ),
           const material.NavigationDestination(
-            icon: material.Icon(FluentIcons.search_24_regular),
-            selectedIcon: material.Icon(FluentIcons.search_24_filled),
-            label: 'Search',
+            icon: material.Icon(FluentIcons.box_24_regular),
+            selectedIcon: material.Icon(FluentIcons.box_24_filled),
+            label: 'Vault',
           ),
           const material.NavigationDestination(
-            icon: material.Icon(FluentIcons.people_24_regular),
-            selectedIcon: material.Icon(FluentIcons.people_24_filled),
-            label: 'Circles',
+            icon: material.Icon(FluentIcons.leaf_one_24_regular),
+            selectedIcon: material.Icon(FluentIcons.leaf_one_24_filled),
+            label: 'Wellness',
           ),
           material.NavigationDestination(
             icon: material.Badge(
@@ -204,19 +210,19 @@ class NavigationShell extends material.StatelessWidget {
             labelType: material.NavigationRailLabelType.all,
             destinations: const [
               material.NavigationRailDestination(
-                icon: material.Icon(FluentIcons.home_24_regular),
-                selectedIcon: material.Icon(FluentIcons.home_24_filled),
-                label: material.Text('Feed'),
+                icon: material.Icon(FluentIcons.canvas_24_regular),
+                selectedIcon: material.Icon(FluentIcons.canvas_24_filled),
+                label: material.Text('Spaces'),
               ),
               material.NavigationRailDestination(
-                icon: material.Icon(FluentIcons.search_24_regular),
-                selectedIcon: material.Icon(FluentIcons.search_24_filled),
-                label: material.Text('Search'),
+                icon: material.Icon(FluentIcons.box_24_regular),
+                selectedIcon: material.Icon(FluentIcons.box_24_filled),
+                label: material.Text('Vault'),
               ),
               material.NavigationRailDestination(
-                icon: material.Icon(FluentIcons.people_24_regular),
-                selectedIcon: material.Icon(FluentIcons.people_24_filled),
-                label: material.Text('Circles'),
+                icon: material.Icon(FluentIcons.leaf_one_24_regular),
+                selectedIcon: material.Icon(FluentIcons.leaf_one_24_filled),
+                label: material.Text('Wellness'),
               ),
               material.NavigationRailDestination(
                 icon: material.Icon(FluentIcons.chat_24_regular),
@@ -243,13 +249,13 @@ class NavigationShell extends material.StatelessWidget {
 
     switch (index) {
       case 0:
-        context.go('/feed');
+        context.go('/spaces');
         break;
       case 1:
-        context.go('/search');
+        context.pushNamed('create_capsule');
         break;
       case 2:
-        context.go('/circles');
+        context.pushNamed('wellness_stats');
         break;
       case 3:
         context.go('/messages');
