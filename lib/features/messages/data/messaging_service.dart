@@ -235,23 +235,6 @@ class MessagingService extends ChangeNotifier {
     onDeleteMessage: onDeleteMessage,
   );
 
-  // --- Media ---
-
-  /// Uploads media for use in a chat message.
-  Future<String> uploadChatMedia(
-    String filePath, {
-    String folder = 'images',
-    Uint8List? encryptedBytes,
-    String? fileExtension,
-    Function(double)? onProgress,
-  }) => _chatMediaService.uploadChatMedia(
-    filePath,
-    folder: folder,
-    encryptedBytes: encryptedBytes,
-    fileExtension: fileExtension,
-    onProgress: onProgress,
-  );
-
   // --- Operations ---
 
   /// Permanently removes a message for everyone.

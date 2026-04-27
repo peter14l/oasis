@@ -18,6 +18,7 @@ import 'package:oasis/services/smart_reply_service.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_state.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_encryption_provider.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_settings_provider.dart';
+import 'package:oasis/features/messages/data/chat_media_service.dart';
 import 'package:oasis/services/curation_tracking_service.dart';
 import 'package:oasis/services/live_location_tracker.dart';
 

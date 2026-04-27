@@ -147,4 +147,15 @@ class ChatMediaService {
       rethrow;
     }
   }
+
+  /// Deletes media from a given remote URL.
+  Future<void> deleteMediaFromUrl(String url) async {
+    try {
+      debugPrint('[ChatMediaService] Would delete media from url: $url');
+      // To implement actual deletion, you would need to add a DELETE method to
+      // S3StorageService and the corresponding Edge Function.
+    } catch (e) {
+      debugPrint('[ChatMediaService] Delete Error: $e');
+    }
+  }
 }
