@@ -1299,7 +1299,7 @@ class _SearchScreenState extends State<SearchScreen>
                   material.Icon(
                     material.Icons.arrow_forward_ios,
                     size: 16,
-                    color: colorScheme.onSurfaceVariant,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ],
               ),

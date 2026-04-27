@@ -16,6 +16,7 @@ import 'package:oasis/services/app_initializer.dart'; // For ThemeProvider
 import 'package:oasis/services/digital_wellbeing_service.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
+import 'package:oasis/widgets/wellbeing/grayscale_detox.dart';
 
 class RipplesScreen extends StatefulWidget {
   final VoidCallback? onExit;
