@@ -1372,8 +1372,10 @@ class ChatProvider with ChangeNotifier {
         voiceDuration: duration,
         replyToId: state.replyMessage?.id,
         whisperMode: state.whisperMode,
-        encryptedKeys: uploadResult.encryptedKeys,
-        iv: uploadResult.iv,
+        shareData: {
+          'media_iv': uploadResult.iv,
+          'media_keys': uploadResult.encryptedKeys,
+        },
       );
 
       final decrypted = await _decryptSingleMessage(sentMessage);
@@ -1421,6 +1423,10 @@ class ChatProvider with ChangeNotifier {
       }
     } catch (e) {
       debugPrint('Failed to stop live location: $e');
+    }
+  }
+}
+);
     }
   }
 }

@@ -72,8 +72,8 @@ class _VoiceBubbleState extends State<VoiceBubble> {
     setState(() => _isDownloading = true);
 
     try {
-      final encryptedKeys = widget.message.encryptedKeys;
-      final iv = widget.message.iv;
+      final encryptedKeys = widget.message.shareData?['media_keys'] as Map<String, dynamic>?;
+      final iv = widget.message.shareData?['media_iv'] as String?;
 
       if (encryptedKeys == null || iv == null) {
         throw Exception('Encryption metadata missing in message');
@@ -153,7 +153,7 @@ class _VoiceBubbleState extends State<VoiceBubble> {
             ? colorScheme.onPrimaryContainer
             : colorScheme.onSurface);
 
-    final isEncrypted = widget.message.encryptedKeys != null && widget.message.iv != null;
+    final isEncrypted = widget.message.shareData?['media_keys'] != null && widget.message.shareData?['media_iv'] != null;
 
     if (widget.message.isUploading || (_localPath == null && isEncrypted)) {
       return Container(
