@@ -426,14 +426,9 @@ class MessageBubble extends StatelessWidget {
         );
       case MessageType.gif:
         return ImageBubble(
-          imageUrl: message.mediaUrl ?? '',
-          caption: '',
+          message: message,
           isMe: isMe,
-          mediaViewMode: 'unlimited',
-          currentUserViewCount: 0,
-          messageId: message.id,
           textColor: textColor,
-          isSpoiler: message.isSpoiler,
         );
       case MessageType.sticker:
         return SizedBox(
@@ -454,51 +449,28 @@ class MessageBubble extends StatelessWidget {
         );
       case MessageType.image:
         return ImageBubble(
-          imageUrl: message.mediaUrl ?? '',
-          caption: message.content,
+          message: message,
           isMe: isMe,
-          mediaViewMode: message.mediaViewMode,
-          currentUserViewCount: message.currentUserViewCount,
-          messageId: message.id,
           textColor: textColor,
-          isUploading: message.isUploading,
-          uploadProgress: message.uploadProgress,
-          isSpoiler: message.isSpoiler,
         );
       case MessageType.document:
         if (message.mediaUrl?.contains('videos') ?? false) {
           return VideoBubble(
-            mediaUrl: message.mediaUrl!,
-            mediaFileName: message.mediaFileName,
+            message: message,
             isMe: isMe,
-            mediaViewMode: message.mediaViewMode,
-            currentUserViewCount: message.currentUserViewCount,
-            messageId: message.id,
             textColor: textColor,
-            isUploading: message.isUploading,
-            uploadProgress: message.uploadProgress,
-            isSpoiler: message.isSpoiler,
           );
         }
         return DocumentBubble(
-          fileName: message.mediaFileName ?? 'Document',
-          mediaUrl: message.mediaUrl,
-          fileSize: message.mediaFileSize,
+          message: message,
           isMe: isMe,
           textColor: textColor,
-          isUploading: message.isUploading,
-          uploadProgress: message.uploadProgress,
-          isSpoiler: message.isSpoiler,
         );
       case MessageType.voice:
         return VoiceBubble(
-          audioUrl: message.mediaUrl ?? '',
-          duration: message.voiceDuration,
+          message: message,
           isMe: isMe,
-          messageId: message.id,
           textColor: textColor,
-          isUploading: message.isUploading,
-          uploadProgress: message.uploadProgress,
         );
       case MessageType.postShare:
         return PostShareBubble(message: message, isMe: isMe);

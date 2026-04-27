@@ -1,44 +1,130 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:oasis/services/media_download_service.dart';
+import 'package:oasis/services/media_cache_service.dart';
+import 'package:oasis/features/messages/data/chat_media_service.dart';
 import 'package:oasis/features/messages/domain/models/message.dart';
+import 'package:open_filex/open_filex.dart';
 
 import 'package:oasis/widgets/spoiler_widget.dart';
 
-/// Document/file message bubble with download support.
-class DocumentBubble extends StatelessWidget {
+class DocumentBubble extends StatefulWidget {
   const DocumentBubble({
     super.key,
-    required this.fileName,
-    required this.mediaUrl,
+    required this.message,
     required this.isMe,
-    this.fileSize,
     this.textColor,
-    this.isUploading = false,
-    this.uploadProgress = 0.0,
-    this.isSpoiler = false,
   });
 
-  final String fileName;
-  final String? mediaUrl;
+  final Message message;
   final bool isMe;
-  final int? fileSize;
   final Color? textColor;
-  final bool isUploading;
-  final double uploadProgress;
-  final bool isSpoiler;
+
+  @override
+  State<DocumentBubble> createState() => _DocumentBubbleState();
+}
+
+class _DocumentBubbleState extends State<DocumentBubble> {
+  final MediaCacheService _cacheService = MediaCacheService();
+  final ChatMediaService _chatMediaService = ChatMediaService();
+
+  String? _localPath;
+  bool _isDownloading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkCache();
+  }
+
+  @override
+  void didUpdateWidget(DocumentBubble oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.message.mediaUrl != widget.message.mediaUrl) {
+      _checkCache();
+    }
+  }
+
+  Future<void> _checkCache() async {
+    final url = widget.message.mediaUrl;
+    if (url == null) return;
+    
+    if (!url.startsWith('http')) {
+      setState(() => _localPath = url);
+      return;
+    }
+
+    final path = await _cacheService.getLocalPath(url);
+    if (mounted) {
+      setState(() => _localPath = path);
+    }
+  }
+
+  Future<void> _downloadMedia() async {
+    final url = widget.message.mediaUrl;
+    if (url == null || _isDownloading) return;
+
+    setState(() => _isDownloading = true);
+
+    try {
+      final encryptedKeys = widget.message.encryptedKeys;
+      final iv = widget.message.iv;
+
+      if (encryptedKeys == null || iv == null) {
+        throw Exception('Encryption metadata missing in message');
+      }
+
+      final path = await _chatMediaService.downloadAndDecryptMedia(
+        remoteUrl: url,
+        type: 'documents',
+        fileId: widget.message.id,
+        iv: iv,
+        encryptedKeys: encryptedKeys,
+      );
+
+      if (mounted) {
+        setState(() {
+          _localPath = path;
+          _isDownloading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('[DocumentBubble] Download Error: $e');
+      if (mounted) {
+        setState(() => _isDownloading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to download document: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _openFile() async {
+    if (_localPath == null) return;
+    try {
+      await OpenFilex.open(_localPath!);
+    } catch (e) {
+      debugPrint('[DocumentBubble] Error opening file: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open file')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     
+    final fileName = widget.message.mediaFileName ?? 'File';
     final extension = fileName.split('.').last.toLowerCase();
     
     // Determine icon and color based on extension
     IconData fileIcon = Icons.insert_drive_file;
-    Color iconColor = isMe ? Colors.white : colorScheme.onSurfaceVariant;
+    Color iconColor = widget.isMe ? Colors.white : colorScheme.onSurfaceVariant;
     
-    if (!isMe) {
+    if (!widget.isMe) {
         if (extension == 'pdf') {
           fileIcon = Icons.picture_as_pdf;
           iconColor = Colors.red;
@@ -55,133 +141,124 @@ class DocumentBubble extends StatelessWidget {
     }
 
     final color =
-        textColor ??
-        (isMe
+        widget.textColor ??
+        (widget.isMe
             ? theme.colorScheme.onPrimaryContainer
             : theme.colorScheme.onSurface);
 
-    final Widget mainContent = Container(
-      width: 250,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: isMe ? Colors.black.withValues(alpha: 0.1) : colorScheme.surfaceVariant.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isMe ? Colors.white.withValues(alpha: 0.2) : iconColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+    final Widget mainContent = InkWell(
+      onTap: _localPath != null ? _openFile : null,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 250,
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: widget.isMe ? Colors.black.withValues(alpha: 0.1) : colorScheme.surfaceVariant.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: widget.isMe ? Colors.white.withValues(alpha: 0.2) : iconColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(fileIcon, color: widget.isMe ? Colors.white : iconColor, size: 28),
                 ),
-                child: Icon(fileIcon, color: isMe ? Colors.white : iconColor, size: 28),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      fileName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(color: color, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Text(
-                          extension.toUpperCase(),
-                          style: theme.textTheme.labelSmall?.copyWith(color: color.withValues(alpha: 0.7)),
-                        ),
-                        if (fileSize != null) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        fileName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(color: color, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
                           Text(
-                            ' • ',
+                            extension.toUpperCase(),
                             style: theme.textTheme.labelSmall?.copyWith(color: color.withValues(alpha: 0.7)),
                           ),
-                          Text(
-                            Message.formatBytes(fileSize),
-                            style: theme.textTheme.labelSmall?.copyWith(color: color.withValues(alpha: 0.7)),
-                          ),
-                        ]
-                      ],
-                    ),
-                  ],
+                          if (widget.message.mediaFileSize != null) ...[
+                            Text(
+                              ' • ',
+                              style: theme.textTheme.labelSmall?.copyWith(color: color.withValues(alpha: 0.7)),
+                            ),
+                            Text(
+                              Message.formatBytes(widget.message.mediaFileSize!),
+                              style: theme.textTheme.labelSmall?.copyWith(color: color.withValues(alpha: 0.7)),
+                            ),
+                          ]
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (widget.message.isUploading) ...[
+              const SizedBox(height: 4),
+              LinearProgressIndicator(
+                value: widget.message.uploadProgress,
+                backgroundColor: color.withValues(alpha: 0.1),
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+                minHeight: 2,
+              ),
+              const SizedBox(height: 4),
+              Center(
+                child: Text(
+                  'Uploading... ${(widget.message.uploadProgress * 100).toInt()}%',
+                  style: theme.textTheme.labelSmall?.copyWith(color: color.withValues(alpha: 0.7)),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          if (isUploading) ...[
-            const SizedBox(height: 4),
-            LinearProgressIndicator(
-              value: uploadProgress,
-              backgroundColor: color.withValues(alpha: 0.1),
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-              minHeight: 2,
-            ),
-            const SizedBox(height: 4),
-            Center(
-              child: Text(
-                'Uploading... ${(uploadProgress * 100).toInt()}%',
-                style: theme.textTheme.labelSmall?.copyWith(color: color.withValues(alpha: 0.7)),
+            ] else if (_localPath == null) ...[
+              Divider(height: 1, color: color.withValues(alpha: 0.1)),
+              InkWell(
+                onTap: _downloadMedia,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _isDownloading 
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                        : Icon(Icons.download, size: 16, color: color),
+                      const SizedBox(width: 8),
+                      Text(_isDownloading ? 'Downloading...' : 'Download', style: theme.textTheme.labelLarge?.copyWith(color: color)),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ] else ...[
-            Divider(height: 1, color: color.withValues(alpha: 0.1)),
-            InkWell(
-              onTap: mediaUrl != null
-                    ? () async {
-                      final mediaDownloadService = MediaDownloadService();
-                      try {
-                        await mediaDownloadService.downloadDocument(
-                          mediaUrl!,
-                          fileName,
-                          context,
-                        );
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Document downloaded'),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Download failed: $e'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      }
-                    }
-                    : null,
-              child: Padding(
+            ] else ...[
+              Divider(height: 1, color: color.withValues(alpha: 0.1)),
+              Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.download, size: 16, color: color),
+                    Icon(Icons.remove_red_eye, size: 16, color: color),
                     const SizedBox(width: 8),
-                    Text('Download', style: theme.textTheme.labelLarge?.copyWith(color: color)),
+                    Text('View', style: theme.textTheme.labelLarge?.copyWith(color: color)),
                   ],
                 ),
               ),
-            ),
+            ],
           ],
-        ],
+        ),
       ),
     );
 
-    if (isSpoiler) {
+    if (widget.message.isSpoiler) {
       return SpoilerWidget(child: mainContent);
     }
     return mainContent;

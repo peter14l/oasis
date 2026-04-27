@@ -36,6 +36,7 @@ class ChatProvider with ChangeNotifier {
   // Services
   final AuthService _authService = AuthService();
   final EncryptionService _encryptionService = EncryptionService();
+  final ChatMediaService _chatMediaService = ChatMediaService();
   final CurationTrackingService _curationTrackingService =
       CurationTrackingService();
 
@@ -301,6 +302,44 @@ class ChatProvider with ChangeNotifier {
         // Mark as read if message is from other user
         if (decryptedMessage.senderId != currentUserId) {
           markAsRead();
+          
+          // Auto-download media in background
+          if (decryptedMessage.mediaUrl != null && 
+              decryptedMessage.encryptedKeys != null && 
+              decryptedMessage.iv != null &&
+              decryptedMessage.messageType != MessageType.text &&
+              decryptedMessage.messageType != MessageType.system &&
+              decryptedMessage.messageType != MessageType.location) {
+            
+            String mediaType = 'images';
+            if (decryptedMessage.messageType == MessageType.document) {
+               if (decryptedMessage.mediaUrl!.contains('videos')) {
+                 mediaType = 'videos';
+               } else {
+                 mediaType = 'documents';
+               }
+            } else if (decryptedMessage.messageType == MessageType.voice) {
+               mediaType = 'recordings';
+            }
+
+            // Fire and forget download
+            _chatMediaService.downloadAndDecryptMedia(
+              remoteUrl: decryptedMessage.mediaUrl!,
+              type: mediaType,
+              fileId: decryptedMessage.id,
+              iv: decryptedMessage.iv!,
+              encryptedKeys: decryptedMessage.encryptedKeys!,
+            ).then((localPath) {
+               // Update state to trigger UI refresh (shows the image instead of download button)
+               final updatedIndex = state.messages.indexWhere((m) => m.id == decryptedMessage.id);
+               if (updatedIndex != -1) {
+                  // We just need to force a rebuild, the bubbles check cache in initState
+                  setState((s) => s); 
+               }
+            }).catchError((e) {
+               debugPrint('[AutoDownload] Failed for message ${decryptedMessage.id}: $e');
+            });
+          }
         }
       },
       onDeleteMessage: (messageId) {
@@ -553,19 +592,24 @@ class ChatProvider with ChangeNotifier {
       String? signalSenderContent;
       bool usedSignal = false;
 
+      // Prepare recipient keys for media E2EE
+      final recipientId = otherUserId ?? state.otherUserId;
+      if (recipientId == null) throw Exception('Recipient ID is required');
+      
+      String? recipientPublicKey = _publicKeyCache[recipientId];
+      if (recipientPublicKey == null) {
+        recipientPublicKey = await _authService.getPublicKey(recipientId);
+        if (recipientPublicKey != null) {
+          _publicKeyCache[recipientId] = recipientPublicKey;
+        }
+      }
+      
+      final senderPublicKey = await _authService.getPublicKey(userId);
+      final List<String> mediaRecipientPublicKeys = [];
+      if (recipientPublicKey != null) mediaRecipientPublicKeys.add(recipientPublicKey);
+      if (senderPublicKey != null) mediaRecipientPublicKeys.add(senderPublicKey);
+
       if (_encryptionService.isInitialized && content.isNotEmpty) {
-        var recipientId = otherUserId ?? state.otherUserId;
-        
-        // If still missing, try one last fetch before failing
-        if (recipientId == null || recipientId.isEmpty) {
-          await fetchConversationDetails();
-          recipientId = otherUserId ?? state.otherUserId;
-        }
-
-        if (recipientId == null || recipientId.isEmpty) {
-          throw Exception('Recipient ID is required for encryption');
-        }
-
         // Try Signal encryption first
         if (SignalService().isInitialized) {
           try {
@@ -583,18 +627,9 @@ class ChatProvider with ChangeNotifier {
 
         // Fallback to RSA
         if (!usedSignal) {
-          String? recipientPublicKey = _publicKeyCache[recipientId];
-
-          if (recipientPublicKey == null) {
-            recipientPublicKey = await _authService.getPublicKey(recipientId);
-            if (recipientPublicKey != null) {
-              _publicKeyCache[recipientId] = recipientPublicKey;
-            }
-          }
-
           if (recipientPublicKey == null) {
             throw Exception(
-              'Recipient has not set up their encryption keys yet. They need to open the app once before you can message them.',
+              'Recipient has not set up their encryption keys yet.',
             );
           }
 
@@ -610,71 +645,58 @@ class ChatProvider with ChangeNotifier {
         finalContent = content;
       }
 
-      // Upload media if present (now we overwrite the local path with the remote URL)
+      // Upload media securely if present
       String? remoteMediaUrl;
       String? finalMimeType;
+      MediaUploadResult? uploadResult;
 
       final onProgress = (double progress) {
         _updateMessageProgress(optimisticMessage.id, progress);
       };
 
       if (imageFile != null) {
-        remoteMediaUrl = await _messagingService.uploadChatMedia(
+        uploadResult = await _chatMediaService.uploadChatMediaSecure(
           imageFile.path,
-          folder: 'images',
+          type: 'images',
+          recipientPublicKeysPem: mediaRecipientPublicKeys,
           onProgress: onProgress,
         );
       } else if (videoFile != null) {
-        remoteMediaUrl = await _messagingService.uploadChatMedia(
+        uploadResult = await _chatMediaService.uploadChatMediaSecure(
           videoFile.path,
-          folder: 'videos',
+          type: 'videos',
+          recipientPublicKeysPem: mediaRecipientPublicKeys,
           onProgress: onProgress,
         );
       } else if (docFile != null) {
         if (docFile.path != null) {
-          remoteMediaUrl = await _messagingService.uploadChatMedia(
+          uploadResult = await _chatMediaService.uploadChatMediaSecure(
             docFile.path!,
-            folder: 'files',
+            type: 'documents',
+            recipientPublicKeysPem: mediaRecipientPublicKeys,
             onProgress: onProgress,
           );
           finalMimeType = docFile.extension;
         }
       } else if (audioFile != null) {
-        remoteMediaUrl = await _messagingService.uploadChatMedia(
+        uploadResult = await _chatMediaService.uploadChatMediaSecure(
           audioFile.path,
-          folder: 'audio',
+          type: 'recordings',
+          recipientPublicKeysPem: mediaRecipientPublicKeys,
           onProgress: onProgress,
         );
       }
 
+      if (uploadResult != null) {
+        remoteMediaUrl = uploadResult.remoteUrl;
+      }
+
       // Generate dual-layer fallback (RSA encrypted copy for both sender and recipient)
-      // ... same logic as before ...
       if (_encryptionService.isInitialized && content.isNotEmpty) {
         try {
-          final recipientId = otherUserId ?? state.otherUserId;
           final List<String> publicKeys = [];
-
-          final cachedRecipientPk = _publicKeyCache[recipientId];
-          final cachedSenderPk = _publicKeyCache[userId];
-
-          if (cachedRecipientPk != null) publicKeys.add(cachedRecipientPk);
-          if (cachedSenderPk != null) publicKeys.add(cachedSenderPk);
-
-          if (publicKeys.length < 2) {
-            final idsToFetch = <String>[];
-            if (cachedRecipientPk == null && recipientId != null) {
-              idsToFetch.add(recipientId);
-            }
-            if (cachedSenderPk == null) idsToFetch.add(userId);
-
-            if (idsToFetch.isNotEmpty) {
-              final keys = await _authService.getPublicKeys(idsToFetch);
-              keys.forEach((id, pk) {
-                _publicKeyCache[id] = pk;
-                if (!publicKeys.contains(pk)) publicKeys.add(pk);
-              });
-            }
-          }
+          if (recipientPublicKey != null) publicKeys.add(recipientPublicKey);
+          if (senderPublicKey != null) publicKeys.add(senderPublicKey);
 
           if (publicKeys.isNotEmpty) {
             final fallbackEncryption = await _encryptionService.encryptMessage(
@@ -703,8 +725,8 @@ class ChatProvider with ChangeNotifier {
         mediaFileName: fileName,
         mediaFileSize: fileSize,
         mediaMimeType: finalMimeType,
-        encryptedKeys: encryptedKeys,
-        iv: iv,
+        encryptedKeys: uploadResult != null ? uploadResult.encryptedKeys : encryptedKeys,
+        iv: uploadResult != null ? uploadResult.iv : iv,
         signalMessageType: signalMessageType,
         signalSenderContent: signalSenderContent,
         whisperMode: state.whisperMode,
@@ -1321,9 +1343,19 @@ class ChatProvider with ChangeNotifier {
     scrollToBottom(force: true);
 
     try {
-      final remoteUrl = await _messagingService.uploadChatMedia(
+      final recipientId = otherUserId ?? state.otherUserId;
+      if (recipientId == null) throw Exception('Recipient ID is required');
+
+      final recipientPublicKey = await _authService.getPublicKey(recipientId);
+      final senderPublicKey = await _authService.getPublicKey(userId);
+      final List<String> mediaRecipientPublicKeys = [];
+      if (recipientPublicKey != null) mediaRecipientPublicKeys.add(recipientPublicKey);
+      if (senderPublicKey != null) mediaRecipientPublicKeys.add(senderPublicKey);
+
+      final uploadResult = await _chatMediaService.uploadChatMediaSecure(
         audioPath,
-        folder: 'audio',
+        type: 'recordings',
+        recipientPublicKeysPem: mediaRecipientPublicKeys,
         onProgress: (progress) {
           _updateMessageProgress(optimisticMessage.id, progress);
         },
@@ -1334,11 +1366,13 @@ class ChatProvider with ChangeNotifier {
         senderId: userId,
         content: 'Audio message',
         messageType: MessageType.voice,
-        mediaUrl: remoteUrl,
+        mediaUrl: uploadResult.remoteUrl,
         mediaFileName: 'audio_${DateTime.now().millisecondsSinceEpoch}.m4a',
         voiceDuration: duration,
         replyToId: state.replyMessage?.id,
         whisperMode: state.whisperMode,
+        encryptedKeys: uploadResult.encryptedKeys,
+        iv: uploadResult.iv,
       );
 
       final decrypted = await _decryptSingleMessage(sentMessage);

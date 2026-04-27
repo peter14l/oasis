@@ -2,115 +2,129 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:oasis/features/messages/presentation/screens/image_preview_screen.dart';
+import 'package:oasis/services/media_cache_service.dart';
+import 'package:oasis/features/messages/data/chat_media_service.dart';
+import 'package:oasis/features/messages/domain/models/message.dart';
+import 'package:provider/provider.dart';
+import 'package:oasis/features/messages/presentation/providers/chat_provider.dart';
 
 import 'package:oasis/widgets/spoiler_widget.dart';
 
-/// Video message bubble with view-once/allow-replay support.
-/// Extracted from the video branch of _buildMessageBubble() in chat_screen.dart.
-class VideoBubble extends StatelessWidget {
+class VideoBubble extends StatefulWidget {
   const VideoBubble({
     super.key,
-    required this.mediaUrl,
-    required this.mediaFileName,
+    required this.message,
     required this.isMe,
-    this.mediaViewMode = 'unlimited',
-    this.currentUserViewCount = 0,
-    this.messageId,
     this.textColor,
-    this.isUploading = false,
-    this.uploadProgress = 0.0,
-    this.isSpoiler = false,
   });
 
-  final String mediaUrl;
-  final String? mediaFileName;
+  final Message message;
   final bool isMe;
-  final String mediaViewMode;
-  final int currentUserViewCount;
-  final String? messageId;
   final Color? textColor;
-  final bool isUploading;
-  final double uploadProgress;
-  final bool isSpoiler;
 
-  bool get _isRestricted => mediaViewMode == 'once' || mediaViewMode == 'twice';
-  int get _viewLimit => mediaViewMode == 'once' ? 1 : 2;
-  bool get _isViewed => _isRestricted && currentUserViewCount >= _viewLimit;
-  bool get _isLocalFile => !mediaUrl.startsWith('http') && !mediaUrl.startsWith('https');
+  @override
+  State<VideoBubble> createState() => _VideoBubbleState();
+}
+
+class _VideoBubbleState extends State<VideoBubble> {
+  final MediaCacheService _cacheService = MediaCacheService();
+  final ChatMediaService _chatMediaService = ChatMediaService();
+
+  String? _localPath;
+  bool _isDownloading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkCache();
+  }
+
+  @override
+  void didUpdateWidget(VideoBubble oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.message.mediaUrl != widget.message.mediaUrl) {
+      _checkCache();
+    }
+  }
+
+  Future<void> _checkCache() async {
+    final url = widget.message.mediaUrl;
+    if (url == null) return;
+
+    if (!url.startsWith('http')) {
+      setState(() => _localPath = url);
+      return;
+    }
+
+    final path = await _cacheService.getLocalPath(url);
+    if (mounted) {
+      setState(() => _localPath = path);
+    }
+  }
+
+  Future<void> _downloadMedia() async {
+    final url = widget.message.mediaUrl;
+    if (url == null || _isDownloading) return;
+
+    setState(() => _isDownloading = true);
+
+    try {
+      final encryptedKeys = widget.message.encryptedKeys;
+      final iv = widget.message.iv;
+
+      if (encryptedKeys == null || iv == null) {
+        throw Exception('Encryption metadata missing in message');
+      }
+
+      final path = await _chatMediaService.downloadAndDecryptMedia(
+        remoteUrl: url,
+        type: 'videos',
+        fileId: widget.message.id,
+        iv: iv,
+        encryptedKeys: encryptedKeys,
+      );
+
+      if (mounted) {
+        setState(() {
+          _localPath = path;
+          _isDownloading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('[VideoBubble] Download Error: $e');
+      if (mounted) {
+        setState(() => _isDownloading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to download video: $e')),
+        );
+      }
+    }
+  }
+
+  bool get _isRestricted => widget.message.mediaViewMode == 'once' || widget.message.mediaViewMode == 'twice';
+  int get _viewLimit => widget.message.mediaViewMode == 'once' ? 1 : 2;
+  bool get _isViewed => _isRestricted && widget.message.currentUserViewCount >= _viewLimit;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final color =
-        textColor ??
-        (isMe
+        widget.textColor ??
+        (widget.isMe
             ? theme.colorScheme.onPrimaryContainer
             : theme.colorScheme.onSurface);
 
-    if (_isRestricted && !isUploading) {
-      return GestureDetector(
-        onTap:
-            _isViewed
-                ? null
-                : () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder:
-                          (context) => ImagePreviewScreen(
-                            imageUrl: mediaUrl,
-                            caption: null,
-                            messageId: messageId,
-                            mediaViewMode: mediaViewMode,
-                          ),
-                    ),
-                  );
-                  // Caller should refresh messages to update view counts
-                },
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color:
-                    isMe
-                        ? Colors.white.withValues(alpha: 0.2)
-                        : theme.colorScheme.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.videocam_rounded,
-                size: 20,
-                color:
-                    _isViewed
-                        ? (isMe ? Colors.white54 : Colors.grey)
-                        : (isMe ? Colors.white : theme.colorScheme.primary),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              _isViewed ? 'Opened' : 'Video',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color:
-                    _isViewed
-                        ? (isMe ? Colors.white54 : Colors.grey)
-                        : (isMe ? Colors.white : theme.colorScheme.onSurface),
-                fontWeight: _isViewed ? FontWeight.normal : FontWeight.w600,
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
-        ),
-      );
+    if (_isRestricted && !widget.message.isUploading) {
+      return _buildRestrictedUI(theme);
     }
 
     Widget mainContent;
-    if (isUploading) {
+    if (widget.message.isUploading || _localPath == null) {
       mainContent = Container(
         width: 200,
         height: 120,
         decoration: BoxDecoration(
-          color: isMe ? Colors.black.withValues(alpha: 0.1) : theme.colorScheme.surfaceVariant.withValues(alpha: 0.5),
+          color: widget.isMe ? Colors.black.withValues(alpha: 0.1) : theme.colorScheme.surfaceVariant.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(12),
         ),
         clipBehavior: Clip.antiAlias,
@@ -123,65 +137,159 @@ class VideoBubble extends StatelessWidget {
                 Icon(Icons.videocam_rounded, color: color, size: 32),
                 const SizedBox(height: 8),
                 Text(
-                  mediaFileName ?? 'Video',
+                  widget.message.mediaFileName ?? 'Video',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.labelSmall?.copyWith(color: color),
                 ),
               ],
             ),
-            Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  child: Center(
-                    child: Text(
-                      '${(uploadProgress * 100).toInt()}%',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+            if (widget.message.isUploading) ...[
+              Positioned.fill(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    child: Center(
+                      child: Text(
+                        '${(widget.message.uploadProgress * 100).toInt()}%',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: LinearProgressIndicator(
+                  value: widget.message.uploadProgress,
+                  backgroundColor: Colors.white24,
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                  minHeight: 4,
+                ),
+              ),
+            ] else if (_localPath == null) ...[
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  child: Center(
+                    child: _isDownloading 
+                      ? const CircularProgressIndicator()
+                      : IconButton(
+                          icon: const Icon(Icons.download_for_offline, size: 48, color: Colors.white),
+                          onPressed: _downloadMedia,
+                        ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    } else {
+      mainContent = GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder:
+                  (context) => ImagePreviewScreen(
+                    imageUrl: _localPath!,
+                    caption: null,
+                  ),
             ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: LinearProgressIndicator(
-                value: uploadProgress,
-                backgroundColor: Colors.white24,
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                minHeight: 4,
+          );
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.videocam_rounded, color: color),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                widget.message.mediaFileName ?? 'Video',
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium?.copyWith(color: color),
               ),
             ),
           ],
         ),
       );
-    } else {
-      mainContent = Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.videocam_rounded, color: color),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              mediaFileName ?? 'Video',
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyMedium?.copyWith(color: color),
-            ),
-          ),
-        ],
-      );
     }
 
-    if (isSpoiler) {
+    if (widget.message.isSpoiler) {
       return SpoilerWidget(child: mainContent);
     }
 
     return mainContent;
+  }
+
+  Widget _buildRestrictedUI(ThemeData theme) {
+    return GestureDetector(
+      onTap:
+          _isViewed || _localPath == null
+              ? (_localPath == null ? _downloadMedia : null)
+              : () async {
+                  await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder:
+                          (context) => ImagePreviewScreen(
+                            imageUrl: _localPath!,
+                            caption: null,
+                            messageId: widget.message.id,
+                            mediaViewMode: widget.message.mediaViewMode,
+                          ),
+                    ),
+                  );
+                  if (context.mounted) {
+                    context.read<ChatProvider>().incrementLocalMediaViewCount(widget.message.id);
+                  }
+                },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color:
+                  widget.isMe
+                      ? Colors.white.withValues(alpha: 0.2)
+                      : theme.colorScheme.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              _localPath == null ? Icons.download_rounded : Icons.videocam_rounded,
+              size: 20,
+              color:
+                  _isViewed
+                      ? (widget.isMe ? Colors.white54 : Colors.grey)
+                      : (widget.isMe ? Colors.white : theme.colorScheme.primary),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            _isViewed ? 'Opened' : (_localPath == null ? 'Download Video' : 'Video'),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color:
+                  _isViewed
+                      ? (widget.isMe ? Colors.white54 : Colors.grey)
+                      : (widget.isMe ? Colors.white : theme.colorScheme.onSurface),
+              fontWeight: _isViewed ? FontWeight.normal : FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (_isDownloading)
+            const SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+        ],
+      ),
+    );
   }
 }

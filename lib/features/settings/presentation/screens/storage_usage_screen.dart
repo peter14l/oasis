@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:oasis/services/cache_service.dart';
+import 'package:oasis/services/media_cache_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StorageUsageScreen extends StatefulWidget {
@@ -11,6 +12,7 @@ class StorageUsageScreen extends StatefulWidget {
 
 class _StorageUsageScreenState extends State<StorageUsageScreen> {
   final CacheService _cacheService = CacheService();
+  final MediaCacheService _mediaCacheService = MediaCacheService();
 
   // Storage usage tracking
   double _imageSize = 0;
@@ -92,6 +94,9 @@ class _StorageUsageScreenState extends State<StorageUsageScreen> {
     try {
       // Clear SharedPreferences caches
       await _cacheService.clearAll();
+
+      // Clear encrypted downloaded chat media
+      await _mediaCacheService.clearMediaCache();
 
       // Note: CachedNetworkImage uses disk caching which would require
       // manual file deletion from cache directory. For now, we clear

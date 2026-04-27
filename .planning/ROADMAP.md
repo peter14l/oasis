@@ -119,7 +119,21 @@ Plans:
 - [ ] 12-01-PLAN.md — Text overlay system (multi-text, background modes, font styles)
 - [x] 12-02-PLAN.md — Music picker fix and visual overhaul
 - [ ] 12-03-PLAN.md — Draggable music sticker + instant stories refresh
-- [ ] 12-04-PLAN.md — M3E icons + adaptive layout
+- [ ] 12-04-PLAN.md â€” M3E icons + adaptive layout
 
 **Requirements:**
 [STORY-01, STORY-02, STORY-03, STORY-04, STORY-05]
+
+## Phase 13: Distributed R2 Storage Integration
+
+**Goal:** Implement Backblaze R2 for Feeds/Ripples and Cloudflare R2 for Chat attachments with client-side caching (WhatsApp-style), user-specific isolation, and E2EE for all media.
+
+**Status:** âš’ï¸ Planning
+**Plans:**
+- [ ] 13-01-PLAN.md â€” R2 Infrastructure & S3 Client Setup
+- [ ] 13-02-PLAN.md â€” Feed & Ripples Migration to Backblaze R2
+- [ ] 13-03-PLAN.md â€” Secure Chat Media & Cloudflare R2 (WhatsApp-style)
+
+**Requirements:**
+[STORAGE-01, STORAGE-02, STORAGE-03]
+

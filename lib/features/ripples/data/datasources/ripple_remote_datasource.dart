@@ -2,29 +2,30 @@ import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/core/config/supabase_config.dart';
+import 'package:oasis/core/config/r2_config.dart';
+import 'package:oasis/services/s3_storage_service.dart';
 import 'package:oasis/features/ripples/domain/models/ripple_entity.dart';
 
 /// Remote data source for ripples - handles all Supabase API calls.
 class RippleRemoteDatasource {
   final SupabaseClient _supabase;
+  final S3StorageService _s3StorageService = S3StorageService();
 
   RippleRemoteDatasource({SupabaseClient? supabase})
     : _supabase = supabase ?? SupabaseService().client;
 
-  /// Uploads a ripple video to storage.
+  /// Uploads a ripple video to Backblaze R2 storage.
   Future<String> uploadRippleVideo(File file, String userId) async {
     final fileExt = file.path.split('.').last;
-    final fileName =
-        '${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond}.$fileExt';
-    final storagePath = '$userId/$fileName';
+    final fileId = '${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond}.$fileExt';
 
-    await _supabase.storage
-        .from(SupabaseConfig.ripplesVideosBucket)
-        .upload(storagePath, file);
-    
-    return _supabase.storage
-        .from(SupabaseConfig.ripplesVideosBucket)
-        .getPublicUrl(storagePath);
+    return _s3StorageService.uploadFile(
+      bucket: R2Config.b2RipplesBucketName,
+      fileId: fileId,
+      type: 'ripples',
+      file: file,
+      contentType: 'video/$fileExt',
+    );
   }
 
   /// Fetches ripples from Supabase with profile data and like/save status.
@@ -85,6 +86,7 @@ class RippleRemoteDatasource {
               'thumbnail_url': thumbnailUrl,
               'caption': caption,
               'is_private': isPrivate,
+              'storage_provider': 'backblaze',
             })
             .select()
             .single();

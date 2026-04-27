@@ -677,6 +677,81 @@ class EncryptionService {
     return null;
   }
 
+  /// Encrypts a media file for E2EE storage.
+  /// 
+  /// Returns a map with 'encryptedBytes' and 'encryptionData' (iv, encryptedKeys).
+  Future<Map<String, dynamic>> encryptMediaFile({
+    required File file,
+    required List<String> recipientPublicKeysPem,
+  }) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null || !_isInitialized) {
+      throw Exception('Encryption not ready');
+    }
+
+    final bytes = await file.readAsBytes();
+    final aesKey = generateAESKey();
+    final iv = encrypt.IV.fromSecureRandom(16);
+    
+    // Encrypt the bytes with AES
+    final encrypter = encrypt.Encrypter(encrypt.AES(aesKey));
+    final encrypted = encrypter.encryptBytes(bytes, iv: iv);
+    final encryptedBytes = Uint8List.fromList(encrypted.bytes);
+
+    // Encrypt the AES key for each recipient (RSA)
+    final encryptedKeys = <String, String>{};
+    final myPublicKey = await _secureStorage.read(
+      key: KeyManagementService.publicKeyKey(userId),
+    );
+
+    final allKeys = {...recipientPublicKeysPem};
+    if (myPublicKey != null) allKeys.add(myPublicKey);
+
+    for (final pubKeyPem in allKeys) {
+      try {
+        final rsaEncrypter = encrypt.Encrypter(
+          encrypt.RSA(publicKey: CryptoUtils.rsaPublicKeyFromPem(pubKeyPem)),
+        );
+        final encryptedKey = rsaEncrypter.encrypt(base64.encode(aesKey.bytes));
+        encryptedKeys[_keyManager.hashPublicKey(pubKeyPem)] =
+            encryptedKey.base64;
+      } catch (e) {
+        debugPrint('[Encryption] Media Key Encrypt Error: $e');
+      }
+    }
+
+    return {
+      'encryptedBytes': encryptedBytes,
+      'iv': iv.base64,
+      'encryptedKeys': encryptedKeys,
+    };
+  }
+
+  /// Decrypts media bytes using the provided encryption metadata.
+  Future<Uint8List?> decryptMediaFile({
+    required Uint8List encryptedBytes,
+    required String ivBase64,
+    required Map<String, dynamic> encryptedKeys,
+  }) async {
+    try {
+      final key = await _decryptAESKey(encryptedKeys);
+      if (key == null) return null;
+
+      final iv = encrypt.IV.fromBase64(ivBase64);
+      final encrypter = encrypt.Encrypter(encrypt.AES(key));
+      
+      final decrypted = encrypter.decryptBytes(
+        encrypt.Encrypted(encryptedBytes),
+        iv: iv,
+      );
+      
+      return Uint8List.fromList(decrypted);
+    } catch (e) {
+      debugPrint('[Encryption] Media Decrypt Error: $e');
+      return null;
+    }
+  }
+
   // --- Signal Support ---
 
   Future<bool> backupSignalIdentity(
