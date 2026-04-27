@@ -6,6 +6,7 @@ import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/themes/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
+import 'package:oasis/services/digital_wellbeing_service.dart';
 
 class SpatialGliderLayout extends StatefulWidget {
   final Future<void> Function() onRefresh;
@@ -51,6 +52,7 @@ class _SpatialGliderLayoutState extends State<SpatialGliderLayout> with SingleTi
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDesktop = ResponsiveLayout.isDesktop(context);
+    final colorScheme = theme.colorScheme;
 
     return Stack(
       children: [
@@ -91,6 +93,8 @@ class _SpatialGliderLayoutState extends State<SpatialGliderLayout> with SingleTi
                   floating: true,
                 ),
 
+              SliverToBoxAdapter(child: _buildFeedInfoBanner(context, colorScheme)),
+
               Consumer<FeedProvider>(
                 builder: (context, provider, _) {
                   final posts = provider.posts;
@@ -125,18 +129,47 @@ class _SpatialGliderLayoutState extends State<SpatialGliderLayout> with SingleTi
     );
   }
 
+  Widget _buildFeedInfoBanner(BuildContext context, ColorScheme colorScheme) {
+    final wellbeing = context.watch<DigitalWellbeingService>();
+    final threshold = wellbeing.lockoutThresholdMinutes;
+
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.1),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.timer_outlined, size: 14, color: colorScheme.primary),
+            const SizedBox(width: 8),
+            Text(
+              'Intentional Limit: ${wellbeing.totalMinutes}m / $threshold\m',
+              style: const TextStyle(
+                fontSize: 10,
+                color: Colors.white60,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildGliderItem(dynamic post, FeedProvider provider, bool isDesktop, int index) {
     // Parallax & Depth logic - create a more 'spatial' feeling
-    // We'll use a listener-based approach or simplified math for scroll position
-    // If the scroll controller isn't ready, use a default
     double scrollOffset = _scrollController.hasClients ? _scrollController.offset : 0.0;
     
-    // Calculate a horizontal shift based on vertical index and scroll
-    // This creates a staggered 'zigzag' or 'wave' effect
     double horizontalShift = 0;
     if (!isDesktop) {
-      // Create a gentle sway as you scroll
-      final itemPosition = (index * 400.0) - scrollOffset; // Rough estimate of item Y
+      final itemPosition = (index * 400.0) - scrollOffset;
       horizontalShift = (index % 2 == 0 ? 1 : -1) * 20.0 * 
           (1.0 - (itemPosition / MediaQuery.of(context).size.height).clamp(-1.0, 1.0).abs());
     }

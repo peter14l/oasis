@@ -6,6 +6,7 @@ import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis/features/feed/presentation/widgets/post_card.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/themes/app_colors.dart';
+import 'package:oasis/services/digital_wellbeing_service.dart';
 
 class FocusedFlowLayout extends StatefulWidget {
   final Future<void> Function() onRefresh;
@@ -137,19 +138,25 @@ class _FocusedFlowLayoutState extends State<FocusedFlowLayout> {
                 top: 0,
                 left: 0,
                 right: 0,
-                child: Container(
-                  padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withValues(alpha: 0.8),
-                        Colors.transparent,
-                      ],
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withValues(alpha: 0.8),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                      child: widget.mobileHeader,
                     ),
-                  ),
-                  child: widget.mobileHeader,
+                    _buildFeedInfoBanner(context, colorScheme),
+                  ],
                 ),
               ),
             
@@ -184,6 +191,38 @@ class _FocusedFlowLayoutState extends State<FocusedFlowLayout> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildFeedInfoBanner(BuildContext context, ColorScheme colorScheme) {
+    final wellbeing = context.watch<DigitalWellbeingService>();
+    final threshold = wellbeing.lockoutThresholdMinutes;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.timer_outlined, size: 14, color: colorScheme.primary),
+          const SizedBox(width: 8),
+          Text(
+            'Limit: ${wellbeing.totalMinutes}m / $threshold\m',
+            style: const TextStyle(
+              fontSize: 10,
+              color: Colors.white70,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oasis/services/auth_service.dart';
+import 'package:oasis/services/subscription_service.dart';
 
 class DigitalWellbeingService extends ChangeNotifier {
   static const String _lockoutThresholdKey = 'wellbeing_lockout_threshold';
@@ -137,7 +138,7 @@ class DigitalWellbeingService extends ChangeNotifier {
   int get totalSeconds => _feedSeconds + _ripplesSeconds;
 
   bool _isUserPro() {
-    return _authService.currentUser?.isPro ?? false;
+    return SubscriptionService().isPro;
   }
 
   static Future<DigitalWellbeingService> init(AuthService authService) async {

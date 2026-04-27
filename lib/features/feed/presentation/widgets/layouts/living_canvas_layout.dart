@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/themes/app_colors.dart';
+import 'package:oasis/services/digital_wellbeing_service.dart';
 
 class LivingCanvasLayout extends StatefulWidget {
   final Future<void> Function() onRefresh;
@@ -41,6 +42,7 @@ class _LivingCanvasLayoutState extends State<LivingCanvasLayout> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
     return Stack(
@@ -75,9 +77,15 @@ class _LivingCanvasLayoutState extends State<LivingCanvasLayout> {
                   left: isDesktop ? 100 : 16,
                   right: isDesktop ? 100 : 16,
                 ),
-                itemCount: posts.length,
+                itemCount: posts.length + 1,
                 itemBuilder: (context, index) {
-                  final post = posts[index];
+                  if (index == 0) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: _buildFeedInfoBanner(context, colorScheme),
+                    );
+                  }
+                  final post = posts[index - 1];
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 40),
                     child: _buildOrganicPost(post, provider, isDesktop),
@@ -101,6 +109,39 @@ class _LivingCanvasLayoutState extends State<LivingCanvasLayout> {
             ),
           ),
       ],
+    );
+  }
+
+  Widget _buildFeedInfoBanner(BuildContext context, ColorScheme colorScheme) {
+    final wellbeing = context.watch<DigitalWellbeingService>();
+    final threshold = wellbeing.lockoutThresholdMinutes;
+
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: OasisColors.glow.withValues(alpha: 0.1),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.timer_outlined, size: 14, color: OasisColors.glow),
+            const SizedBox(width: 8),
+            Text(
+              'Intentional Limit: ${wellbeing.totalMinutes}m / $threshold\m',
+              style: const TextStyle(
+                fontSize: 10,
+                color: Colors.white60,
+                letterSpacing: 1,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
