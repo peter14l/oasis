@@ -280,68 +280,81 @@ class WellnessCenterScreen extends StatelessWidget {
   }
 
   Widget _buildQuickActions(BuildContext context, WellnessService wellness) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isActive = wellness.zenModeEnabled;
+    final color = isActive ? Colors.teal : Colors.teal.withValues(alpha: 0.5);
+
+    String subtitle = 'Silence everything';
+    if (isActive) {
+      final minutes = wellness.zenRemainingSeconds ~/ 60;
+      final seconds = wellness.zenRemainingSeconds % 60;
+      subtitle = 'Active - ${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    }
+
     return Row(
       children: [
-        _buildActionCard(
-          context,
-          'Zen Mode',
-          wellness.zenModeEnabled ? 'Active' : 'Silence everything',
-          Icons.spa_rounded,
-          wellness.zenModeEnabled ? Colors.teal : Colors.teal.withValues(alpha: 0.5),
-          () {
-            wellness.setZenModeEnabled(!wellness.zenModeEnabled);
-          },
-          isActive: wellness.zenModeEnabled,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionCard(
-    BuildContext context,
-    String title,
-    String subtitle,
-    IconData icon,
-    Color color,
-    VoidCallback onTap, {
-    bool isActive = false,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isActive 
-                ? color.withValues(alpha: 0.1) 
-                : colorScheme.surfaceContainerHigh,
+        Expanded(
+          child: InkWell(
+            onTap: () {
+              wellness.setZenModeEnabled(!wellness.zenModeEnabled);
+            },
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: isActive 
-                  ? color.withValues(alpha: 0.5) 
-                  : colorScheme.outlineVariant.withValues(alpha: 0.5),
-              width: isActive ? 2 : 1,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: color, size: 28),
-              const SizedBox(height: 16),
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: colorScheme.onSurfaceVariant,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isActive 
+                    ? color.withValues(alpha: 0.1) 
+                    : colorScheme.surfaceContainerHigh,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isActive 
+                      ? color.withValues(alpha: 0.5) 
+                      : colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  width: isActive ? 2 : 1,
                 ),
               ),
-            ],
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.spa_rounded, color: color, size: 28),
+                        const SizedBox(height: 16),
+                        const Text('Zen Mode', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (isActive)
+                    SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            value: wellness.zenProgress,
+                            strokeWidth: 4,
+                            color: color,
+                            backgroundColor: color.withValues(alpha: 0.2),
+                          ),
+                          Icon(Icons.self_improvement_rounded, color: color, size: 20),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 
