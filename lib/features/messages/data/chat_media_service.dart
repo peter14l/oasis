@@ -38,6 +38,42 @@ class ChatMediaService {
       : _supabase = client ?? SupabaseService().client,
         _subscriptionService = subscriptionService ?? SubscriptionService();
 
+  /// Uploads media to Cloudflare R2 unencrypted (for backgrounds, etc.).
+  Future<String> uploadChatMedia(
+    String filePath, {
+    String folder = 'images',
+    Uint8List? encryptedBytes,
+    String? fileExtension,
+    Function(double)? onProgress,
+  }) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) throw Exception('Not authenticated');
+
+      final file = File(filePath);
+      if (!await file.exists()) throw Exception('File not found');
+
+      final fileExt = fileExtension ?? filePath.split('.').last;
+      final uniqueFileId = '${DateTime.now().millisecondsSinceEpoch}_${_uuid.v4()}.$fileExt';
+      final storagePath = '$userId/$uniqueFileId';
+
+      final remoteUrl = await _s3StorageService.uploadFile(
+        bucket: R2Config.r2BucketName,
+        fileId: storagePath,
+        type: folder,
+        file: encryptedBytes == null ? file : null,
+        bytes: encryptedBytes,
+        contentType: encryptedBytes != null ? 'application/octet-stream' : 'application/$fileExt',
+        onProgress: onProgress,
+      );
+
+      return remoteUrl;
+    } catch (e) {
+      debugPrint('[ChatMediaService] Upload Error: $e');
+      rethrow;
+    }
+  }
+
   /// Uploads media to Cloudflare R2 with E2EE and local caching.
   Future<MediaUploadResult> uploadChatMediaSecure(
     String filePath, {
