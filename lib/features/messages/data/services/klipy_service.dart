@@ -52,6 +52,9 @@ class KlipyService {
         return KlipyResult.success(
           results.map((e) => KlipyMedia.fromJson(e)).toList(),
         );
+      } else if (response.statusCode == 204) {
+        // No Content - return empty list successfully
+        return KlipyResult.success([]);
       }
       return KlipyResult.failure(
         'HTTP ${response.statusCode}: ${response.body}',
@@ -92,6 +95,9 @@ class KlipyService {
         return KlipyResult.success(
           results.map((e) => KlipyMedia.fromJson(e)).toList(),
         );
+      } else if (response.statusCode == 204) {
+        // No Content - return empty list successfully
+        return KlipyResult.success([]);
       }
       return KlipyResult.failure(
         'HTTP ${response.statusCode}: ${response.body}',
