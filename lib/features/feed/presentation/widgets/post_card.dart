@@ -562,6 +562,18 @@ class _PostCardState extends State<PostCard>
   }
 
   Widget _buildImageItem(String url, ColorScheme colorScheme) {
+    if (!url.startsWith('http')) {
+      return Image.file(
+        File(url),
+        fit: BoxFit.contain,
+        width: double.infinity,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+          child: const Center(child: Icon(Icons.broken_image)),
+        ),
+      );
+    }
+
     return CachedNetworkImage(
       imageUrl: url,
       fit: BoxFit.contain, // Properly fit the image in the container

@@ -64,6 +64,7 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final bool isLocal = !widget.imageUrl.startsWith('http');
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -74,17 +75,27 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
           if (!_isRestricted)
             IconButton(
               icon: const Icon(Icons.download),
-              onPressed: () => _mediaDownloadService.downloadImage(
-                widget.imageUrl,
-                context,
-              ),
+              onPressed: () {
+                if (isLocal) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Image is already saved locally.')),
+                  );
+                } else {
+                  _mediaDownloadService.downloadImage(
+                    widget.imageUrl,
+                    context,
+                  );
+                }
+              },
             ),
         ],
       ),
       body: Stack(
         children: [
           PhotoView(
-            imageProvider: CachedNetworkImageProvider(widget.imageUrl),
+            imageProvider: isLocal 
+                ? FileImage(File(widget.imageUrl)) as ImageProvider
+                : CachedNetworkImageProvider(widget.imageUrl),
             minScale: PhotoViewComputedScale.contained,
             maxScale: PhotoViewComputedScale.covered * 2,
             backgroundDecoration: const BoxDecoration(color: Colors.black),
