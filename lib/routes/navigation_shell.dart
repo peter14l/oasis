@@ -51,6 +51,7 @@ class NavigationShell extends material.StatelessWidget {
     ThemeProvider themeProvider,
     int unreadCount,
   ) {
+    // 5-tab Fluent layout
     return fluent.NavigationView(
       pane: fluent.NavigationPane(
         selected: currentIndex,
@@ -63,7 +64,7 @@ class NavigationShell extends material.StatelessWidget {
           fluent.PaneItem(
             icon: const material.Icon(FluentIcons.canvas_24_regular),
             selectedIcon: const material.Icon(FluentIcons.canvas_24_filled),
-            title: const Text('Spaces'),
+            title: const Text('Canvas'),
             body: material.SizedBox.shrink(),
           ),
           fluent.PaneItem(
@@ -116,12 +117,6 @@ class NavigationShell extends material.StatelessWidget {
             title: const Text('Messages'),
             body: material.SizedBox.shrink(),
           ),
-          fluent.PaneItem(
-            icon: const material.Icon(FluentIcons.alert_24_regular),
-            selectedIcon: const material.Icon(FluentIcons.alert_24_filled),
-            title: const Text('Alerts'),
-            body: material.SizedBox.shrink(),
-          ),
         ],
         footerItems: [
           fluent.PaneItem(
@@ -149,6 +144,7 @@ class NavigationShell extends material.StatelessWidget {
     bool isM3E,
     int unreadCount,
   ) {
+    // 5-tab Mobile layout: Canvas, Vault, Wellness, Messages, Profile
     return material.Scaffold(
       body: child,
       bottomNavigationBar: material.NavigationBar(
@@ -159,7 +155,7 @@ class NavigationShell extends material.StatelessWidget {
           const material.NavigationDestination(
             icon: material.Icon(FluentIcons.canvas_24_regular),
             selectedIcon: material.Icon(FluentIcons.canvas_24_filled),
-            label: 'Spaces',
+            label: 'Canvas',
           ),
           const material.NavigationDestination(
             icon: material.Icon(FluentIcons.box_24_regular),
@@ -185,9 +181,9 @@ class NavigationShell extends material.StatelessWidget {
             label: 'Messages',
           ),
           const material.NavigationDestination(
-            icon: material.Icon(FluentIcons.alert_24_regular),
-            selectedIcon: material.Icon(FluentIcons.alert_24_filled),
-            label: 'Alerts',
+            icon: material.Icon(FluentIcons.person_24_regular),
+            selectedIcon: material.Icon(FluentIcons.person_24_filled),
+            label: 'Profile',
           ),
         ],
       ),
@@ -200,6 +196,7 @@ class NavigationShell extends material.StatelessWidget {
     ThemeProvider themeProvider,
     bool isM3E,
   ) {
+    // 5-tab Desktop layout
     return material.Scaffold(
       body: material.Row(
         children: [
@@ -212,7 +209,7 @@ class NavigationShell extends material.StatelessWidget {
               material.NavigationRailDestination(
                 icon: material.Icon(FluentIcons.canvas_24_regular),
                 selectedIcon: material.Icon(FluentIcons.canvas_24_filled),
-                label: material.Text('Spaces'),
+                label: material.Text('Canvas'),
               ),
               material.NavigationRailDestination(
                 icon: material.Icon(FluentIcons.box_24_regular),
@@ -230,9 +227,9 @@ class NavigationShell extends material.StatelessWidget {
                 label: material.Text('Messages'),
               ),
               material.NavigationRailDestination(
-                icon: material.Icon(FluentIcons.alert_24_regular),
-                selectedIcon: material.Icon(FluentIcons.alert_24_filled),
-                label: material.Text('Alerts'),
+                icon: material.Icon(FluentIcons.person_24_regular),
+                selectedIcon: material.Icon(FluentIcons.person_24_filled),
+                label: material.Text('Profile'),
               ),
             ],
           ),
@@ -244,24 +241,25 @@ class NavigationShell extends material.StatelessWidget {
   }
 
   void _onDestinationSelected(material.BuildContext context, int index) {
-    // Unfocus to prevent keyboard state sync issues during navigation transitions
+    // Unfocus to prevent keyboard state sync issues
     material.FocusManager.instance.primaryFocus?.unfocus();
 
+    // 5-tab mapping: Canvas(0), Vault(1), Wellness(2), Messages(3), Profile(4)
     switch (index) {
       case 0:
         context.go('/spaces');
         break;
       case 1:
-        context.pushNamed('create_capsule');
+        context.go('/vault');
         break;
       case 2:
-        context.pushNamed('wellness_stats');
+        context.go('/wellness');
         break;
       case 3:
         context.go('/messages');
         break;
       case 4:
-        context.go('/notifications');
+        context.go('/profile');
         break;
     }
   }

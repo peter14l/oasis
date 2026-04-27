@@ -74,6 +74,7 @@ import '../screens/legal/terms_of_service_screen.dart';
 import '../features/auth/presentation/screens/onboarding_screen.dart';
 import '../features/capsules/presentation/screens/create_capsule_screen.dart';
 import '../features/capsules/presentation/screens/capsule_view_screen.dart';
+import '../features/capsules/presentation/screens/capsule_list_screen.dart';
 import '../features/circles/presentation/screens/circle_join_screen.dart';
 import 'package:oasis/features/ripples/presentation/screens/ripples_screen.dart';
 import 'package:oasis/features/ripples/presentation/screens/create_ripple_screen.dart';
@@ -182,33 +183,29 @@ class _MainLayoutState extends State<MainLayout> {
 
   int _getCurrentIndex() {
     final location = GoRouterState.of(context).uri.path;
-    final screenTimeService = context.read<ScreenTimeService>();
 
+    // Canvas/Spaces tab
     if (location.startsWith('/spaces') ||
         location.startsWith('/circles') ||
-        location.startsWith('/communities')) {
-      screenTimeService.setCurrentCategory('Communities');
+        location.startsWith('/communities') ||
+        location.startsWith('/canvas')) {
       return 0;
     }
-    if (location.startsWith('/capsule')) {
-      screenTimeService.setCurrentCategory('Vault');
+    // Vault tab (capsules)
+    if (location.startsWith('/capsule') || location.startsWith('/vault')) {
       return 1;
     }
+    // Wellness tab
     if (location.startsWith('/wellness')) {
-      screenTimeService.setCurrentCategory('Wellness');
       return 2;
     }
+    // Messages tab
     if (location.startsWith('/messages')) {
-      screenTimeService.setCurrentCategory('Messages');
       return 3;
     }
-    if (location.startsWith('/notifications')) {
-      screenTimeService.setCurrentCategory(null);
+    // Profile/Settings combined tab
+    if (location.startsWith('/profile') || location.startsWith('/settings')) {
       return 4;
-    }
-    if (location.startsWith('/profile')) {
-      screenTimeService.setCurrentCategory('Profile');
-      return 5;
     }
     return 0;
   }
@@ -490,7 +487,7 @@ class _MainLayoutState extends State<MainLayout> {
     );
   }
 
-  Widget? _buildFloatingActionButton(
+  Widget _buildFloatingActionButton(
     BuildContext context,
     int currentIndex,
     ThemeData theme, {
@@ -501,11 +498,8 @@ class _MainLayoutState extends State<MainLayout> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
 
-    if (currentIndex == 2) {
-      // Spaces tab — no FAB needed, circles/canvas have their own buttons
-      return null;
-    } else if (currentIndex == 0 && !killSwitchActive) {
-      // Feed tab FAB — hidden when kill-switch is active
+    // Only show FAB on Canvas tab when not in kill-switch mode
+    if (currentIndex == 0 && !killSwitchActive) {
       return FloatingActionButton(
         onPressed: () {
           showModalBottomSheet(
@@ -578,7 +572,7 @@ class _MainLayoutState extends State<MainLayout> {
     return null;
   }
 
-  Widget _buildBottomNavigationBar(
+Widget _buildBottomNavigationBar(
     BuildContext context,
     int currentIndex,
     ThemeData theme, {
@@ -588,10 +582,7 @@ class _MainLayoutState extends State<MainLayout> {
     final disableTransparency =
         themeProvider.isM3EEnabled && themeProvider.isM3ETransparencyDisabled;
 
-    // Indices 0 (Feed) and 1 (Search) are restricted when kill-switch is on.
-    Widget restrictedIcon(Widget icon) =>
-        killSwitchActive ? Opacity(opacity: 0.3, child: icon) : icon;
-
+    // 5-tab layout: Canvas, Vault, Wellness, Messages, Profile
     final navBar = NavigationBarM3E(
       backgroundColor:
           disableTransparency
@@ -606,7 +597,7 @@ class _MainLayoutState extends State<MainLayout> {
         const NavigationDestinationM3E(
           icon: Icon(FluentIcons.canvas_24_regular),
           selectedIcon: Icon(FluentIcons.canvas_24_filled),
-          label: 'Spaces',
+          label: 'Canvas',
         ),
         const NavigationDestinationM3E(
           icon: Icon(FluentIcons.box_24_regular),
@@ -618,17 +609,12 @@ class _MainLayoutState extends State<MainLayout> {
           selectedIcon: Icon(FluentIcons.leaf_one_24_filled),
           label: 'Wellness',
         ),
-        const NavigationDestinationM3E(
+        NavigationDestinationM3E(
           icon: UnreadMessagesBadge(child: Icon(FluentIcons.chat_24_regular)),
           selectedIcon: UnreadMessagesBadge(
             child: Icon(FluentIcons.chat_24_filled),
           ),
           label: 'Messages',
-        ),
-        const NavigationDestinationM3E(
-          icon: Icon(FluentIcons.alert_24_regular),
-          selectedIcon: Icon(FluentIcons.alert_24_filled),
-          label: 'Alerts',
         ),
         NavigationDestinationM3E(
           icon: GestureDetector(
@@ -924,22 +910,11 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   void _onDestinationSelected(int index, {bool killSwitchActive = false}) {
-    // Block interaction with Restricted areas when kill-switch is active.
-    // (Feed/Search are removed from main nav but still exist as routes)
-    
+    // Block interaction with restricted areas when kill-switch is active.
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
     if (isDesktop) {
-      if (index == 4) {
-        // Notifications
-        setState(() {
-          _activePanel =
-              _activePanel == 'notifications' ? null : 'notifications';
-        });
-        return;
-      }
-
-      // Close active panel if navigating to other destinations
+      // Close active panel if navigating
       if (_activePanel != null) {
         setState(() {
           _activePanel = null;
@@ -947,26 +922,21 @@ class _MainLayoutState extends State<MainLayout> {
       }
     }
 
-    // Normal navigation for non-panel items or non-desktop
+    // 5-tab layout: Canvas(0), Vault(1), Wellness(2), Messages(3), Profile(4)
     switch (index) {
       case 0:
-        context.go('/spaces');
+        context.go('/spaces'); // Canvas/Spaces
         break;
       case 1:
-        // For now, redirect index 1 to create capsule or a list if it exists.
-        // If a dedicated list screen doesn't exist, we might need to add one or use a placeholder.
-        context.pushNamed('create_capsule'); 
+        context.go('/vault'); // Vault - list capsules
         break;
       case 2:
-        context.pushNamed('wellness_stats'); // Or wellness_center_screen
+        context.go('/wellness'); // Wellness Center
         break;
       case 3:
         context.go('/messages');
         break;
       case 4:
-        context.go('/notifications');
-        break;
-      case 5:
         context.go('/profile');
         break;
     }
@@ -1220,6 +1190,28 @@ class AppRouter {
                   },
                 ),
               ],
+            ),
+
+            // Vault (Time Capsules) Screen
+            GoRoute(
+              path: '/vault',
+              name: 'vault',
+              pageBuilder: (context, state) {
+                return NoTransitionPage(
+                  child: CapsuleListScreen(),
+                );
+              },
+            ),
+
+            // Wellness Center Screen
+            GoRoute(
+              path: '/wellness',
+              name: 'wellness',
+              pageBuilder: (context, state) {
+                return NoTransitionPage(
+                  child: WellnessCenterScreen(),
+                );
+              },
             ),
 
             // Notifications Screen

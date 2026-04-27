@@ -44,6 +44,7 @@ class _InfiniteCanvasState extends State<InfiniteCanvas> {
   static const double _canvasScale = 3000.0;
 
   DateTime _lastPresenceUpdate = DateTime.now();
+  Offset? _currentCanvasPosition;
 
   @override
   void initState() {
@@ -87,6 +88,9 @@ class _InfiniteCanvasState extends State<InfiniteCanvas> {
     
     final canvasX = (transformedOffset.x - _initialOffset) / _canvasScale;
     final canvasY = (transformedOffset.y - _initialOffset) / _canvasScale;
+
+    // Track current position for proximity detection
+    _currentCanvasPosition = Offset(canvasX, canvasY);
 
     widget.onPresenceUpdate!(canvasX, canvasY);
   }
@@ -143,6 +147,8 @@ class _InfiniteCanvasState extends State<InfiniteCanvas> {
                         currentUserId: widget.currentUserId!,
                         initialOffset: _initialOffset,
                         canvasScale: _canvasScale,
+                        showStarFlare: true, // Enable star flare
+                        currentUserPosition: _currentCanvasPosition,
                       ),
                     ),
                   ),
