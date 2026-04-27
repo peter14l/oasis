@@ -1426,7 +1426,3 @@ class ChatProvider with ChangeNotifier {
     }
   }
 }
-);
-    }
-  }
-}

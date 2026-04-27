@@ -14,13 +14,18 @@ Deno.serve(async (req) => {
 
   try {
     // 1. Validate User Session
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) throw new Error('Missing Authorization header')
+    const token = authHeader.replace('Bearer ', '').trim()
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     )
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) throw new Error('Unauthorized')
+    
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    if (authError) throw new Error(`Auth Error: ${authError.message}`)
+    if (!user) throw new Error('User not found')
 
     // 2. Parse Request
     const { bucket, fileId, type, method } = await req.json()
