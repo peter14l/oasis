@@ -6,11 +6,15 @@ import 'package:oasis/core/network/supabase_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:oasis/core/config/supabase_config.dart';
+import 'package:oasis/features/messages/data/encryption_service.dart';
+import 'package:oasis/services/privacy_audit_service.dart';
 
 /// Remote data source for Canvas operations using Supabase.
 class CanvasRemoteDatasource {
   final SupabaseClient _supabase;
   final _uuid = const Uuid();
+  final _encryption = EncryptionService();
+  final _privacyAudit = PrivacyAuditService();
 
   // Cache for presence channels
   final Map<String, RealtimeChannel> _presenceChannels = {};
@@ -26,6 +30,13 @@ class CanvasRemoteDatasource {
           .select('*, canvas_members!inner(user_id)')
           .eq('canvas_members.user_id', userId)
           .order('updated_at', ascending: false);
+
+      // Privacy Audit: Log READ
+      await _privacyAudit.logAccess(
+        userId: userId,
+        resourceType: 'canvas',
+        action: 'READ',
+      );
 
       return (response as List).map((row) {
         final canvasMap = Map<String, dynamic>.from(row);
@@ -80,6 +91,13 @@ class CanvasRemoteDatasource {
 
       await _supabase.from('canvas_members').insert(membersToInsert);
 
+      // Privacy Audit: Log WRITE
+      await _privacyAudit.logAccess(
+        userId: createdBy,
+        resourceType: 'canvas',
+        action: 'WRITE',
+      );
+
       return canvas.copyWith(
         memberIds: membersToInsert.map((m) => m['user_id'] as String).toList(),
       );
@@ -96,6 +114,13 @@ class CanvasRemoteDatasource {
       if (userId == null) throw Exception('Not authenticated');
 
       await _supabase.from('canvases').delete().eq('id', canvasId);
+
+      // Privacy Audit: Log DELETE
+      await _privacyAudit.logAccess(
+        userId: userId,
+        resourceType: 'canvas',
+        action: 'DELETE',
+      );
     } catch (e) {
       debugPrint('CanvasRemoteDatasource.deleteCanvas error: $e');
       rethrow;
@@ -128,6 +153,16 @@ class CanvasRemoteDatasource {
               .select('*, canvas_members(user_id)')
               .eq('id', canvasId)
               .single();
+
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId != null) {
+        // Privacy Audit: Log READ
+        await _privacyAudit.logAccess(
+          userId: userId,
+          resourceType: 'canvas',
+          action: 'READ',
+        );
+      }
 
       final canvasMap = Map<String, dynamic>.from(response);
       final memberRows =
@@ -180,9 +215,21 @@ class CanvasRemoteDatasource {
           .eq('canvas_id', canvasId)
           .order('created_at', ascending: true);
 
-      return (response as List)
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId != null) {
+        // Privacy Audit: Log READ
+        await _privacyAudit.logAccess(
+          userId: userId,
+          resourceType: 'canvas_item',
+          action: 'READ',
+        );
+      }
+
+      final items = (response as List)
           .map((json) => CanvasItemEntity.fromJson(json))
           .toList();
+      
+      return Future.wait(items.map(_decryptItem));
     } catch (e) {
       debugPrint('CanvasRemoteDatasource.fetchCanvasItems error: $e');
       rethrow;
@@ -204,17 +251,44 @@ class CanvasRemoteDatasource {
     Map<String, dynamic> metadata = const {},
   }) async {
     try {
+      // E2EE Encryption logic (Sync with CanvasService)
+      if (!_encryption.isInitialized) await _encryption.init();
+
+      // Get all member public keys for this canvas
+      final membersResponse = await _supabase
+          .from('canvas_members')
+          .select('profiles(public_key)')
+          .eq('canvas_id', canvasId);
+
+      final publicKeys = (membersResponse as List)
+          .map((m) => (m['profiles'] as Map<String, dynamic>?)?['public_key'] as String?)
+          .whereType<String>()
+          .toList();
+
+      String finalContent = content;
+      Map<String, String>? encryptedKeys;
+      String? iv;
+
+      if (publicKeys.isNotEmpty) {
+        final encrypted = await _encryption.encryptMessage(content, publicKeys);
+        finalContent = encrypted.encryptedContent;
+        encryptedKeys = encrypted.encryptedKeys;
+        iv = encrypted.iv;
+      }
+
       final Map<String, dynamic> insertData = {
         'canvas_id': canvasId,
         'author_id': authorId,
         'type': type.name,
-        'content': content,
+        'content': finalContent,
         'x_pos': xPos,
         'y_pos': yPos,
         'rotation': rotation,
         'scale': scale,
         'color': color,
         'metadata': metadata,
+        'encrypted_keys': encryptedKeys,
+        'iv': iv,
       };
 
       if (unlockAt != null) {
@@ -228,17 +302,55 @@ class CanvasRemoteDatasource {
               .select()
               .single();
 
-      return CanvasItemEntity.fromJson(response);
+      // Privacy Audit: Log WRITE
+      await _privacyAudit.logAccess(
+        userId: authorId,
+        resourceType: 'canvas_item',
+        action: 'WRITE',
+      );
+
+      final item = CanvasItemEntity.fromJson(response);
+      return _decryptItem(item);
     } catch (e) {
       debugPrint('CanvasRemoteDatasource.addCanvasItem error: $e');
       rethrow;
     }
   }
 
+  Future<CanvasItemEntity> _decryptItem(CanvasItemEntity item) async {
+    if (item.encryptedKeys == null || item.iv == null) return item;
+
+    try {
+      if (!_encryption.isInitialized) await _encryption.init();
+      final decrypted = await _encryption.decryptMessage(
+        item.content,
+        item.encryptedKeys!,
+        item.iv!,
+      );
+
+      if (decrypted != null) {
+        return item.copyWith(content: decrypted);
+      }
+    } catch (e) {
+      debugPrint('Decryption error for canvas item ${item.id}: $e');
+    }
+    return item;
+  }
+
   /// Delete an item from the canvas.
   Future<void> deleteCanvasItem(String itemId) async {
     try {
+      final userId = _supabase.auth.currentUser?.id;
       await _supabase.from('canvas_items').delete().eq('id', itemId);
+
+      if (userId != null) {
+        // Privacy Audit: Log DELETE
+        await _privacyAudit.logAccess(
+          userId: userId,
+          resourceType: 'canvas_item',
+          action: 'DELETE',
+        );
+      }
     } catch (e) {
       debugPrint('CanvasRemoteDatasource.deleteCanvasItem error: $e');
       rethrow;
@@ -265,6 +377,15 @@ class CanvasRemoteDatasource {
       if (lastModifiedBy != null) updates['last_modified_by'] = lastModifiedBy;
 
       await _supabase.from('canvas_items').update(updates).eq('id', itemId);
+
+      if (lastModifiedBy != null) {
+        // Privacy Audit: Log WRITE
+        await _privacyAudit.logAccess(
+          userId: lastModifiedBy,
+          resourceType: 'canvas_item',
+          action: 'WRITE',
+        );
+      }
     } catch (e) {
       debugPrint('CanvasRemoteDatasource.updateCanvasItemTransform error: $e');
       rethrow;

@@ -26,7 +26,7 @@ class KlipyService {
   }) async {
     if (ChatApiConfig.klipyApiKey.isEmpty) {
       return KlipyResult.failure(
-        'API key is empty. Check .env KLIPY keys (WEB_KEY, etc.)',
+        'API key is empty. Check .env KLIPY keys (KLIPY_WEB_KEY, etc.)',
         statusCode: 0,
       );
     }
@@ -68,7 +68,7 @@ class KlipyService {
   }) async {
     if (ChatApiConfig.klipyApiKey.isEmpty) {
       return KlipyResult.failure(
-        'API key is empty. Check .env KLIPY keys (WEB_KEY, etc.)',
+        'API key is empty. Check .env KLIPY keys (KLIPY_WEB_KEY, etc.)',
         statusCode: 0,
       );
     }

@@ -61,10 +61,59 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
   Offset _canvasOffset = Offset.zero;
 
   @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      setState(() => _scrollOffset = _scrollController.offset);
+    });
+
+    // Listen for errors from provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CanvasProvider>().addListener(_handleProviderError);
+    });
+  }
+
+  @override
+  void dispose() {
+    // Provider might be disposed already in some cases, so we use a safe check
+    try {
+      context.read<CanvasProvider>().removeListener(_handleProviderError);
+    } catch (_) {}
+    
+    _scrollController.dispose();
+    _audioRecorder.dispose();
+    _morphTimer?.cancel();
+    super.dispose();
+  }
+
+  void _handleProviderError() {
+    if (!mounted) return;
+    final error = context.read<CanvasProvider>().error;
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Canvas Error: $error'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      context.read<CanvasProvider>().clearError();
+    }
+  }
+
+  String _getAuthorId() {
+    final profileId = context.read<ProfileProvider>().currentProfile?.id;
+    if (profileId != null && profileId.isNotEmpty) return profileId;
+    
+    // Fallback to Supabase auth directly if profile provider isn't ready
+    final authId = Supabase.instance.client.auth.currentUser?.id;
+    return authId ?? '';
+  }
+
+  @override
   Widget build(BuildContext context) {
     final provider = context.watch<CanvasProvider>();
     final canvas = provider.activeCanvas;
-    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
+    final currentUserId = _getAuthorId();
     final isOwner = canvas?.createdBy == currentUserId;
     final isDesktop = MediaQuery.of(context).size.width > 900;
 
@@ -391,7 +440,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
   }
 
   Widget _buildActiveUsersRow(CanvasProvider provider) {
-    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
+    final currentUserId = _getAuthorId();
     final othersCount =
         provider.presenceState.length -
         (provider.presenceState.containsKey(currentUserId) ? 1 : 0);
@@ -420,7 +469,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
 
   List<Widget> _buildPresenceCursors(CanvasProvider provider) {
     final List<Widget> cursors = [];
-    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
+    final currentUserId = _getAuthorId();
 
     provider.presenceState.forEach((userId, stateList) {
       if (userId == currentUserId) return;
@@ -483,7 +532,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
 
   void _showAddJournal(BuildContext context) {
     final controller = TextEditingController();
-    final profile = context.read<ProfileProvider>().currentProfile;
+    final authorId = _getAuthorId();
 
     showModalBottomSheet(
       context: context,
@@ -546,7 +595,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                       onPressed: () {
                         if (controller.text.trim().isNotEmpty) {
                           context.read<CanvasProvider>().addItem(
-                            authorId: profile?.id ?? '',
+                            authorId: authorId,
                             type: CanvasItemType.journal,
                             content: controller.text.trim(),
                             xPos: 0,
@@ -670,7 +719,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
   }
 
   Widget _buildTimelineItem(dynamic group) {
-    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
+    final currentUserId = _getAuthorId();
 
     if (group is List<CanvasItemEntity>) {
       final isLocked = group.any(
@@ -703,7 +752,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
         onReact:
             (emoji) => context.read<CanvasProvider>().toggleReaction(
               item.id,
-              currentUserId!,
+              currentUserId,
               emoji,
             ),
         onLock:
@@ -824,11 +873,11 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
 
     final shape = ShapeRecognizer.recognize(points);
     if (shape.type != RecognizedShapeType.unknown) {
-      final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
-      if (currentUserId == null) return;
+      final authorId = _getAuthorId();
+      if (authorId.isEmpty) return;
 
       context.read<CanvasProvider>().addItem(
-        authorId: currentUserId,
+        authorId: authorId,
         type: CanvasItemType.shape,
         content: shape.type.name,
         xPos: shape.bounds.left / _canvasScale,
@@ -855,8 +904,8 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
       return;
     }
 
-    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
-    if (currentUserId == null) return;
+    final authorId = _getAuthorId();
+    if (authorId.isEmpty) return;
 
     double minX = points[0].dx;
     double minY = points[0].dy;
@@ -878,7 +927,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
     }
 
     context.read<CanvasProvider>().addItem(
-      authorId: currentUserId,
+      authorId: authorId,
       type: CanvasItemType.doodle,
       content: Uri.encodeComponent(content),
       color: '#${_selectedDrawingColor.value.toRadixString(16).substring(2)}',
@@ -915,7 +964,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
 
   void _showAddNote(BuildContext context) {
     final controller = TextEditingController();
-    final profile = context.read<ProfileProvider>().currentProfile;
+    final authorId = _getAuthorId();
     final colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
     String selectedColor = colors[0];
     DateTime? unlockAt;
@@ -1058,7 +1107,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                             onPressed: () {
                               if (controller.text.trim().isNotEmpty) {
                                 context.read<CanvasProvider>().addItem(
-                                  authorId: profile?.id ?? '',
+                                  authorId: authorId,
                                   type: CanvasItemType.text,
                                   content: controller.text.trim(),
                                   color: selectedColor,
@@ -1082,7 +1131,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
 
   void _showAddMilestone(BuildContext context) {
     final controller = TextEditingController();
-    final profile = context.read<ProfileProvider>().currentProfile;
+    final authorId = _getAuthorId();
     final colors = ['#F59E0B', '#8B5CF6', '#EC4899', '#10B981', '#3B82F6'];
     String selectedColor = colors[0];
 
@@ -1183,7 +1232,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                             onPressed: () {
                               if (controller.text.trim().isNotEmpty) {
                                 context.read<CanvasProvider>().addItem(
-                                  authorId: profile?.id ?? '',
+                                  authorId: authorId,
                                   type: CanvasItemType.milestone,
                                   content: controller.text.trim(),
                                   color: selectedColor,
@@ -1210,7 +1259,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
 
     if (images.isNotEmpty) {
       if (!mounted) return;
-      final profile = context.read<ProfileProvider>().currentProfile;
+      final authorId = _getAuthorId();
       final canvasService = CanvasService();
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1224,7 +1273,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
         );
         if (mounted) {
           context.read<CanvasProvider>().addItem(
-            authorId: profile?.id ?? '',
+            authorId: authorId,
             type: CanvasItemType.photo,
             content: url,
             xPos: 0,
@@ -1270,12 +1319,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                             (sticker) => GestureDetector(
                               onTap: () {
                                 context.read<CanvasProvider>().addItem(
-                                  authorId:
-                                      context
-                                          .read<ProfileProvider>()
-                                          .currentProfile
-                                          ?.id ??
-                                      '',
+                                  authorId: _getAuthorId(),
                                   type: CanvasItemType.sticker,
                                   content: sticker,
                                   xPos: 0,
@@ -1341,10 +1385,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                             });
 
                             if (recordPath != null && modalCtx.mounted) {
-                              final profile =
-                                  modalCtx
-                                      .read<ProfileProvider>()
-                                      .currentProfile;
+                              final authorId = _getAuthorId();
                               final canvasProvider =
                                   modalCtx.read<CanvasProvider>();
                               final messenger = ScaffoldMessenger.of(modalCtx);
@@ -1365,7 +1406,7 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                                     );
                                 if (mounted) {
                                   canvasProvider.addItem(
-                                    authorId: profile?.id ?? '',
+                                    authorId: authorId,
                                     type: CanvasItemType.voice,
                                     content: url,
                                     xPos: 0,
@@ -1440,6 +1481,115 @@ class _TimelineCanvasScreenState extends State<TimelineCanvasScreen> {
                   ),
                 ),
           ),
+    );
+  }
+}
+
+class _HeaderOverlay extends StatelessWidget {
+  final OasisCanvas? canvas;
+  final bool isDesktop;
+  final CanvasProvider provider;
+  final VoidCallback onToggleView;
+  final VoidCallback onInvite;
+  final String currentUserId;
+
+  const _HeaderOverlay({
+    required this.canvas,
+    required this.isDesktop,
+    required this.provider,
+    required this.onToggleView,
+    required this.onInvite,
+    required this.currentUserId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.of(context).pop(),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white10),
+            ),
+            child: const Icon(FluentIcons.chevron_left_24_regular, color: Colors.white, size: 20),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        canvas?.title ?? 'Our Canvas',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      _ActiveUsersRow(provider: provider, currentUserId: currentUserId),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(FluentIcons.glance_24_regular, color: Colors.white, size: 20),
+                  onPressed: onToggleView,
+                ),
+                IconButton(
+                  icon: const Icon(FluentIcons.people_add_24_regular, color: Colors.white, size: 20),
+                  onPressed: onInvite,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActiveUsersRow extends StatelessWidget {
+  final CanvasProvider provider;
+  final String currentUserId;
+
+  const _ActiveUsersRow({required this.provider, required this.currentUserId});
+
+  @override
+  Widget build(BuildContext context) {
+    final othersCount =
+        provider.presenceState.length -
+        (provider.presenceState.containsKey(currentUserId) ? 1 : 0);
+
+    return Row(
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: const BoxDecoration(
+            color: Colors.green,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          '${othersCount + 1} online',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.5),
+            fontSize: 12,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1819,5 +1969,3 @@ class _DoodleColorButton extends StatelessWidget {
     );
   }
 }
-
-

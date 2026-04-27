@@ -221,6 +221,7 @@ class CanvasProvider extends ChangeNotifier {
     required double xPos,
     required double yPos,
     double rotation = 0.0,
+    double scale = 1.0,
     String color = '#252930',
     DateTime? unlockAt,
     Map<String, dynamic> metadata = const {},
@@ -235,6 +236,7 @@ class CanvasProvider extends ChangeNotifier {
         xPos: xPos,
         yPos: yPos,
         rotation: rotation,
+        scale: scale,
         color: color,
         unlockAt: unlockAt,
         metadata: metadata,
@@ -392,4 +394,3 @@ class CanvasProvider extends ChangeNotifier {
     super.dispose();
   }
 }
-

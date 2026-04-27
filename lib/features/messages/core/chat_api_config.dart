@@ -32,17 +32,17 @@ class ChatApiConfig {
   static String get klipyApiKey {
     String key = '';
     if (kIsWeb) {
-      key = const String.fromEnvironment('WEB_KEY');
+      key = const String.fromEnvironment('KLIPY_WEB_KEY');
     } else if (Platform.isAndroid) {
-      key = const String.fromEnvironment('ANDROID_KEY');
+      key = const String.fromEnvironment('KLIPY_ANDROID_KEY');
     } else if (Platform.isIOS) {
-      key = const String.fromEnvironment('IOS_KEY');
+      key = const String.fromEnvironment('KLIPY_IOS_KEY');
     } else if (Platform.isWindows) {
-      key = const String.fromEnvironment('WINDOWS_KEY');
+      key = const String.fromEnvironment('KLIPY_WINDOWS_KEY');
     } else if (Platform.isMacOS) {
-      key = const String.fromEnvironment('MACOS_KEY');
+      key = const String.fromEnvironment('KLIPY_MACOS_KEY');
     } else {
-      key = const String.fromEnvironment('WEB_KEY');
+      key = const String.fromEnvironment('KLIPY_WEB_KEY');
     }
     return key.trim();
   }

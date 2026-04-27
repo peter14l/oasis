@@ -46,6 +46,11 @@ jobs:
           echo "GIPHY_IOS_KEY=${{ secrets.GIPHY_IOS_KEY }}" >> .env
           echo "GIPHY_WINDOWS_KEY=${{ secrets.GIPHY_WINDOWS_KEY }}" >> .env
           echo "GIPHY_MACOS_KEY=${{ secrets.GIPHY_MACOS_KEY }}" >> .env
+          echo "KLIPY_WEB_KEY=${{ secrets.KLIPY_WEB_KEY }}" >> .env
+          echo "KLIPY_ANDROID_KEY=${{ secrets.KLIPY_ANDROID_KEY }}" >> .env
+          echo "KLIPY_IOS_KEY=${{ secrets.KLIPY_IOS_KEY }}" >> .env
+          echo "KLIPY_WINDOWS_KEY=${{ secrets.KLIPY_WINDOWS_KEY }}" >> .env
+          echo "KLIPY_MACOS_KEY=${{ secrets.KLIPY_MACOS_KEY }}" >> .env
 
       - name: Decode Keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
@@ -110,6 +115,11 @@ jobs:
           echo "GIPHY_IOS_KEY=${{ secrets.GIPHY_IOS_KEY }}" >> .env
           echo "GIPHY_WINDOWS_KEY=${{ secrets.GIPHY_WINDOWS_KEY }}" >> .env
           echo "GIPHY_MACOS_KEY=${{ secrets.GIPHY_MACOS_KEY }}" >> .env
+          echo "KLIPY_WEB_KEY=${{ secrets.KLIPY_WEB_KEY }}" >> .env
+          echo "KLIPY_ANDROID_KEY=${{ secrets.KLIPY_ANDROID_KEY }}" >> .env
+          echo "KLIPY_IOS_KEY=${{ secrets.KLIPY_IOS_KEY }}" >> .env
+          echo "KLIPY_WINDOWS_KEY=${{ secrets.KLIPY_WINDOWS_KEY }}" >> .env
+          echo "KLIPY_MACOS_KEY=${{ secrets.KLIPY_MACOS_KEY }}" >> .env
 
       - name: Disable sentry-native (avoid crashpad 403 error)
         run: |

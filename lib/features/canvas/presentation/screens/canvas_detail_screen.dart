@@ -10,6 +10,7 @@ import 'package:oasis/features/canvas/presentation/widgets/canvas/canvas_item_wi
 import 'package:oasis/services/canvas_service.dart';
 import 'package:oasis/widgets/share_sheet.dart';
 import 'package:oasis/services/canvas_audio_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CanvasDetailScreen extends StatefulWidget {
   final String canvasId;
@@ -132,12 +133,18 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
     }
   }
 
+  String _getAuthorId() {
+    final profileId = context.read<ProfileProvider>().currentProfile?.id;
+    if (profileId != null && profileId.isNotEmpty) return profileId;
+    return Supabase.instance.client.auth.currentUser?.id ?? '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final provider = context.watch<CanvasProvider>();
     final canvas = provider.activeCanvas;
-    final currentUserId = context.read<ProfileProvider>().currentProfile?.id;
+    final currentUserId = _getAuthorId();
     final isOwner = canvas?.createdBy == currentUserId;
     final canvasColor =
         canvas?.coverColor != null
@@ -258,6 +265,7 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
                             xPos: dx,
                             yPos: dy,
                             rotation: rotation,
+                            lastModifiedBy: currentUserId,
                           );
                         },
                         onDelete: () {
@@ -301,7 +309,7 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
 
   void _addTextNote(BuildContext context) {
     final controller = TextEditingController();
-    final userId = context.read<ProfileProvider>().currentProfile?.id ?? '';
+    final authorId = _getAuthorId();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -347,7 +355,7 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
                         if (controller.text.trim().isNotEmpty) {
                           Navigator.pop(context);
                           context.read<CanvasProvider>().addItem(
-                            authorId: userId,
+                            authorId: authorId,
                             type: CanvasItemType.text,
                             content: controller.text.trim(),
                             xPos: 50,
@@ -382,13 +390,12 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
       if (pickedFile != null && context.mounted) {
         final messenger = ScaffoldMessenger.of(context);
         final provider = context.read<CanvasProvider>();
-        final profileProvider = context.read<ProfileProvider>();
+        final authorId = _getAuthorId();
 
         messenger.showSnackBar(
           const SnackBar(content: Text('Uploading photo...')),
         );
 
-        final userId = profileProvider.currentProfile?.id ?? '';
         final canvasService = CanvasService();
 
         final imageUrl = await canvasService.uploadCanvasImage(
@@ -398,7 +405,7 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
 
         if (mounted) {
           provider.addItem(
-            authorId: userId,
+            authorId: authorId,
             type: CanvasItemType.photo,
             content: imageUrl,
             xPos: 100,
@@ -435,7 +442,7 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
       '🎸',
       '📚',
     ];
-    final userId = context.read<ProfileProvider>().currentProfile?.id ?? '';
+    final authorId = _getAuthorId();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -467,7 +474,7 @@ class _CanvasDetailScreenState extends State<CanvasDetailScreen> {
                           onTap: () {
                             Navigator.pop(context);
                             context.read<CanvasProvider>().addItem(
-                              authorId: userId,
+                              authorId: authorId,
                               type: CanvasItemType.sticker,
                               content: s,
                               xPos: 80,
