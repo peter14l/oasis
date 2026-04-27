@@ -476,6 +476,7 @@ class _FeedScreenState extends State<FeedScreen>
           if (_showDeepBreath) _buildDeepBreath(),
         ],
       ),
+      ),
     );
   }
 

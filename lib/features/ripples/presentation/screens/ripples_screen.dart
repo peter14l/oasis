@@ -515,6 +515,7 @@ class _RipplesScreenState extends State<RipplesScreen>
           ),
         );
       },
+    ),
     );
   }
 
@@ -1505,8 +1506,4 @@ class _ComingUpItemState extends State<_ComingUpItem> {
     );
   }
 }
-    ),
-      ),
-    );
-  }
-}
+
