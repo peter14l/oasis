@@ -95,9 +95,6 @@ class _StorageUsageScreenState extends State<StorageUsageScreen> {
       // Clear SharedPreferences caches
       await _cacheService.clearAll();
 
-      // Clear encrypted downloaded chat media
-      await _mediaCacheService.clearMediaCache();
-
       // Note: CachedNetworkImage uses disk caching which would require
       // manual file deletion from cache directory. For now, we clear
       // the SharedPreferences-based caches which store the metadata.
