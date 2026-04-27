@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart' as material;
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter/widgets.dart';
-import 'package:flutter/services.dart'; // For TextInputAction
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:oasis/services/search_service.dart';
@@ -14,9 +14,9 @@ import 'package:oasis/widgets/adaptive/adaptive_scaffold.dart';
 import 'package:oasis/widgets/desktop_header.dart';
 import 'package:oasis/widgets/wellbeing/lockout_overlay.dart';
 import 'package:oasis/widgets/custom_snackbar.dart';
-
 import 'package:oasis/services/app_initializer.dart';
 import 'package:provider/provider.dart';
+import 'package:oasis/widgets/wellbeing/grayscale_detox.dart';
 
 class SearchScreen extends StatefulWidget {
   final bool isPanel;
@@ -147,57 +147,58 @@ class _SearchScreenState extends State<SearchScreen>
 
     return GrayscaleDetox(
       child: AdaptiveScaffold(
-      title: const Text('Search'),
-      actions: isDesktop ? [
-        material.IconButton.filledTonal(
-          icon: material.Icon(
-            _showFilters ? material.Icons.filter_list_off : material.Icons.filter_list,
-            size: 20,
-          ),
-          onPressed: () => setState(() => _showFilters = !_showFilters),
-          tooltip: _showFilters ? 'Hide Filters' : 'Show Filters',
-        ),
-      ] : null,
-      appBar: !isDesktop ? material.AppBar(
-        backgroundColor: colorScheme.surface,
-        automaticallyImplyLeading: true,
-        elevation: 0,
-        toolbarHeight: 80,
-        title: _buildSearchBox(colorScheme, isM3E),
-        actions: [
-          if (_query.isNotEmpty)
-            material.IconButton(
-              icon: const material.Icon(material.Icons.clear),
-              onPressed: () {
-                _searchController.clear();
-                _onSearchChanged('');
-              },
+        title: const Text('Search'),
+        actions: isDesktop ? [
+          material.IconButton.filledTonal(
+            icon: material.Icon(
+              _showFilters ? material.Icons.filter_list_off : material.Icons.filter_list,
+              size: 20,
             ),
-          const SizedBox(width: 8),
-        ],
-        bottom: material.PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Padding(
-            padding: const material.EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            child: material.TabBar(
-              controller: _tabController,
-              indicator: const material.BoxDecoration(),
-              dividerColor: material.Colors.transparent,
-              labelPadding: const material.EdgeInsets.symmetric(horizontal: 4),
-              tabs: [
-                _buildTab('People', 0, isM3E),
-                _buildTab('Posts', 1, isM3E),
-              ],
+            onPressed: () => setState(() => _showFilters = !_showFilters),
+            tooltip: _showFilters ? 'Hide Filters' : 'Show Filters',
+          ),
+        ] : null,
+        appBar: !isDesktop ? material.AppBar(
+          backgroundColor: colorScheme.surface,
+          automaticallyImplyLeading: true,
+          elevation: 0,
+          toolbarHeight: 80,
+          title: _buildSearchBox(colorScheme, isM3E),
+          actions: [
+            if (_query.isNotEmpty)
+              material.IconButton(
+                icon: const material.Icon(material.Icons.clear),
+                onPressed: () {
+                  _searchController.clear();
+                  _onSearchChanged('');
+                },
+              ),
+            const SizedBox(width: 8),
+          ],
+          bottom: material.PreferredSize(
+            preferredSize: const Size.fromHeight(60),
+            child: Padding(
+              padding: const material.EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: material.TabBar(
+                controller: _tabController,
+                indicator: const material.BoxDecoration(),
+                dividerColor: material.Colors.transparent,
+                labelPadding: const material.EdgeInsets.symmetric(horizontal: 4),
+                tabs: [
+                  _buildTab('People', 0, isM3E),
+                  _buildTab('Posts', 1, isM3E),
+                ],
+              ),
             ),
           ),
+        ) : null,
+        header: isDesktop ? _buildNewDesktopHeader(theme, colorScheme, isM3E) : null,
+        body: Stack(
+          children: [
+            isDesktop ? _buildDesktopLayout(isM3E) : _buildMobileLayout(isM3E),
+            const LockoutOverlay(pageName: 'Search'),
+          ],
         ),
-      ) : null,
-      header: isDesktop ? _buildNewDesktopHeader(theme, colorScheme, isM3E) : null,
-      body: Stack(
-        children: [
-          isDesktop ? _buildDesktopLayout(isM3E) : _buildMobileLayout(isM3E),
-          const LockoutOverlay(pageName: 'Search'),
-        ],
       ),
     );
   }
@@ -1078,59 +1079,128 @@ class _SearchScreenState extends State<SearchScreen>
       itemBuilder: (context, index) {
         final user = _userResults[index];
         return material.ListTile(
-          leading: Container(
-            padding: EdgeInsets.all(isM3E ? 2 : 0),
-            decoration: material.BoxDecoration(
-              shape: isM3E ? BoxShape.rectangle : BoxShape.circle,
-              borderRadius: isM3E ? BorderRadius.circular(10) : null,
-              border: isM3E
-                  ? Border.all(
-                      color: material.Theme.of(context).colorScheme.primary,
-                      width: 1,
-                    )
-                  : null,
-            ),
-            child: ClipRRect(
-              borderRadius: isM3E
-                  ? BorderRadius.circular(8)
-                  : BorderRadius.circular(20),
-              child: SizedBox(
-                width: 40,
-                height: 40,
-                child: user['avatar_url'] != null
-                    ? CachedNetworkImage(
-                        imageUrl: user['avatar_url'],
-                        fit: BoxFit.cover,
-                      )
-                    : Container(
-                        color: material.Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
-                        child: Center(
-                          child: Text(
-                            user['username'][0].toUpperCase(),
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: material.Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                      ),
-              ),
-            ),
+          contentPadding: const material.EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 4,
+          ),
+          dense: true,
+          leading: material.CircleAvatar(
+            radius: 18,
+            backgroundImage: user['avatar_url'] != null
+                ? CachedNetworkImageProvider(user['avatar_url'])
+                : null,
+            child: user['avatar_url'] == null
+                ? Text(user['username'][0].toUpperCase())
+                : null,
           ),
           title: Text(
             user['full_name'] ?? user['username'],
-            style: TextStyle(
-              fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
-            ),
+            style: material.Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          subtitle: Text('@${user['username']}'),
+          subtitle: Text(
+            '@${user['username']}',
+            style: material.Theme.of(context).textTheme.bodySmall,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           onTap: () {
             context.push('/profile/${user['id']}');
           },
         );
       },
+    );
+  }
+
+  Widget _buildPostList() {
+    if (_postResults.isEmpty) {
+      return _buildEmptyState('No posts found');
+    }
+
+    final postList = ListView.builder(
+      padding: const material.EdgeInsets.all(16),
+      itemCount: _postResults.length,
+      itemBuilder: (context, index) {
+        final post = _postResults[index];
+        return PostCard(post: post);
+      },
+    );
+
+    return (ResponsiveLayout.isDesktop(context) && !widget.isPanel)
+        ? MaxWidthContainer(
+            maxWidth: ResponsiveLayout.maxFeedWidth,
+            child: postList,
+          )
+        : postList;
+  }
+
+  Widget _buildPanelPostCard(Post post) {
+    final theme = material.Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      margin: const material.EdgeInsets.only(bottom: 8),
+      padding: const material.EdgeInsets.all(12),
+      decoration: material.BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // User info
+          Row(
+            children: [
+              material.CircleAvatar(
+                radius: 14,
+                backgroundImage: post.userAvatar.isNotEmpty
+                    ? CachedNetworkImageProvider(post.userAvatar)
+                    : null,
+                child: post.userAvatar.isEmpty
+                    ? Text(
+                        post.username[0].toUpperCase(),
+                        style: const material.TextStyle(fontSize: 10),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  post.username,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Content
+          Text(
+            post.content ?? '',
+            style: theme.textTheme.bodyMedium,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+          if (post.imageUrl != null && post.imageUrl!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: CachedNetworkImage(
+                imageUrl: post.imageUrl!,
+                height: 120,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -1229,70 +1299,13 @@ class _SearchScreenState extends State<SearchScreen>
                   material.Icon(
                     material.Icons.arrow_forward_ios,
                     size: 16,
-                    color: theme.colorScheme.onSurfaceVariant,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ],
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildPostList() {
-    if (_postResults.isEmpty) {
-      return _buildEmptyState('No posts found');
-    }
-
-    final postList = ListView.builder(
-      padding: const material.EdgeInsets.all(16),
-      itemCount: _postResults.length,
-      itemBuilder: (context, index) {
-        final post = _postResults[index];
-        return PostCard(post: post);
-      },
-    );
-
-    return (ResponsiveLayout.isDesktop(context) && !widget.isPanel)
-        ? MaxWidthContainer(
-            maxWidth: ResponsiveLayout.maxFeedWidth,
-            child: postList,
-          )
-        : postList;
-  }
-
-  Widget _buildEmptyState(String message) {
-    final theme = material.Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisAlignment: material.MainAxisAlignment.center,
-        children: [
-          material.Icon(
-            material.Icons.search_off,
-            size: 64,
-            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Try adjusting your search or filters',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-      ],
       ),
     );
   }
