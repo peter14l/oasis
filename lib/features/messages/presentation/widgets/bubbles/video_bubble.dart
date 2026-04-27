@@ -294,10 +294,3 @@ class _VideoBubbleState extends State<VideoBubble> {
     );
   }
 }
-: CircularProgressIndicator(strokeWidth: 2),
-            ),
-        ],
-      ),
-    );
-  }
-}

@@ -265,9 +265,3 @@ class _DocumentBubbleState extends State<DocumentBubble> {
     return mainContent;
   }
 }
-r) {
-      return SpoilerWidget(child: mainContent);
-    }
-    return mainContent;
-  }
-}

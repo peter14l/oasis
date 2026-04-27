@@ -317,11 +317,3 @@ class _VoiceBubbleState extends State<VoiceBubble> {
     );
   }
 }
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
