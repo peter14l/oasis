@@ -238,6 +238,7 @@ class _ImageBubbleState extends State<ImageBubble> {
 
   Widget _buildImage(BuildContext context, ThemeData theme) {
     final url = widget.message.mediaUrl;
+    final isEncrypted = widget.message.encryptedKeys != null && widget.message.iv != null;
     
     return Stack(
       alignment: Alignment.center,
@@ -249,38 +250,46 @@ class _ImageBubbleState extends State<ImageBubble> {
             errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
           )
         else if (url != null)
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              // Blurred placeholder
-              CachedNetworkImage(
-                imageUrl: url,
-                imageBuilder: (context, imageProvider) => Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: imageProvider,
-                      fit: BoxFit.cover,
+          isEncrypted
+              ? Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Blurred placeholder
+                    CachedNetworkImage(
+                      imageUrl: url,
+                      imageBuilder: (context, imageProvider) => Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: imageProvider,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                          child: Container(color: Colors.black.withValues(alpha: 0.1)),
+                        ),
+                      ),
+                      placeholder: (context, url) => Container(color: Colors.grey[300]),
+                      errorWidget: (context, url, error) => Container(color: Colors.grey[300]),
                     ),
-                  ),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                    child: Container(color: Colors.black.withValues(alpha: 0.1)),
-                  ),
-                ),
-                placeholder: (context, url) => Container(color: Colors.grey[300]),
-                errorWidget: (context, url, error) => Container(color: Colors.grey[300]),
-              ),
-              if (_isDownloading)
-                const CircularProgressIndicator()
-              else
-                IconButton(
-                  icon: const Icon(Icons.download_for_offline, size: 48, color: Colors.white),
-                  onPressed: _downloadMedia,
-                ),
-            ],
-          )
+                    if (_isDownloading)
+                      const CircularProgressIndicator()
+                    else
+                      IconButton(
+                        icon: const Icon(Icons.download_for_offline, size: 48, color: Colors.white),
+                        onPressed: _downloadMedia,
+                      ),
+                  ],
+                )
+              : CachedNetworkImage(
+                  imageUrl: url,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(color: Colors.grey[300]),
+                  errorWidget: (context, url, error) => Container(color: Colors.grey[300]),
+                )
         else
           Container(color: Colors.grey[300], child: const Icon(Icons.broken_image)),
+
           
         if (widget.message.isUploading) ...[
           Positioned.fill(

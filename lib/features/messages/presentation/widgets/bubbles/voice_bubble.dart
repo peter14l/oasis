@@ -195,8 +195,9 @@ class _VoiceBubbleState extends State<VoiceBubble> {
                     'Sending... ${(widget.message.uploadProgress * 100).toInt()}%',
                     style: theme.textTheme.labelSmall?.copyWith(color: color.withValues(alpha: 0.7)),
                   ),
-                ] else if (_localPath == null) ...[
+                ] else if (_localPath == null && isEncrypted) ...[
                   InkWell(
+
                     onTap: _downloadMedia,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -308,6 +309,14 @@ class _VoiceBubbleState extends State<VoiceBubble> {
                       ),
                     ),
                   ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
                 ),
               ),
             ),

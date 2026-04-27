@@ -173,8 +173,9 @@ class _VideoBubbleState extends State<VideoBubble> {
                   minHeight: 4,
                 ),
               ),
-            ] else if (_localPath == null) ...[
+            ] else if (_localPath == null && isEncrypted) ...[
               Positioned.fill(
+
                 child: Container(
                   color: Colors.black.withValues(alpha: 0.3),
                   child: Center(
@@ -287,6 +288,13 @@ class _VideoBubbleState extends State<VideoBubble> {
               width: 12,
               height: 12,
               child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+        ],
+      ),
+    );
+  }
+}
+: CircularProgressIndicator(strokeWidth: 2),
             ),
         ],
       ),

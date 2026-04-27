@@ -221,8 +221,9 @@ class _DocumentBubbleState extends State<DocumentBubble> {
                   style: theme.textTheme.labelSmall?.copyWith(color: color.withValues(alpha: 0.7)),
                 ),
               ),
-            ] else if (_localPath == null) ...[
+            ] else if (_localPath == null && isEncrypted) ...[
               Divider(height: 1, color: color.withValues(alpha: 0.1)),
+
               InkWell(
                 onTap: _downloadMedia,
                 child: Padding(
@@ -259,6 +260,12 @@ class _DocumentBubbleState extends State<DocumentBubble> {
     );
 
     if (widget.message.isSpoiler) {
+      return SpoilerWidget(child: mainContent);
+    }
+    return mainContent;
+  }
+}
+r) {
       return SpoilerWidget(child: mainContent);
     }
     return mainContent;
