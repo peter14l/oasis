@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:flutter/material.dart'
     show
@@ -90,7 +91,10 @@ import 'package:flutter/material.dart'
         SnackBar,
         ScaffoldMessenger,
         BoxFit,
-        Spacer;
+        Spacer,
+        Image,
+        FileImage,
+        ImageProvider;
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
