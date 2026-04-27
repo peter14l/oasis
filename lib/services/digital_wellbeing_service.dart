@@ -121,6 +121,12 @@ class DigitalWellbeingService extends ChangeNotifier {
     return true;
   }
 
+  bool get isLimitReached {
+    final totalSeconds = _feedSeconds + _ripplesSeconds;
+    final thresholdSeconds = lockoutThresholdMinutes * 60;
+    return totalSeconds >= thresholdSeconds;
+  }
+
   Duration get remainingLockoutTime {
     if (_lockoutEndTime == null) return Duration.zero;
     final diff = _lockoutEndTime!.difference(DateTime.now());

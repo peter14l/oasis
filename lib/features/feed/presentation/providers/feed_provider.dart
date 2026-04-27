@@ -94,8 +94,11 @@ class FeedProvider with ChangeNotifier {
         _state = _state.copyWith(posts: newPosts);
         _localDatasource.saveFeed(newPosts.map((e) => e.toJson()).toList());
       } else {
+        final existingIds = _state.posts.map((p) => p.id).toSet();
+        final uniqueNewPosts = newPosts.where((p) => !existingIds.contains(p.id)).toList();
+        
         _state = _state.copyWith(
-          posts: [..._state.posts, ...newPosts],
+          posts: [..._state.posts, ...uniqueNewPosts],
         );
       }
       _state = _state.copyWith(

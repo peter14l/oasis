@@ -148,8 +148,9 @@ class _RipplesScreenState extends State<RipplesScreen>
 
     final currentRipple = ripples[_currentIndex];
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
+    return GrayscaleDetox(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
         final bool isDesktop = constraints.maxWidth >= 1000;
 
         if (isDesktop) {
@@ -1500,6 +1501,11 @@ class _ComingUpItemState extends State<_ComingUpItem> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+    ),
       ),
     );
   }

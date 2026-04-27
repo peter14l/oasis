@@ -29,6 +29,8 @@ import 'package:oasis/features/feed/presentation/widgets/layouts/focused_flow_la
 import 'package:oasis/features/feed/presentation/widgets/layouts/spatial_glider_layout.dart';
 import 'package:oasis/features/feed/presentation/widgets/layouts/living_canvas_layout.dart';
 
+import 'package:oasis/widgets/wellbeing/grayscale_detox.dart';
+
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
 
@@ -440,7 +442,8 @@ class _FeedScreenState extends State<FeedScreen>
       _buildRipplesButton(colorScheme, isM3E),
     ];
 
-    return AdaptiveScaffold(
+    return GrayscaleDetox(
+      child: AdaptiveScaffold(
       title: isDesktop ? const Text('Feed') : null,
       actions: isDesktop ? actions : null,
       body: Stack(

@@ -145,7 +145,8 @@ class _SearchScreenState extends State<SearchScreen>
       );
     }
 
-    return AdaptiveScaffold(
+    return GrayscaleDetox(
+      child: AdaptiveScaffold(
       title: const Text('Search'),
       actions: isDesktop ? [
         material.IconButton.filledTonal(
@@ -1287,6 +1288,11 @@ class _SearchScreenState extends State<SearchScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+      ],
       ),
     );
   }

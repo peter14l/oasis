@@ -183,11 +183,7 @@ class ChatAppBar extends StatelessWidget {
                                       const SizedBox(width: 4),
                                     ],
                                     Text(
-                                      isOnline
-                                          ? 'Online'
-                                          : (presence?.lastSeen != null
-                                                ? 'Last seen ${_formatSeenTime(presence!.lastSeen!)}'
-                                                : 'Offline'),
+                                      isOnline ? 'Online' : 'Offline',
                                       style: theme.textTheme.bodySmall
                                           ?.copyWith(
                                             color: isOnline
@@ -367,11 +363,7 @@ class ChatAppBar extends StatelessWidget {
                             const SizedBox(width: 4),
                           ],
                           Text(
-                            isOnline
-                                ? 'Online'
-                                : (presence?.lastSeen != null
-                                    ? 'Last seen ${_formatSeenTime(presence!.lastSeen!)}'
-                                    : 'Offline'),
+                            isOnline ? 'Online' : 'Offline',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: isOnline
                                   ? Colors.green.withValues(alpha: 0.8)
