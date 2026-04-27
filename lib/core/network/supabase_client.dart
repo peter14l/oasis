@@ -67,6 +67,12 @@ class SupabaseService {
           authOptions: const FlutterAuthClientOptions(
             authFlowType: AuthFlowType.pkce,
           ),
+          realtimeClientOptions: const RealtimeClientOptions(
+            eventsPerSecond: 10,
+            logLevel: RealtimeLogLevel.error,
+            timeout: Duration(seconds: 30), // Increased from default 10s
+            heartbeatInterval: Duration(seconds: 15), // Increased from default
+          ),
         );
       } on FormatException catch (fe) {
         debugPrint('CRITICAL: Supabase.initialize threw FormatException: $fe');
