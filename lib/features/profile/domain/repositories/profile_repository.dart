@@ -104,4 +104,10 @@ abstract class ProfileRepository {
     required String userId,
     required bool visible,
   });
+
+  Future<void> updateHomeBase({
+    required String userId,
+    String? theme,
+    List<dynamic>? pinnedItems,
+  });
 }

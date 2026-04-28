@@ -497,6 +497,26 @@ class ProfileRemoteDatasource {
     }
   }
 
+  Future<void> updateHomeBase({
+    required String userId,
+    String? theme,
+    List<dynamic>? pinnedItems,
+  }) async {
+    try {
+      final updateData = <String, dynamic>{};
+      if (theme != null) updateData['home_theme'] = theme;
+      if (pinnedItems != null) updateData['pinned_items'] = pinnedItems;
+
+      await _supabase
+          .from(SupabaseConfig.profilesTable)
+          .update(updateData)
+          .eq('id', userId);
+    } catch (e) {
+      debugPrint('[ProfileRemoteDatasource] Error updating home base: $e');
+      rethrow;
+    }
+  }
+
   Future<Uint8List> _readFileBytes(String path) async {
     final file = File(path);
     return await file.readAsBytes();

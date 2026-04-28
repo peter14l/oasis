@@ -21,6 +21,7 @@ import 'package:oasis/features/wellbeing/presentation/providers/cozy_mode_state.
 import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
 import 'package:oasis/features/badging/presentation/widgets/badge_widget.dart';
+import 'package:oasis/features/profile/presentation/widgets/guestbook_widget.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userId;
@@ -248,6 +249,141 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+    );
+  }
+
+  Widget _buildHomeBaseButton(BuildContext context, ThemeData theme, UserProfileEntity profile) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: InkWell(
+        onTap: () => context.push('/profile/${profile.id}/home'),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                theme.colorScheme.secondaryContainer.withValues(alpha: 0.5),
+                theme.colorScheme.surface,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: theme.colorScheme.secondary.withValues(alpha: 0.2),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  FluentIcons.home_24_regular,
+                  color: theme.colorScheme.secondary,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Home Base',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Visit a personal visual space',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDigitalGardenButton(BuildContext context, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: InkWell(
+        onTap: () => context.push('/garden'),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+                theme.colorScheme.surface,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: theme.colorScheme.primary.withValues(alpha: 0.2),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.yard_outlined,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Digital Garden',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'A private space to plant your thoughts',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   String _getCozyEmoji(String? status) {
     if (status == null) return '🌙';
     if (status.toLowerCase().contains('cocoon')) return '🦋';
@@ -335,6 +471,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const fluent.Divider(),
                   const SizedBox(height: 32),
                   _buildSanctuaryMessage(isFluent: true),
+                  const SizedBox(height: 48),
+                  if (userId != null)
+                    GuestbookWidget(
+                      profileId: profile.id,
+                      currentUserId: userId,
+                      isOwner: isOwnProfile,
+                    ),
                 ],
               ),
             ),
@@ -885,7 +1028,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Right Pane: Sanctuary Space
               Expanded(
                 child: Center(
-                  child: _buildSanctuaryMessage(),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildSanctuaryMessage(),
+                      const SizedBox(height: 48),
+                      if (userId != null)
+                        SizedBox(
+                          width: 400,
+                          child: GuestbookWidget(
+                            profileId: profile.id,
+                            currentUserId: userId,
+                            isOwner: isOwnProfile,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -902,6 +1060,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   ) {
     return Center(
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           Container(
             padding: const EdgeInsets.all(4),
@@ -936,6 +1095,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
               ),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: MoodOrbitWidget(
+              userId: profile.id,
+              currentMood: profile.currentMood,
+              currentEmoji: profile.moodEmoji,
+              isOwner: isOwnProfile,
             ),
           ),
           if (profile.isPro)
@@ -1024,9 +1193,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
-        const SizedBox(height: 24),
-        _buildDesktopBadgesSection(context, currentUserId),
-      ],
+          const SizedBox(height: 24),
+          _buildHomeBaseButton(context, theme, profile),
+          const SizedBox(height: 12),
+          if (isOwnProfile)
+            _buildDigitalGardenButton(context, theme),
+          if (isOwnProfile)
+            const SizedBox(height: 24),
+          _buildDesktopBadgesSection(context, currentUserId),      ],
     );
   }
 
@@ -1263,11 +1437,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     isM3E,
                   ),
                   const SizedBox(height: 24),
+                  _buildHomeBaseButton(context, theme, profile),
+                  const SizedBox(height: 12),
+                  if (isOwnProfile)
+                    _buildDigitalGardenButton(context, theme),
+                  if (isOwnProfile)
+                    const SizedBox(height: 24),
                   _buildMobileBadgesSection(userId),
                   const SizedBox(height: 48),
                   const Divider(),
                   const SizedBox(height: 48),
                   _buildSanctuaryMessage(),
+                  const SizedBox(height: 48),
+                  if (userId != null)
+                    GuestbookWidget(
+                      profileId: profile.id,
+                      currentUserId: userId,
+                      isOwner: isOwnProfile,
+                    ),
                 ],
               ),
             ),
@@ -1330,6 +1517,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Row(
           children: [
             Stack(
+              clipBehavior: Clip.none,
               children: [
                 Container(
                   padding: const EdgeInsets.all(3),
@@ -1363,6 +1551,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ),
+                Positioned(
+                  top: -10,
+                  right: -10,
+                  child: MoodOrbitWidget(
+                    userId: profile.id,
+                    currentMood: profile.currentMood,
+                    currentEmoji: profile.moodEmoji,
+                    isOwner: isOwnProfile,
+                  ),
+                ),
                 if (profile.isPro)
                   Positioned(
                     bottom: 0,
@@ -1394,22 +1592,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          profile.fullName ?? profile.username,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.5,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (profile.moodEmoji != null)
-                        Text(profile.moodEmoji!, style: const TextStyle(fontSize: 20)),
-                    ],
+                  Text(
+                    profile.fullName ?? profile.username,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     '@${profile.username}',

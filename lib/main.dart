@@ -37,7 +37,6 @@ import 'package:oasis/features/profile/presentation/providers/profile_provider.d
 import 'package:oasis/themes/app_theme.dart';
 import 'package:oasis/themes/fluent_theme.dart';
 import 'package:oasis/widgets/windows_title_bar.dart';
-import 'package:oasis/widgets/mesh_gradient_background.dart';
 import 'package:oasis/widgets/splash_screen.dart';
 import 'package:oasis/widgets/global_wellness_wrapper.dart';
 import 'package:oasis/services/update_service.dart';
@@ -451,49 +450,28 @@ class _MyAppState extends State<MyApp> {
     return DynamicColorBuilder(
       builder: (material.ColorScheme? lightDynamic, material.ColorScheme? darkDynamic) {
         final userSettings = Provider.of<UserSettingsProvider>(context);
+        final colorScheme = themeProvider.colorScheme;
 
         // OPTIMIZATION: Cache theme objects to prevent expensive re-calculation on every rebuild
         final settingsKey =
             '${themeProvider.themeMode}_'
-            '${themeProvider.isM3EEnabled}_'
-            '${themeProvider.useMaterialYou}_'
-            '${themeProvider.colorPalette}_'
-            '${themeProvider.highContrast}_'
-            '${userSettings.fontFamily}_'
-            '${lightDynamic?.primary.value}_'
-            '${darkDynamic?.primary.value}';
+            '${colorScheme.primary.value}_'
+            '${userSettings.fontFamily}';
 
         if (settingsKey != _cachedSettingsKey) {
           _cachedSettingsKey = settingsKey;
           
-          material.ColorScheme? lightScheme;
-          material.ColorScheme? darkScheme;
-
-          if (themeProvider.useMaterialYou && themeProvider.isM3EEnabled) {
-            lightScheme = lightDynamic;
-            darkScheme = darkDynamic;
-          } else if (themeProvider.colorPalette != ColorPalette.none &&
-              themeProvider.isM3EEnabled) {
-            lightScheme = themeProvider.getPaletteColorScheme(material.Brightness.light);
-            darkScheme = themeProvider.getPaletteColorScheme(material.Brightness.dark);
-          }
-
-          _cachedLightScheme = lightScheme;
-          _cachedDarkScheme = darkScheme;
-          
           _cachedLightTheme = AppTheme.getTheme(
-            material.Brightness.light,
-            isM3E: themeProvider.isM3EEnabled,
-            highContrast: themeProvider.highContrast,
+            colorScheme: colorScheme.brightness == material.Brightness.light 
+                ? colorScheme 
+                : TimeBasedColors.day, // Fallback for light if current is dark
             fontFamily: userSettings.fontFamily,
-            dynamicColorScheme: lightScheme,
           );
           _cachedDarkTheme = AppTheme.getTheme(
-            material.Brightness.dark,
-            isM3E: themeProvider.isM3EEnabled,
-            highContrast: themeProvider.highContrast,
+            colorScheme: colorScheme.brightness == material.Brightness.dark 
+                ? colorScheme 
+                : TimeBasedColors.night, // Fallback for dark if current is light
             fontFamily: userSettings.fontFamily,
-            dynamicColorScheme: darkScheme,
           );
         }
 
@@ -694,24 +672,22 @@ class CallNavigator extends StatelessWidget {
       childWidget = Container(color: material.Colors.transparent, child: childWidget);
     }
 
-    if (userSettings.meshEnabled) {
-      // RepaintBoundary isolates the expensive mesh gradient from the rest of the UI
-      return material.RepaintBoundary(
-        child: MeshGradientBackground(child: childWidget),
-      );
-    } else {
+    if (!useFluent) {
       final isDark = material.Theme.of(context).brightness == material.Brightness.dark;
       final mica = Platform.isWindows && userSettings.micaEnabled;
 
-      return Container(
-        color: mica 
-            ? material.Colors.transparent 
-            : (isDark ? const material.Color(0xFF080A0E) : const material.Color(0xFFF8F9FA)),
+      return material.Container(
+        color: mica
+            ? material.Colors.transparent
+            : (isDark ? material.Theme.of(context).colorScheme.surface : material.Theme.of(context).colorScheme.surface),
         child: childWidget,
       );
     }
-  }
-}
+
+    return childWidget;
+    }
+    }
+import 'package:oasis/features/wellbeing/presentation/providers/digital_garden_provider.dart';
 
 void main() async {
   // 1. Silence Flutter framework errors that are harmless but messy

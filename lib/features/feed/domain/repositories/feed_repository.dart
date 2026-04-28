@@ -28,4 +28,7 @@ abstract class FeedRepository {
 
   /// Stream feed posts for real-time updates.
   Stream<List<Post>> watchFeedPosts({required String userId, int limit = 20});
+
+  /// Get a memory lane post from exactly 1 year ago.
+  Future<Post?> getMemoryLanePost({required String userId});
 }

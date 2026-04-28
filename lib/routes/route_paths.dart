@@ -19,6 +19,7 @@ class RoutePaths {
 
   // Feature routes
   static const String profile = '/profile';
+  static const String digitalGarden = '/garden';
   static const String editProfile = '/profile/edit';
   static const String followers = '/profile/followers';
   static const String circles = '/circles';

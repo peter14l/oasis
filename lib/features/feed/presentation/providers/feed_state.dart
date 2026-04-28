@@ -8,6 +8,7 @@ class FeedState {
   final String? error;
   final int offset;
   final bool hasMore;
+  final Post? memoryLanePost;
 
   const FeedState({
     this.posts = const [],
@@ -16,6 +17,7 @@ class FeedState {
     this.error,
     this.offset = 0,
     this.hasMore = true,
+    this.memoryLanePost,
   });
 
   FeedState copyWith({
@@ -25,6 +27,7 @@ class FeedState {
     String? error,
     int? offset,
     bool? hasMore,
+    Post? memoryLanePost,
   }) {
     return FeedState(
       posts: posts ?? this.posts,
@@ -33,6 +36,7 @@ class FeedState {
       error: error,
       offset: offset ?? this.offset,
       hasMore: hasMore ?? this.hasMore,
+      memoryLanePost: memoryLanePost ?? this.memoryLanePost,
     );
   }
 }

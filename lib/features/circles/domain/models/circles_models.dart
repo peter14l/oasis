@@ -165,6 +165,8 @@ class CircleEntity {
   final DateTime createdAt;
   final int streakCount;
   final List<String> memberIds;
+  final bool isTrustCircle;
+  final double warmthScore;
 
   const CircleEntity({
     required this.id,
@@ -174,6 +176,8 @@ class CircleEntity {
     required this.createdAt,
     this.streakCount = 0,
     required this.memberIds,
+    this.isTrustCircle = false,
+    this.warmthScore = 0.5,
   });
 
   factory CircleEntity.fromJson(Map<String, dynamic> json) {
@@ -189,6 +193,8 @@ class CircleEntity {
               ?.map((e) => e as String)
               .toList() ??
           [],
+      isTrustCircle: json['is_trust_circle'] as bool? ?? false,
+      warmthScore: (json['warmth_score'] as num?)?.toDouble() ?? 0.5,
     );
   }
 
@@ -201,6 +207,8 @@ class CircleEntity {
       'created_at': createdAt.toIso8601String(),
       'streak_count': streakCount,
       'member_ids': memberIds,
+      'is_trust_circle': isTrustCircle,
+      'warmth_score': warmthScore,
     };
   }
 
@@ -212,6 +220,8 @@ class CircleEntity {
     DateTime? createdAt,
     int? streakCount,
     List<String>? memberIds,
+    bool? isTrustCircle,
+    double? warmthScore,
   }) {
     return CircleEntity(
       id: id ?? this.id,
@@ -221,6 +231,8 @@ class CircleEntity {
       createdAt: createdAt ?? this.createdAt,
       streakCount: streakCount ?? this.streakCount,
       memberIds: memberIds ?? this.memberIds,
+      isTrustCircle: isTrustCircle ?? this.isTrustCircle,
+      warmthScore: warmthScore ?? this.warmthScore,
     );
   }
 

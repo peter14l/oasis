@@ -491,6 +491,33 @@ class ProfileProvider with ChangeNotifier {
     }
   }
 
+  Future<void> updateHomeBase({
+    required String userId,
+    String? theme,
+    List<dynamic>? pinnedItems,
+  }) async {
+    try {
+      await _profileRepository.updateHomeBase(
+        userId: userId,
+        theme: theme,
+        pinnedItems: pinnedItems,
+      );
+
+      if (_state.currentProfile != null) {
+        _state = _state.copyWith(
+          currentProfile: _state.currentProfile!.copyWith(
+            homeTheme: theme,
+            pinnedItems: pinnedItems,
+          ),
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[ProfileProvider] Error updating home base: $e');
+      rethrow;
+    }
+  }
+
   void clearViewedProfile() {
     _state = _state.copyWith(viewedProfile: null, isFollowing: false);
     notifyListeners();

@@ -13,7 +13,7 @@ class CircleRemoteDatasource {
     try {
       final response = await _supabase
           .from('circle_members')
-          .select('circle_id, circles(*, circle_members(user_id))')
+          .select('circle_id, circles(*, circle_members(user_id), is_trust_circle)')
           .eq('user_id', userId)
           .order('created_at', referencedTable: 'circles', ascending: false);
 
@@ -32,12 +32,21 @@ class CircleRemoteDatasource {
     }
   }
 
+  Future<void> setTrustCircle(String circleId) async {
+    try {
+      await _supabase.rpc('set_trust_circle', params: {'p_community_id': circleId});
+    } catch (e) {
+      debugPrint('[CircleRemoteDatasource] setTrustCircle error: $e');
+      rethrow;
+    }
+  }
+
   Future<Map<String, dynamic>> getCircle(String circleId) async {
     try {
       final response =
           await _supabase
               .from('circles')
-              .select('*, circle_members(user_id)')
+              .select('*, circle_members(user_id), is_trust_circle')
               .eq('id', circleId)
               .single();
 

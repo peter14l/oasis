@@ -11,6 +11,7 @@ import 'package:oasis/features/circles/presentation/widgets/circles/streak_banne
 import 'package:oasis/features/circles/presentation/widgets/circles/commitment_card.dart';
 import 'package:oasis/widgets/share_sheet.dart';
 import 'package:oasis/features/circles/presentation/widgets/circles/shattering_glass_animation.dart';
+import 'package:oasis/features/circles/presentation/widgets/circles/circle_warmth_indicator.dart';
 import 'package:oasis/widgets/fluid_mesh_background.dart';
 import 'package:oasis/services/app_initializer.dart';
 
@@ -175,13 +176,49 @@ class _CircleDetailScreenState extends State<CircleDetailScreen>
                           icon: const Icon(
                             FluentIcons.more_vertical_24_regular,
                           ),
-                          onSelected: (value) {
+                          onSelected: (value) async {
                             if (value == 'delete') {
                               _confirmDeleteCircle();
+                            } else if (value == 'trust') {
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text(circle?.isTrustCircle == true ? 'Remove Trust Status?' : 'Mark as Trust Circle?'),
+                                  content: Text(circle?.isTrustCircle == true 
+                                    ? 'This will remove the special status from this circle.'
+                                    : 'A Trust Circle is your inner sanctum. Messages never disappear, and you get priority notifications. You can only have ONE Trust Circle.'),
+                                  actions: [
+                                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, true),
+                                      child: Text(circle?.isTrustCircle == true ? 'Remove' : 'Set as Trust'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirmed == true && mounted) {
+                                await context.read<CircleProvider>().setTrustCircle(circle!.id, _currentUserId);
+                              }
                             }
                           },
                           itemBuilder:
                               (context) => [
+                                PopupMenuItem(
+                                  value: 'trust',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        circle?.isTrustCircle == true ? Icons.favorite : Icons.favorite_border,
+                                        color: colorScheme.primary,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        circle?.isTrustCircle == true ? 'Remove Trust Circle' : 'Mark as Trust Circle',
+                                      ),
+                                    ],
+                                  ),
+                                ),
                                 PopupMenuItem(
                                   value: 'delete',
                                   child: Row(
@@ -238,6 +275,14 @@ class _CircleDetailScreenState extends State<CircleDetailScreen>
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          if (circle?.isTrustCircle == true) ...[
+                            const SizedBox(width: 6),
+                            Icon(Icons.favorite, color: colorScheme.primary, size: isM3E ? 18 : 16),
+                          ],
+                          if (circle != null) ...[
+                            const SizedBox(width: 12),
+                            CircleWarmthIndicator(score: circle.warmthScore, size: isM3E ? 20 : 18),
+                          ],
                         ],
                       ),
                       background: Stack(

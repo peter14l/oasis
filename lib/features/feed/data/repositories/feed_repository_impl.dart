@@ -71,6 +71,15 @@ class FeedRepositoryImpl implements FeedRepository {
         );
   }
 
+  @override
+  Future<Post?> getMemoryLanePost({required String userId}) async {
+    final rawPost = await _remoteDatasource.getMemoryLanePost(userId: userId);
+    if (rawPost != null) {
+      return Post.fromJson(rawPost);
+    }
+    return null;
+  }
+
   /// Inject ad posts every 5th position for non-Pro users.
   List<Post> _injectAdsIfFreeUser(List<Post> posts) {
     final isPro = SubscriptionService().isPro;

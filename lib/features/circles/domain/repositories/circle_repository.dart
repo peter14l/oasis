@@ -47,4 +47,6 @@ abstract class CircleRepository {
     required String circleId,
     DateTime? date,
   });
+
+  Future<void> setTrustCircle(String circleId);
 }

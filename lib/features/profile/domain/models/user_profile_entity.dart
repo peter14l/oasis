@@ -35,6 +35,8 @@ class UserProfileEntity {
   final String? moodEmoji;
   final bool fortressMode;
   final String? fortressMessage;
+  final String? homeTheme;
+  final List<dynamic>? pinnedItems;
   final DateTime createdAt;
 
   String get displayName => (fullName != null && fullName!.isNotEmpty) ? fullName! : username;
@@ -80,6 +82,8 @@ class UserProfileEntity {
     this.moodEmoji,
     this.fortressMode = false,
     this.fortressMessage,
+    this.homeTheme = 'default',
+    this.pinnedItems = const [],
     required this.createdAt,
   });
 
@@ -125,6 +129,8 @@ class UserProfileEntity {
       moodEmoji: json['mood_emoji'] as String?,
       fortressMode: json['fortress_mode'] as bool? ?? false,
       fortressMessage: json['fortress_message'] as String?,
+      homeTheme: json['home_theme'] as String? ?? 'default',
+      pinnedItems: json['pinned_items'] as List<dynamic>? ?? [],
       createdAt:
           json['created_at'] != null
               ? DateTime.parse(json['created_at'] as String)
@@ -170,6 +176,8 @@ class UserProfileEntity {
       'mood_emoji': moodEmoji,
       'fortress_mode': fortressMode,
       'fortress_message': fortressMessage,
+      'home_theme': homeTheme,
+      'pinned_items': pinnedItems,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -211,6 +219,8 @@ class UserProfileEntity {
     String? moodEmoji,
     bool? fortressMode,
     String? fortressMessage,
+    String? homeTheme,
+    List<dynamic>? pinnedItems,
     DateTime? createdAt,
   }) {
     return UserProfileEntity(
@@ -250,6 +260,8 @@ class UserProfileEntity {
       moodEmoji: moodEmoji ?? this.moodEmoji,
       fortressMode: fortressMode ?? this.fortressMode,
       fortressMessage: fortressMessage ?? this.fortressMessage,
+      homeTheme: homeTheme ?? this.homeTheme,
+      pinnedItems: pinnedItems ?? this.pinnedItems,
       createdAt: createdAt ?? this.createdAt,
     );
   }

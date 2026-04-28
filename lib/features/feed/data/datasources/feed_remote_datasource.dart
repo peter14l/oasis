@@ -127,4 +127,71 @@ class FeedRemoteDatasource {
           return <Map<String, dynamic>>[];
         });
   }
+
+  /// Get a single post from approximately 1 year ago for the user.
+  Future<Map<String, dynamic>?> getMemoryLanePost({required String userId}) async {
+    try {
+      final now = DateTime.now();
+      final oneYearAgo = now.subtract(const Duration(days: 365));
+      final startDate = oneYearAgo.subtract(const Duration(days: 2)).toIso8601String();
+      final endDate = oneYearAgo.add(const Duration(days: 2)).toIso8601String();
+
+      // For simplicity we use the existing view or table
+      // It's better to use RPC to get the joined data, but we can also just fetch from the table
+      // and map it correctly. The `posts_with_stats` view is ideal if it exists, otherwise `posts`
+      final response = await _supabase
+          .from('posts_with_stats') // Assuming this view exists, fallback to standard posts query if not
+          .select('*')
+          .eq('user_id', userId)
+          .gte('created_at', startDate)
+          .lte('created_at', endDate)
+          .order('likes_count', ascending: false) // Get their most liked post from that window
+          .limit(1)
+          .maybeSingle();
+
+      if (response != null) {
+        final hydrated = await _hydratePolls([response]);
+        return hydrated.first;
+      }
+      return null;
+    } catch (e) {
+      // If `posts_with_stats` doesn't exist, we fallback to just `posts`
+      debugPrint('[FeedRemoteDatasource] Memory Lane view error: $e, falling back to basic posts table');
+      try {
+        final now = DateTime.now();
+        final oneYearAgo = now.subtract(const Duration(days: 365));
+        final startDate = oneYearAgo.subtract(const Duration(days: 2)).toIso8601String();
+        final endDate = oneYearAgo.add(const Duration(days: 2)).toIso8601String();
+
+        final response = await _supabase
+            .from(SupabaseConfig.postsTable)
+            .select('*, profiles(username, avatar_url, full_name, is_verified, is_pro)')
+            .eq('user_id', userId)
+            .gte('created_at', startDate)
+            .lte('created_at', endDate)
+            .limit(1)
+            .maybeSingle();
+
+        if (response != null) {
+          final map = Map<String, dynamic>.from(response);
+          if (map['profiles'] != null) {
+             map['username'] = map['profiles']['username'];
+             map['user_avatar'] = map['profiles']['avatar_url'];
+             map['full_name'] = map['profiles']['full_name'];
+             map['is_verified'] = map['profiles']['is_verified'];
+             map['is_pro'] = map['profiles']['is_pro'];
+          }
+          // We need comments/likes count, but it's okay if they are 0 for the memory lane preview
+          map['likes_count'] = 0;
+          map['comments_count'] = 0;
+
+          final hydrated = await _hydratePolls([map]);
+          return hydrated.first;
+        }
+      } catch (innerError) {
+        debugPrint('[FeedRemoteDatasource] Memory Lane fallback error: $innerError');
+      }
+      return null;
+    }
+  }
 }

@@ -245,4 +245,17 @@ class ProfileRepositoryImpl implements ProfileRepository {
       visible: visible,
     );
   }
+
+  @override
+  Future<void> updateHomeBase({
+    required String userId,
+    String? theme,
+    List<dynamic>? pinnedItems,
+  }) async {
+    await _remoteDatasource.updateHomeBase(
+      userId: userId,
+      theme: theme,
+      pinnedItems: pinnedItems,
+    );
+  }
 }

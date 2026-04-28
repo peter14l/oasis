@@ -68,6 +68,7 @@ import 'package:oasis/features/feed/presentation/screens/post_details_screen.dar
 import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../features/profile/presentation/screens/followers_screen.dart';
+import '../features/profile/presentation/screens/home_base_screen.dart';
 import '../screens/legal/privacy_policy_screen.dart';
 import '../screens/legal/terms_of_service_screen.dart';
 import '../features/auth/presentation/screens/onboarding_screen.dart';
@@ -77,7 +78,6 @@ import '../features/capsules/presentation/screens/capule_list_screen.dart';
 import '../features/circles/presentation/screens/circle_join_screen.dart';
 import 'package:oasis/features/ripples/presentation/screens/ripples_screen.dart';
 import 'package:oasis/features/ripples/presentation/screens/create_ripple_screen.dart';
-import '../screens/oasis_pro_screen.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 
@@ -141,7 +141,7 @@ class MainLayout extends StatefulWidget {
 
 class _MainLayoutState extends State<MainLayout> {
   /// Routes that are locked when the collaboration kill-switch or focus mode is active.
-  static const _restrictedRoutes = {'/feed', '/search'};
+  static const _restrictedRoutes = {'/spaces', '/search'};
   bool _isRailExtended = false;
   bool _isPrivacyBlurActive = false;
   EncryptionStatus? _encryptionStatus;
@@ -181,22 +181,22 @@ class _MainLayoutState extends State<MainLayout> {
   int _getCurrentIndex() {
     final location = GoRouterState.of(context).uri.path;
 
-    // Canvas/Spaces tab
+    // Spaces tab
     if (location.startsWith('/spaces') ||
         location.startsWith('/circles') ||
         location.startsWith('/communities') ||
         location.startsWith('/canvas')) {
       return 0;
     }
-    // Vault tab (capsules)
-    if (location.startsWith('/capsule') || location.startsWith('/vault')) {
+    // Vault tab
+    if (location.startsWith('/vault')) {
       return 1;
     }
     // Messages tab
     if (location.startsWith('/messages')) {
       return 2;
     }
-    // Profile/Settings combined tab
+    // Profile tab
     if (location.startsWith('/profile') || location.startsWith('/settings')) {
       return 3;
     }
@@ -324,18 +324,13 @@ class _MainLayoutState extends State<MainLayout> {
                       : fluent.PaneDisplayMode.compact,
               items: [
                 fluent.PaneItem(
-                  icon: const Icon(FluentIcons.home_24_regular),
-                  title: const Text('Feed'),
-                  body: contentWithPanels,
-                ),
-                fluent.PaneItem(
-                  icon: const Icon(FluentIcons.search_24_regular),
-                  title: const Text('Search'),
-                  body: contentWithPanels,
-                ),
-                fluent.PaneItem(
                   icon: const Icon(FluentIcons.channel_24_regular),
                   title: const Text('Spaces'),
+                  body: contentWithPanels,
+                ),
+                fluent.PaneItem(
+                  icon: const Icon(FluentIcons.box_24_regular),
+                  title: const Text('Vault'),
                   body: contentWithPanels,
                 ),
                 fluent.PaneItem(
@@ -343,11 +338,6 @@ class _MainLayoutState extends State<MainLayout> {
                     child: const Icon(FluentIcons.chat_24_regular),
                   ),
                   title: const Text('Messages'),
-                  body: contentWithPanels,
-                ),
-                fluent.PaneItem(
-                  icon: const Icon(FluentIcons.alert_24_regular),
-                  title: const Text('Notifications'),
                   body: contentWithPanels,
                 ),
                 fluent.PaneItem(
@@ -483,16 +473,13 @@ class _MainLayoutState extends State<MainLayout> {
   Widget? _buildFloatingActionButton(
     BuildContext context,
     int currentIndex,
-    ThemeData theme, {
-    required bool killSwitchActive,
-  }) {
+    ThemeData theme,
+  ) {
     final isDesktop = ResponsiveLayout.isDesktop(context);
     if (isDesktop) return null;
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isM3E = themeProvider.isM3EEnabled;
 
-    // Only show FAB on Canvas tab when not in kill-switch mode
-    if (currentIndex == 0 && !killSwitchActive) {
+    // Only show FAB on Spaces tab
+    if (currentIndex == 0) {
       return FloatingActionButton(
         onPressed: () {
           showModalBottomSheet(
@@ -588,9 +575,9 @@ Widget _buildBottomNavigationBar(
       labelBehavior: NavBarM3ELabelBehavior.alwaysShow,
       destinations: [
         const NavigationDestinationM3E(
-          icon: Icon(FluentIcons.home_24_regular),
-          selectedIcon: Icon(FluentIcons.home_24_filled),
-          label: 'Canvas',
+          icon: Icon(FluentIcons.channel_24_regular),
+          selectedIcon: Icon(FluentIcons.channel_24_filled),
+          label: 'Spaces',
         ),
         const NavigationDestinationM3E(
           icon: Icon(FluentIcons.box_24_regular),
@@ -897,12 +884,9 @@ Widget _buildBottomNavigationBar(
     );
   }
 
-  void _onDestinationSelected(int index, {bool killSwitchActive = false}) {
-    // Block interaction with restricted areas when kill-switch is active.
-    final isDesktop = ResponsiveLayout.isDesktop(context);
-
-    if (isDesktop) {
-      // Close active panel if navigating
+  void _onDestinationSelected(int index) {
+    // Close active panel if navigating
+    if (ResponsiveLayout.isDesktop(context)) {
       if (_activePanel != null) {
         setState(() {
           _activePanel = null;
@@ -910,13 +894,13 @@ Widget _buildBottomNavigationBar(
       }
     }
 
-    // 4-tab layout: Canvas(0), Vault(1), Messages(2), Profile(3)
+    // 4-tab layout: Spaces(0), Vault(1), Messages(2), Profile(3)
     switch (index) {
       case 0:
-        context.go('/spaces'); // Canvas/Spaces
+        context.go('/spaces');
         break;
       case 1:
-        context.go('/vault'); // Vault - list capsules
+        context.go('/vault');
         break;
       case 2:
         context.go('/messages');
@@ -927,6 +911,8 @@ Widget _buildBottomNavigationBar(
     }
   }
 }
+
+import 'package:oasis/features/wellbeing/presentation/screens/digital_garden_screen.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> rootNavigatorKey =
@@ -985,13 +971,13 @@ class AppRouter {
           return '/login';
         }
 
-        // Authenticated users trying to reach login/register → feed
+        // Authenticated users trying to reach login/register → spaces
         if (isLoggedIn && _isLoginOnlyRoute(state.uri.path)) {
           // Allow if specifically adding a new account
           if (state.uri.queryParameters['add_account'] == 'true') {
             return null;
           }
-          return '/feed';
+          return '/spaces';
         }
 
         return null;
@@ -1039,27 +1025,9 @@ class AppRouter {
 
         // Main App Shell (Tab Navigation)
         ShellRoute(
-          navigatorKey: shellNavigatorKey,
+          navigator_key: shellNavigatorKey,
           builder: (context, state, child) => MainLayout(child: child),
           routes: [
-            // Feed Screen
-            GoRoute(
-              path: '/feed',
-              name: 'feed',
-              pageBuilder:
-                  (context, state) =>
-                      const NoTransitionPage(child: FeedScreen()),
-            ),
-
-            // Search Screen
-            GoRoute(
-              path: '/search',
-              name: 'search',
-              pageBuilder:
-                  (context, state) =>
-                      const NoTransitionPage(child: SearchScreen()),
-            ),
-
             // Communities Screen
             GoRoute(
               path: '/spaces',
@@ -1204,6 +1172,15 @@ class AppRouter {
               pageBuilder:
                   (context, state) =>
                       const NoTransitionPage(child: ProfileScreen()),
+            ),
+            
+            // Digital Garden
+            GoRoute(
+              path: '/garden',
+              name: 'digital_garden',
+              pageBuilder:
+                  (context, state) =>
+                      const NoTransitionPage(child: DigitalGardenScreen()),
             ),
           ],
         ),
@@ -1570,6 +1547,15 @@ class AppRouter {
               key: state.pageKey,
               child: ProfileScreen(userId: userId),
             );
+          },
+        ),
+
+        GoRoute(
+          path: '/profile/:userId/home',
+          name: 'home_base',
+          builder: (context, state) {
+            final userId = state.pathParameters['userId']!;
+            return HomeBaseScreen(userId: userId);
           },
         ),
 

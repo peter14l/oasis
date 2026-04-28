@@ -9,6 +9,8 @@ import 'package:oasis/features/capsules/presentation/widgets/capsule_carousel.da
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
 
+import 'package:oasis/features/feed/presentation/widgets/memory_lane_card.dart';
+
 class ClassicFeedLayout extends StatelessWidget {
   final ScrollController scrollController;
   final Future<void> Function() onRefresh;
@@ -77,6 +79,21 @@ class ClassicFeedLayout extends StatelessWidget {
               padding: EdgeInsets.symmetric(vertical: 8),
               child: CapsuleCarousel(),
             ),
+          ),
+
+          Consumer<FeedProvider>(
+            builder: (context, provider, _) {
+              final memoryPost = provider.state.memoryLanePost;
+              if (memoryPost != null) {
+                return SliverToBoxAdapter(
+                  child: MemoryLaneCard(
+                    post: memoryPost,
+                    onDismiss: () => provider.dismissMemoryLane(),
+                  ),
+                );
+              }
+              return const SliverToBoxAdapter(child: SizedBox.shrink());
+            },
           ),
 
           Consumer<FeedProvider>(

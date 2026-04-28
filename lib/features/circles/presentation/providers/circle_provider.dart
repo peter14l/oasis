@@ -244,4 +244,27 @@ class CircleProvider with ChangeNotifier {
     _realtimeSubscription?.cancel();
     super.dispose();
   }
+
+  Future<void> setTrustCircle(String circleId, String userId) async {
+    _state = _state.copyWith(isLoading: true, error: null);
+    notifyListeners();
+
+    try {
+      await _repository.setTrustCircle(circleId);
+      // Reload circles to reflect the change (one circle becomes trust, others lose it)
+      await loadCircles(userId, forceRefresh: true);
+      
+      // Update active circle if it's the one we just changed
+      if (_state.activeCircle?.id == circleId) {
+        final updated = _state.circles.firstWhere((c) => c.id == circleId);
+        _state = _state.copyWith(activeCircle: updated);
+      }
+    } catch (e) {
+      _state = _state.copyWith(error: e.toString());
+      debugPrint('[CircleProvider] Error setting trust circle: $e');
+    } finally {
+      _state = _state.copyWith(isLoading: false);
+      notifyListeners();
+    }
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/features/circles/domain/models/circles_models.dart';
+import 'package:oasis/features/circles/presentation/widgets/circles/circle_warmth_indicator.dart';
 
 import 'package:oasis/services/app_initializer.dart'; // For ThemeProvider
 import 'package:provider/provider.dart';
@@ -67,17 +68,29 @@ class CircleListCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 // Circle name
-                Text(
-                  circle.name,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
-                    letterSpacing: isM3E ? -0.5 : 0,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        circle.name,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                          letterSpacing: isM3E ? -0.5 : 0,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (circle.isTrustCircle)
+                      Icon(
+                        Icons.favorite,
+                        size: 16,
+                        color: theme.colorScheme.primary,
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 8),
-                // Member count
+                // Member count & Warmth
                 Row(
                   children: [
                     Icon(
@@ -94,6 +107,8 @@ class CircleListCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const Spacer(),
+                    CircleWarmthIndicator(score: circle.warmthScore, size: 18),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -179,12 +194,27 @@ class CircleListCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      circle.name,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
-                        letterSpacing: isM3E ? -0.5 : 0,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            circle.name,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: isM3E ? FontWeight.w900 : FontWeight.bold,
+                              letterSpacing: isM3E ? -0.5 : 0,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (circle.isTrustCircle) ...[
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.favorite,
+                            size: 14,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -205,6 +235,8 @@ class CircleListCard extends StatelessWidget {
                             ),
                           ),
                         ),
+                        const SizedBox(width: 8),
+                        CircleWarmthIndicator(score: circle.warmthScore, size: 14),
                       ],
                     ),
                   ],

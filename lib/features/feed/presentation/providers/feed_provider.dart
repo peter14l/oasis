@@ -89,9 +89,18 @@ class FeedProvider with ChangeNotifier {
       );
 
       newPosts = await _injectAds(newPosts);
+      
+      Post? memoryPost;
+      if (refresh || _state.posts.isEmpty) {
+        try {
+          memoryPost = await _feedRepository.getMemoryLanePost(userId: userId);
+        } catch (e) {
+          debugPrint('[FeedProvider] Memory Lane error: $e');
+        }
+      }
 
       if (refresh || _state.posts.isEmpty) {
-        _state = _state.copyWith(posts: newPosts);
+        _state = _state.copyWith(posts: newPosts, memoryLanePost: memoryPost);
         _localDatasource.saveFeed(newPosts.map((e) => e.toJson()).toList());
       } else {
         final existingIds = _state.posts.map((p) => p.id).toSet();
@@ -306,6 +315,11 @@ class FeedProvider with ChangeNotifier {
       }
     }
     _state = _state.copyWith(posts: newPosts);
+    notifyListeners();
+  }
+
+  void dismissMemoryLane() {
+    _state = _state.copyWith(memoryLanePost: null);
     notifyListeners();
   }
 

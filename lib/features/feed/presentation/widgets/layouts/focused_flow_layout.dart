@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis/features/feed/presentation/widgets/post_card.dart';
+import 'package:oasis/features/feed/presentation/widgets/memory_lane_card.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/themes/app_colors.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
@@ -97,14 +98,46 @@ class _FocusedFlowLayoutState extends State<FocusedFlowLayout> {
             PageView.builder(
               controller: _pageController,
               scrollDirection: Axis.vertical,
-              itemCount: posts.length,
+              itemCount: posts.length + (provider.state.memoryLanePost != null ? 1 : 0),
               onPageChanged: (index) {
                 if (index >= posts.length - 2) {
                   // Trigger load more
                 }
               },
               itemBuilder: (context, index) {
-                final post = posts[index];
+                final memoryPost = provider.state.memoryLanePost;
+                final hasMemory = memoryPost != null;
+                
+                if (hasMemory && index == 0) {
+                  double relativePosition = index - _currentPage;
+                  double scale = (1 - (relativePosition.abs() * 0.2)).clamp(0.8, 1.0);
+                  double opacity = (1 - (relativePosition.abs() * 0.5)).clamp(0.4, 1.0);
+
+                  return Center(
+                    child: Opacity(
+                      opacity: opacity,
+                      child: Transform.scale(
+                        scale: scale,
+                        child: Container(
+                          constraints: BoxConstraints(
+                            maxWidth: isDesktop ? 600 : double.infinity,
+                            maxHeight: MediaQuery.of(context).size.height * 0.75,
+                          ),
+                          child: SingleChildScrollView(
+                            physics: const NeverScrollableScrollPhysics(),
+                            child: MemoryLaneCard(
+                              post: memoryPost,
+                              onDismiss: () => provider.dismissMemoryLane(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                final postIndex = hasMemory ? index - 1 : index;
+                final post = posts[postIndex];
                 
                 // Calculate scale and opacity based on distance from current page
                 double relativePosition = index - _currentPage;

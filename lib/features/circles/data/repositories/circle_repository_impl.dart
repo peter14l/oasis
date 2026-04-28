@@ -121,4 +121,9 @@ class CircleRepositoryImpl implements CircleRepository {
               rawList.map((json) => CommitmentEntity.fromJson(json)).toList(),
         );
   }
+
+  @override
+  Future<void> setTrustCircle(String circleId) async {
+    await _remoteDatasource.setTrustCircle(circleId);
+  }
 }
