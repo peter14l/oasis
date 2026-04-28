@@ -317,6 +317,76 @@ class ProfileProvider with ChangeNotifier {
     }
   }
 
+  Future<void> setPulseStatus({
+    required String userId,
+    required String status,
+    String? text,
+  }) async {
+    try {
+      await _profileRepository.setPulseStatus(
+        userId: userId,
+        status: status,
+        text: text,
+      );
+
+      if (_state.currentProfile != null) {
+        _state = _state.copyWith(
+          currentProfile: _state.currentProfile!.copyWith(
+            pulseStatus: status,
+            pulseText: text,
+            pulseSince: DateTime.now(),
+          ),
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[ProfileProvider] Error setting pulse status: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> clearPulseStatus(String userId) async {
+    try {
+      await _profileRepository.clearPulseStatus(userId);
+
+      if (_state.currentProfile != null) {
+        _state = _state.copyWith(
+          currentProfile: _state.currentProfile!.copyWith(
+            pulseStatus: null,
+            pulseText: null,
+            pulseSince: null,
+          ),
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[ProfileProvider] Error clearing pulse status: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> togglePulseVisibility({
+    required String userId,
+    required bool visible,
+  }) async {
+    try {
+      await _profileRepository.togglePulseVisibility(
+        userId: userId,
+        visible: visible,
+      );
+
+      if (_state.currentProfile != null) {
+        _state = _state.copyWith(
+          currentProfile: _state.currentProfile!.copyWith(pulseVisible: visible),
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[ProfileProvider] Error toggling pulse visibility: $e');
+      rethrow;
+    }
+  }
+
   void clearViewedProfile() {
     _state = _state.copyWith(viewedProfile: null, isFollowing: false);
     notifyListeners();

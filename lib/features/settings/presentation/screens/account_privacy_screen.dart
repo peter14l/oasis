@@ -14,6 +14,7 @@ class AccountPrivacyScreen extends StatelessWidget {
     final authService = Provider.of<AuthService>(context, listen: false);
     final user = authService.currentUser;
     final isPrivate = profileProvider.currentProfile?.isPrivate ?? false;
+    final pulseVisible = profileProvider.currentProfile?.pulseVisible ?? true;
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
     final content = ListView(
@@ -46,6 +47,28 @@ class AccountPrivacyScreen extends StatelessWidget {
               'This doesn\'t change who can message you or see your profile information.',
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
+          ),
+          const Divider(),
+          SwitchListTile(
+            title: const Text('Show Pulse Status'),
+            subtitle: const Text(
+              'Let friends see your Check-in Pulse on your profile.',
+            ),
+            value: pulseVisible,
+            onChanged: (value) async {
+              if (user != null) {
+                try {
+                  await profileProvider.togglePulseVisibility(
+                    userId: user.id,
+                    visible: value,
+                  );
+                } catch (e) {
+                  if (context.mounted) {
+                    CustomSnackbar.showError(context, e);
+                  }
+                }
+              }
+            },
           ),
         ],
       );
