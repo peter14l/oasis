@@ -78,12 +78,14 @@ import '../features/capsules/presentation/screens/capule_list_screen.dart';
 import '../features/circles/presentation/screens/circle_join_screen.dart';
 import 'package:oasis/features/ripples/presentation/screens/ripples_screen.dart';
 import 'package:oasis/features/ripples/presentation/screens/create_ripple_screen.dart';
+import 'package:oasis/features/settings/presentation/screens/welcome_wagon_screen.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 
 import 'package:oasis/features/settings/presentation/screens/changelog_screen.dart';
 import 'package:oasis/features/wellbeing/presentation/screens/digital_garden_screen.dart';
 import 'package:oasis/features/auth/presentation/widgets/account_switcher_sheet.dart';
+import 'package:oasis/themes/app_colors.dart';
 
 class UnreadMessagesBadge extends StatelessWidget {
   final Widget child;
@@ -474,10 +476,14 @@ class _MainLayoutState extends State<MainLayout> {
   Widget? _buildFloatingActionButton(
     BuildContext context,
     int currentIndex,
-    ThemeData theme,
-  ) {
+    ThemeData theme, {
+    required bool killSwitchActive,
+  }) {
     final isDesktop = ResponsiveLayout.isDesktop(context);
     if (isDesktop) return null;
+
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isM3E = themeProvider.isM3EEnabled;
 
     // Only show FAB on Spaces tab
     if (currentIndex == 0) {
@@ -885,7 +891,7 @@ Widget _buildBottomNavigationBar(
     );
   }
 
-  void _onDestinationSelected(int index) {
+  void _onDestinationSelected(int index, {bool killSwitchActive = false}) {
     // Close active panel if navigating
     if (ResponsiveLayout.isDesktop(context)) {
       if (_activePanel != null) {
@@ -1024,7 +1030,7 @@ class AppRouter {
 
         // Main App Shell (Tab Navigation)
         ShellRoute(
-          navigator_key: shellNavigatorKey,
+          navigatorKey: shellNavigatorKey,
           builder: (context, state, child) => MainLayout(child: child),
           routes: [
             // Communities Screen

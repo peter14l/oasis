@@ -127,11 +127,11 @@ class MemoryLaneCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (post.mediaUrl != null && post.mediaUrl!.isNotEmpty)
+                          if (post.imageUrl != null && post.imageUrl!.isNotEmpty)
                             ClipRRect(
                               borderRadius: BorderRadius.circular(12),
                               child: CachedNetworkImage(
-                                imageUrl: post.mediaUrl!,
+                                imageUrl: post.imageUrl!,
                                 fit: BoxFit.cover,
                                 width: double.infinity,
                                 height: 160,
@@ -139,11 +139,11 @@ class MemoryLaneCard extends StatelessWidget {
                                     const Icon(Icons.error),
                               ),
                             ),
-                          if (post.mediaUrl != null && post.mediaUrl!.isNotEmpty)
+                          if (post.imageUrl != null && post.imageUrl!.isNotEmpty)
                             const SizedBox(height: 12),
                             
                           Text(
-                            post.content,
+                            post.content ?? '',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               height: 1.4,
                             ),

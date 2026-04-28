@@ -16,6 +16,7 @@ import 'package:oasis/widgets/comments_modal.dart';
 import 'package:oasis/widgets/adaptive/adaptive_scaffold.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:oasis/themes/app_colors.dart';
 import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';

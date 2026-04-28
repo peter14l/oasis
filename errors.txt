@@ -1,0 +1,861 @@
+lib/services/app_initializer.dart:104:3: Error: Type 'Timer' not found.
+  Timer? _timer;
+  ^^^^^
+lib/screens/settings_screen.dart:1428:26: Error: Type 'ColorPalette' not found.
+  String _getPaletteName(ColorPalette palette) {
+                         ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1440:35: Error: Type 'ColorPalette' not found.
+  material.Color _getPaletteColor(ColorPalette palette) {
+                                  ^^^^^^^^^^^^
+lib/main.dart:468:19: Error: The getter 'TimeBasedColors' isn't defined for the type '_MyAppState'.
+ - '_MyAppState' is from 'package:***/main.dart' ('lib/main.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'TimeBasedColors'.
+                : TimeBasedColors.day, // Fallback for light if current is dark
+                  ^^^^^^^^^^^^^^^
+lib/main.dart:474:19: Error: The getter 'TimeBasedColors' isn't defined for the type '_MyAppState'.
+ - '_MyAppState' is from 'package:***/main.dart' ('lib/main.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'TimeBasedColors'.
+                : TimeBasedColors.night, // Fallback for dark if current is light
+                  ^^^^^^^^^^^^^^^
+lib/main.dart:676:10: Error: The getter 'useFluent' isn't defined for the type 'CallNavigator'.
+ - 'CallNavigator' is from 'package:***/main.dart' ('lib/main.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'useFluent'.
+    if (!useFluent) {
+         ^^^^^^^^^
+lib/routes/app_router.dart:263:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/routes/app_router.dart:265:32: Error: The getter 'isM3ETransparencyDisabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3ETransparencyDisabled'.
+        isM3E && themeProvider.isM3ETransparencyDisabled;
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^
+lib/routes/app_router.dart:320:21: Error: No named parameter with the name 'killSwitchActive'.
+                    killSwitchActive: killSwitchActive,
+                    ^^^^^^^^^^^^^^^^
+lib/routes/app_router.dart:421:36: Error: The getter 'OasisColors' isn't defined for the type '_MainLayoutState'.
+ - '_MainLayoutState' is from 'package:***/routes/app_router.dart' ('lib/routes/app_router.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                            color: OasisColors.deep.withValues(alpha: 0.7),
+                                   ^^^^^^^^^^^
+lib/routes/app_router.dart:426:66: Error: The getter 'OasisColors' isn't defined for the type '_MainLayoutState'.
+ - '_MainLayoutState' is from 'package:***/routes/app_router.dart' ('lib/routes/app_router.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                                  Icon(Icons.spa_rounded, color: OasisColors.glow, size: 80),
+                                                                 ^^^^^^^^^^^
+lib/routes/app_router.dart:431:46: Error: The getter 'OasisColors' isn't defined for the type '_MainLayoutState'.
+ - '_MainLayoutState' is from 'package:***/routes/app_router.dart' ('lib/routes/app_router.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                                      color: OasisColors.white,
+                                             ^^^^^^^^^^^
+lib/routes/app_router.dart:440:46: Error: The getter 'OasisColors' isn't defined for the type '_MainLayoutState'.
+ - '_MainLayoutState' is from 'package:***/routes/app_router.dart' ('lib/routes/app_router.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                                      color: OasisColors.mist,
+                                             ^^^^^^^^^^^
+lib/routes/app_router.dart:467:13: Error: No named parameter with the name 'killSwitchActive'.
+            killSwitchActive: killSwitchActive,
+            ^^^^^^^^^^^^^^^^
+lib/routes/app_router.dart:542:20: Error: The getter 'isM3E' isn't defined for the type '_MainLayoutState'.
+ - '_MainLayoutState' is from 'package:***/routes/app_router.dart' ('lib/routes/app_router.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3E'.
+        elevation: isM3E ? 3 : 2,
+                   ^^^^^
+lib/routes/app_router.dart:544:47: Error: The getter 'isM3E' isn't defined for the type '_MainLayoutState'.
+ - '_MainLayoutState' is from 'package:***/routes/app_router.dart' ('lib/routes/app_router.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3E'.
+          borderRadius: BorderRadius.circular(isM3E ? 16 : 28),
+                                              ^^^^^
+lib/routes/app_router.dart:564:23: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+        themeProvider.isM3EEnabled && themeProvider.isM3ETransparencyDisabled;
+                      ^^^^^^^^^^^^
+lib/routes/app_router.dart:564:53: Error: The getter 'isM3ETransparencyDisabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3ETransparencyDisabled'.
+        themeProvider.isM3EEnabled && themeProvider.isM3ETransparencyDisabled;
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+lib/routes/app_router.dart:575:44: Error: No named parameter with the name 'killSwitchActive'.
+          (i) => _onDestinationSelected(i, killSwitchActive: killSwitchActive),
+                                           ^^^^^^^^^^^^^^^^
+lib/routes/app_router.dart:650:44: Error: No named parameter with the name 'killSwitchActive'.
+          (i) => _onDestinationSelected(i, killSwitchActive: killSwitchActive),
+                                           ^^^^^^^^^^^^^^^^
+lib/routes/app_router.dart:1027:11: Error: No named parameter with the name 'navigator_key'.
+          navigator_key: shellNavigatorKey,
+          ^^^^^^^^^^^^^
+../../../.pub-cache/hosted/pub.dev/go_router-13.2.5/lib/src/route.dart:624:3: Context: Found this candidate, but the arguments don't match.
+  ShellRoute({
+  ^^^^^^^^^^
+lib/routes/app_router.dart:1418:30: Error: Couldn't find constructor 'WelcomeWagonScreen'.
+                child: const WelcomeWagonScreen(),
+                             ^^^^^^^^^^^^^^^^^^
+lib/services/app_initializer.dart:103:36: Error: Undefined name 'TimeBasedColors'.
+  ColorScheme _currentTimeScheme = TimeBasedColors.getSchemeForTime(DateTime.now());
+                                   ^^^^^^^^^^^^^^^
+lib/services/app_initializer.dart:104:3: Error: 'Timer' isn't a type.
+  Timer? _timer;
+  ^^^^^
+lib/services/app_initializer.dart:119:14: Error: The getter 'Timer' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'Timer'.
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+             ^^^^^
+lib/services/app_initializer.dart:120:25: Error: The getter 'TimeBasedColors' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'TimeBasedColors'.
+      final newScheme = TimeBasedColors.getSchemeForTime(DateTime.now());
+                        ^^^^^^^^^^^^^^^
+lib/services/app_initializer.dart:139:26: Error: The getter 'TimeBasedColors' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'TimeBasedColors'.
+    _currentTimeScheme = TimeBasedColors.getSchemeForTime(DateTime.now());
+                         ^^^^^^^^^^^^^^^
+lib/themes/app_theme.dart:36:18: Error: The argument type 'CardTheme' can't be assigned to the parameter type 'CardThemeData?'.
+ - 'CardTheme' is from 'package:flutter/src/material/card_theme.dart' ('/opt/hostedtoolcache/flutter/stable-3.41.8-x64/flutter/packages/flutter/lib/src/material/card_theme.dart').
+ - 'CardThemeData' is from 'package:flutter/src/material/card_theme.dart' ('/opt/hostedtoolcache/flutter/stable-3.41.8-x64/flutter/packages/flutter/lib/src/material/card_theme.dart').
+      cardTheme: CardTheme(
+                 ^
+lib/themes/fluent_theme.dart:50:36: Error: Member not found: 'onBackground'.
+        color: isDark ? DarkColors.onBackground : LightColors.onBackground,
+                                   ^^^^^^^^^^^^
+lib/themes/fluent_theme.dart:50:63: Error: Member not found: 'onBackground'.
+        color: isDark ? DarkColors.onBackground : LightColors.onBackground,
+                                                              ^^^^^^^^^^^^
+lib/themes/fluent_theme.dart:55:36: Error: Member not found: 'surface'.
+            ? (isDark ? DarkColors.surface.withValues(alpha: 0.7) : LightColors.surface.withValues(alpha: 0.7))
+                                   ^^^^^^^
+lib/themes/fluent_theme.dart:55:81: Error: Member not found: 'surface'.
+            ? (isDark ? DarkColors.surface.withValues(alpha: 0.7) : LightColors.surface.withValues(alpha: 0.7))
+                                                                                ^^^^^^^
+lib/themes/fluent_theme.dart:56:36: Error: Member not found: 'surface'.
+            : (isDark ? DarkColors.surface : LightColors.surface),
+                                   ^^^^^^^
+lib/themes/fluent_theme.dart:56:58: Error: Member not found: 'surface'.
+            : (isDark ? DarkColors.surface : LightColors.surface),
+                                                         ^^^^^^^
+lib/themes/fluent_theme.dart:64:31: Error: Member not found: 'hint'.
+          isDark ? DarkColors.hint : LightColors.hint,
+                              ^^^^
+lib/themes/fluent_theme.dart:64:50: Error: Member not found: 'hint'.
+          isDark ? DarkColors.hint : LightColors.hint,
+                                                 ^^^^
+lib/screens/spaces/spaces_screen.dart:46:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/circles/presentation/screens/circle_detail_screen.dart:121:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/messages/presentation/screens/direct_messages_screen.dart:379:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/messages/presentation/screens/direct_messages_screen.dart:380:47: Error: The getter 'isM3ETransparencyDisabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3ETransparencyDisabled'.
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+lib/features/messages/presentation/screens/direct_messages_screen.dart:560:47: Error: The getter 'isM3ETransparencyDisabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3ETransparencyDisabled'.
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+lib/features/messages/presentation/screens/direct_messages_screen.dart:704:37: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+        final isM3E = themeProvider.isM3EEnabled;
+                                    ^^^^^^^^^^^^
+lib/features/notifications/presentation/screens/notifications_screen.dart:178:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:90:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:499:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:932:31: Error: 'ColorPalette' isn't a type.
+            ? fluent.ComboBox<ColorPalette>(
+                              ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:947:39: Error: 'ColorPalette' isn't a type.
+            : material.DropdownButton<ColorPalette>(
+                                      ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:869:40: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+                if (v && themeProvider.isM3EEnabled) themeProvider.setM3EEnabled(false);
+                                       ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:869:68: Error: The method 'setM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing method, or defining a method named 'setM3EEnabled'.
+                if (v && themeProvider.isM3EEnabled) themeProvider.setM3EEnabled(false);
+                                                                   ^^^^^^^^^^^^^
+lib/screens/settings_screen.dart:876:40: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+                if (v && themeProvider.isM3EEnabled) {
+                                       ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:877:33: Error: The method 'setM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing method, or defining a method named 'setM3EEnabled'.
+                  themeProvider.setM3EEnabled(false);
+                                ^^^^^^^^^^^^^
+lib/screens/settings_screen.dart:891:38: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+              checked: themeProvider.isM3EEnabled,
+                                     ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:894:31: Error: The method 'setM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing method, or defining a method named 'setM3EEnabled'.
+                themeProvider.setM3EEnabled(v);
+                              ^^^^^^^^^^^^^
+lib/screens/settings_screen.dart:898:36: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+              value: themeProvider.isM3EEnabled,
+                                   ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:903:31: Error: The method 'setM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing method, or defining a method named 'setM3EEnabled'.
+                themeProvider.setM3EEnabled(v);
+                              ^^^^^^^^^^^^^
+lib/screens/settings_screen.dart:907:25: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+      if (themeProvider.isM3EEnabled)
+                        ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:916:40: Error: The getter 'useMaterialYou' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'useMaterialYou'.
+                checked: themeProvider.useMaterialYou,
+                                       ^^^^^^^^^^^^^^
+lib/screens/settings_screen.dart:917:49: Error: The method 'setMaterialYou' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing method, or defining a method named 'setMaterialYou'.
+                onChanged: (v) => themeProvider.setMaterialYou(v),
+                                                ^^^^^^^^^^^^^^
+lib/screens/settings_screen.dart:920:38: Error: The getter 'useMaterialYou' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'useMaterialYou'.
+                value: themeProvider.useMaterialYou,
+                                     ^^^^^^^^^^^^^^
+lib/screens/settings_screen.dart:921:49: Error: The method 'setMaterialYou' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing method, or defining a method named 'setMaterialYou'.
+                onChanged: (v) => themeProvider.setMaterialYou(v),
+                                                ^^^^^^^^^^^^^^
+lib/screens/settings_screen.dart:924:25: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+      if (themeProvider.isM3EEnabled && !themeProvider.useMaterialYou)
+                        ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:924:56: Error: The getter 'useMaterialYou' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'useMaterialYou'.
+      if (themeProvider.isM3EEnabled && !themeProvider.useMaterialYou)
+                                                       ^^^^^^^^^^^^^^
+lib/screens/settings_screen.dart:929:51: Error: The getter 'colorPalette' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'colorPalette'.
+          subtitle: _getPaletteName(themeProvider.colorPalette),
+                                                  ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:930:53: Error: The getter 'colorPalette' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'colorPalette'.
+          iconColor: _getPaletteColor(themeProvider.colorPalette),
+                                                    ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:933:38: Error: The getter 'colorPalette' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'colorPalette'.
+                value: themeProvider.colorPalette,
+                                     ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:935:24: Error: The getter 'ColorPalette' isn't defined for the type '_SettingsScreenState'.
+ - '_SettingsScreenState' is from 'package:***/screens/settings_screen.dart' ('lib/screens/settings_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'ColorPalette'.
+                items: ColorPalette.values.map((p) => fluent.ComboBoxItem(
+                       ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:934:61: Error: The method 'setColorPalette' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing method, or defining a method named 'setColorPalette'.
+                onChanged: (p) => p != null ? themeProvider.setColorPalette(p) : null,
+                                                            ^^^^^^^^^^^^^^^
+lib/screens/settings_screen.dart:948:38: Error: The getter 'colorPalette' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'colorPalette'.
+                value: themeProvider.colorPalette,
+                                     ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:956:24: Error: The getter 'ColorPalette' isn't defined for the type '_SettingsScreenState'.
+ - '_SettingsScreenState' is from 'package:***/screens/settings_screen.dart' ('lib/screens/settings_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'ColorPalette'.
+                items: ColorPalette.values.map((palette) {
+                       ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:953:35: Error: The method 'setColorPalette' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing method, or defining a method named 'setColorPalette'.
+                    themeProvider.setColorPalette(palette);
+                                  ^^^^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1237:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1238:47: Error: The getter 'isM3ETransparencyDisabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3ETransparencyDisabled'.
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1299:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1428:26: Error: 'ColorPalette' isn't a type.
+  String _getPaletteName(ColorPalette palette) {
+                         ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1430:12: Error: Not a constant expression.
+      case ColorPalette.none: return 'None (Default)';
+           ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1431:12: Error: Not a constant expression.
+      case ColorPalette.emerald: return 'Emerald';
+           ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1432:12: Error: Not a constant expression.
+      case ColorPalette.ocean: return 'Ocean';
+           ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1433:12: Error: Not a constant expression.
+      case ColorPalette.sunset: return 'Sunset';
+           ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1434:12: Error: Not a constant expression.
+      case ColorPalette.lavender: return 'Lavender';
+           ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1435:12: Error: Not a constant expression.
+      case ColorPalette.rose: return 'Rose';
+           ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1436:12: Error: Not a constant expression.
+      case ColorPalette.teal: return 'Teal';
+           ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1428:10: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+  String _getPaletteName(ColorPalette palette) {
+         ^
+lib/screens/settings_screen.dart:1440:35: Error: 'ColorPalette' isn't a type.
+  material.Color _getPaletteColor(ColorPalette palette) {
+                                  ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1442:12: Error: Not a constant expression.
+      case ColorPalette.none: return material.Colors.grey;
+           ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1443:12: Error: Not a constant expression.
+      case ColorPalette.emerald: return const material.Color(0xFF1C6758);
+           ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1444:12: Error: Not a constant expression.
+      case ColorPalette.ocean: return const material.Color(0xFF0D47A1);
+           ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1445:12: Error: Not a constant expression.
+      case ColorPalette.sunset: return const material.Color(0xFFE65100);
+           ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1446:12: Error: Not a constant expression.
+      case ColorPalette.lavender: return const material.Color(0xFF7E57C2);
+           ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1447:12: Error: Not a constant expression.
+      case ColorPalette.rose: return const material.Color(0xFFC2185B);
+           ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1448:12: Error: Not a constant expression.
+      case ColorPalette.teal: return const material.Color(0xFF00796B);
+           ^^^^^^^^^^^^
+lib/screens/settings_screen.dart:1440:18: Error: A non-null value must be returned since the return type 'Color' doesn't allow null.
+ - 'Color' is from 'dart:ui'.
+  material.Color _getPaletteColor(ColorPalette palette) {
+                 ^
+lib/features/settings/presentation/screens/delete_account_screen.dart:54:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/profile/presentation/screens/account_management_screen.dart:74:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/profile/presentation/screens/account_management_screen.dart:258:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/profile/presentation/screens/account_management_screen.dart:343:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/profile/presentation/screens/account_management_screen.dart:394:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/story_view_screen.dart:212:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:130:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:889:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:1102:55: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+                          final isM3E = themeProvider.isM3EEnabled;
+                                                      ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:1318:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:1386:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:1803:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:1898:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:1933:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:1976:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:2110:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:2153:55: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
+                                                      ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:2241:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:2288:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:2418:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:2481:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:2541:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/stories/presentation/screens/create_story_screen.dart:2589:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/feed/presentation/screens/feed_screen.dart:381:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/feed/presentation/screens/feed_screen.dart:382:47: Error: The getter 'isM3ETransparencyDisabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3ETransparencyDisabled'.
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+lib/features/feed/presentation/screens/feed_screen.dart:491:18: Error: The getter 'OasisColors' isn't defined for the type '_FeedScreenState'.
+ - '_FeedScreenState' is from 'package:***/features/feed/presentation/screens/feed_screen.dart' ('lib/features/feed/presentation/screens/feed_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+          color: OasisColors.deep.withValues(alpha: 0.9),
+                 ^^^^^^^^^^^
+lib/features/feed/presentation/screens/feed_screen.dart:517:32: Error: The getter 'OasisColors' isn't defined for the type '_FeedScreenState'.
+ - '_FeedScreenState' is from 'package:***/features/feed/presentation/screens/feed_screen.dart' ('lib/features/feed/presentation/screens/feed_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                        color: OasisColors.glow.withValues(alpha: 0.5),
+                               ^^^^^^^^^^^
+lib/features/feed/presentation/screens/feed_screen.dart:522:34: Error: The getter 'OasisColors' isn't defined for the type '_FeedScreenState'.
+ - '_FeedScreenState' is from 'package:***/features/feed/presentation/screens/feed_screen.dart' ('lib/features/feed/presentation/screens/feed_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                          color: OasisColors.glow.withValues(alpha: 0.2),
+                                 ^^^^^^^^^^^
+lib/features/feed/presentation/screens/feed_screen.dart:543:30: Error: The getter 'OasisColors' isn't defined for the type '_FeedScreenState'.
+ - '_FeedScreenState' is from 'package:***/features/feed/presentation/screens/feed_screen.dart' ('lib/features/feed/presentation/screens/feed_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                      color: OasisColors.sand,
+                             ^^^^^^^^^^^
+lib/features/feed/presentation/screens/feed_screen.dart:558:30: Error: The getter 'OasisColors' isn't defined for the type '_FeedScreenState'.
+ - '_FeedScreenState' is from 'package:***/features/feed/presentation/screens/feed_screen.dart' ('lib/features/feed/presentation/screens/feed_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                      color: OasisColors.mist,
+                             ^^^^^^^^^^^
+lib/features/feed/presentation/screens/feed_screen.dart:573:40: Error: The getter 'OasisColors' isn't defined for the type '_FeedScreenState'.
+ - '_FeedScreenState' is from 'package:***/features/feed/presentation/screens/feed_screen.dart' ('lib/features/feed/presentation/screens/feed_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                      foregroundColor: OasisColors.glow,
+                                       ^^^^^^^^^^^
+lib/screens/search_screen.dart:110:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/screens/search_screen.dart:324:59: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+                  ? _buildSearchSuggestions(themeProvider.isM3EEnabled)
+                                                          ^^^^^^^^^^^^
+lib/screens/search_screen.dart:325:56: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+                  : _buildDesktopResults(themeProvider.isM3EEnabled),
+                                                       ^^^^^^^^^^^^
+lib/features/feed/presentation/screens/create_post_screen.dart:255:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/profile/presentation/screens/profile_screen.dart:102:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/profile/presentation/screens/profile_screen.dart:103:47: Error: The getter 'isM3ETransparencyDisabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3ETransparencyDisabled'.
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+lib/features/profile/presentation/screens/profile_screen.dart:283:19: Error: The getter 'FluentIcons' isn't defined for the type '_ProfileScreenState'.
+ - '_ProfileScreenState' is from 'package:***/features/profile/presentation/screens/profile_screen.dart' ('lib/features/profile/presentation/screens/profile_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'FluentIcons'.
+                  FluentIcons.home_24_regular,
+                  ^^^^^^^^^^^
+lib/features/profile/presentation/screens/profile_screen.dart:576:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/profile/presentation/screens/profile_screen.dart:884:12: Error: The method 'BadgeService' isn't defined for the type '_ProfileScreenState'.
+ - '_ProfileScreenState' is from 'package:***/features/profile/presentation/screens/profile_screen.dart' ('lib/features/profile/presentation/screens/profile_screen.dart').
+Try correcting the name to the name of an existing method, or defining a method named 'BadgeService'.
+    return BadgeService().getUserBadges(userId);
+           ^^^^^^^^^^^^
+lib/features/profile/presentation/screens/profile_screen.dart:1100:20: Error: The method 'MoodOrbitWidget' isn't defined for the type '_ProfileScreenState'.
+ - '_ProfileScreenState' is from 'package:***/features/profile/presentation/screens/profile_screen.dart' ('lib/features/profile/presentation/screens/profile_screen.dart').
+Try correcting the name to the name of an existing method, or defining a method named 'MoodOrbitWidget'.
+            child: MoodOrbitWidget(
+                   ^^^^^^^^^^^^^^^
+lib/features/profile/presentation/screens/profile_screen.dart:1554:26: Error: The method 'MoodOrbitWidget' isn't defined for the type '_ProfileScreenState'.
+ - '_ProfileScreenState' is from 'package:***/features/profile/presentation/screens/profile_screen.dart' ('lib/features/profile/presentation/screens/profile_screen.dart').
+Try correcting the name to the name of an existing method, or defining a method named 'MoodOrbitWidget'.
+                  child: MoodOrbitWidget(
+                         ^^^^^^^^^^^^^^^
+lib/features/capsules/presentation/screens/capule_list_screen.dart:55:55: Error: Not a constant expression.
+              child: CircularProgressIndicator(color: OasisColors.glow),
+                                                      ^^^^^^^^^^^
+lib/features/capsules/presentation/screens/capule_list_screen.dart:108:32: Error: The getter 'OasisColors' isn't defined for the type '_CapsuleListScreenState'.
+ - '_CapsuleListScreenState' is from 'package:***/features/capsules/presentation/screens/capule_list_screen.dart' ('lib/features/capsules/presentation/screens/capule_list_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+              backgroundColor: OasisColors.glow,
+                               ^^^^^^^^^^^
+lib/features/ripples/presentation/screens/ripples_screen.dart:114:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/ripples/presentation/screens/ripples_screen.dart:115:47: Error: The getter 'isM3ETransparencyDisabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3ETransparencyDisabled'.
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+lib/features/auth/presentation/widgets/account_switcher_sheet.dart:24:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/auth/presentation/widgets/account_switcher_sheet.dart:25:47: Error: The getter 'isM3ETransparencyDisabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3ETransparencyDisabled'.
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+lib/features/circles/presentation/screens/circles_list_screen.dart:39:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/canvas/presentation/screens/canvas_list_screen.dart:39:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/widgets/desktop_header.dart:37:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/widgets/desktop_header.dart:38:47: Error: The getter 'isM3ETransparencyDisabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3ETransparencyDisabled'.
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+lib/features/messages/presentation/screens/chat_details_screen.dart:1384:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/widgets/custom_text_field.dart:96:55: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
+                                                      ^^^^^^^^^^^^
+lib/widgets/custom_text_field.dart:177:55: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
+                                                      ^^^^^^^^^^^^
+lib/features/settings/presentation/widgets/privacy_transparency_card.dart:177:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/widgets/app_button.dart:48:55: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = Provider.of<ThemeProvider>(context).isM3EEnabled;
+                                                      ^^^^^^^^^^^^
+lib/widgets/moderation_dialogs.dart:263:45: Error: The getter 'info' isn't defined for the type 'AppThemeExtension'.
+ - 'AppThemeExtension' is from 'package:***/themes/app_colors.dart' ('lib/themes/app_colors.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'info'.
+                            color: appTheme.info.withValues(alpha: 0.1),
+                                            ^^^^
+lib/widgets/moderation_dialogs.dart:266:47: Error: The getter 'info' isn't defined for the type 'AppThemeExtension'.
+ - 'AppThemeExtension' is from 'package:***/themes/app_colors.dart' ('lib/themes/app_colors.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'info'.
+                              color: appTheme.info.withValues(alpha: 0.2),
+                                              ^^^^
+lib/widgets/moderation_dialogs.dart:274:49: Error: The getter 'info' isn't defined for the type 'AppThemeExtension'.
+ - 'AppThemeExtension' is from 'package:***/themes/app_colors.dart' ('lib/themes/app_colors.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'info'.
+                                color: appTheme.info,
+                                                ^^^^
+lib/widgets/stories/music_picker_sheet.dart:172:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/widgets/stories/music_picker_sheet.dart:634:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/feed/presentation/widgets/post_card.dart:602:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/feed/presentation/widgets/post_card.dart:603:47: Error: The getter 'isM3ETransparencyDisabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3ETransparencyDisabled'.
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+lib/widgets/comments_modal.dart:473:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/widgets/comments_modal.dart:474:47: Error: The getter 'isM3ETransparencyDisabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3ETransparencyDisabled'.
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+lib/features/feed/presentation/widgets/layouts/focused_flow_layout.dart:68:29: Error: The getter 'OasisColors' isn't defined for the type '_FocusedFlowLayoutState'.
+ - '_FocusedFlowLayoutState' is from 'package:***/features/feed/presentation/widgets/layouts/focused_flow_layout.dart' ('lib/features/feed/presentation/widgets/layouts/focused_flow_layout.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+        Color bgBaseColor = OasisColors.deep;
+                            ^^^^^^^^^^^
+lib/features/feed/presentation/widgets/layouts/focused_flow_layout.dart:87:21: Error: The getter 'OasisColors' isn't defined for the type '_FocusedFlowLayoutState'.
+ - '_FocusedFlowLayoutState' is from 'package:***/features/feed/presentation/widgets/layouts/focused_flow_layout.dart' ('lib/features/feed/presentation/widgets/layouts/focused_flow_layout.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                    OasisColors.deep,
+                    ^^^^^^^^^^^
+lib/features/feed/presentation/widgets/layouts/spatial_glider_layout.dart:72:21: Error: The getter 'OasisColors' isn't defined for the type '_SpatialGliderLayoutState'.
+ - '_SpatialGliderLayoutState' is from 'package:***/features/feed/presentation/widgets/layouts/spatial_glider_layout.dart' ('lib/features/feed/presentation/widgets/layouts/spatial_glider_layout.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                    OasisColors.deep.withValues(alpha: 0.8),
+                    ^^^^^^^^^^^
+lib/features/feed/presentation/widgets/layouts/living_canvas_layout.dart:51:26: Error: The getter 'OasisColors' isn't defined for the type '_LivingCanvasLayoutState'.
+ - '_LivingCanvasLayoutState' is from 'package:***/features/feed/presentation/widgets/layouts/living_canvas_layout.dart' ('lib/features/feed/presentation/widgets/layouts/living_canvas_layout.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+        Container(color: OasisColors.deep),
+                         ^^^^^^^^^^^
+lib/features/feed/presentation/widgets/layouts/living_canvas_layout.dart:58:22: Error: The getter 'OasisColors' isn't defined for the type '_LivingCanvasLayoutState'.
+ - '_LivingCanvasLayoutState' is from 'package:***/features/feed/presentation/widgets/layouts/living_canvas_layout.dart' ('lib/features/feed/presentation/widgets/layouts/living_canvas_layout.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+              color: OasisColors.glow.withValues(alpha: 0.1),
+                     ^^^^^^^^^^^
+lib/features/feed/presentation/widgets/layouts/living_canvas_layout.dart:107:22: Error: The getter 'OasisColors' isn't defined for the type '_LivingCanvasLayoutState'.
+ - '_LivingCanvasLayoutState' is from 'package:***/features/feed/presentation/widgets/layouts/living_canvas_layout.dart' ('lib/features/feed/presentation/widgets/layouts/living_canvas_layout.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+              color: OasisColors.deep.withValues(alpha: 0.8),
+                     ^^^^^^^^^^^
+lib/features/feed/presentation/widgets/layouts/living_canvas_layout.dart:126:20: Error: The getter 'OasisColors' isn't defined for the type '_LivingCanvasLayoutState'.
+ - '_LivingCanvasLayoutState' is from 'package:***/features/feed/presentation/widgets/layouts/living_canvas_layout.dart' ('lib/features/feed/presentation/widgets/layouts/living_canvas_layout.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+            color: OasisColors.glow.withValues(alpha: 0.1),
+                   ^^^^^^^^^^^
+lib/features/feed/presentation/widgets/layouts/living_canvas_layout.dart:132:57: Error: The getter 'OasisColors' isn't defined for the type '_LivingCanvasLayoutState'.
+ - '_LivingCanvasLayoutState' is from 'package:***/features/feed/presentation/widgets/layouts/living_canvas_layout.dart' ('lib/features/feed/presentation/widgets/layouts/living_canvas_layout.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+            Icon(Icons.timer_outlined, size: 14, color: OasisColors.glow),
+                                                        ^^^^^^^^^^^
+lib/features/circles/presentation/widgets/circles/circle_list_card.dart:25:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/canvas/presentation/widgets/canvas/canvas_list_tile.dart:24:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/canvas/presentation/widgets/canvas/canvas_list_tile.dart:25:47: Error: The getter 'isM3ETransparencyDisabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3ETransparencyDisabled'.
+    final disableTransparency = themeProvider.isM3ETransparencyDisabled;
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+lib/features/feed/presentation/widgets/stories_bar.dart:37:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/feed/presentation/widgets/stories_bar.dart:183:33: Error: The getter 'isM3EEnabled' isn't defined for the type 'ThemeProvider'.
+ - 'ThemeProvider' is from 'package:***/services/app_initializer.dart' ('lib/services/app_initializer.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'isM3EEnabled'.
+    final isM3E = themeProvider.isM3EEnabled;
+                                ^^^^^^^^^^^^
+lib/features/feed/presentation/widgets/memory_lane_card.dart:130:36: Error: The getter 'mediaUrl' isn't defined for the type 'Post'.
+ - 'Post' is from 'package:***/features/feed/domain/models/post.dart' ('lib/features/feed/domain/models/post.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'mediaUrl'.
+                          if (post.mediaUrl != null && post.mediaUrl!.isNotEmpty)
+                                   ^^^^^^^^
+lib/features/feed/presentation/widgets/memory_lane_card.dart:130:61: Error: The getter 'mediaUrl' isn't defined for the type 'Post'.
+ - 'Post' is from 'package:***/features/feed/domain/models/post.dart' ('lib/features/feed/domain/models/post.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'mediaUrl'.
+                          if (post.mediaUrl != null && post.mediaUrl!.isNotEmpty)
+                                                            ^^^^^^^^
+lib/features/feed/presentation/widgets/memory_lane_card.dart:134:48: Error: The getter 'mediaUrl' isn't defined for the type 'Post'.
+ - 'Post' is from 'package:***/features/feed/domain/models/post.dart' ('lib/features/feed/domain/models/post.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'mediaUrl'.
+                                imageUrl: post.mediaUrl!,
+                                               ^^^^^^^^
+lib/features/feed/presentation/widgets/memory_lane_card.dart:142:36: Error: The getter 'mediaUrl' isn't defined for the type 'Post'.
+ - 'Post' is from 'package:***/features/feed/domain/models/post.dart' ('lib/features/feed/domain/models/post.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'mediaUrl'.
+                          if (post.mediaUrl != null && post.mediaUrl!.isNotEmpty)
+                                   ^^^^^^^^
+lib/features/feed/presentation/widgets/memory_lane_card.dart:142:61: Error: The getter 'mediaUrl' isn't defined for the type 'Post'.
+ - 'Post' is from 'package:***/features/feed/domain/models/post.dart' ('lib/features/feed/domain/models/post.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'mediaUrl'.
+                          if (post.mediaUrl != null && post.mediaUrl!.isNotEmpty)
+                                                            ^^^^^^^^
+lib/features/feed/presentation/widgets/memory_lane_card.dart:146:34: Error: The argument type 'String?' can't be assigned to the parameter type 'String'.
+                            post.content,
+                                 ^
+lib/features/capsules/presentation/widgets/capsule_feed_item.dart:26:24: Error: The getter 'OasisColors' isn't defined for the type 'CapsuleFeedItem'.
+ - 'CapsuleFeedItem' is from 'package:***/features/capsules/presentation/widgets/capsule_feed_item.dart' ('lib/features/capsules/presentation/widgets/capsule_feed_item.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                color: OasisColors.sand,
+                       ^^^^^^^^^^^
+lib/features/capsules/presentation/widgets/capsule_feed_item.dart:42:26: Error: The getter 'OasisColors' isn't defined for the type 'CapsuleFeedItem'.
+ - 'CapsuleFeedItem' is from 'package:***/features/capsules/presentation/widgets/capsule_feed_item.dart' ('lib/features/capsules/presentation/widgets/capsule_feed_item.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                  color: OasisColors.sage.withValues(alpha: 0.2),
+                         ^^^^^^^^^^^
+lib/features/capsules/presentation/widgets/capsule_feed_item.dart:60:34: Error: The getter 'OasisColors' isn't defined for the type 'CapsuleFeedItem'.
+ - 'CapsuleFeedItem' is from 'package:***/features/capsules/presentation/widgets/capsule_feed_item.dart' ('lib/features/capsules/presentation/widgets/capsule_feed_item.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                          color: OasisColors.deep.withValues(alpha: 0.8),
+                                 ^^^^^^^^^^^
+lib/features/capsules/presentation/widgets/capsule_feed_item.dart:71:38: Error: The getter 'OasisColors' isn't defined for the type 'CapsuleFeedItem'.
+ - 'CapsuleFeedItem' is from 'package:***/features/capsules/presentation/widgets/capsule_feed_item.dart' ('lib/features/capsules/presentation/widgets/capsule_feed_item.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                              color: OasisColors.deep.withValues(alpha: 0.5),
+                                     ^^^^^^^^^^^
+lib/features/capsules/presentation/widgets/capsule_feed_item.dart:79:38: Error: The getter 'OasisColors' isn't defined for the type 'CapsuleFeedItem'.
+ - 'CapsuleFeedItem' is from 'package:***/features/capsules/presentation/widgets/capsule_feed_item.dart' ('lib/features/capsules/presentation/widgets/capsule_feed_item.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                              color: OasisColors.deep.withValues(alpha: 0.4),
+                                     ^^^^^^^^^^^
+lib/features/capsules/presentation/widgets/capsule_feed_item.dart:123:32: Error: The getter 'OasisColors' isn't defined for the type 'CapsuleFeedItem'.
+ - 'CapsuleFeedItem' is from 'package:***/features/capsules/presentation/widgets/capsule_feed_item.dart' ('lib/features/capsules/presentation/widgets/capsule_feed_item.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                        color: OasisColors.deep.withValues(alpha: 0.1),
+                               ^^^^^^^^^^^
+lib/features/capsules/presentation/widgets/capsule_feed_item.dart:129:34: Error: The getter 'OasisColors' isn't defined for the type 'CapsuleFeedItem'.
+ - 'CapsuleFeedItem' is from 'package:***/features/capsules/presentation/widgets/capsule_feed_item.dart' ('lib/features/capsules/presentation/widgets/capsule_feed_item.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                          color: OasisColors.deep.withValues(alpha: 0.6),
+                                 ^^^^^^^^^^^
+lib/features/capsules/presentation/widgets/capsule_feed_item.dart:149:32: Error: The getter 'OasisColors' isn't defined for the type 'CapsuleFeedItem'.
+ - 'CapsuleFeedItem' is from 'package:***/features/capsules/presentation/widgets/capsule_feed_item.dart' ('lib/features/capsules/presentation/widgets/capsule_feed_item.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                        color: OasisColors.deep.withValues(alpha: 0.3),
+                               ^^^^^^^^^^^
+lib/features/capsules/presentation/widgets/capsule_feed_item.dart:158:32: Error: The getter 'OasisColors' isn't defined for the type 'CapsuleFeedItem'.
+ - 'CapsuleFeedItem' is from 'package:***/features/capsules/presentation/widgets/capsule_feed_item.dart' ('lib/features/capsules/presentation/widgets/capsule_feed_item.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'OasisColors'.
+                        color: OasisColors.deep.withValues(alpha: 0.7),
+                               ^^^^^^^^^^^
+Target kernel_snapshot_program failed: Exception
+FAILURE: Build failed with an exception.
+* What went wrong:
+Execution failed for task ':app:compileFlutterBuildRelease'.
+> Process 'command '/opt/hostedtoolcache/flutter/stable-3.41.8-x64/flutter/bin/flutter'' finished with non-zero exit value 1
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+BUILD FAILED in 5m 40s
+Running Gradle task 'assembleRelease'...                          341.4s
+Gradle task assembleRelease failed with exit code 1
+Error: Process completed with exit code 1.

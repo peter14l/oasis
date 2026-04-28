@@ -73,13 +73,43 @@ class TimeBasedColors {
 class LightColors {
   static const Color primary = Color(0xFF2980B9);
   static const Color background = Color(0xFFF0F4F8);
+  static const Color onBackground = Color(0xFF2C3E50);
+  static const Color surface = Color(0xFFFFFFFF);
   static const Color onSurface = Color(0xFF2C3E50);
+  static const Color hint = Color(0xFF95A5A6);
 }
 
 class DarkColors {
   static const Color primary = Color(0xFF34495E);
   static const Color background = Color(0xFF1A1A2E);
+  static const Color onBackground = Color(0xFFECF0F1);
+  static const Color surface = Color(0xFF2C3E50);
   static const Color onSurface = Color(0xFFECF0F1);
+  static const Color hint = Color(0xFF7F8C8D);
+}
+
+// ---------------------------------------------------------------------------
+// Oasis Theming System
+// ---------------------------------------------------------------------------
+
+enum ColorPalette {
+  none,
+  emerald,
+  ocean,
+  sunset,
+  lavender,
+  rose,
+  teal,
+}
+
+class OasisColors {
+  static const Color deep = Color(0xFF1A1A2E);
+  static const Color glow = Color(0xFF4CC9F0);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color mist = Color(0xFFE0E1DD);
+  static const Color sand = Color(0xFFF4D35E);
+  static const Color sage = Color(0xFF8A9A5B);
+  static const Color moss = Color(0xFF4A5D23);
 }
 
 // ---------------------------------------------------------------------------
@@ -104,17 +134,20 @@ class AppTextStyles {
 class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
   final Color card;
   final Color divider;
+  final Color info;
 
   const AppThemeExtension({
     required this.card,
     required this.divider,
+    required this.info,
   });
 
   @override
-  ThemeExtension<AppThemeExtension> copyWith({Color? card, Color? divider}) {
+  ThemeExtension<AppThemeExtension> copyWith({Color? card, Color? divider, Color? info}) {
     return AppThemeExtension(
       card: card ?? this.card,
       divider: divider ?? this.divider,
+      info: info ?? this.info,
     );
   }
 
@@ -124,6 +157,7 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     return AppThemeExtension(
       card: Color.lerp(card, other.card, t)!,
       divider: Color.lerp(divider, other.divider, t)!,
+      info: Color.lerp(info, other.info, t)!,
     );
   }
 }

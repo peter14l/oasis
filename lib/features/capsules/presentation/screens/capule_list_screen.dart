@@ -51,7 +51,7 @@ class _CapsuleListScreenState extends State<CapsuleListScreen> {
       body: Consumer<CapsuleProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
-            return const Center(
+            return Center(
               child: CircularProgressIndicator(color: OasisColors.glow),
             );
           }

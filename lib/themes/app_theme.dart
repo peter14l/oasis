@@ -33,7 +33,7 @@ class AppTheme {
         ),
         systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
@@ -72,8 +72,11 @@ class AppTheme {
         }),
       ),
       extensions: [
-        isDark ? AppThemeExtension(card: colorScheme.surfaceContainer, divider: colorScheme.outlineVariant) 
-               : AppThemeExtension(card: colorScheme.surfaceContainer, divider: colorScheme.outlineVariant),
+        AppThemeExtension(
+          card: colorScheme.surfaceContainer,
+          divider: colorScheme.outlineVariant,
+          info: const Color(0xFF2196F3), // Standard Blue Info color
+        ),
       ],
     );
   }

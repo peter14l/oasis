@@ -22,6 +22,9 @@ import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
 import 'package:oasis/features/badging/presentation/widgets/badge_widget.dart';
 import 'package:oasis/features/profile/presentation/widgets/guestbook_widget.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:oasis/features/badging/data/badge_service.dart';
+import 'package:oasis/features/profile/presentation/widgets/mood_orbit_widget.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userId;

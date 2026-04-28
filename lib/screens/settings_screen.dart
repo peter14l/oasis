@@ -44,6 +44,7 @@ import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/widgets/adaptive/adaptive_dialog.dart';
 import 'package:oasis/widgets/app_button.dart';
+import 'package:oasis/themes/app_colors.dart';
 import 'dart:ui';
 
 enum SettingsCategory {

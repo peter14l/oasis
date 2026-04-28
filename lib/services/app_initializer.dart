@@ -1,4 +1,4 @@
-import 'dart:async' show unawaited;
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kDebugMode, debugPrint, kIsWeb;
 import 'package:flutter/material.dart';
@@ -14,6 +14,7 @@ import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
 import 'package:flutter_callkit_incoming/entities/notification_params.dart';
 import 'package:oasis/routes/app_router.dart';
+import 'package:oasis/themes/app_colors.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:universal_io/io.dart';
 
@@ -100,14 +101,26 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 class ThemeProvider with ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
   bool _highContrast = false;
+  bool _isM3EEnabled = false;
+  bool _isM3ETransparencyDisabled = false;
+  bool _useMaterialYou = false;
+  ColorPalette _colorPalette = ColorPalette.none;
   ColorScheme _currentTimeScheme = TimeBasedColors.getSchemeForTime(DateTime.now());
   Timer? _timer;
 
   static const String _themeKey = 'theme_mode';
   static const String _highContrastKey = 'high_contrast';
+  static const String _m3eEnabledKey = 'm3e_enabled';
+  static const String _m3eTransparencyKey = 'm3e_transparency_disabled';
+  static const String _materialYouKey = 'material_you';
+  static const String _paletteKey = 'color_palette';
 
   ThemeMode get themeMode => _themeMode;
   bool get highContrast => _highContrast;
+  bool get isM3EEnabled => _isM3EEnabled;
+  bool get isM3ETransparencyDisabled => _isM3ETransparencyDisabled;
+  bool get useMaterialYou => _useMaterialYou;
+  ColorPalette get colorPalette => _colorPalette;
   ColorScheme get colorScheme => _currentTimeScheme;
 
   ThemeProvider() {
@@ -136,6 +149,11 @@ class ThemeProvider with ChangeNotifier {
     final themeIndex = prefs.getInt(_themeKey) ?? ThemeMode.system.index;
     _themeMode = ThemeMode.values[themeIndex];
     _highContrast = prefs.getBool(_highContrastKey) ?? false;
+    _isM3EEnabled = prefs.getBool(_m3eEnabledKey) ?? false;
+    _isM3ETransparencyDisabled = prefs.getBool(_m3eTransparencyKey) ?? false;
+    _useMaterialYou = prefs.getBool(_materialYouKey) ?? false;
+    final paletteIndex = prefs.getInt(_paletteKey) ?? ColorPalette.none.index;
+    _colorPalette = ColorPalette.values[paletteIndex];
     _currentTimeScheme = TimeBasedColors.getSchemeForTime(DateTime.now());
     notifyListeners();
   }
@@ -151,6 +169,34 @@ class ThemeProvider with ChangeNotifier {
     _highContrast = value;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_highContrastKey, value);
+    notifyListeners();
+  }
+
+  Future<void> setM3EEnabled(bool value) async {
+    _isM3EEnabled = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_m3eEnabledKey, value);
+    notifyListeners();
+  }
+
+  Future<void> setM3ETransparencyDisabled(bool value) async {
+    _isM3ETransparencyDisabled = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_m3eTransparencyKey, value);
+    notifyListeners();
+  }
+
+  Future<void> setMaterialYou(bool value) async {
+    _useMaterialYou = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_materialYouKey, value);
+    notifyListeners();
+  }
+
+  Future<void> setColorPalette(ColorPalette palette) async {
+    _colorPalette = palette;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_paletteKey, palette.index);
     notifyListeners();
   }
 

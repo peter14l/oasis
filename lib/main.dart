@@ -36,6 +36,7 @@ import 'package:oasis/features/settings/presentation/providers/user_settings_pro
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/themes/app_theme.dart';
 import 'package:oasis/themes/fluent_theme.dart';
+import 'package:oasis/themes/app_colors.dart';
 import 'package:oasis/widgets/windows_title_bar.dart';
 import 'package:oasis/widgets/splash_screen.dart';
 import 'package:oasis/widgets/global_wellness_wrapper.dart';
@@ -636,6 +637,7 @@ class CallNavigator extends StatelessWidget {
     }
 
     Widget childWidget = child;
+    final themeProvider = context.read<ThemeProvider>();
 
     if (Platform.isWindows && userSettings.micaEnabled) {
       final theme = material.Theme.of(context);
@@ -673,7 +675,7 @@ class CallNavigator extends StatelessWidget {
       childWidget = Container(color: material.Colors.transparent, child: childWidget);
     }
 
-    if (!useFluent) {
+    if (!themeProvider.useFluentUI) {
       final isDark = material.Theme.of(context).brightness == material.Brightness.dark;
       final mica = Platform.isWindows && userSettings.micaEnabled;
 
