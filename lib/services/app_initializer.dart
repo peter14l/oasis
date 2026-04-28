@@ -42,6 +42,7 @@ import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/vault_service.dart';
 import 'package:oasis/services/wellness_service.dart';
 import 'package:oasis/services/curation_tracking_service.dart';
+import 'package:oasis/services/fortress_service.dart';
 import 'package:oasis/services/voice_transcript_service.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
 import 'package:oasis/services/update_service.dart';
@@ -263,6 +264,7 @@ class InitializedServices {
   final CurationTrackingService curationTrackingService;
   final UpdateService updateService;
   final AppAnalytics appAnalytics;
+  final FortressService fortressService;
 
   const InitializedServices({
     required this.themeProvider,
@@ -279,6 +281,7 @@ class InitializedServices {
     required this.curationTrackingService,
     required this.updateService,
     required this.appAnalytics,
+    required this.fortressService,
   });
 }
 
@@ -568,11 +571,12 @@ class AppInitializer {
     // Pre-initialize basic Notification manager
     await NotificationManager.instance.initialize();
 
-    // Deferred non-critical services (IAP, Subscriptions, Encryption, etc.)
+// Deferred non-critical services (IAP, Subscriptions, Encryption, etc.)
     final iapService = IAPService();
     final revenueCatService = RevenueCatService();
     final subscriptionService = SubscriptionService();
     final vaultService = VaultService();
+    final fortressService = FortressService();
     final razorpayService = RazorpayService();
     final curationTrackingService = CurationTrackingService();
     final updateService = UpdateService.instance;
@@ -593,6 +597,26 @@ class AppInitializer {
       } catch (e) {
         debugPrint('Non-critical background service init warning: $e');
       }
+    });
+
+    return InitializedServices(
+      themeProvider: themeProvider,
+      authProvider: authProvider,
+      userSettingsProvider: userSettingsProvider,
+      screenTimeService: screenTimeService,
+      wellnessService: wellnessService,
+      energyMeterService: energyMeterService,
+      subscriptionService: subscriptionService,
+      iapService: iapService,
+      revenueCatService: revenueCatService,
+      digitalWellbeingService: digitalWellbeingService,
+      vaultService: vaultService,
+      curationTrackingService: curationTrackingService,
+      updateService: updateService,
+      appAnalytics: appAnalytics,
+      fortressService: fortressService,
+    );
+  }
     }());
 
     return InitializedServices(
@@ -744,6 +768,9 @@ class AppInitializer {
         ),
         ChangeNotifierProvider<VaultService>.value(
           value: services.vaultService,
+        ),
+        ChangeNotifierProvider<FortressService>.value(
+          value: services.fortressService,
         ),
         ChangeNotifierProvider<UpdateService>.value(
           value: services.updateService,

@@ -4,6 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:oasis/widgets/wellbeing/cozy_mode_sheet.dart';
+import 'package:oasis/features/wellbeing/presentation/providers/cozy_mode_provider.dart';
+import 'package:oasis/features/wellbeing/presentation/providers/cozy_mode_state.dart';
+import 'package:oasis/widgets/fortress_lock_button.dart';
 
 class DesktopHeader extends StatelessWidget {
   final String title;
@@ -12,6 +16,7 @@ class DesktopHeader extends StatelessWidget {
   final bool showBackButton;
   final VoidCallback? onBack;
   final double? maxWidth;
+  final bool showFortressButton;
 
   const DesktopHeader({
     super.key,
@@ -21,6 +26,7 @@ class DesktopHeader extends StatelessWidget {
     this.showBackButton = false,
     this.onBack,
     this.maxWidth,
+    this.showFortressButton = true,
   });
 
   @override
@@ -78,13 +84,21 @@ class DesktopHeader extends StatelessWidget {
               ],
             ),
           ),
-          if (actions != null && actions!.isNotEmpty) ...[
-            const SizedBox(width: 20),
-            ...actions!
-                .expand((widget) => [widget, const SizedBox(width: 12)])
-                .toList()
-              ..removeLast(),
-          ],
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (showFortressButton) ...[
+                const FortressLockButton(),
+                const SizedBox(width: 12),
+              ],
+              if (actions != null && actions!.isNotEmpty) ...[
+                ...actions!
+                    .expand((widget) => [widget, const SizedBox(width: 12)])
+                    .toList()
+                  ..removeLast(),
+              ],
+            ],
+          ),
         ],
       ),
     );
