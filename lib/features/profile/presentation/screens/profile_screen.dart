@@ -16,10 +16,13 @@ import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/widgets/desktop_header.dart';
 import 'package:oasis/widgets/moderation_dialogs.dart';
+import 'package:oasis/widgets/pulse_indicator_widget.dart';
+import 'package:oasis/widgets/pulse_picker_sheet.dart';
 import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/features/wellness/presentation/widgets/session_dial.dart';
 import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
+import 'package:oasis/features/badging/presentation/widgets/badge_widget.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userId;
@@ -452,7 +455,15 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ),
                 const SizedBox(height: 16),
               ],
-              
+
+              // Pulse Status
+              if (isOwnProfile)
+                _buildFluentPulseSection(profile, profileProvider)
+              else if (profile.pulseVisible && profile.hasActivePulse)
+                _buildFluentPulseDisplay(profile),
+
+              const SizedBox(height: 16),
+
               // Stats
               Row(
                 children: [
@@ -472,10 +483,20 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ],
               ),
               
-              const SizedBox(height: 24),
-              
-              // Actions
-              _buildFluentActionButtons(
+const SizedBox(height: 24),
+               
+               // Badges Section
+               _buildBadgesSection(userId),
+               
+const SizedBox(height: 24),
+               
+               // Badges Section
+               _buildBadgesSection(userId),
+               
+               const SizedBox(height: 24),
+               
+               // Actions
+               _buildFluentActionButtons(
                 profile,
                 profileProvider,
                 colorScheme,
@@ -561,6 +582,57 @@ class _ProfileScreenState extends State<ProfileScreen>
             ),
           ],
         );
+      },
+    );
+  }
+
+  Widget _buildFluentPulseSection(UserProfileEntity profile, ProfileProvider profileProvider) {
+    return PulseIndicatorWidget(
+      pulseStatus: profile.pulseStatus,
+      pulseText: profile.pulseText,
+      pulseSince: profile.pulseSince,
+      onTap: () => _showPulsePicker(profile, profileProvider),
+    );
+  }
+
+  Widget _buildFluentPulseDisplay(UserProfileEntity profile) {
+    return PulseIndicatorWidget(
+      pulseStatus: profile.pulseStatus,
+      pulseText: profile.pulseText,
+      pulseSince: profile.pulseSince,
+      onTap: () {},
+    );
+  }
+
+  void _showPulsePicker(UserProfileEntity profile, ProfileProvider profileProvider) {
+    PulseStatus? currentStatus;
+    if (profile.pulseStatus != null) {
+      try {
+        currentStatus = PulseStatus.values.firstWhere(
+          (s) => s.name == profile.pulseStatus,
+        );
+      } catch (_) {}
+    }
+
+    showPulsePicker(
+      context: context,
+      currentStatus: currentStatus,
+      currentText: profile.pulseText,
+      onSelect: (status, customText) {
+        final userId = _authService.currentUser?.id;
+        if (userId != null) {
+          profileProvider.setPulseStatus(
+            userId: userId,
+            status: status.name,
+            text: customText,
+          );
+        }
+      },
+      onClear: () {
+        final userId = _authService.currentUser?.id;
+        if (userId != null) {
+          profileProvider.clearPulseStatus(userId);
+        }
       },
     );
   }
@@ -654,6 +726,55 @@ class _ProfileScreenState extends State<ProfileScreen>
         ],
       ),
     );
+  }
+
+  // Badge section for profile
+  Widget _buildBadgesSection(String? userId) {
+    if (userId == null || userId.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // TODO: Load badges from BadgeService when profile loads
+    // This is a placeholder that will be connected to BadgeService
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'TRUST BADGES',
+          style: fluent.FluentTheme.of(context).typography.caption?.copyWith(
+            letterSpacing: 1.5,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Badges will be loaded via profile provider
+        FutureBuilder<List<dynamic>>(
+          future: _loadUserBadges(userId),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Text(
+                'No badges yet',
+                style: fluent.FluentTheme.of(context).typography.body?.copyWith(
+                  color: fluent.FluentTheme.of(context).typography.body?.color?.withValues(alpha: 0.6),
+                ),
+              );
+            }
+
+            return BadgeListWidget(
+              badges: snapshot.data!.cast(),
+              badgeSize: 40,
+              showLabels: true,
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  // Placeholder for loading badges - will be replaced with BadgeService call
+  Future<List<dynamic>> _loadUserBadges(String userId) async {
+    // TODO: Replace with actual BadgeService.getUserBadges(userId)
+    return [];
   }
 
   Widget _buildFluentPostsGrid(List<Post> posts, String? userId, bool isM3E) {
@@ -1014,6 +1135,49 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         const SizedBox(height: 16),
         WellnessBadge(xp: profile.xp),
+        const SizedBox(height: 24),
+        _buildDesktopBadgesSection(currentUserId),
+      ],
+    );
+  }
+
+  // Desktop badges section
+  Widget _buildDesktopBadgesSection(String? userId) {
+    if (userId == null || userId.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'TRUST BADGES',
+          style: theme.textTheme.labelSmall?.copyWith(
+            letterSpacing: 1.5,
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+        ),
+        const SizedBox(height: 12),
+        FutureBuilder<List<dynamic>>(
+          future: _loadUserBadges(userId),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Text(
+                'No badges yet',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              );
+            }
+
+            return BadgeListWidget(
+              badges: snapshot.data!.cast(),
+              badgeSize: 40,
+              showLabels: true,
+            );
+          },
+        ),
       ],
     );
   }
@@ -1064,6 +1228,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                     userId,
                     isM3E,
                   ),
+                  const SizedBox(height: 24),
+                  _buildMobileBadgesSection(userId),
                 ],
               ),
             ),
@@ -1151,6 +1317,47 @@ class _ProfileScreenState extends State<ProfileScreen>
           ],
         ),
       ),
+    );
+  }
+
+  // Mobile badges section
+  Widget _buildMobileBadgesSection(String? userId) {
+    if (userId == null || userId.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'TRUST BADGES',
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            letterSpacing: 1.5,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+        ),
+        const SizedBox(height: 12),
+        FutureBuilder<List<dynamic>>(
+          future: _loadUserBadges(userId),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Text(
+                'No badges yet',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              );
+            }
+
+            return BadgeListWidget(
+              badges: snapshot.data!.cast(),
+              badgeSize: 40,
+              showLabels: true,
+            );
+          },
+        ),
+      ],
     );
   }
 
