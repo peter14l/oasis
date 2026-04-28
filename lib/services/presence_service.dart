@@ -23,7 +23,7 @@ class PresenceService {
     try {
       return await _supabase
           .from(SupabaseConfig.userStatusTable)
-          .select('status, last_seen, mood, mood_emoji, cozy_status, fortress_mode, pulse_status, pulse_text')
+          .select('status, last_seen, mood, mood_emoji, cozy_status, fortress_mode, pulse_status, pulse_text, pulse_since')
           .eq('user_id', userId)
           .maybeSingle();
     } catch (e) {

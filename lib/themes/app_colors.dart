@@ -44,14 +44,14 @@ class TimeBasedColors {
     onError: Colors.white,
   );
 
-  // 4. Night (9 PM - 6 AM): Deep, soothing, low-light
+  // 4. Night (9 PM - 6 AM): Deepest, soothing, low-light
   static const ColorScheme night = ColorScheme(
     brightness: Brightness.dark,
-    primary: Color(0xFF34495E), // Midnight Blue
+    primary: Color(0xFF1C252E), // Darker Midnight
     onPrimary: Color(0xFFBDC3C7),
-    secondary: Color(0xFF16A085), // Dark Teal
+    secondary: Color(0xFF0E5042), // Darker Teal
     onSecondary: Colors.white,
-    surface: Color(0xFF1A1A2E), // Deep Space
+    surface: Color(0xFF0C0F14), // Obsidian Night
     onSurface: Color(0xFF95A5A6),
     error: Color(0xFF7F8C8D),
     onError: Colors.white,
@@ -80,10 +80,10 @@ class LightColors {
 }
 
 class DarkColors {
-  static const Color primary = Color(0xFF34495E);
-  static const Color background = Color(0xFF1A1A2E);
+  static const Color primary = Color(0xFF1C252E);
+  static const Color background = Color(0xFF0C0F14);
   static const Color onBackground = Color(0xFFECF0F1);
-  static const Color surface = Color(0xFF2C3E50);
+  static const Color surface = Color(0xFF1A1A2E);
   static const Color onSurface = Color(0xFFECF0F1);
   static const Color hint = Color(0xFF7F8C8D);
 }
@@ -103,7 +103,7 @@ enum ColorPalette {
 }
 
 class OasisColors {
-  static const Color deep = Color(0xFF1A1A2E);
+  static const Color deep = Color(0xFF0C0F14);
   static const Color glow = Color(0xFF4CC9F0);
   static const Color white = Color(0xFFFFFFFF);
   static const Color mist = Color(0xFFE0E1DD);
