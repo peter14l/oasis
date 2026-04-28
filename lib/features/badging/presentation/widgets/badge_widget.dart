@@ -19,6 +19,8 @@ class BadgeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
     final content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -26,10 +28,10 @@ class BadgeWidget extends StatelessWidget {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
+            color: colorScheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(size / 4),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.3),
+              color: colorScheme.primary.withValues(alpha: 0.3),
               width: 1,
             ),
           ),
@@ -47,7 +49,7 @@ class BadgeWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: size * 0.3,
               fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
+              color: colorScheme.onSurface,
             ),
             textAlign: TextAlign.center,
             maxLines: 1,

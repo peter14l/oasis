@@ -71,6 +71,110 @@ class ProfileProvider with ChangeNotifier {
     }
   }
 
+  Future<void> setCozyMode({
+    required String userId,
+    String? status,
+    String? statusText,
+    DateTime? until,
+  }) async {
+    try {
+      await _profileRepository.setCozyMode(
+        userId: userId,
+        status: status,
+        statusText: statusText,
+        until: until,
+      );
+
+      if (_state.currentProfile != null) {
+        _state = _state.copyWith(
+          currentProfile: _state.currentProfile!.copyWith(
+            cozyStatus: status,
+            cozyStatusText: statusText,
+            cozyUntil: until,
+          ),
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[ProfileProvider] Error setting cozy mode: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> clearCozyMode(String userId) async {
+    try {
+      await _profileRepository.clearCozyMode(userId);
+
+      if (_state.currentProfile != null) {
+        _state = _state.copyWith(
+          currentProfile: _state.currentProfile!.copyWith(
+            cozyStatus: null,
+            cozyStatusText: null,
+            cozyUntil: null,
+          ),
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[ProfileProvider] Error clearing cozy mode: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> setMood({
+    required String userId,
+    String? mood,
+    String? emoji,
+  }) async {
+    try {
+      await _profileRepository.setMood(
+        userId: userId,
+        mood: mood,
+        emoji: emoji,
+      );
+
+      if (_state.currentProfile != null) {
+        _state = _state.copyWith(
+          currentProfile: _state.currentProfile!.copyWith(
+            currentMood: mood,
+            moodEmoji: emoji,
+          ),
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[ProfileProvider] Error setting mood: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> setFortressMode({
+    required String userId,
+    required bool enabled,
+    String? message,
+  }) async {
+    try {
+      await _profileRepository.setFortressMode(
+        userId: userId,
+        enabled: enabled,
+        message: message,
+      );
+
+      if (_state.currentProfile != null) {
+        _state = _state.copyWith(
+          currentProfile: _state.currentProfile!.copyWith(
+            fortressMode: enabled,
+            fortressMessage: message,
+          ),
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[ProfileProvider] Error setting fortress mode: $e');
+      rethrow;
+    }
+  }
+
   Future<void> updateProfile({
     required String userId,
     String? username,

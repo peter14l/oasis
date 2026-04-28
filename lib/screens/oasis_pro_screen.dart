@@ -368,11 +368,6 @@ class _OasisProScreenState extends State<OasisProScreen> {
                       'Create as many collaborative spaces as you need.',
                     ),
                     _buildFeatureItem(
-                      FluentIcons.heart_pulse_24_regular,
-                      'Advanced Wellness',
-                      'Weekly reports, custom focus modes, and wind-down.',
-                    ),
-                    _buildFeatureItem(
                       FluentIcons.data_usage_24_regular,
                       'Creator Analytics',
                       '90-day history, demographics, and posting heatmaps.',

@@ -73,12 +73,13 @@ class NavigationShell extends material.StatelessWidget {
             title: const Text('Vault'),
             body: material.SizedBox.shrink(),
           ),
-          fluent.PaneItem(
-            icon: const material.Icon(FluentIcons.leaf_one_24_regular),
-            selectedIcon: const material.Icon(FluentIcons.leaf_one_24_filled),
-            title: const Text('Wellness'),
-            body: material.SizedBox.shrink(),
-          ),
+          // COMMENTED OUT: Wellness tab - removed per user request (2026-04-28)
+          // fluent.PaneItem(
+          //   icon: const material.Icon(FluentIcons.leaf_one_24_regular),
+          //   selectedIcon: const material.Icon(FluentIcons.leaf_one_24_filled),
+          //   title: const Text('Wellness'),
+          //   body: material.SizedBox.shrink(),
+          // ),
           fluent.PaneItem(
             icon: _buildUnreadIcon(FluentIcons.chat_24_regular, unreadCount),
             selectedIcon: _buildUnreadIcon(FluentIcons.chat_24_filled, unreadCount),
@@ -132,7 +133,7 @@ class NavigationShell extends material.StatelessWidget {
     bool isM3E,
     int unreadCount,
   ) {
-    // 5-tab Mobile layout: Canvas (Home), Vault, Wellness, Messages, Profile
+    // 4-tab Mobile layout: Canvas (Home), Vault, Messages, Profile - Wellness removed (2026-04-28)
     return material.Scaffold(
       body: child,
       bottomNavigationBar: material.NavigationBar(
@@ -150,11 +151,12 @@ class NavigationShell extends material.StatelessWidget {
             selectedIcon: material.Icon(FluentIcons.box_24_filled),
             label: 'Vault',
           ),
-          const material.NavigationDestination(
-            icon: material.Icon(FluentIcons.leaf_one_24_regular),
-            selectedIcon: material.Icon(FluentIcons.leaf_one_24_filled),
-            label: 'Wellness',
-          ),
+          // COMMENTED OUT: Wellness tab - removed per user request (2026-04-28)
+          // const material.NavigationDestination(
+          //   icon: material.Icon(FluentIcons.leaf_one_24_regular),
+          //   selectedIcon: material.Icon(FluentIcons.leaf_one_24_filled),
+          //   label: 'Wellness',
+          // ),
           material.NavigationDestination(
             icon: material.Badge(
               isLabelVisible: unreadCount > 0,
@@ -184,7 +186,7 @@ class NavigationShell extends material.StatelessWidget {
     ThemeProvider themeProvider,
     bool isM3E,
   ) {
-    // 5-tab Desktop layout
+    // 4-tab Desktop layout - Wellness removed (2026-04-28)
     return material.Scaffold(
       body: material.Row(
         children: [
@@ -204,11 +206,12 @@ class NavigationShell extends material.StatelessWidget {
                 selectedIcon: material.Icon(FluentIcons.box_24_filled),
                 label: material.Text('Vault'),
               ),
-              material.NavigationRailDestination(
-                icon: material.Icon(FluentIcons.leaf_one_24_regular),
-                selectedIcon: material.Icon(FluentIcons.leaf_one_24_filled),
-                label: material.Text('Wellness'),
-              ),
+              // COMMENTED OUT: Wellness tab - removed per user request (2026-04-28)
+              // material.NavigationRailDestination(
+              //   icon: material.Icon(FluentIcons.leaf_one_24_regular),
+              //   selectedIcon: material.Icon(FluentIcons.leaf_one_24_filled),
+              //   label: material.Text('Wellness'),
+              // ),
               material.NavigationRailDestination(
                 icon: material.Icon(FluentIcons.chat_24_regular),
                 selectedIcon: material.Icon(FluentIcons.chat_24_filled),
@@ -232,7 +235,7 @@ class NavigationShell extends material.StatelessWidget {
     // Unfocus to prevent keyboard state sync issues
     material.FocusManager.instance.primaryFocus?.unfocus();
 
-    // 5-tab mapping: Canvas(0), Vault(1), Wellness(2), Messages(3), Profile(4)
+    // 4-tab mapping: Canvas(0), Vault(1), Messages(2), Profile(3) - Wellness removed (2026-04-28)
     switch (index) {
       case 0:
         context.go('/spaces');
@@ -241,12 +244,9 @@ class NavigationShell extends material.StatelessWidget {
         context.go('/vault');
         break;
       case 2:
-        context.go('/wellness');
-        break;
-      case 3:
         context.go('/messages');
         break;
-      case 4:
+      case 3:
         context.go('/profile');
         break;
     }

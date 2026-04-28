@@ -23,7 +23,7 @@ class PresenceService {
     try {
       return await _supabase
           .from(SupabaseConfig.userStatusTable)
-          .select('status, last_seen')
+          .select('status, last_seen, mood, mood_emoji, cozy_status, fortress_mode, pulse_status, pulse_text')
           .eq('user_id', userId)
           .maybeSingle();
     } catch (e) {
@@ -35,7 +35,7 @@ class PresenceService {
   // Track a user's presence in a specific conversation or globally
   RealtimeChannel subscribeToUserPresence({
     required String userId,
-    required Function(String status, DateTime? lastSeen) onUpdate,
+    required Function(Map<String, dynamic> data) onUpdate,
   }) {
     final channelName = 'user_presence:$userId';
 
@@ -57,32 +57,33 @@ class PresenceService {
           if (presenceState.isEmpty) {
             // Debounce empty state - might be initial sync, wait 500ms
             _emptyStateDebounce = Timer(const Duration(milliseconds: 500), () {
-              onUpdate('offline', null);
+              onUpdate({'status': 'offline', 'last_seen': null});
             });
             return;
           }
 
           // Check if any session for this user is online
-          bool isOnline = false;
+          Map<String, dynamic>? latestPresence;
           DateTime? latestSeen;
 
           for (final singlePresence in presenceState) {
             for (final presence in singlePresence.presences) {
-              final status = presence.payload['status'] as String?;
-              if (status == 'online') {
-                isOnline = true;
-              }
               final lastSeenStr = presence.payload['last_seen'] as String?;
               if (lastSeenStr != null) {
                 final lastSeen = DateTime.parse(lastSeenStr);
                 if (latestSeen == null || lastSeen.isAfter(latestSeen)) {
                   latestSeen = lastSeen;
+                  latestPresence = presence.payload;
                 }
               }
             }
           }
 
-          onUpdate(isOnline ? 'online' : 'offline', latestSeen);
+          if (latestPresence != null) {
+            onUpdate(latestPresence);
+          } else {
+            onUpdate({'status': 'offline', 'last_seen': null});
+          }
         })
         .subscribe((status, [error]) {
           if (status == RealtimeSubscribeStatus.channelError) {
@@ -100,7 +101,16 @@ class PresenceService {
   }
 
   // Update current user's presence
-  Future<void> updateUserPresence(String userId, String status) async {
+  Future<void> updateUserPresence(
+    String userId, 
+    String status, {
+    String? mood,
+    String? moodEmoji,
+    String? cozyStatus,
+    bool? fortressMode,
+    String? pulseStatus,
+    String? pulseText,
+  }) async {
     final now = DateTime.now();
     final lastUpdate = _lastUpdateTime[userId];
     final lastStatus = _lastStatus[userId];
@@ -109,7 +119,11 @@ class PresenceService {
     // This allows rapid status changes (offline -> online) while still preventing spam
     if (lastUpdate != null &&
         now.difference(lastUpdate) < _minUpdateInterval &&
-        lastStatus == status) {
+        lastStatus == status &&
+        mood == null &&
+        cozyStatus == null &&
+        fortressMode == null &&
+        pulseStatus == null) {
       return;
     }
 
@@ -142,18 +156,25 @@ class PresenceService {
       }
     }
 
+    final payload = <String, dynamic>{
+      'status': status,
+      'last_seen': DateTime.now().toIso8601String(),
+    };
+    if (mood != null) payload['mood'] = mood;
+    if (moodEmoji != null) payload['mood_emoji'] = moodEmoji;
+    if (cozyStatus != null) payload['cozy_status'] = cozyStatus;
+    if (fortressMode != null) payload['fortress_mode'] = fortressMode;
+    if (pulseStatus != null) payload['pulse_status'] = pulseStatus;
+    if (pulseText != null) payload['pulse_text'] = pulseText;
+
     try {
-      await channel.track({
-        'status': status,
-        'last_seen': DateTime.now().toIso8601String(),
-      });
+      await channel.track(payload);
 
       // Also upsert to user_status table for polling fallback
       unawaited(
         _supabase.from(SupabaseConfig.userStatusTable).upsert({
           'user_id': userId,
-          'status': status,
-          'last_seen': DateTime.now().toIso8601String(),
+          ...payload,
         }).catchError((e) {
           debugPrint('PresenceService: Table upsert error - ${e.toString()}');
         }),
@@ -163,10 +184,7 @@ class PresenceService {
       debugPrint('PresenceService: Retry presence after - ${e.toString()}');
       try {
         await Future.delayed(const Duration(milliseconds: 100));
-        await channel.track({
-          'status': status,
-          'last_seen': DateTime.now().toIso8601String(),
-        });
+        await channel.track(payload);
       } catch (e2) {
         debugPrint(
           'PresenceService: Failed to track presence - ${e2.toString()}',
@@ -175,7 +193,6 @@ class PresenceService {
     }
 
     // Only update last update time AFTER the async track completes
-    // This ensures rapid state changes (background->foreground) are not rate-limited
     _lastUpdateTime[userId] = DateTime.now();
     _lastStatus[userId] = status;
   }

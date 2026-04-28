@@ -11,6 +11,9 @@ import 'package:oasis/features/messages/data/chat_media_service.dart';
 import 'package:oasis/features/messages/data/message_operations_service.dart';
 import 'package:oasis/services/moderation_service.dart';
 import 'package:oasis/core/config/supabase_config.dart';
+import 'package:oasis/services/cozy_auto_reply_service.dart';
+import 'package:oasis/features/profile/domain/repositories/profile_repository.dart';
+import 'package:oasis/features/profile/data/repositories/profile_repository_impl.dart';
 
 /// Facade service for all messaging and chat-related operations.
 ///
@@ -181,29 +184,71 @@ class MessagingService extends ChangeNotifier {
     Map<String, dynamic>? locationData,
     String mediaViewMode = 'unlimited',
     bool isSpoiler = false,
-  }) => _chatMessagingService.sendMessage(
-    conversationId: conversationId,
-    senderId: senderId,
-    content: content,
-    messageType: messageType,
-    mediaUrl: mediaUrl,
-    mediaFileName: mediaFileName,
-    mediaFileSize: mediaFileSize,
-    voiceDuration: voiceDuration,
-    encryptedKeys: encryptedKeys,
-    iv: iv,
-    signalMessageType: signalMessageType,
-    signalSenderContent: signalSenderContent,
-    whisperMode: whisperMode,
-    replyToId: replyToId,
-    rippleId: rippleId,
-    storyId: storyId,
-    postId: postId,
-    shareData: shareData,
-    locationData: locationData,
-    mediaViewMode: mediaViewMode,
-    isSpoiler: isSpoiler,
-  );
+  }) async {
+    final message = await _chatMessagingService.sendMessage(
+      conversationId: conversationId,
+      senderId: senderId,
+      content: content,
+      messageType: messageType,
+      mediaUrl: mediaUrl,
+      mediaFileName: mediaFileName,
+      mediaFileSize: mediaFileSize,
+      voiceDuration: voiceDuration,
+      encryptedKeys: encryptedKeys,
+      iv: iv,
+      signalMessageType: signalMessageType,
+      signalSenderContent: signalSenderContent,
+      whisperMode: whisperMode,
+      replyToId: replyToId,
+      rippleId: rippleId,
+      storyId: storyId,
+      postId: postId,
+      shareData: shareData,
+      locationData: locationData,
+      mediaViewMode: mediaViewMode,
+      isSpoiler: isSpoiler,
+    );
+
+    // Part 4: Handle Cozy Auto-Reply
+    _handleCozyAutoReply(conversationId, senderId);
+
+    return message;
+  }
+
+  /// Check for and send cozy auto-reply if applicable.
+  Future<void> _handleCozyAutoReply(String conversationId, String senderId) async {
+    try {
+      // 1. Get conversation to find recipient
+      final conversation = await getConversationDetails(conversationId);
+      final recipientId = conversation.otherUserId;
+      
+      if (recipientId.isEmpty) return;
+
+      // 2. Get recipient name
+      final profileRepo = ProfileRepositoryImpl();
+      final recipientProfile = await profileRepo.getProfile(recipientId);
+
+      // 3. Check if auto-reply is needed
+      final autoReplyService = CozyAutoReplyService(client: _supabase, profileRepository: profileRepo);
+      final replyText = await autoReplyService.getAutoReplyIfNeeded(
+        senderId: senderId,
+        recipientId: recipientId,
+        recipientName: recipientProfile.displayName,
+      );
+
+      if (replyText != null) {
+        // 4. Send auto-reply message from the recipient to the sender
+        await _chatMessagingService.sendMessage(
+          conversationId: conversationId,
+          senderId: recipientId,
+          content: replyText,
+          messageType: MessageType.text,
+        );
+      }
+    } catch (e) {
+      debugPrint('[MessagingService] Error handling cozy auto-reply: $e');
+    }
+  }
 
   /// Records a read receipt for a specific message.
   Future<void> markAsRead({

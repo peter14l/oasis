@@ -392,6 +392,44 @@ class ProfileRemoteDatasource {
     }
   }
 
+  Future<void> setMood({
+    required String userId,
+    String? mood,
+    String? emoji,
+  }) async {
+    try {
+      await _supabase
+          .from(SupabaseConfig.profilesTable)
+          .update({
+            'current_mood': mood,
+            'mood_emoji': emoji,
+          })
+          .eq('id', userId);
+    } catch (e) {
+      debugPrint('[ProfileRemoteDatasource] Error setting mood: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> setFortressMode({
+    required String userId,
+    required bool enabled,
+    String? message,
+  }) async {
+    try {
+      await _supabase
+          .from(SupabaseConfig.profilesTable)
+          .update({
+            'fortress_mode': enabled,
+            'fortress_message': message,
+          })
+          .eq('id', userId);
+    } catch (e) {
+      debugPrint('[ProfileRemoteDatasource] Error setting fortress mode: $e');
+      rethrow;
+    }
+  }
+
   Future<void> clearCozyMode(String userId) async {
     try {
       await _supabase

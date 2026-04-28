@@ -46,6 +46,8 @@ import 'package:oasis/services/fortress_service.dart';
 import 'package:oasis/services/voice_transcript_service.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
 import 'package:oasis/services/update_service.dart';
+import 'package:oasis/features/wellbeing/presentation/providers/warm_whisper_provider.dart';
+import 'package:oasis/features/wellbeing/data/repositories/warm_whisper_repository_impl.dart';
 import 'package:oasis/features/canvas/presentation/providers/canvas_provider.dart';
 import 'package:oasis/features/capsules/presentation/providers/capsule_provider.dart';
 import 'package:oasis/features/circles/presentation/providers/circle_provider.dart';
@@ -581,7 +583,7 @@ class AppInitializer {
     final curationTrackingService = CurationTrackingService();
     final updateService = UpdateService.instance;
 
-    unawaited(() async {
+    unawaited((() async {
       try {
         await Future.wait([
           iapService.init(),
@@ -597,7 +599,7 @@ class AppInitializer {
       } catch (e) {
         debugPrint('Non-critical background service init warning: $e');
       }
-    });
+    })());
 
     return InitializedServices(
       themeProvider: themeProvider,
@@ -615,25 +617,6 @@ class AppInitializer {
       updateService: updateService,
       appAnalytics: appAnalytics,
       fortressService: fortressService,
-    );
-  }
-    }());
-
-    return InitializedServices(
-      themeProvider: themeProvider,
-      authProvider: authProvider,
-      userSettingsProvider: userSettingsProvider,
-      screenTimeService: screenTimeService,
-      wellnessService: wellnessService,
-      energyMeterService: energyMeterService,
-      subscriptionService: subscriptionService,
-      iapService: iapService,
-      revenueCatService: revenueCatService,
-      digitalWellbeingService: digitalWellbeingService,
-      vaultService: vaultService,
-      curationTrackingService: curationTrackingService,
-      updateService: updateService,
-      appAnalytics: appAnalytics,
     );
   }
 
@@ -743,6 +726,7 @@ class AppInitializer {
               conversationProvider!..updatePresenceProvider(presenceProvider),
         ),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => WarmWhisperProvider(repository: WarmWhisperRepositoryImpl())),
         ChangeNotifierProvider(create: (_) => CanvasProvider()),
         ChangeNotifierProvider(
           create: (_) => CircleProvider(repository: CircleRepositoryImpl()),

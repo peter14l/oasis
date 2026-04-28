@@ -7,10 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/features/profile/domain/models/user_profile_entity.dart';
 import 'package:oasis/services/auth_service.dart';
-import 'package:oasis/services/post_service.dart';
-import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:oasis/features/wellness/presentation/widgets/wellness_badge.dart';
 import 'package:oasis/features/auth/presentation/widgets/account_switcher_sheet.dart';
 import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
@@ -18,9 +15,10 @@ import 'package:oasis/widgets/desktop_header.dart';
 import 'package:oasis/widgets/moderation_dialogs.dart';
 import 'package:oasis/widgets/pulse_indicator_widget.dart';
 import 'package:oasis/widgets/pulse_picker_sheet.dart';
+import 'package:oasis/widgets/wellbeing/warm_whisper_sheet.dart';
+import 'package:oasis/widgets/wellbeing/cozy_mode_sheet.dart';
+import 'package:oasis/features/wellbeing/presentation/providers/cozy_mode_state.dart';
 import 'package:oasis/core/config/app_config.dart';
-import 'package:oasis/features/wellness/presentation/widgets/session_dial.dart';
-import 'package:oasis/services/screen_time_service.dart';
 import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
 import 'package:oasis/features/badging/presentation/widgets/badge_widget.dart';
 
@@ -32,16 +30,9 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen>
-    with SingleTickerProviderStateMixin {
+class _ProfileScreenState extends State<ProfileScreen> {
   final AuthService _authService = AuthService();
-  final PostService _postService = PostService();
-  late TabController _tabController;
-  List<Post> _userPosts = [];
-  final List<Post> _savedPosts = [];
-  bool _isLoadingPosts = false;
   final ScrollController _scrollController = ScrollController();
-  int _pivotIndex = 0;
 
   bool get isOwnProfile {
     final currentUserId = _authService.currentUser?.id;
@@ -54,9 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: isOwnProfile ? 2 : 1, vsync: this);
     _loadProfile();
-    _loadUserPosts();
   }
 
   void _loadProfile() {
@@ -74,40 +63,6 @@ class _ProfileScreenState extends State<ProfileScreen>
               );
         }
       });
-    }
-  }
-
-  Future<void> _loadUserPosts() async {
-    final currentUserId = _authService.currentUser?.id;
-    final targetId = targetUserId;
-    if (targetId.isEmpty) return;
-
-    setState(() => _isLoadingPosts = true);
-
-    try {
-      final posts = await _postService.getUserPosts(
-        userId: targetId,
-        currentUserId: currentUserId ?? '',
-      );
-      if (mounted) {
-        setState(() {
-          _userPosts = posts;
-          _isLoadingPosts = false;
-        });
-
-        // Load saved posts only for own profile
-        if (isOwnProfile) {
-          final savedPosts = await context
-              .read<ProfileProvider>()
-              .loadSavedPosts(targetId);
-          setState(() {
-            _savedPosts.clear();
-            _savedPosts.addAll(savedPosts);
-          });
-        }
-      }
-    } catch (e) {
-      if (mounted) setState(() => _isLoadingPosts = false);
     }
   }
 
@@ -134,7 +89,6 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   void dispose() {
-    _tabController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -171,11 +125,11 @@ class _ProfileScreenState extends State<ProfileScreen>
           return const Scaffold(body: Center(child: Text('Profile not found')));
         }
 
+        final isCozy = !isOwnProfile && profile.cozyStatus != null;
+
+        Widget mainContent;
         if (useFluent) {
-          final isPrivateAndNotFollowing = !isOwnProfile && 
-                                          profile.isPrivate && 
-                                          !profileProvider.isFollowing;
-          return Material(
+          mainContent = Material(
             color: Colors.transparent,
             child: _buildFluentProfile(
               profile,
@@ -183,17 +137,10 @@ class _ProfileScreenState extends State<ProfileScreen>
               colorScheme,
               profileProvider,
               userId,
-              isPrivateAndNotFollowing,
             ),
           );
-        }
-
-        final isPrivateAndNotFollowing = !isOwnProfile && 
-                                        profile.isPrivate && 
-                                        !profileProvider.isFollowing;
-
-        if (isDesktop) {
-          return Material(
+        } else if (isDesktop) {
+          mainContent = Material(
             type: MaterialType.transparency,
             child: _buildDesktopLayout(
               profile,
@@ -203,22 +150,110 @@ class _ProfileScreenState extends State<ProfileScreen>
               userId,
               isM3E,
               disableTransparency,
-              isPrivateAndNotFollowing,
             ),
+          );
+        } else {
+          mainContent = _buildMobileLayout(
+            profile,
+            theme,
+            colorScheme,
+            isM3E,
+            disableTransparency,
+            userId,
           );
         }
 
-        return _buildMobileLayout(
-          profile,
-          theme,
-          colorScheme,
-          isM3E,
-          disableTransparency,
-          userId,
-          isPrivateAndNotFollowing,
-        );
+        if (isCozy) {
+          return Stack(
+            children: [
+              mainContent,
+              _buildCozyCurtain(profile, colorScheme),
+            ],
+          );
+        }
+
+        return mainContent;
       },
     );
+  }
+
+  Widget _buildCozyCurtain(UserProfileEntity profile, ColorScheme colorScheme) {
+    return Positioned.fill(
+      child: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            color: colorScheme.surface.withValues(alpha: 0.7),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        _getCozyEmoji(profile.cozyStatus),
+                        style: const TextStyle(fontSize: 48),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      profile.cozyStatus ?? 'In my sanctuary',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (profile.cozyStatusText != null) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        profile.cozyStatusText!,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                    const SizedBox(height: 48),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: colorScheme.surface,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                          ),
+                          builder: (context) => WarmWhisperSheet(
+                            recipientId: profile.id,
+                            recipientName: profile.displayName,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.front_hand_outlined),
+                      label: const Text('Send a gentle knock'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getCozyEmoji(String? status) {
+    if (status == null) return '🌙';
+    if (status.toLowerCase().contains('cocoon')) return '🦋';
+    if (status.toLowerCase().contains('reading')) return '📚';
+    if (status.toLowerCase().contains('garden')) return '🌱';
+    return '🌙';
   }
 
   Widget _buildFluentProfile(
@@ -227,7 +262,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     ColorScheme colorScheme,
     ProfileProvider profileProvider,
     String? userId,
-    bool isPrivateAndNotFollowing,
   ) {
     return fluent.ScaffoldPage(
       header: fluent.PageHeader(
@@ -258,12 +292,18 @@ class _ProfileScreenState extends State<ProfileScreen>
         commandBar: fluent.CommandBar(
           mainAxisAlignment: MainAxisAlignment.end,
           primaryItems: [
-            if (isOwnProfile)
+            if (isOwnProfile) ...[
+              fluent.CommandBarButton(
+                icon: const Icon(fluent.FluentIcons.reading_mode),
+                label: const Text('Cozy Hours'),
+                onPressed: () => _showCozyPicker(profile, profileProvider),
+              ),
               fluent.CommandBarButton(
                 icon: const Icon(fluent.FluentIcons.settings),
                 label: const Text('Settings'),
                 onPressed: () => context.push('/settings'),
               ),
+            ],
             fluent.CommandBarButton(
               icon: const Icon(fluent.FluentIcons.share),
               label: const Text('Share'),
@@ -291,30 +331,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                   _buildFluentHeroHeader(profile, themeProvider, colorScheme, profileProvider, userId),
                   const SizedBox(height: 48),
                   
-                  // Content Pivot
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          _buildFluentTabItem('Posts', 0),
-                          if (isOwnProfile) ...[
-                            const SizedBox(width: 32),
-                            _buildFluentTabItem('Saved', 1),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      const fluent.Divider(),
-                      const SizedBox(height: 16),
-                      if (isPrivateAndNotFollowing)
-                        _buildPrivateAccountNotice(isFluent: true)
-                      else
-                        _pivotIndex == 0
-                            ? _buildFluentPostsGrid(_userPosts, userId, themeProvider.isM3EEnabled)
-                            : _buildFluentPostsGrid(_savedPosts, userId, themeProvider.isM3EEnabled),
-                    ],
-                  ),
+                  // Sanctuary Content
+                  const fluent.Divider(),
+                  const SizedBox(height: 32),
+                  _buildSanctuaryMessage(isFluent: true),
                 ],
               ),
             ),
@@ -324,90 +344,85 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildPrivateAccountNotice({bool isFluent = false}) {
+  void _showCozyPicker(UserProfileEntity profile, ProfileProvider profileProvider) {
+    CozyMode? currentMode;
+    if (profile.cozyStatus != null) {
+      try {
+        currentMode = CozyMode.values.firstWhere(
+          (m) => m.defaultText == profile.cozyStatus,
+          orElse: () => CozyMode.custom,
+        );
+      } catch (_) {}
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => CozyModeSheet(
+        currentMode: currentMode,
+        currentText: profile.cozyStatusText,
+        onSelect: (mode, text, duration) {
+          final userId = _authService.currentUser?.id;
+          if (userId != null) {
+            final DateTime? until = duration != null ? DateTime.now().add(duration) : null;
+            profileProvider.setCozyMode(
+              userId: userId,
+              status: mode.defaultText,
+              statusText: text,
+              until: until,
+            );
+          }
+        },
+        onClear: () {
+          final userId = _authService.currentUser?.id;
+          if (userId != null) {
+            profileProvider.clearCozyMode(userId);
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildSanctuaryMessage({bool isFluent = false}) {
     if (isFluent) {
       final theme = fluent.FluentTheme.of(context);
       return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 64.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(fluent.FluentIcons.lock, size: 48, color: theme.typography.body?.color?.withValues(alpha: 0.5)),
-              const SizedBox(height: 16),
-              Text(
-                'This account is private',
-                style: theme.typography.subtitle?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Follow this account to see their posts',
-                style: theme.typography.body?.copyWith(color: theme.typography.body?.color?.withValues(alpha: 0.6)),
-              ),
-            ],
-          ),
+        child: Column(
+          children: [
+            Icon(fluent.FluentIcons.heart, size: 48, color: theme.accentColor.withValues(alpha: 0.5)),
+            const SizedBox(height: 16),
+            Text(
+              'Welcome to this digital sanctuary',
+              style: theme.typography.subtitle?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'A private space for calm and connection.',
+              style: theme.typography.body?.copyWith(color: theme.typography.body?.color?.withValues(alpha: 0.6)),
+            ),
+          ],
         ),
       );
     }
 
     final theme = Theme.of(context);
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 64.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.lock_outline_rounded, size: 48, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
-            const SizedBox(height: 16),
-            Text(
-              'This account is private',
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Follow this account to see their posts',
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
-            ),
-          ],
-        ),
+      child: Column(
+        children: [
+          Icon(Icons.favorite_rounded, size: 48, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+          const SizedBox(height: 16),
+          Text(
+            'Welcome to this digital sanctuary',
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'A private space for calm and connection.',
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+          ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildFluentTabItem(String label, int index) {
-    final isSelected = _pivotIndex == index;
-    final theme = fluent.FluentTheme.of(context);
-    
-    return fluent.HoverButton(
-      onPressed: () => setState(() => _pivotIndex = index),
-      builder: (context, states) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-              child: Text(
-                label,
-                style: theme.typography.body?.copyWith(
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected 
-                    ? theme.accentColor 
-                    : theme.typography.body?.color?.withValues(alpha: 0.6),
-                ),
-              ),
-            ),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              height: 3,
-              width: 40,
-              decoration: BoxDecoration(
-                color: isSelected ? theme.accentColor : Colors.transparent,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -432,11 +447,25 @@ class _ProfileScreenState extends State<ProfileScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                profile.fullName ?? profile.username,
-                style: fluent.FluentTheme.of(context).typography.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                children: [
+                  Text(
+                    profile.fullName ?? profile.username,
+                    style: fluent.FluentTheme.of(context).typography.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (profile.moodEmoji != null) ...[
+                    const SizedBox(width: 12),
+                    fluent.Tooltip(
+                      message: profile.currentMood ?? '',
+                      child: Text(
+                        profile.moodEmoji!,
+                        style: const TextStyle(fontSize: 24),
+                      ),
+                    ),
+                  ],
+                ],
               ),
               const SizedBox(height: 4),
               Text(
@@ -462,33 +491,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               else if (profile.pulseVisible && profile.hasActivePulse)
                 _buildFluentPulseDisplay(profile),
 
-              const SizedBox(height: 16),
-
-              // Stats
-              Row(
-                children: [
-                  _buildFluentStatItem('${profile.postsCount}', 'posts'),
-                  const SizedBox(width: 32),
-                  _buildFluentStatItem(
-                    '${profile.followersCount}',
-                    'followers',
-                    onTap: () => context.push('/profile/${profile.id}/followers'),
-                  ),
-                  const SizedBox(width: 32),
-                  _buildFluentStatItem(
-                    '${profile.followingCount}',
-                    'following',
-                    onTap: () => context.push('/profile/${profile.id}/following'),
-                  ),
-                ],
-              ),
-              
-const SizedBox(height: 24),
-               
-               // Badges Section
-               _buildBadgesSection(userId),
-               
-const SizedBox(height: 24),
+              const SizedBox(height: 24),
                
                // Badges Section
                _buildBadgesSection(userId),
@@ -506,12 +509,6 @@ const SizedBox(height: 24),
             ],
           ),
         ),
-        
-        // Optional Wellness Summary on the right
-        if (isOwnProfile) ...[
-          const SizedBox(width: 48),
-          _buildFluentWellnessSummary(profile),
-        ],
       ],
     );
   }
@@ -557,32 +554,6 @@ const SizedBox(height: 24),
                 ),
               ),
       ),
-    );
-  }
-
-  Widget _buildFluentStatItem(String value, String label, {VoidCallback? onTap}) {
-    final theme = fluent.FluentTheme.of(context);
-    return fluent.HoverButton(
-      onPressed: onTap,
-      builder: (context, states) {
-        return Column(
-          children: [
-            Text(
-              value,
-              style: theme.typography.subtitle?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: states.contains(WidgetState.hovered) ? theme.accentColor : null,
-              ),
-            ),
-            Text(
-              label,
-              style: theme.typography.caption?.copyWith(
-                color: theme.typography.body?.color?.withValues(alpha: 0.6),
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -645,19 +616,52 @@ const SizedBox(height: 24),
     bool isM3E,
   ) {
     if (isOwnProfile) {
-      return fluent.Button(
-        onPressed: () => context.push('/edit-profile'),
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(fluent.FluentIcons.edit, size: 16),
-              SizedBox(width: 8),
-              Text('Edit Profile'),
-            ],
+      return Row(
+        children: [
+          fluent.Button(
+            onPressed: () => context.push('/edit-profile'),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(fluent.FluentIcons.edit, size: 16),
+                  SizedBox(width: 8),
+                  Text('Edit Profile'),
+                ],
+              ),
+            ),
           ),
-        ),
+          const SizedBox(width: 12),
+          fluent.Button(
+            onPressed: () {
+              final userId = _authService.currentUser?.id;
+              if (userId != null) {
+                 profileProvider.setFortressMode(
+                   userId: userId, 
+                   enabled: !profile.fortressMode,
+                   message: !profile.fortressMode ? 'In my fortress' : null,
+                 );
+              }
+            },
+            style: fluent.ButtonStyle(
+              backgroundColor: profile.fortressMode 
+                ? fluent.WidgetStateProperty.all(fluent.FluentTheme.of(context).accentColor.withValues(alpha: 0.1))
+                : null,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(profile.fortressMode ? fluent.FluentIcons.lock : fluent.FluentIcons.unlock, size: 16),
+                  const SizedBox(width: 8),
+                  Text(profile.fortressMode ? 'Fortress Active' : 'Fortress Mode'),
+                ],
+              ),
+            ),
+          ),
+        ],
       );
     }
 
@@ -696,46 +700,12 @@ const SizedBox(height: 24),
     );
   }
 
-  Widget _buildFluentWellnessSummary(UserProfileEntity profile) {
-    return Container(
-      width: 200,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: fluent.FluentTheme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: fluent.FluentTheme.of(context).resources.dividerStrokeColorDefault),
-      ),
-      child: Column(
-        children: [
-          Text(
-            'WELLNESS',
-            style: fluent.FluentTheme.of(context).typography.caption?.copyWith(
-              letterSpacing: 1.5,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          WellnessBadge(xp: profile.xp),
-          const SizedBox(height: 16),
-          Text(
-            'Level ${profile.level}',
-            style: fluent.FluentTheme.of(context).typography.body?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // Badge section for profile
   Widget _buildBadgesSection(String? userId) {
     if (userId == null || userId.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    // TODO: Load badges from BadgeService when profile loads
-    // This is a placeholder that will be connected to BadgeService
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -747,7 +717,6 @@ const SizedBox(height: 24),
           ),
         ),
         const SizedBox(height: 12),
-        // Badges will be loaded via profile provider
         FutureBuilder<List<dynamic>>(
           future: _loadUserBadges(userId),
           builder: (context, snapshot) {
@@ -771,74 +740,8 @@ const SizedBox(height: 24),
     );
   }
 
-  // Placeholder for loading badges - will be replaced with BadgeService call
   Future<List<dynamic>> _loadUserBadges(String userId) async {
-    // TODO: Replace with actual BadgeService.getUserBadges(userId)
-    return [];
-  }
-
-  Widget _buildFluentPostsGrid(List<Post> posts, String? userId, bool isM3E) {
-    if (_isLoadingPosts) {
-      return const Center(child: fluent.ProgressRing());
-    }
-
-    if (posts.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(fluent.FluentIcons.photo_collection, size: 48, color: Colors.grey),
-            const SizedBox(height: 16),
-            Text(
-              'No posts yet',
-              style: fluent.FluentTheme.of(context).typography.body,
-            ),
-          ],
-        ),
-      );
-    }
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1.0,
-      ),
-      itemCount: posts.length,
-      itemBuilder: (context, index) {
-        final post = posts[index];
-        final borderRadius = isM3E ? BorderRadius.circular(16) : BorderRadius.circular(8);
-
-        return fluent.HoverButton(
-          onPressed: () => context.push('/post/${post.id}'),
-          builder: (context, states) {
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              transform: states.contains(WidgetState.hovered) ? (Matrix4.identity()..scale(1.02)) : Matrix4.identity(),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.05),
-                borderRadius: borderRadius,
-                border: states.contains(WidgetState.hovered) 
-                  ? Border.all(color: fluent.FluentTheme.of(context).accentColor, width: 2)
-                  : null,
-              ),
-              child: ClipRRect(
-                borderRadius: borderRadius,
-                child: post.imageUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: post.imageUrl!,
-                        fit: BoxFit.cover,
-                      )
-                    : const Center(child: Icon(fluent.FluentIcons.text_document, size: 20)),
-              ),
-            );
-          },
-        );
-      },
-    );
+    return BadgeService().getUserBadges(userId);
   }
 
   Widget _buildDesktopLayout(
@@ -849,7 +752,6 @@ const SizedBox(height: 24),
     String? userId,
     bool isM3E,
     bool disableTransparency,
-    bool isPrivateAndNotFollowing,
   ) {
     final desktopBgColor = disableTransparency
         ? colorScheme.surface
@@ -874,7 +776,6 @@ const SizedBox(height: 24),
                   userId,
                   isM3E,
                   disableTransparency,
-                  isPrivateAndNotFollowing,
                 )
               : BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -886,7 +787,6 @@ const SizedBox(height: 24),
                     userId,
                     isM3E,
                     disableTransparency,
-                    isPrivateAndNotFollowing,
                   ),
                 ),
         ),
@@ -902,7 +802,6 @@ const SizedBox(height: 24),
     String? userId,
     bool isM3E,
     bool disableTransparency,
-    bool isPrivateAndNotFollowing,
   ) {
     return Column(
       children: [
@@ -912,12 +811,33 @@ const SizedBox(height: 24),
           showBackButton: true,
           onBack: () => context.pop(),
           actions: [
-            if (isOwnProfile)
+            if (isOwnProfile) ...[
+              IconButton(
+                icon: Icon(profile.fortressMode ? Icons.security : Icons.security_outlined),
+                color: profile.fortressMode ? colorScheme.primary : null,
+                onPressed: () {
+                   final uid = _authService.currentUser?.id;
+                   if (uid != null) {
+                     profileProvider.setFortressMode(
+                       userId: uid, 
+                       enabled: !profile.fortressMode,
+                       message: !profile.fortressMode ? 'In my fortress' : null,
+                     );
+                   }
+                },
+                tooltip: 'Fortress Mode',
+              ),
+              IconButton(
+                icon: const Icon(Icons.nights_stay_outlined),
+                onPressed: () => _showCozyPicker(profile, profileProvider),
+                tooltip: 'Cozy Hours',
+              ),
               IconButton(
                 icon: const Icon(Icons.settings_outlined),
                 onPressed: () => context.push('/settings'),
                 tooltip: 'Settings',
               ),
+            ],
           ],
         ),
         const Divider(height: 1),
@@ -962,24 +882,10 @@ const SizedBox(height: 24),
                   ),
                 ),
               ),
-              // Right Pane: Tabs & Grid
+              // Right Pane: Sanctuary Space
               Expanded(
-                child: Column(
-                  children: [
-                    _buildTabBar(colorScheme),
-                    const Divider(height: 1),
-                    Expanded(
-                      child: isPrivateAndNotFollowing
-                          ? _buildPrivateAccountNotice()
-                          : TabBarView(
-                              controller: _tabController,
-                              children: [
-                                _buildPostsTab(userId, true, isM3E),
-                                if (isOwnProfile) _buildSavedTab(userId, true, isM3E),
-                              ],
-                            ),
-                    ),
-                  ],
+                child: Center(
+                  child: _buildSanctuaryMessage(),
                 ),
               ),
             ],
@@ -1090,6 +996,8 @@ const SizedBox(height: 24),
                 ),
               ),
             ),
+            if (profile.moodEmoji != null)
+              Text(profile.moodEmoji!, style: const TextStyle(fontSize: 24)),
           ],
         ),
         const SizedBox(height: 16),
@@ -1100,23 +1008,6 @@ const SizedBox(height: 24),
           colorScheme,
           currentUserId,
           isM3E,
-        ),
-        const SizedBox(height: 24),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildDesktopStatItem('${profile.postsCount}', 'posts'),
-            _buildDesktopStatItem(
-              '${profile.followersCount}',
-              'followers',
-              onTap: () => context.push('/profile/${profile.id}/followers'),
-            ),
-            _buildDesktopStatItem(
-              '${profile.followingCount}',
-              'following',
-              onTap: () => context.push('/profile/${profile.id}/following'),
-            ),
-          ],
         ),
         const SizedBox(height: 24),
         Text(
@@ -1133,264 +1024,9 @@ const SizedBox(height: 24),
               color: colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
-        const SizedBox(height: 16),
-        WellnessBadge(xp: profile.xp),
         const SizedBox(height: 24),
-        _buildDesktopBadgesSection(currentUserId),
+        _buildDesktopBadgesSection(context, currentUserId),
       ],
-    );
-  }
-
-  // Desktop badges section
-  Widget _buildDesktopBadgesSection(String? userId) {
-    if (userId == null || userId.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'TRUST BADGES',
-          style: theme.textTheme.labelSmall?.copyWith(
-            letterSpacing: 1.5,
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface.withValues(alpha: 0.6),
-          ),
-        ),
-        const SizedBox(height: 12),
-        FutureBuilder<List<dynamic>>(
-          future: _loadUserBadges(userId),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Text(
-                'No badges yet',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              );
-            }
-
-            return BadgeListWidget(
-              badges: snapshot.data!.cast(),
-              badgeSize: 40,
-              showLabels: true,
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMobileLayout(
-    UserProfileEntity profile,
-    ThemeData theme,
-    ColorScheme colorScheme,
-    bool isM3E,
-    bool disableTransparency,
-    String? userId,
-    bool isPrivateAndNotFollowing,
-  ) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      extendBodyBehindAppBar: true,
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          _buildModernAppBar(
-            profile,
-            theme,
-            colorScheme,
-            false,
-            isM3E,
-            disableTransparency,
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
-              child: Column(
-                children: [
-                  _buildProfileHeader(profile, theme, colorScheme, isM3E),
-                  const SizedBox(height: 32),
-                  _buildStatsBar(
-                    profile,
-                    theme,
-                    colorScheme,
-                    isM3E,
-                    disableTransparency,
-                  ),
-                  const SizedBox(height: 24),
-                  _buildActionButtons(
-                    profile,
-                    context.read<ProfileProvider>(),
-                    theme,
-                    colorScheme,
-                    userId,
-                    isM3E,
-                  ),
-                  const SizedBox(height: 24),
-                  _buildMobileBadgesSection(userId),
-                ],
-              ),
-            ),
-          ),
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _SliverAppBarDelegate(
-              PreferredSize(
-                preferredSize: const Size.fromHeight(64),
-                child: ClipRRect(
-                  child: disableTransparency
-                      ? Container(
-                          color: colorScheme.surface,
-                          child: _buildTabBar(colorScheme),
-                        )
-                      : BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Container(
-                            color: colorScheme.surface.withValues(alpha: 0.7),
-                            child: _buildTabBar(colorScheme),
-                          ),
-                        ),
-                ),
-              ),
-              colorScheme.surface,
-            ),
-          ),
-          SliverFillRemaining(
-            child: isPrivateAndNotFollowing
-                ? _buildPrivateAccountNotice()
-                : TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildPostsTab(userId, false, isM3E),
-                      if (isOwnProfile) _buildSavedTab(userId, false, isM3E),
-                    ],
-                  ),
-          ),
-          const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabBar(ColorScheme colorScheme) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 800),
-        child: TabBar(
-          controller: _tabController,
-          indicatorSize: TabBarIndicatorSize.label,
-          dividerColor: Colors.transparent,
-          labelColor: colorScheme.primary,
-          unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.4),
-          labelStyle: const TextStyle(
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1,
-          ),
-          indicator: UnderlineTabIndicator(
-            borderSide: BorderSide(width: 3, color: colorScheme.primary),
-            borderRadius: BorderRadius.circular(3),
-          ),
-          tabs: [
-            const Tab(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.grid_view_rounded, size: 20),
-                  SizedBox(width: 8),
-                  Text('POSTS'),
-                ],
-              ),
-            ),
-            if (isOwnProfile)
-              const Tab(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.bookmark_rounded, size: 20),
-                    SizedBox(width: 8),
-                    Text('SAVED'),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Mobile badges section
-  Widget _buildMobileBadgesSection(String? userId) {
-    if (userId == null || userId.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'TRUST BADGES',
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            letterSpacing: 1.5,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-          ),
-        ),
-        const SizedBox(height: 12),
-        FutureBuilder<List<dynamic>>(
-          future: _loadUserBadges(userId),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Text(
-                'No badges yet',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              );
-            }
-
-            return BadgeListWidget(
-              badges: snapshot.data!.cast(),
-              badgeSize: 40,
-              showLabels: true,
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDesktopStatItem(
-    String value,
-    String label, {
-    VoidCallback? onTap,
-  }) {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Column(
-          children: [
-            Text(
-              value,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            Text(
-              label,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -1545,6 +1181,144 @@ const SizedBox(height: 24),
     );
   }
 
+  // Desktop badges section
+  Widget _buildDesktopBadgesSection(BuildContext context, String? userId) {
+    if (userId == null || userId.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'TRUST BADGES',
+          style: theme.textTheme.labelSmall?.copyWith(
+            letterSpacing: 1.5,
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+        ),
+        const SizedBox(height: 12),
+        FutureBuilder<List<dynamic>>(
+          future: _loadUserBadges(userId),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Text(
+                'No badges yet',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              );
+            }
+
+            return BadgeListWidget(
+              badges: snapshot.data!.cast(),
+              badgeSize: 40,
+              showLabels: true,
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout(
+    UserProfileEntity profile,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool isM3E,
+    bool disableTransparency,
+    String? userId,
+  ) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          _buildModernAppBar(
+            profile,
+            theme,
+            colorScheme,
+            false,
+            isM3E,
+            disableTransparency,
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
+              child: Column(
+                children: [
+                  _buildProfileHeader(profile, theme, colorScheme, isM3E),
+                  const SizedBox(height: 24),
+                  _buildActionButtons(
+                    profile,
+                    context.read<ProfileProvider>(),
+                    theme,
+                    colorScheme,
+                    userId,
+                    isM3E,
+                  ),
+                  const SizedBox(height: 24),
+                  _buildMobileBadgesSection(userId),
+                  const SizedBox(height: 48),
+                  const Divider(),
+                  const SizedBox(height: 48),
+                  _buildSanctuaryMessage(),
+                ],
+              ),
+            ),
+          ),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+        ],
+      ),
+    );
+  }
+
+  // Mobile badges section
+  Widget _buildMobileBadgesSection(String? userId) {
+    if (userId == null || userId.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'TRUST BADGES',
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            letterSpacing: 1.5,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
+        ),
+        const SizedBox(height: 12),
+        FutureBuilder<List<dynamic>>(
+          future: _loadUserBadges(userId),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Text(
+                'No badges yet',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              );
+            }
+
+            return BadgeListWidget(
+              badges: snapshot.data!.cast(),
+              badgeSize: 40,
+              showLabels: true,
+            );
+          },
+        ),
+      ],
+    );
+  }
+
   Widget _buildProfileHeader(
     UserProfileEntity profile,
     ThemeData theme,
@@ -1620,14 +1394,22 @@ const SizedBox(height: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    profile.fullName ?? profile.username,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          profile.fullName ?? profile.username,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.5,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (profile.moodEmoji != null)
+                        Text(profile.moodEmoji!, style: const TextStyle(fontSize: 20)),
+                    ],
                   ),
                   Text(
                     '@${profile.username}',
@@ -1637,111 +1419,20 @@ const SizedBox(height: 24),
                     ),
                   ),
                   const SizedBox(height: 8),
-                  WellnessBadge(xp: profile.xp),
+                  PulseIndicatorWidget(
+                    pulseStatus: profile.pulseStatus,
+                    pulseText: profile.pulseText,
+                    pulseSince: profile.pulseSince,
+                    onTap: isOwnProfile
+                        ? () => _showPulsePicker(profile, context.read<ProfileProvider>())
+                        : null,
+                  ),
                 ],
               ),
             ),
           ],
         ),
-        if (isOwnProfile) ...[
-          const SizedBox(height: 40),
-          // Wellness Dashboard Dial
-          Consumer<ScreenTimeService>(
-            builder: (context, screenTime, _) {
-              return FutureBuilder<Duration>(
-                future: screenTime.getTodayTotalUsage(),
-                builder: (context, snapshot) {
-                  final usage = snapshot.data ?? Duration.zero;
-                  final settings = context.read<UserSettingsProvider>();
-                  final dailyLimit = settings.dailyLimitMinutes > 0 ? settings.dailyLimitMinutes : 60;
-                  final progress = (usage.inMinutes / dailyLimit).clamp(0.0, 1.0);
-                  
-                  return SessionDial(
-                    progress: progress,
-                    label: '${usage.inMinutes}m',
-                    subLabel: 'TODAY\'S FLOW',
-                  );
-                },
-              );
-            },
-          ),
-        ],
       ],
-    );
-  }
-
-  Widget _buildStatsBar(
-    UserProfileEntity profile,
-    ThemeData theme,
-    ColorScheme colorScheme,
-    bool isM3E,
-    bool disableTransparency,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: disableTransparency
-            ? colorScheme.surfaceContainerHighest
-            : colorScheme.onSurface.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(isM3E ? 24 : 12),
-        border: Border.all(
-          color: colorScheme.onSurface.withValues(alpha: 0.05),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildStatItem('Posts', '${profile.postsCount}', theme),
-          _buildStatDivider(colorScheme),
-          GestureDetector(
-            onTap: () => context.push('/profile/${profile.id}/followers'),
-            child: _buildStatItem(
-              'Followers',
-              '${profile.followersCount}',
-              theme,
-            ),
-          ),
-          _buildStatDivider(colorScheme),
-          GestureDetector(
-            onTap: () => context.push('/profile/${profile.id}/following'),
-            child: _buildStatItem(
-              'Following',
-              '${profile.followingCount}',
-              theme,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatItem(String label, String value, ThemeData theme) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w900,
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-        Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatDivider(ColorScheme colorScheme) {
-    return Container(
-      height: 24,
-      width: 1,
-      color: colorScheme.onSurface.withValues(alpha: 0.1),
     );
   }
 
@@ -1754,124 +1445,170 @@ const SizedBox(height: 24),
     bool isM3E,
   ) {
     final radius = isM3E ? 24.0 : 18.0;
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: isOwnProfile
-              ? FilledButton.icon(
-                  onPressed: () => context.push('/edit-profile'),
-                  icon: const Icon(Icons.edit_note_rounded, size: 20),
-                  label: const Text('Edit Profile'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(radius),
-                    ),
-                  ),
-                )
-              : profileProvider.isFollowing
-                    ? OutlinedButton(
-                        onPressed: () {
-                          if (currentUserId != null) {
-                            profileProvider.unfollowUser(
-                              followerId: currentUserId,
-                              followingId: profile.id,
-                            );
-                          }
-                        },
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(radius),
-                          ),
+        Row(
+          children: [
+            Expanded(
+              child: isOwnProfile
+                  ? FilledButton.icon(
+                      onPressed: () => context.push('/edit-profile'),
+                      icon: const Icon(Icons.edit_note_rounded, size: 20),
+                      label: const Text('Edit Profile'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(radius),
                         ),
-                        child: const Text('Following'),
-                      )
-                    : profileProvider.state.hasSentRequest
-                    ? OutlinedButton(
-                        onPressed: null,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(radius),
-                          ),
-                        ),
-                        child: const Text('Requested'),
-                      )
-                    : FilledButton(
-                        onPressed: () {
-                          if (currentUserId != null) {
-                            profileProvider.followUser(
-                              followerId: currentUserId,
-                              followingId: profile.id,
-                            );
-                          }
-                        },
-                        style: FilledButton.styleFrom(
-                          backgroundColor: colorScheme.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(radius),
-                          ),
-                        ),
-                        child: const Text('Follow'),
                       ),
-        ),
-        const SizedBox(width: 12),
-        if (!isOwnProfile && currentUserId != null) ...[
-          IconButton.filledTonal(
-            onPressed: () => _handleMessage(currentUserId, profile.id, profile),
-            icon: const Icon(Icons.chat_bubble_outline_rounded),
-            style: IconButton.styleFrom(
-              padding: const EdgeInsets.all(16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(radius),
+                    )
+                  : profileProvider.isFollowing
+                        ? OutlinedButton(
+                            onPressed: () {
+                              if (currentUserId != null) {
+                                profileProvider.unfollowUser(
+                                  followerId: currentUserId,
+                                  followingId: profile.id,
+                                );
+                              }
+                            },
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(radius),
+                              ),
+                            ),
+                            child: const Text('Following'),
+                          )
+                        : profileProvider.state.hasSentRequest
+                        ? OutlinedButton(
+                            onPressed: null,
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(radius),
+                              ),
+                            ),
+                            child: const Text('Requested'),
+                          )
+                        : FilledButton(
+                            onPressed: () {
+                              if (currentUserId != null) {
+                                profileProvider.followUser(
+                                  followerId: currentUserId,
+                                  followingId: profile.id,
+                                );
+                              }
+                            },
+                            style: FilledButton.styleFrom(
+                              backgroundColor: colorScheme.primary,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(radius),
+                              ),
+                            ),
+                            child: const Text('Follow'),
+                          ),
+            ),
+            const SizedBox(width: 12),
+            if (!isOwnProfile && currentUserId != null) ...[
+              IconButton.filledTonal(
+                onPressed: () => _handleMessage(currentUserId, profile.id, profile),
+                icon: const Icon(Icons.chat_bubble_outline_rounded),
+                style: IconButton.styleFrom(
+                  padding: const EdgeInsets.all(16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(radius),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              IconButton.filledTonal(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: colorScheme.surface,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                    ),
+                    builder: (context) => WarmWhisperSheet(
+                      recipientId: profile.id,
+                      recipientName: profile.displayName,
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.favorite_outline_rounded),
+                style: IconButton.styleFrom(
+                  padding: const EdgeInsets.all(16),
+                  backgroundColor: colorScheme.tertiaryContainer,
+                  foregroundColor: colorScheme.onTertiaryContainer,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(radius),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
+            IconButton.filledTonal(
+              onPressed: () {
+                final shareText = isOwnProfile
+                    ? 'Check out my profile on Oasis!'
+                    : 'Check out ${profile.username} on Oasis!';
+                final profileUrl = AppConfig.getWebUrl('/profile/${profile.id}');
+                Share.share('$shareText\n$profileUrl');
+              },
+              icon: const Icon(Icons.ios_share_rounded),
+              style: IconButton.styleFrom(
+                padding: const EdgeInsets.all(16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(radius),
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
+          ],
+        ),
+        if (isOwnProfile) ...[
+           const SizedBox(height: 12),
+           Row(
+             children: [
+               Expanded(
+                 child: OutlinedButton.icon(
+                    onPressed: () => _showCozyPicker(profile, profileProvider),
+                    icon: const Icon(Icons.nights_stay_rounded),
+                    label: Text(profile.cozyStatus != null ? 'Cozy: ${profile.cozyStatus}' : 'Set Cozy Hours'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
+                    ),
+                 ),
+               ),
+               const SizedBox(width: 12),
+               Expanded(
+                 child: OutlinedButton.icon(
+                    onPressed: () {
+                      final uid = _authService.currentUser?.id;
+                      if (uid != null) {
+                        profileProvider.setFortressMode(
+                          userId: uid, 
+                          enabled: !profile.fortressMode,
+                          message: !profile.fortressMode ? 'In my fortress' : null,
+                        );
+                      }
+                    },
+                    icon: Icon(profile.fortressMode ? Icons.security : Icons.security_outlined),
+                    label: Text(profile.fortressMode ? 'Fortress On' : 'Fortress Mode'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
+                      foregroundColor: profile.fortressMode ? colorScheme.primary : null,
+                    ),
+                 ),
+               ),
+             ],
+           ),
         ],
-        IconButton.filledTonal(
-          onPressed: () {
-            final shareText = isOwnProfile
-                ? 'Check out my profile on Oasis!'
-                : 'Check out ${profile.username} on Oasis!';
-            final profileUrl = AppConfig.getWebUrl('/profile/${profile.id}');
-            Share.share('$shareText\n$profileUrl');
-          },
-          icon: const Icon(Icons.ios_share_rounded),
-          style: IconButton.styleFrom(
-            padding: const EdgeInsets.all(16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(radius),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPostsTab(String? userId, bool isDesktop, bool isM3E) {
-    return CustomScrollView(
-      physics: const ClampingScrollPhysics(),
-      slivers: [
-        SliverPadding(
-          padding: EdgeInsets.all(isDesktop ? 20 : 2),
-          sliver: _buildPostsGrid(_userPosts, userId, isDesktop, isM3E),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSavedTab(String? userId, bool isDesktop, bool isM3E) {
-    return CustomScrollView(
-      physics: const ClampingScrollPhysics(),
-      slivers: [
-        SliverPadding(
-          padding: EdgeInsets.all(isDesktop ? 20 : 2),
-          sliver: _buildPostsGrid(_savedPosts, userId, isDesktop, isM3E),
-        ),
       ],
     );
   }
@@ -1985,104 +1722,5 @@ const SizedBox(height: 24),
         ],
       ],
     );
-  }
-
-  Widget _buildPostsGrid(
-    List<Post> posts,
-    String? userId,
-    bool isDesktop,
-    bool isM3E,
-  ) {
-    if (_isLoadingPosts) {
-      return const SliverFillRemaining(
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (posts.isEmpty) {
-      return SliverFillRemaining(
-        hasScrollBody: false,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.grid_off_rounded,
-                size: 48,
-                color: Colors.grey.withValues(alpha: 0.5),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'No posts yet',
-                style: TextStyle(color: Colors.grey.withValues(alpha: 0.5)),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return SliverGrid(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: isDesktop ? 4 : 3,
-        crossAxisSpacing: isDesktop ? 12 : 2,
-        mainAxisSpacing: isDesktop ? 12 : 2,
-        childAspectRatio: 1.0,
-      ),
-      delegate: SliverChildBuilderDelegate((context, index) {
-        final post = posts[index];
-        final borderRadius = isM3E
-            ? BorderRadius.circular(16)
-            : (isDesktop ? BorderRadius.circular(12) : BorderRadius.zero);
-
-        return GestureDetector(
-          onTap: () => context.push('/post/${post.id}'),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.05),
-              borderRadius: borderRadius,
-            ),
-            child: ClipRRect(
-              borderRadius: borderRadius,
-              child: post.imageUrl != null
-                  ? Hero(
-                      tag: 'post_${post.id}',
-                      child: CachedNetworkImage(
-                        imageUrl: post.imageUrl!,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  : const Center(child: Icon(Icons.text_fields, size: 20)),
-            ),
-          ),
-        );
-      }, childCount: posts.length),
-    );
-  }
-}
-
-class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
-  _SliverAppBarDelegate(this._widget, this.backgroundColor);
-
-  final PreferredSizeWidget _widget;
-  final Color backgroundColor;
-
-  @override
-  double get minExtent => _widget.preferredSize.height;
-  @override
-  double get maxExtent => _widget.preferredSize.height;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return Container(color: Colors.transparent, child: _widget);
-  }
-
-  @override
-  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
-    return false;
   }
 }

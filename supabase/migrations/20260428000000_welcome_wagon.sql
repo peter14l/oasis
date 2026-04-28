@@ -25,7 +25,6 @@ CREATE INDEX IF NOT EXISTS idx_welcome_templates_is_active ON public.welcome_tem
 -- WELCOME SETTINGS TABLE (per-user settings)
 -- =====================================================
 CREATE TABLE IF NOT EXISTS public.welcome_settings (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
     welcome_enabled BOOLEAN DEFAULT TRUE,
     send_on_follow BOOLEAN DEFAULT TRUE,

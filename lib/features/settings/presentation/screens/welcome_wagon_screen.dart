@@ -99,7 +99,7 @@ class _WelcomeWagonScreenState extends State<WelcomeWagonScreen> {
       if (template != null && mounted) {
         _templateController.clear();
         await _loadData();
-        CustomSnackbar.show(context, 'Template created');
+        CustomSnackbar.showSuccess(context, 'Template created');
       }
     } catch (e) {
       if (mounted) {

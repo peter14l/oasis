@@ -117,9 +117,22 @@ class ChatAppBar extends StatelessWidget {
                           ),
                           Consumer<PresenceProvider>(
                             builder: (context, presenceProvider, child) {
-                              final isOnline =
-                                  otherUserId != null &&
-                                  presenceProvider.isUserOnline(otherUserId!);
+                              final presence = otherUserId != null
+                                  ? presenceProvider.getUserPresence(otherUserId!)
+                                  : null;
+                              final isOnline = presence?.status == 'online';
+                              final isFortress = presence?.fortressMode ?? false;
+                              final isCozy = presence?.cozyStatus != null;
+
+                              Color statusColor = Colors.grey;
+                              if (isFortress) {
+                                statusColor = Colors.blue;
+                              } else if (isCozy) {
+                                statusColor = Colors.amber;
+                              } else if (isOnline) {
+                                statusColor = Colors.green;
+                              }
+
                               return Positioned(
                                 right: 0,
                                 bottom: 0,
@@ -127,15 +140,16 @@ class ChatAppBar extends StatelessWidget {
                                   width: 10,
                                   height: 10,
                                   decoration: BoxDecoration(
-                                    color: isOnline
-                                        ? Colors.green
-                                        : Colors.grey,
+                                    color: statusColor,
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: colorScheme.surface,
                                       width: 1.5,
                                     ),
                                   ),
+                                  child: isFortress 
+                                    ? const Icon(Icons.security, size: 6, color: Colors.white)
+                                    : null,
                                 ),
                               );
                             },
@@ -166,7 +180,27 @@ class ChatAppBar extends StatelessWidget {
                                         otherUserId!,
                                       )
                                     : null;
-                                final isOnline = presence?.status == 'online';
+                                
+                                String statusText = presence?.status == 'online' ? 'Online' : 'Offline';
+                                Color textColor = (presence?.status == 'online')
+                                    ? Colors.green.withValues(alpha: 0.8)
+                                    : (backgroundUrl != null
+                                        ? Colors.white60
+                                        : colorScheme.onSurfaceVariant.withValues(alpha: 0.7));
+
+                                if (presence?.fortressMode == true) {
+                                  statusText = 'In the Fortress 🏰';
+                                  textColor = Colors.blue.withValues(alpha: 0.9);
+                                } else if (presence?.cozyStatus != null) {
+                                  statusText = presence!.cozyStatus!;
+                                  textColor = Colors.amber.withValues(alpha: 0.9);
+                                } else if (presence?.pulseStatus != null) {
+                                  statusText = presence!.pulseText != null && presence.pulseText!.isNotEmpty 
+                                      ? '${presence.pulseStatus} - ${presence.pulseText}'
+                                      : presence.pulseStatus!;
+                                } else if (presence?.moodEmoji != null) {
+                                  statusText = '${presence!.moodEmoji} ${presence.mood ?? ""}';
+                                }
 
                                 return Row(
                                   children: [
@@ -182,21 +216,18 @@ class ChatAppBar extends StatelessWidget {
                                       ),
                                       const SizedBox(width: 4),
                                     ],
-                                    Text(
-                                      isOnline ? 'Online' : 'Offline',
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: isOnline
-                                                ? Colors.green.withValues(
-                                                    alpha: 0.8,
-                                                  )
-                                                : (backgroundUrl != null
-                                                    ? Colors.white60
-                                                    : colorScheme.onSurfaceVariant
-                                                      .withValues(alpha: 0.7)),
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w500,
-                                          ),
+                                    Expanded(
+                                      child: Text(
+                                        statusText,
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: textColor,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                   ],
                                 );
@@ -309,8 +340,22 @@ class ChatAppBar extends StatelessWidget {
                 ),
                 Consumer<PresenceProvider>(
                   builder: (context, presenceProvider, child) {
-                    final isOnline = otherUserId != null &&
-                        presenceProvider.isUserOnline(otherUserId!);
+                    final presence = otherUserId != null
+                        ? presenceProvider.getUserPresence(otherUserId!)
+                        : null;
+                    final isOnline = presence?.status == 'online';
+                    final isFortress = presence?.fortressMode ?? false;
+                    final isCozy = presence?.cozyStatus != null;
+
+                    Color statusColor = Colors.grey;
+                    if (isFortress) {
+                      statusColor = Colors.blue;
+                    } else if (isCozy) {
+                      statusColor = Colors.amber;
+                    } else if (isOnline) {
+                      statusColor = Colors.green;
+                    }
+
                     return Positioned(
                       right: 0,
                       bottom: 0,
@@ -318,13 +363,16 @@ class ChatAppBar extends StatelessWidget {
                         width: 10,
                         height: 10,
                         decoration: BoxDecoration(
-                          color: isOnline ? Colors.green : Colors.grey,
+                          color: statusColor,
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: colorScheme.surface,
                             width: 1.5,
                           ),
                         ),
+                        child: isFortress 
+                          ? const Icon(Icons.security, size: 6, color: Colors.white)
+                          : null,
                       ),
                     );
                   },
@@ -350,7 +398,25 @@ class ChatAppBar extends StatelessWidget {
                       final presence = otherUserId != null
                           ? presenceProvider.getUserPresence(otherUserId!)
                           : null;
-                      final isOnline = presence?.status == 'online';
+
+                      String statusText = presence?.status == 'online' ? 'Online' : 'Offline';
+                      Color textColor = (presence?.status == 'online')
+                          ? Colors.green.withValues(alpha: 0.8)
+                          : colorScheme.onSurfaceVariant.withValues(alpha: 0.7);
+
+                      if (presence?.fortressMode == true) {
+                        statusText = 'In the Fortress 🏰';
+                        textColor = Colors.blue.withValues(alpha: 0.9);
+                      } else if (presence?.cozyStatus != null) {
+                        statusText = presence!.cozyStatus!;
+                        textColor = Colors.amber.withValues(alpha: 0.9);
+                      } else if (presence?.pulseStatus != null) {
+                        statusText = presence!.pulseText != null && presence.pulseText!.isNotEmpty 
+                            ? '${presence.pulseStatus} - ${presence.pulseText}'
+                            : presence.pulseStatus!;
+                      } else if (presence?.moodEmoji != null) {
+                        statusText = '${presence!.moodEmoji} ${presence.mood ?? ""}';
+                      }
 
                       return Row(
                         children: [
@@ -363,11 +429,9 @@ class ChatAppBar extends StatelessWidget {
                             const SizedBox(width: 4),
                           ],
                           Text(
-                            isOnline ? 'Online' : 'Offline',
+                            statusText,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: isOnline
-                                  ? Colors.green.withValues(alpha: 0.8)
-                                  : colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                              color: textColor,
                               fontSize: 10,
                               fontWeight: FontWeight.w500,
                             ),

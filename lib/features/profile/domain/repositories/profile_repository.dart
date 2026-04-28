@@ -78,6 +78,18 @@ abstract class ProfileRepository {
     DateTime? until,
   });
 
+  Future<void> setMood({
+    required String userId,
+    String? mood,
+    String? emoji,
+  });
+
+  Future<void> setFortressMode({
+    required String userId,
+    required bool enabled,
+    String? message,
+  });
+
   Future<void> clearCozyMode(String userId);
 
   Future<void> setPulseStatus({

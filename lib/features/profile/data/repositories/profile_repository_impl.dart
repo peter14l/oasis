@@ -187,6 +187,32 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
+  Future<void> setMood({
+    required String userId,
+    String? mood,
+    String? emoji,
+  }) async {
+    await _remoteDatasource.setMood(
+      userId: userId,
+      mood: mood,
+      emoji: emoji,
+    );
+  }
+
+  @override
+  Future<void> setFortressMode({
+    required String userId,
+    required bool enabled,
+    String? message,
+  }) async {
+    await _remoteDatasource.setFortressMode(
+      userId: userId,
+      enabled: enabled,
+      message: message,
+    );
+  }
+
+  @override
   Future<void> clearCozyMode(String userId) async {
     await _remoteDatasource.clearCozyMode(userId);
   }

@@ -31,6 +31,10 @@ class UserProfileEntity {
   final String? pulseText;
   final DateTime? pulseSince;
   final bool pulseVisible;
+  final String? currentMood;
+  final String? moodEmoji;
+  final bool fortressMode;
+  final String? fortressMessage;
   final DateTime createdAt;
 
   String get displayName => (fullName != null && fullName!.isNotEmpty) ? fullName! : username;
@@ -72,6 +76,10 @@ class UserProfileEntity {
     this.pulseText,
     this.pulseSince,
     this.pulseVisible = true,
+    this.currentMood,
+    this.moodEmoji,
+    this.fortressMode = false,
+    this.fortressMessage,
     required this.createdAt,
   });
 
@@ -113,6 +121,10 @@ class UserProfileEntity {
           ? DateTime.parse(json['pulse_since'] as String)
           : null,
       pulseVisible: json['pulse_visible'] as bool? ?? true,
+      currentMood: json['current_mood'] as String?,
+      moodEmoji: json['mood_emoji'] as String?,
+      fortressMode: json['fortress_mode'] as bool? ?? false,
+      fortressMessage: json['fortress_message'] as String?,
       createdAt:
           json['created_at'] != null
               ? DateTime.parse(json['created_at'] as String)
@@ -154,6 +166,10 @@ class UserProfileEntity {
       'pulse_text': pulseText,
       'pulse_since': pulseSince?.toIso8601String(),
       'pulse_visible': pulseVisible,
+      'current_mood': currentMood,
+      'mood_emoji': moodEmoji,
+      'fortress_mode': fortressMode,
+      'fortress_message': fortressMessage,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -191,6 +207,10 @@ class UserProfileEntity {
     String? pulseText,
     DateTime? pulseSince,
     bool? pulseVisible,
+    String? currentMood,
+    String? moodEmoji,
+    bool? fortressMode,
+    String? fortressMessage,
     DateTime? createdAt,
   }) {
     return UserProfileEntity(
@@ -226,6 +246,10 @@ class UserProfileEntity {
       pulseText: pulseText ?? this.pulseText,
       pulseSince: pulseSince ?? this.pulseSince,
       pulseVisible: pulseVisible ?? this.pulseVisible,
+      currentMood: currentMood ?? this.currentMood,
+      moodEmoji: moodEmoji ?? this.moodEmoji,
+      fortressMode: fortressMode ?? this.fortressMode,
+      fortressMessage: fortressMessage ?? this.fortressMessage,
       createdAt: createdAt ?? this.createdAt,
     );
   }

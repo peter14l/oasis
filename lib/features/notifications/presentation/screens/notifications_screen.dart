@@ -13,6 +13,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/widgets/desktop_header.dart';
 import 'package:oasis/widgets/adaptive/adaptive_scaffold.dart';
+import 'package:oasis/features/notifications/presentation/widgets/whisper_notification_item.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'dart:ui';
 
@@ -101,6 +102,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } else {
       if (notification.postId != null) {
         context.push('/post/${notification.postId}/comments');
+      } else if (notification.type == 'warm_whisper') {
+        // Whispers just show in the list for now, tapping marks as read and stays
       } else if (notification.actorId != null && (notification.type == 'follow' || notification.type == 'follow_request')) {
         context.push('/profile/${notification.actorId}');
       }
@@ -162,6 +165,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildNotificationItem(AppNotification notification, bool isDesktop) {
+    if (notification.type == 'warm_whisper') {
+      return WhisperNotificationItem(
+        notification: notification,
+        onTap: () => _handleNotificationTap(notification),
+      );
+    }
+
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -295,6 +305,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         _buildFilterOption('Likes', 'like', Icons.favorite_outline),
         _buildFilterOption('Comments', 'comment', Icons.comment_outlined),
         _buildFilterOption('Follows', 'follow', Icons.person_add_outlined),
+        _buildFilterOption('Warm Whispers', 'warm_whisper', Icons.favorite_rounded),
       ],
     );
   }

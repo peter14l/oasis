@@ -7,7 +7,23 @@ import 'package:oasis/core/network/supabase_client.dart';
 class UserPresence {
   final String status;
   final DateTime? lastSeen;
-  UserPresence({required this.status, this.lastSeen});
+  final String? mood;
+  final String? moodEmoji;
+  final String? cozyStatus;
+  final bool fortressMode;
+  final String? pulseStatus;
+  final String? pulseText;
+
+  UserPresence({
+    required this.status,
+    this.lastSeen,
+    this.mood,
+    this.moodEmoji,
+    this.cozyStatus,
+    this.fortressMode = false,
+    this.pulseStatus,
+    this.pulseText,
+  });
 }
 
 class PresenceProvider with ChangeNotifier {
@@ -30,7 +46,16 @@ class PresenceProvider with ChangeNotifier {
     if (presence.status == 'online' && presence.lastSeen != null) {
       final now = DateTime.now();
       if (now.difference(presence.lastSeen!) > _offlineThreshold) {
-        return UserPresence(status: 'offline', lastSeen: presence.lastSeen);
+        return UserPresence(
+          status: 'offline', 
+          lastSeen: presence.lastSeen,
+          mood: presence.mood,
+          moodEmoji: presence.moodEmoji,
+          cozyStatus: presence.cozyStatus,
+          fortressMode: presence.fortressMode,
+          pulseStatus: presence.pulseStatus,
+          pulseText: presence.pulseText,
+        );
       }
     }
 
@@ -45,10 +70,16 @@ class PresenceProvider with ChangeNotifier {
 
     _presenceService.subscribeToUserPresence(
       userId: userId,
-      onUpdate: (status, lastSeen) {
+      onUpdate: (data) {
         _userPresence[userId] = UserPresence(
-          status: status,
-          lastSeen: lastSeen,
+          status: data['status'] as String? ?? 'offline',
+          lastSeen: data['last_seen'] != null ? DateTime.parse(data['last_seen'] as String) : null,
+          mood: data['mood'] as String?,
+          moodEmoji: data['mood_emoji'] as String?,
+          cozyStatus: data['cozy_status'] as String?,
+          fortressMode: data['fortress_mode'] as bool? ?? false,
+          pulseStatus: data['pulse_status'] as String?,
+          pulseText: data['pulse_text'] as String?,
         );
         notifyListeners();
       },
@@ -135,6 +166,12 @@ class PresenceProvider with ChangeNotifier {
           _userPresence[userId] = UserPresence(
             status: status,
             lastSeen: lastSeen,
+            mood: result['mood'] as String?,
+            moodEmoji: result['mood_emoji'] as String?,
+            cozyStatus: result['cozy_status'] as String?,
+            fortressMode: result['fortress_mode'] as bool? ?? false,
+            pulseStatus: result['pulse_status'] as String?,
+            pulseText: result['pulse_text'] as String?,
           );
         } else {
           _userPresence[userId] = UserPresence(

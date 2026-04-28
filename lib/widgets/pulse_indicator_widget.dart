@@ -7,8 +7,8 @@ class PulseIndicatorWidget extends StatelessWidget {
   final String? pulseText;
   final DateTime? pulseSince;
   final bool pulseVisible;
-  final VoidCallback onTap;
   final bool compact;
+  final VoidCallback? onTap;
 
   const PulseIndicatorWidget({
     super.key,
@@ -16,8 +16,8 @@ class PulseIndicatorWidget extends StatelessWidget {
     this.pulseText,
     this.pulseSince,
     this.pulseVisible = true,
-    required this.onTap,
     this.compact = false,
+    this.onTap,
   });
 
   String get _statusEmoji {

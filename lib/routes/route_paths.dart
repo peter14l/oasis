@@ -10,7 +10,8 @@ class RoutePaths {
 
   // Main routes
   static const String spaces = '/';
-  static const String feed = '/feed';
+  // COMMENTED OUT: Feed removed per user request (2026-04-28)
+  // static const String feed = '/feed';
   static const String search = '/search';
   static const String messages = '/messages';
   static const String notifications = '/notifications';
@@ -54,14 +55,16 @@ class RoutePaths {
   // Settings sub-routes
   static const String accountPrivacy = '/settings/privacy';
   static const String twoFactorAuth = '/settings/2fa';
+  static const String welcomeWagon = '/settings/welcome-wagon';
   static const String downloadData = '/settings/download';
   static const String storageUsage = '/settings/storage';
   static const String fontSize = '/settings/font-size';
   static const String helpSupport = '/settings/help';
   static const String subscription = '/settings/subscription';
-  static const String digitalWellbeing = '/settings/wellbeing';
-  static const String screenTime = '/settings/screen-time';
-  static const String wellnessStats = '/settings/wellness-stats';
+  // COMMENTED OUT: Wellness routes removed per user request (2026-04-28)
+  // static const String digitalWellbeing = '/settings/wellbeing';
+  // static const String screenTime = '/settings/screen-time';
+  // static const String wellnessStats = '/settings/wellness-stats';
   static const String vaultSettings = '/settings/vault';
   static const String deleteAccount = '/settings/delete-account';
   static const String about = '/settings/about';

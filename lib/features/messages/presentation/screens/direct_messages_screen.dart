@@ -1146,39 +1146,48 @@ class _BentoItem extends StatelessWidget {
                                               context,
                                               provider,
                                               child,
-                                            ) => _PresenceRipple(
-                                              active: provider.isUserOnline(
-                                                conversation.otherUserId,
-                                              ),
-                                              child: CircleAvatar(
-                                                radius: 20,
-                                                backgroundImage:
-                                                    conversation
-                                                            .otherUserAvatar
-                                                            .isNotEmpty
-                                                        ? CachedNetworkImageProvider(
-                                                          conversation
-                                                              .otherUserAvatar,
-                                                        )
-                                                        : null,
-                                                child:
-                                                    conversation
-                                                            .otherUserAvatar
-                                                            .isEmpty
-                                                        ? Text(
-                                                          conversation
-                                                              .otherUserName[0]
-                                                              .toUpperCase(),
-                                                          style:
-                                                              const TextStyle(
-                                                                fontSize: 12,
-                                                              ),
-                                                        )
-                                                        : null,
-                                              ),
-                                            ),
-                                      ),
-                                      if (conversation.unreadCount > 0)
+                                            ) {
+                                              final presence = provider.getUserPresence(conversation.otherUserId);
+                                              final isOnline = presence?.status == 'online';
+                                              final isFortress = presence?.fortressMode ?? false;
+                                              final isCozy = presence?.cozyStatus != null;
+
+                                              Color statusColor = Colors.green;
+                                              if (isFortress) statusColor = Colors.blue;
+                                              else if (isCozy) statusColor = Colors.amber;
+
+                                              return _PresenceRipple(
+                                                active: isOnline || isFortress || isCozy,
+                                                color: statusColor,
+                                                child: CircleAvatar(
+                                                  radius: 20,
+                                                  backgroundImage:
+                                                      conversation
+                                                              .otherUserAvatar
+                                                              .isNotEmpty
+                                                          ? CachedNetworkImageProvider(
+                                                            conversation
+                                                                .otherUserAvatar,
+                                                          )
+                                                          : null,
+                                                  child:
+                                                      conversation
+                                                              .otherUserAvatar
+                                                              .isEmpty
+                                                          ? Text(
+                                                            conversation
+                                                                .otherUserName[0]
+                                                                .toUpperCase(),
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 12,
+                                                                ),
+                                                          )
+                                                          : null,
+                                                ),
+                                              );
+                                            },
+                                      ),                                      if (conversation.unreadCount > 0)
                                         UnreadBadgeWidget(
                                           count: conversation.unreadCount,
                                         ),
@@ -1736,7 +1745,12 @@ class _StealthPreviewPopup extends StatelessWidget {
 class _PresenceRipple extends StatelessWidget {
   final Widget child;
   final bool active;
-  const _PresenceRipple({required this.child, this.active = false});
+  final Color color;
+  const _PresenceRipple({
+    required this.child, 
+    this.active = false,
+    this.color = Colors.green,
+  });
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -1749,7 +1763,7 @@ class _PresenceRipple extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.blue.withValues(alpha: 0.5),
+                    color: color.withValues(alpha: 0.5),
                     width: 2,
                   ),
                 ),

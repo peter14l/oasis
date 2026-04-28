@@ -12,7 +12,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/services/screen_time_service.dart';
-import 'package:oasis/services/wellness_service.dart';
 import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
 import 'package:universal_io/io.dart';
 import 'package:oasis/screens/spaces/spaces_screen.dart';
@@ -82,10 +81,8 @@ import '../screens/oasis_pro_screen.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 
-import 'package:oasis/features/wellness/presentation/screens/wellness_center_screen.dart';
 import 'package:oasis/features/settings/presentation/screens/changelog_screen.dart';
 import 'package:oasis/features/auth/presentation/widgets/account_switcher_sheet.dart';
-import 'package:oasis/features/settings/presentation/screens/wellness_stats_screen.dart';
 
 class UnreadMessagesBadge extends StatelessWidget {
   final Widget child;
@@ -195,17 +192,13 @@ class _MainLayoutState extends State<MainLayout> {
     if (location.startsWith('/capsule') || location.startsWith('/vault')) {
       return 1;
     }
-    // Wellness tab
-    if (location.startsWith('/wellness')) {
-      return 2;
-    }
     // Messages tab
     if (location.startsWith('/messages')) {
-      return 3;
+      return 2;
     }
     // Profile/Settings combined tab
     if (location.startsWith('/profile') || location.startsWith('/settings')) {
-      return 4;
+      return 3;
     }
     return 0;
   }
@@ -272,10 +265,10 @@ class _MainLayoutState extends State<MainLayout> {
     final currentIndex = _getCurrentIndex();
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
-    return Consumer3<ScreenTimeService, WellnessService, UserSettingsProvider>(
-      builder: (context, svc, wellness, userSettings, _) {
+    return Consumer2<ScreenTimeService, UserSettingsProvider>(
+      builder: (context, svc, userSettings, _) {
         final useFluent = themeProvider.useFluentUI;
-        final killSwitchActive = wellness.zenModeEnabled;
+        final killSwitchActive = false; // Wellness/Zen mode removed
         final isMica = userSettings.micaEnabled && Platform.isWindows;
 
         final panelColor =
@@ -582,7 +575,7 @@ Widget _buildBottomNavigationBar(
     final disableTransparency =
         themeProvider.isM3EEnabled && themeProvider.isM3ETransparencyDisabled;
 
-    // 5-tab layout: Canvas (Home), Vault, Wellness, Messages, Profile
+    // 4-tab layout: Canvas (Home), Vault, Messages, Profile
     final navBar = NavigationBarM3E(
       backgroundColor:
           disableTransparency
@@ -603,11 +596,6 @@ Widget _buildBottomNavigationBar(
           icon: Icon(FluentIcons.box_24_regular),
           selectedIcon: Icon(FluentIcons.box_24_filled),
           label: 'Vault',
-        ),
-        const NavigationDestinationM3E(
-          icon: Icon(FluentIcons.leaf_one_24_regular),
-          selectedIcon: Icon(FluentIcons.leaf_one_24_filled),
-          label: 'Wellness',
         ),
         NavigationDestinationM3E(
           icon: UnreadMessagesBadge(child: Icon(FluentIcons.chat_24_regular)),
@@ -922,7 +910,7 @@ Widget _buildBottomNavigationBar(
       }
     }
 
-    // 5-tab layout: Canvas(0), Vault(1), Wellness(2), Messages(3), Profile(4)
+    // 4-tab layout: Canvas(0), Vault(1), Messages(2), Profile(3)
     switch (index) {
       case 0:
         context.go('/spaces'); // Canvas/Spaces
@@ -931,12 +919,9 @@ Widget _buildBottomNavigationBar(
         context.go('/vault'); // Vault - list capsules
         break;
       case 2:
-        context.go('/wellness'); // Wellness Center
-        break;
-      case 3:
         context.go('/messages');
         break;
-      case 4:
+      case 3:
         context.go('/profile');
         break;
     }
@@ -1203,17 +1188,6 @@ class AppRouter {
               },
             ),
 
-            // Wellness Center Screen
-            GoRoute(
-              path: '/wellness',
-              name: 'wellness',
-              pageBuilder: (context, state) {
-                return NoTransitionPage(
-                  child: WellnessCenterScreen(),
-                );
-              },
-            ),
-
             // Notifications Screen
             GoRoute(
               path: '/notifications',
@@ -1460,6 +1434,15 @@ class AppRouter {
               ),
         ),
         GoRoute(
+          path: '/settings/welcome-wagon',
+          name: 'welcome_wagon',
+          pageBuilder:
+              (context, state) => MaterialPage(
+                key: state.pageKey,
+                child: const WelcomeWagonScreen(),
+              ),
+        ),
+        GoRoute(
           path: '/settings/download-data',
           name: 'download_data',
           pageBuilder:
@@ -1577,13 +1560,6 @@ class AppRouter {
           },
         ),
 
-        GoRoute(
-          path: '/wellness-stats',
-          name: 'wellness_stats',
-          pageBuilder:
-              (context, state) =>
-                  const MaterialPage(child: WellnessStatsScreen()),
-        ),
         // User Profile Screen (for viewing others)
         GoRoute(
           path: '/profile/:userId',

@@ -13,6 +13,9 @@ import 'package:oasis/features/settings/presentation/screens/vault_settings_scre
 import 'package:oasis/features/settings/presentation/screens/account_privacy_screen.dart';
 import 'package:oasis/features/settings/presentation/screens/welcome_wagon_screen.dart';
 import 'package:oasis/features/settings/presentation/screens/privacy_heartbeat_screen.dart';
+import 'package:oasis/widgets/fortress_message_selector.dart';
+import 'package:oasis/services/fortress_service.dart';
+import 'package:oasis/widgets/wellbeing/cozy_mode_sheet.dart';
 import 'package:oasis/features/settings/presentation/widgets/privacy_transparency_card.dart';
 import 'package:oasis/features/settings/presentation/screens/two_factor_auth_screen.dart';
 import 'package:oasis/features/settings/presentation/screens/download_data_screen.dart';
@@ -45,7 +48,6 @@ import 'dart:ui';
 
 enum SettingsCategory {
   account,
-  general,
   privacy,
   appearance,
   data,
@@ -200,11 +202,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             body: bodyContent,
           ),
           fluent.PaneItem(
-            icon: const material.Icon(FluentIcons.timer_24_regular),
-            title: const Text('General'),
-            body: bodyContent,
-          ),
-          fluent.PaneItem(
             icon: const material.Icon(FluentIcons.shield_24_regular),
             title: const Text('Privacy & Security'),
             body: bodyContent,
@@ -312,12 +309,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 selectedIcon: FluentIcons.person_24_filled,
                                 label: 'Account',
                                 category: SettingsCategory.account,
-                              ),
-                              _buildSidebarItem(
-                                icon: FluentIcons.timer_24_regular,
-                                selectedIcon: FluentIcons.timer_24_filled,
-                                label: 'General',
-                                category: SettingsCategory.general,
                               ),
                               _buildSidebarItem(
                                 icon: FluentIcons.shield_24_regular,
@@ -562,8 +553,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     switch (category) {
       case SettingsCategory.account:
         return 'Account';
-      case SettingsCategory.general:
-        return 'General';
       case SettingsCategory.privacy:
         return 'Privacy & Security';
       case SettingsCategory.appearance:
@@ -610,9 +599,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           ),
         );
-      case SettingsCategory.general:
-        // COMMENTED OUT: Wellness Center removed (2026-04-28)
-        return const SizedBox.shrink(); // _buildGeneralSection(context, index: 0);
       case SettingsCategory.privacy:
         return _buildPrivacySection(context, index: 1);
       case SettingsCategory.appearance:
@@ -666,15 +652,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildSettingsTile(
             context,
-            icon: material.Icons.lock_outlined,
-            title: 'Account Privacy',
-            subtitle: 'Control who can see your content',
-            iconColor: material.Colors.green,
-            onTap: () => _navigateToSubPage(
-              'Account Privacy',
-              const AccountPrivacyScreen(),
-            ),
+            icon: material.Icons.waving_hand_outlined,
+            title: 'Welcome Wagon',
+            subtitle: 'Customize messages for new connections',
+            iconColor: colorScheme.secondary,
+            onTap: () => context.push('/settings/welcome-wagon'),
           ),
+          _buildSettingsTile(
+            context,
+            icon: material.Icons.security_outlined,
+            title: 'Fortress Mode',
+            subtitle: 'One-tap to lock the app with an away message',
+            iconColor: material.Colors.blueGrey,
+            onTap: () {
+              final fortressService =
+                  Provider.of<FortressService>(context, listen: false);
+              showFortressMessageSelector(
+                context,
+                currentMessage: fortressService.fortressMessage,
+                onSelect: (message) {
+                  fortressService.activateFortress(customMessage: message);
+                },
+              );
+            },
+          ),
+          _buildSettingsTile(
+            context,
+            icon: material.Icons.nights_stay_outlined,
+            title: 'Cozy Hours',
+            subtitle: 'Personalized do not disturb',
+            iconColor: material.Colors.indigo,
+            onTap: () {
+              material.showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: material.Colors.transparent,
+                builder: (context) => CozyModeSheet(
+                  onSelect: (mode, text, duration) {},
+                  onClear: () {},
+                ),
+              );
+            },
+          ),
+          /*
           _buildSettingsTile(
             context,
             icon: material.Icons.block_outlined,
@@ -686,6 +706,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const BlockedUsersScreen(),
             ),
           ),
+          */
           _buildSettingsTile(
             context,
             icon: material.Icons.security_outlined,
@@ -697,6 +718,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const TwoFactorAuthScreen(),
             ),
           ),
+          /*
           _buildSettingsTile(
             context,
             icon: material.Icons.waving_hand,
@@ -708,6 +730,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const WelcomeWagonScreen(),
             ),
           ),
+          */
           _buildSettingsTile(
             context,
             icon: material.Icons.favorite_border_outlined,

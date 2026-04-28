@@ -54,99 +54,107 @@ class _PulsePickerSheetState extends State<PulsePickerSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final keyboardPadding = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.fromLTRB(
+        24,
+        12,
+        24,
+        (keyboardPadding > 0 ? keyboardPadding + 16 : bottomPadding + 24),
+      ),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Handle bar
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Check-in Pulse',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Handle bar
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              if (widget.currentStatus != null)
-                TextButton(
-                  onPressed: () {
-                    widget.onClear();
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(
-                    'Clear',
-                    style: TextStyle(color: colorScheme.error),
+            ),
+            const SizedBox(height: 20),
+
+            // Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Check-in Pulse',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Let friends know where you are — no location tracking, just presence.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
+                if (widget.currentStatus != null)
+                  TextButton(
+                    onPressed: () {
+                      widget.onClear();
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(
+                      'Clear',
+                      style: TextStyle(color: colorScheme.error),
+                    ),
+                  ),
+              ],
             ),
-          ),
-          const SizedBox(height: 24),
-
-          // Status options
-          ...PulseStatus.values.map((status) => _buildStatusOption(status)),
-
-          const SizedBox(height: 16),
-
-          // Custom text input for "With [friend]" or "At [location]"
-          if (_selectedStatus == PulseStatus.withFriend ||
-              _selectedStatus == PulseStatus.atLocation)
-            _buildCustomTextInput(colorScheme),
-
-          const SizedBox(height: 24),
-
-          // Set button
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () {
-                String? customText;
-                if (_selectedStatus == PulseStatus.withFriend ||
-                    _selectedStatus == PulseStatus.atLocation) {
-                  customText = _customTextController.text.trim();
-                  if (customText.isEmpty) {
-                    // Show error
-                    return;
-                  }
-                }
-                widget.onSelect(_selectedStatus, customText);
-                Navigator.of(context).pop();
-              },
-              child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 4),
-                child: Text('Set Pulse'),
+            const SizedBox(height: 8),
+            Text(
+              'Let friends know where you are — no location tracking, just presence.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-        ],
+            const SizedBox(height: 24),
+
+            // Status options
+            ...PulseStatus.values.map((status) => _buildStatusOption(status)),
+
+            const SizedBox(height: 16),
+
+            // Custom text input for "With [friend]" or "At [location]"
+            if (_selectedStatus == PulseStatus.withFriend ||
+                _selectedStatus == PulseStatus.atLocation)
+              _buildCustomTextInput(colorScheme),
+
+            const SizedBox(height: 24),
+
+            // Set button
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () {
+                  String? customText;
+                  if (_selectedStatus == PulseStatus.withFriend ||
+                      _selectedStatus == PulseStatus.atLocation) {
+                    customText = _customTextController.text.trim();
+                    if (customText.isEmpty) {
+                      // Show error
+                      return;
+                    }
+                  }
+                  widget.onSelect(_selectedStatus, customText);
+                  Navigator.of(context).pop();
+                },
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 4),
+                  child: Text('Set Pulse'),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

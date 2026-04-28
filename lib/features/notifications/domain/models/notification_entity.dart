@@ -132,6 +132,8 @@ class AppNotification {
         return 'Mentioned You';
       case 'canvas_pulse':
         return 'Canvas Pulse';
+      case 'warm_whisper':
+        return 'Warm Whisper';
       default:
         return 'New Notification';
     }
@@ -153,6 +155,8 @@ class AppNotification {
         return message ?? 'New message';
       case 'canvas_pulse':
         return '${actorName ?? 'Someone'} ${message ?? 'is on the Canvas'}';
+      case 'warm_whisper':
+        return '${actorName ?? 'Someone'} sent you some warmth ✨';
       default:
         return message ?? 'New notification';
     }
@@ -174,13 +178,15 @@ class AppNotification {
         return Icons.chat_outlined;
       case 'canvas_pulse':
         return Icons.blur_on_rounded;
+      case 'warm_whisper':
+        return Icons.favorite_rounded;
       default:
         return Icons.notifications;
     }
   }
 }
 
-enum NotificationType { like, comment, follow, follow_request, mention, dm, ripple, system }
+enum NotificationType { like, comment, follow, follow_request, mention, dm, ripple, system, warm_whisper }
 
 extension NotificationTypeExtension on NotificationType {
   String get displayName {
@@ -201,6 +207,8 @@ extension NotificationTypeExtension on NotificationType {
         return 'Ripple';
       case NotificationType.system:
         return 'System';
+      case NotificationType.warm_whisper:
+        return 'Warm Whisper';
     }
   }
 
@@ -222,6 +230,8 @@ extension NotificationTypeExtension on NotificationType {
         return Icons.waves;
       case NotificationType.system:
         return Icons.info;
+      case NotificationType.warm_whisper:
+        return Icons.favorite_rounded;
     }
   }
 }

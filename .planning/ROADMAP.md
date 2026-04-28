@@ -137,3 +137,29 @@ Plans:
 **Requirements:**
 [STORAGE-01, STORAGE-02, STORAGE-03]
 
+## Phase 14: Feel Like Home
+
+**Goal:** Create features that make Oasis feel like a warm, personalized home - digital sanctuary with personal expression, belonging, and privacy comfort. 14 unique features.
+
+**Status:** ✅ Planned
+**Plans:** 14 plans
+
+### Plans:
+- [ ] 14-01-PLAN.md — Mood Orbit: personal vibe widget
+- [ ] 14-02-PLAN.md — Safe Haven Badge: trust badges
+- [ ] 14-03-PLAN.md — Digital Garden: plant thoughts
+- [ ] 14-04-PLAN.md — Cozy Hours: custom DND statuses
+- [ ] 14-05-PLAN.md — Circle Warmth: temperature indicator
+- [ ] 14-06-PLAN.md — Welcome Wagon: new connection welcome
+- [ ] 14-07-PLAN.md — Memory Lane: this time last year
+- [ ] 14-08-PLAN.md — Quiet Rooms: sub-groups in Circles
+- [ ] 14-09-PLAN.md — Fortress Mode: one-tap lock
+- [ ] 14-10-PLAN.md — Trust Circle: inner circle
+- [ ] 14-11-PLAN.md — Digital Will: legacy planning
+- [ ] 14-12-PLAN.md — Warm Whisper: care ping
+- [ ] 14-13-PLAN.md — Check-in Pulse: presence status
+- [ ] 14-14-PLAN.md — Home Base: personal avatar space
+
+**Requirements:**
+[HOME-01, HOME-02, HOME-03, HOME-04, HOME-05, HOME-06, HOME-07, HOME-08, HOME-09, HOME-10, HOME-11, HOME-12, HOME-13, HOME-14]
+
