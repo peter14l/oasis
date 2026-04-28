@@ -249,9 +249,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-    );
-  }
-
   Widget _buildHomeBaseButton(BuildContext context, ThemeData theme, UserProfileEntity profile) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),

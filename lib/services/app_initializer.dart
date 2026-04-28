@@ -69,6 +69,7 @@ import 'package:oasis/features/settings/presentation/providers/user_settings_pro
 import 'package:oasis/features/settings/data/repositories/settings_repository_impl.dart';
 import 'package:oasis/features/settings/domain/usecases/settings_usecases.dart';
 import 'package:oasis/features/stories/presentation/providers/stories_provider.dart';
+import 'package:oasis/features/wellbeing/presentation/providers/digital_garden_provider.dart';
 import 'package:oasis/features/collections/presentation/providers/collections_provider.dart';
 import 'package:oasis/features/collections/data/repositories/collection_repository_impl.dart';
 import 'package:oasis/features/collections/domain/usecases/get_collections.dart';
@@ -201,8 +202,6 @@ class InitializedServices {
     required this.fortressService,
   });
 }
-
-import 'package:oasis/features/wellbeing/presentation/providers/digital_garden_provider.dart';
 
 class AppInitializer {
   /// Background FCM message handler (must be top-level / static).

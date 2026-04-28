@@ -40,6 +40,7 @@ import 'package:oasis/widgets/windows_title_bar.dart';
 import 'package:oasis/widgets/splash_screen.dart';
 import 'package:oasis/widgets/global_wellness_wrapper.dart';
 import 'package:oasis/services/update_service.dart';
+import 'package:oasis/features/wellbeing/presentation/providers/digital_garden_provider.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 
 // ---------------------------------------------------------------------------
@@ -685,9 +686,8 @@ class CallNavigator extends StatelessWidget {
     }
 
     return childWidget;
-    }
-    }
-import 'package:oasis/features/wellbeing/presentation/providers/digital_garden_provider.dart';
+  }
+}
 
 void main() async {
   // 1. Silence Flutter framework errors that are harmless but messy

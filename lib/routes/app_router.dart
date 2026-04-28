@@ -82,6 +82,7 @@ import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:flutter_animate/flutter_animate.dart' as motion;
 
 import 'package:oasis/features/settings/presentation/screens/changelog_screen.dart';
+import 'package:oasis/features/wellbeing/presentation/screens/digital_garden_screen.dart';
 import 'package:oasis/features/auth/presentation/widgets/account_switcher_sheet.dart';
 
 class UnreadMessagesBadge extends StatelessWidget {
@@ -911,8 +912,6 @@ Widget _buildBottomNavigationBar(
     }
   }
 }
-
-import 'package:oasis/features/wellbeing/presentation/screens/digital_garden_screen.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> rootNavigatorKey =

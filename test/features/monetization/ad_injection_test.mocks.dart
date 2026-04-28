@@ -264,6 +264,15 @@ class MockFeedRepository extends _i1.Mock implements _i6.FeedRepository {
             returnValueForMissingStub: _i5.Stream<List<_i2.Post>>.empty(),
           )
           as _i5.Stream<List<_i2.Post>>);
+
+  @override
+  _i5.Future<_i2.Post?> getMemoryLanePost({required String? userId}) =>
+      (super.noSuchMethod(
+            Invocation.method(#getMemoryLanePost, [], {#userId: userId}),
+            returnValue: _i5.Future<_i2.Post?>.value(),
+            returnValueForMissingStub: _i5.Future<_i2.Post?>.value(),
+          )
+          as _i5.Future<_i2.Post?>);
 }
 
 /// A class which mocks [PostRepository].
