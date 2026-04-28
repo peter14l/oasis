@@ -80,6 +80,14 @@ class SupabaseConfig {
   static const String pollOptionsTable = 'poll_options';
   static const String pollVotesTable = 'poll_votes';
 
+  // Table names - Badging
+  static const String trustBadgesTable = 'trust_badges';
+  static const String userBadgesTable = 'user_badges';
+
+  // Table names - Welcome Wagon
+  static const String welcomeTemplatesTable = 'welcome_templates';
+  static const String welcomeSettingsTable = 'welcome_settings';
+
   // Function names
   static const String getFeedPostsFn = 'get_feed_posts';
   static const String getFollowingFeedPostsFn = 'get_following_feed_posts';
