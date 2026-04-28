@@ -70,4 +70,26 @@ abstract class ProfileRepository {
   });
 
   Future<void> updatePrivacy({required String userId, required bool isPrivate});
+
+  Future<void> setCozyMode({
+    required String userId,
+    String? status,
+    String? statusText,
+    DateTime? until,
+  });
+
+  Future<void> clearCozyMode(String userId);
+
+  Future<void> setPulseStatus({
+    required String userId,
+    required String status,
+    String? text,
+  });
+
+  Future<void> clearPulseStatus(String userId);
+
+  Future<void> togglePulseVisibility({
+    required String userId,
+    required bool visible,
+  });
 }

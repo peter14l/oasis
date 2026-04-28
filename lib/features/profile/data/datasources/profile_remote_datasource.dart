@@ -370,6 +370,95 @@ class ProfileRemoteDatasource {
     }
   }
 
+  Future<void> setCozyMode({
+    required String userId,
+    String? status,
+    String? statusText,
+    DateTime? until,
+  }) async {
+    try {
+      final updateData = <String, dynamic>{};
+      if (status != null) updateData['cozy_status'] = status;
+      if (statusText != null) updateData['cozy_status_text'] = statusText;
+      if (until != null) updateData['cozy_until'] = until.toIso8601String();
+
+      await _supabase
+          .from(SupabaseConfig.profilesTable)
+          .update(updateData)
+          .eq('id', userId);
+    } catch (e) {
+      debugPrint('[ProfileRemoteDatasource] Error setting cozy mode: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> clearCozyMode(String userId) async {
+    try {
+      await _supabase
+          .from(SupabaseConfig.profilesTable)
+          .update({
+            'cozy_status': null,
+            'cozy_status_text': null,
+            'cozy_until': null,
+          })
+          .eq('id', userId);
+    } catch (e) {
+      debugPrint('[ProfileRemoteDatasource] Error clearing cozy mode: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> setPulseStatus({
+    required String userId,
+    required String status,
+    String? text,
+  }) async {
+    try {
+      await _supabase
+          .from(SupabaseConfig.profilesTable)
+          .update({
+            'pulse_status': status,
+            'pulse_text': text,
+            'pulse_since': DateTime.now().toIso8601String(),
+          })
+          .eq('id', userId);
+    } catch (e) {
+      debugPrint('[ProfileRemoteDatasource] Error setting pulse status: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> clearPulseStatus(String userId) async {
+    try {
+      await _supabase
+          .from(SupabaseConfig.profilesTable)
+          .update({
+            'pulse_status': null,
+            'pulse_text': null,
+            'pulse_since': null,
+          })
+          .eq('id', userId);
+    } catch (e) {
+      debugPrint('[ProfileRemoteDatasource] Error clearing pulse status: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> togglePulseVisibility({
+    required String userId,
+    required bool visible,
+  }) async {
+    try {
+      await _supabase
+          .from(SupabaseConfig.profilesTable)
+          .update({'pulse_visible': visible})
+          .eq('id', userId);
+    } catch (e) {
+      debugPrint('[ProfileRemoteDatasource] Error toggling pulse visibility: $e');
+      rethrow;
+    }
+  }
+
   Future<Uint8List> _readFileBytes(String path) async {
     final file = File(path);
     return await file.readAsBytes();

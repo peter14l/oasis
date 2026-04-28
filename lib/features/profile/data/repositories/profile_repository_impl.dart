@@ -170,4 +170,53 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }) async {
     await _remoteDatasource.updatePrivacy(userId: userId, isPrivate: isPrivate);
   }
+
+  @override
+  Future<void> setCozyMode({
+    required String userId,
+    String? status,
+    String? statusText,
+    DateTime? until,
+  }) async {
+    await _remoteDatasource.setCozyMode(
+      userId: userId,
+      status: status,
+      statusText: statusText,
+      until: until,
+    );
+  }
+
+  @override
+  Future<void> clearCozyMode(String userId) async {
+    await _remoteDatasource.clearCozyMode(userId);
+  }
+
+  @override
+  Future<void> setPulseStatus({
+    required String userId,
+    required String status,
+    String? text,
+  }) async {
+    await _remoteDatasource.setPulseStatus(
+      userId: userId,
+      status: status,
+      text: text,
+    );
+  }
+
+  @override
+  Future<void> clearPulseStatus(String userId) async {
+    await _remoteDatasource.clearPulseStatus(userId);
+  }
+
+  @override
+  Future<void> togglePulseVisibility({
+    required String userId,
+    required bool visible,
+  }) async {
+    await _remoteDatasource.togglePulseVisibility(
+      userId: userId,
+      visible: visible,
+    );
+  }
 }

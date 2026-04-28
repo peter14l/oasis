@@ -24,9 +24,20 @@ class UserProfileEntity {
   final int xp;
   final int level;
   final bool isPro;
+  final String? cozyStatus;
+  final String? cozyStatusText;
+  final DateTime? cozyUntil;
+  final String? pulseStatus;
+  final String? pulseText;
+  final DateTime? pulseSince;
+  final bool pulseVisible;
   final DateTime createdAt;
 
   String get displayName => (fullName != null && fullName!.isNotEmpty) ? fullName! : username;
+  bool get hasActiveCozyStatus =>
+      cozyStatus != null && cozyStatus!.isNotEmpty &&
+      (cozyUntil == null || cozyUntil!.isAfter(DateTime.now()));
+  bool get hasActivePulse => pulseStatus != null && pulseStatus!.isNotEmpty;
 
   const UserProfileEntity({
     required this.id,
@@ -54,6 +65,13 @@ class UserProfileEntity {
     this.windDownTime,
     this.xp = 0,
     this.level = 1,
+    this.cozyStatus,
+    this.cozyStatusText,
+    this.cozyUntil,
+    this.pulseStatus,
+    this.pulseText,
+    this.pulseSince,
+    this.pulseVisible = true,
     required this.createdAt,
   });
 
@@ -84,6 +102,17 @@ class UserProfileEntity {
       windDownTime: json['wind_down_time'] as String?,
       xp: json['xp'] as int? ?? 0,
       level: json['level'] as int? ?? 1,
+      cozyStatus: json['cozy_status'] as String?,
+      cozyStatusText: json['cozy_status_text'] as String?,
+      cozyUntil: json['cozy_until'] != null
+          ? DateTime.parse(json['cozy_until'] as String)
+          : null,
+      pulseStatus: json['pulse_status'] as String?,
+      pulseText: json['pulse_text'] as String?,
+      pulseSince: json['pulse_since'] != null
+          ? DateTime.parse(json['pulse_since'] as String)
+          : null,
+      pulseVisible: json['pulse_visible'] as bool? ?? true,
       createdAt:
           json['created_at'] != null
               ? DateTime.parse(json['created_at'] as String)
@@ -118,6 +147,13 @@ class UserProfileEntity {
       'wind_down_time': windDownTime,
       'xp': xp,
       'level': level,
+      'cozy_status': cozyStatus,
+      'cozy_status_text': cozyStatusText,
+      'cozy_until': cozyUntil?.toIso8601String(),
+      'pulse_status': pulseStatus,
+      'pulse_text': pulseText,
+      'pulse_since': pulseSince?.toIso8601String(),
+      'pulse_visible': pulseVisible,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -148,6 +184,13 @@ class UserProfileEntity {
     String? windDownTime,
     int? xp,
     int? level,
+    String? cozyStatus,
+    String? cozyStatusText,
+    DateTime? cozyUntil,
+    String? pulseStatus,
+    String? pulseText,
+    DateTime? pulseSince,
+    bool? pulseVisible,
     DateTime? createdAt,
   }) {
     return UserProfileEntity(
@@ -176,7 +219,15 @@ class UserProfileEntity {
       windDownTime: windDownTime ?? this.windDownTime,
       xp: xp ?? this.xp,
       level: level ?? this.level,
+      cozyStatus: cozyStatus ?? this.cozyStatus,
+      cozyStatusText: cozyStatusText ?? this.cozyStatusText,
+      cozyUntil: cozyUntil ?? this.cozyUntil,
+      pulseStatus: pulseStatus ?? this.pulseStatus,
+      pulseText: pulseText ?? this.pulseText,
+      pulseSince: pulseSince ?? this.pulseSince,
+      pulseVisible: pulseVisible ?? this.pulseVisible,
       createdAt: createdAt ?? this.createdAt,
     );
   }
+}
 }
