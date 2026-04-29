@@ -91,10 +91,10 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
       FocusManager.instance.primaryFocus?.unfocus();
       _refreshTimer?.cancel();
       _refreshTimer = null;
-      debugPrint('DirectMessages: Refresh timer paused/inactive');
     } else if (state == AppLifecycleState.resumed) {
-      _startRefreshTimer();
-      debugPrint('DirectMessages: Refresh timer resumed');
+      if (_refreshTimer == null || !_refreshTimer!.isActive) {
+        _startRefreshTimer();
+      }
     }
   }
 

@@ -16,7 +16,7 @@ class KlipyResult<T> {
 }
 
 class KlipyService {
-  final String _baseUrl = 'https://api.klipy.co/v1';
+  final String _baseUrl = 'https://api.klipy.com/api/v1';
   final bool _debugMode = true; // Set to false in production
 
   Future<KlipyResult<List<KlipyMedia>>> search(
@@ -32,23 +32,22 @@ class KlipyService {
     }
 
     try {
+      final apiKey = ChatApiConfig.klipyApiKey;
       final uri = Uri.parse(
-        '$_baseUrl/search?q=$query&limit=$limit&offset=$offset',
+        '$_baseUrl/$apiKey/gifs/search?q=$query&limit=$limit&offset=$offset',
       );
-      final response = await http.get(
-        uri,
-        headers: {'Authorization': 'Bearer ${ChatApiConfig.klipyApiKey}'},
-      );
+      final response = await http.get(uri);
 
       if (_debugMode) {
         debugPrint('[Klipy] Search request: $uri');
         debugPrint('[Klipy] Search response status: ${response.statusCode}');
-        debugPrint('[Klipy] Search response body: ${response.body}');
+        debugPrint('[Klipy] Search response body length: ${response.body.length}');
       }
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final List results = data['results'] ?? [];
+        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic>? innerData = data['data'] as Map<String, dynamic>?;
+        final List results = (innerData != null) ? (innerData['data'] as List? ?? []) : [];
         return KlipyResult.success(
           results.map((e) => KlipyMedia.fromJson(e)).toList(),
         );
@@ -77,21 +76,20 @@ class KlipyService {
     }
 
     try {
-      final uri = Uri.parse('$_baseUrl/trending?limit=$limit&offset=$offset');
-      final response = await http.get(
-        uri,
-        headers: {'Authorization': 'Bearer ${ChatApiConfig.klipyApiKey}'},
-      );
+      final apiKey = ChatApiConfig.klipyApiKey;
+      final uri = Uri.parse('$_baseUrl/$apiKey/gifs/trending?limit=$limit&offset=$offset');
+      final response = await http.get(uri);
 
       if (_debugMode) {
         debugPrint('[Klipy] Trending request: $uri');
         debugPrint('[Klipy] Trending response status: ${response.statusCode}');
-        debugPrint('[Klipy] Trending response body: ${response.body}');
+        debugPrint('[Klipy] Trending response body length: ${response.body.length}');
       }
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final List results = data['results'] ?? [];
+        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic>? innerData = data['data'] as Map<String, dynamic>?;
+        final List results = (innerData != null) ? (innerData['data'] as List? ?? []) : [];
         return KlipyResult.success(
           results.map((e) => KlipyMedia.fromJson(e)).toList(),
         );
@@ -123,11 +121,19 @@ class KlipyMedia {
   });
 
   factory KlipyMedia.fromJson(Map<String, dynamic> json) {
+    final fileObj = json['file'] as Map<String, dynamic>?;
+    final hd = fileObj?['hd'] as Map<String, dynamic>?;
+    final sm = fileObj?['sm'] as Map<String, dynamic>?;
+
+    final String gifUrl = hd?['gif']?['url'] ?? '';
+    final String thumbUrl = sm?['webp']?['url'] ?? sm?['gif']?['url'] ?? gifUrl;
+
     return KlipyMedia(
       id: json['id']?.toString() ?? '',
-      url: json['url'] ?? '',
-      thumbnailUrl: json['thumbnail_url'] ?? '',
+      url: gifUrl,
+      thumbnailUrl: thumbUrl,
       title: json['title'] ?? '',
     );
   }
 }
+

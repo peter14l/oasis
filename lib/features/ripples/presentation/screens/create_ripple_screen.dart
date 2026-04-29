@@ -6,6 +6,10 @@ import 'package:video_player/video_player.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
+import 'package:oasis/widgets/adaptive/adaptive_scaffold.dart';
+import 'package:oasis/core/utils/responsive_layout.dart';
+import 'package:oasis/services/app_initializer.dart';
 
 class CreateRippleScreen extends StatefulWidget {
   const CreateRippleScreen({super.key});
@@ -87,7 +91,9 @@ class _CreateRippleScreenState extends State<CreateRippleScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDesktop = MediaQuery.of(context).size.width >= 1000;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final useFluent = themeProvider.useFluentUI;
 
     final content = SingleChildScrollView(
       child: Padding(
@@ -135,52 +141,69 @@ class _CreateRippleScreenState extends State<CreateRippleScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            TextField(
-              controller: _captionController,
-              maxLines: 3,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'Add a caption...',
-                hintStyle: const TextStyle(color: Colors.white24),
-                filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.05),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
+            if (useFluent && isDesktop)
+              fluent.TextBox(
+                controller: _captionController,
+                placeholder: 'Add a caption...',
+                maxLines: 3,
+                onChanged: (_) => setState(() {}),
+              )
+            else
+              TextField(
+                controller: _captionController,
+                maxLines: 3,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Add a caption...',
+                  hintStyle: const TextStyle(color: Colors.white24),
+                  filled: true,
+                  fillColor: Colors.white.withValues(alpha: 0.05),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
+                onChanged: (_) => setState(() {}),
               ),
-            ),
             if (isDesktop && _videoFile != null) ...[
               const SizedBox(height: 32),
               SizedBox(
                 height: 50,
-                child: FilledButton(
-                  onPressed: _isLoading ? null : _uploadRipple,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                child: useFluent
+                    ? fluent.FilledButton(
+                      onPressed: _isLoading ? null : _uploadRipple,
+                      child:
+                          _isLoading
+                              ? const fluent.ProgressRing(strokeWidth: 2)
+                              : const Text('Share Ripple'),
+                    )
+                    : FilledButton(
+                      onPressed: _isLoading ? null : _uploadRipple,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child:
+                          _isLoading
+                              ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                              : const Text(
+                                'Share Ripple',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
                     ),
-                  ),
-                  child:
-                      _isLoading
-                          ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                          : const Text(
-                            'Share Ripple',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                ),
               ),
             ],
           ],
@@ -189,49 +212,73 @@ class _CreateRippleScreenState extends State<CreateRippleScreen> {
     );
 
     if (isDesktop) {
-      return Material(
-        color: Colors.transparent,
-        child: Center(
+      if (useFluent) {
+        return AdaptiveScaffold(
+          title: Row(
+            children: [
+              fluent.IconButton(
+                icon: const Icon(fluent.FluentIcons.back),
+                onPressed:
+                    () => context.canPop() ? context.pop() : context.go('/feed'),
+              ),
+              const SizedBox(width: 8),
+              const Text('New Ripple'),
+            ],
+          ),
+          actions: [
+            fluent.FilledButton(
+              onPressed: _isLoading || _videoFile == null ? null : _uploadRipple,
+              child:
+                  _isLoading
+                      ? const fluent.ProgressRing(strokeWidth: 2)
+                      : const Text('Share'),
+            ),
+          ],
+          body: Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 500),
+              child: content,
+            ),
+          ),
+        );
+      }
+
+      return AdaptiveScaffold(
+        title: Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed:
+                  () => context.canPop() ? context.pop() : context.go('/feed'),
+              tooltip: 'Back',
+            ),
+            const SizedBox(width: 8),
+            const Text('New Ripple'),
+          ],
+        ),
+        actions: [
+          if (_videoFile != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Center(
+                child: FilledButton(
+                  onPressed: _isLoading ? null : _uploadRipple,
+                  child:
+                      _isLoading
+                          ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : const Text('Share'),
+                ),
+              ),
+            ),
+        ],
+        body: Center(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 500),
-            decoration: BoxDecoration(
-              color: const Color(0xFF121212),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  blurRadius: 40,
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                  child: Row(
-                    children: [
-                      const Text(
-                        'New Ripple',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: () => context.pop(),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(color: Colors.white10),
-                Flexible(child: content),
-              ],
-            ),
+            child: content,
           ),
         ),
       );

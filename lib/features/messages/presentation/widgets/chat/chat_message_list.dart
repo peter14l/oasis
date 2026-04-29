@@ -404,7 +404,7 @@ class MessageBubble extends StatelessWidget {
             crossAxisAlignment:
                 isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
             children: [
-              IntrinsicWidth(child: bubbleWithEffect),
+              bubbleWithEffect,
               // Reaction badges below the bubble
               if (message.reactions.isNotEmpty)
                 _buildReactionBadges(context, isMe),

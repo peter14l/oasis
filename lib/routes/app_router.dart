@@ -150,11 +150,18 @@ class _MainLayoutState extends State<MainLayout> {
 
   // Panel state for Desktop
   String? _activePanel; // 'search', 'notifications', or null
+  final fluent.FlyoutController _fluentCreateFlyoutController = fluent.FlyoutController();
 
   @override
   void initState() {
     super.initState();
     _checkEncryption();
+  }
+
+  @override
+  void dispose() {
+    _fluentCreateFlyoutController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkEncryption() async {
@@ -318,7 +325,10 @@ class _MainLayoutState extends State<MainLayout> {
         if (useFluent && isDesktop) {
           return fluent.NavigationView(
             pane: fluent.NavigationPane(
-              header: const SizedBox.shrink(),
+              header: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+                child: _buildFluentCreateButton(context),
+              ),
               selected: currentIndex,
               size: const fluent.NavigationPaneSize(
                 compactWidth: 54,
@@ -977,6 +987,91 @@ class _MainLayoutState extends State<MainLayout> {
         context.go('/profile');
         break;
     }
+  }
+
+  Widget _buildFluentCreateButton(BuildContext context) {
+    return fluent.FlyoutTarget(
+      controller: _fluentCreateFlyoutController,
+      child: fluent.SizedBox(
+        width: double.infinity,
+        child: fluent.Button(
+          onPressed: () => _showFluentCreateMenu(context),
+          style: fluent.ButtonStyle(
+            backgroundColor: fluent.WidgetStateProperty.resolveWith((states) {
+              if (states.contains(fluent.WidgetState.hovered)) {
+                return fluent.FluentTheme.of(context).accentColor.light;
+              }
+              return fluent.FluentTheme.of(context).accentColor;
+            }),
+            padding: fluent.WidgetStateProperty.all(
+              EdgeInsets.symmetric(
+                horizontal: _isRailExtended ? 16 : 10,
+                vertical: 10,
+              ),
+            ),
+            shape: fluent.WidgetStateProperty.all(
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(fluent.FluentIcons.add, color: Colors.white, size: 20),
+              if (_isRailExtended) ...[
+                const SizedBox(width: 12),
+                const Text(
+                  'CREATE',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showFluentCreateMenu(BuildContext context) {
+    _fluentCreateFlyoutController.showFlyout(
+      autoModeConfiguration: fluent.FlyoutAutoConfiguration(
+        preferredMode: fluent.FlyoutPlacementMode.bottomCenter,
+      ),
+      builder: (context) {
+        return fluent.MenuFlyout(
+          items: [
+            fluent.MenuFlyoutItem(
+              leading: const Icon(fluent.FluentIcons.post_update),
+              text: const Text('New Post'),
+              onPressed: () {
+                _fluentCreateFlyoutController.close();
+                context.pushNamed('create_post');
+              },
+            ),
+            fluent.MenuFlyoutItem(
+              leading: const Icon(fluent.FluentIcons.video),
+              text: const Text('New Ripple'),
+              onPressed: () {
+                _fluentCreateFlyoutController.close();
+                context.pushNamed('create_ripple');
+              },
+            ),
+            fluent.MenuFlyoutItem(
+              leading: const Icon(fluent.FluentIcons.history),
+              text: const Text('Time Capsule'),
+              onPressed: () {
+                _fluentCreateFlyoutController.close();
+                context.pushNamed('create_capsule');
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 

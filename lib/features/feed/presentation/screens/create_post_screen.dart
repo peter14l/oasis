@@ -16,6 +16,9 @@ import 'package:oasis/features/feed/presentation/widgets/polls/poll_widgets.dart
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:oasis/widgets/adaptive/adaptive_scaffold.dart';
+import 'package:oasis/features/feed/domain/models/post.dart';
+import 'package:oasis/features/feed/presentation/widgets/post_card.dart';
+import 'package:uuid/uuid.dart';
 
 class CreatePostScreen extends StatefulWidget {
   final String? communityId;
@@ -216,6 +219,27 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     });
   }
 
+  Post _generatePreviewPost() {
+    final user = _authService.currentUser;
+    return Post(
+      id: 'preview',
+      userId: user?.id ?? 'user',
+      username: user?.displayName ?? user?.username ?? 'You',
+      userAvatar: user?.photoUrl ?? '',
+      content: _captionController.text,
+      hashtags: _hashtagController.text
+          .split(RegExp(r'[,\s]+'))
+          .where((t) => t.isNotEmpty)
+          .toList(),
+      mediaUrls: _selectedImages.map((e) => e.path).toList(),
+      mediaTypes: List.filled(_selectedImages.length, 'image'),
+      timestamp: DateTime.now(),
+      mood: _selectedMood?.name,
+      poll: _attachedPoll,
+      isSpoiler: _isSpoiler,
+    );
+  }
+
   Widget _buildActionButton({
     required IconData icon,
     required String label,
@@ -225,36 +249,515 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return FilledButton.tonalIcon(
       onPressed: onPressed,
       icon: Icon(icon, size: isM3E ? 20 : 18),
       label: Text(
-        label, 
+        label,
         style: TextStyle(
           fontSize: 14,
           fontWeight: (isM3E || isActive) ? FontWeight.bold : null,
-        )
+        ),
       ),
       style: FilledButton.styleFrom(
-        padding: EdgeInsets.symmetric(horizontal: isM3E ? 20 : 16, vertical: isM3E ? 12 : 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isM3E ? 16 : 12)),
-        backgroundColor: isActive 
-          ? colorScheme.primaryContainer 
-          : (isM3E ? colorScheme.secondaryContainer.withValues(alpha: 0.7) : null),
+        padding: EdgeInsets.symmetric(
+          horizontal: isM3E ? 20 : 16,
+          vertical: isM3E ? 12 : 10,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(isM3E ? 16 : 12),
+        ),
+        backgroundColor:
+            isActive
+                ? colorScheme.primaryContainer
+                : (isM3E
+                    ? colorScheme.secondaryContainer.withValues(alpha: 0.7)
+                    : null),
         foregroundColor: isActive ? colorScheme.onPrimaryContainer : null,
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildDesktopLayout() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final useFluent = themeProvider.useFluentUI;
+
+    if (useFluent) {
+      return _buildFluentDesktopLayout();
+    }
+
+    return AdaptiveScaffold(
+      title: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.canPop() ? context.pop() : context.go('/feed'),
+            tooltip: 'Back to Feed',
+          ),
+          const SizedBox(width: 8),
+          const Text('Create New Post'),
+        ],
+      ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: Center(
+            child: FilledButton(
+              onPressed: _isLoading ? null : _createPost,
+              child:
+                  _isLoading
+                      ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                      : const Text('Post'),
+            ),
+          ),
+        ),
+      ],
+      body: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Re-use existing form content but adapted for desktop row
+                  _buildDesktopEditorForm(),
+                ],
+              ),
+            ),
+          ),
+          const VerticalDivider(width: 1),
+          Expanded(
+            flex: 2,
+            child: Container(
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+              child: Column(
+                children: [
+                  const SizedBox(height: 32),
+                  Text(
+                    'PREVIEW',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      letterSpacing: 2,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Expanded(
+                    child: Center(
+                      child: Container(
+                        width: 450,
+                        constraints: const BoxConstraints(maxHeight: 600),
+                        child: SingleChildScrollView(
+                          child: PostCard(post: _generatePreviewPost()),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFluentDesktopLayout() {
+    final fluentTheme = fluent.FluentTheme.of(context);
+
+    return AdaptiveScaffold(
+      title: Row(
+        children: [
+          fluent.IconButton(
+            icon: const Icon(fluent.FluentIcons.back),
+            onPressed: () => context.canPop() ? context.pop() : context.go('/feed'),
+          ),
+          const SizedBox(width: 8),
+          const Text('Create New Post'),
+        ],
+      ),
+      actions: [
+        fluent.FilledButton(
+          onPressed: _isLoading ? null : _createPost,
+          child:
+              _isLoading
+                  ? const fluent.SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: fluent.ProgressRing(strokeWidth: 2),
+                  )
+                  : const Text('Post'),
+        ),
+      ],
+      body: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: fluent.ScaffoldPage.withPadding(
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildFluentUserInfo(),
+                    const SizedBox(height: 24),
+                    _buildFluentEditor(),
+                    const SizedBox(height: 32),
+                    _buildFluentActionButtons(),
+                    const SizedBox(height: 24),
+                    if (_selectedImages.isNotEmpty) _buildFluentImageGallery(),
+                    if (_showPollCreator)
+                      PollCreator(
+                        onPollCreated: _onPollCreated,
+                        onCancel: () => setState(() => _showPollCreator = false),
+                      ),
+                    if (_attachedPoll != null) _buildFluentAttachedPoll(),
+                    if (_locationController.text.isNotEmpty)
+                      _buildFluentLocationTag(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Container(width: 1, color: fluentTheme.resources.dividerStrokeColorDefault),
+          Expanded(
+            flex: 2,
+            child: Container(
+              color: fluentTheme.scaffoldBackgroundColor,
+              child: Column(
+                children: [
+                  const SizedBox(height: 32),
+                  const Text(
+                    'PREVIEW',
+                    style: TextStyle(
+                      letterSpacing: 2,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Expanded(
+                    child: Center(
+                      child: Container(
+                        width: 450,
+                        constraints: const BoxConstraints(maxHeight: 600),
+                        child: SingleChildScrollView(
+                          child: PostCard(post: _generatePreviewPost()),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFluentUserInfo() {
+    final user = _authService.currentUser;
+    final displayName = user?.displayName ?? user?.username ?? 'User';
+    final avatarUrl = user?.photoUrl;
+
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 20,
+          backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+          child: avatarUrl == null ? Text(displayName[0].toUpperCase()) : null,
+        ),
+        const SizedBox(width: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              displayName,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            if (user?.username != null)
+              Text(
+                '@${user!.username}',
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFluentEditor() {
+    return Column(
+      children: [
+        fluent.TextBox(
+          controller: _captionController,
+          placeholder: "What's on your mind?",
+          maxLines: 8,
+          minLines: 4,
+          padding: const EdgeInsets.all(12),
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: 16),
+        fluent.TextBox(
+          controller: _hashtagController,
+          placeholder: 'Add hashtags (e.g. #nature, #travel)',
+          prefix: const Padding(
+            padding: EdgeInsets.only(left: 12),
+            child: Icon(fluent.FluentIcons.tag, size: 16),
+          ),
+          onChanged: (_) => setState(() {}),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFluentActionButtons() {
+    return fluent.Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: [
+        fluent.Button(
+          onPressed: _pickImages,
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(fluent.FluentIcons.photo_collection, size: 16),
+              SizedBox(width: 8),
+              Text('Photo'),
+            ],
+          ),
+        ),
+        fluent.ToggleButton(
+          checked: _isSpoiler,
+          onChanged: (v) => setState(() => _isSpoiler = v),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(fluent.FluentIcons.hide, size: 16),
+              SizedBox(width: 8),
+              Text('Spoiler'),
+            ],
+          ),
+        ),
+        fluent.Button(
+          onPressed: _togglePollCreator,
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(fluent.FluentIcons.poll_results, size: 16),
+              SizedBox(width: 8),
+              Text('Poll'),
+            ],
+          ),
+        ),
+        fluent.Button(
+          onPressed: _pickLocation,
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(fluent.FluentIcons.location, size: 16),
+              SizedBox(width: 8),
+              Text('Location'),
+            ],
+          ),
+        ),
+        MoodSelector(
+          selectedMood: _selectedMood,
+          showLabel: false,
+          onMoodSelected: (mood) {
+            setState(() => _selectedMood = mood);
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFluentImageGallery() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        const Text('Images', style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 120,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: _selectedImages.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              return Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      File(_selectedImages[index].path),
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: fluent.IconButton(
+                      icon: const Icon(fluent.FluentIcons.clear, size: 12),
+                      onPressed: () => setState(() => _selectedImages.removeAt(index)),
+                      style: fluent.ButtonStyle(
+                        backgroundColor: fluent.WidgetStateProperty.all(Colors.black54),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFluentAttachedPoll() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: fluent.Expander(
+        header: const Text('Attached Poll'),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(_attachedPoll!.question, style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            ..._attachedPoll!.options.map((o) => Text('• ${o.text}')),
+            const SizedBox(height: 12),
+            fluent.Button(
+              onPressed: () => setState(() => _attachedPoll = null),
+              child: const Text('Remove Poll'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFluentLocationTag() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: fluent.InfoBar(
+        title: const Text('Location'),
+        content: Text(_locationController.text),
+        severity: fluent.InfoBarSeverity.info,
+        onClose: () => setState(() => _locationController.clear()),
+      ),
+    );
+  }
+
+  Widget _buildDesktopEditorForm() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isM3E = themeProvider.isM3EEnabled;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // User info
+        Consumer<AuthService>(
+          builder: (context, authService, child) {
+            final user = authService.currentUser;
+            final displayName = user?.displayName ?? user?.username ?? 'User';
+            final avatarUrl = user?.photoUrl;
+
+            return Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                  child: avatarUrl == null ? Text(displayName[0].toUpperCase()) : null,
+                ),
+                const SizedBox(width: 12),
+                Text(displayName, style: theme.textTheme.titleMedium),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 24),
+        TextField(
+          controller: _captionController,
+          maxLines: 6,
+          decoration: const InputDecoration(
+            hintText: "What's on your mind?",
+            border: InputBorder.none,
+          ),
+          onChanged: (_) => setState(() {}),
+        ),
+        TextField(
+          controller: _hashtagController,
+          decoration: const InputDecoration(
+            hintText: 'Add hashtags...',
+            prefixIcon: Icon(Icons.tag),
+          ),
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: 24),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            _buildActionButton(icon: Icons.photo_library, label: 'Photo', onPressed: _pickImages, isM3E: isM3E),
+            _buildActionButton(icon: Icons.poll, label: 'Poll', onPressed: _togglePollCreator, isM3E: isM3E),
+            _buildActionButton(icon: Icons.location_on, label: 'Location', onPressed: _pickLocation, isM3E: isM3E),
+            MoodSelector(
+              selectedMood: _selectedMood,
+              showLabel: false,
+              onMoodSelected: (mood) => setState(() => _selectedMood = mood),
+            ),
+          ],
+        ),
+        if (_selectedImages.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          SizedBox(
+            height: 150,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _selectedImages.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, index) => Stack(
+                children: [
+                  Image.file(File(_selectedImages[index].path), width: 150, height: 150, fit: BoxFit.cover),
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() => _selectedImages.removeAt(index))),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+        if (_showPollCreator) PollCreator(onPollCreated: _onPollCreated, onCancel: () => setState(() => _showPollCreator = false)),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     final isDesktop = ResponsiveLayout.isDesktop(context);
     final useFluent = themeProvider.useFluentUI;
+
+    if (isDesktop) {
+      return _buildDesktopLayout();
+    }
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isM3E = themeProvider.isM3EEnabled;
 
     final formContent = SingleChildScrollView(
       padding: EdgeInsets.all(isDesktop ? 32.0 : 16.0),

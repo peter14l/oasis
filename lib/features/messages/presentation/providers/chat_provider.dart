@@ -693,7 +693,8 @@ class ChatProvider with ChangeNotifier {
       }
 
       // Generate dual-layer fallback (RSA encrypted copy for both sender and recipient)
-      if (_encryptionService.isInitialized && content.isNotEmpty) {
+      // Only needed if Signal was actually used, otherwise finalContent is already RSA encrypted.
+      if (usedSignal && _encryptionService.isInitialized && content.isNotEmpty) {
         try {
           final List<String> publicKeys = [];
           if (recipientPublicKey != null) publicKeys.add(recipientPublicKey);
@@ -705,11 +706,8 @@ class ChatProvider with ChangeNotifier {
               publicKeys,
             );
             signalSenderContent = fallbackEncryption.encryptedContent;
-
-            if (usedSignal) {
-              encryptedKeys = fallbackEncryption.encryptedKeys;
-              iv = fallbackEncryption.iv;
-            }
+            encryptedKeys = fallbackEncryption.encryptedKeys;
+            iv = fallbackEncryption.iv;
           }
         } catch (e) {
           debugPrint('Failed to generate dual-layer fallback: $e');

@@ -254,6 +254,12 @@ class SignalService {
       identityKey,
     );
 
+    // Force trust the fetched identity key to prevent UntrustedIdentityException 
+    // if the remote user has re-installed or changed their keys.
+    // First, remove the old key (if any) because libsignal ignores updates to existing keys.
+    await _store.saveIdentity(address, null);
+    await _store.saveIdentity(address, identityKey);
+
     // Build Session
     final sessionBuilder = SessionBuilder(
       _store,
