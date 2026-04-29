@@ -160,7 +160,7 @@ class ChatMessagingService {
   }
 
   /// Send a message with all security checks and metadata updates.
-  /// Uses consolidated RPC send_message_v2 for scalability.
+  /// Uses consolidated RPC send_message_v3 for scalability.
   Future<Message> sendMessage({
     required String conversationId,
     required String senderId,
@@ -185,7 +185,7 @@ class ChatMessagingService {
     bool isSpoiler = false,
   }) async {
     try {
-      final response = await _supabase.rpc('send_message_v2', params: {
+      final response = await _supabase.rpc('send_message_v3', params: {
         'p_conversation_id': conversationId,
         'p_sender_id': senderId,
         'p_content': content,
