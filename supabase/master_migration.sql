@@ -1046,6 +1046,18 @@ CREATE POLICY "Users can read public keys" ON public.profiles FOR SELECT USING (
 CREATE POLICY "Users can update own encryption keys" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
 -- POSTS POLICIES
+CREATE POLICY "Users can view posts" ON public.posts FOR SELECT
+USING (
+  (NOT EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = posts.user_id AND profiles.is_private = true)
+   OR posts.user_id = (SELECT auth.uid())
+   OR EXISTS (SELECT 1 FROM public.follows WHERE follows.follower_id = (SELECT auth.uid()) AND follows.following_id = posts.user_id)
+  )
+  AND NOT EXISTS (
+    SELECT 1 FROM public.blocked_users
+    WHERE (blocker_id = posts.user_id AND blocked_id = (SELECT auth.uid()))
+    OR (blocker_id = (SELECT auth.uid()) AND blocked_id = posts.user_id)
+  )
+);
 CREATE POLICY "Users can insert their own posts" ON public.posts FOR INSERT WITH CHECK ((SELECT auth.uid()) = user_id);
 CREATE POLICY "Users can update their own posts" ON public.posts FOR UPDATE USING ((SELECT auth.uid()) = user_id);
 CREATE POLICY "Users can delete their own posts" ON public.posts FOR DELETE USING ((SELECT auth.uid()) = user_id);

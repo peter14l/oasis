@@ -33,14 +33,16 @@ class PostService {
       List<String> mediaUrls = [];
       String? firstImageUrl;
 
-      // Upload media files to Backblaze R2 if they exist
+      // Upload media files to Supabase Storage if they exist
       if (mediaFiles != null && mediaFiles.isNotEmpty) {
         try {
           // Upload files in parallel
           mediaUrls = await Future.wait(
             mediaFiles.map((file) async {
               final fileExt = file.path.split('.').last;
-              final fileId = '${_uuid.v4()}.$fileExt';
+              final fileName = '${_uuid.v4()}.$fileExt';
+              final path = '$userId/$fileName';
+              
               final mimeType =
                   mediaTypes != null &&
                           mediaFiles.indexOf(file) < mediaTypes.length &&
@@ -48,13 +50,15 @@ class PostService {
                       ? 'video/$fileExt'
                       : 'image/$fileExt';
 
-              return _s3StorageService.uploadFile(
-                bucket: R2Config.b2FeedBucketName,
-                fileId: fileId,
-                type: 'posts',
-                file: file,
-                contentType: mimeType,
-              );
+              await _supabase.storage.from(SupabaseConfig.postImagesBucket).upload(
+                    path,
+                    file,
+                    fileOptions: FileOptions(contentType: mimeType),
+                  );
+
+              return _supabase.storage
+                  .from(SupabaseConfig.postImagesBucket)
+                  .getPublicUrl(path);
             }),
           );
 
@@ -64,7 +68,7 @@ class PostService {
             firstImageUrl = mediaUrls.isNotEmpty ? mediaUrls.first : null;
           }
         } catch (e) {
-          debugPrint('Error uploading media: $e');
+          debugPrint('Error uploading media to Supabase: $e');
           throw Exception('Failed to upload media');
         }
       }
@@ -81,7 +85,7 @@ class PostService {
         'mood': mood,
         'hashtags': hashtags ?? [],
         'is_spoiler': isSpoiler,
-        'storage_provider': 'backblaze',
+        'storage_provider': 'supabase',
       };
 
       await _supabase.from(SupabaseConfig.postsTable).insert(postData);
@@ -256,6 +260,9 @@ class PostService {
               avatar_url,
               is_verified
             ),
+            communities:community_id (
+              name
+            ),
             polls:polls (
               *,
               options:poll_options (*)
@@ -265,25 +272,40 @@ class PostService {
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
 
-      if (response.isEmpty) return [];
+      if (response == null || (response as List).isEmpty) return [];
 
       final List<Post> posts = [];
-      for (final item in response) {
-        final postMap = Map<String, dynamic>.from(item);
-        final profile = postMap[SupabaseConfig.profilesTable];
-        if (profile != null) {
-          postMap['username'] = profile['username'];
-          postMap['user_avatar'] = profile['avatar_url'];
-          postMap['is_verified'] = profile['is_verified'] ?? false;
+      for (final item in response as List) {
+        try {
+          final postMap = Map<String, dynamic>.from(item);
+          
+          // Enrich with profile data
+          final profile = postMap[SupabaseConfig.profilesTable];
+          if (profile != null) {
+            postMap['username'] = profile['username'] ?? profile['full_name'] ?? 'User';
+            postMap['user_avatar'] = profile['avatar_url'] ?? '';
+            postMap['is_verified'] = profile['is_verified'] ?? false;
+          }
+
+          // Enrich with community data
+          final community = postMap['communities'];
+          if (community != null) {
+            postMap['community_name'] = community['name'];
+          }
+
+          // Check if liked/bookmarked by current user (optional enrichment)
+          // Note: Real-time likes/bookmarks are usually handled via separate joins or local state
+          
+          posts.add(Post.fromJson(postMap));
+        } catch (e) {
+          debugPrint('Error parsing user post: $e');
         }
-        
-        posts.add(Post.fromJson(postMap));
       }
 
       return posts;
     } catch (e) {
       debugPrint('Error getting user posts: $e');
-      rethrow;
+      return [];
     }
   }
 
@@ -304,6 +326,9 @@ class PostService {
               avatar_url,
               is_verified
             ),
+            communities:community_id (
+              name
+            ),
             polls:polls (
               *,
               options:poll_options (*)
@@ -313,25 +338,37 @@ class PostService {
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
 
-      if (response.isEmpty) return [];
+      if (response == null || (response as List).isEmpty) return [];
 
       final List<Post> posts = [];
-      for (final item in response) {
-        final postMap = Map<String, dynamic>.from(item);
-        final profile = postMap[SupabaseConfig.profilesTable];
-        if (profile != null) {
-          postMap['username'] = profile['username'];
-          postMap['user_avatar'] = profile['avatar_url'];
-          postMap['is_verified'] = profile['is_verified'] ?? false;
-        }
+      for (final item in response as List) {
+        try {
+          final postMap = Map<String, dynamic>.from(item);
+          
+          // Enrich with profile data
+          final profile = postMap[SupabaseConfig.profilesTable];
+          if (profile != null) {
+            postMap['username'] = profile['username'] ?? profile['full_name'] ?? 'User';
+            postMap['user_avatar'] = profile['avatar_url'] ?? '';
+            postMap['is_verified'] = profile['is_verified'] ?? false;
+          }
 
-        posts.add(Post.fromJson(postMap));
+          // Enrich with community data
+          final community = postMap['communities'];
+          if (community != null) {
+            postMap['community_name'] = community['name'];
+          }
+
+          posts.add(Post.fromJson(postMap));
+        } catch (e) {
+          debugPrint('Error parsing community post: $e');
+        }
       }
 
       return posts;
     } catch (e) {
       debugPrint('Error getting community posts: $e');
-      rethrow;
+      return [];
     }
   }
 
