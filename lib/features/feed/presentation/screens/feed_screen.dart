@@ -261,48 +261,59 @@ class _FeedScreenState extends State<FeedScreen>
                 }).toList(),
               ),
               const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withValues(
+              TextField(
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                autofocus: true,
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
+                ),
+                decoration: InputDecoration(
+                  hintText: '00',
+                  suffixText: 'min',
+                  suffixStyle: theme.textTheme.titleMedium?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  filled: true,
+                  fillColor: colorScheme.surfaceContainerHighest.withValues(
                     alpha: 0.3,
                   ),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                    horizontal: 24,
                   ),
-                ),
-                child: TextField(
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  autofocus: true,
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: '00',
-                    suffixText: 'min',
-                    suffixStyle: theme.textTheme.titleMedium?.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                     ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  onSubmitted: (val) {
-                    final mins = int.tryParse(val);
-                    if (mins != null && mins > 0) {
-                      service.startSession(Duration(minutes: mins));
-                      Navigator.pop(context);
-                      if (ResponsiveLayout.isDesktop(context)) {
-                        setState(() => _showRipplesOverlay = true);
-                      } else {
-                        context.push('/ripples');
-                      }
-                    }
-                  },
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide(
+                      color: colorScheme.primary.withValues(alpha: 0.5),
+                      width: 2,
+                    ),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
+                onSubmitted: (val) {
+                  final mins = int.tryParse(val);
+                  if (mins != null && mins > 0) {
+                    service.startSession(Duration(minutes: mins));
+                    Navigator.pop(context);
+                    if (ResponsiveLayout.isDesktop(context)) {
+                      setState(() => _showRipplesOverlay = true);
+                    } else {
+                      context.push('/ripples');
+                    }
+                  }
+                },
               ),
               const SizedBox(height: 24),
               Text(

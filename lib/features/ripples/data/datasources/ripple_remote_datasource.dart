@@ -14,11 +14,24 @@ class RippleRemoteDatasource {
   RippleRemoteDatasource({SupabaseClient? supabase})
     : _supabase = supabase ?? SupabaseService().client;
 
-  /// Uploads a ripple video to Backblaze R2 storage.
+  /// Uploads a ripple video to Supabase storage (Temporarily bypassing Backblaze).
   Future<String> uploadRippleVideo(File file, String userId) async {
     final fileExt = file.path.split('.').last;
-    final fileId = '${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond}.$fileExt';
+    final fileId =
+        '${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond}.$fileExt';
+    final path = '$userId/$fileId';
 
+    // Temporary: Upload to Supabase instead of Backblaze
+    await _supabase.storage.from(SupabaseConfig.ripplesVideosBucket).upload(
+      path,
+      file,
+    );
+
+    return _supabase.storage
+        .from(SupabaseConfig.ripplesVideosBucket)
+        .getPublicUrl(path);
+
+    /* Original Backblaze Logic:
     return _s3StorageService.uploadFile(
       bucket: R2Config.b2RipplesBucketName,
       fileId: fileId,
@@ -26,6 +39,7 @@ class RippleRemoteDatasource {
       file: file,
       contentType: 'video/$fileExt',
     );
+    */
   }
 
   /// Fetches ripples from Supabase with profile data and like/save status.
@@ -86,7 +100,7 @@ class RippleRemoteDatasource {
               'thumbnail_url': thumbnailUrl,
               'caption': caption,
               'is_private': isPrivate,
-              'storage_provider': 'backblaze',
+              'storage_provider': 'supabase', // Mark as supabase for now
             })
             .select()
             .single();

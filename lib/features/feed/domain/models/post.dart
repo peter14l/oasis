@@ -29,6 +29,7 @@ abstract class Post with _$Post {
     @Default(false) @JsonKey(name: 'isBookmarked') bool isBookmarked,
     @Default(false) @JsonKey(name: 'isAd') bool isAd,
     @Default(false) @JsonKey(name: 'isVerified') bool isVerified,
+    @JsonKey(name: 'storage_provider') String? storageProvider,
     String? mood,
     EnhancedPoll? poll,
   }) = _Post;
@@ -48,6 +49,7 @@ abstract class Post with _$Post {
     normalized['likes'] = json['likes_count'] ?? json['likes'] ?? 0;
     normalized['comments'] = json['comments_count'] ?? json['comments'] ?? 0;
     normalized['shares'] = json['shares_count'] ?? json['shares'] ?? 0;
+    normalized['storage_provider'] = json['storage_provider'] ?? json['storageProvider'];
     normalized['timestamp'] =
         json['created_at'] ??
         json['timestamp'] ??

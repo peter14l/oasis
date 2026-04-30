@@ -128,8 +128,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
       if (!mounted) return;
 
-      // Add post to feed provider
-      context.read<FeedProvider>().addPost(post);
+      // Add post to feed provider with local paths for immediate preview
+      final localPost = post.copyWith(
+        mediaUrls: _selectedImages.map((e) => e.path).toList(),
+      );
+      context.read<FeedProvider>().addPost(localPost);
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(

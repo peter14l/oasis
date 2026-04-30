@@ -731,7 +731,11 @@ class _PostCardState extends State<PostCard>
                     builder: (context) {
                       final images = widget.post.mediaUrls.isNotEmpty
                           ? widget.post.mediaUrls
-                          : [widget.post.imageUrl!];
+                          : (widget.post.imageUrl != null && widget.post.imageUrl!.isNotEmpty 
+                              ? [widget.post.imageUrl!] 
+                              : <String>[]);
+
+                      if (images.isEmpty) return const SizedBox.shrink();
 
                       return Column(
                         children: [

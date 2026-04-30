@@ -15,25 +15,47 @@ class PostRemoteDatasource {
   Future<Map<String, dynamic>> createPost({
     required String userId,
     required String? content,
-    List<String>? mediaUrls,
+    List<File>? mediaFiles, // Changed from List<String>?
     List<String>? mediaTypes,
     String? communityId,
     String? mood,
     bool isSpoiler = false,
   }) async {
     final postId = _uuid.v4();
+    final List<String> uploadedUrls = [];
+
+    // Temporary: Upload to Supabase instead of Backblaze
+    if (mediaFiles != null && mediaFiles.isNotEmpty) {
+      for (var i = 0; i < mediaFiles.length; i++) {
+        final file = mediaFiles[i];
+        final extension = file.path.split('.').last;
+        final fileName =
+            '${DateTime.now().millisecondsSinceEpoch}_$i.$extension';
+        final path = '$userId/$fileName';
+
+        await _supabase.storage.from(SupabaseConfig.postImagesBucket).upload(
+          path,
+          file,
+        );
+
+        final url = _supabase.storage
+            .from(SupabaseConfig.postImagesBucket)
+            .getPublicUrl(path);
+        uploadedUrls.add(url);
+      }
+    }
 
     final postData = {
       'id': postId,
       'user_id': userId,
       'community_id': communityId,
       'content': content,
-      'image_url':
-          (mediaUrls != null && mediaUrls.isNotEmpty) ? mediaUrls.first : null,
-      'media_urls': mediaUrls ?? [],
+      'image_url': uploadedUrls.isNotEmpty ? uploadedUrls.first : null,
+      'media_urls': uploadedUrls,
       'media_types': mediaTypes ?? [],
       'mood': mood,
       'is_spoiler': isSpoiler,
+      'storage_provider': 'supabase', // Mark as supabase for now
     };
 
     await _supabase.from(SupabaseConfig.postsTable).insert(postData);
