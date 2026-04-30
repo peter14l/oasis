@@ -420,7 +420,7 @@ class NotificationManager {
           'reply_action',
           'Reply',
           inputs: [
-            AndroidPostTaskRemoteInput(
+            AndroidRemoteInput(
               label: 'Type a message...',
             ),
           ],
