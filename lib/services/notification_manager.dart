@@ -1,6 +1,7 @@
 import 'package:universal_io/io.dart';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -13,6 +14,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:oasis/services/notification_decryption_service.dart';
 import 'package:oasis/services/desktop_call_notifier.dart';
 import 'package:oasis/features/messages/data/messaging_service.dart';
+import 'package:oasis/core/network/supabase_client.dart';
 
 /// Represents a message in a notification group history
 class NotificationMessage {
@@ -347,7 +349,7 @@ class NotificationManager {
             'reply_action',
             'Reply',
             inputs: [
-              AndroidPostTaskRemoteInput(
+              AndroidNotificationActionInput(
                 label: 'Type a message...',
               ),
             ],
@@ -380,7 +382,7 @@ class NotificationManager {
               'reply_action',
               'Reply',
               inputs: [
-                AndroidPostTaskRemoteInput(
+                AndroidNotificationActionInput(
                   label: 'Type a message...',
                 ),
               ],
@@ -420,7 +422,7 @@ class NotificationManager {
           'reply_action',
           'Reply',
           inputs: [
-            AndroidRemoteInput(
+            AndroidNotificationActionInput(
               label: 'Type a message...',
             ),
           ],
