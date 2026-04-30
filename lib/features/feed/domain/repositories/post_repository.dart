@@ -1,3 +1,4 @@
+import 'package:universal_io/io.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
 
 /// Repository contract for post operations.
@@ -9,7 +10,7 @@ abstract class PostRepository {
   Future<Post> createPost({
     required String userId,
     required String? content,
-    List<String>? mediaFiles,
+    List<File>? mediaFiles,
     List<String>? mediaTypes,
     String? communityId,
     String? mood,

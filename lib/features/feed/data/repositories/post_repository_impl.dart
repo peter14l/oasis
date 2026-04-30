@@ -1,3 +1,4 @@
+import 'package:universal_io/io.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/features/feed/domain/models/post.dart';
 import 'package:oasis/features/feed/domain/repositories/post_repository.dart';
@@ -19,7 +20,7 @@ class PostRepositoryImpl implements PostRepository {
   Future<Post> createPost({
     required String userId,
     required String? content,
-    List<String>? mediaFiles,
+    List<File>? mediaFiles,
     List<String>? mediaTypes,
     String? communityId,
     String? mood,
@@ -28,7 +29,7 @@ class PostRepositoryImpl implements PostRepository {
     final postMap = await _remoteDatasource.createPost(
       userId: userId,
       content: content,
-      mediaUrls: mediaFiles,
+      mediaFiles: mediaFiles,
       mediaTypes: mediaTypes,
       communityId: communityId,
       mood: mood,
