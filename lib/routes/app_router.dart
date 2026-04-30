@@ -990,6 +990,7 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   Widget _buildFluentCreateButton(BuildContext context) {
+    final theme = fluent.FluentTheme.of(context);
     return fluent.FlyoutTarget(
       controller: _fluentCreateFlyoutController,
       child: fluent.SizedBox(
@@ -999,9 +1000,9 @@ class _MainLayoutState extends State<MainLayout> {
           style: fluent.ButtonStyle(
             backgroundColor: fluent.WidgetStateProperty.resolveWith((states) {
               if (states.contains(fluent.WidgetState.hovered)) {
-                return fluent.FluentTheme.of(context).accentColor.light;
+                return theme.accentColor.light;
               }
-              return fluent.FluentTheme.of(context).accentColor;
+              return theme.accentColor;
             }),
             padding: fluent.WidgetStateProperty.all(
               EdgeInsets.symmetric(
@@ -1041,7 +1042,7 @@ class _MainLayoutState extends State<MainLayout> {
       autoModeConfiguration: fluent.FlyoutAutoConfiguration(
         preferredMode: fluent.FlyoutPlacementMode.bottomCenter,
       ),
-      builder: (context) {
+      builder: (flyoutContext) {
         return fluent.MenuFlyout(
           items: [
             fluent.MenuFlyoutItem(
@@ -1049,7 +1050,7 @@ class _MainLayoutState extends State<MainLayout> {
               text: const Text('New Post'),
               onPressed: () {
                 _fluentCreateFlyoutController.close();
-                context.pushNamed('create_post');
+                if (mounted) context.pushNamed('create_post');
               },
             ),
             fluent.MenuFlyoutItem(
@@ -1057,7 +1058,7 @@ class _MainLayoutState extends State<MainLayout> {
               text: const Text('New Ripple'),
               onPressed: () {
                 _fluentCreateFlyoutController.close();
-                context.pushNamed('create_ripple');
+                if (mounted) context.pushNamed('create_ripple');
               },
             ),
             fluent.MenuFlyoutItem(
@@ -1065,7 +1066,7 @@ class _MainLayoutState extends State<MainLayout> {
               text: const Text('Time Capsule'),
               onPressed: () {
                 _fluentCreateFlyoutController.close();
-                context.pushNamed('create_capsule');
+                if (mounted) context.pushNamed('create_capsule');
               },
             ),
           ],

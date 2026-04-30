@@ -122,7 +122,7 @@ class WellnessService extends ChangeNotifier {
     _zenTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_zenRemainingSeconds > 0) {
         _zenRemainingSeconds--;
-        if (_zenRemainingSeconds % 60 == 0) notifyListeners();
+        notifyListeners();
       } else {
         _stopZenSession(manual: false);
       }
@@ -222,7 +222,7 @@ class WellnessService extends ChangeNotifier {
     _zenTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_zenRemainingSeconds > 0) {
         _zenRemainingSeconds--;
-        if (_zenRemainingSeconds % 60 == 0) notifyListeners();
+        notifyListeners();
       } else {
         _stopZenSession(manual: false);
       }

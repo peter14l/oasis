@@ -22,6 +22,7 @@ class CallingScreen extends StatefulWidget {
 
 class _CallingScreenState extends State<CallingScreen> {
   bool _isCallDataTimeout = false;
+  CallProvider? _callProvider;
 
   @override
   void initState() {
@@ -29,33 +30,39 @@ class _CallingScreenState extends State<CallingScreen> {
 
     if (widget.isIncoming) {
       Future.delayed(const Duration(seconds: 10), () {
-        if (mounted && !context.read<CallProvider>().hasIncomingCall && !context.read<CallProvider>().hasActiveCall) {
-          setState(() {
-            _isCallDataTimeout = true;
-          });
+        if (mounted) {
+          final provider = context.read<CallProvider>();
+          if (!provider.hasIncomingCall && !provider.hasActiveCall) {
+            setState(() {
+              _isCallDataTimeout = true;
+            });
+          }
         }
       });
     }
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CallProvider>().addListener(_handleProviderUpdate);
-    });
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_callProvider == null) {
+      _callProvider = context.read<CallProvider>();
+      _callProvider!.addListener(_handleProviderUpdate);
+    }
   }
 
   void _handleProviderUpdate() {
     if (!mounted) return;
-    final error = context.read<CallProvider>().state.error;
+    final error = _callProvider?.state.error;
     if (error != null) {
       _showError(error);
-      context.read<CallProvider>().clearError();
+      _callProvider?.clearError();
     }
   }
 
   @override
   void dispose() {
-    try {
-      context.read<CallProvider>().removeListener(_handleProviderUpdate);
-    } catch (_) {}
+    _callProvider?.removeListener(_handleProviderUpdate);
     super.dispose();
   }
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -19,10 +20,18 @@ class _ReactionAnimationOverlayState extends State<ReactionAnimationOverlay> {
   final List<_AnimatedReaction> _reactions = [];
   final Random _random = Random();
 
+  StreamSubscription? _subscription;
+
   @override
   void initState() {
     super.initState();
-    widget.animationStream.listen(_onAnimationEvent);
+    _subscription = widget.animationStream.listen(_onAnimationEvent);
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 
   void _onAnimationEvent(ReactionAnimationEvent event) {

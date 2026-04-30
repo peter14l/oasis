@@ -398,7 +398,7 @@ class ConversationService {
           .select(
             'id, sender_id, content, created_at, '
             'image_url, video_url, voice_url, file_url, '
-            'msg_encrypted_keys, msg_iv, msg_signal_type, msg_signal_sender_content',
+            'encrypted_keys, iv, signal_message_type, signal_sender_content',
           )
           .eq('conversation_id', conversationId)
           .neq('sender_id', userId) // Exclude own messages
@@ -439,15 +439,15 @@ class ConversationService {
             currentUserId: userId,
             content: msgData['content'] as String? ?? '',
             encryptedKeys:
-                msgData['msg_encrypted_keys'] != null
+                msgData['encrypted_keys'] != null
                     ? Map<String, String>.from(
-                      msgData['msg_encrypted_keys'] as Map,
+                      msgData['encrypted_keys'] as Map,
                     )
                     : null,
-            iv: msgData['msg_iv'] as String?,
-            signalMessageType: msgData['msg_signal_type'] as int?,
+            iv: msgData['iv'] as String?,
+            signalMessageType: msgData['signal_message_type'] as int?,
             signalSenderContent:
-                msgData['msg_signal_sender_content'] as String?,
+                msgData['signal_sender_content'] as String?,
           );
           content = decrypted;
         }

@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/services/notification_decryption_service.dart';
 import 'package:oasis/services/desktop_call_notifier.dart';
+import 'package:oasis/features/messages/data/messaging_service.dart';
 
 /// Represents a message in a notification group history
 class NotificationMessage {
@@ -23,6 +24,21 @@ class NotificationMessage {
     required this.content,
     required this.timestamp,
   });
+}
+
+/// Global background notification action handler
+@pragma('vm:entry-point')
+void notificationTapBackground(NotificationResponse response) async {
+  // Ensure core services are ready for background actions
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    // Basic initialization for Supabase to allow DB operations
+    await SupabaseService.initialize();
+  } catch (e) {
+    debugPrint('Background Notification Init Error: $e');
+  }
+  
+  NotificationManager.instance.handleNotificationResponse(response);
 }
 
 /// Cross-platform notification manager
@@ -318,6 +334,21 @@ class NotificationManager {
           conversationTitle: group.length > 1 ? 'Messages from $title' : null,
           messages: messages,
         ),
+        actions: [
+          AndroidNotificationAction(
+            'reply_action',
+            'Reply',
+            inputs: [
+              AndroidPostTaskRemoteInput(
+                label: 'Type a message...',
+              ),
+            ],
+          ),
+          AndroidNotificationAction(
+            'like_action',
+            'Like',
+          ),
+        ],
       );
     }
 
@@ -336,6 +367,21 @@ class NotificationManager {
           priority: Priority.high,
           showWhen: true,
           largeIcon: FilePathAndroidBitmap(largeIconPath),
+          actions: conversationId != null ? [
+            AndroidNotificationAction(
+              'reply_action',
+              'Reply',
+              inputs: [
+                AndroidPostTaskRemoteInput(
+                  label: 'Type a message...',
+                ),
+              ],
+            ),
+            AndroidNotificationAction(
+              'like_action',
+              'Like',
+            ),
+          ] : null,
         );
 
         darwinDetails = DarwinNotificationDetails(
@@ -344,13 +390,14 @@ class NotificationManager {
           presentSound: true,
           attachments: [DarwinNotificationAttachment(largeIconPath)],
           threadIdentifier: conversationId,
+          categoryIdentifier: conversationId != null ? 'DM_CATEGORY' : null,
         );
       } catch (e) {
         debugPrint('Error downloading notification icon: $e');
       }
     }
 
-    androidDetails ??= const AndroidNotificationDetails(
+    androidDetails ??= AndroidNotificationDetails(
       'oasis_channel',
       'Oasis Notifications',
       channelDescription: 'Main notification channel for Oasis',
@@ -360,6 +407,21 @@ class NotificationManager {
       fullScreenIntent: true,
       category: AndroidNotificationCategory.message,
       visibility: NotificationVisibility.public,
+      actions: conversationId != null ? [
+        AndroidNotificationAction(
+          'reply_action',
+          'Reply',
+          inputs: [
+            AndroidPostTaskRemoteInput(
+              label: 'Type a message...',
+            ),
+          ],
+        ),
+        AndroidNotificationAction(
+          'like_action',
+          'Like',
+        ),
+      ] : null,
     );
 
     darwinDetails ??= DarwinNotificationDetails(
@@ -367,6 +429,7 @@ class NotificationManager {
       presentBadge: true,
       presentSound: true,
       threadIdentifier: conversationId,
+      categoryIdentifier: conversationId != null ? 'DM_CATEGORY' : null,
     );
 
     await _localNotificationsPlugin.show(
@@ -380,6 +443,84 @@ class NotificationManager {
       ),
       payload: payload,
     );
+  }
+
+  /// Master response handler for all local notification actions.
+  void handleNotificationResponse(NotificationResponse response) {
+    if (response.actionId == 'accept_call' ||
+        response.actionId == 'decline_call') {
+      _handleCallAction(
+        actionId: response.actionId!,
+        payload: response.payload,
+      );
+      return;
+    }
+
+    if (response.actionId == 'reply_action') {
+      final content = response.input;
+      if (content != null && content.isNotEmpty) {
+        _handleReply(payload: response.payload, content: content);
+      }
+      return;
+    }
+
+    if (response.actionId == 'like_action') {
+      _handleLike(payload: response.payload);
+      return;
+    }
+
+    _handleNotificationTap(response.payload);
+  }
+
+  /// Handle DM reply action from notification
+  Future<void> _handleReply({
+    required String? payload,
+    required String content,
+  }) async {
+    if (payload == null) return;
+    try {
+      final data = jsonDecode(payload);
+      final conversationId = data['conversation_id'];
+      final senderId = Supabase.instance.client.auth.currentUser?.id;
+
+      if (conversationId != null && senderId != null) {
+        final messagingService = MessagingService();
+        await messagingService.sendMessage(
+          conversationId: conversationId,
+          senderId: senderId,
+          content: content,
+        );
+        debugPrint('[NotificationManager] Reply sent to $conversationId');
+      }
+    } catch (e) {
+      debugPrint('[NotificationManager] Error handling notification reply: $e');
+    }
+  }
+
+  /// Handle DM like action from notification
+  Future<void> _handleLike({required String? payload}) async {
+    if (payload == null) return;
+    try {
+      final data = jsonDecode(payload);
+      final messageId = data['message_id'];
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final username =
+          Supabase.instance.client.auth.currentUser?.userMetadata?['username'] ??
+          'User';
+
+      if (messageId != null && userId != null) {
+        final messagingService = MessagingService();
+        await messagingService.addReaction(
+          messageId: messageId,
+          userId: userId,
+          emoji: '❤️',
+          username: username,
+        );
+        debugPrint('[NotificationManager] Like reaction added to $messageId');
+      }
+    } catch (e) {
+      debugPrint('[NotificationManager] Error handling notification like: $e');
+    }
   }
 
   Future<String> _downloadAndSaveImage(String url, String fileName) async {
@@ -398,10 +539,7 @@ class NotificationManager {
     );
     const iosSettings = DarwinInitializationSettings();
 
-    // macOS: register a dedicated CALL_CATEGORY so incoming-call notifications
-    // show native Accept / Decline action buttons directly on the banner.
-    // NOTE: DarwinNotificationAction.plain is NOT a const factory in FLN ^19.x,
-    // so this entire block must use final rather than const.
+    // macOS/iOS: register categories so notifications show action buttons.
     final macOSSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -422,6 +560,21 @@ class NotificationManager {
           ],
           options: {DarwinNotificationCategoryOption.customDismissAction},
         ),
+        DarwinNotificationCategory(
+          'DM_CATEGORY',
+          actions: [
+            DarwinNotificationAction.text(
+              'reply_action',
+              'Reply',
+              buttonTitle: 'Send',
+              placeholder: 'Type a message...',
+            ),
+            DarwinNotificationAction.plain(
+              'like_action',
+              'Like',
+            ),
+          ],
+        ),
       ],
     );
 
@@ -435,18 +588,9 @@ class NotificationManager {
     await _localNotificationsPlugin.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (response) {
-        // Route call-specific action IDs to DesktopCallNotifier so it can
-        // accept or decline without needing a BuildContext.
-        if (response.actionId == 'accept_call' ||
-            response.actionId == 'decline_call') {
-          _handleCallAction(
-            actionId: response.actionId!,
-            payload: response.payload,
-          );
-          return;
-        }
-        _handleNotificationTap(response.payload);
+        handleNotificationResponse(response);
       },
+      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
 
     // Create the default channel for Android

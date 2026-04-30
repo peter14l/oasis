@@ -566,6 +566,13 @@ class _PostCardState extends State<PostCard>
   }
 
   Widget _buildImageItem(String url, ColorScheme colorScheme) {
+    if (url.isEmpty) {
+      return Container(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        child: const Center(child: Icon(Icons.broken_image)),
+      );
+    }
+
     if (!url.startsWith('http')) {
       return Image.file(
         File(url),

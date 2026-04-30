@@ -658,15 +658,16 @@ class CallNavigator extends StatelessWidget {
 
     Widget childWidget = child;
 
-    if (Platform.isWindows && userSettings.micaEnabled) {
+    final bool canUseTransparency = !kIsWeb && (Platform.isWindows || Platform.isMacOS);
+    final bool useTransparency = userSettings.micaEnabled && canUseTransparency;
+
+    if (useTransparency) {
       final theme = material.Theme.of(context);
       final isDark = theme.brightness == material.Brightness.dark;
       
       childWidget = material.Theme(
         data: theme.copyWith(
           colorScheme: theme.colorScheme.copyWith(
-            // Use more opaque surface for better readability of cards/sheets
-            // while still allowing some Mica translucency for the main background
             surface: isDark 
                 ? const material.Color(0xFF1A1D24).withValues(alpha: 0.9)
                 : material.Colors.white.withValues(alpha: 0.9),
@@ -685,7 +686,7 @@ class CallNavigator extends StatelessWidget {
                 ? const material.Color(0xFF0D1F1A) 
                 : const material.Color(0xFFFEF7FF),
             surfaceTintColor: material.Colors.transparent,
-            elevation: 8, // Add elevation to desktop sheets
+            elevation: 8,
           ),
         ),
         child: childWidget,
@@ -701,10 +702,9 @@ class CallNavigator extends StatelessWidget {
       );
     } else {
       final isDark = material.Theme.of(context).brightness == material.Brightness.dark;
-      final mica = Platform.isWindows && userSettings.micaEnabled;
-
+      
       return Container(
-        color: mica 
+        color: useTransparency 
             ? material.Colors.transparent 
             : (isDark ? const material.Color(0xFF080A0E) : const material.Color(0xFFF8F9FA)),
         child: childWidget,

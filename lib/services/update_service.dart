@@ -133,8 +133,8 @@ class UpdateService extends ChangeNotifier {
   static String get _updateCheckUrl {
     const fromEnv = String.fromEnvironment('UPDATE_CHECK_URL');
     if (fromEnv.isNotEmpty) return fromEnv;
-    // Default fallback for development
-    return 'https://oasisweb-omega.vercel.app/api/check-update';
+    // Default to the new public R2 bucket URL for versions.json
+    return 'https://pub-eb8774786d7e48b8982367d35368a478.r2.dev/versions.json';
   }
 
   /// Check if update checking is enabled
@@ -177,24 +177,36 @@ class UpdateService extends ChangeNotifier {
 
       _addLog('Current version: $currentVersion');
       
-      final fullUrl = _getUpdateUrlWithVersion(currentVersion);
-      
       final response = await http
-          .get(Uri.parse(fullUrl))
+          .get(Uri.parse(_updateCheckUrl))
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
-        final json = _parseJsonResponse(response.body);
-        if (json != null) {
-          final updateInfo = UpdateInfo.fromJson(json);
+        final fullJson = _parseJsonResponse(response.body);
+        if (fullJson != null) {
+          // Determine current platform key
+          String platformKey = 'android';
+          if (Platform.isWindows) platformKey = 'windows';
+          if (Platform.isMacOS) platformKey = 'macos';
+          if (Platform.isIOS) platformKey = 'ios';
+
+          final platformJson = fullJson[platformKey] as Map<String, dynamic>?;
+          
+          if (platformJson == null) {
+            _addLog('No version info found for platform: $platformKey');
+            _updateState(_currentProgress.copyWith(status: UpdateStatus.upToDate));
+            return null;
+          }
+
+          final updateInfo = UpdateInfo.fromJson(platformJson);
           _cachedUpdateInfo = updateInfo;
           _hasChecked = true;
 
           if (updateInfo.isUpdateAvailable) {
-            _addLog('Update available: ${updateInfo.latestVersion}');
+            _addLog('Update available for $platformKey: ${updateInfo.latestVersion}');
             _updateState(_currentProgress.copyWith(status: UpdateStatus.available));
           } else {
-            _addLog('App is up to date');
+            _addLog('App is up to date on $platformKey');
             _updateState(_currentProgress.copyWith(status: UpdateStatus.upToDate));
           }
           return updateInfo;
@@ -210,14 +222,6 @@ class UpdateService extends ChangeNotifier {
 
     _hasChecked = true;
     return null;
-  }
-
-  String _getUpdateUrlWithVersion(String version) {
-    final baseUrl = _updateCheckUrl;
-    if (baseUrl.contains('?')) {
-      return '$baseUrl&version=$version';
-    }
-    return '$baseUrl?version=$version';
   }
 
   /// Parse JSON response safely

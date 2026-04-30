@@ -16,8 +16,11 @@ class AppFluentTheme {
     final primaryColor = materialColorScheme?.primary ?? 
         (isDark ? DarkColors.primary : LightColors.primary);
     
-    final scaffoldColor = materialColorScheme?.surface ?? 
-        (isDark ? DarkColors.background : LightColors.background);
+    final scaffoldColor = isDark ? OasisColors.deep : (materialColorScheme?.surface ?? LightColors.background);
+
+    // Mica/Acrylic transparency should only be applied on Windows/macOS
+    final bool canUseTransparency = !kIsWeb && (defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.macOS);
+    final bool shouldBeTransparent = micaEnabled && canUseTransparency;
 
     final accentColor = AccentColor.swatch({
       'darkest': primaryColor.withValues(alpha: 0.9),
@@ -34,9 +37,9 @@ class AppFluentTheme {
       accentColor: accentColor,
       fontFamily: fontFamily,
       visualDensity: VisualDensity.standard,
-      scaffoldBackgroundColor: micaEnabled ? Colors.transparent : scaffoldColor,
-      micaBackgroundColor: micaEnabled ? Colors.transparent : scaffoldColor,
-      micaAltBackgroundColor: micaEnabled ? Colors.transparent : scaffoldColor,
+      scaffoldBackgroundColor: shouldBeTransparent ? Colors.transparent : scaffoldColor,
+      micaBackgroundColor: shouldBeTransparent ? Colors.transparent : scaffoldColor,
+      micaAltBackgroundColor: shouldBeTransparent ? Colors.transparent : scaffoldColor,
       
       // Animation curves updated to WinUI 3 "Fluid" motion
       animationCurve: standardCurve,
@@ -51,7 +54,7 @@ class AppFluentTheme {
       ).apply(fontFamily: fontFamily ?? (defaultTargetPlatform == material.TargetPlatform.windows ? 'Segoe UI Variable' : 'Segoe UI')),
 
       navigationPaneTheme: NavigationPaneThemeData(
-        backgroundColor: micaEnabled 
+        backgroundColor: shouldBeTransparent 
             ? (isDark ? DarkColors.surface.withValues(alpha: 0.7) : LightColors.surface.withValues(alpha: 0.7))
             : (isDark ? DarkColors.surface : LightColors.surface),
         highlightColor: primaryColor,

@@ -154,6 +154,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     };
 
     _messageController.addListener(() {
+      if (!mounted) return;
       _textNotifier.value = _messageController.text;
       final userId = AuthService().currentUser?.id;
       if (userId != null && _messageController.text.isNotEmpty) {
@@ -363,7 +364,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       builder:
           (context) => GiphyPickerSheet(
             onSelected: (url, isSticker) {
-              Navigator.pop(context);
               if (isSticker) {
                 _chatProvider.sendSticker(
                   url,

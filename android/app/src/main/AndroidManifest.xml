@@ -3,13 +3,19 @@
     <uses-permission android:name="com.android.vending.BILLING" />
     <application
         android:label="Oasis"
-        android:name="${applicationName}"
+        android:name=".MainApplication"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
         android:fullBackupContent="false"
         android:enableOnBackInvokedCallback="true"
         tools:replace="android:allowBackup"
         tools:targetApi="33">
+        
+        <!-- Default notification channel for FCM when app is closed -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="oasis_channel" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -315,7 +315,7 @@ class _ChatInputAreaState extends State<ChatInputArea> {
                             material.Icons.sticky_note_2_outlined,
                             color:
                                 widget.isDesktop
-                                    ? material.Colors.white38
+                                    ? material.Colors.white70
                                     : colorScheme.primary.withValues(alpha: 0.6),
                             size: widget.isDesktop ? 24 : null,
                           ),

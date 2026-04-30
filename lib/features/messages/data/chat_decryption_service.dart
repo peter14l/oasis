@@ -83,10 +83,26 @@ class ChatDecryptionService {
         decryptedContent = decrypted ?? '🔒 Message encrypted';
       }
 
+      // Safety fallback: if content looks like a raw encrypted blob (no spaces, likely base64/hex)
+      if (decryptedContent == content &&
+          !content.contains(' ') &&
+          (content.length > 30 || _isBase64(content))) {
+        return '🔒 Message encrypted';
+      }
+
       return decryptedContent;
     } catch (e) {
       debugPrint('[ChatDecryption] Error decrypting: $e');
       return '🔒 Message encrypted';
+    }
+  }
+
+  bool _isBase64(String str) {
+    try {
+      base64.decode(str);
+      return str.length > 10;
+    } catch (_) {
+      return false;
     }
   }
 

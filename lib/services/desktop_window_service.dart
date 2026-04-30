@@ -20,6 +20,11 @@ class DesktopWindowService extends WindowListener with TrayListener {
     await windowManager.ensureInitialized();
     await Window.initialize();
     await Window.makeTitlebarTransparent();
+    try {
+      await windowManager.setBackgroundColor(Colors.transparent);
+    } catch (e) {
+      debugPrint('DesktopWindowService: Failed to set transparent background: $e');
+    }
     await windowManager.setTitleBarStyle(TitleBarStyle.hidden,
         windowButtonVisibility: false);
 

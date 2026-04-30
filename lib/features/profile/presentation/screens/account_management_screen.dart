@@ -149,11 +149,15 @@ class _AccountManagementScreenState extends State<AccountManagementScreen> {
                           Row(
                             children: [
                               Expanded(
-                                child: Text(
-                                  profile.username,
-                                  style: theme.textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.onPrimaryContainer,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    profile.username,
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onPrimaryContainer,
+                                    ),
                                   ),
                                 ),
                               ),

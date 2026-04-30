@@ -106,6 +106,15 @@ class CallService extends ChangeNotifier {
   bool get isScreenSharing => _isScreenSharing;
   String? get remoteScreenShareUserId => _remoteScreenShareUserId;
 
+  void _safeNotifyListeners() {
+    if (kIsWeb) {
+      notifyListeners();
+      return;
+    }
+    // Ensure notifyListeners is always called on the UI/Platform thread
+    Future.microtask(() => notifyListeners());
+  }
+
   Future<void> initLocalStream(bool isVideo) async {
     debugPrint('[CallService] Initializing local stream: video=$isVideo');
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
@@ -137,23 +146,45 @@ class CallService extends ChangeNotifier {
       _localRendererInitialized = true;
     }
 
-    if (_localStream != null) {
-      _localStream!.getTracks().forEach((t) => t.stop());
-    }
-
+    final oldStream = _localStream;
     _localStream = await navigator.mediaDevices.getUserMedia(constraints);
     
-    // Explicitly enable audio tracks
+    // Explicitly enable audio tracks and log status
     for (var track in _localStream!.getAudioTracks()) {
       track.enabled = true;
+      debugPrint('[CallService] Local audio track: id=${track.id}, enabled=${track.enabled}, kind=${track.kind}');
     }
 
     _localRenderer.srcObject = _localStream;
     _isVideoOn = isVideo;
     _isMuted = false;
 
+    // If we have active peer connections, update their tracks
+    if (_peerConnections.isNotEmpty) {
+      for (var pc in _peerConnections.values) {
+        final senders = await pc.getSenders();
+        for (var track in _localStream!.getTracks()) {
+          final sender = senders.cast<RTCRtpSender?>().firstWhere(
+            (s) => s?.track?.kind == track.kind,
+            orElse: () => null,
+          );
+          if (sender != null) {
+            await sender.replaceTrack(track);
+          } else {
+            await pc.addTrack(track, _localStream!);
+          }
+        }
+      }
+    }
+
+    if (oldStream != null) {
+      for (var track in oldStream.getTracks()) {
+        track.stop();
+      }
+    }
+
     await _configureAudioSession(isVideo);
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> _configureAudioSession(bool isVideo) async {
@@ -161,8 +192,6 @@ class CallService extends ChangeNotifier {
     try {
       if (Platform.isIOS || Platform.isAndroid) {
         await Helper.setSpeakerphoneOn(isVideo);
-        // On mobile, ensure the audio session is active and configured for calls
-        // This is often handled by flutter_webrtc internally, but explicit toggle helps.
       }
     } catch (e) {
       debugPrint('[CallService] Error configuring audio session: $e');
@@ -189,63 +218,73 @@ class CallService extends ChangeNotifier {
       });
     };
 
-    pc.onTrack = (event) async {
+    pc.onTrack = (event) {
       debugPrint('[CallService] onTrack: ${event.track.kind} from $remoteUserId');
       
-      if (event.track.kind == 'audio') {
-        event.track.enabled = true;
-      }
+      // Ensure we handle track events on the platform thread to avoid threading issues on Desktop/Windows
+      Future.microtask(() async {
+        try {
+          if (event.track.kind == 'audio') {
+            event.track.enabled = true;
+          }
 
-      MediaStream stream;
-      if (event.streams.isNotEmpty) {
-        stream = event.streams[0];
-      } else {
-        // Fallback for some legacy WebRTC implementations
-        _remoteStreams[remoteUserId] ??= await createLocalMediaStream('remote_$remoteUserId');
-        await _remoteStreams[remoteUserId]!.addTrack(event.track);
-        stream = _remoteStreams[remoteUserId]!;
-      }
-      _remoteStreams[remoteUserId] = stream;
+          MediaStream stream;
+          if (event.streams.isNotEmpty) {
+            stream = event.streams[0];
+          } else {
+            // Fallback for some legacy WebRTC implementations
+            _remoteStreams[remoteUserId] ??= await createLocalMediaStream('remote_$remoteUserId');
+            await _remoteStreams[remoteUserId]!.addTrack(event.track);
+            stream = _remoteStreams[remoteUserId]!;
+          }
+          _remoteStreams[remoteUserId] = stream;
 
-      if (event.track.kind == 'video') {
-        if (!_remoteRenderers.containsKey(remoteUserId)) {
-          final renderer = RTCVideoRenderer();
-          await renderer.initialize();
-          renderer.srcObject = stream;
-          _remoteRenderers[remoteUserId] = renderer;
-        } else {
-          _remoteRenderers[remoteUserId]!.srcObject = stream;
+          if (event.track.kind == 'video') {
+            if (!_remoteRenderers.containsKey(remoteUserId)) {
+              final renderer = RTCVideoRenderer();
+              await renderer.initialize();
+              renderer.srcObject = stream;
+              _remoteRenderers[remoteUserId] = renderer;
+            } else {
+              _remoteRenderers[remoteUserId]!.srcObject = stream;
+            }
+          }
+          
+          _safeNotifyListeners();
+        } catch (e) {
+          debugPrint('[CallService] Error in onTrack: $e');
         }
-      }
-      
-      notifyListeners();
+      });
     };
 
-    pc.onRenegotiationNeeded = () async {
+    pc.onRenegotiationNeeded = () {
       debugPrint('[CallService] onRenegotiationNeeded for $remoteUserId');
-      // Only initiate renegotiation if the connection is stable to avoid glare
-      if (pc.signalingState != RTCSignalingState.RTCSignalingStateStable) return;
+      Future.microtask(() async {
+        if (pc.signalingState != RTCSignalingState.RTCSignalingStateStable) return;
 
-      try {
-        final offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        await _sendSignaling(remoteUserId, {
-          'type': 'offer',
-          'sdp': offer.sdp,
-          'sdp_type': offer.type,
-        });
-      } catch (e) {
-        debugPrint('[CallService] Renegotiation error: $e');
-      }
+        try {
+          final offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          await _sendSignaling(remoteUserId, {
+            'type': 'offer',
+            'sdp': offer.sdp,
+            'sdp_type': offer.type,
+          });
+        } catch (e) {
+          debugPrint('[CallService] Renegotiation error: $e');
+        }
+      });
     };
 
     pc.onConnectionState = (state) {
       debugPrint('[CallService] Connection state for $remoteUserId: $state');
-      if (state == RTCPeerConnectionState.RTCPeerConnectionStateDisconnected ||
-          state == RTCPeerConnectionState.RTCPeerConnectionStateFailed ||
-          state == RTCPeerConnectionState.RTCPeerConnectionStateClosed) {
-        _removePeer(remoteUserId);
-      }
+      Future.microtask(() {
+        if (state == RTCPeerConnectionState.RTCPeerConnectionStateDisconnected ||
+            state == RTCPeerConnectionState.RTCPeerConnectionStateFailed ||
+            state == RTCPeerConnectionState.RTCPeerConnectionStateClosed) {
+          _removePeer(remoteUserId);
+        }
+      });
     };
 
     _peerConnections[remoteUserId] = pc;
@@ -325,7 +364,7 @@ class CallService extends ChangeNotifier {
     _currentCall = call;
     _subscribeToCall(call.id);
     _subscribeToSignaling(call.id);
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void _subscribeToCall(String callId) {
@@ -358,7 +397,7 @@ class CallService extends ChangeNotifier {
                 debugPrint('[CallService] Error processing answer: $e');
               }
             }
-            notifyListeners();
+            _safeNotifyListeners();
           }
         });
   }
@@ -388,7 +427,6 @@ class CallService extends ChangeNotifier {
         _isScreenSharing = false;
         if (!kIsWeb && Platform.isAndroid) {
           try {
-            // Using reflection/dynamic check for older vs newer plugin versions
             final helper = Helper as dynamic;
             if (helper.stopForegroundService != null) await helper.stopForegroundService();
           } catch (_) {}
@@ -397,8 +435,6 @@ class CallService extends ChangeNotifier {
       } else {
         if (!kIsWeb && Platform.isAndroid) {
           try {
-            // Different versions of flutter_webrtc use different methods or params
-            // We attempt the most common ones or ignore if missing to prevent crash
             final helper = Helper as dynamic;
             if (helper.startForegroundService != null) {
               await helper.startForegroundService(
@@ -435,7 +471,7 @@ class CallService extends ChangeNotifier {
           screenTrack.onEnded = () { if (_isScreenSharing) toggleScreenShare(); };
         }
       }
-      notifyListeners();
+      _safeNotifyListeners();
     } catch (e) {
       debugPrint('[CallService] Error toggling screen share: $e');
     }
@@ -475,7 +511,7 @@ class CallService extends ChangeNotifier {
           } else if (_remoteScreenShareUserId == data['userId']) {
             _remoteScreenShareUserId = null;
           }
-          notifyListeners();
+          _safeNotifyListeners();
         }
       } catch (e) {
         debugPrint('[CallService] Error handling signaling: $e');
@@ -505,7 +541,7 @@ class CallService extends ChangeNotifier {
     _remoteStreams.remove(remoteUserId);
     _remoteRenderers[remoteUserId]?.dispose();
     _remoteRenderers.remove(remoteUserId);
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void _cleanup() {
@@ -537,7 +573,7 @@ class CallService extends ChangeNotifier {
     _candidateQueue.clear();
     _isScreenSharing = false;
     _remoteScreenShareUserId = null;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void startIncomingCallListener() {
@@ -552,17 +588,17 @@ class CallService extends ChangeNotifier {
             _incomingCall = call;
             _playRingtone();
             DesktopCallNotifier.instance.handleIncomingCall(callId: call.id, callerName: 'Incoming Call', senderId: call.callerId);
-            notifyListeners();
+            _safeNotifyListeners();
           }
         } else if (_incomingCall != null) {
           _incomingCall = null;
           _stopRingtone();
-          notifyListeners();
+          _safeNotifyListeners();
         }
       } else if (_incomingCall != null) {
         _incomingCall = null;
         _stopRingtone();
-        notifyListeners();
+        _safeNotifyListeners();
       }
     });
   }
@@ -573,7 +609,7 @@ class CallService extends ChangeNotifier {
     if (_localStream != null) {
       _isMuted = !_isMuted;
       for (var track in _localStream!.getAudioTracks()) track.enabled = !_isMuted;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -589,7 +625,17 @@ class CallService extends ChangeNotifier {
           final videoTrack = videoStream.getVideoTracks().first;
           await _localStream!.addTrack(videoTrack);
           _isVideoOn = true;
-          for (var pc in _peerConnections.values) await pc.addTrack(videoTrack, _localStream!);
+          for (var pc in _peerConnections.values) {
+            final senders = await pc.getSenders();
+            final videoSender = senders.cast<RTCRtpSender?>().firstWhere(
+              (s) => s?.track?.kind == 'video', orElse: () => null,
+            );
+            if (videoSender != null) {
+              await videoSender.replaceTrack(videoTrack);
+            } else {
+              await pc.addTrack(videoTrack, _localStream!);
+            }
+          }
         }
       } catch (e) {
         debugPrint('[CallService] Error enabling video: $e');
@@ -598,8 +644,8 @@ class CallService extends ChangeNotifier {
       _isVideoOn = !_isVideoOn;
       for (var track in _localStream!.getVideoTracks()) track.enabled = _isVideoOn;
     }
-    if (Platform.isAndroid || Platform.isIOS) await Helper.setSpeakerphoneOn(_isVideoOn);
-    notifyListeners();
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) await Helper.setSpeakerphoneOn(_isVideoOn);
+    _safeNotifyListeners();
   }
 
   Future<void> _playRingtone() async {

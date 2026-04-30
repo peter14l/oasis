@@ -57,11 +57,13 @@ class _CreateCapsuleScreenState extends State<CreateCapsuleScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final profile = context.read<ProfileProvider>().currentProfile;
-      if (profile != null && profile.isPro) {
-        setState(() {
-          _selectedDate = DateTime.now().add(const Duration(days: 365));
-        });
+      if (mounted) {
+        final profile = context.read<ProfileProvider>().currentProfile;
+        if (profile != null && profile.isPro) {
+          setState(() {
+            _selectedDate = DateTime.now().add(const Duration(days: 365));
+          });
+        }
       }
     });
   }

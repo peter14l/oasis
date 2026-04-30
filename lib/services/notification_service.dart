@@ -194,6 +194,7 @@ class NotificationService {
     String? commentId,
     String? messageId,
     String? message,
+    Map<String, dynamic>? metadata,
   }) async {
     try {
       // Note: 'title' column does not exist in DB, so we don't include it in insert.
@@ -206,6 +207,7 @@ class NotificationService {
         'comment_id': commentId,
         'message_id': messageId,
         'content': message,
+        'metadata': metadata,
       });
     } catch (e) {
       debugPrint('Error creating notification: $e');

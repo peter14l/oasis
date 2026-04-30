@@ -288,6 +288,9 @@ class AppInitializer {
   static Future<void> firebaseMessagingBackgroundHandler(
     RemoteMessage message,
   ) async {
+    // Required for plugin communication in background isolates
+    WidgetsFlutterBinding.ensureInitialized();
+    
     // 1. Core initialization for the background isolate
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -646,6 +649,7 @@ class AppInitializer {
             payload: jsonEncode({
               'type': 'dm',
               'conversation_id': notification.conversationId ?? notification.actorId,
+              'message_id': notification.messageId,
               'sender_id': notification.actorId,
               'sender_name': senderName,
               'sender_avatar': senderAvatar,
@@ -759,11 +763,18 @@ class AppInitializer {
         ),
         ChangeNotifierProxyProvider<CallService, CallProvider>(
           create: (context) {
-            final callService = context.read<CallService>();
+            CallService? callService;
+            try {
+               callService = context.read<CallService>();
+            } catch (e) {
+               debugPrint('CallService not found during CallProvider creation: $e');
+               callService = DisabledCallService();
+            }
             final provider = CallProvider(callService);
             
-            if (AppConfig.enableCalls) {
+            if (AppConfig.enableCalls && callService is! DisabledCallService) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
+                // Check if context is still valid (using a closure-safe way)
                 final repo = CallRepositoryImpl();
                 provider.initialize(
                   initiateCall: InitiateCall(repo),
@@ -776,9 +787,11 @@ class AppInitializer {
               // Mark as initialized but don't start any listeners
               // Use a private microtask to not block create()
               Future.microtask(() {
-                if (context.mounted) {
-                   provider.clearError(); // Just to trigger a notify if needed
-                }
+                try {
+                  if (context.mounted) {
+                    provider.clearError(); // Just to trigger a notify if needed
+                  }
+                } catch (_) {}
               });
             }
             return provider;

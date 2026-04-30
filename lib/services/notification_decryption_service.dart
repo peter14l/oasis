@@ -41,9 +41,10 @@ class NotificationDecryptionService {
     
     final bool hasEncryptedKeys = data['encrypted_keys'] != null;
     final bool hasSignalType = data['signal_message_type'] != null;
+    final bool isLikelyEncrypted = !content.contains(' ') && (content.length > 30 || _isBase64(content));
     
     // If it doesn't look encrypted and we don't have metadata, return as is
-    if (!isGenericPlaceholder && !hasEncryptedKeys && !hasSignalType) {
+    if (!isGenericPlaceholder && !hasEncryptedKeys && !hasSignalType && !isLikelyEncrypted) {
       return content;
     }
 
@@ -98,16 +99,20 @@ class NotificationDecryptionService {
     }
 
     // If we reached here, decryption failed or metadata was missing
-    if (isGenericPlaceholder || hasEncryptedKeys || hasSignalType) {
-      return '🔒 Encrypted message';
-    }
-
-    // Safety fallback: if content looks like a raw encrypted blob (long, no spaces, likely base64/hex)
-    if (content.length > 60 && !content.contains(' ')) {
+    if (isGenericPlaceholder || hasEncryptedKeys || hasSignalType || isLikelyEncrypted) {
       return '🔒 Encrypted message';
     }
 
     return content;
+  }
+
+  bool _isBase64(String str) {
+    try {
+      base64.decode(str);
+      return str.length > 10; // Simple length check to avoid false positives for tiny strings
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<String?> _decryptRSAFallback(Map<String, dynamic> data) async {
