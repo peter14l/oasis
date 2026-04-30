@@ -16,6 +16,7 @@ import 'package:flutter_callkit_incoming/entities/notification_params.dart';
 import 'package:oasis/routes/app_router.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:universal_io/io.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:oasis/firebase_options.dart';
 import 'package:oasis/core/config/app_config.dart';
@@ -290,6 +291,12 @@ class AppInitializer {
   ) async {
     // Required for plugin communication in background isolates
     WidgetsFlutterBinding.ensureInitialized();
+
+    // Initialize database factory for desktop background processes
+    if (!kIsWeb && (Platform.isWindows || Platform.isMacOS)) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
     
     // 1. Core initialization for the background isolate
     await Firebase.initializeApp(
@@ -460,6 +467,12 @@ class AppInitializer {
   /// Step 4 — Core initialization: Supabase → auth → settings → services.
   /// Returns all pre-instantiated providers so main.dart can wire them up.
   static Future<InitializedServices> initCore() async {
+    // Initialize database factory for desktop
+    if (!kIsWeb && (Platform.isWindows || Platform.isMacOS)) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+
     // Android-specific WebView initialization
     if (Platform.isAndroid) {
       WebViewPlatform.instance = AndroidWebViewPlatform();

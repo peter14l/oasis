@@ -9,6 +9,7 @@ import 'package:oasis/routes/app_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:oasis/services/notification_decryption_service.dart';
 import 'package:oasis/services/desktop_call_notifier.dart';
 import 'package:oasis/features/messages/data/messaging_service.dart';
@@ -31,6 +32,13 @@ class NotificationMessage {
 void notificationTapBackground(NotificationResponse response) async {
   // Ensure core services are ready for background actions
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize database factory for desktop background processes
+  if (!kIsWeb && (Platform.isWindows || Platform.isMacOS)) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
+
   try {
     // Basic initialization for Supabase to allow DB operations
     await SupabaseService.initialize();
@@ -481,15 +489,17 @@ class NotificationManager {
     try {
       final data = jsonDecode(payload);
       final conversationId = data['conversation_id'];
-      final senderId = Supabase.instance.client.auth.currentUser?.id;
+      final client = Supabase.instance.client;
+      final senderId = client.auth.currentUser?.id;
 
       if (conversationId != null && senderId != null) {
-        final messagingService = MessagingService();
-        await messagingService.sendMessage(
-          conversationId: conversationId,
-          senderId: senderId,
-          content: content,
-        );
+        // Use RPC directly to avoid service dependency issues in background isolate
+        await client.rpc('send_message_v3', params: {
+          'p_conversation_id': conversationId,
+          'p_sender_id': senderId,
+          'p_content': content,
+          'p_message_type': 'text',
+        });
         debugPrint('[NotificationManager] Reply sent to $conversationId');
       }
     } catch (e) {
@@ -503,19 +513,21 @@ class NotificationManager {
     try {
       final data = jsonDecode(payload);
       final messageId = data['message_id'];
-      final userId = Supabase.instance.client.auth.currentUser?.id;
+      final client = Supabase.instance.client;
+      final userId = client.auth.currentUser?.id;
       final username =
-          Supabase.instance.client.auth.currentUser?.userMetadata?['username'] ??
+          client.auth.currentUser?.userMetadata?['username'] ??
           'User';
 
       if (messageId != null && userId != null) {
-        final messagingService = MessagingService();
-        await messagingService.addReaction(
-          messageId: messageId,
-          userId: userId,
-          emoji: '❤️',
-          username: username,
-        );
+        // Use RPC or table insert directly for reactions
+        await client.from('message_reactions').upsert({
+          'message_id': messageId,
+          'user_id': userId,
+          'emoji': '❤️',
+          'username': username,
+          'created_at': DateTime.now().toIso8601String(),
+        });
         debugPrint('[NotificationManager] Like reaction added to $messageId');
       }
     } catch (e) {

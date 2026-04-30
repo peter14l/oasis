@@ -158,7 +158,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _textNotifier.value = _messageController.text;
       final userId = AuthService().currentUser?.id;
       if (userId != null && _messageController.text.isNotEmpty) {
-        context.read<TypingIndicatorProvider>().setTyping(
+        final typingProvider = context.read<TypingIndicatorProvider>();
+        typingProvider.setTyping(
           widget.conversationId,
           userId,
           true,
@@ -174,6 +175,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     // Subscribe to presence
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
       final otherId = widget.otherUserId ?? _chatProvider.state.otherUserId;
       if (otherId != null) {
         context.read<PresenceProvider>().subscribeToUserPresence(otherId);
@@ -200,6 +203,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     // Ensure vault service is initialized
     await _vaultService.isReady;
     
+    if (!mounted) return;
+
     if (_vaultService.isInVaultSync(widget.conversationId) &&
         !_vaultService.isItemUnlocked(widget.conversationId)) {
       final authenticated = await _vaultService.authenticate(
