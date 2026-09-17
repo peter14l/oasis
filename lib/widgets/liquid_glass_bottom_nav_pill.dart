@@ -143,7 +143,6 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
   double _indicatorHeight = 0.0;
 
   static const double _horizontalTrackPadding = 6.0;
-  static const double _indicatorCornerRadius = 18.0;
 
   @override
   void initState() {
@@ -503,11 +502,13 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
     final height = _indicatorHeight - (stretch * 0.2);
     final top = (widget.pillHeight - height) / 2;
 
+    final currentRadius = height / 2;
+
     Widget indicatorBody = Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(_indicatorCornerRadius),
+        borderRadius: BorderRadius.circular(currentRadius),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -551,9 +552,9 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
 
     if (isLiquid) {
       indicatorBody = LiquidGlassWrapper(
-        borderRadius: _indicatorCornerRadius,
-        shape: const LiquidRoundedSuperellipse(
-          borderRadius: _indicatorCornerRadius,
+        borderRadius: currentRadius,
+        shape: LiquidRoundedSuperellipse(
+          borderRadius: currentRadius,
         ),
         config: const LiquidGlassConfig(
           thickness: 18,

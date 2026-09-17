@@ -1,35 +1,35 @@
 {
   "android": {
-    "latestVersion": "1.1.26",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.26.apk",
+    "latestVersion": "1.1.27",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.27.apk",
     "abiUrls": {
-      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.26-arm64-v8a.apk",
-      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.26-armeabi-v7a.apk",
-      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.26-x86_64.apk",
-      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.26.apk"
+      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.27-arm64-v8a.apk",
+      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.27-armeabi-v7a.apk",
+      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.27-x86_64.apk",
+      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.27.apk"
     },
-    "releaseNotes": "• Rectangular Squircle Liquid Indicator: Transformed indicator into a smooth rounded rectangular squircle spanning item slots.\n• Expanded Pill Layout: Enhanced bottom navbar pill width responsively across mobile and desktop displays.\n• Bottom Screen Anchoring: Fixed vertical layout centering bug to anchor the pill and progressive blur firmly at the bottom of the screen.",
+    "releaseNotes": "• Horizontal Oval Liquid Indicator: Enhanced indicator with continuous oval/capsule rounded curvature (height / 2) for smooth Apple-style liquid glass transitions across tabs.",
     "isRequired": false,
-    "releaseDate": "2026-09-17T14:35:00Z"
+    "releaseDate": "2026-09-17T15:15:00Z"
   },
   "windows": {
-    "latestVersion": "1.1.26",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.26.msix",
+    "latestVersion": "1.1.27",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.27.msix",
     "abiUrls": {
-      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.26.msix"
+      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.27.msix"
     },
-    "releaseNotes": "• Rectangular Squircle Liquid Indicator: Transformed indicator into a smooth rounded rectangular squircle spanning item slots.\n• Expanded Pill Layout: Enhanced bottom navbar pill width responsively across mobile and desktop displays.\n• Bottom Screen Anchoring: Fixed vertical layout centering bug to anchor the pill and progressive blur firmly at the bottom of the screen.",
+    "releaseNotes": "• Horizontal Oval Liquid Indicator: Enhanced indicator with continuous oval/capsule rounded curvature (height / 2) for smooth Apple-style liquid glass transitions across tabs.",
     "isRequired": false,
-    "releaseDate": "2026-09-17T14:35:00Z"
+    "releaseDate": "2026-09-17T15:15:00Z"
   },
   "macos": {
-    "latestVersion": "1.1.26",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.26.dmg",
+    "latestVersion": "1.1.27",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.27.dmg",
     "abiUrls": {
-      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.26.dmg"
+      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.27.dmg"
     },
-    "releaseNotes": "• Rectangular Squircle Liquid Indicator: Transformed indicator into a smooth rounded rectangular squircle spanning item slots.\n• Expanded Pill Layout: Enhanced bottom navbar pill width responsively across mobile and desktop displays.\n• Bottom Screen Anchoring: Fixed vertical layout centering bug to anchor the pill and progressive blur firmly at the bottom of the screen.",
+    "releaseNotes": "• Horizontal Oval Liquid Indicator: Enhanced indicator with continuous oval/capsule rounded curvature (height / 2) for smooth Apple-style liquid glass transitions across tabs.",
     "isRequired": false,
-    "releaseDate": "2026-09-17T14:35:00Z"
+    "releaseDate": "2026-09-17T15:15:00Z"
   }
 }

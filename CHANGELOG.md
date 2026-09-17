@@ -2,6 +2,11 @@
 
 All notable changes to the Oasis project will be documented in this file. This project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.27] - 2026-09-17
+
+### Interface & Design
+- **Horizontal Oval Liquid Glass Indicator** - Refined indicator shape into a horizontal oval (capsule) with smooth full-curvature corners (`height / 2`), providing an Apple visionOS/iOS-style liquid lens aesthetic.
+
 ## [1.1.26] - 2026-09-17
 
 ### Interface & Design
