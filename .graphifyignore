@@ -11,6 +11,15 @@ linux/
 macos/
 node_modules/
 apks/
+cmake-3.29.3-windows-x86_64/
+.opencode/
+fluent_ui/
+winui/src/**/Generated Files/
+winui/src/**/AnimatedVisuals/
+winui/dist/
+winui/src/**/bin/
+winui/src/**/obj/
+
 
 # Ignore assets and non-code directories containing images/media/binary files
 assets/

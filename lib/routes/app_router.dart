@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
-import 'package:navigation_bar_m3e/navigation_bar_m3e.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:oasis/services/auth_service.dart';
@@ -36,6 +35,7 @@ import 'package:oasis/core/extensions/context_extensions.dart';
 import 'package:oasis/widgets/security_upgrade_banner.dart';
 import 'package:oasis/widgets/adaptive/adaptive_scaffold.dart';
 import 'package:oasis/widgets/liquid_glass_wrapper.dart';
+import 'package:oasis/widgets/liquid_glass_bottom_nav_pill.dart';
 import 'package:oasis/widgets/security_pin_sheet.dart';
 import 'package:oasis/widgets/encryption_pin_overlay.dart';
 import 'package:oasis/features/calling/presentation/screens/calling_screen.dart';
@@ -679,66 +679,65 @@ class _MainLayoutState extends State<MainLayout> {
     final disableTransparency =
         kIsWeb || (themeProvider.isM3EEnabled && themeProvider.isM3ETransparencyDisabled);
 
-    // Indices 0 (Feed) and 1 (Search) are restricted when kill-switch is on.
-    Widget restrictedIcon(Widget icon) =>
-        killSwitchActive ? Opacity(opacity: 0.3, child: icon) : icon;
-
-    final navBar = NavigationBarM3E(
-      backgroundColor: disableTransparency
-          ? theme.colorScheme.surfaceContainer
-          : Colors.transparent,
-      elevation: disableTransparency ? 3 : 0,
-      selectedIndex: currentIndex < 0 ? 0 : currentIndex,
-      onDestinationSelected: (i) =>
-          _onDestinationSelected(i, killSwitchActive: killSwitchActive),
-      labelBehavior: NavBarM3ELabelBehavior.alwaysShow,
-      destinations: [
-        NavigationDestinationM3E(
-          icon: restrictedIcon(const Icon(FluentIcons.home_24_regular)),
-          selectedIcon: restrictedIcon(const Icon(FluentIcons.home_24_filled)),
-          label: 'Feed',
-        ),
-        const NavigationDestinationM3E(
-          icon: Icon(FluentIcons.channel_24_regular),
-          selectedIcon: Icon(FluentIcons.channel_24_filled),
-          label: 'Spaces',
-        ),
-        const NavigationDestinationM3E(
-          icon: UnreadMessagesBadge(child: Icon(FluentIcons.chat_24_regular)),
-          selectedIcon: UnreadMessagesBadge(
-            child: Icon(FluentIcons.chat_24_filled),
-          ),
-          label: 'Messages',
-        ),
-        if (!kIsWeb && Platform.isAndroid)
-          const NavigationDestinationM3E(
-            icon: Icon(FluentIcons.camera_24_regular),
-            selectedIcon: Icon(FluentIcons.camera_24_filled),
-            label: 'Instagram',
-          ),
-      ],
-    );
-
-    if (disableTransparency) {
-      return navBar;
-    }
-
-    return SafeArea(
-      top: false,
-      child: Container(
-        margin: const EdgeInsets.only(
-          left: 24.0,
-          right: 24.0,
-          bottom: 16.0,
-          top: 8.0,
-        ),
-        child: LiquidGlassWrapper(
-          borderRadius: 40.0,
-          shape: const LiquidRoundedSuperellipse(borderRadius: 40.0),
-          config: LiquidGlassConfig.Medium,
-          child: navBar,
-        ),
+    final destinations = [
+      LiquidNavDestination(
+        icon: const Icon(FluentIcons.home_24_regular),
+        selectedIcon: const Icon(FluentIcons.home_24_filled),
+        tooltip: 'Feed',
+        isRestricted: killSwitchActive,
       ),
+      const LiquidNavDestination(
+        icon: Icon(FluentIcons.channel_24_regular),
+        selectedIcon: Icon(FluentIcons.channel_24_filled),
+        tooltip: 'Spaces',
+      ),
+      const LiquidNavDestination(
+        icon: UnreadMessagesBadge(child: Icon(FluentIcons.chat_24_regular)),
+        selectedIcon: UnreadMessagesBadge(
+          isSelected: true,
+          child: Icon(FluentIcons.chat_24_filled),
+        ),
+        tooltip: 'Messages',
+      ),
+      if (!kIsWeb && Platform.isAndroid)
+        const LiquidNavDestination(
+          icon: Icon(FluentIcons.camera_24_regular),
+          selectedIcon: Icon(FluentIcons.camera_24_filled),
+          tooltip: 'Instagram',
+        ),
+    ];
+
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      clipBehavior: Clip.none,
+      children: [
+        // 1. Apple-style Progressive Blur behind the pill
+        if (!disableTransparency)
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: ProgressiveBlurBackground(height: 124.0),
+          ),
+
+        // 2. Floating Liquid Glass Bottom Navbar Pill with draggable circular indicator
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.only(
+              bottom: 16.0,
+              top: 8.0,
+            ),
+            child: LiquidGlassBottomNavPill(
+              currentIndex: currentIndex < 0 ? 0 : currentIndex,
+              onDestinationSelected: (i) =>
+                  _onDestinationSelected(i, killSwitchActive: killSwitchActive),
+              destinations: destinations,
+              disableTransparency: disableTransparency,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

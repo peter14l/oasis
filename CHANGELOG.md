@@ -2,7 +2,14 @@
 
 All notable changes to the Oasis project will be documented in this file. This project follows [Semantic Versioning](https://semver.org/).
 
-## [1.1.16] - 2026-08-13
+## [1.1.25] - 2026-09-17
+
+### Interface & Design
+- **Apple-Style Liquid Glass Bottom Nav Pill** - Replaced standard navigation bar with an authentic Apple Liquid Glass floating navbar pill with continuous curvature and specular rim border.
+- **Draggable Circular Indicator** - Interactive circular lens indicator with dedicated liquid glass refraction layer that can be dragged horizontally across navigation destinations with spring snapping physics and tactile haptic feedback.
+- **Progressive Blur Backdrop** - Soft gradient progressive blur fading in behind the bottom floating pill without hard cutoffs.
+- **Streamlined Label-Free Layout** - Removed destination text labels inside the pill for a cleaner, modern look.
+
 
 ### Interface & Design
 - **Floating Bottom Navigation Bar** - Redesigned bottom navigation bar to be a floating capsule with glassmorphism/blur effects, margin/padding, and border decoration when transparency effects are on.

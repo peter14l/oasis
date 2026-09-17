@@ -7,6 +7,7 @@ import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/core/config/supabase_config.dart';
 import 'package:oasis/features/auth/domain/models/auth_models.dart';
 import 'package:oasis/services/session_registry_service.dart';
+import 'package:oasis/services/zero_tap_auth_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:oasis/services/auth/auth_providers_delegate.dart';
@@ -225,8 +226,21 @@ class AuthRemoteDatasource {
 
   Future<RegisteredAccount?> restoreSession() async {
     try {
-      final session = _supabase.auth.currentSession;
-      final user = _supabase.auth.currentUser;
+      var session = _supabase.auth.currentSession;
+      var user = _supabase.auth.currentUser;
+
+      if (session == null || user == null) {
+        // Attempt silent Zero-Tap Android Restore Credentials
+        final restoreKey = await ZeroTapAuthService.instance.getRestoreKey();
+        if (restoreKey != null && restoreKey.isNotEmpty) {
+          debugPrint(
+            '[AuthRemoteDatasource] Found Zero-Tap restore key, attempting session recovery...',
+          );
+          final response = await _supabase.auth.recoverSession(restoreKey);
+          session = response.session;
+          user = response.user;
+        }
+      }
 
       if (session == null || user == null) return null;
 

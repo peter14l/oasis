@@ -1880,7 +1880,7 @@
     "semantic_hash": ""
   },
   "lib/core/config/supabase_config.dart": {
-    "mtime": 1788640970.767237,
+    "mtime": 1788673591.5931842,
     "ast_hash": "d29669362cdf16f78583a758e11eb823",
     "semantic_hash": ""
   },
@@ -1890,8 +1890,8 @@
     "semantic_hash": "5934b5f84a26d63e8ff490d27da1c6b8"
   },
   "lib/core/constants/supabase_tables.dart": {
-    "mtime": 1788640972.5490036,
-    "ast_hash": "704c578a5182362aa0e1c51feb41490a",
+    "mtime": 1788673591.594185,
+    "ast_hash": "a2ca51207193cf3cb4141bf6c7c9df84",
     "semantic_hash": ""
   },
   "lib/core/crypto/pq_aura_bridge.dart": {
@@ -1930,7 +1930,7 @@
     "semantic_hash": "e6f1d1f956239e475f00f9b4b48427ae"
   },
   "lib/core/network/image_service.dart": {
-    "mtime": 1788627143.5788996,
+    "mtime": 1788673590.3478749,
     "ast_hash": "0b0dd7452b74092685d43e5d96d102ea",
     "semantic_hash": ""
   },
@@ -1945,7 +1945,7 @@
     "semantic_hash": ""
   },
   "lib/core/pagination/cursor_paginator.dart": {
-    "mtime": 1788627150.1544807,
+    "mtime": 1788673590.3478749,
     "ast_hash": "5ec601aa0109acac38071d923ea8e145",
     "semantic_hash": ""
   },
@@ -2045,8 +2045,8 @@
     "semantic_hash": ""
   },
   "lib/features/auth/data/datasources/auth_remote_datasource.dart": {
-    "mtime": 1785438893.0300157,
-    "ast_hash": "be74fdc88d230993a35b644b50f5d42a",
+    "mtime": 1788716101.6451368,
+    "ast_hash": "efeaeb263bf4f516411609f8e57d128a",
     "semantic_hash": ""
   },
   "lib/features/auth/data/datasources/session_local_datasource.dart": {
@@ -2055,8 +2055,8 @@
     "semantic_hash": "297af41959be72f5dffaa3bbf9efcfdd"
   },
   "lib/features/auth/data/repositories/auth_repository_impl.dart": {
-    "mtime": 1785438893.0300157,
-    "ast_hash": "f9b50a58da6c55466170e08ad0ed7ae6",
+    "mtime": 1788716111.1414127,
+    "ast_hash": "c468f7889210d598122450d93754649a",
     "semantic_hash": ""
   },
   "lib/features/auth/domain/models/app_user.dart": {
@@ -2085,13 +2085,13 @@
     "semantic_hash": "cdebcb212c8dcd6a9c273531a827fb0c"
   },
   "lib/features/auth/domain/repositories/auth_repository.dart": {
-    "mtime": 1785160219.126703,
-    "ast_hash": "082c74372fa0e2b7cd272592bb594978",
-    "semantic_hash": "082c74372fa0e2b7cd272592bb594978"
+    "mtime": 1788716198.7422595,
+    "ast_hash": "4df4cad5dc19e5cb247414828ccea87a",
+    "semantic_hash": ""
   },
   "lib/features/auth/presentation/providers/auth_provider.dart": {
-    "mtime": 1785438893.031023,
-    "ast_hash": "9150849f38c55b53fb15591c5a3ceac8",
+    "mtime": 1788716106.7747347,
+    "ast_hash": "6c04262251ddb1cf715d19be660d8b70",
     "semantic_hash": ""
   },
   "lib/features/auth/presentation/providers/auth_state.dart": {
@@ -2110,7 +2110,7 @@
     "semantic_hash": ""
   },
   "lib/features/auth/presentation/screens/onboarding_screen.dart": {
-    "mtime": 1788640943.3694127,
+    "mtime": 1788673591.594185,
     "ast_hash": "c4b4f896cc2279e30a4ed445aaea2f40",
     "semantic_hash": ""
   },
@@ -2160,12 +2160,12 @@
     "semantic_hash": ""
   },
   "lib/features/calling/presentation/providers/call_provider.dart": {
-    "mtime": 1788633386.491124,
+    "mtime": 1788673590.3488748,
     "ast_hash": "5c7e2c7aa4c7b45266888620c8d3acfd",
     "semantic_hash": ""
   },
   "lib/features/calling/presentation/screens/calling_screen.dart": {
-    "mtime": 1788633505.773181,
+    "mtime": 1788673590.3488748,
     "ast_hash": "414206290b685dea5e53d678ea720d7b",
     "semantic_hash": ""
   },
@@ -2180,7 +2180,7 @@
     "semantic_hash": ""
   },
   "lib/features/calling/presentation/widgets/floating_call_overlay.dart": {
-    "mtime": 1788633128.443102,
+    "mtime": 1788673590.3488748,
     "ast_hash": "74ecf24ebe98335692bbef984a2a997e",
     "semantic_hash": ""
   },
@@ -2210,7 +2210,7 @@
     "semantic_hash": ""
   },
   "lib/features/canvas/presentation/providers/canvas_provider.dart": {
-    "mtime": 1788633225.587892,
+    "mtime": 1788673590.3499157,
     "ast_hash": "7ed80533711f1b73e050a6457c007742",
     "semantic_hash": ""
   },
@@ -2320,7 +2320,7 @@
     "semantic_hash": "78efddc09469e04d5c2e58f74184d02b"
   },
   "lib/features/collections/presentation/providers/collections_provider.dart": {
-    "mtime": 1788632842.3682697,
+    "mtime": 1788673590.3499157,
     "ast_hash": "d242f75d2425b6bb7f4d627e3f12ba7b",
     "semantic_hash": ""
   },
@@ -2340,7 +2340,7 @@
     "semantic_hash": ""
   },
   "lib/features/collections/presentation/widgets/add_to_collection_sheet.dart": {
-    "mtime": 1788662411.2129402,
+    "mtime": 1788673591.594185,
     "ast_hash": "bc0ecb4ffec58d08adc87056f368e03b",
     "semantic_hash": ""
   },
@@ -2385,7 +2385,7 @@
     "semantic_hash": ""
   },
   "lib/features/feed/data/repositories/feed_repository_impl.dart": {
-    "mtime": 1788640939.8520262,
+    "mtime": 1788673591.594185,
     "ast_hash": "06b4dc500dbd0109cb81668dce7d97ac",
     "semantic_hash": ""
   },
@@ -2490,7 +2490,7 @@
     "semantic_hash": ""
   },
   "lib/features/feed/presentation/screens/instagram_feed_screen.dart": {
-    "mtime": 1788668642.9262192,
+    "mtime": 1788673591.5951865,
     "ast_hash": "601b288e11415c1979f8682939bec94a",
     "semantic_hash": ""
   },
@@ -2520,7 +2520,7 @@
     "semantic_hash": ""
   },
   "lib/features/feed/presentation/widgets/layouts/classic_feed_layout.dart": {
-    "mtime": 1788640892.4897504,
+    "mtime": 1788673591.5951865,
     "ast_hash": "45161137268fb31d78110269d818c146",
     "semantic_hash": ""
   },
@@ -2645,17 +2645,17 @@
     "semantic_hash": ""
   },
   "lib/features/messages/data/pq_aura/pq_aura_service_io.dart": {
-    "mtime": 1788669889.102981,
+    "mtime": 1788673591.5951865,
     "ast_hash": "d338fab2dc45876c9873a35a51875ee6",
     "semantic_hash": ""
   },
   "lib/features/messages/data/pq_aura/pq_aura_service_stub.dart": {
-    "mtime": 1788634682.18033,
+    "mtime": 1788673590.3506136,
     "ast_hash": "492f236ca1aa3748796b8cd481447a7e",
     "semantic_hash": ""
   },
   "lib/features/messages/data/pq_aura/pq_aura_service_web.dart": {
-    "mtime": 1788662428.108411,
+    "mtime": 1788673591.5961852,
     "ast_hash": "c8ab71ce56a87feb3ed1dd9f7b1df1e2",
     "semantic_hash": ""
   },
@@ -2665,7 +2665,7 @@
     "semantic_hash": ""
   },
   "lib/features/messages/data/repositories/conversation_repository_impl.dart": {
-    "mtime": 1788627130.8816845,
+    "mtime": 1788673590.3506136,
     "ast_hash": "07f96887174b38ea4a5951beae3579e3",
     "semantic_hash": ""
   },
@@ -2765,12 +2765,12 @@
     "semantic_hash": "02b9f9d8e32e2561a27df346e1670d92"
   },
   "lib/features/messages/presentation/providers/chat_encryption_provider.dart": {
-    "mtime": 1788671817.1756754,
+    "mtime": 1788673591.5961852,
     "ast_hash": "1c8d1809738cfc5292bd83701f59d1de",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/providers/chat_provider.dart": {
-    "mtime": 1788671911.4971743,
+    "mtime": 1788673591.5961852,
     "ast_hash": "bb0ea982ab4a5de66e049da8acccbcca",
     "semantic_hash": ""
   },
@@ -2805,7 +2805,7 @@
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/screens/chat_screen.dart": {
-    "mtime": 1788670172.404261,
+    "mtime": 1788673591.5974097,
     "ast_hash": "1a7ebfb4d40ea8e9ff3c23f4e5b78453",
     "semantic_hash": ""
   },
@@ -2855,12 +2855,12 @@
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/bubbles/document_bubble.dart": {
-    "mtime": 1788671860.20752,
+    "mtime": 1788673591.5980647,
     "ast_hash": "faae8ac059d6a4176ea7890ecd071a83",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/bubbles/image_bubble.dart": {
-    "mtime": 1788671832.8934193,
+    "mtime": 1788673591.5980647,
     "ast_hash": "0990071ad151d8ffa51afe6ba3ece88c",
     "semantic_hash": ""
   },
@@ -2900,17 +2900,17 @@
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/bubbles/video_bubble.dart": {
-    "mtime": 1788671839.546223,
+    "mtime": 1788673591.5980647,
     "ast_hash": "03fc2ad30b39aaef500758e9d03abc9e",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/bubbles/voice_bubble.dart": {
-    "mtime": 1788671867.6417005,
+    "mtime": 1788673591.5980647,
     "ast_hash": "f3a77d684045026024df16363a1610eb",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/chat/chat_app_bar.dart": {
-    "mtime": 1788668992.7232814,
+    "mtime": 1788673591.5990727,
     "ast_hash": "d389efaf2a02e17e22ac37365bd7be97",
     "semantic_hash": ""
   },
@@ -2920,12 +2920,12 @@
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/chat/chat_input_area.dart": {
-    "mtime": 1788668981.2287264,
+    "mtime": 1788673591.5990727,
     "ast_hash": "6ef46465c4e94aa314069aa43bbcbbab",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/chat/chat_message_list.dart": {
-    "mtime": 1788670188.973211,
+    "mtime": 1788673591.5990727,
     "ast_hash": "2154a2a81958b3f8ddbfe41d896e4fde",
     "semantic_hash": ""
   },
@@ -2960,7 +2960,7 @@
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/modals/attachment_options_sheet.dart": {
-    "mtime": 1788670087.3461025,
+    "mtime": 1788673591.5990727,
     "ast_hash": "e40affcc7ac50f82b85fa78ac3999b83",
     "semantic_hash": ""
   },
@@ -2980,22 +2980,22 @@
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/modals/message_options_sheet.dart": {
-    "mtime": 1788670095.5712488,
+    "mtime": 1788673591.5990727,
     "ast_hash": "cc230b1d33c6c4c91fb7cdd38603cf5c",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/previews/audio_preview.dart": {
-    "mtime": 1788670139.192438,
-    "ast_hash": "e7461d660ddacfb1820e53c3b569b34c",
+    "mtime": 1788673591.6005802,
+    "ast_hash": "09f89a882f7df87bb477c5d82f7284c1",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/previews/file_preview.dart": {
-    "mtime": 1788670135.106676,
-    "ast_hash": "d8c3c52e4ab07d4efe20d37c1fa32d4a",
+    "mtime": 1788673591.6005802,
+    "ast_hash": "403d40d56333b9e6d51872b0f29444a3",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/previews/image_preview.dart": {
-    "mtime": 1788670125.072906,
+    "mtime": 1788673591.6011715,
     "ast_hash": "ca72c627717e6aa69152def1b5b0487a",
     "semantic_hash": ""
   },
@@ -3010,13 +3010,13 @@
     "semantic_hash": "58a2ea2ffa996a11efe939c596272e3b"
   },
   "lib/features/messages/presentation/widgets/previews/reply_preview.dart": {
-    "mtime": 1788665934.4111278,
+    "mtime": 1788673591.6011715,
     "ast_hash": "7bb16f0f447a5a0a3b56ddb8e2a59b19",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/previews/video_preview.dart": {
-    "mtime": 1788670129.2634788,
-    "ast_hash": "0297a52f6158ec9c2fa156686f08579b",
+    "mtime": 1788673591.6011715,
+    "ast_hash": "f7ed37c40af7771e4228479662be0072",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/shared/attachment_option_card.dart": {
@@ -3160,8 +3160,8 @@
     "semantic_hash": ""
   },
   "lib/features/onboarding/widgets/glass_card.dart": {
-    "mtime": 1788662247.9645119,
-    "ast_hash": "af664705806ffbfc974f67d69a76d8a8",
+    "mtime": 1788673591.6011715,
+    "ast_hash": "3d7c3b337719b7c4c469bf5ca11f9cc3",
     "semantic_hash": ""
   },
   "lib/features/onboarding/widgets/oasis_background.dart": {
@@ -3200,7 +3200,7 @@
     "semantic_hash": "02fcb392affc52f50750f9e48c2efca7"
   },
   "lib/features/profile/domain/models/user_profile_entity.dart": {
-    "mtime": 1788627192.6176627,
+    "mtime": 1788673590.3506136,
     "ast_hash": "081aac342a4ef1327c413c82e5c826f2",
     "semantic_hash": ""
   },
@@ -3245,7 +3245,7 @@
     "semantic_hash": ""
   },
   "lib/features/profile/presentation/widgets/profile/profile_customization.dart": {
-    "mtime": 1788627126.6855757,
+    "mtime": 1788673590.3506136,
     "ast_hash": "aa0ee14e040be2d0d64d91d1e4edf91d",
     "semantic_hash": ""
   },
@@ -3255,17 +3255,17 @@
     "semantic_hash": ""
   },
   "lib/features/profile/presentation/widgets/story_circle.dart": {
-    "mtime": 1788627115.1024265,
+    "mtime": 1788673590.3521237,
     "ast_hash": "9db0907d14ee468735be32a403288baf",
     "semantic_hash": ""
   },
   "lib/features/profile/presentation/widgets/story_ring.dart": {
-    "mtime": 1788627118.4394312,
+    "mtime": 1788673590.3521237,
     "ast_hash": "d1692e28cfe80a4d5a0550107b011dc8",
     "semantic_hash": ""
   },
   "lib/features/profile/presentation/widgets/unified_vibe_picker_sheet.dart": {
-    "mtime": 1788627122.6174052,
+    "mtime": 1788673590.3527486,
     "ast_hash": "24d9e194362c896159bb2fe0d0520d38",
     "semantic_hash": ""
   },
@@ -3400,8 +3400,8 @@
     "semantic_hash": ""
   },
   "lib/features/settings/presentation/screens/about_app_screen.dart": {
-    "mtime": 1788671988.5110438,
-    "ast_hash": "f844bed5480590e63204c7baeb446637",
+    "mtime": 1788715842.1114151,
+    "ast_hash": "33309f284a646e9d13b3f2c3f6dd4a06",
     "semantic_hash": ""
   },
   "lib/features/settings/presentation/screens/account_privacy_screen.dart": {
@@ -3430,7 +3430,7 @@
     "semantic_hash": ""
   },
   "lib/features/settings/presentation/screens/download_data_screen.dart": {
-    "mtime": 1788640953.7664473,
+    "mtime": 1788673591.6021788,
     "ast_hash": "61ce80e565a730f2526277264fc98bc9",
     "semantic_hash": ""
   },
@@ -3465,7 +3465,7 @@
     "semantic_hash": ""
   },
   "lib/features/settings/presentation/screens/subscription_screen.dart": {
-    "mtime": 1788640957.150208,
+    "mtime": 1788673591.6031795,
     "ast_hash": "c99bd15ec967dd37377615ae0c27d2f5",
     "semantic_hash": ""
   },
@@ -3485,7 +3485,7 @@
     "semantic_hash": ""
   },
   "lib/features/settings/presentation/screens/wellness_stats_screen.dart": {
-    "mtime": 1788641016.1670842,
+    "mtime": 1788673591.6031795,
     "ast_hash": "6f586e1a6eb2ebd5b2de7685ddf8c588",
     "semantic_hash": ""
   },
@@ -3515,8 +3515,8 @@
     "semantic_hash": ""
   },
   "lib/features/settings/presentation/sections/support_section.dart": {
-    "mtime": 1788671991.537593,
-    "ast_hash": "754da9b8cbc8888bacaa63694108c4dd",
+    "mtime": 1788673591.6041772,
+    "ast_hash": "d1c4f92eb567b5270053ae32a6d39e03",
     "semantic_hash": ""
   },
   "lib/features/settings/presentation/widgets/privacy_transparency_card.dart": {
@@ -3660,7 +3660,7 @@
     "semantic_hash": ""
   },
   "lib/features/wellness/presentation/screens/wellness_center_screen.dart": {
-    "mtime": 1788641020.0294259,
+    "mtime": 1788673591.6041772,
     "ast_hash": "ceb2cbff9553245fe39bf4582878bd76",
     "semantic_hash": ""
   },
@@ -3670,7 +3670,7 @@
     "semantic_hash": ""
   },
   "lib/features/wellness/presentation/widgets/energy_meter_widget.dart": {
-    "mtime": 1788640982.529827,
+    "mtime": 1788673591.6041772,
     "ast_hash": "728847e66b36ce8966140b62df4b981d",
     "semantic_hash": ""
   },
@@ -3690,7 +3690,7 @@
     "semantic_hash": "1c3b722bba55875f7ee01fe1c9eb521e"
   },
   "lib/main.dart": {
-    "mtime": 1788662945.306583,
+    "mtime": 1788673591.6051779,
     "ast_hash": "ce6df7efb0b45841c57d227694484905",
     "semantic_hash": ""
   },
@@ -3790,7 +3790,7 @@
     "semantic_hash": ""
   },
   "lib/providers/community_provider.dart": {
-    "mtime": 1788633292.123935,
+    "mtime": 1788673590.353752,
     "ast_hash": "fc3484a69d0b0d764ab43a9ef0264bbe",
     "semantic_hash": ""
   },
@@ -3810,23 +3810,23 @@
     "semantic_hash": ""
   },
   "lib/routes/app_router.dart": {
-    "mtime": 1788665915.4607594,
-    "ast_hash": "ce02984721606365b50b8e759222ab39",
+    "mtime": 1789635278.7345543,
+    "ast_hash": "1c04863fa36e35f4738c901f1b6d03ac",
     "semantic_hash": ""
   },
   "lib/routes/navigation_shell.dart": {
-    "mtime": 1788665902.0824318,
+    "mtime": 1788673591.6051779,
     "ast_hash": "866f4d6bfc97a9bef14f97a76bcb5a31",
     "semantic_hash": ""
   },
   "lib/routes/route_guards.dart": {
-    "mtime": 1788641027.510814,
-    "ast_hash": "0df6ff8957b33c9d73b83cb4017f9258",
+    "mtime": 1788673591.6051779,
+    "ast_hash": "3dd52593c8fb877f02cb568d4f376d11",
     "semantic_hash": ""
   },
   "lib/routes/route_paths.dart": {
-    "mtime": 1788641024.0512,
-    "ast_hash": "797d5c54d656e9ddea27d2410d34e451",
+    "mtime": 1788673591.6067863,
+    "ast_hash": "ca6b2e6e29df864e989a23f997ff6ddc",
     "semantic_hash": ""
   },
   "lib/screens/community/communities_screen.dart": {
@@ -3865,7 +3865,7 @@
     "semantic_hash": ""
   },
   "lib/screens/feed_screen.dart": {
-    "mtime": 1788640899.5135496,
+    "mtime": 1788673591.6067863,
     "ast_hash": "29d7d173e9b31e97231df867a067d932",
     "semantic_hash": ""
   },
@@ -3900,7 +3900,7 @@
     "semantic_hash": ""
   },
   "lib/screens/oasis_pro_screen.dart": {
-    "mtime": 1788640936.9185703,
+    "mtime": 1788673591.6067863,
     "ast_hash": "048bdfdd68d7689325eccd9a54aa6728",
     "semantic_hash": ""
   },
@@ -3915,12 +3915,12 @@
     "semantic_hash": ""
   },
   "lib/screens/settings_screen.dart": {
-    "mtime": 1788670179.5041218,
+    "mtime": 1788673591.6067863,
     "ast_hash": "42473473be24c1358fe2dbd806159516",
     "semantic_hash": ""
   },
   "lib/screens/spaces/spaces_screen.dart": {
-    "mtime": 1788641038.6535282,
+    "mtime": 1788673591.6077905,
     "ast_hash": "436b44c9ab5c1135a764423bc2ef51cb",
     "semantic_hash": ""
   },
@@ -3935,8 +3935,8 @@
     "semantic_hash": ""
   },
   "lib/services/app_initializer.dart": {
-    "mtime": 1788641055.313877,
-    "ast_hash": "02a2e491a09fc76a961f55fc8b97792e",
+    "mtime": 1788715820.8483355,
+    "ast_hash": "7189a888459cc44e89c725c85cf5e2b6",
     "semantic_hash": ""
   },
   "lib/services/auth/account_registry_manager.dart": {
@@ -3960,8 +3960,8 @@
     "semantic_hash": ""
   },
   "lib/services/auth_service.dart": {
-    "mtime": 1788641062.5478158,
-    "ast_hash": "610cf36a3e8c4d776e74a865fae8804d",
+    "mtime": 1788717340.510112,
+    "ast_hash": "e2ee2b63ad7069e6f45dc148ac7cceaa",
     "semantic_hash": ""
   },
   "lib/services/cache_service.dart": {
@@ -3970,7 +3970,7 @@
     "semantic_hash": "df9a36c2f86d5ceea068439e92b8e011"
   },
   "lib/services/call_service.dart": {
-    "mtime": 1788633456.9264264,
+    "mtime": 1788673590.3547547,
     "ast_hash": "187bcc05a718503f112d749fc10cb68a",
     "semantic_hash": ""
   },
@@ -4110,7 +4110,7 @@
     "semantic_hash": ""
   },
   "lib/services/notification_decryption_service.dart": {
-    "mtime": 1788669978.024844,
+    "mtime": 1788673591.6084094,
     "ast_hash": "e13cb0129d95a68aca460e9b86ed7e38",
     "semantic_hash": ""
   },
@@ -4225,7 +4225,7 @@
     "semantic_hash": ""
   },
   "lib/services/update_service.dart": {
-    "mtime": 1788666288.8582726,
+    "mtime": 1788673591.6094165,
     "ast_hash": "a6c7974a4f0dc3d1a47199200ef47202",
     "semantic_hash": ""
   },
@@ -4240,7 +4240,7 @@
     "semantic_hash": ""
   },
   "lib/services/wellness_service.dart": {
-    "mtime": 1788641001.885706,
+    "mtime": 1788673591.6094165,
     "ast_hash": "1272f19ab71836e7131496704812ae68",
     "semantic_hash": ""
   },
@@ -4250,7 +4250,7 @@
     "semantic_hash": ""
   },
   "lib/themes/app_theme.dart": {
-    "mtime": 1788663230.7435813,
+    "mtime": 1788673591.6094165,
     "ast_hash": "05c5220558001fff10fb54e0be5f738c",
     "semantic_hash": ""
   },
@@ -4335,8 +4335,8 @@
     "semantic_hash": ""
   },
   "lib/widgets/glassmorphic_fab.dart": {
-    "mtime": 1788662242.563579,
-    "ast_hash": "e55ab6f6bf1afef52dae4f0181987adf",
+    "mtime": 1788673591.6094165,
+    "ast_hash": "e41815e321c5543ca10c88933b7e7b42",
     "semantic_hash": ""
   },
   "lib/widgets/global_migration_indicator.dart": {
@@ -4360,13 +4360,13 @@
     "semantic_hash": ""
   },
   "lib/widgets/lifecycle_manager.dart": {
-    "mtime": 1788633120.2660003,
-    "ast_hash": "a3222649c688a8abcb930ceb226585f6",
+    "mtime": 1788716316.4441955,
+    "ast_hash": "882a8681385d95aca99065e7ea5aceea",
     "semantic_hash": ""
   },
   "lib/widgets/liquid_glass_wrapper.dart": {
-    "mtime": 1788665952.863249,
-    "ast_hash": "8a88aeb2556f897d2a6f3b9a23a142aa",
+    "mtime": 1788673591.6109223,
+    "ast_hash": "81e814ceb278fa6be936e428affafecc",
     "semantic_hash": ""
   },
   "lib/widgets/mention_hashtag_autocomplete.dart": {
@@ -4375,7 +4375,7 @@
     "semantic_hash": ""
   },
   "lib/widgets/mesh_gradient_background.dart": {
-    "mtime": 1788633125.236828,
+    "mtime": 1788673590.3557541,
     "ast_hash": "e4bd09178393fb23cebd8f066bf3cc8c",
     "semantic_hash": ""
   },
@@ -4465,8 +4465,8 @@
     "semantic_hash": ""
   },
   "lib/widgets/splash_screen.dart": {
-    "mtime": 1786907699.7774107,
-    "ast_hash": "dd6ca3c559696db6422e493f5805e6b3",
+    "mtime": 1788716319.7508838,
+    "ast_hash": "18a797cfd0a6d8a63a920ca83444d03a",
     "semantic_hash": ""
   },
   "lib/widgets/spoiler_widget.dart": {
@@ -4500,8 +4500,8 @@
     "semantic_hash": ""
   },
   "lib/widgets/windows_title_bar.dart": {
-    "mtime": 1785438893.220554,
-    "ast_hash": "a06d945dc173b53c7630db7ba412783d",
+    "mtime": 1788716323.5327454,
+    "ast_hash": "438be9e0685d7ac252797ef51eaf0e5e",
     "semantic_hash": ""
   },
   "plugins/flutter_liquid_glass/packages/apple_liquid_glass/lib/apple_liquid_glass.dart": {
@@ -4845,7 +4845,7 @@
     "semantic_hash": "cb19a42a82393531b5f88546f77f3241"
   },
   "supabase/functions/push-notifications/index.ts": {
-    "mtime": 1788669439.556545,
+    "mtime": 1788673591.6141286,
     "ast_hash": "11c8cf357abc94c67fcc5364cbe7fde0",
     "semantic_hash": ""
   },
@@ -4875,9 +4875,9 @@
     "semantic_hash": "d5c2ec527e5155d2f66a3e48bf39b02f"
   },
   "supabase/functions/send-password-reset/index.ts": {
-    "mtime": 1785160220.111907,
-    "ast_hash": "e3139837dfadc74a151c8bcccd7f477e",
-    "semantic_hash": "e3139837dfadc74a151c8bcccd7f477e"
+    "mtime": 1788681122.7199242,
+    "ast_hash": "495c219cc4acafeb12ba3411b0090011",
+    "semantic_hash": ""
   },
   "supabase/functions/spotify-auth-proxy/index.ts": {
     "mtime": 1785160220.111907,
@@ -5680,8 +5680,8 @@
     "semantic_hash": ""
   },
   "test/collaborative_posts_test.mocks.dart": {
-    "mtime": 1788634437.2962506,
-    "ast_hash": "f687f7c532873721ce3b0453a5e03639",
+    "mtime": 1788673590.3567543,
+    "ast_hash": "9cf6b1074945838e8b368e364ab231e1",
     "semantic_hash": ""
   },
   "test/error_parser_test.dart": {
@@ -5700,7 +5700,7 @@
     "semantic_hash": ""
   },
   "test/features/calling/call_provider_initiate_test.dart": {
-    "mtime": 1788633420.029117,
+    "mtime": 1788673590.3567543,
     "ast_hash": "4c524ebf01688f7b6bed190dff6dca17",
     "semantic_hash": ""
   },
@@ -5710,12 +5710,12 @@
     "semantic_hash": ""
   },
   "test/features/messages/pq_aura_web_test.dart": {
-    "mtime": 1788669775.3694918,
+    "mtime": 1788673591.615129,
     "ast_hash": "decc1b170334d504e04c6814c38713c1",
     "semantic_hash": ""
   },
   "test/features/monetization/ad_injection_test.dart": {
-    "mtime": 1788662441.1507883,
+    "mtime": 1788673591.615129,
     "ast_hash": "87359fd7ea22a43418c3f66734e63175",
     "semantic_hash": ""
   },
@@ -5785,7 +5785,7 @@
     "semantic_hash": ""
   },
   "test/product_strategy_limits_test.dart": {
-    "mtime": 1788640960.8776267,
+    "mtime": 1788673591.615129,
     "ast_hash": "076544408c6f0827f12f8fa169516103",
     "semantic_hash": ""
   },
@@ -5820,7 +5820,7 @@
     "semantic_hash": ""
   },
   "test/services/encryption_audit_test.dart": {
-    "mtime": 1788640964.4410589,
+    "mtime": 1788673591.616128,
     "ast_hash": "5b0a1d19b4dc67c09af4c535ff0afd0f",
     "semantic_hash": ""
   },
@@ -5860,8 +5860,8 @@
     "semantic_hash": ""
   },
   "test/services/update_service_test.dart": {
-    "mtime": 1788671996.9315877,
-    "ast_hash": "b2894cf972d148657418a4de74e5e987",
+    "mtime": 1788673591.616128,
+    "ast_hash": "cc9c8a0b06ac7502e67b851363b03835",
     "semantic_hash": ""
   },
   "test/signal_protocol_test.dart": {
@@ -5900,7 +5900,7 @@
     "semantic_hash": ""
   },
   "test/widgets/main_layout_golden_test.dart": {
-    "mtime": 1788641257.7784052,
+    "mtime": 1788673591.616128,
     "ast_hash": "5833817f5906ea8285dcce19111b5476",
     "semantic_hash": ""
   },
@@ -36645,13 +36645,13 @@
     "semantic_hash": ""
   },
   "test/features/calling/call_provider_real_path_test.dart": {
-    "mtime": 1788634355.2461326,
-    "ast_hash": "7d1f0bb84bee56095cfa0f3052b56a56",
+    "mtime": 1788673590.3577595,
+    "ast_hash": "7dfefef307db2a955c63e35c812fa54c",
     "semantic_hash": ""
   },
   "test/features/calling/call_provider_real_path_test.mocks.dart": {
-    "mtime": 1788634723.0952847,
-    "ast_hash": "866ac232488b04a32b241e7c849fcd63",
+    "mtime": 1788673590.3577595,
+    "ast_hash": "186960e3e1314b6e70801fe8796bc740",
     "semantic_hash": ""
   },
   "lib/services/message_send_throttler.dart": {
@@ -36700,8 +36700,8 @@
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/Core/Crypto/KeyManagementService.cs": {
-    "mtime": 1786907699.8115654,
-    "ast_hash": "b3c2b48d4f49775cfad5768bf8e6d25f",
+    "mtime": 1788686092.105072,
+    "ast_hash": "39da51f349fbe2b4076ca0ecc473883d",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/Core/Crypto/PQAuraService.cs": {
@@ -36750,8 +36750,8 @@
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/Core/Models/TableRows.cs": {
-    "mtime": 1786907699.8190007,
-    "ast_hash": "c5c024dedcfa3a87c3834745eaa7accf",
+    "mtime": 1788687982.2070453,
+    "ast_hash": "4aa18f5c9c0848c2a8f22f46d27938bd",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/Core/Networking/SupabaseService.cs": {
@@ -36765,8 +36765,8 @@
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/Core/Services/MessagingService.cs": {
-    "mtime": 1786907699.8210495,
-    "ast_hash": "5f10f687333a2f2c6b21c47c7f81c487",
+    "mtime": 1788687993.2653794,
+    "ast_hash": "5baf80223f9cc7f29ab76e6f6d21db17",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/Core/Services/NotificationService.cs": {
@@ -36795,8 +36795,8 @@
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/Oasis.WinUI.csproj": {
-    "mtime": 1786907699.8248386,
-    "ast_hash": "ddf36253d05a00525a88ba1711bae4ee",
+    "mtime": 1788697883.8758352,
+    "ast_hash": "11397bb1db32a41efc817f5b0620a171",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/Services/Logger.cs": {
@@ -36805,13 +36805,13 @@
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/Views/Auth/LoginPage.xaml.cs": {
-    "mtime": 1786907699.8269506,
-    "ast_hash": "fe0ddc53dd29253d21ffaa736c1e251f",
+    "mtime": 1788687749.2161915,
+    "ast_hash": "ab0cc7e849c3078d29fe1d10deb5067e",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/Views/Auth/RegisterPage.xaml.cs": {
-    "mtime": 1786907699.8280387,
-    "ast_hash": "e976577283a39579906172c7867b0a8c",
+    "mtime": 1788687751.9252322,
+    "ast_hash": "c4e283f9e368da73d438848cd7a3d649",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/Views/Settings/SettingsPage.xaml.cs": {
@@ -36820,8 +36820,8 @@
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/Views/Shell/ChatPage.xaml.cs": {
-    "mtime": 1786907699.8312235,
-    "ast_hash": "2f09596afcd81d9fcc22f765761dea64",
+    "mtime": 1788688000.926031,
+    "ast_hash": "df8f18257fd0db72f549a5d60d058423",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/Views/Shell/CommunityPage.xaml.cs": {
@@ -37010,28 +37010,28 @@
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/App.g.cs": {
-    "mtime": 1786871499.826949,
-    "ast_hash": "7da6e8b563f99bc4e10599fbcf007f82",
+    "mtime": 1788688023.6245391,
+    "ast_hash": "c2b5407a88a800b0cbe0a19c8a5579d3",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/App.g.i.cs": {
-    "mtime": 1786849923.036807,
-    "ast_hash": "35f5c3fd88ae0e1d9ee181cf48326159",
+    "mtime": 1788687894.2398262,
+    "ast_hash": "7c4098d2f4d73fa22082e6453bea5aa4",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/MainWindow.g.cs": {
-    "mtime": 1786850224.82439,
-    "ast_hash": "9d0270a6d929460879f331695677e9bb",
+    "mtime": 1788688023.7958798,
+    "ast_hash": "1ac9b834b71ee6fa63095a8e956bf0d5",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/MainWindow.g.i.cs": {
-    "mtime": 1786849923.055032,
-    "ast_hash": "3a65095a83c43049750ba1feb44bd9ee",
+    "mtime": 1788687894.2650936,
+    "ast_hash": "42480b151f4a6121199cd87f68f7f338",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Oasis.WinUI.AssemblyInfo.cs": {
-    "mtime": 1786850225.0852342,
-    "ast_hash": "1ac50ba54b36bc1b4d87ff5fca3b350d",
+    "mtime": 1788688024.502155,
+    "ast_hash": "ae3a05c419c0a1622b948f74c14bfc29",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Oasis.WinUI.GlobalUsings.g.cs": {
@@ -37040,98 +37040,98 @@
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Auth/LoginPage.g.cs": {
-    "mtime": 1786850224.82539,
-    "ast_hash": "8d14ecaf612501fd9377c3454ff7c04b",
+    "mtime": 1788697953.9568095,
+    "ast_hash": "a180d4a18869ba90451dd13bcc17d624",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Auth/LoginPage.g.i.cs": {
-    "mtime": 1786849923.055652,
-    "ast_hash": "38469246246c5357e6b14024ca4146f0",
+    "mtime": 1788697940.0937862,
+    "ast_hash": "fac0735996b1fba2838d0ef79f4fc212",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Auth/RegisterPage.g.cs": {
-    "mtime": 1786850224.82539,
-    "ast_hash": "4a8922ea2a93b1ba371ae55c51679c32",
+    "mtime": 1788697953.9598112,
+    "ast_hash": "88d7a2ce31c004d13ce6bb9f21c0fceb",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Auth/RegisterPage.g.i.cs": {
-    "mtime": 1786849923.0566618,
-    "ast_hash": "9b18bd44171e26024e7ab08102f027ee",
+    "mtime": 1788697940.0964863,
+    "ast_hash": "edafc7682dc522d84431013e199f14d2",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Settings/SettingsPage.g.cs": {
-    "mtime": 1786855155.869918,
-    "ast_hash": "d607c8afb1fcc72c510b3628ff7acf34",
+    "mtime": 1788688023.8455765,
+    "ast_hash": "ba48d90a514ef2de21d024625dc0a3bb",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Settings/SettingsPage.g.i.cs": {
-    "mtime": 1786855148.148782,
-    "ast_hash": "55fd389dcf8a8d9d071a8417f1ee743d",
+    "mtime": 1788687894.3268068,
+    "ast_hash": "0baf1b4499cc7d6a21f20998f111bc70",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/ChatPage.g.cs": {
-    "mtime": 1786850224.8273904,
-    "ast_hash": "e766b3251734eb6220a86223a00bc29a",
+    "mtime": 1788688023.8609025,
+    "ast_hash": "79728893f48ff6ce5022885844dfba79",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/ChatPage.g.i.cs": {
-    "mtime": 1786849923.0601132,
-    "ast_hash": "9beca77f871f894d0e773fd285383db3",
+    "mtime": 1788687894.345692,
+    "ast_hash": "9d235b7a227557c9abc60c75872d9aaf",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/CommunityPage.g.cs": {
-    "mtime": 1786850224.828895,
-    "ast_hash": "f4f84ff297991201b9eb9347d0b63834",
+    "mtime": 1788688023.8771012,
+    "ast_hash": "7034df870a742ed2b51c6cd9a943074f",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/CommunityPage.g.i.cs": {
-    "mtime": 1786849923.0611188,
-    "ast_hash": "2cbb3bc6cf0844a12258e3df19eb3646",
+    "mtime": 1788687894.3641465,
+    "ast_hash": "8bdf3228ab74ce3c29234e8d7ebf7f16",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/ConversationsPage.g.cs": {
-    "mtime": 1786850224.829903,
-    "ast_hash": "ff6de3a3d1da92812b053f85beb19c7d",
+    "mtime": 1788688023.890819,
+    "ast_hash": "91c512da890f1b738ce0ac0b7fcaa1b9",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/ConversationsPage.g.i.cs": {
-    "mtime": 1786849923.0621195,
-    "ast_hash": "5f191f61ae7432068835f3dc82b55914",
+    "mtime": 1788687894.3795328,
+    "ast_hash": "3f9ecb9281ea8689bf37721bb2bf1a12",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/FeedPage.g.cs": {
-    "mtime": 1786871034.2206945,
-    "ast_hash": "1eb3881805a193143b21e5b764d59f79",
+    "mtime": 1788688023.9063003,
+    "ast_hash": "5f4983a4717c54978ce9f7e4eb33e4ec",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/FeedPage.g.i.cs": {
-    "mtime": 1786871025.216712,
-    "ast_hash": "3357c7b64e935a01cb1d27934d8d7c9b",
+    "mtime": 1788687894.4076726,
+    "ast_hash": "7ab8f8ef73be11c83d8c5e172024be63",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/MainShellPage.g.cs": {
-    "mtime": 1786871129.3075378,
-    "ast_hash": "21a09b56cd5c0e8ce1bd1c0c2029e691",
+    "mtime": 1788688023.9225423,
+    "ast_hash": "36470ef6412169723040ff6893431b12",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/MainShellPage.g.i.cs": {
-    "mtime": 1786871120.031021,
-    "ast_hash": "e5a19891873adede0130a9d676bd0845",
+    "mtime": 1788687894.4359076,
+    "ast_hash": "accb8853ac7171219cc4d54da4c7df0d",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/SpacesPage.g.cs": {
-    "mtime": 1786850224.8319018,
-    "ast_hash": "2478775594a5e0ba04db134c048b5290",
+    "mtime": 1788688023.961882,
+    "ast_hash": "b14d6a571abf566d17bb9108c885150f",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/SpacesPage.g.i.cs": {
-    "mtime": 1786849923.0671203,
-    "ast_hash": "b738be5de9aa95a3dc86324bcbb96ed8",
+    "mtime": 1788687894.5386636,
+    "ast_hash": "6bad0450d9993c63d00d697cee2cf281",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/XamlTypeInfo.g.cs": {
-    "mtime": 1786871386.9613037,
-    "ast_hash": "d51f258d0d65c2230a6b5da7bac9e8bc",
+    "mtime": 1788697954.0184784,
+    "ast_hash": "e48c2998ad994c5b9fba338185aa61ed",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/MultipleQualifiersPerDimensionFound.txt": {
@@ -37150,8 +37150,8 @@
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Oasis.WinUI.csproj.FileListAbsolute.txt": {
-    "mtime": 1786871042.6083505,
-    "ast_hash": "ea245c86d43c95674cf75c01b1c459fa",
+    "mtime": 1788698020.292078,
+    "ast_hash": "7e7f4fc51cefc61829406bc50cd9839b",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/ProjectArchitectures.txt": {
@@ -37160,18 +37160,18 @@
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/PublishOutputs.f31487a082.txt": {
-    "mtime": 1786849689.4145117,
-    "ast_hash": "1c7376f15801e82a5a53d8b85c43d8b2",
+    "mtime": 1788698020.3099275,
+    "ast_hash": "5394b5666c59295b53bc20c705184423",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/_pkginfo.txt": {
-    "mtime": 1786871600.5825899,
-    "ast_hash": "cebdb28263dff119da84a0c930bc0a89",
+    "mtime": 1788698018.818464,
+    "ast_hash": "1112248f0dbfd5612eb71d69e717f844",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/package.map.txt": {
-    "mtime": 1786871597.9151652,
-    "ast_hash": "f4dff55afc7ac8157c13e7d6004134d3",
+    "mtime": 1788698015.867614,
+    "ast_hash": "95b607d5b9ec25c5b3d818b89b6c6360",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/qualifiers.txt": {
@@ -37210,8 +37210,8 @@
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/Views/Profile/ProfilePage.xaml.cs": {
-    "mtime": 1786907699.829137,
-    "ast_hash": "94f0bcebf954ae54fc19380f8916acc4",
+    "mtime": 1788685720.7455301,
+    "ast_hash": "bea53b05d92bf6c99aafa7a189153529",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/Views/Shell/NotificationsPage.xaml.cs": {
@@ -37370,13 +37370,13 @@
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Profile/ProfilePage.g.cs": {
-    "mtime": 1786871386.9202936,
-    "ast_hash": "40be193251ef0f16e3199ca774c734ef",
+    "mtime": 1788688023.83273,
+    "ast_hash": "b8f3e718ad1e8b1c863618aa8e72db88",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Profile/ProfilePage.g.i.cs": {
-    "mtime": 1786871347.7502391,
-    "ast_hash": "600229069e345ec2678393f8ca0febbb",
+    "mtime": 1788687894.3129838,
+    "ast_hash": "e7218c00e617a073d119e5d5e5408535",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/x64/Debug/net10.0-windows10.0.26100.0/.NETCoreApp,Version=v10.0.AssemblyAttributes.cs": {
@@ -37580,58 +37580,58 @@
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/NotificationsPage.g.cs": {
-    "mtime": 1786871034.254691,
-    "ast_hash": "3c73a1009d20eb655ad447451ff647e2",
+    "mtime": 1788688023.9366424,
+    "ast_hash": "c29004d930dfabdd60eeec64fe4466b1",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/NotificationsPage.g.i.cs": {
-    "mtime": 1786871025.246382,
-    "ast_hash": "c92cffe0689f13bad2ae697b0970767e",
+    "mtime": 1788687894.4587784,
+    "ast_hash": "1964dabbd0453a3e155b3c01fe16d335",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/SearchPage.g.cs": {
-    "mtime": 1786871034.2566917,
-    "ast_hash": "93cb6d6c83af54faf996ccc1ffd89984",
+    "mtime": 1788688023.9478693,
+    "ast_hash": "e5b1524683a81db21ab7497a57d1a796",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/SearchPage.g.i.cs": {
-    "mtime": 1786871025.246382,
-    "ast_hash": "4869d9215f0895b9dbc2e92ac911eb66",
+    "mtime": 1788687894.5161462,
+    "ast_hash": "e4d1a9499d9ccabb6632102ca0cfd45a",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/WellnessPage.g.cs": {
-    "mtime": 1786871034.2943482,
-    "ast_hash": "bede2e12fa974251e9f1707e08ef5195",
+    "mtime": 1788688023.9746811,
+    "ast_hash": "9a70d8a22c1b3ca238cee4c0a864dbb2",
     "semantic_hash": ""
   },
   "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/WellnessPage.g.i.cs": {
-    "mtime": 1786871025.247306,
-    "ast_hash": "28af0676d01c9b2e3643964c97387186",
+    "mtime": 1788687894.5697448,
+    "ast_hash": "a1f870cb2e74bcfb3e9e7b9203386311",
     "semantic_hash": ""
   },
   "lib/widgets/pulse_picker_sheet.dart": {
-    "mtime": 1788627023.296001,
-    "ast_hash": "7929c57949ac125cef3d15334e398d45",
+    "mtime": 1788673590.3557541,
+    "ast_hash": "c2214f3a62a7d576317f4b4dc9b5bf2c",
     "semantic_hash": ""
   },
   "lib/core/performance/power_manager.dart": {
-    "mtime": 1788633107.008997,
-    "ast_hash": "090eea5e12a94d68a9081469ec13a663",
+    "mtime": 1788673590.3478749,
+    "ast_hash": "98a7a126f69204378e4db81d6ae964d5",
     "semantic_hash": ""
   },
   "test/core/performance/power_manager_test.dart": {
-    "mtime": 1788633144.3801482,
-    "ast_hash": "e16452242ac0ec266222462843774f23",
+    "mtime": 1788673590.3567543,
+    "ast_hash": "8baf998a26609f25443cae920f2aae73",
     "semantic_hash": ""
   },
   "test/features/calling/voip_call_workflow_test.dart": {
-    "mtime": 1788633435.57155,
-    "ast_hash": "9a334888b1a18f087183d8bf6bf0b9ab",
+    "mtime": 1788673590.3577595,
+    "ast_hash": "0d5c8a4a33ddbfa273a3b0e7720136e5",
     "semantic_hash": ""
   },
   "test/features/calling/voip_calling_screen_layout_test.dart": {
-    "mtime": 1788633280.6730926,
-    "ast_hash": "2a7145575dc8781b0e65ef7fb191828e",
+    "mtime": 1788673590.3577595,
+    "ast_hash": "ffcda4622e68c649e52bc77ea536b17a",
     "semantic_hash": ""
   },
   "PQ-DR/ecosystem_wrappers/react-native/PqAuraModule.js": {
@@ -37685,13 +37685,468 @@
     "semantic_hash": ""
   },
   "test/features/messages/clear_chat_for_everyone_test.dart": {
-    "mtime": 1788669607.5156417,
-    "ast_hash": "51883225c4804f50dbf68eb882a5f9f1",
+    "mtime": 1788673591.6141286,
+    "ast_hash": "b1a37bf6841ae780483958a188d89903",
     "semantic_hash": ""
   },
   "test/features/messages/media_attachment_encryption_test.dart": {
-    "mtime": 1788671885.8979175,
-    "ast_hash": "13f3f4be05960604bfe41ed71fabad78",
+    "mtime": 1788673591.615129,
+    "ast_hash": "eaca38e0108d90dbf812e501c2cc3284",
+    "semantic_hash": ""
+  },
+  "lib/services/zero_tap_auth_service.dart": {
+    "mtime": 1788716085.7749808,
+    "ast_hash": "2075c58f70e7a31c3cb35c6b254c1069",
+    "semantic_hash": ""
+  },
+  "scripts/build_android_optimized.ps1": {
+    "mtime": 1788715805.696708,
+    "ast_hash": "ac5e5a264bdb4318dceece65c86a7bd7",
+    "semantic_hash": ""
+  },
+  "scripts/build_android_optimized.sh": {
+    "mtime": 1788715805.697716,
+    "ast_hash": "23be5197486d2f9ceb753892b853ec00",
+    "semantic_hash": ""
+  },
+  "test/services/zero_tap_auth_service_test.dart": {
+    "mtime": 1788716115.5391836,
+    "ast_hash": "7a3252fe5624a4c91d990b78828573a5",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/AnimatedVisuals/Login.cs": {
+    "mtime": 1788697852.8277123,
+    "ast_hash": "15a0d0d4e3d4cc8a7ff0a94539231a49",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/AnimatedVisuals/Sign_up.cs": {
+    "mtime": 1788697860.0225616,
+    "ast_hash": "5601e8d06ea06141f8598d399731b9c6",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/AppPackages/Oasis.WinUI_1.1.24.0_x64_Test/Add-AppDevPackage.ps1": {
+    "mtime": 1766383550.0,
+    "ast_hash": "38d8e43a201534d3641dda64ef5e45f6",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/AppPackages/Oasis.WinUI_1.1.24.0_x64_Test/Install.ps1": {
+    "mtime": 1766383550.0,
+    "ast_hash": "0b40052613ab310b2077f374191943fc",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/Views/Shell/ChatDetailsPage.xaml.cs": {
+    "mtime": 1788687764.8297355,
+    "ast_hash": "f350f8c61caf5c70194f7af0c7063424",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/ChatDetailsPage.g.cs": {
+    "mtime": 1788688023.8477283,
+    "ast_hash": "d51ffe3dbd69cbb8c87a81bff89a1f89",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/ChatDetailsPage.g.i.cs": {
+    "mtime": 1788687894.3273358,
+    "ast_hash": "7f00fa7a6519ec084f5cd13a85bb9c42",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/.NETCoreApp,Version=v10.0.AssemblyAttributes.cs": {
+    "mtime": 1788686483.4891336,
+    "ast_hash": "8479efdf06e2d26e053d27ffa6964185",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/App.g.cs": {
+    "mtime": 1788686483.0646389,
+    "ast_hash": "c2b5407a88a800b0cbe0a19c8a5579d3",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/App.g.i.cs": {
+    "mtime": 1788686415.0789342,
+    "ast_hash": "7c4098d2f4d73fa22082e6453bea5aa4",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/MainWindow.g.cs": {
+    "mtime": 1788686483.2439647,
+    "ast_hash": "1ac9b834b71ee6fa63095a8e956bf0d5",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/MainWindow.g.i.cs": {
+    "mtime": 1788686415.0849612,
+    "ast_hash": "42480b151f4a6121199cd87f68f7f338",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Oasis.WinUI.AssemblyInfo.cs": {
+    "mtime": 1788686483.6350188,
+    "ast_hash": "d7c99ad975bcd27545551b54b7506d3c",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Oasis.WinUI.GlobalUsings.g.cs": {
+    "mtime": 1788686406.5170717,
+    "ast_hash": "9706b2dbf69f7db452e8b0d5baf54dcf",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Auth/LoginPage.g.cs": {
+    "mtime": 1788686483.2549279,
+    "ast_hash": "64a857c4218112f3206ee2d60696c88b",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Auth/LoginPage.g.i.cs": {
+    "mtime": 1788686415.0860472,
+    "ast_hash": "9f525e0bfb5e0e602ddfd2e4b995b64e",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Auth/RegisterPage.g.cs": {
+    "mtime": 1788686483.2557986,
+    "ast_hash": "e35bc68fc733efae31f6d4d3f38994ec",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Auth/RegisterPage.g.i.cs": {
+    "mtime": 1788686415.088055,
+    "ast_hash": "3c4b2cca6e3ef3efc46818a75845475b",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Profile/ProfilePage.g.cs": {
+    "mtime": 1788686483.2573116,
+    "ast_hash": "b8f3e718ad1e8b1c863618aa8e72db88",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Profile/ProfilePage.g.i.cs": {
+    "mtime": 1788686415.089572,
+    "ast_hash": "e7218c00e617a073d119e5d5e5408535",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Settings/SettingsPage.g.cs": {
+    "mtime": 1788686483.2598364,
+    "ast_hash": "ba48d90a514ef2de21d024625dc0a3bb",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Settings/SettingsPage.g.i.cs": {
+    "mtime": 1788686415.092039,
+    "ast_hash": "0baf1b4499cc7d6a21f20998f111bc70",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/ChatPage.g.cs": {
+    "mtime": 1788686483.260837,
+    "ast_hash": "a862d6bc6ff247f4914eecee9f5e1b56",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/ChatPage.g.i.cs": {
+    "mtime": 1788686415.0937395,
+    "ast_hash": "3c8c99e71e56bd524723ba900f66ddf8",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/CommunityPage.g.cs": {
+    "mtime": 1788686483.265869,
+    "ast_hash": "7034df870a742ed2b51c6cd9a943074f",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/CommunityPage.g.i.cs": {
+    "mtime": 1788686415.0937395,
+    "ast_hash": "8bdf3228ab74ce3c29234e8d7ebf7f16",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/ConversationsPage.g.cs": {
+    "mtime": 1788686483.2707365,
+    "ast_hash": "91c512da890f1b738ce0ac0b7fcaa1b9",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/ConversationsPage.g.i.cs": {
+    "mtime": 1788686415.094748,
+    "ast_hash": "3f9ecb9281ea8689bf37721bb2bf1a12",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/FeedPage.g.cs": {
+    "mtime": 1788686483.2742622,
+    "ast_hash": "5f4983a4717c54978ce9f7e4eb33e4ec",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/FeedPage.g.i.cs": {
+    "mtime": 1788686415.09658,
+    "ast_hash": "7ab8f8ef73be11c83d8c5e172024be63",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/MainShellPage.g.cs": {
+    "mtime": 1788686483.276889,
+    "ast_hash": "36470ef6412169723040ff6893431b12",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/MainShellPage.g.i.cs": {
+    "mtime": 1788686415.0991778,
+    "ast_hash": "accb8853ac7171219cc4d54da4c7df0d",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/NotificationsPage.g.cs": {
+    "mtime": 1788686483.278898,
+    "ast_hash": "c29004d930dfabdd60eeec64fe4466b1",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/NotificationsPage.g.i.cs": {
+    "mtime": 1788686415.1050818,
+    "ast_hash": "1964dabbd0453a3e155b3c01fe16d335",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/SearchPage.g.cs": {
+    "mtime": 1788686483.2806723,
+    "ast_hash": "e5b1524683a81db21ab7497a57d1a796",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/SearchPage.g.i.cs": {
+    "mtime": 1788686415.1062007,
+    "ast_hash": "e4d1a9499d9ccabb6632102ca0cfd45a",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/SpacesPage.g.cs": {
+    "mtime": 1788686483.2826822,
+    "ast_hash": "b14d6a571abf566d17bb9108c885150f",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/SpacesPage.g.i.cs": {
+    "mtime": 1788686415.1077204,
+    "ast_hash": "6bad0450d9993c63d00d697cee2cf281",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/WellnessPage.g.cs": {
+    "mtime": 1788686483.2846813,
+    "ast_hash": "9a70d8a22c1b3ca238cee4c0a864dbb2",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Views/Shell/WellnessPage.g.i.cs": {
+    "mtime": 1788686415.1087341,
+    "ast_hash": "a1f870cb2e74bcfb3e9e7b9203386311",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/XamlTypeInfo.g.cs": {
+    "mtime": 1788686483.31491,
+    "ast_hash": "02d654be963e90e21f004f8fbd23f826",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/.NETCoreApp,Version=v10.0.AssemblyAttributes.cs": {
+    "mtime": 1788686508.6149025,
+    "ast_hash": "8479efdf06e2d26e053d27ffa6964185",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/App.g.cs": {
+    "mtime": 1788686508.2373354,
+    "ast_hash": "c2b5407a88a800b0cbe0a19c8a5579d3",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/App.g.i.cs": {
+    "mtime": 1788686500.1920393,
+    "ast_hash": "7c4098d2f4d73fa22082e6453bea5aa4",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/MainWindow.g.cs": {
+    "mtime": 1788686508.3935416,
+    "ast_hash": "1ac9b834b71ee6fa63095a8e956bf0d5",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/MainWindow.g.i.cs": {
+    "mtime": 1788686500.1978512,
+    "ast_hash": "42480b151f4a6121199cd87f68f7f338",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Oasis.WinUI.AssemblyInfo.cs": {
+    "mtime": 1788687416.6328325,
+    "ast_hash": "ae3a05c419c0a1622b948f74c14bfc29",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Oasis.WinUI.GlobalUsings.g.cs": {
+    "mtime": 1788686495.7002544,
+    "ast_hash": "9706b2dbf69f7db452e8b0d5baf54dcf",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Auth/LoginPage.g.cs": {
+    "mtime": 1788687416.328854,
+    "ast_hash": "72cf7a01ede1d2feb6c23baafee1b6ba",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Auth/LoginPage.g.i.cs": {
+    "mtime": 1788687405.797412,
+    "ast_hash": "00fbf1caa1638b26e5895b781393f925",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Auth/RegisterPage.g.cs": {
+    "mtime": 1788687416.3328645,
+    "ast_hash": "f11c42800a245e11ccf8b60fc4ef205c",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Auth/RegisterPage.g.i.cs": {
+    "mtime": 1788687405.8000107,
+    "ast_hash": "80ba32e004f048c0bc7e0048e73d00f4",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Profile/ProfilePage.g.cs": {
+    "mtime": 1788686508.4058018,
+    "ast_hash": "b8f3e718ad1e8b1c863618aa8e72db88",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Profile/ProfilePage.g.i.cs": {
+    "mtime": 1788686500.200862,
+    "ast_hash": "e7218c00e617a073d119e5d5e5408535",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Settings/SettingsPage.g.cs": {
+    "mtime": 1788686508.4088278,
+    "ast_hash": "ba48d90a514ef2de21d024625dc0a3bb",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Settings/SettingsPage.g.i.cs": {
+    "mtime": 1788686500.2018614,
+    "ast_hash": "0baf1b4499cc7d6a21f20998f111bc70",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/ChatPage.g.cs": {
+    "mtime": 1788686729.0391805,
+    "ast_hash": "3a1331db6655a7aa69602d9a42fd1497",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/ChatPage.g.i.cs": {
+    "mtime": 1788686720.4546762,
+    "ast_hash": "57df00c322575201d9e61576af0e0718",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/CommunityPage.g.cs": {
+    "mtime": 1788686508.4134693,
+    "ast_hash": "7034df870a742ed2b51c6cd9a943074f",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/CommunityPage.g.i.cs": {
+    "mtime": 1788686500.2038622,
+    "ast_hash": "8bdf3228ab74ce3c29234e8d7ebf7f16",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/ConversationsPage.g.cs": {
+    "mtime": 1788686508.415345,
+    "ast_hash": "91c512da890f1b738ce0ac0b7fcaa1b9",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/ConversationsPage.g.i.cs": {
+    "mtime": 1788686500.2048626,
+    "ast_hash": "3f9ecb9281ea8689bf37721bb2bf1a12",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/FeedPage.g.cs": {
+    "mtime": 1788686508.4173524,
+    "ast_hash": "5f4983a4717c54978ce9f7e4eb33e4ec",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/FeedPage.g.i.cs": {
+    "mtime": 1788686500.2053692,
+    "ast_hash": "7ab8f8ef73be11c83d8c5e172024be63",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/MainShellPage.g.cs": {
+    "mtime": 1788686508.420548,
+    "ast_hash": "36470ef6412169723040ff6893431b12",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/MainShellPage.g.i.cs": {
+    "mtime": 1788686500.2059298,
+    "ast_hash": "accb8853ac7171219cc4d54da4c7df0d",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/NotificationsPage.g.cs": {
+    "mtime": 1788686508.421556,
+    "ast_hash": "c29004d930dfabdd60eeec64fe4466b1",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/NotificationsPage.g.i.cs": {
+    "mtime": 1788686500.2059298,
+    "ast_hash": "1964dabbd0453a3e155b3c01fe16d335",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/SearchPage.g.cs": {
+    "mtime": 1788686508.4225552,
+    "ast_hash": "e5b1524683a81db21ab7497a57d1a796",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/SearchPage.g.i.cs": {
+    "mtime": 1788686500.2074928,
+    "ast_hash": "e4d1a9499d9ccabb6632102ca0cfd45a",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/SpacesPage.g.cs": {
+    "mtime": 1788686508.4240615,
+    "ast_hash": "b14d6a571abf566d17bb9108c885150f",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/SpacesPage.g.i.cs": {
+    "mtime": 1788686500.2074928,
+    "ast_hash": "6bad0450d9993c63d00d697cee2cf281",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/WellnessPage.g.cs": {
+    "mtime": 1788686508.4260688,
+    "ast_hash": "9a70d8a22c1b3ca238cee4c0a864dbb2",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Views/Shell/WellnessPage.g.i.cs": {
+    "mtime": 1788686500.2090118,
+    "ast_hash": "a1f870cb2e74bcfb3e9e7b9203386311",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/XamlTypeInfo.g.cs": {
+    "mtime": 1788687416.3742957,
+    "ast_hash": "454d7cb479bdf7818fec09362167fdf0",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/MultipleQualifiersPerDimensionFound.txt": {
+    "mtime": 1788686487.174505,
+    "ast_hash": "f8320b26d30ab433c5a54546d21f414c",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/Oasis.WinUI.csproj.FileListAbsolute.txt": {
+    "mtime": 1788686487.8078673,
+    "ast_hash": "6274a3dac69c79394645b1a152d13285",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/ProjectArchitectures.txt": {
+    "mtime": 1788686487.2701862,
+    "ast_hash": "1b1ea49ce1a9948085ecd1cafab84f4b",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/qualifiers.txt": {
+    "mtime": 1788686487.1690483,
+    "ast_hash": "371aede4d157c6c7344faeba7312af6e",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/MultipleQualifiersPerDimensionFound.txt": {
+    "mtime": 1788686510.5609128,
+    "ast_hash": "f8320b26d30ab433c5a54546d21f414c",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/Oasis.WinUI.csproj.FileListAbsolute.txt": {
+    "mtime": 1788686515.6346915,
+    "ast_hash": "df15853cb68c6e03ad1b9d4841d8c2d9",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/ProjectArchitectures.txt": {
+    "mtime": 1788686510.6362371,
+    "ast_hash": "1b1ea49ce1a9948085ecd1cafab84f4b",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/PublishOutputs.f31293783b.txt": {
+    "mtime": 1788687422.9245048,
+    "ast_hash": "f0101f9ab5718a6418fc09b9189dcdeb",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/_pkginfo.txt": {
+    "mtime": 1788687421.4122446,
+    "ast_hash": "a45f572a78e1488fdba5d7b157c11411",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/package.map.txt": {
+    "mtime": 1788687418.581092,
+    "ast_hash": "102f2e318c91bfe09a73cf307282716d",
+    "semantic_hash": ""
+  },
+  "winui/src/Oasis.WinUI/obj/x64/Release/net10.0-windows10.0.26100.0/win-x64/qualifiers.txt": {
+    "mtime": 1788686510.55644,
+    "ast_hash": "371aede4d157c6c7344faeba7312af6e",
+    "semantic_hash": ""
+  },
+  "lib/widgets/liquid_glass_bottom_nav_pill.dart": {
+    "mtime": 1789635536.7643232,
+    "ast_hash": "f032d39f75a6929c644d7ecd8af06f37",
     "semantic_hash": ""
   }
 }

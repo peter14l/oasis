@@ -117,7 +117,10 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<RegisteredAccount?> restoreSession() async {
     final account = await _remoteDatasource.restoreSession();
     if (account != null) {
+      await _localDatasource.saveAccount(account);
+      await _localDatasource.setLastActiveUserId(account.userId);
       _notificationService.updateFcmToken(account.userId);
+      await _encryptionProvisioner.provisionEncryptionKeys();
     }
     return account;
   }

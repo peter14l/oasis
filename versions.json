@@ -1,35 +1,35 @@
 {
   "android": {
-    "latestVersion": "1.1.24",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.24.apk",
+    "latestVersion": "1.1.25",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.25.apk",
     "abiUrls": {
-      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.24-arm64-v8a.apk",
-      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.24-armeabi-v7a.apk",
-      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.24-x86_64.apk",
-      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.24.apk"
+      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.25-arm64-v8a.apk",
+      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.25-armeabi-v7a.apk",
+      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.25-x86_64.apk",
+      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.25.apk"
     },
-    "releaseNotes": "• Suppress Notifications On Logout: Background push notifications, incoming call alerts, and FCM tokens are completely deactivated and unregistered upon user signout.\n• Cross-Platform Fallback Decryption: Messages sent between mobile and desktop automatically support dual-layer RSA/AES-CBC and PQ-Aura encryption.\n• Chat Wallpapers & Read Delivery Status: Chat backgrounds fit uniformly with status double ticks and post-quantum badges.",
+    "releaseNotes": "• Apple Liquid Glass Bottom Nav Pill: Floating navbar pill in authentic liquid glass with label-free layout.\n• Draggable Circular Indicator: Smooth horizontal drag gestures, spring snapping, and tactile haptics.\n• Progressive Blur Backdrop: Soft gradient blur fading behind the bottom bar.",
     "isRequired": false,
-    "releaseDate": "2026-09-06T11:03:00Z"
+    "releaseDate": "2026-09-17T14:30:00Z"
   },
   "windows": {
-    "latestVersion": "1.1.24",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.24.msix",
+    "latestVersion": "1.1.25",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.25.msix",
     "abiUrls": {
-      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.24.msix"
+      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.25.msix"
     },
-    "releaseNotes": "• Suppress Notifications On Logout: Background notifications and calls suppressed when logged out.\n• Cross-Platform Fallback Decryption: E2EE chat interoperability with mobile.\n• Chat Wallpaper & Delivery Double Ticks.",
+    "releaseNotes": "• Apple Liquid Glass Bottom Nav Pill: Floating navbar pill in authentic liquid glass with label-free layout.\n• Draggable Circular Indicator: Smooth horizontal drag gestures, spring snapping, and tactile haptics.\n• Progressive Blur Backdrop: Soft gradient blur fading behind the bottom bar.",
     "isRequired": false,
-    "releaseDate": "2026-09-06T11:03:00Z"
+    "releaseDate": "2026-09-17T14:30:00Z"
   },
   "macos": {
-    "latestVersion": "1.1.24",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.24.dmg",
+    "latestVersion": "1.1.25",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.25.dmg",
     "abiUrls": {
-      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.24.dmg"
+      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.25.dmg"
     },
-    "releaseNotes": "• Suppress Notifications On Logout: Background notifications and calls suppressed when logged out.\n• Cross-Platform Fallback Decryption: E2EE chat interoperability with mobile.\n• Chat Wallpaper & Delivery Double Ticks.",
+    "releaseNotes": "• Apple Liquid Glass Bottom Nav Pill: Floating navbar pill in authentic liquid glass with label-free layout.\n• Draggable Circular Indicator: Smooth horizontal drag gestures, spring snapping, and tactile haptics.\n• Progressive Blur Backdrop: Soft gradient blur fading behind the bottom bar.",
     "isRequired": false,
-    "releaseDate": "2026-09-06T11:03:00Z"
+    "releaseDate": "2026-09-17T14:30:00Z"
   }
 }

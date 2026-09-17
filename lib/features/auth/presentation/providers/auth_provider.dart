@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:oasis/features/auth/domain/models/auth_models.dart';
 import 'package:oasis/features/auth/domain/repositories/auth_repository.dart';
@@ -6,6 +7,7 @@ import 'package:oasis/features/auth/presentation/providers/auth_state.dart'
 import 'package:oasis/services/session_registry_service.dart';
 import 'package:oasis/services/app_analytics.dart';
 import 'package:oasis/services/app_initializer.dart';
+import 'package:oasis/services/zero_tap_auth_service.dart';
 import 'package:oasis/core/providers/safe_change_notifier.dart';
 
 export 'package:oasis/features/auth/presentation/providers/auth_state.dart';
@@ -42,6 +44,10 @@ class AuthProvider with ChangeNotifier, SafeChangeNotifier {
             name: 'login',
             parameters: {'method': event.event.name},
           );
+          // Persist session to Android CredentialManager Restore Credentials API
+          final sessionJson = jsonEncode(event.session!.toJson());
+          ZeroTapAuthService.instance.saveRestoreKey(sessionJson);
+
           // Re-subscribe to DM notifications on login/session restoration
           AppInitializer.subscribeToDmNotifications();
         }
@@ -49,6 +55,8 @@ class AuthProvider with ChangeNotifier, SafeChangeNotifier {
       } else {
         _state = _state.copyWith(isAuthenticated: false, currentAccount: null);
         _analytics.setUserId(null);
+        // Clear restore key on logout
+        ZeroTapAuthService.instance.clearRestoreKey();
         notifyListeners();
       }
     });

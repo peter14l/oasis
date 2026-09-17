@@ -38,4 +38,14 @@ abstract class AuthRepository {
   });
 
   Stream<AuthState> get onAuthStateChange;
+
+  Future<AuthResponse> signInWithPasskey(String email);
+
+  Future<AuthResponse> registerWithPasskey({
+    required String email,
+    required String username,
+    required String fullName,
+  });
+
+  Future<void> addPasskeyToCurrentUser();
 }
