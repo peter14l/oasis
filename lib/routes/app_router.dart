@@ -707,35 +707,40 @@ class _MainLayoutState extends State<MainLayout> {
         ),
     ];
 
-    return Stack(
-      alignment: Alignment.bottomCenter,
-      clipBehavior: Clip.none,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // 1. Apple-style Progressive Blur behind the pill
-        if (!disableTransparency)
-          const Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: ProgressiveBlurBackground(height: 124.0),
-          ),
+        Stack(
+          alignment: Alignment.bottomCenter,
+          clipBehavior: Clip.none,
+          children: [
+            // 1. Apple-style Progressive Blur behind the pill
+            if (!disableTransparency)
+              const Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: ProgressiveBlurBackground(height: 124.0),
+              ),
 
-        // 2. Floating Liquid Glass Bottom Navbar Pill with draggable circular indicator
-        SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.only(
-              bottom: 16.0,
-              top: 8.0,
+            // 2. Floating Liquid Glass Bottom Navbar Pill with draggable rectangular squircle indicator
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  bottom: 16.0,
+                  top: 8.0,
+                ),
+                child: LiquidGlassBottomNavPill(
+                  currentIndex: currentIndex < 0 ? 0 : currentIndex,
+                  onDestinationSelected: (i) =>
+                      _onDestinationSelected(i, killSwitchActive: killSwitchActive),
+                  destinations: destinations,
+                  disableTransparency: disableTransparency,
+                ),
+              ),
             ),
-            child: LiquidGlassBottomNavPill(
-              currentIndex: currentIndex < 0 ? 0 : currentIndex,
-              onDestinationSelected: (i) =>
-                  _onDestinationSelected(i, killSwitchActive: killSwitchActive),
-              destinations: destinations,
-              disableTransparency: disableTransparency,
-            ),
-          ),
+          ],
         ),
       ],
     );

@@ -1,35 +1,35 @@
 {
   "android": {
-    "latestVersion": "1.1.25",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.25.apk",
+    "latestVersion": "1.1.26",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.26.apk",
     "abiUrls": {
-      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.25-arm64-v8a.apk",
-      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.25-armeabi-v7a.apk",
-      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.25-x86_64.apk",
-      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.25.apk"
+      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.26-arm64-v8a.apk",
+      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.26-armeabi-v7a.apk",
+      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.26-x86_64.apk",
+      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.26.apk"
     },
-    "releaseNotes": "• Apple Liquid Glass Bottom Nav Pill: Floating navbar pill in authentic liquid glass with label-free layout.\n• Draggable Circular Indicator: Smooth horizontal drag gestures, spring snapping, and tactile haptics.\n• Progressive Blur Backdrop: Soft gradient blur fading behind the bottom bar.",
+    "releaseNotes": "• Rectangular Squircle Liquid Indicator: Transformed indicator into a smooth rounded rectangular squircle spanning item slots.\n• Expanded Pill Layout: Enhanced bottom navbar pill width responsively across mobile and desktop displays.\n• Bottom Screen Anchoring: Fixed vertical layout centering bug to anchor the pill and progressive blur firmly at the bottom of the screen.",
     "isRequired": false,
-    "releaseDate": "2026-09-17T14:30:00Z"
+    "releaseDate": "2026-09-17T14:35:00Z"
   },
   "windows": {
-    "latestVersion": "1.1.25",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.25.msix",
+    "latestVersion": "1.1.26",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.26.msix",
     "abiUrls": {
-      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.25.msix"
+      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.26.msix"
     },
-    "releaseNotes": "• Apple Liquid Glass Bottom Nav Pill: Floating navbar pill in authentic liquid glass with label-free layout.\n• Draggable Circular Indicator: Smooth horizontal drag gestures, spring snapping, and tactile haptics.\n• Progressive Blur Backdrop: Soft gradient blur fading behind the bottom bar.",
+    "releaseNotes": "• Rectangular Squircle Liquid Indicator: Transformed indicator into a smooth rounded rectangular squircle spanning item slots.\n• Expanded Pill Layout: Enhanced bottom navbar pill width responsively across mobile and desktop displays.\n• Bottom Screen Anchoring: Fixed vertical layout centering bug to anchor the pill and progressive blur firmly at the bottom of the screen.",
     "isRequired": false,
-    "releaseDate": "2026-09-17T14:30:00Z"
+    "releaseDate": "2026-09-17T14:35:00Z"
   },
   "macos": {
-    "latestVersion": "1.1.25",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.25.dmg",
+    "latestVersion": "1.1.26",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.26.dmg",
     "abiUrls": {
-      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.25.dmg"
+      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.26.dmg"
     },
-    "releaseNotes": "• Apple Liquid Glass Bottom Nav Pill: Floating navbar pill in authentic liquid glass with label-free layout.\n• Draggable Circular Indicator: Smooth horizontal drag gestures, spring snapping, and tactile haptics.\n• Progressive Blur Backdrop: Soft gradient blur fading behind the bottom bar.",
+    "releaseNotes": "• Rectangular Squircle Liquid Indicator: Transformed indicator into a smooth rounded rectangular squircle spanning item slots.\n• Expanded Pill Layout: Enhanced bottom navbar pill width responsively across mobile and desktop displays.\n• Bottom Screen Anchoring: Fixed vertical layout centering bug to anchor the pill and progressive blur firmly at the bottom of the screen.",
     "isRequired": false,
-    "releaseDate": "2026-09-17T14:30:00Z"
+    "releaseDate": "2026-09-17T14:35:00Z"
   }
 }

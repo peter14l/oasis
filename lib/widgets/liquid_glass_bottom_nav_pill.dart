@@ -98,16 +98,15 @@ class ProgressiveBlurBackground extends StatelessWidget {
   }
 }
 
-/// Apple-style Liquid Glass Bottom Navbar Pill with a draggable circular liquid glass
-/// indicator that slides and snaps across navigation destinations.
+/// Apple-style Liquid Glass Bottom Navbar Pill with a draggable rectangular squircle
+/// liquid glass indicator that slides and snaps across navigation destinations.
 class LiquidGlassBottomNavPill extends StatefulWidget {
   final int currentIndex;
   final ValueChanged<int> onDestinationSelected;
   final List<LiquidNavDestination> destinations;
   final bool disableTransparency;
-  final double itemWidth;
   final double pillHeight;
-  final double indicatorDiameter;
+  final double maxPillWidth;
 
   const LiquidGlassBottomNavPill({
     super.key,
@@ -115,9 +114,8 @@ class LiquidGlassBottomNavPill extends StatefulWidget {
     required this.onDestinationSelected,
     required this.destinations,
     this.disableTransparency = false,
-    this.itemWidth = 62.0,
-    this.pillHeight = 62.0,
-    this.indicatorDiameter = 48.0,
+    this.pillHeight = 64.0,
+    this.maxPillWidth = 560.0,
   });
 
   @override
@@ -130,7 +128,7 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
   late AnimationController _snapController;
   late Animation<double> _indicatorAnimation;
 
-  // Track position (offset in pixels from the left inside the pill)
+  // Track position (offset in pixels from the left inside the pill track)
   double _indicatorX = 0.0;
   double _dragStartX = 0.0;
   double _dragStartIndicatorX = 0.0;
@@ -138,13 +136,19 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
   double _stretchWidth = 0.0;
   int _hoveredIndex = 0;
 
-  static const double _horizontalTrackPadding = 8.0;
+  // Track & Indicator dimensions
+  double _pillWidth = 0.0;
+  double _slotWidth = 0.0;
+  double _indicatorWidth = 0.0;
+  double _indicatorHeight = 0.0;
+
+  static const double _horizontalTrackPadding = 6.0;
+  static const double _indicatorCornerRadius = 18.0;
 
   @override
   void initState() {
     super.initState();
     _hoveredIndex = widget.currentIndex.clamp(0, widget.destinations.length - 1);
-    _indicatorX = _calculateRestingX(_hoveredIndex);
 
     _snapController = AnimationController(
       vsync: this,
@@ -183,22 +187,35 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
     super.dispose();
   }
 
+  void _recalculateDimensions(double totalWidth) {
+    if (_pillWidth == totalWidth && _slotWidth > 0) return;
+    _pillWidth = totalWidth;
+    final availableTrackWidth =
+        math.max(0.0, _pillWidth - (_horizontalTrackPadding * 2));
+    final numDestinations = math.max(1, widget.destinations.length);
+    _slotWidth = availableTrackWidth / numDestinations;
+
+    // Squircle indicator width: fills the slot with comfortable margins
+    _indicatorWidth = math.max(36.0, _slotWidth - 6.0);
+    _indicatorHeight = math.max(32.0, widget.pillHeight - 10.0);
+
+    if (!_isDragging && !_snapController.isAnimating) {
+      _indicatorX = _calculateRestingX(_hoveredIndex);
+    }
+  }
+
   double _calculateRestingX(int index) {
-    // Slot center: _horizontalTrackPadding + (index + 0.5) * widget.itemWidth
-    // Indicator left: slotCenter - (widget.indicatorDiameter / 2)
+    if (_slotWidth <= 0) return _horizontalTrackPadding;
+    // Center the squircle indicator precisely within the target slot
     final slotCenter =
-        _horizontalTrackPadding + (index + 0.5) * widget.itemWidth;
-    return slotCenter - (widget.indicatorDiameter / 2);
+        _horizontalTrackPadding + (index + 0.5) * _slotWidth;
+    return slotCenter - (_indicatorWidth / 2);
   }
 
   double get _minIndicatorX => _calculateRestingX(0);
 
   double get _maxIndicatorX =>
       _calculateRestingX(widget.destinations.length - 1);
-
-  double get _totalPillWidth =>
-      (widget.destinations.length * widget.itemWidth) +
-      (_horizontalTrackPadding * 2);
 
   void _animateToSlot(int targetIndex) {
     final targetX = _calculateRestingX(targetIndex);
@@ -215,9 +232,10 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
   }
 
   void _handleTap(TapUpDetails details) {
+    if (_slotWidth <= 0) return;
     final localX = details.localPosition.dx;
     final slotIndex =
-        ((localX - _horizontalTrackPadding) / widget.itemWidth).floor();
+        ((localX - _horizontalTrackPadding) / _slotWidth).floor();
 
     if (slotIndex >= 0 && slotIndex < widget.destinations.length) {
       final destination = widget.destinations[slotIndex];
@@ -244,6 +262,7 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
   }
 
   void _handleDragUpdate(DragUpdateDetails details) {
+    if (_slotWidth <= 0) return;
     final totalDeltaX = details.localPosition.dx - _dragStartX;
     var newX = _dragStartIndicatorX + totalDeltaX;
 
@@ -256,14 +275,13 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
       newX = _maxIndicatorX + math.sqrt(overscroll * 3.0);
     }
 
-    // Dynamic liquid stretch based on movement
+    // Dynamic squircle liquid stretch based on movement speed
     final delta = details.primaryDelta ?? 0.0;
-    final stretch = (delta.abs() * 2.2).clamp(0.0, 14.0);
+    final stretch = (delta.abs() * 2.5).clamp(0.0, 16.0);
 
     // Identify nearest destination slot
-    final indicatorCenter = newX + (widget.indicatorDiameter / 2);
-    final hovered = ((indicatorCenter - _horizontalTrackPadding) /
-            widget.itemWidth)
+    final indicatorCenter = newX + (_indicatorWidth / 2);
+    final hovered = ((indicatorCenter - _horizontalTrackPadding) / _slotWidth)
         .floor()
         .clamp(0, widget.destinations.length - 1);
 
@@ -323,24 +341,40 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
     final liquidGlassMode = settings?.liquidGlassMode ?? LiquidGlassMode.real;
     final isSolid = ContextX(context).shouldUseSolidBackground;
 
-    // Outer Pill Visual Shell
-    return Center(
-      child: Container(
-        width: _totalPillWidth,
-        height: widget.pillHeight,
-        margin: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: widget.disableTransparency || isSolid
-            ? _buildSolidShell(context, theme, isDark)
-            : _buildLiquidShell(context, theme, isDark, liquidGlassMode),
-      ),
+    // Responsive width allocation: takes generous screen width while clamping to maxPillWidth
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+        // Generous margins: 16px on mobile, capped at maxPillWidth on tablets/desktop
+        final resolvedWidth = math.min(
+          availableWidth - 32.0,
+          widget.maxPillWidth,
+        );
+
+        _recalculateDimensions(resolvedWidth);
+
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: SizedBox(
+            width: resolvedWidth,
+            height: widget.pillHeight,
+            child: widget.disableTransparency || isSolid
+                ? _buildSolidShell(context, theme, isDark)
+                : _buildLiquidShell(context, theme, isDark, liquidGlassMode),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildSolidShell(BuildContext context, ThemeData theme, bool isDark) {
+    final cornerRadius = widget.pillHeight / 2;
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(widget.pillHeight / 2),
+        borderRadius: BorderRadius.circular(cornerRadius),
         border: Border.all(
           color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
           width: 0.8,
@@ -373,9 +407,11 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
       chromaticAberration: 0.02,
     );
 
+    final cornerRadius = widget.pillHeight / 2;
+
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(widget.pillHeight / 2),
+        borderRadius: BorderRadius.circular(cornerRadius),
         boxShadow: [
           // Ambient soft glow & depth
           BoxShadow(
@@ -392,15 +428,15 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
         ],
       ),
       child: LiquidGlassWrapper(
-        borderRadius: widget.pillHeight / 2,
-        shape: LiquidRoundedSuperellipse(borderRadius: widget.pillHeight / 2),
+        borderRadius: cornerRadius,
+        shape: LiquidRoundedSuperellipse(borderRadius: cornerRadius),
         config: pillConfig,
         backgroundColor: isDark
             ? Colors.black.withValues(alpha: 0.22)
             : Colors.white.withValues(alpha: 0.38),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(widget.pillHeight / 2),
+            borderRadius: BorderRadius.circular(cornerRadius),
             border: Border.all(
               color: isDark
                   ? Colors.white.withValues(alpha: 0.22)
@@ -430,7 +466,7 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
         alignment: Alignment.centerLeft,
         clipBehavior: Clip.none,
         children: [
-          // 1. Draggable Liquid Glass Circular Indicator Lens
+          // 1. Draggable Liquid Glass Rectangular Squircle Indicator Lens
           _buildDraggableIndicator(context, theme, isDark, isLiquid),
 
           // 2. Navigation Item Icons (Clean glyphs without text labels)
@@ -458,17 +494,20 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
     bool isDark,
     bool isLiquid,
   ) {
-    final currentDiameter = widget.indicatorDiameter;
+    if (_indicatorWidth <= 0 || _indicatorHeight <= 0) {
+      return const SizedBox.shrink();
+    }
+
     final stretch = _stretchWidth;
-    final width = currentDiameter + stretch;
-    final height = currentDiameter - (stretch * 0.25);
+    final width = _indicatorWidth + stretch;
+    final height = _indicatorHeight - (stretch * 0.2);
     final top = (widget.pillHeight - height) / 2;
 
     Widget indicatorBody = Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(height / 2),
+        borderRadius: BorderRadius.circular(_indicatorCornerRadius),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -479,9 +518,9 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
                   Colors.white.withValues(alpha: 0.16),
                 ]
               : [
-                  Colors.white.withValues(alpha: 0.85),
-                  Colors.white.withValues(alpha: 0.35),
-                  Colors.white.withValues(alpha: 0.6),
+                  Colors.white.withValues(alpha: 0.88),
+                  Colors.white.withValues(alpha: 0.40),
+                  Colors.white.withValues(alpha: 0.65),
                 ],
           stops: const [0.0, 0.55, 1.0],
         ),
@@ -512,8 +551,10 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
 
     if (isLiquid) {
       indicatorBody = LiquidGlassWrapper(
-        borderRadius: height / 2,
-        shape: LiquidRoundedSuperellipse(borderRadius: height / 2),
+        borderRadius: _indicatorCornerRadius,
+        shape: const LiquidRoundedSuperellipse(
+          borderRadius: _indicatorCornerRadius,
+        ),
         config: const LiquidGlassConfig(
           thickness: 18,
           blur: 4.5,
@@ -567,16 +608,16 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
       child: iconWidget,
     );
 
-
-    return SizedBox(
-      width: widget.itemWidth,
-      height: widget.pillHeight,
-      child: Center(
-        child: AnimatedScale(
-          scale: isSelected ? 1.1 : (isHovered ? 1.05 : 1.0),
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOutCubic,
-          child: renderedIcon,
+    return Expanded(
+      child: SizedBox(
+        height: widget.pillHeight,
+        child: Center(
+          child: AnimatedScale(
+            scale: isSelected ? 1.1 : (isHovered ? 1.05 : 1.0),
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            child: renderedIcon,
+          ),
         ),
       ),
     );

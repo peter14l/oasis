@@ -2,6 +2,13 @@
 
 All notable changes to the Oasis project will be documented in this file. This project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.26] - 2026-09-17
+
+### Interface & Design
+- **Rectangular Squircle Liquid Indicator** - Replaced circular indicator with a modern rounded rectangular squircle (`LiquidRoundedSuperellipse`) that spans navigation destination slots.
+- **Wider Bottom Navbar Pill Layout** - Enhanced bottom pill width to responsively fill available screen width with clean margins.
+- **Bottom Screen Anchoring** - Fixed vertical layout centering bug to anchor the pill and progressive blur backdrop firmly at the bottom of the screen.
+
 ## [1.1.25] - 2026-09-17
 
 ### Interface & Design

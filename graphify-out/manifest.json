@@ -3810,8 +3810,8 @@
     "semantic_hash": ""
   },
   "lib/routes/app_router.dart": {
-    "mtime": 1789635278.7345543,
-    "ast_hash": "1c04863fa36e35f4738c901f1b6d03ac",
+    "mtime": 1789654785.06973,
+    "ast_hash": "6ca69146dce2a1e96566324c988f3982",
     "semantic_hash": ""
   },
   "lib/routes/navigation_shell.dart": {
@@ -38145,8 +38145,8 @@
     "semantic_hash": ""
   },
   "lib/widgets/liquid_glass_bottom_nav_pill.dart": {
-    "mtime": 1789635536.7643232,
-    "ast_hash": "f032d39f75a6929c644d7ecd8af06f37",
+    "mtime": 1789654775.9929237,
+    "ast_hash": "262467bee984f794911dfc47da8a5ef2",
     "semantic_hash": ""
   }
 }
