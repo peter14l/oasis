@@ -78,9 +78,27 @@ class ChatMessageList extends StatelessWidget {
           ),
           itemCount: messages.length,
           itemBuilder: (context, index) {
-            final message = messages[messages.length - 1 - index];
+            final messageIndex = messages.length - 1 - index;
+            final message = messages[messageIndex];
             final isMe = message.senderId == currentUserId;
             final isHighlighted = message.id == highlightedMessageId;
+
+            // Visual predecessor (earlier message)
+            final prevMessage =
+                messageIndex > 0 ? messages[messageIndex - 1] : null;
+            // Visual successor (later message)
+            final nextMessage = messageIndex < messages.length - 1
+                ? messages[messageIndex + 1]
+                : null;
+
+            final isFirstInGroup = prevMessage == null ||
+                prevMessage.senderId != message.senderId ||
+                message.timestamp.difference(prevMessage.timestamp).inMinutes > 5;
+
+            final isLastInGroup = nextMessage == null ||
+                nextMessage.senderId != message.senderId ||
+                nextMessage.timestamp.difference(message.timestamp).inMinutes > 5;
+
             return RepaintBoundary(
               child: _buildMessageItem(
                 context,
@@ -88,6 +106,8 @@ class ChatMessageList extends StatelessWidget {
                 isMe,
                 isHighlighted,
                 constraints.maxWidth,
+                isFirstInGroup: isFirstInGroup,
+                isLastInGroup: isLastInGroup,
               ),
             );
           },
@@ -101,8 +121,10 @@ class ChatMessageList extends StatelessWidget {
     Message message,
     bool isMe,
     bool isHighlighted,
-    double maxWidth,
-  ) {
+    double maxWidth, {
+    bool isFirstInGroup = true,
+    bool isLastInGroup = true,
+  }) {
     if (message.messageType == MessageType.system) {
       return SystemMessageBubble(content: message.content);
     }
@@ -135,6 +157,8 @@ class ChatMessageList extends StatelessWidget {
         onReactionsTap: onReactionsTap,
         currentUserId: currentUserId,
         messageStatuses: messageStatuses,
+        isFirstInGroup: isFirstInGroup,
+        isLastInGroup: isLastInGroup,
       ),
     );
   }
@@ -215,6 +239,8 @@ class MessageBubble extends StatelessWidget {
     required this.maxWidth,
     this.currentUserId,
     this.messageStatuses,
+    this.isFirstInGroup = true,
+    this.isLastInGroup = true,
   });
 
   final Message message;
@@ -230,6 +256,8 @@ class MessageBubble extends StatelessWidget {
   final double maxWidth;
   final String? currentUserId;
   final Map<String, MessageStatus>? messageStatuses;
+  final bool isFirstInGroup;
+  final bool isLastInGroup;
 
   @override
   Widget build(BuildContext context) {
@@ -301,22 +329,36 @@ class MessageBubble extends StatelessWidget {
 
     final isWhisper = message.isEphemeral || message.whisperMode != 'OFF';
 
+    const double defaultRadius = 22.0;
+    const double tightRadius = 6.0;
+
+    final bubbleRadius = isSticker
+        ? null
+        : BorderRadius.only(
+            topLeft: Radius.circular(
+              !isMe && !isFirstInGroup ? tightRadius : defaultRadius,
+            ),
+            topRight: Radius.circular(
+              isMe && !isFirstInGroup ? tightRadius : defaultRadius,
+            ),
+            bottomLeft: Radius.circular(
+              !isMe && !isLastInGroup ? tightRadius : (isMe ? defaultRadius : 4.0),
+            ),
+            bottomRight: Radius.circular(
+              isMe && !isLastInGroup ? tightRadius : (!isMe ? defaultRadius : 4.0),
+            ),
+          );
+
     final bubbleDecoration = isSticker
         ? null
         : BoxDecoration(
             color: bubbleColor,
-            borderRadius: BorderRadius.circular(24).copyWith(
-              bottomRight: isMe ? const Radius.circular(8) : null,
-              bottomLeft: !isMe ? const Radius.circular(8) : null,
-            ),
+            borderRadius: bubbleRadius,
             border: isWhisper
                 ? Border.all(
                     color: textColor.withValues(alpha: 0.5),
                     width: 1.5,
-                    style: BorderStyle
-                        .solid, // Note: standard Border doesn't support dashed.
-                    // I should probably use a CustomPainter or a wrapper if I want TRUE dashed.
-                    // For now, I'll use a specific color/width to differentiate.
+                    style: BorderStyle.solid,
                   )
                 : Border.all(
                     color: isHighlighted
@@ -355,6 +397,18 @@ class MessageBubble extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (!isMe && isFirstInGroup && message.senderName.isNotEmpty && !isSticker)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  message.senderName,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
             if (message.replyToId != null && !isSticker)
               Container(
                 margin: const EdgeInsets.only(bottom: 8),
@@ -445,7 +499,10 @@ class MessageBubble extends StatelessWidget {
       child: Align(
         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
         child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: EdgeInsets.only(
+            bottom: isLastInGroup ? 12 : 3,
+            top: isFirstInGroup ? 4 : 0,
+          ),
           constraints: BoxConstraints(
             maxWidth: isDesktop
                 ? maxWidth * 0.85

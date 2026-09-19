@@ -2,6 +2,27 @@
 
 All notable changes to the Oasis project will be documented in this file. This project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.29] - 2026-09-19
+
+### Messaging & E2E Audio
+- **Encrypted Voice Notes Decryption & Playback** - Fixed on-demand download and decryption flow in `VoiceBubble` and `VoiceMessagePlayer`, ensuring voice notes play reliably across sender and receiver clients without decryption stalls.
+- **`send_message_v3` Metadata Integrity** - Updated Supabase RPC migration to return `voice_duration`, `encrypted_keys`, `iv`, `share_data`, and `signal_sender_content` in JSON responses, preventing loss of encryption headers.
+- **Audio Error Handling & Validation** - Filtered benign transient native audio playback errors in `main.dart` error boundary and added validation to discard empty/corrupted voice recording files before transmission.
+- **Adaptive Bubble Grouping & Sender Headers** - Dynamically adjusted bubble corner radii based on message group position (tight radii inside contiguous groups) and display sender labels on incoming group starts.
+- **Jitter-Free Chat Input Area** - Refactored attachment and sticker/spoiler buttons into a stable fixed-size row container, eliminating layout jumping and text reflow while typing.
+- **New Conversation FAB** - Added a dedicated floating action button to the Direct Messages screen for fast 1-tap message composition.
+
+### Interface & Liquid Glass Navigation
+- **Fluid Drag Magnification** - Implemented Apple-style fluid lens expansion that smoothly magnifies the indicator capsule width (+6px) and height (+3px) with enhanced refraction when grabbed and dragged.
+- **Natural Compact Pill Geometry** - Re-centered and sized the bottom navbar pill dynamically according to destination count rather than stretching across screen width.
+- **Drag Cancel Protection** - Added `onHorizontalDragCancel` gesture handler to gracefully spring the indicator back to the selected destination if an active drag is aborted.
+- **Widget Test Suite** - Added automated unit and widget tests for `LiquidGlassBottomNavPill` geometry, responsive scaling, and interaction physics.
+
+### In-Call Controls & VoIP Usability
+- **Two-Tier Ergonomic Control Bar** - Divided in-call actions into an upper utility tier (Minimize, Screen Share, Add Participant) and a lower primary tier (Mute with active status color, Audio Output cycling, Video toggle, End Call).
+- **Enlarged Touch Targets & Tooltips** - Added explicit tooltips and expanded minimum touch targets across call controls, post action chips, and circles navigation.
+- **Study Session Safety Dialogs** - Redesigned focus room abandon confirmation buttons with clear destructive vs. keep-focusing action hierarchy.
+
 ## [1.1.28] - 2026-09-19
 
 ### Calling & Real-Time Communication

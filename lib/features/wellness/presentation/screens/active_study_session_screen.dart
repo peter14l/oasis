@@ -1,9 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:oasis/features/wellness/presentation/providers/study_session_provider.dart';
-import 'package:oasis/themes/app_colors.dart';
 
 class ActiveStudySessionScreen extends StatelessWidget {
   const ActiveStudySessionScreen({super.key});
@@ -201,18 +199,21 @@ class ActiveStudySessionScreen extends StatelessWidget {
               : 'Are you sure you want to end this focus room early? you will lose accumulated XP.',
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Keep Focusing'),
-          ),
-          TextButton(
+          OutlinedButton(
             onPressed: () {
               Navigator.pop(context); // close dialog
               provider.abandonSession();
               Navigator.pop(context); // exit screen
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.red,
+              side: const BorderSide(color: Colors.redAccent),
+            ),
             child: const Text('Abandon'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Keep Focusing'),
           ),
         ],
       ),

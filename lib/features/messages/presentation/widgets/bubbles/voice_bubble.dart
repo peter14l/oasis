@@ -59,38 +59,44 @@ class _VoiceBubbleState extends State<VoiceBubble> {
 
   Future<void> _checkCache() async {
     final url = widget.message.mediaUrl;
-    if (url == null) return;
+    if (url == null || url.isEmpty) return;
 
-    if (!url.startsWith('http')) {
-      setState(() => _localPath = url);
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      if (mounted) {
+        setState(() => _localPath = url);
+      }
       return;
     }
 
     final path = await _cacheService.getLocalPath(url);
     if (mounted) {
       setState(() => _localPath = path);
+      if (path == null && !_isDownloading) {
+        _downloadMedia();
+      }
     }
   }
 
   Future<void> _downloadMedia() async {
     final url = widget.message.mediaUrl;
-    if (url == null || _isDownloading) return;
+    if (url == null || url.isEmpty || _isDownloading) return;
+
+    final encryptedKeys =
+        widget.message.shareData?['media_keys'] as Map<String, dynamic>? ??
+        (widget.message.encryptedKeys != null
+            ? Map<String, dynamic>.from(widget.message.encryptedKeys!)
+            : null);
+    final iv = widget.message.shareData?['media_iv'] as String? ??
+        widget.message.iv;
+
+    if (encryptedKeys == null || iv == null) {
+      debugPrint('[VoiceBubble] Encryption metadata missing for voice message');
+      return;
+    }
 
     setState(() => _isDownloading = true);
 
     try {
-      final encryptedKeys =
-          widget.message.shareData?['media_keys'] as Map<String, dynamic>? ??
-          (widget.message.encryptedKeys != null
-              ? Map<String, dynamic>.from(widget.message.encryptedKeys!)
-              : null);
-      final iv = widget.message.shareData?['media_iv'] as String? ??
-          widget.message.iv;
-
-      if (encryptedKeys == null || iv == null) {
-        throw Exception('Encryption metadata missing in message');
-      }
-
       final path = await _chatMediaService.downloadAndDecryptMedia(
         remoteUrl: url,
         iv: iv,
@@ -123,14 +129,15 @@ class _VoiceBubbleState extends State<VoiceBubble> {
   }
 
   Future<void> _transcribe() async {
+    final service = context.read<VoiceTranscriptService>();
     if (_localPath == null) {
       await _downloadMedia();
       if (_localPath == null) return;
     }
 
+    if (!mounted) return;
     setState(() => _isTranscribing = true);
     try {
-      final service = context.read<VoiceTranscriptService>();
       final transcript = await service.transcribeVoiceMessage(
         widget.message.id,
         _localPath!,
@@ -168,7 +175,16 @@ class _VoiceBubbleState extends State<VoiceBubble> {
         widget.message.iv;
     final isEncrypted = encryptedKeys != null && iv != null;
 
-    if (widget.message.isUploading || (_localPath == null && isEncrypted)) {
+    final hasLocalAudio = _localPath != null &&
+        _localPath!.isNotEmpty &&
+        !_localPath!.startsWith('http://') &&
+        !_localPath!.startsWith('https://');
+
+    final isRemoteUrl = widget.message.mediaUrl != null &&
+        (widget.message.mediaUrl!.startsWith('http://') ||
+            widget.message.mediaUrl!.startsWith('https://'));
+
+    if (widget.message.isUploading || (!hasLocalAudio && (isEncrypted || isRemoteUrl))) {
       return Container(
         width: 200,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -214,7 +230,7 @@ class _VoiceBubbleState extends State<VoiceBubble> {
                       color: color.withValues(alpha: 0.7),
                     ),
                   ),
-                ] else if (_localPath == null && isEncrypted) ...[
+                ] else ...[
                   InkWell(
                     onTap: _downloadMedia,
                     child: Padding(
@@ -267,7 +283,7 @@ class _VoiceBubbleState extends State<VoiceBubble> {
           : CrossAxisAlignment.start,
       children: [
         VoiceMessagePlayer(
-          audioUrl: _localPath ?? widget.message.mediaUrl ?? "",
+          audioUrl: _localPath ?? '',
           duration: widget.message.voiceDuration,
           isMe: widget.isMe,
           color: color,

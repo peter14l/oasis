@@ -114,8 +114,8 @@ class LiquidGlassBottomNavPill extends StatefulWidget {
     required this.onDestinationSelected,
     required this.destinations,
     this.disableTransparency = false,
-    this.pillHeight = 64.0,
-    this.maxPillWidth = 560.0,
+    this.pillHeight = 52.0,
+    this.maxPillWidth = 520.0,
   });
 
   @override
@@ -124,9 +124,13 @@ class LiquidGlassBottomNavPill extends StatefulWidget {
 }
 
 class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _snapController;
   late Animation<double> _indicatorAnimation;
+
+  // Drag expansion animation (Apple-style temporary magnification while dragging)
+  late AnimationController _dragScaleController;
+  late Animation<double> _dragScaleAnimation;
 
   // Track position (offset in pixels from the left inside the pill track)
   double _indicatorX = 0.0;
@@ -142,7 +146,7 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
   double _indicatorWidth = 0.0;
   double _indicatorHeight = 0.0;
 
-  static const double _horizontalTrackPadding = 6.0;
+  static const double _horizontalTrackPadding = 5.0;
 
   @override
   void initState() {
@@ -167,6 +171,21 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
           _indicatorX = _indicatorAnimation.value;
         });
       });
+
+    // Smooth fluid expansion when finger grabs and drags across the pill
+    _dragScaleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 220),
+      reverseDuration: const Duration(milliseconds: 260),
+    );
+
+    _dragScaleAnimation = CurvedAnimation(
+      parent: _dragScaleController,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeOutBack,
+    )..addListener(() {
+        setState(() {});
+      });
   }
 
   @override
@@ -183,6 +202,7 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
   @override
   void dispose() {
     _snapController.dispose();
+    _dragScaleController.dispose();
     super.dispose();
   }
 
@@ -194,9 +214,9 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
     final numDestinations = math.max(1, widget.destinations.length);
     _slotWidth = availableTrackWidth / numDestinations;
 
-    // Squircle indicator width: fills the slot with comfortable margins
-    _indicatorWidth = math.max(36.0, _slotWidth - 6.0);
-    _indicatorHeight = math.max(32.0, widget.pillHeight - 10.0);
+    // Compact squircle indicator width: fills the slot with refined margins
+    _indicatorWidth = math.max(32.0, _slotWidth - 4.0);
+    _indicatorHeight = math.max(28.0, widget.pillHeight - 8.0);
 
     if (!_isDragging && !_snapController.isAnimating) {
       _indicatorX = _calculateRestingX(_hoveredIndex);
@@ -256,6 +276,7 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
     _dragStartX = details.localPosition.dx;
     _dragStartIndicatorX = _indicatorX;
     _stretchWidth = 4.0;
+    _dragScaleController.forward();
     HapticFeedback.selectionClick();
     setState(() {});
   }
@@ -276,7 +297,7 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
 
     // Dynamic squircle liquid stretch based on movement speed
     final delta = details.primaryDelta ?? 0.0;
-    final stretch = (delta.abs() * 2.5).clamp(0.0, 16.0);
+    final stretch = (delta.abs() * 2.2).clamp(0.0, 14.0);
 
     // Identify nearest destination slot
     final indicatorCenter = newX + (_indicatorWidth / 2);
@@ -302,6 +323,7 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
   void _handleDragEnd(DragEndDetails details) {
     _isDragging = false;
     _stretchWidth = 0.0;
+    _dragScaleController.reverse();
 
     int targetIndex = _hoveredIndex;
     final velocity = details.primaryVelocity ?? 0.0;
@@ -329,6 +351,14 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
     setState(() {});
   }
 
+  void _handleDragCancel() {
+    _isDragging = false;
+    _stretchWidth = 0.0;
+    _dragScaleController.reverse();
+    _animateToSlot(widget.currentIndex);
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -340,15 +370,19 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
     final liquidGlassMode = settings?.liquidGlassMode ?? LiquidGlassMode.real;
     final isSolid = ContextX(context).shouldUseSolidBackground;
 
-    // Responsive width allocation: takes generous screen width while clamping to maxPillWidth
     return LayoutBuilder(
       builder: (context, constraints) {
         final availableWidth = constraints.maxWidth.isFinite
             ? constraints.maxWidth
             : MediaQuery.sizeOf(context).width;
-        // Generous margins: 16px on mobile, capped at maxPillWidth on tablets/desktop
+
+        // Hug destinations compactly with comfortable spacing per destination (~64-70px)
+        final destinationCount = math.max(1, widget.destinations.length);
+        final naturalPillWidth =
+            (destinationCount * 68.0) + (_horizontalTrackPadding * 2);
+
         final resolvedWidth = math.min(
-          availableWidth - 32.0,
+          math.min(availableWidth - 48.0, naturalPillWidth),
           widget.maxPillWidth,
         );
 
@@ -380,8 +414,8 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.1),
-            blurRadius: 16,
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+            blurRadius: 14,
             offset: const Offset(0, 4),
           ),
         ],
@@ -397,8 +431,8 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
     LiquidGlassMode mode,
   ) {
     const pillConfig = LiquidGlassConfig(
-      thickness: 28,
-      blur: 5.5,
+      thickness: 24,
+      blur: 5.0,
       glassColor: Color(0x18FFFFFF),
       lightIntensity: 1.65,
       saturation: 1.4,
@@ -414,14 +448,14 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
         boxShadow: [
           // Ambient soft glow & depth
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.38 : 0.12),
-            blurRadius: 26,
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.10),
+            blurRadius: 22,
             spreadRadius: 0,
-            offset: const Offset(0, 8),
+            offset: const Offset(0, 6),
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.18 : 0.05),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: isDark ? 0.16 : 0.04),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -438,9 +472,9 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
             borderRadius: BorderRadius.circular(cornerRadius),
             border: Border.all(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.22)
-                  : Colors.white.withValues(alpha: 0.65),
-              width: 0.9,
+                  ? Colors.white.withValues(alpha: 0.20)
+                  : Colors.white.withValues(alpha: 0.60),
+              width: 0.85,
             ),
           ),
           child: _buildPillContent(context, theme, isDark, true),
@@ -461,6 +495,7 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
       onHorizontalDragStart: _handleDragStart,
       onHorizontalDragUpdate: _handleDragUpdate,
       onHorizontalDragEnd: _handleDragEnd,
+      onHorizontalDragCancel: _handleDragCancel,
       child: Stack(
         alignment: Alignment.centerLeft,
         clipBehavior: Clip.none,
@@ -497,9 +532,16 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
       return const SizedBox.shrink();
     }
 
+    final dragScale = _dragScaleAnimation.value;
     final stretch = _stretchWidth;
-    final width = _indicatorWidth + stretch;
-    final height = _indicatorHeight - (stretch * 0.2);
+
+    // Apple-style fluid magnification: indicator expands smoothly when grabbed and sliding
+    // Extra 6px width expansion and 3px height expansion while dragging
+    final expansionW = 6.0 * dragScale;
+    final expansionH = 3.0 * dragScale;
+
+    final width = _indicatorWidth + stretch + expansionW;
+    final height = _indicatorHeight + expansionH;
     final top = (widget.pillHeight - height) / 2;
 
     final currentRadius = height / 2;
@@ -514,37 +556,37 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
           end: Alignment.bottomRight,
           colors: isDark
               ? [
-                  Colors.white.withValues(alpha: 0.32),
-                  Colors.white.withValues(alpha: 0.08),
-                  Colors.white.withValues(alpha: 0.16),
+                  Colors.white.withValues(alpha: 0.32 + (0.08 * dragScale)),
+                  Colors.white.withValues(alpha: 0.08 + (0.04 * dragScale)),
+                  Colors.white.withValues(alpha: 0.16 + (0.06 * dragScale)),
                 ]
               : [
-                  Colors.white.withValues(alpha: 0.88),
-                  Colors.white.withValues(alpha: 0.40),
-                  Colors.white.withValues(alpha: 0.65),
+                  Colors.white.withValues(alpha: 0.90),
+                  Colors.white.withValues(alpha: 0.45 + (0.15 * dragScale)),
+                  Colors.white.withValues(alpha: 0.70),
                 ],
           stops: const [0.0, 0.55, 1.0],
         ),
         border: Border.all(
           color: isDark
-              ? Colors.white.withValues(alpha: 0.45)
-              : Colors.white.withValues(alpha: 0.85),
-          width: 1.2,
+              ? Colors.white.withValues(alpha: 0.45 + (0.15 * dragScale))
+              : Colors.white.withValues(alpha: 0.85 + (0.15 * dragScale)),
+          width: 1.1 + (0.2 * dragScale),
         ),
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withValues(alpha: 0.32)
-                : Colors.black.withValues(alpha: 0.14),
-            blurRadius: 10,
-            spreadRadius: -1,
-            offset: const Offset(0, 4),
+                ? Colors.black.withValues(alpha: 0.30 + (0.10 * dragScale))
+                : Colors.black.withValues(alpha: 0.12 + (0.06 * dragScale)),
+            blurRadius: 8.0 + (6.0 * dragScale),
+            spreadRadius: -1.0 + (1.0 * dragScale),
+            offset: Offset(0, 3.0 + (1.5 * dragScale)),
           ),
           BoxShadow(
             color: (isDark ? Colors.white : theme.colorScheme.primary)
-                .withValues(alpha: isDark ? 0.16 : 0.22),
-            blurRadius: 12,
-            spreadRadius: 1,
+                .withValues(alpha: (isDark ? 0.14 : 0.20) + (0.08 * dragScale)),
+            blurRadius: 10.0 + (6.0 * dragScale),
+            spreadRadius: 0.5 + (1.0 * dragScale),
           ),
         ],
       ),
@@ -556,11 +598,16 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
         shape: LiquidRoundedSuperellipse(
           borderRadius: currentRadius,
         ),
-        config: const LiquidGlassConfig(
-          thickness: 18,
-          blur: 4.5,
-          glassColor: Color(0x24FFFFFF),
-          lightIntensity: 1.8,
+        config: LiquidGlassConfig(
+          thickness: 16 + (4.0 * dragScale),
+          blur: 4.0 + (1.0 * dragScale),
+          glassColor: Color.fromRGBO(
+            255,
+            255,
+            255,
+            0.14 + (0.08 * dragScale),
+          ),
+          lightIntensity: 1.7 + (0.3 * dragScale),
           saturation: 1.45,
           refractiveIndex: 1.44,
           chromaticAberration: 0.025,
@@ -569,8 +616,11 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
       );
     }
 
+    // Keep expansion centered horizontally and account for stretch
+    final left = _indicatorX - (stretch / 2) - (expansionW / 2);
+
     return Positioned(
-      left: _indicatorX - (stretch / 2),
+      left: left,
       top: top,
       child: IgnorePointer(
         child: indicatorBody,
@@ -604,7 +654,7 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
         color: isRestricted
             ? inactiveColor.withValues(alpha: 0.25)
             : (isSelected || isHovered ? activeColor : inactiveColor),
-        size: 25.0,
+        size: 22.0,
       ),
       child: iconWidget,
     );
@@ -614,7 +664,7 @@ class _LiquidGlassBottomNavPillState extends State<LiquidGlassBottomNavPill>
         height: widget.pillHeight,
         child: Center(
           child: AnimatedScale(
-            scale: isSelected ? 1.1 : (isHovered ? 1.05 : 1.0),
+            scale: isSelected ? 1.08 : (isHovered ? 1.04 : 1.0),
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOutCubic,
             child: renderedIcon,

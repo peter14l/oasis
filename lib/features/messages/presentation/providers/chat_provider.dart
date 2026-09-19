@@ -1874,6 +1874,8 @@ class ChatProvider with ChangeNotifier {
         voiceDuration: duration,
         replyToId: state.replyMessage?.id,
         whisperMode: state.whisperMode,
+        encryptedKeys: uploadResult.encryptedKeys,
+        iv: uploadResult.iv,
         shareData: {
           'media_iv': uploadResult.iv,
           'media_keys': uploadResult.encryptedKeys,
@@ -1882,7 +1884,19 @@ class ChatProvider with ChangeNotifier {
 
       await _messageQueue.dequeue(conversationId, clientId);
 
-      final decrypted = await _decryptSingleMessage(sentMessage);
+      var decrypted = await _decryptSingleMessage(sentMessage);
+      final localAudioPath =
+          uploadResult.localPath.isNotEmpty ? uploadResult.localPath : audioPath;
+      decrypted = decrypted.copyWith(
+        mediaUrl: localAudioPath,
+        voiceDuration: duration,
+        encryptedKeys: uploadResult.encryptedKeys,
+        iv: uploadResult.iv,
+        shareData: {
+          'media_iv': uploadResult.iv,
+          'media_keys': uploadResult.encryptedKeys,
+        },
+      );
       setState((s) {
         final serverId = decrypted.id;
         final existing = s.messages.indexWhere((m) => m.id == serverId);

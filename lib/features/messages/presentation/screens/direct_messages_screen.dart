@@ -732,6 +732,15 @@ class _DirectMessagesScreenState extends State<DirectMessagesScreen>
             ],
           ),
           body: _buildConversationList(isDesktop: false),
+          floatingActionButton: FloatingActionButton(
+            heroTag: 'dm_new_message_fab',
+            onPressed: () => context.push('/new-message'),
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
+            elevation: 3,
+            tooltip: 'New Message',
+            child: const Icon(FluentIcons.chat_24_filled, size: 24),
+          ),
         ),
         if (_previewConversation != null)
           _StealthPreviewPopup(

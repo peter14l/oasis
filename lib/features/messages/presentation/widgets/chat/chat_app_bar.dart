@@ -60,22 +60,25 @@ class ChatAppBar extends StatelessWidget {
           // Left: Back button (mobile only)
           if (!isDesktop)
             _FloatingContainer(
-              borderRadius: 20.0,
+              borderRadius: 22.0,
               backgroundUrl: backgroundUrl,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, size: 20),
-                onPressed: () {
-                  final keyboardHeight = MediaQuery.of(
-                    context,
-                  ).viewInsets.bottom;
-                  if (keyboardHeight > 0) {
-                    FocusScope.of(context).unfocus();
-                  } else {
-                    if (context.mounted) context.pop();
-                  }
-                },
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, size: 20),
+                  onPressed: () {
+                    final keyboardHeight = MediaQuery.of(
+                      context,
+                    ).viewInsets.bottom;
+                    if (keyboardHeight > 0) {
+                      FocusScope.of(context).unfocus();
+                    } else {
+                      if (context.mounted) context.pop();
+                    }
+                  },
+                  padding: const EdgeInsets.all(12),
+                  constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                ),
               ),
             ),
           if (!isDesktop) const SizedBox(width: 8),
@@ -270,9 +273,9 @@ class ChatAppBar extends StatelessWidget {
             borderRadius: 22.0,
             backgroundUrl: backgroundUrl,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 40),
+              constraints: const BoxConstraints(minHeight: 44),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 2),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -280,16 +283,16 @@ class ChatAppBar extends StatelessWidget {
                       IconButton(
                         icon: const Icon(FluentIcons.call_24_regular, size: 20),
                         onPressed: onCallPressed,
-                        padding: const EdgeInsets.all(8),
-                        constraints: const BoxConstraints(),
+                        padding: const EdgeInsets.all(12),
+                        constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                         color: backgroundUrl != null ? Colors.white : null,
                       ),
                     if (onVideoCallPressed != null && AppConfig.enableCalls)
                       IconButton(
                         icon: const Icon(FluentIcons.video_24_regular, size: 20),
                         onPressed: onVideoCallPressed,
-                        padding: const EdgeInsets.all(8),
-                        constraints: const BoxConstraints(),
+                        padding: const EdgeInsets.all(12),
+                        constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                         color: backgroundUrl != null ? Colors.white : null,
                       ),
                     if (isDesktop) ...[
@@ -302,8 +305,8 @@ class ChatAppBar extends StatelessWidget {
                           size: 20,
                         ),
                         onPressed: onDetailsToggle,
-                        padding: const EdgeInsets.all(8),
-                        constraints: const BoxConstraints(),
+                        padding: const EdgeInsets.all(12),
+                        constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                         color: backgroundUrl != null ? Colors.white : null,
                       ),
                     ],

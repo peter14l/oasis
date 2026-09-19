@@ -645,9 +645,6 @@ class CallControlBar extends StatelessWidget {
     );
     final isMuted = context.select<CallProvider, bool>((p) => p.isMuted);
     final isVideoOn = context.select<CallProvider, bool>((p) => p.isVideoOn);
-    final isSpeakerphoneOn = context.select<CallProvider, bool>(
-      (p) => p.isSpeakerphoneOn,
-    );
     final isSharing = context.select<CallProvider, bool>(
       (p) => p.isScreenSharing,
     );
@@ -721,69 +718,93 @@ class CallControlBar extends StatelessWidget {
     AudioOutputRoute audioRoute,
     bool isSharing,
   ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        _ControlButton(
-          onPressed: provider.toggleMute,
-          icon: isMuted ? Icons.mic_off : Icons.mic,
-          color: isMuted ? Colors.red : Colors.white24,
+        // Secondary Controls (Upper Row)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _ControlButton(
+              onPressed: () {
+                provider.toggleMinimize(value: true);
+                Navigator.pop(context);
+              },
+              icon: Icons.close_fullscreen_rounded,
+              color: Colors.white12,
+              tooltip: 'Minimize',
+            ),
+            const SizedBox(width: 24),
+            _ControlButton(
+              onPressed: provider.toggleScreenShare,
+              icon: isSharing ? Icons.stop_screen_share : Icons.screen_share,
+              color: isSharing ? Colors.green : Colors.white12,
+              tooltip: 'Screen Share',
+            ),
+            const SizedBox(width: 24),
+            _ControlButton(
+              onPressed: () {
+                final room = provider.room;
+                if (room != null) {
+                  context.showResponsiveSheet(
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => AddParticipantSheet(
+                      existingParticipantIds: [
+                        room.localParticipant?.identity ?? '',
+                        ...room.remoteParticipants.values.map((p) => p.identity),
+                      ],
+                    ),
+                  );
+                }
+              },
+              icon: Icons.person_add_alt_1,
+              color: Colors.white12,
+              tooltip: 'Add Participant',
+            ),
+          ],
         ),
-        _ControlButton(
-          onPressed: provider.cycleAudioRoute,
-          icon: audioRoute == AudioOutputRoute.speaker
-              ? Icons.volume_up
-              : (audioRoute == AudioOutputRoute.bluetooth
-                  ? Icons.bluetooth_audio
-                  : Icons.phone_in_talk),
-          color: audioRoute == AudioOutputRoute.speaker
-              ? Colors.blue
-              : (audioRoute == AudioOutputRoute.bluetooth
-                  ? Colors.cyanAccent
-                  : Colors.white24),
-        ),
-        _ControlButton(
-          onPressed: () {
-            provider.toggleMinimize(value: true);
-            Navigator.pop(context);
-          },
-          icon: Icons.close_fullscreen_rounded,
-          color: Colors.white24,
-        ),
-        _ControlButton(
-          onPressed: provider.toggleVideo,
-          icon: isVideoOn ? Icons.videocam : Icons.videocam_off,
-          color: isVideoOn ? Colors.white24 : Colors.red,
-        ),
-        _ControlButton(
-          onPressed: provider.toggleScreenShare,
-          icon: isSharing ? Icons.stop_screen_share : Icons.screen_share,
-          color: isSharing ? Colors.green : Colors.white24,
-        ),
-        _ControlButton(
-          onPressed: () {
-            final room = provider.room;
-            if (room != null) {
-              context.showResponsiveSheet(
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => AddParticipantSheet(
-                  existingParticipantIds: [
-                    room.localParticipant?.identity ?? '',
-                    ...room.remoteParticipants.values.map((p) => p.identity),
-                  ],
-                ),
-              );
-            }
-          },
-          icon: Icons.person_add_alt_1,
-          color: Colors.white24,
-        ),
-        _ControlButton(
-          onPressed: provider.endCall,
-          icon: Icons.call_end,
-          color: Colors.red,
-          isLarge: true,
+        const SizedBox(height: 16),
+        // Primary Core Controls (Lower Row)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _ControlButton(
+              onPressed: provider.toggleMute,
+              icon: isMuted ? Icons.mic_off : Icons.mic,
+              color: isMuted ? Colors.white38 : Colors.white24,
+              iconColor: isMuted ? Colors.orangeAccent : Colors.white,
+              tooltip: isMuted ? 'Unmute' : 'Mute',
+            ),
+            _ControlButton(
+              onPressed: provider.cycleAudioRoute,
+              icon: audioRoute == AudioOutputRoute.speaker
+                  ? Icons.volume_up
+                  : (audioRoute == AudioOutputRoute.bluetooth
+                      ? Icons.bluetooth_audio
+                      : Icons.phone_in_talk),
+              color: audioRoute == AudioOutputRoute.speaker
+                  ? Colors.blue
+                  : (audioRoute == AudioOutputRoute.bluetooth
+                      ? Colors.cyanAccent
+                      : Colors.white24),
+              tooltip: 'Audio Output',
+            ),
+            _ControlButton(
+              onPressed: provider.toggleVideo,
+              icon: isVideoOn ? Icons.videocam : Icons.videocam_off,
+              color: isVideoOn ? Colors.white24 : Colors.white38,
+              iconColor: isVideoOn ? Colors.white : Colors.orangeAccent,
+              tooltip: isVideoOn ? 'Turn Video Off' : 'Turn Video On',
+            ),
+            _ControlButton(
+              onPressed: provider.endCall,
+              icon: Icons.call_end,
+              color: Colors.red,
+              isLarge: true,
+              tooltip: 'End Call',
+            ),
+          ],
         ),
       ],
     );
@@ -794,26 +815,35 @@ class _ControlButton extends StatelessWidget {
   final VoidCallback onPressed;
   final IconData icon;
   final Color color;
+  final Color? iconColor;
   final bool isLarge;
+  final String? tooltip;
 
   const _ControlButton({
     required this.onPressed,
     required this.icon,
     required this.color,
+    this.iconColor,
     this.isLarge = false,
+    this.tooltip,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final Widget button = Container(
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       child: IconButton(
         onPressed: onPressed,
-        icon: Icon(icon, color: Colors.white),
+        icon: Icon(icon, color: iconColor ?? Colors.white),
         iconSize: isLarge ? 32 : 24,
         padding: EdgeInsets.all(isLarge ? 16 : 12),
       ),
     );
+    final String? tip = tooltip;
+    if (tip != null) {
+      return Tooltip(message: tip, child: button);
+    }
+    return button;
   }
 }
 

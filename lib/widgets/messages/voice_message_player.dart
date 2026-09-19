@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 
@@ -21,6 +23,11 @@ class VoiceMessagePlayer extends StatefulWidget {
 
 class VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
   final AudioPlayer _audioPlayer = AudioPlayer();
+  StreamSubscription? _playerStateSub;
+  StreamSubscription? _durationSub;
+  StreamSubscription? _positionSub;
+  StreamSubscription? _completeSub;
+
   bool _isPlaying = false;
   bool _isError = false;
   bool _isDragging = false;
@@ -37,82 +44,141 @@ class VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
     _initAudioPlayer();
   }
 
-  Future<void> _initAudioPlayer() async {
-    try {
-      _audioPlayer.onPlayerStateChanged.listen((state) {
-        if (mounted) {
-          setState(() {
-            _isPlaying = state == PlayerState.playing;
-          });
-        }
-      });
-
-      _audioPlayer.onDurationChanged.listen((duration) {
-        if (mounted && duration.inSeconds > 0) {
-          setState(() {
-            _duration = duration;
-          });
-        }
-      });
-
-      _audioPlayer.onPositionChanged.listen((position) {
-        if (mounted && !_isDragging) {
-          setState(() {
-            _position = position;
-          });
-        }
-      });
-
-      _audioPlayer.onPlayerComplete.listen((_) {
-        if (mounted) {
-          setState(() {
-            _isPlaying = false;
-            _position = Duration.zero; // Reset to start
-          });
-        }
-      });
-
-      // Pre-load the source
-      if (widget.audioUrl.isNotEmpty) {
-        if (widget.audioUrl.startsWith('http') ||
-            widget.audioUrl.startsWith('https')) {
-          await _audioPlayer.setSourceUrl(widget.audioUrl);
-        } else {
-          await _audioPlayer.setSourceDeviceFile(widget.audioUrl);
-        }
+  @override
+  void didUpdateWidget(VoiceMessagePlayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.audioUrl != widget.audioUrl) {
+      if (_isPlaying) {
+        _audioPlayer.stop().catchError((_) {});
+        setState(() {
+          _isPlaying = false;
+          _position = Duration.zero;
+        });
       }
+      if (_isError) {
+        setState(() => _isError = false);
+      }
+    }
+    if (oldWidget.duration != widget.duration &&
+        widget.duration != null &&
+        widget.duration! > 0) {
+      setState(() {
+        _duration = Duration(seconds: widget.duration!);
+      });
+    }
+  }
+
+  void _initAudioPlayer() {
+    try {
+      _playerStateSub = _audioPlayer.onPlayerStateChanged.listen(
+        (state) {
+          if (mounted) {
+            setState(() {
+              _isPlaying = state == PlayerState.playing;
+            });
+          }
+        },
+        onError: (e) {
+          debugPrint('[VoiceMessagePlayer] Player state error: $e');
+          if (mounted) {
+            setState(() {
+              _isPlaying = false;
+              _isError = true;
+            });
+          }
+        },
+      );
+
+      _durationSub = _audioPlayer.onDurationChanged.listen(
+        (duration) {
+          if (mounted && duration.inSeconds > 0) {
+            setState(() {
+              _duration = duration;
+            });
+          }
+        },
+        onError: (e) {
+          debugPrint('[VoiceMessagePlayer] Duration error: $e');
+        },
+      );
+
+      _positionSub = _audioPlayer.onPositionChanged.listen(
+        (position) {
+          if (mounted && !_isDragging) {
+            setState(() {
+              _position = position;
+            });
+          }
+        },
+        onError: (e) {
+          debugPrint('[VoiceMessagePlayer] Position error: $e');
+        },
+      );
+
+      _completeSub = _audioPlayer.onPlayerComplete.listen(
+        (_) {
+          if (mounted) {
+            setState(() {
+              _isPlaying = false;
+              _position = Duration.zero; // Reset to start
+            });
+          }
+        },
+        onError: (e) {
+          debugPrint('[VoiceMessagePlayer] Complete error: $e');
+          if (mounted) {
+            setState(() {
+              _isPlaying = false;
+            });
+          }
+        },
+      );
     } catch (e) {
-      debugPrint('Error initializing audio: $e');
+      debugPrint('[VoiceMessagePlayer] Error initializing audio player: $e');
       if (mounted) setState(() => _isError = true);
     }
   }
 
   Future<void> _togglePlayPause() async {
-    if (_isError) return;
+    if (_isError) {
+      setState(() => _isError = false);
+    }
 
     try {
       if (_isPlaying) {
         await _audioPlayer.pause();
       } else {
-        if (widget.audioUrl.isEmpty) return;
+        final url = widget.audioUrl.trim();
+        if (url.isEmpty) return;
+
+        Source source;
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+          source = UrlSource(url);
+        } else {
+          final file = File(url);
+          if (!await file.exists() || (await file.length()) == 0) {
+            debugPrint('[VoiceMessagePlayer] Audio file missing or empty: $url');
+            if (mounted) setState(() => _isError = true);
+            return;
+          }
+          source = DeviceFileSource(url);
+        }
+
         // If we are at the end, restart
         if (_position >= _duration && _duration.inSeconds > 0) {
           await _audioPlayer.seek(Duration.zero);
         }
         await _audioPlayer.setPlaybackRate(_playbackSpeed);
-
-        Source source;
-        if (widget.audioUrl.startsWith('http') ||
-            widget.audioUrl.startsWith('https')) {
-          source = UrlSource(widget.audioUrl);
-        } else {
-          source = DeviceFileSource(widget.audioUrl);
-        }
         await _audioPlayer.play(source);
       }
     } catch (e) {
-      debugPrint('Error playing audio: $e');
-      if (mounted) setState(() => _isError = true);
+      debugPrint('[VoiceMessagePlayer] Error playing audio: $e');
+      if (mounted) {
+        setState(() {
+          _isPlaying = false;
+          _isError = true;
+        });
+      }
     }
   }
 
@@ -125,12 +191,20 @@ class VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
       _playbackSpeed = nextSpeed;
     });
 
-    await _audioPlayer.setPlaybackRate(nextSpeed);
+    try {
+      await _audioPlayer.setPlaybackRate(nextSpeed);
+    } catch (e) {
+      debugPrint('[VoiceMessagePlayer] Error setting playback rate: $e');
+    }
   }
 
   void _onSeek(double value) {
-    final targetPosition = Duration(seconds: value.toInt());
-    _audioPlayer.seek(targetPosition);
+    try {
+      final targetPosition = Duration(seconds: value.toInt());
+      _audioPlayer.seek(targetPosition);
+    } catch (e) {
+      debugPrint('[VoiceMessagePlayer] Error seeking: $e');
+    }
   }
 
   String _formatDuration(Duration duration) {
@@ -142,7 +216,12 @@ class VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
 
   @override
   void dispose() {
-    _audioPlayer.dispose();
+    _playerStateSub?.cancel();
+    _durationSub?.cancel();
+    _positionSub?.cancel();
+    _completeSub?.cancel();
+    _audioPlayer.stop().catchError((_) {});
+    _audioPlayer.dispose().catchError((_) {});
     super.dispose();
   }
 

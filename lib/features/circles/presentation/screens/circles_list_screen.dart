@@ -60,6 +60,20 @@ class _CirclesListScreenState extends State<CirclesListScreen> {
     return PopScope(
       child: Scaffold(
         backgroundColor: Colors.transparent,
+        floatingActionButton: !isDesktop && circles.circles.isNotEmpty
+            ? FloatingActionButton.extended(
+                heroTag: 'circles_new_circle_fab',
+                onPressed: () => context.pushNamed('create_circle'),
+                icon: const Icon(FluentIcons.add_circle_24_filled, size: 22),
+                label: const Text(
+                  'New Circle',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
+                elevation: 3,
+              )
+            : null,
         body: SafeArea(
           child: CustomScrollView(
             slivers: [

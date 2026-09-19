@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
@@ -79,7 +80,12 @@ class ChatRecordingProvider with ChangeNotifier {
       notifyListeners();
 
       if (recordPath != null) {
-        onRecordingComplete?.call(recordPath, duration);
+        final file = File(recordPath);
+        if (await file.exists() && await file.length() > 0) {
+          onRecordingComplete?.call(recordPath, duration > 0 ? duration : 1);
+        } else {
+          debugPrint('[ChatRecordingProvider] Discarded empty or missing recording file: $recordPath');
+        }
       }
       HapticUtils.lightImpact();
     } catch (e) {

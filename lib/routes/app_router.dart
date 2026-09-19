@@ -720,7 +720,7 @@ class _MainLayoutState extends State<MainLayout> {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: ProgressiveBlurBackground(height: 124.0),
+                child: ProgressiveBlurBackground(height: 100.0),
               ),
 
             // 2. Floating Liquid Glass Bottom Navbar Pill with draggable rectangular squircle indicator
@@ -728,8 +728,8 @@ class _MainLayoutState extends State<MainLayout> {
               top: false,
               child: Padding(
                 padding: const EdgeInsets.only(
-                  bottom: 16.0,
-                  top: 8.0,
+                  bottom: 12.0,
+                  top: 6.0,
                 ),
                 child: LiquidGlassBottomNavPill(
                   currentIndex: currentIndex < 0 ? 0 : currentIndex,

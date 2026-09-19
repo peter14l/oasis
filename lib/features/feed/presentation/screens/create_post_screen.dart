@@ -850,7 +850,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               return Chip(
                 label: Text(u['username'] ?? 'User'),
                 onDeleted: () => setState(() => _selectedCollaborators.remove(u)),
-                deleteIcon: const Icon(Icons.close, size: 14),
+                deleteIcon: const Icon(Icons.close, size: 18),
               );
             }).toList(),
           ),
@@ -1177,7 +1177,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       label: Text(u['username'] ?? 'User'),
                       onDeleted: () =>
                           setState(() => _selectedCollaborators.remove(u)),
-                      deleteIcon: const Icon(Icons.close, size: 14),
+                      deleteIcon: const Icon(Icons.close, size: 18),
                     ),
                   );
                 }).toList(),
@@ -1187,7 +1187,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           if (_locationController.text.isNotEmpty) ...[
             const SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(isM3E ? 20 : 12),
@@ -1202,10 +1202,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(_locationController.text),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 4),
                   InkWell(
                     onTap: () => setState(() => _locationController.clear()),
-                    child: const Icon(Icons.close, size: 16),
+                    borderRadius: BorderRadius.circular(16),
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Icon(Icons.close, size: 18),
+                    ),
                   ),
                 ],
               ),

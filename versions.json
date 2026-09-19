@@ -1,35 +1,35 @@
 {
   "android": {
-    "latestVersion": "1.1.28",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.28.apk",
+    "latestVersion": "1.1.29",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.29.apk",
     "abiUrls": {
-      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.28-arm64-v8a.apk",
-      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.28-armeabi-v7a.apk",
-      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.28-x86_64.apk",
-      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.28.apk"
+      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.29-arm64-v8a.apk",
+      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.29-armeabi-v7a.apk",
+      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.29-x86_64.apk",
+      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.29.apk"
     },
-    "releaseNotes": "• WhatsApp/Instagram-Grade VoIP Calling & Handset Proximity Sensor: Added native ear-detection screen blanking during earpiece calls to prevent accidental touch inputs, default earpiece audio routing with speaker/bluetooth toggle.\n• In-Call Floating PIP Overlay: Active calls can now be minimized into a floating, draggable mini-overlay with live video/pulsating avatar and quick mute/hangup controls while navigating the app.",
+    "releaseNotes": "• Reliable E2E Voice Notes: Automated on-demand download, decryption, and playback for encrypted voice messages with duration synchronization and audio error recovery.\n• Fluid Liquid Glass Navigation: Interactive fluid magnification expanding the indicator when dragged, natural compact pill sizing, and gesture cancel protection.\n• Streamlined In-Call Control Bar: Ergonomic two-tier in-call layout separating secondary utilities (minimize, screen share, invite) from primary call actions (mute, video, audio routing, end call).\n• Chat & UI Enhancements: Adaptive message bubble corner curvatures for sender grouping, jitter-free typing input bar, and new message FAB.",
     "isRequired": false,
-    "releaseDate": "2026-09-19T02:00:00Z"
+    "releaseDate": "2026-09-19T04:10:00Z"
   },
   "windows": {
-    "latestVersion": "1.1.28",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.28.msix",
+    "latestVersion": "1.1.29",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.29.msix",
     "abiUrls": {
-      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.28.msix"
+      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.29.msix"
     },
-    "releaseNotes": "• In-Call Floating Call Overlay: Active calls can be minimized into a floating mini-overlay with live video and quick controls while browsing.\n• Robust Call Routing: Seamless audio route handling, earpiece default, and resilience across screen share and video toggling.",
+    "releaseNotes": "• Reliable E2E Voice Notes: Automated on-demand download, decryption, and playback for encrypted voice messages with duration synchronization and audio error recovery.\n• Fluid Liquid Glass Navigation: Interactive fluid magnification expanding the indicator when dragged, natural compact pill sizing, and gesture cancel protection.\n• Streamlined In-Call Control Bar: Ergonomic two-tier in-call layout separating secondary utilities (minimize, screen share, invite) from primary call actions (mute, video, audio routing, end call).\n• Chat & UI Enhancements: Adaptive message bubble corner curvatures for sender grouping, jitter-free typing input bar, and new message FAB.",
     "isRequired": false,
-    "releaseDate": "2026-09-19T02:00:00Z"
+    "releaseDate": "2026-09-19T04:10:00Z"
   },
   "macos": {
-    "latestVersion": "1.1.28",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.28.dmg",
+    "latestVersion": "1.1.29",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.29.dmg",
     "abiUrls": {
-      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.28.dmg"
+      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.29.dmg"
     },
-    "releaseNotes": "• In-Call Floating Call Overlay: Active calls can be minimized into a floating mini-overlay with live video and quick controls while browsing.\n• Robust Call Routing: Seamless audio route handling, earpiece default, and resilience across screen share and video toggling.",
+    "releaseNotes": "• Reliable E2E Voice Notes: Automated on-demand download, decryption, and playback for encrypted voice messages with duration synchronization and audio error recovery.\n• Fluid Liquid Glass Navigation: Interactive fluid magnification expanding the indicator when dragged, natural compact pill sizing, and gesture cancel protection.\n• Streamlined In-Call Control Bar: Ergonomic two-tier in-call layout separating secondary utilities (minimize, screen share, invite) from primary call actions (mute, video, audio routing, end call).\n• Chat & UI Enhancements: Adaptive message bubble corner curvatures for sender grouping, jitter-free typing input bar, and new message FAB.",
     "isRequired": false,
-    "releaseDate": "2026-09-19T02:00:00Z"
+    "releaseDate": "2026-09-19T04:10:00Z"
   }
 }

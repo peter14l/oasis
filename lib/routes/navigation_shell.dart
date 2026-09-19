@@ -7,14 +7,11 @@ import 'package:go_router/go_router.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/providers/conversation_provider.dart';
-import 'package:oasis/services/app_initializer.dart';
 import 'package:oasis/themes/theme_provider.dart';
 import 'package:oasis/features/settings/domain/models/user_settings_entity.dart';
 import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
 import 'package:oasis/widgets/liquid_glass_wrapper.dart';
-import 'package:oasis/widgets/windows_title_bar.dart';
 import 'package:oasis/widgets/global_migration_indicator.dart';
-import 'package:window_manager/window_manager.dart';
 
 /// Navigation shell with bottom navigation bar
 class NavigationShell extends material.StatelessWidget {
@@ -72,8 +69,8 @@ class NavigationShell extends material.StatelessWidget {
             ),
           ),
         ),
-        autoSuggestBox: fluent.AutoSuggestBox(
-          items: const [],
+        autoSuggestBox: const fluent.AutoSuggestBox(
+          items: [],
           placeholder: 'Search...',
         ),
         autoSuggestBoxReplacement: const material.Icon(FluentIcons.search_24_regular),
@@ -88,7 +85,12 @@ class NavigationShell extends material.StatelessWidget {
             body: const material.SizedBox.shrink(),
           ),
           fluent.PaneItem(
-            icon: material.Icon(currentIndex == 1 ? FluentIcons.people_24_filled : FluentIcons.people_24_regular),
+            icon: material.Icon(currentIndex == 1 ? FluentIcons.search_24_filled : FluentIcons.search_24_regular),
+            title: const fluent.Text('Search'),
+            body: const material.SizedBox.shrink(),
+          ),
+          fluent.PaneItem(
+            icon: material.Icon(currentIndex == 2 ? FluentIcons.people_24_filled : FluentIcons.people_24_regular),
             title: const fluent.Text('Circles'),
             body: const material.SizedBox.shrink(),
           ),
@@ -96,7 +98,7 @@ class NavigationShell extends material.StatelessWidget {
             icon: material.Stack(
               clipBehavior: material.Clip.none,
               children: [
-                material.Icon(currentIndex == 2 ? FluentIcons.chat_24_filled : FluentIcons.chat_24_regular),
+                material.Icon(currentIndex == 3 ? FluentIcons.chat_24_filled : FluentIcons.chat_24_regular),
                 if (unreadCount > 0)
                   material.Positioned(
                     top: -2,
@@ -117,7 +119,7 @@ class NavigationShell extends material.StatelessWidget {
             body: const material.SizedBox.shrink(),
           ),
           fluent.PaneItem(
-            icon: material.Icon(currentIndex == 3 ? FluentIcons.alert_24_filled : FluentIcons.alert_24_regular),
+            icon: material.Icon(currentIndex == 4 ? FluentIcons.alert_24_filled : FluentIcons.alert_24_regular),
             title: const fluent.Text('Alerts'),
             body: const material.SizedBox.shrink(),
           ),

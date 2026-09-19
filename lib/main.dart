@@ -743,9 +743,12 @@ void main() async {
         errorStrLower.contains('refresh_token_not_found') ||
         errorStrLower.contains('xmlhttprequest error') ||
         errorStrLower.contains('invalid statuscode: 404') ||
-        errorStrLower.contains('failed host lookup')) {
+        errorStrLower.contains('failed host lookup') ||
+        errorStrLower.contains('androidaudioerror') ||
+        errorStrLower.contains('media_error_unknown') ||
+        errorStrLower.contains('audioplayer')) {
       material.debugPrint(
-        '[GlobalError] Ignoring transient network/auth error: $error',
+        '[GlobalError] Ignoring transient network/audio error: $error',
       );
       return true;
     }
