@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/features/calling/domain/models/call_entity.dart';
@@ -14,10 +15,19 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:oasis/features/messages/data/pq_aura/pq_aura_service.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+
+enum AudioOutputRoute {
+  earpiece,
+  speaker,
+  bluetooth,
+}
 
 class CallService extends ChangeNotifier {
   static CallService? _instance;
   static CallService get instance => _instance ?? CallService();
+
+  static const MethodChannel _callChannel = MethodChannel('oasis/call');
 
   final SupabaseClient? _supabaseClient;
   SupabaseClient get _supabase => _supabaseClient ?? SupabaseService().client;
@@ -36,6 +46,7 @@ class CallService extends ChangeNotifier {
   bool _isMuted = false;
   bool _isVideoOn = true;
   bool _isSpeakerphoneOn = false;
+  AudioOutputRoute _audioRoute = AudioOutputRoute.earpiece;
   bool _isScreenSharing = false;
 
   StreamSubscription? _incomingCallSubscription;
@@ -105,8 +116,7 @@ class CallService extends ChangeNotifier {
   Future<void> _configureCallAudioSession() async {
     if (kIsWeb) return;
     try {
-      final session = await audio_session.AudioSession.instance;
-      await session.configure(const audio_session.AudioSessionConfiguration.speech());
+      await setAudioRoute(_audioRoute);
     } catch (e) {
       debugPrint('[CallService] Audio session configuration not supported on this platform: $e');
     }
@@ -119,6 +129,7 @@ class CallService extends ChangeNotifier {
   bool get isMuted => _isMuted;
   bool get isVideoOn => _isVideoOn;
   bool get isSpeakerphoneOn => _isSpeakerphoneOn;
+  AudioOutputRoute get audioRoute => _audioRoute;
   bool get isScreenSharing => _isScreenSharing;
   Room? get room => _room;
 
@@ -140,7 +151,8 @@ class CallService extends ChangeNotifier {
     _recordStep('initLocalStream(video: $isVideo)');
     _isVideoOn = isVideo;
     _isMuted = false;
-    _isSpeakerphoneOn = isVideo;
+    _isSpeakerphoneOn = false;
+    _audioRoute = AudioOutputRoute.earpiece;
 
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       await [Permission.microphone, Permission.camera].request();
@@ -212,6 +224,7 @@ _room = Room(roomOptions: roomOptions);
       ));
 
       _recordStep('Connected to LiveKit room');
+      _updateProximitySensor();
 
       NotificationManager.instance.showActiveCallNotification(
         callId: call.id,
@@ -250,8 +263,23 @@ _room = Room(roomOptions: roomOptions);
         _recordStep('Track unsubscribed: ${event.track.sid}');
         _scheduleNotify();
       })
+      ..on<TrackMutedEvent>((event) {
+        _recordStep('Track muted: ${event.publication.sid}');
+        _scheduleNotify();
+      })
+      ..on<TrackUnmutedEvent>((event) {
+        _recordStep('Track unmuted: ${event.publication.sid}');
+        _scheduleNotify();
+      })
       ..on<LocalTrackPublishedEvent>((event) {
         _recordStep('Local track published: ${event.publication.sid}');
+        _scheduleNotify();
+      })
+      ..on<LocalTrackUnpublishedEvent>((event) {
+        _recordStep('Local track unpublished: ${event.publication.sid}');
+        if (event.publication.isScreenShare) {
+          _isScreenSharing = false;
+        }
         _scheduleNotify();
       });
   }
@@ -443,55 +471,141 @@ _room = Room(roomOptions: roomOptions);
     _currentCall = null;
     _incomingCall = null;
     _isScreenSharing = false;
+    _setProximitySensor(false);
 
     notifyListeners();
   }
 
-  void toggleMute() {
-    _isMuted = !_isMuted;
-    _room?.localParticipant?.setMicrophoneEnabled(!_isMuted);
-    notifyListeners();
+  Future<void> toggleMute() async {
+    final target = !_isMuted;
+    try {
+      await _room?.localParticipant?.setMicrophoneEnabled(!target);
+      _isMuted = target;
+    } catch (e) {
+      debugPrint('[CallService] toggleMute error: $e');
+    } finally {
+      notifyListeners();
+    }
   }
 
   Future<void> toggleVideo() async {
-    _isVideoOn = !_isVideoOn;
-    await _room?.localParticipant?.setCameraEnabled(_isVideoOn);
-    notifyListeners();
+    final target = !_isVideoOn;
+    try {
+      await _room?.localParticipant?.setCameraEnabled(target);
+      _isVideoOn = target;
+    } catch (e) {
+      debugPrint('[CallService] toggleVideo error: $e');
+    } finally {
+      notifyListeners();
+    }
   }
 
   Future<void> toggleScreenShare() async {
-    _isScreenSharing = !_isScreenSharing;
-    await _room?.localParticipant?.setScreenShareEnabled(_isScreenSharing);
-    notifyListeners();
+    final target = !_isScreenSharing;
+    try {
+      await _room?.localParticipant?.setScreenShareEnabled(target);
+      _isScreenSharing = target;
+    } catch (e) {
+      debugPrint('[CallService] toggleScreenShare error: $e');
+      _isScreenSharing = false;
+    } finally {
+      notifyListeners();
+    }
   }
 
-  void toggleSpeakerphone() async {
-    _isSpeakerphoneOn = !_isSpeakerphoneOn;
-    
+  Future<void> setAudioRoute(AudioOutputRoute route) async {
+    _audioRoute = route;
+    _isSpeakerphoneOn = route == AudioOutputRoute.speaker;
+
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       try {
         final session = await audio_session.AudioSession.instance;
-        await session.configure(audio_session.AudioSessionConfiguration(
-          avAudioSessionCategory: audio_session.AVAudioSessionCategory.playAndRecord,
-          avAudioSessionCategoryOptions: _isSpeakerphoneOn
-              ? audio_session.AVAudioSessionCategoryOptions.defaultToSpeaker
-              : audio_session.AVAudioSessionCategoryOptions.allowBluetooth,
-          avAudioSessionMode: audio_session.AVAudioSessionMode.defaultMode,
-          androidAudioAttributes: audio_session.AndroidAudioAttributes(
-            contentType: audio_session.AndroidAudioContentType.speech,
-            flags: audio_session.AndroidAudioFlags.none,
-            usage: audio_session.AndroidAudioUsage.voiceCommunication,
-          ),
-          androidAudioFocusGainType: audio_session.AndroidAudioFocusGainType.gainTransientExclusive,
-          androidWillPauseWhenDucked: false,
-        ));
-        await session.setActive(true);
+        switch (route) {
+          case AudioOutputRoute.speaker:
+            await session.configure(audio_session.AudioSessionConfiguration(
+              avAudioSessionCategory: audio_session.AVAudioSessionCategory.playAndRecord,
+              avAudioSessionCategoryOptions: audio_session.AVAudioSessionCategoryOptions.defaultToSpeaker,
+              avAudioSessionMode: audio_session.AVAudioSessionMode.voiceChat,
+              androidAudioAttributes: const audio_session.AndroidAudioAttributes(
+                contentType: audio_session.AndroidAudioContentType.speech,
+                usage: audio_session.AndroidAudioUsage.voiceCommunication,
+              ),
+              androidAudioFocusGainType: audio_session.AndroidAudioFocusGainType.gainTransientExclusive,
+            ));
+            await session.setActive(true);
+            await rtc.Helper.setSpeakerphoneOn(true);
+            break;
+          case AudioOutputRoute.bluetooth:
+            await session.configure(audio_session.AudioSessionConfiguration(
+              avAudioSessionCategory: audio_session.AVAudioSessionCategory.playAndRecord,
+              avAudioSessionCategoryOptions: const {
+                audio_session.AVAudioSessionCategoryOptions.allowBluetooth,
+                audio_session.AVAudioSessionCategoryOptions.allowBluetoothA2DP,
+              },
+              avAudioSessionMode: audio_session.AVAudioSessionMode.voiceChat,
+              androidAudioAttributes: const audio_session.AndroidAudioAttributes(
+                contentType: audio_session.AndroidAudioContentType.speech,
+                usage: audio_session.AndroidAudioUsage.voiceCommunication,
+              ),
+              androidAudioFocusGainType: audio_session.AndroidAudioFocusGainType.gainTransientExclusive,
+            ));
+            await session.setActive(true);
+            await rtc.Helper.setSpeakerphoneOnButPreferBluetooth();
+            break;
+          case AudioOutputRoute.earpiece:
+            await session.configure(const audio_session.AudioSessionConfiguration(
+              avAudioSessionCategory: audio_session.AVAudioSessionCategory.playAndRecord,
+              avAudioSessionCategoryOptions: {},
+              avAudioSessionMode: audio_session.AVAudioSessionMode.voiceChat,
+              androidAudioAttributes: audio_session.AndroidAudioAttributes(
+                contentType: audio_session.AndroidAudioContentType.speech,
+                usage: audio_session.AndroidAudioUsage.voiceCommunication,
+              ),
+              androidAudioFocusGainType: audio_session.AndroidAudioFocusGainType.gainTransientExclusive,
+            ));
+            await session.setActive(true);
+            await rtc.Helper.setSpeakerphoneOn(false);
+            break;
+        }
       } catch (e) {
-        debugPrint('[CallService] Error toggling speakerphone: $e');
+        debugPrint('[CallService] Error setting audio route to $route: $e');
       }
     }
+    _updateProximitySensor();
     _scheduleNotify();
   }
+
+  Future<void> _setProximitySensor(bool enable) async {
+    if (kIsWeb) return;
+    if (Platform.isAndroid || Platform.isIOS) {
+      try {
+        await _callChannel.invokeMethod('setProximitySensor', {'enable': enable});
+      } catch (e) {
+        debugPrint('[CallService] setProximitySensor error: $e');
+      }
+    }
+  }
+
+  void _updateProximitySensor() {
+    final bool enable = _currentCallId != null && _audioRoute == AudioOutputRoute.earpiece;
+    _setProximitySensor(enable);
+  }
+
+  Future<void> cycleAudioRoute() async {
+    switch (_audioRoute) {
+      case AudioOutputRoute.earpiece:
+        await setAudioRoute(AudioOutputRoute.speaker);
+        break;
+      case AudioOutputRoute.speaker:
+        await setAudioRoute(AudioOutputRoute.bluetooth);
+        break;
+      case AudioOutputRoute.bluetooth:
+        await setAudioRoute(AudioOutputRoute.earpiece);
+        break;
+    }
+  }
+
+  void toggleSpeakerphone() => cycleAudioRoute();
 
   Future<void> _playRingtone() async {
     if (kIsWeb) return;
@@ -561,11 +675,15 @@ class DisabledCallService extends CallService {
   @override
   Future<void> endCall() async {}
   @override
-  void toggleMute() {}
+  Future<void> toggleMute() async {}
   @override
   Future<void> toggleVideo() async {}
   @override
   void toggleSpeakerphone() {}
+  @override
+  Future<void> cycleAudioRoute() async {}
+  @override
+  Future<void> setAudioRoute(AudioOutputRoute route) async {}
   @override
   Future<void> toggleScreenShare() async {}
 }

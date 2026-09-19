@@ -2,6 +2,14 @@
 
 All notable changes to the Oasis project will be documented in this file. This project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.28] - 2026-09-19
+
+### Calling & Real-Time Communication
+- **Handset Proximity Sensor (Ear-Detection Screen Blanking)** - Integrated native Android (`PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK`) and iOS (`isProximityMonitoringEnabled`) ear detection. Turning the screen black and disabling touch inputs when held to the ear during earpiece calls, matching WhatsApp and native phone call behavior.
+- **In-Call Picture-in-Picture (Floating Call Overlay)** - Enabled draggable mini-window floating overlay across Android, iOS, and Windows. Users can minimize any active or incoming call to browse the app freely, view live video or pulsating participant avatars, and perform one-tap mute, end-call, or restore back to full screen.
+- **Top-Bar Minimize Control** - Added quick-minimize chevron action in the call header for one-tap transition into floating overlay mode.
+- **Audio Routing Resilience** - Default earpiece routing for voice calls, with seamless 3-way cycling across earpiece, speaker, and bluetooth devices.
+
 ## [1.1.27] - 2026-09-17
 
 ### Interface & Design

@@ -157,7 +157,7 @@ class _FloatingCallOverlayState extends State<FloatingCallOverlay> {
     final remoteParticipant = room.remoteParticipants.values.firstOrNull;
     if (remoteParticipant != null) {
       final videoTrack = remoteParticipant.videoTrackPublications.firstOrNull?.track;
-      if (videoTrack != null) {
+      if (videoTrack != null && !videoTrack.muted) {
         return VideoTrackRenderer(
           videoTrack,
           fit: VideoViewFit.cover,
@@ -167,7 +167,7 @@ class _FloatingCallOverlayState extends State<FloatingCallOverlay> {
 
     if (provider.isVideoOn) {
       final localVideoTrack = room.localParticipant?.videoTrackPublications.firstOrNull?.track;
-      if (localVideoTrack != null) {
+      if (localVideoTrack != null && !localVideoTrack.muted) {
         return VideoTrackRenderer(
           localVideoTrack,
           fit: VideoViewFit.cover,

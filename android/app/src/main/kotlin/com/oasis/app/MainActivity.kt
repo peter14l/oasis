@@ -27,6 +27,7 @@ class MainActivity : FlutterFragmentActivity() {
     private var zeroTapMethodChannel: MethodChannel? = null
     private var pendingCallId: String? = null
     private var pendingNotificationPayload: String? = null
+    private var proximityWakeLock: android.os.PowerManager.WakeLock? = null
 
     private val geofenceReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -118,6 +119,11 @@ class MainActivity : FlutterFragmentActivity() {
                     result.success(pendingCallId)
                     pendingCallId = null // Clear after retrieval
                 }
+                "setProximitySensor" -> {
+                    val enable = call.argument<Boolean>("enable") ?: false
+                    setProximitySensor(enable)
+                    result.success(true)
+                }
                 else -> result.notImplemented()
             }
         }
@@ -156,6 +162,7 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     override fun onDestroy() {
+        setProximitySensor(false)
         LocalBroadcastManager.getInstance(this).unregisterReceiver(geofenceReceiver)
         super.onDestroy()
     }
@@ -234,6 +241,30 @@ class MainActivity : FlutterFragmentActivity() {
                 PackageManager.DONT_KILL_APP
             )
             android.util.Log.d("MainActivity", "Normal mode alias enabled, decoy alias disabled")
+        }
+    }
+
+    private fun setProximitySensor(enable: Boolean) {
+        try {
+            val powerManager = getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager ?: return
+            val proximityWakeLockFlag = 0x00000020 // PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK
+
+            if (enable) {
+                if (proximityWakeLock == null || proximityWakeLock?.isHeld == false) {
+                    proximityWakeLock = powerManager.newWakeLock(proximityWakeLockFlag, "oasis:proximity_call")
+                    proximityWakeLock?.setReferenceCounted(false)
+                    proximityWakeLock?.acquire()
+                    android.util.Log.d("MainActivity", "Proximity screen-off wake lock acquired")
+                }
+            } else {
+                if (proximityWakeLock != null && proximityWakeLock?.isHeld == true) {
+                    proximityWakeLock?.release()
+                    android.util.Log.d("MainActivity", "Proximity screen-off wake lock released")
+                }
+                proximityWakeLock = null
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("MainActivity", "Error configuring proximity sensor: $e")
         }
     }
 }

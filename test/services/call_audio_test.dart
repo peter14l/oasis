@@ -38,7 +38,6 @@ void main() {
 
     callService = CallService(
       supabase: mockSupabase,
-      signalService: mockSignal,
       audioPlayer: mockAudioPlayer,
     );
 

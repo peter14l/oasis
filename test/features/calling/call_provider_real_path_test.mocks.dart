@@ -237,10 +237,13 @@ class MockCallService extends _i1.Mock implements _i4.CallService {
           as _i6.Future<void>);
 
   @override
-  void toggleMute() => super.noSuchMethod(
-    Invocation.method(#toggleMute, []),
-    returnValueForMissingStub: null,
-  );
+  _i6.Future<void> toggleMute() =>
+      (super.noSuchMethod(
+            Invocation.method(#toggleMute, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
 
   @override
   _i6.Future<void> toggleVideo() =>

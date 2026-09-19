@@ -62,6 +62,25 @@ import CoreLocation
       }
     })
 
+    let callChannel = FlutterMethodChannel(name: "oasis/call",
+                                           binaryMessenger: controller.binaryMessenger)
+    callChannel.setMethodCallHandler({
+      (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
+      if call.method == "setProximitySensor" {
+        guard let args = call.arguments as? [String: Any],
+              let enable = args["enable"] as? Bool else {
+          result(FlutterError(code: "INVALID_ARGS", message: "Arguments must contain enable", details: nil))
+          return
+        }
+        DispatchQueue.main.async {
+          UIDevice.current.isProximityMonitoringEnabled = enable
+        }
+        result(true)
+      } else {
+        result(FlutterMethodNotImplemented)
+      }
+    })
+
     UNUserNotificationCenter.current().delegate = self
     
     geofenceChannel?.setMethodCallHandler({

@@ -2160,13 +2160,13 @@
     "semantic_hash": ""
   },
   "lib/features/calling/presentation/providers/call_provider.dart": {
-    "mtime": 1788673590.3488748,
-    "ast_hash": "5c7e2c7aa4c7b45266888620c8d3acfd",
+    "mtime": 1789780868.676607,
+    "ast_hash": "8364a20bd0c7dac2ff9efa04ff67f00f",
     "semantic_hash": ""
   },
   "lib/features/calling/presentation/screens/calling_screen.dart": {
-    "mtime": 1788673590.3488748,
-    "ast_hash": "414206290b685dea5e53d678ea720d7b",
+    "mtime": 1789781939.4286394,
+    "ast_hash": "1527856edc63e949fb76371f8368c0e5",
     "semantic_hash": ""
   },
   "lib/features/calling/presentation/screens/incoming_call_overlay_screen.dart": {
@@ -2180,8 +2180,8 @@
     "semantic_hash": ""
   },
   "lib/features/calling/presentation/widgets/floating_call_overlay.dart": {
-    "mtime": 1788673590.3488748,
-    "ast_hash": "74ecf24ebe98335692bbef984a2a997e",
+    "mtime": 1789781962.8448057,
+    "ast_hash": "db23f981ceaa0e43e7cb6dd8eaf63f60",
     "semantic_hash": ""
   },
   "lib/features/canvas/data/datasources/canvas_remote_datasource.dart": {
@@ -3690,8 +3690,8 @@
     "semantic_hash": "1c3b722bba55875f7ee01fe1c9eb521e"
   },
   "lib/main.dart": {
-    "mtime": 1788673591.6051779,
-    "ast_hash": "ce6df7efb0b45841c57d227694484905",
+    "mtime": 1789781919.672396,
+    "ast_hash": "53ce0e7e398dfbba61fb303bd07f59fe",
     "semantic_hash": ""
   },
   "lib/models/chat_theme.dart": {
@@ -3935,8 +3935,8 @@
     "semantic_hash": ""
   },
   "lib/services/app_initializer.dart": {
-    "mtime": 1788715820.8483355,
-    "ast_hash": "7189a888459cc44e89c725c85cf5e2b6",
+    "mtime": 1789780533.4690292,
+    "ast_hash": "41be298e5832877602653f2d58428458",
     "semantic_hash": ""
   },
   "lib/services/auth/account_registry_manager.dart": {
@@ -3970,8 +3970,8 @@
     "semantic_hash": "df9a36c2f86d5ceea068439e92b8e011"
   },
   "lib/services/call_service.dart": {
-    "mtime": 1788673590.3547547,
-    "ast_hash": "187bcc05a718503f112d749fc10cb68a",
+    "mtime": 1789781906.4175282,
+    "ast_hash": "a8f24aee4f83d9bcb14fba9904d40a90",
     "semantic_hash": ""
   },
   "lib/services/canvas_service.dart": {
@@ -38145,8 +38145,8 @@
     "semantic_hash": ""
   },
   "lib/widgets/liquid_glass_bottom_nav_pill.dart": {
-    "mtime": 1789654775.9929237,
-    "ast_hash": "262467bee984f794911dfc47da8a5ef2",
+    "mtime": 1789657865.597562,
+    "ast_hash": "9d59f327fe6c6888bbed1570d2550ed2",
     "semantic_hash": ""
   }
 }

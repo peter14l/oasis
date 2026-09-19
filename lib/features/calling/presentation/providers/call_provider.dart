@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/call_service.dart';
+export 'package:oasis/services/call_service.dart' show AudioOutputRoute;
 import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/core/providers/safe_change_notifier.dart';
 import '../../domain/models/call_entity.dart';
@@ -24,6 +25,7 @@ class CallState {
   final bool isMuted;
   final bool isVideoOn;
   final bool isSpeakerphoneOn;
+  final AudioOutputRoute audioRoute;
   final bool isScreenSharing;
   final bool isMinimized;
   final bool isReconnecting;
@@ -39,6 +41,7 @@ class CallState {
     this.isMuted = false,
     this.isVideoOn = true,
     this.isSpeakerphoneOn = false,
+    this.audioRoute = AudioOutputRoute.earpiece,
     this.isScreenSharing = false,
     this.isMinimized = false,
     this.isReconnecting = false,
@@ -61,6 +64,7 @@ class CallState {
     bool? isMuted,
     bool? isVideoOn,
     bool? isSpeakerphoneOn,
+    AudioOutputRoute? audioRoute,
     bool? isScreenSharing,
     bool? isMinimized,
     bool? isReconnecting,
@@ -76,6 +80,7 @@ class CallState {
       isMuted: isMuted ?? this.isMuted,
       isVideoOn: isVideoOn ?? this.isVideoOn,
       isSpeakerphoneOn: isSpeakerphoneOn ?? this.isSpeakerphoneOn,
+      audioRoute: audioRoute ?? this.audioRoute,
       isScreenSharing: isScreenSharing ?? this.isScreenSharing,
       isMinimized: isMinimized ?? this.isMinimized,
       isReconnecting: isReconnecting ?? this.isReconnecting,
@@ -140,6 +145,7 @@ class CallProvider extends ChangeNotifier with SafeChangeNotifier {
       isMuted: _callService.isMuted,
       isVideoOn: _callService.isVideoOn,
       isSpeakerphoneOn: _callService.isSpeakerphoneOn,
+      audioRoute: _callService.audioRoute,
       isScreenSharing: _callService.isScreenSharing,
       incomingCall: _callService.incomingCall,
       clearIncomingCall: _callService.incomingCall == null,
@@ -188,6 +194,7 @@ class CallProvider extends ChangeNotifier with SafeChangeNotifier {
   bool get isMuted => _state.isMuted;
   bool get isVideoOn => _state.isVideoOn;
   bool get isSpeakerphoneOn => _state.isSpeakerphoneOn;
+  AudioOutputRoute get audioRoute => _state.audioRoute;
   bool get isScreenSharing => _state.isScreenSharing;
 
   Future<void> _startListenerWithRetry({int attempt = 0}) async {
@@ -427,6 +434,8 @@ class CallProvider extends ChangeNotifier with SafeChangeNotifier {
   void toggleMute() => _callService.toggleMute();
   Future<void> toggleVideo() async => await _callService.toggleVideo();
   void toggleSpeakerphone() => _callService.toggleSpeakerphone();
+  void cycleAudioRoute() => _callService.cycleAudioRoute();
+  Future<void> setAudioRoute(AudioOutputRoute route) async => await _callService.setAudioRoute(route);
   void toggleMinimize({bool? value}) {
     _state = _state.copyWith(isMinimized: value ?? !_state.isMinimized);
     notifyListeners();

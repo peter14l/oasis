@@ -30,6 +30,9 @@ class _CallingScreenState extends State<CallingScreen> {
     super.initState();
 
     if (widget.isIncoming) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkAndAutoAccept();
+      });
       Future.delayed(const Duration(seconds: 15), () {
         if (mounted) {
           final provider = context.read<CallProvider>();
@@ -58,6 +61,20 @@ class _CallingScreenState extends State<CallingScreen> {
     if (error != null) {
       _showError(error);
       _callProvider?.clearError();
+    }
+    _checkAndAutoAccept();
+  }
+
+  void _checkAndAutoAccept() {
+    if (!mounted || !widget.isIncoming) return;
+    final provider = _callProvider;
+    if (provider != null && !provider.hasActiveCall && provider.hasIncomingCall) {
+      final incoming = provider.incomingCall;
+      if (incoming != null &&
+          (widget.callId == incoming.id ||
+           CallService.instance.currentCallId == incoming.id)) {
+        provider.acceptCall(incoming);
+      }
     }
   }
 
@@ -205,15 +222,28 @@ class _CallingScreenState extends State<CallingScreen> {
               child: CallControlBar(isIncoming: widget.isIncoming),
             ),
 
-            const Positioned(top: 60, left: 20, child: CallHeaderDisplay()),
-
             Positioned(
-              top: 60,
+              top: 54,
+              left: 12,
               right: 20,
-              child: IconButton(
-                icon: const Icon(Icons.bug_report, color: Colors.white54),
-                onPressed: () => _showDiagnostics(context),
-                tooltip: 'Diagnostics',
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 32),
+                    tooltip: 'Minimize call',
+                    onPressed: () {
+                      context.read<CallProvider>().toggleMinimize(value: true);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  const SizedBox(width: 4),
+                  const Expanded(child: CallHeaderDisplay()),
+                  IconButton(
+                    icon: const Icon(Icons.bug_report, color: Colors.white54),
+                    onPressed: () => _showDiagnostics(context),
+                    tooltip: 'Diagnostics',
+                  ),
+                ],
               ),
             ),
           ],
@@ -425,19 +455,22 @@ class ScreenShareLayout extends StatelessWidget {
         Positioned(
           top: 100,
           right: 16,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: otherParticipants.map((p) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: SizedBox(
-                width: 120,
-                height: 160,
-                child: ParticipantTile(
-                  participant: p,
-                  isLocal: p is LocalParticipant,
+          bottom: 120,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: otherParticipants.map((p) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: SizedBox(
+                  width: 120,
+                  height: 160,
+                  child: ParticipantTile(
+                    participant: p,
+                    isLocal: p is LocalParticipant,
+                  ),
                 ),
-              ),
-            )).toList(),
+              )).toList(),
+            ),
           ),
         ),
       ],
@@ -499,7 +532,7 @@ class _ParticipantTileState extends State<ParticipantTile> {
       videoPub = widget.participant.videoTrackPublications.where((e) => !e.isScreenShare).firstOrNull;
     }
     
-    final isVideoEnabled = videoPub?.subscribed ?? false;
+    final isVideoEnabled = (videoPub?.subscribed ?? false) && !(videoPub?.muted ?? false);
     final videoTrack = videoPub?.track;
 
     return Container(
@@ -617,6 +650,9 @@ class CallControlBar extends StatelessWidget {
     final isSharing = context.select<CallProvider, bool>(
       (p) => p.isScreenSharing,
     );
+    final audioRoute = context.select<CallProvider, AudioOutputRoute>(
+      (p) => p.audioRoute,
+    );
 
     if (isIncoming && !hasIncomingCall && !hasActiveCall) {
       return const SizedBox.shrink();
@@ -632,7 +668,7 @@ class CallControlBar extends StatelessWidget {
                 provider,
                 isMuted,
                 isVideoOn,
-                isSpeakerphoneOn,
+                audioRoute,
                 isSharing,
               ),
       ),
@@ -681,7 +717,7 @@ class CallControlBar extends StatelessWidget {
     CallProvider provider,
     bool isMuted,
     bool isVideoOn,
-    bool isSpeakerphoneOn,
+    AudioOutputRoute audioRoute,
     bool isSharing,
   ) {
     return Row(
@@ -693,9 +729,17 @@ class CallControlBar extends StatelessWidget {
           color: isMuted ? Colors.red : Colors.white24,
         ),
         _ControlButton(
-          onPressed: provider.toggleSpeakerphone,
-          icon: isSpeakerphoneOn ? Icons.volume_up : Icons.volume_down,
-          color: isSpeakerphoneOn ? Colors.blue : Colors.white24,
+          onPressed: provider.cycleAudioRoute,
+          icon: audioRoute == AudioOutputRoute.speaker
+              ? Icons.volume_up
+              : (audioRoute == AudioOutputRoute.bluetooth
+                  ? Icons.bluetooth_audio
+                  : Icons.phone_in_talk),
+          color: audioRoute == AudioOutputRoute.speaker
+              ? Colors.blue
+              : (audioRoute == AudioOutputRoute.bluetooth
+                  ? Colors.cyanAccent
+                  : Colors.white24),
         ),
         _ControlButton(
           onPressed: () {
@@ -712,7 +756,7 @@ class CallControlBar extends StatelessWidget {
         ),
         _ControlButton(
           onPressed: provider.toggleScreenShare,
-          icon: isSharing ? Icons.screen_share : Icons.stop_screen_share,
+          icon: isSharing ? Icons.stop_screen_share : Icons.screen_share,
           color: isSharing ? Colors.green : Colors.white24,
         ),
         _ControlButton(

@@ -394,6 +394,30 @@ class AppInitializer {
             break;
         }
       });
+
+      // Handle cold start when user answered call while app was terminated
+      FlutterCallkitIncoming.activeCalls().then((activeCalls) {
+        if (activeCalls is List && activeCalls.isNotEmpty) {
+          final mostRecent = activeCalls.last;
+          if (mostRecent is Map) {
+            final extra = mostRecent['extra'] as Map<dynamic, dynamic>?;
+            final callId = extra?['call_id'] ?? mostRecent['id'];
+            final senderId = extra?['actor_id'];
+            if (callId != null) {
+              CallService.instance.setAnswering(callId.toString());
+              Future.delayed(const Duration(milliseconds: 500), () {
+                AppRouter.router.pushNamed(
+                  'active_call',
+                  pathParameters: {'callId': callId.toString()},
+                  extra: {'isIncoming': true, 'callerId': senderId?.toString()},
+                );
+              });
+            }
+          }
+        }
+      }).catchError((e) {
+        debugPrint('[AppInitializer] Error checking active callkit calls: $e');
+      });
     }
 
     // 2. Auth & Theme & Settings & Analytics (Parallel)
