@@ -538,10 +538,9 @@ _room = Room(roomOptions: roomOptions);
           case AudioOutputRoute.bluetooth:
             await session.configure(audio_session.AudioSessionConfiguration(
               avAudioSessionCategory: audio_session.AVAudioSessionCategory.playAndRecord,
-              avAudioSessionCategoryOptions: const {
-                audio_session.AVAudioSessionCategoryOptions.allowBluetooth,
-                audio_session.AVAudioSessionCategoryOptions.allowBluetoothA2DP,
-              },
+              avAudioSessionCategoryOptions:
+                  audio_session.AVAudioSessionCategoryOptions.allowBluetooth |
+                  audio_session.AVAudioSessionCategoryOptions.allowBluetoothA2dp,
               avAudioSessionMode: audio_session.AVAudioSessionMode.voiceChat,
               androidAudioAttributes: const audio_session.AndroidAudioAttributes(
                 contentType: audio_session.AndroidAudioContentType.speech,
@@ -555,7 +554,7 @@ _room = Room(roomOptions: roomOptions);
           case AudioOutputRoute.earpiece:
             await session.configure(const audio_session.AudioSessionConfiguration(
               avAudioSessionCategory: audio_session.AVAudioSessionCategory.playAndRecord,
-              avAudioSessionCategoryOptions: {},
+              avAudioSessionCategoryOptions: audio_session.AVAudioSessionCategoryOptions.none,
               avAudioSessionMode: audio_session.AVAudioSessionMode.voiceChat,
               androidAudioAttributes: audio_session.AndroidAudioAttributes(
                 contentType: audio_session.AndroidAudioContentType.speech,
