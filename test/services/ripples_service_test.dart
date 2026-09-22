@@ -15,7 +15,7 @@ void main() {
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       mockSupabase = MockSupabaseClient();
-      ripplesService = RipplesProvider(supabase: mockSupabase);
+      ripplesService = RipplesProvider();
     });
 
     test('Initial layout should be kineticCardStack', () {

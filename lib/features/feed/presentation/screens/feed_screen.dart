@@ -29,6 +29,7 @@ import 'package:oasis/features/feed/presentation/widgets/layouts/spatial_glider_
 import 'package:oasis/features/feed/presentation/widgets/layouts/living_canvas_layout.dart';
 
 import 'package:oasis/widgets/wellbeing/grayscale_detox.dart';
+import 'package:oasis/features/feed/presentation/widgets/home_feed_app_bar.dart';
 
 import 'package:oasis/widgets/glassmorphic_fab.dart';
 import 'package:oasis/features/notifications/presentation/providers/notification_provider.dart';
@@ -725,75 +726,8 @@ class _FeedScreenState extends State<FeedScreen>
   }
 
   Widget _buildMobileHeader(ColorScheme colorScheme, [bool isM3E = false]) {
-    final feedLayout = context.select<UserSettingsProvider, FeedLayoutType>(
-      (s) => s.feedLayout,
-    );
-    final unreadCount = context.select<NotificationProvider, int>(
-      (p) => p.state.unreadCount,
-    );
-    final avatarUrl = context.select<ProfileProvider, String?>(
-      (p) => p.currentProfile?.avatarUrl,
-    );
-
-    return Row(
-      children: [
-        IconButton(
-          icon: Icon(feedLayout.icon, size: 24),
-          onPressed: () => _showLayoutSwitcher(context),
-          tooltip: 'Change Layout',
-        ),
-        const Spacer(),
-        _buildRipplesButton(colorScheme, isM3E),
-        const SizedBox(width: 12),
-        // Search FAB
-        GlassmorphicFAB(
-          size: 40,
-          onPressed: () => context.pushNamed('search'),
-          child: Icon(
-            FluentIcons.search_24_regular,
-            size: 20,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(width: 12),
-        // Notifications FAB
-        Badge(
-          isLabelVisible: unreadCount > 0,
-          label: Text(
-            unreadCount.toString(),
-            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-          ),
-          child: GlassmorphicFAB(
-            size: 40,
-            onPressed: () => context.pushNamed('notifications'),
-            child: Icon(
-              FluentIcons.alert_24_regular,
-              size: 20,
-              color: colorScheme.onSurface,
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        // Profile FAB
-        GlassmorphicFAB(
-          size: 40,
-          onPressed: () => context.pushNamed('profile'),
-          child: CircleAvatar(
-            radius: 18,
-            backgroundColor: colorScheme.primaryContainer.withValues(
-              alpha: 0.5,
-            ),
-            backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
-            child: avatarUrl == null
-                ? Icon(
-                    FluentIcons.person_24_regular,
-                    size: 20,
-                    color: colorScheme.onPrimaryContainer,
-                  )
-                : null,
-          ),
-        ),
-      ],
+    return HomeFeedAppBar(
+      onRipplesTap: () => _handleRipplesTap(context),
     );
   }
 

@@ -90,9 +90,10 @@ class _SpatialGliderLayoutState extends State<SpatialGliderLayout>
               if (!isDesktop)
                 SliverAppBar(
                   backgroundColor: Colors.transparent,
-                  toolbarHeight: 70,
+                  toolbarHeight: 64,
                   automaticallyImplyLeading: false,
-                  centerTitle: true,
+                  centerTitle: false,
+                  titleSpacing: 16,
                   title: widget.mobileHeader,
                   floating: true,
                 ),

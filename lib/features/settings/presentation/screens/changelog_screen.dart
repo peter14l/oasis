@@ -41,6 +41,25 @@ class ChangelogScreen extends StatelessWidget {
                   children: [
                     _buildVersionCard(
                       context,
+                      version: '1.1.30',
+                      date: 'September 22, 2026',
+                      features: [
+                        'WhatsApp-Style Chat Architecture - Outbox persistence, automatic FIFO retry on reconnection, and one-tap retry on failed messages.',
+                        'WhatsApp Typing Indicator - Dynamic realtime presence and typing banner in app bar header.',
+                        'WhatsApp Status Icons - 4-stage delivery micro-animations (Clock -> Single Tick -> Double Grey -> Double Blue).',
+                        'WhatsApp Message Micro-Animations - Directional entrance slides with fresh-message tracking and light haptic feedback.',
+                        'Editorial Home Feed App Bar - Brand wordmark with quick layout switcher sheet, Ripples launcher, Create post button, and live Notifications bell.',
+                      ],
+                      fixes: [
+                        'Fixed disappearing failed messages in chat conversations.',
+                        'Replaced CPU-bound grain painter with 120Hz GPU-accelerated compositing in message list.',
+                        'Removed redundant Search, Profile, and DM icons from home feed header.',
+                        'Added native frosted glass BackdropFilter blur to feed scroll physics.',
+                      ],
+                    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(height: 24),
+                    _buildVersionCard(
+                      context,
                       version: '1.1.9',
                       date: 'May 9, 2026',
                       features: [

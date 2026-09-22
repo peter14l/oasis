@@ -145,6 +145,16 @@ class GeofenceMonitorService {
     return distance <= radius;
   }
 
+  /// Check and notify home arrival based on coordinate (useful for manual checks / testing).
+  Future<void> checkAndNotifyHomeArrival(double lat, double lon) async {
+    final within = await isWithinGeofence(lat, lon);
+    if (within) {
+      onHomeArrived?.call();
+    } else {
+      onHomeLeft?.call();
+    }
+  }
+
   /// Dispose of resources.
   void dispose() {
     _channel.setMethodCallHandler(null);

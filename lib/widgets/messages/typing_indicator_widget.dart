@@ -41,21 +41,40 @@ class _TypingIndicatorWidgetState extends State<TypingIndicatorWidget>
     return AnimatedOpacity(
       opacity: 1.0,
       duration: const Duration(milliseconds: 200),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '${widget.username} is typing',
-            style:
-                widget.textStyle ??
-                theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  fontStyle: FontStyle.italic,
-                ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: colorScheme.outline.withValues(alpha: 0.12),
+            width: 0.5,
           ),
-          const SizedBox(width: 4),
-          _buildAnimatedDots(),
-        ],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${widget.username} is typing',
+              style:
+                  widget.textStyle ??
+                  theme.textTheme.bodySmall?.copyWith(
+                    color: const Color(0xFF25D366),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                  ),
+            ),
+            const SizedBox(width: 6),
+            _buildAnimatedDots(),
+          ],
+        ),
       ),
     );
   }

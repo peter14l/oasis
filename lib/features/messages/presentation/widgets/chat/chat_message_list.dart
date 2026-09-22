@@ -8,7 +8,8 @@ import 'package:oasis/features/messages/presentation/providers/chat_state.dart';
 import 'package:oasis/widgets/skeleton_container.dart';
 
 import 'package:oasis/features/messages/presentation/widgets/chat/swipe_to_reply.dart';
-import 'package:oasis/features/messages/presentation/widgets/chat/dissolve_effect.dart';
+import 'package:oasis/features/messages/presentation/widgets/chat/whatsapp_status_icon.dart';
+import 'package:oasis/features/messages/presentation/widgets/chat/whatsapp_bubble_animation.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:universal_io/io.dart';
 
@@ -22,6 +23,8 @@ class ChatMessageList extends StatelessWidget {
     required this.onMessageLongPress,
     required this.onMessageDoubleTap,
     required this.onReply,
+    this.onRetryMessage,
+    this.freshMessageIds,
     this.headerHeight = 72,
     this.inputAreaPadding = 90,
     this.bubbleColorSent,
@@ -40,6 +43,8 @@ class ChatMessageList extends StatelessWidget {
   final Function(Message, Offset?) onMessageLongPress;
   final Function(Message) onMessageDoubleTap;
   final Function(Message) onReply;
+  final Function(String)? onRetryMessage;
+  final Set<String>? freshMessageIds;
   final double headerHeight;
   final double inputAreaPadding;
   final Color? bubbleColorSent;
@@ -139,26 +144,33 @@ class ChatMessageList extends StatelessWidget {
     }
 
     final isMobile = Platform.isAndroid || Platform.isIOS;
+    final isFresh = freshMessageIds?.contains(message.id) ?? false;
 
-    return SwipeToReply(
-      enabled: isMobile,
-      onReply: () => onReply(message),
-      child: MessageBubble(
-        message: message,
-        isMe: isMe,
-        isHighlighted: isHighlighted,
-        bubbleColorSent: bubbleColorSent,
-        bubbleColorReceived: bubbleColorReceived,
-        textColorSent: textColorSent,
-        textColorReceived: textColorReceived,
-        maxWidth: maxWidth,
-        onLongPress: () => onMessageLongPress(message, null),
-        onDoubleTap: () => onMessageDoubleTap(message),
-        onReactionsTap: onReactionsTap,
-        currentUserId: currentUserId,
-        messageStatuses: messageStatuses,
-        isFirstInGroup: isFirstInGroup,
-        isLastInGroup: isLastInGroup,
+    return WhatsAppBubbleAnimation(
+      key: ValueKey('bubble_anim_${message.id}'),
+      isMe: isMe,
+      isFresh: isFresh,
+      child: SwipeToReply(
+        enabled: isMobile,
+        onReply: () => onReply(message),
+        child: MessageBubble(
+          message: message,
+          isMe: isMe,
+          isHighlighted: isHighlighted,
+          bubbleColorSent: bubbleColorSent,
+          bubbleColorReceived: bubbleColorReceived,
+          textColorSent: textColorSent,
+          textColorReceived: textColorReceived,
+          maxWidth: maxWidth,
+          onLongPress: () => onMessageLongPress(message, null),
+          onDoubleTap: () => onMessageDoubleTap(message),
+          onReactionsTap: onReactionsTap,
+          currentUserId: currentUserId,
+          messageStatuses: messageStatuses,
+          isFirstInGroup: isFirstInGroup,
+          isLastInGroup: isLastInGroup,
+          onRetry: () => onRetryMessage?.call(message.id),
+        ),
       ),
     );
   }
@@ -241,6 +253,7 @@ class MessageBubble extends StatelessWidget {
     this.messageStatuses,
     this.isFirstInGroup = true,
     this.isLastInGroup = true,
+    this.onRetry,
   });
 
   final Message message;
@@ -258,6 +271,7 @@ class MessageBubble extends StatelessWidget {
   final Map<String, MessageStatus>? messageStatuses;
   final bool isFirstInGroup;
   final bool isLastInGroup;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -385,8 +399,9 @@ class MessageBubble extends StatelessWidget {
     final status = messageStatuses?[message.id];
     final bool isSending = status == MessageStatus.sending;
 
-    final Widget bubbleWithEffect = DissolveEffect(
-      isDissolving: isSending,
+    final Widget bubbleWithEffect = AnimatedOpacity(
+      duration: const Duration(milliseconds: 200),
+      opacity: isSending ? 0.88 : 1.0,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         padding: isSticker
@@ -484,7 +499,14 @@ class MessageBubble extends StatelessWidget {
                             : colorScheme.onSurface.withValues(alpha: 0.4),
                       ),
                     if (message.pqAuraHeader != null) const SizedBox(width: 4),
-                    if (isMe) _buildStatusIcon(context, isDesktop),
+                    if (isMe)
+                      WhatsAppStatusIcon(
+                        status: status,
+                        isRead: message.isRead,
+                        onRetry: onRetry,
+                        color: textColor.withValues(alpha: 0.7),
+                        isDesktop: isDesktop,
+                      ),
                   ],
                 ),
               ),
@@ -664,46 +686,6 @@ class MessageBubble extends StatelessWidget {
           );
         }).toList(),
       ),
-    );
-  }
-
-  Widget _buildStatusIcon(BuildContext context, bool isDesktop) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final status = messageStatuses?[message.id];
-
-    if (status == MessageStatus.sending) {
-      return SizedBox(
-        width: 14,
-        height: 14,
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          color: colorScheme.onPrimaryContainer.withValues(alpha: 0.6),
-        ),
-      );
-    }
-
-    if (status == MessageStatus.failed) {
-      return Icon(
-        Icons.error_outline,
-        size: 14,
-        color: colorScheme.error,
-      );
-    }
-
-    if (status == MessageStatus.sent) {
-      return Icon(
-        Icons.done,
-        size: 14,
-        color: colorScheme.onPrimaryContainer.withValues(alpha: 0.6),
-      );
-    }
-
-    return Icon(
-      message.isRead ? Icons.done_all : Icons.done_all,
-      size: 14,
-      color: message.isRead
-          ? (isDesktop ? Colors.blue : Colors.blueAccent)
-          : colorScheme.onPrimaryContainer.withValues(alpha: 0.6),
     );
   }
 }

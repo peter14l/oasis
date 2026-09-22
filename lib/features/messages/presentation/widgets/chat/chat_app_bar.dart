@@ -8,6 +8,7 @@ import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:oasis/themes/theme_provider.dart';
 import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/features/messages/presentation/providers/chat_provider.dart';
+import 'package:oasis/providers/typing_indicator_provider.dart';
 import 'package:oasis/widgets/liquid_glass_wrapper.dart';
 
 /// Chat app bar with avatar, presence indicator, encryption lock, and action buttons.
@@ -182,12 +183,13 @@ class ChatAppBar extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            Consumer2<PresenceProvider, ChatProvider>(
+                            Consumer3<PresenceProvider, ChatProvider, TypingIndicatorProvider>(
                               builder:
                                   (
                                     context,
                                     presenceProvider,
                                     chatProvider,
+                                    typingProvider,
                                     child,
                                   ) {
                                     final presence = otherUserId != null
@@ -198,10 +200,14 @@ class ChatAppBar extends StatelessWidget {
                                     final isOnline =
                                         presence?.status == 'online';
                                     final isPQ = chatProvider.isQuantumSecure;
+                                    final isTyping = typingProvider.isUserTyping(
+                                      chatProvider.conversationId,
+                                    );
+                                    const whatsAppGreen = Color(0xFF25D366);
 
                                     return Row(
                                       children: [
-                                        if (isEncryptionReady) ...[
+                                        if (isEncryptionReady && !isTyping) ...[
                                           Icon(
                                             isPQ
                                                 ? FluentIcons
@@ -220,7 +226,7 @@ class ChatAppBar extends StatelessWidget {
                                           ),
                                           const SizedBox(width: 4),
                                         ],
-                                        if (isPQ) ...[
+                                        if (isPQ && !isTyping) ...[
                                           Text(
                                             'Quantum',
                                             style: theme.textTheme.bodySmall
@@ -233,24 +239,38 @@ class ChatAppBar extends StatelessWidget {
                                           ),
                                           const SizedBox(width: 6),
                                         ],
-                                        Text(
-                                          isOnline ? 'Online' : 'Offline',
-                                          style: theme.textTheme.bodySmall
-                                              ?.copyWith(
-                                                color: isOnline
-                                                    ? Colors.green.withValues(
-                                                        alpha: 0.8,
-                                                      )
-                                                    : (backgroundUrl != null
-                                                          ? Colors.white60
-                                                          : colorScheme
-                                                                .onSurfaceVariant
-                                                                .withValues(
-                                                                  alpha: 0.7,
-                                                                )),
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w500,
-                                              ),
+                                        AnimatedSwitcher(
+                                          duration: const Duration(milliseconds: 200),
+                                          child: isTyping
+                                              ? Text(
+                                                  'typing...',
+                                                  key: const ValueKey('typing_active'),
+                                                  style: theme.textTheme.bodySmall?.copyWith(
+                                                    color: whatsAppGreen,
+                                                    fontSize: 10.5,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                )
+                                              : Text(
+                                                  isOnline ? 'Online' : 'Offline',
+                                                  key: ValueKey('presence_${isOnline ? 'on' : 'off'}'),
+                                                  style: theme.textTheme.bodySmall
+                                                      ?.copyWith(
+                                                        color: isOnline
+                                                            ? Colors.green.withValues(
+                                                                alpha: 0.8,
+                                                              )
+                                                            : (backgroundUrl != null
+                                                                  ? Colors.white60
+                                                                  : colorScheme
+                                                                        .onSurfaceVariant
+                                                                        .withValues(
+                                                                          alpha: 0.7,
+                                                                        )),
+                                                        fontSize: 10,
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                ),
                                         ),
                                       ],
                                     );
@@ -410,16 +430,20 @@ class ChatAppBar extends StatelessWidget {
                       letterSpacing: -0.2,
                     ),
                   ),
-                  Consumer<PresenceProvider>(
-                    builder: (context, presenceProvider, child) {
+                  Consumer3<PresenceProvider, ChatProvider, TypingIndicatorProvider>(
+                    builder: (context, presenceProvider, chatProvider, typingProvider, child) {
                       final presence = otherUserId != null
                           ? presenceProvider.getUserPresence(otherUserId!)
                           : null;
                       final isOnline = presence?.status == 'online';
+                      final isTyping = typingProvider.isUserTyping(
+                        chatProvider.conversationId,
+                      );
+                      const whatsAppGreen = Color(0xFF25D366);
 
                       return Row(
                         children: [
-                          if (isEncryptionReady) ...[
+                          if (isEncryptionReady && !isTyping) ...[
                             Icon(
                               FluentIcons.lock_closed_12_filled,
                               size: 10,
@@ -427,17 +451,31 @@ class ChatAppBar extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                           ],
-                          Text(
-                            isOnline ? 'Online' : 'Offline',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: isOnline
-                                  ? Colors.green.withValues(alpha: 0.8)
-                                  : colorScheme.onSurfaceVariant.withValues(
-                                      alpha: 0.7,
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            child: isTyping
+                                ? Text(
+                                    'typing...',
+                                    key: const ValueKey('fluent_typing_active'),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: whatsAppGreen,
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w600,
                                     ),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                            ),
+                                  )
+                                : Text(
+                                    isOnline ? 'Online' : 'Offline',
+                                    key: ValueKey('fluent_presence_${isOnline ? 'on' : 'off'}'),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: isOnline
+                                          ? Colors.green.withValues(alpha: 0.8)
+                                          : colorScheme.onSurfaceVariant.withValues(
+                                              alpha: 0.7,
+                                            ),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                           ),
                         ],
                       );

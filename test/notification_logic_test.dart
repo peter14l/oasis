@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:oasis/models/notification.dart';
+import 'package:oasis/features/notifications/domain/models/notification_entity.dart';
 import 'package:oasis/services/notification_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

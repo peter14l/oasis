@@ -209,6 +209,9 @@ class ChatProvider with ChangeNotifier {
     // Mark as read immediately — no delay needed since loadMessages
     // has already completed inside _initializeEncryption()
     markAsRead();
+
+    // Automatically flush pending offline queue on init (WhatsApp outbox sync)
+    flushOfflineQueue();
   }
 
   // =========================================================================
@@ -567,7 +570,13 @@ class ChatProvider with ChangeNotifier {
 
           // New message from other user
           if (decryptedMessage.senderId != currentUserId) {
-            return s.copyWith(messages: [...s.messages, decryptedMessage]);
+            return s.copyWith(
+              messages: [...s.messages, decryptedMessage],
+              freshMessageIds: {
+                ...s.freshMessageIds,
+                decryptedMessage.id,
+              },
+            );
           }
 
           // Own message not in map yet — append
@@ -576,6 +585,10 @@ class ChatProvider with ChangeNotifier {
             messageStatuses: {
               ...s.messageStatuses,
               serverId: MessageStatus.delivered,
+            },
+            freshMessageIds: {
+              ...s.freshMessageIds,
+              decryptedMessage.id,
             },
           );
         });
@@ -915,12 +928,36 @@ class ChatProvider with ChangeNotifier {
       uploadProgress: 0.0,
     );
 
+    // Enqueue message to local storage for WhatsApp-style zero-drop offline resilience
+    await _messageQueue.enqueue(
+      conversationId,
+      QueuedMessage(
+        clientId: clientId,
+        conversationId: conversationId,
+        senderId: userId,
+        content: content,
+        messageType: messageType.name,
+        mediaPath: mediaUrl,
+        mediaFileName: fileName,
+        mediaFileSize: fileSize,
+        replyToId: replyMessage?.id,
+        whisperMode: state.whisperMode,
+        isSpoiler: isSpoiler,
+        mediaViewMode: mediaViewMode,
+        queuedAt: DateTime.now(),
+      ),
+    );
+
     setState(
       (s) => s.copyWith(
         messages: [...s.messages, optimisticMessage],
         messageStatuses: {
           ...s.messageStatuses,
           clientId: MessageStatus.sending,
+        },
+        freshMessageIds: {
+          ...s.freshMessageIds,
+          clientId,
         },
         isSending: false,
         replyMessage: null,
@@ -1151,11 +1188,10 @@ class ChatProvider with ChangeNotifier {
       await settingsProvider.saveMessagesToCache(state.messages);
     } catch (e) {
       debugPrint('Error sending message: $e');
+      // WhatsApp behavior: Never delete the failed message from the screen!
+      // Keep optimistic message in messages list and mark its status as failed with red retry badge.
       setState(
         (s) => s.copyWith(
-          messages: s.messages
-              .where((m) => m.id != clientId)
-              .toList(),
           messageStatuses: {
             ...s.messageStatuses,
             clientId: MessageStatus.failed,
@@ -1175,6 +1211,145 @@ class ChatProvider with ChangeNotifier {
         isUploading: progress < 1.0,
       );
       setState((s) => s.copyWith(messages: updatedMessages));
+    }
+  }
+
+  /// Retries sending a previously failed message (WhatsApp one-tap retry).
+  Future<void> retrySendMessage(String messageId) async {
+    final msgIndex = state.messages.indexWhere((m) => m.id == messageId);
+    if (msgIndex == -1) return;
+
+    final failedMessage = state.messages[msgIndex];
+
+    // Reset status to sending (Clock icon)
+    setState((s) => s.copyWith(
+      messageStatuses: {
+        ...s.messageStatuses,
+        messageId: MessageStatus.sending,
+      },
+    ));
+
+    try {
+      final recipientId = otherUserId ?? state.otherUserId;
+      if (recipientId == null) throw Exception('Recipient ID is required');
+
+      String? finalContent;
+      Map<String, String>? encryptedKeys;
+      String? iv;
+      int? signalMessageType;
+      String? signalSenderContent;
+      String? pqAuraHeader;
+      String? pqAuraPayload;
+
+      // Public key handling
+      String? recipientPublicKey = _publicKeyCache[recipientId];
+      if (recipientPublicKey == null) {
+        recipientPublicKey = await _authService.getPublicKey(recipientId);
+        if (recipientPublicKey != null) {
+          _publicKeyCache[recipientId] = recipientPublicKey;
+        }
+      }
+
+      if (_encryptionService.isInitialized && failedMessage.content.isNotEmpty) {
+        final encrypted = await _encryptContent(recipientId, failedMessage.content);
+        if (encrypted != null) {
+          finalContent = encrypted.content;
+          if (encrypted.protocol == 'pq_aura') {
+            pqAuraHeader = encrypted.pqAuraHeader;
+            pqAuraPayload = encrypted.pqAuraPayload;
+          } else if (encrypted.protocol == 'signal') {
+            signalMessageType = encrypted.signalMessageType;
+          } else if (encrypted.protocol == 'rsa') {
+            encryptedKeys = encrypted.encryptedKeys?.map(
+              (k, v) => MapEntry(k, v.toString()),
+            );
+            iv = encrypted.iv;
+          }
+        }
+      } else {
+        finalContent = failedMessage.content;
+      }
+
+      final sentMessage = await _messagingService.sendMessage(
+        conversationId: conversationId,
+        senderId: failedMessage.senderId,
+        content: finalContent ?? failedMessage.content,
+        messageType: failedMessage.messageType,
+        mediaUrl: failedMessage.mediaUrl,
+        mediaFileName: failedMessage.mediaFileName,
+        mediaFileSize: failedMessage.mediaFileSize,
+        encryptedKeys: encryptedKeys,
+        iv: iv,
+        signalMessageType: signalMessageType,
+        signalSenderContent: signalSenderContent,
+        whisperMode: failedMessage.whisperMode != 'OFF' ? 1 : 0,
+        isSpoiler: failedMessage.isSpoiler,
+        replyToId: failedMessage.replyToId,
+        mediaViewMode: failedMessage.mediaViewMode,
+        pqAuraHeader: pqAuraHeader,
+        pqAuraPayload: pqAuraPayload,
+      );
+
+      await _messageQueue.dequeue(conversationId, messageId);
+
+      var decrypted = await _decryptSingleMessage(sentMessage);
+      if (decrypted.content == '🔒 Message encrypted' ||
+          decrypted.content.contains('🔒') ||
+          (decrypted.senderId == failedMessage.senderId && decrypted.content == sentMessage.content)) {
+        decrypted = decrypted.copyWith(content: failedMessage.content);
+      }
+      if (failedMessage.mediaUrl != null && !failedMessage.mediaUrl!.startsWith('http')) {
+        decrypted = decrypted.copyWith(mediaUrl: failedMessage.mediaUrl);
+      }
+
+      setState((s) {
+        final updated = List<Message>.from(s.messages);
+        final idx = updated.indexWhere((m) => m.id == messageId);
+        if (idx != -1) {
+          updated[idx] = decrypted;
+        } else {
+          updated.add(decrypted);
+        }
+        return s.copyWith(
+          messages: updated,
+          messageStatuses: {
+            ...s.messageStatuses,
+            decrypted.id: MessageStatus.sent,
+          },
+          clientIdToServerId: {
+            ...s.clientIdToServerId,
+            messageId: decrypted.id,
+          },
+        );
+      });
+
+      await settingsProvider.saveMessagesToCache(state.messages);
+    } catch (e) {
+      debugPrint('Error retrying message send: $e');
+      setState((s) => s.copyWith(
+        messageStatuses: {
+          ...s.messageStatuses,
+          messageId: MessageStatus.failed,
+        },
+      ));
+      onError?.call('Retry failed: $e');
+    }
+  }
+
+  /// Automatically retries queued messages when network returns (WhatsApp outbox sync).
+  Future<void> flushOfflineQueue() async {
+    try {
+      final queue = await _messageQueue.loadQueue(conversationId);
+      if (queue.isEmpty) return;
+      debugPrint('[ChatProvider] Flushing offline queue for $conversationId (${queue.length} items)');
+      for (final item in queue) {
+        final currentStatus = state.messageStatuses[item.clientId];
+        if (currentStatus == MessageStatus.failed || currentStatus == MessageStatus.sending || currentStatus == null) {
+          await retrySendMessage(item.clientId);
+        }
+      }
+    } catch (e) {
+      debugPrint('[ChatProvider] Error flushing offline queue: $e');
     }
   }
 
@@ -1613,6 +1788,9 @@ class ChatProvider with ChangeNotifier {
 
     // After sync is complete, mark all newly arrived messages as read (if screen is focused)
     await markAsRead();
+
+    // Automatically flush pending offline queue when returning to the app
+    await flushOfflineQueue();
   }
 
   void _reconnectRealtime() {

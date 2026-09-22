@@ -1,35 +1,35 @@
 {
   "android": {
-    "latestVersion": "1.1.29",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.29.apk",
+    "latestVersion": "1.1.30",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.30.apk",
     "abiUrls": {
-      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.29-arm64-v8a.apk",
-      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.29-armeabi-v7a.apk",
-      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.29-x86_64.apk",
-      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.29.apk"
+      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.30-arm64-v8a.apk",
+      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.30-armeabi-v7a.apk",
+      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.30-x86_64.apk",
+      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.30.apk"
     },
-    "releaseNotes": "• Reliable E2E Voice Notes: Automated on-demand download, decryption, and playback for encrypted voice messages with duration synchronization and audio error recovery.\n• Fluid Liquid Glass Navigation: Interactive fluid magnification expanding the indicator when dragged, natural compact pill sizing, and gesture cancel protection.\n• Streamlined In-Call Control Bar: Ergonomic two-tier in-call layout separating secondary utilities (minimize, screen share, invite) from primary call actions (mute, video, audio routing, end call).\n• Chat & UI Enhancements: Adaptive message bubble corner curvatures for sender grouping, jitter-free typing input bar, and new message FAB.",
+    "releaseNotes": "• WhatsApp Chat Architecture: Resilient local outbox persistence with automatic FIFO retry on reconnect, one-tap retry on failed messages, and active typing presence.\n• WhatsApp Micro-Animations: 4-stage status icons (clock -> single check -> double grey check -> blue check -> red error) and directional bubble entrance animations.\n• Editorial Feed App Bar: Sleek brand wordmark with instant feed/layout switcher sheet, quick Ripples launcher, Create post button, and live Notifications bell with unread badge.\n• UI Polish & Performance: High-framerate GPU-composited chat animations and native frosted glass header scroll physics.",
     "isRequired": false,
-    "releaseDate": "2026-09-19T04:10:00Z"
+    "releaseDate": "2026-09-22T22:30:00Z"
   },
   "windows": {
-    "latestVersion": "1.1.29",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.29.msix",
+    "latestVersion": "1.1.30",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.30.msix",
     "abiUrls": {
-      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.29.msix"
+      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.30.msix"
     },
-    "releaseNotes": "• Reliable E2E Voice Notes: Automated on-demand download, decryption, and playback for encrypted voice messages with duration synchronization and audio error recovery.\n• Fluid Liquid Glass Navigation: Interactive fluid magnification expanding the indicator when dragged, natural compact pill sizing, and gesture cancel protection.\n• Streamlined In-Call Control Bar: Ergonomic two-tier in-call layout separating secondary utilities (minimize, screen share, invite) from primary call actions (mute, video, audio routing, end call).\n• Chat & UI Enhancements: Adaptive message bubble corner curvatures for sender grouping, jitter-free typing input bar, and new message FAB.",
+    "releaseNotes": "• WhatsApp Chat Architecture: Resilient local outbox persistence with automatic FIFO retry on reconnect, one-tap retry on failed messages, and active typing presence.\n• WhatsApp Micro-Animations: 4-stage status icons (clock -> single check -> double grey check -> blue check -> red error) and directional bubble entrance animations.\n• Editorial Feed App Bar: Sleek brand wordmark with instant feed/layout switcher sheet, quick Ripples launcher, Create post button, and live Notifications bell with unread badge.\n• UI Polish & Performance: High-framerate GPU-composited chat animations and native frosted glass header scroll physics.",
     "isRequired": false,
-    "releaseDate": "2026-09-19T04:10:00Z"
+    "releaseDate": "2026-09-22T22:30:00Z"
   },
   "macos": {
-    "latestVersion": "1.1.29",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.29.dmg",
+    "latestVersion": "1.1.30",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.30.dmg",
     "abiUrls": {
-      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.29.dmg"
+      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.30.dmg"
     },
-    "releaseNotes": "• Reliable E2E Voice Notes: Automated on-demand download, decryption, and playback for encrypted voice messages with duration synchronization and audio error recovery.\n• Fluid Liquid Glass Navigation: Interactive fluid magnification expanding the indicator when dragged, natural compact pill sizing, and gesture cancel protection.\n• Streamlined In-Call Control Bar: Ergonomic two-tier in-call layout separating secondary utilities (minimize, screen share, invite) from primary call actions (mute, video, audio routing, end call).\n• Chat & UI Enhancements: Adaptive message bubble corner curvatures for sender grouping, jitter-free typing input bar, and new message FAB.",
+    "releaseNotes": "• WhatsApp Chat Architecture: Resilient local outbox persistence with automatic FIFO retry on reconnect, one-tap retry on failed messages, and active typing presence.\n• WhatsApp Micro-Animations: 4-stage status icons (clock -> single check -> double grey check -> blue check -> red error) and directional bubble entrance animations.\n• Editorial Feed App Bar: Sleek brand wordmark with instant feed/layout switcher sheet, quick Ripples launcher, Create post button, and live Notifications bell with unread badge.\n• UI Polish & Performance: High-framerate GPU-composited chat animations and native frosted glass header scroll physics.",
     "isRequired": false,
-    "releaseDate": "2026-09-19T04:10:00Z"
+    "releaseDate": "2026-09-22T22:30:00Z"
   }
 }

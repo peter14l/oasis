@@ -2485,8 +2485,8 @@
     "semantic_hash": ""
   },
   "lib/features/feed/presentation/screens/feed_screen.dart": {
-    "mtime": 1787414650.021497,
-    "ast_hash": "689ceb3fb4ce4455b07e94f80a8d8b09",
+    "mtime": 1790095675.4112487,
+    "ast_hash": "e3eda8b994fbf9537b70719603f31953",
     "semantic_hash": ""
   },
   "lib/features/feed/presentation/screens/instagram_feed_screen.dart": {
@@ -2520,8 +2520,8 @@
     "semantic_hash": ""
   },
   "lib/features/feed/presentation/widgets/layouts/classic_feed_layout.dart": {
-    "mtime": 1788673591.5951865,
-    "ast_hash": "45161137268fb31d78110269d818c146",
+    "mtime": 1790095687.4754195,
+    "ast_hash": "1725fe4d57f4d2186be07a74151c479d",
     "semantic_hash": ""
   },
   "lib/features/feed/presentation/widgets/layouts/focused_flow_layout.dart": {
@@ -2535,8 +2535,8 @@
     "semantic_hash": ""
   },
   "lib/features/feed/presentation/widgets/layouts/spatial_glider_layout.dart": {
-    "mtime": 1785438893.0743372,
-    "ast_hash": "8d8afb42e6b54b01441cf52146ba6cde",
+    "mtime": 1790095692.8551059,
+    "ast_hash": "3abff7c09496f5ed28d39b665f083393",
     "semantic_hash": ""
   },
   "lib/features/feed/presentation/widgets/mood_selector.dart": {
@@ -2770,8 +2770,8 @@
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/providers/chat_provider.dart": {
-    "mtime": 1789789834.1910646,
-    "ast_hash": "850bb490acf507828b23fd6df14fa64b",
+    "mtime": 1790094463.3501396,
+    "ast_hash": "d0958e8435f9bf0b5c3821017a923802",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/providers/chat_reactions_provider.dart": {
@@ -2790,8 +2790,8 @@
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/providers/chat_state.dart": {
-    "mtime": 1785438893.0978353,
-    "ast_hash": "4333fa1484b225c636d79a5bae306642",
+    "mtime": 1790094348.5919938,
+    "ast_hash": "92fb5f932490a49c4a015ce5b728c704",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/providers/providers.dart": {
@@ -2805,8 +2805,8 @@
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/screens/chat_screen.dart": {
-    "mtime": 1788673591.5974097,
-    "ast_hash": "1a7ebfb4d40ea8e9ff3c23f4e5b78453",
+    "mtime": 1790094665.601765,
+    "ast_hash": "69647cf7b5c59da15730ef3085efa6f1",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/screens/direct_messages_screen.dart": {
@@ -2910,8 +2910,8 @@
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/chat/chat_app_bar.dart": {
-    "mtime": 1789787918.411385,
-    "ast_hash": "1a0b28a6e11f9be1f4cd6446f8abc750",
+    "mtime": 1790094711.6547303,
+    "ast_hash": "98ee5b89c2aa29a831a2f29aa6333abd",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/chat/chat_background.dart": {
@@ -2925,8 +2925,8 @@
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/chat/chat_message_list.dart": {
-    "mtime": 1789788337.5827312,
-    "ast_hash": "4eb9320cded0ba6c7b7d8af0de83429c",
+    "mtime": 1790094890.5232818,
+    "ast_hash": "5450196d7a8d10efd7d15dd1c68b395f",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/chat/chat_typing_indicator.dart": {
@@ -4405,8 +4405,8 @@
     "semantic_hash": ""
   },
   "lib/widgets/messages/typing_indicator_widget.dart": {
-    "mtime": 1785438893.2130475,
-    "ast_hash": "0991c26f005ca5d5d9abba72d884d6e2",
+    "mtime": 1790094732.6467593,
+    "ast_hash": "c917e242145d8b05d7ea5f96d35991b4",
     "semantic_hash": ""
   },
   "lib/widgets/messages/unread_badge_widget.dart": {
@@ -38157,6 +38157,31 @@
   "supabase/migrations/20260919000000_fix_send_message_v3_returned_fields.sql": {
     "mtime": 1789789858.8731742,
     "ast_hash": "86822ff5cd147f7da655d66f51e64ead",
+    "semantic_hash": ""
+  },
+  "lib/features/messages/presentation/widgets/chat/whatsapp_bubble_animation.dart": {
+    "mtime": 1790094262.027538,
+    "ast_hash": "02672d55e1fae33c48a7a8c2f38d5971",
+    "semantic_hash": ""
+  },
+  "lib/features/messages/presentation/widgets/chat/whatsapp_status_icon.dart": {
+    "mtime": 1790094254.0767682,
+    "ast_hash": "5849a8d0281145880a97b36505b20739",
+    "semantic_hash": ""
+  },
+  "test/features/messages/whatsapp_chat_components_test.dart": {
+    "mtime": 1790094780.8220668,
+    "ast_hash": "22bf0a566d376a97ca0168b905bd7afb",
+    "semantic_hash": ""
+  },
+  "lib/features/feed/presentation/widgets/home_feed_app_bar.dart": {
+    "mtime": 1790095780.4430065,
+    "ast_hash": "836e0d1ad294e16dd6ae2aeb8528db7b",
+    "semantic_hash": ""
+  },
+  "test/features/feed/home_feed_app_bar_test.dart": {
+    "mtime": 1790095719.5432463,
+    "ast_hash": "4e4dd599fa248d44f4c50f0f08e8e379",
     "semantic_hash": ""
   }
 }

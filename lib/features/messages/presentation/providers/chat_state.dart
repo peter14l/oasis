@@ -56,6 +56,7 @@ class ChatState {
   final List<String> participantIds;
   final Map<String, MessageStatus> messageStatuses;
   final Map<String, String> clientIdToServerId;
+  final Set<String> freshMessageIds;
 
   const ChatState({
     this.messages = const [],
@@ -95,6 +96,7 @@ class ChatState {
     this.participantIds = const [],
     this.messageStatuses = const {},
     this.clientIdToServerId = const {},
+    this.freshMessageIds = const {},
   });
 
   ChatState copyWith({
@@ -135,6 +137,7 @@ class ChatState {
     List<String>? participantIds,
     Map<String, MessageStatus>? messageStatuses,
     Map<String, String>? clientIdToServerId,
+    Set<String>? freshMessageIds,
   }) {
     return ChatState(
       messages: messages ?? this.messages,
@@ -203,6 +206,7 @@ class ChatState {
       participantIds: participantIds ?? this.participantIds,
       messageStatuses: messageStatuses ?? this.messageStatuses,
       clientIdToServerId: clientIdToServerId ?? this.clientIdToServerId,
+      freshMessageIds: freshMessageIds ?? this.freshMessageIds,
     );
   }
 }

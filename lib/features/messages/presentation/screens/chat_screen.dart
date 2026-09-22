@@ -480,6 +480,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       return;
     }
 
+    // Provide WhatsApp-style instant tactile feedback on send
+    HapticFeedback.lightImpact();
+
     // Clear text input immediately for snappy UX
     _messageController.clear();
     _textNotifier.value = '';
@@ -759,6 +762,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                         messages: state.messages,
                         isLoading: state.isLoading,
                         messageStatuses: state.messageStatuses,
+                        freshMessageIds: state.freshMessageIds,
+                        onRetryMessage: (messageId) => _chatProvider.retrySendMessage(messageId),
                         currentUserId: AuthService().currentUser?.id,
                         onMessageLongPress: _showMessageOptions,
                         onMessageDoubleTap: (message) async {

@@ -9,11 +9,6 @@ class MockSupabaseClient extends Mock implements SupabaseClient {}
 
 class MockRealtimeChannel extends Mock implements RealtimeChannel {}
 
-class MockGotrueSubscription extends Mock
-    implements StreamSubscription<AuthState> {}
-
-class MockRealtimeChannelFilter extends Mock implements RealtimeChannelFilter {}
-
 void main() {
   group('PresenceService', () {
     late PresenceService presenceService;
@@ -25,11 +20,7 @@ void main() {
       mockRealtimeChannel = MockRealtimeChannel();
 
       // Mock the client getter in SupabaseService
-      // This is a bit tricky since SupabaseService is not easily mockable if it's a singleton.
-      // For now, we'll assume a way to inject or mock the client.
-      // A more robust solution would be to pass SupabaseClient as a dependency to PresenceService.
-      // For this test, we'll directly mock the behavior of `_supabase.channel`.
-      when(mockSupabaseClient.channel(any)).thenReturn(mockRealtimeChannel);
+      when(mockSupabaseClient.channel(argThat(anything))).thenReturn(mockRealtimeChannel);
 
       presenceService = PresenceService();
       // Directly inject the mock client for testing purposes if possible,
@@ -66,7 +57,7 @@ void main() {
       await presenceService.updateUserPresence(userId, 'online');
 
       // Verify no new channel is created (it should use the existing one)
-      verifyNever(mockSupabaseClient.channel(any));
+      verifyNever(mockSupabaseClient.channel(argThat(anything)));
       verifyNever(mockRealtimeChannel.subscribe());
 
       // Verify track is called with online status

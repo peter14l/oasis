@@ -162,7 +162,6 @@ class _TestEncryptionService extends ChangeNotifier
     return (success: false, recoveryKey: null);
   }
 
-  @override
   Future<({bool success, String? recoveryKey})> resetPinWithRecoveryKey(
     String recoveryKey,
     String newPin,
@@ -239,16 +238,16 @@ class _TestEncryptionService extends ChangeNotifier
   }
 
   @override
+  Future<void> reset() async {}
+
   encrypt.Key generateAESKey() {
     throw UnimplementedError();
   }
 
-  @override
   Uint8List encryptData(Uint8List data, encrypt.Key key) {
     throw UnimplementedError();
   }
 
-  @override
   Uint8List? decryptData(Uint8List combinedData, encrypt.Key key) {
     return null;
   }

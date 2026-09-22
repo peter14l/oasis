@@ -7,6 +7,7 @@ import 'package:oasis/features/stories/presentation/providers/stories_provider.d
 import 'package:oasis/features/feed/presentation/widgets/stories_bar.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
+import 'package:oasis/core/theme/oasis_colors.dart';
 import 'package:oasis/features/monetization/presentation/widgets/privacy_ad_banner.dart';
 
 class ClassicFeedLayout extends StatelessWidget {
@@ -58,12 +59,38 @@ class ClassicFeedLayout extends StatelessWidget {
                   floating: true,
                   snap: true,
                   elevation: 0,
-                  backgroundColor: isScrolled
-                      ? Colors.black.withValues(alpha: 0.8)
-                      : Colors.transparent,
-                  toolbarHeight: 70,
+                  backgroundColor: Colors.transparent,
+                  toolbarHeight: 64,
                   automaticallyImplyLeading: false,
-                  centerTitle: true,
+                  centerTitle: false,
+                  titleSpacing: 16,
+                  flexibleSpace: ClipRect(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(
+                        sigmaX: isScrolled ? 16 : 0,
+                        sigmaY: isScrolled ? 16 : 0,
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isScrolled
+                              ? (theme.brightness == Brightness.dark
+                                  ? OasisColors.deep.withValues(alpha: 0.75)
+                                  : Colors.white.withValues(alpha: 0.85))
+                              : Colors.transparent,
+                          border: Border(
+                            bottom: BorderSide(
+                              color: isScrolled
+                                  ? (theme.brightness == Brightness.dark
+                                      ? OasisColors.sage.withValues(alpha: 0.3)
+                                      : Colors.black.withValues(alpha: 0.06))
+                                  : Colors.transparent,
+                              width: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                   title: mobileHeader,
                 ),
 
