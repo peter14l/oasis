@@ -244,8 +244,12 @@ serve(async (req) => {
     }
 
     // Add title and body to data so the background handler knows what to show if decryption fails
+    const cleanDisplayBody = (body.length > 50 && !body.includes(' ') || body.startsWith('pqa:') || body.includes('🔒'))
+      ? 'New message'
+      : body;
+
     dataPayload['title'] = title;
-    dataPayload['body'] = body;
+    dataPayload['body'] = cleanDisplayBody;
 
     const fcmPayload: any = {
       message: {
@@ -253,6 +257,13 @@ serve(async (req) => {
         data: dataPayload,
         android: {
           priority: "high",
+          notification: record.type !== 'call' ? {
+            title: title,
+            body: cleanDisplayBody,
+            channelId: "oasis_channel",
+            sound: "default",
+            clickAction: "FLUTTER_NOTIFICATION_CLICK",
+          } : undefined,
         },
         apns: {
           headers: {
@@ -264,12 +275,9 @@ serve(async (req) => {
               contentAvailable: true,
               badge: 1,
               sound: "default",
-              // Only include the OS-level notification block for iOS to wake it up when killed.
-              // On Android, we rely on data-only messages to trigger the background handler
-              // and show a custom notification with buttons (Like/Reply).
               alert: record.type !== 'call' ? {
                 title: title,
-                body: (body.length > 60 && !body.contains(' ')) ? 'New message' : body,
+                body: cleanDisplayBody,
               } : undefined,
             },
           },

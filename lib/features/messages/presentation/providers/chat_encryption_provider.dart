@@ -156,6 +156,12 @@ class ChatEncryptionProvider with ChangeNotifier {
     // 4. Update message content if decrypted
     if (decryptedContent != null) {
       decryptedMessage = decryptedMessage.copyWith(content: decryptedContent);
+    } else if (isSender &&
+        !message.content.contains('🔒') &&
+        message.content.trim().isNotEmpty &&
+        !message.content.startsWith('pqa:')) {
+      // If the current user is the sender and the message object already carries plaintext,
+      // preserve it rather than replacing with '🔒 Message encrypted'.
     } else if (message.pqAuraHeader != null ||
         message.signalMessageType != null ||
         (message.encryptedKeys != null &&

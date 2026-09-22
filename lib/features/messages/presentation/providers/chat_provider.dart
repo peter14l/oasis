@@ -94,6 +94,10 @@ class ChatProvider with ChangeNotifier {
   // PQ-Aura Service instance for post-quantum encryption
   final PQAuraService _pqauraService = PQAuraService.instance;
 
+  // Cache of plaintexts for messages sent by the current user to prevent
+  // them from ever reverting to '🔒 Message encrypted' upon server echo or reload.
+  static final Map<String, String> _sentPlaintextCache = {};
+
   bool get isQuantumSecure {
     final uid = otherUserId ?? state.otherUserId;
     return uid != null && _pqauraService.hasSession(uid);
@@ -185,6 +189,14 @@ class ChatProvider with ChangeNotifier {
     await settingsProvider.loadCachedMessages(
       sessionStart: _sessionStartTime,
       onMessagesLoaded: (cached) {
+        final currentUserId = _authService.currentUser?.id;
+        for (final m in cached) {
+          if (m.senderId == currentUserId &&
+              !m.content.contains('🔒') &&
+              m.content.trim().isNotEmpty) {
+            _sentPlaintextCache[m.id] = m.content;
+          }
+        }
         setState((s) => s.copyWith(messages: cached));
         scrollToBottom(force: true);
       },
@@ -262,10 +274,21 @@ class ChatProvider with ChangeNotifier {
   }
 
   Future<Message> _decryptSingleMessage(Message message) async {
+    final currentUserId = _authService.currentUser?.id;
     var decrypted = await encryptionProvider.decryptSingleMessage(
       message,
-      _authService.currentUser?.id,
+      currentUserId,
     );
+
+    // If this message was sent by the current user and came back locked or un-decrypted,
+    // restore its plaintext from the local cache.
+    if (message.senderId == currentUserId &&
+        (decrypted.content.contains('🔒') || decrypted.content == message.content)) {
+      final cachedText = _sentPlaintextCache[message.id];
+      if (cachedText != null && cachedText.isNotEmpty) {
+        decrypted = decrypted.copyWith(content: cachedText);
+      }
+    }
 
     // Resolve replied message content locally from existing messages if Supabase Realtime omitted joined fields
     if (decrypted.replyToId != null && decrypted.replyToContent == null) {
@@ -394,6 +417,7 @@ class ChatProvider with ChangeNotifier {
         }
       }
 
+      final currentUserId = _authService.currentUser?.id;
       // Filter expired ephemeral messages
       final now = DateTime.now();
       final filtered = decryptedMessages.where((m) {
@@ -406,7 +430,26 @@ class ChatProvider with ChangeNotifier {
       // Merge server messages with any in-flight optimistic messages
       // so rapid sends aren't wiped out by polling or reload.
       setState((s) {
-        final serverIds = filtered.map((m) => m.id).toSet();
+        // If server messages have locked sender messages, restore plaintext from existing in-memory state or cache
+        final restored = filtered.map((m) {
+          if (m.senderId == currentUserId &&
+              (m.content.contains('🔒') || m.content.isEmpty)) {
+            final existing = s.messages.firstWhere(
+              (em) => em.id == m.id,
+              orElse: () => m,
+            );
+            if (!existing.content.contains('🔒') && existing.content.trim().isNotEmpty) {
+              return m.copyWith(content: existing.content);
+            }
+            final cached = _sentPlaintextCache[m.id];
+            if (cached != null && cached.isNotEmpty) {
+              return m.copyWith(content: cached);
+            }
+          }
+          return m;
+        }).toList();
+
+        final serverIds = restored.map((m) => m.id).toSet();
         final inFlight = s.messages
             .where((m) => !serverIds.contains(m.id))
             .toList();
@@ -419,7 +462,7 @@ class ChatProvider with ChangeNotifier {
           s.clientIdToServerId,
         )..removeWhere((_, serverId) => !serverIds.contains(serverId));
         return s.copyWith(
-          messages: [...filtered, ...inFlight],
+          messages: [...restored, ...inFlight],
           messageStatuses: preservedStatuses,
           clientIdToServerId: preservedClientMap,
           isLoading: false,
@@ -427,7 +470,7 @@ class ChatProvider with ChangeNotifier {
       });
       scrollToBottom(force: !silent);
       loadSmartReplies();
-      await settingsProvider.saveMessagesToCache(filtered);
+      await settingsProvider.saveMessagesToCache(state.messages);
     } catch (e) {
       debugPrint('Error loading messages (attempt ${retryCount + 1}): $e');
 
@@ -497,15 +540,27 @@ class ChatProvider with ChangeNotifier {
         setState((s) {
           if (existingIndex != -1) {
             final updated = List<Message>.from(s.messages);
+            final existingMsg = s.messages[existingIndex];
+            final bool existingHasPlaintext =
+                !existingMsg.content.contains('🔒') &&
+                existingMsg.content.trim().isNotEmpty;
+
             if (decryptedMessage.senderId == currentUserId &&
-                decryptedMessage.content == message.content &&
-                !s.messages[existingIndex].content.contains('🔒') &&
-                s.messages[existingIndex].content != decryptedMessage.content) {
+                existingHasPlaintext &&
+                (decryptedMessage.content.contains('🔒') ||
+                    decryptedMessage.content == message.content ||
+                    decryptedMessage.content.trim().isEmpty)) {
               updated[existingIndex] = decryptedMessage.copyWith(
-                content: s.messages[existingIndex].content,
+                content: existingMsg.content,
               );
+              _sentPlaintextCache[serverId] = existingMsg.content;
             } else {
               updated[existingIndex] = decryptedMessage;
+              if (decryptedMessage.senderId == currentUserId &&
+                  !decryptedMessage.content.contains('🔒') &&
+                  decryptedMessage.content.trim().isNotEmpty) {
+                _sentPlaintextCache[serverId] = decryptedMessage.content;
+              }
             }
 
             Map<String, MessageStatus> updatedStatuses = s.messageStatuses;
@@ -542,15 +597,27 @@ class ChatProvider with ChangeNotifier {
             final updated = List<Message>.from(s.messages);
             final optIndex = s.messages.indexWhere((m) => m.id == matchedClientId);
             if (optIndex != -1) {
+              final optMsg = s.messages[optIndex];
+              final bool optHasPlaintext =
+                  !optMsg.content.contains('🔒') &&
+                  optMsg.content.trim().isNotEmpty;
+
               if (decryptedMessage.senderId == currentUserId &&
-                  decryptedMessage.content == message.content &&
-                  !s.messages[optIndex].content.contains('🔒') &&
-                  s.messages[optIndex].content != decryptedMessage.content) {
+                  optHasPlaintext &&
+                  (decryptedMessage.content.contains('🔒') ||
+                      decryptedMessage.content == message.content ||
+                      decryptedMessage.content.trim().isEmpty)) {
                 updated[optIndex] = decryptedMessage.copyWith(
-                  content: s.messages[optIndex].content,
+                  content: optMsg.content,
                 );
+                _sentPlaintextCache[serverId] = optMsg.content;
               } else {
                 updated[optIndex] = decryptedMessage;
+                if (decryptedMessage.senderId == currentUserId &&
+                    !decryptedMessage.content.contains('🔒') &&
+                    decryptedMessage.content.trim().isNotEmpty) {
+                  _sentPlaintextCache[serverId] = decryptedMessage.content;
+                }
               }
             } else {
               updated.add(decryptedMessage);
@@ -580,15 +647,24 @@ class ChatProvider with ChangeNotifier {
           }
 
           // Own message not in map yet — append
+          var finalOwnMessage = decryptedMessage;
+          if (finalOwnMessage.content.contains('🔒') ||
+              finalOwnMessage.content == message.content ||
+              finalOwnMessage.content.trim().isEmpty) {
+            final cached = _sentPlaintextCache[finalOwnMessage.id];
+            if (cached != null && cached.isNotEmpty) {
+              finalOwnMessage = finalOwnMessage.copyWith(content: cached);
+            }
+          }
           return s.copyWith(
-            messages: [...s.messages, decryptedMessage],
+            messages: [...s.messages, finalOwnMessage],
             messageStatuses: {
               ...s.messageStatuses,
               serverId: MessageStatus.delivered,
             },
             freshMessageIds: {
               ...s.freshMessageIds,
-              decryptedMessage.id,
+              finalOwnMessage.id,
             },
           );
         });
@@ -898,6 +974,9 @@ class ChatProvider with ChangeNotifier {
 
     // Generate UUID clientId for WhatsApp-style tracking
     final clientId = _messageQueue.generateClientId();
+    if (content.isNotEmpty) {
+      _sentPlaintextCache[clientId] = content;
+    }
 
     // Create and add optimistic message with UUID as ID
     final optimisticMessage = Message(
@@ -1124,6 +1203,10 @@ class ChatProvider with ChangeNotifier {
             : null,
       );
 
+      if (content.isNotEmpty) {
+        _sentPlaintextCache[sentMessage.id] = content;
+      }
+
       await _messageQueue.dequeue(conversationId, clientId);
 
       var decrypted = await _decryptSingleMessage(sentMessage);
@@ -1152,7 +1235,15 @@ class ChatProvider with ChangeNotifier {
         final existing = s.messages.indexWhere((m) => m.id == serverId);
         if (existing != -1) {
           final updated = List<Message>.from(s.messages);
-          updated[existing] = decrypted;
+          if (decrypted.content.contains('🔒') &&
+              !s.messages[existing].content.contains('🔒') &&
+              s.messages[existing].content.trim().isNotEmpty) {
+            updated[existing] = decrypted.copyWith(
+              content: s.messages[existing].content,
+            );
+          } else {
+            updated[existing] = decrypted;
+          }
           final optIndex = s.messages.indexWhere((m) => m.id == clientId);
           if (optIndex != -1 && optIndex != existing) {
             updated.removeAt(optIndex > existing ? optIndex : optIndex);

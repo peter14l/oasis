@@ -41,6 +41,22 @@ class ChangelogScreen extends StatelessWidget {
                   children: [
                     _buildVersionCard(
                       context,
+                      version: '1.1.31',
+                      date: 'September 22, 2026',
+                      features: [
+                        'E2EE Sent Plaintext Preservation - Guaranteed sender plaintext preservation upon Supabase Realtime echo and historical cache reloads.',
+                        'WhatsApp-Style Notification Previews - Context-aware push previews (Photo, Video, Voice message, Document, Poll, or New message) instead of internal placeholders.',
+                        'Killed-State Push Notification Delivery - High-priority Android notification blocks ensure push alerts wake up device even when Oasis is terminated.',
+                      ],
+                      fixes: [
+                        'Fixed sent messages automatically reverting to "Message encrypted" in the UI.',
+                        'Fixed push notifications displaying "🔒 Encrypted message" in system tray.',
+                        'Fixed premature background account suppression dropping notifications in deep sleep.',
+                      ],
+                    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(height: 24),
+                    _buildVersionCard(
+                      context,
                       version: '1.1.30',
                       date: 'September 22, 2026',
                       features: [

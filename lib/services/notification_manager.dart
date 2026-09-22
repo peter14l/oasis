@@ -1077,11 +1077,29 @@ class NotificationManager {
               decryptedBody.isNotEmpty &&
               !decryptedBody.contains('🔒')) {
             body = decryptedBody;
-          } else if (body.length > 100 && !body.contains(' ')) {
-            body = '🔒 Encrypted message';
+          } else {
+            final msgType = (message.data['message_type'] ?? message.data['type'] ?? '').toString().toLowerCase();
+            if (msgType == 'image') {
+              body = '📷 Photo';
+            } else if (msgType == 'video') {
+              body = '🎥 Video';
+            } else if (msgType == 'voice' || msgType == 'audio' || msgType == 'recording') {
+              body = '🎤 Voice message';
+            } else if (msgType == 'document' || msgType == 'file') {
+              body = '📄 Document';
+            } else if (msgType == 'poll') {
+              body = '📊 Poll';
+            } else {
+              body = 'New message';
+            }
           }
         } catch (e) {
           debugPrint('Foreground decryption failed: $e');
+          body = 'New message';
+        }
+
+        if (body.contains('🔒') || (body.length > 50 && !body.contains(' ')) || body.startsWith('pqa:')) {
+          body = 'New message';
         }
 
         final messageType =

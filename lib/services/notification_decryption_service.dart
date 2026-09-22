@@ -30,6 +30,7 @@ class NotificationDecryptionService {
       'iv': notification.metadata?['iv'],
       'signal_message_type': notification.metadata?['signal_message_type'],
       'signal_sender_content': notification.metadata?['signal_sender_content'],
+      'message_type': notification.metadata?['message_type'],
       'pq_aura_header': notification.metadata?['pq_aura_header'],
       'pq_aura_payload': notification.metadata?['pq_aura_payload'],
     };
@@ -103,7 +104,7 @@ class NotificationDecryptionService {
         debugPrint(
           '[NotificationDecryption] Decryption failed: No active session/userId',
         );
-        return '🔒 Encrypted message';
+        return _getCleanPreview(mergedData);
       }
 
       // Initialize encryption services if needed
@@ -206,10 +207,24 @@ class NotificationDecryptionService {
       debugPrint(
         '[NotificationDecryption] Decryption reached fallback: placeholder returned',
       );
-      return '🔒 Encrypted message';
+      return _getCleanPreview(mergedData);
+    }
+
+    if (content.contains('🔒') || (content.length > 50 && !content.contains(' ')) || content.startsWith('pqa:')) {
+      return _getCleanPreview(mergedData);
     }
 
     return content;
+  }
+
+  String _getCleanPreview(Map<String, dynamic> data) {
+    final msgType = (data['message_type'] ?? data['type'] ?? '').toString().toLowerCase();
+    if (msgType == 'image') return '📷 Photo';
+    if (msgType == 'video') return '🎥 Video';
+    if (msgType == 'voice' || msgType == 'audio' || msgType == 'recording') return '🎤 Voice message';
+    if (msgType == 'document' || msgType == 'file') return '📄 Document';
+    if (msgType == 'poll') return '📊 Poll';
+    return 'New message';
   }
 
   bool _isBase64(String str) {

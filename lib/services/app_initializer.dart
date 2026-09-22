@@ -142,17 +142,12 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   final receiverId = message.data['receiver_id'] ?? message.data['user_id'];
 
-  // Check if there are any logged-in accounts on this device
+  // Check if there are any logged-in accounts on this device (best-effort, never drop on empty)
   try {
     final accounts = await SessionRegistryService().getAllAccounts();
-    if (accounts.isEmpty) {
-      debugPrint('[Background FCM] Suppressing notification: No accounts logged in.');
-      return;
-    }
-
-    if (receiverId != null && !accounts.any((a) => a.userId == receiverId)) {
+    if (accounts.isNotEmpty && receiverId != null && !accounts.any((a) => a.userId == receiverId)) {
       debugPrint(
-        '[Background FCM] Suppressing notification: Recipient $receiverId is not a logged-in account.',
+        '[Background FCM] Suppressing notification: Recipient $receiverId does not match logged-in accounts on device.',
       );
       return;
     }
@@ -240,11 +235,29 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           decryptedBody.isNotEmpty &&
           !decryptedBody.contains('🔒')) {
         body = decryptedBody;
-      } else if (body.length > 60 && !body.contains(' ')) {
-        body = '🔒 Encrypted message';
+      } else {
+        final msgType = (message.data['message_type'] ?? message.data['type'] ?? '').toString().toLowerCase();
+        if (msgType == 'image') {
+          body = '📷 Photo';
+        } else if (msgType == 'video') {
+          body = '🎥 Video';
+        } else if (msgType == 'voice' || msgType == 'audio' || msgType == 'recording') {
+          body = '🎤 Voice message';
+        } else if (msgType == 'document' || msgType == 'file') {
+          body = '📄 Document';
+        } else if (msgType == 'poll') {
+          body = '📊 Poll';
+        } else {
+          body = 'New message';
+        }
       }
     } catch (e) {
       debugPrint('[Background FCM] Decryption failed: $e');
+      body = 'New message';
+    }
+
+    if (body.contains('🔒') || (body.length > 50 && !body.contains(' ')) || body.startsWith('pqa:')) {
+      body = 'New message';
     }
 
     await NotificationManager.instance.showNotification(

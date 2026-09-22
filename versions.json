@@ -1,35 +1,35 @@
 {
   "android": {
-    "latestVersion": "1.1.30",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.30.apk",
+    "latestVersion": "1.1.31",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.31.apk",
     "abiUrls": {
-      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.30-arm64-v8a.apk",
-      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.30-armeabi-v7a.apk",
-      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.30-x86_64.apk",
-      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.30.apk"
+      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.31-arm64-v8a.apk",
+      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.31-armeabi-v7a.apk",
+      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.31-x86_64.apk",
+      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.31.apk"
     },
-    "releaseNotes": "• WhatsApp Chat Architecture: Resilient local outbox persistence with automatic FIFO retry on reconnect, one-tap retry on failed messages, and active typing presence.\n• WhatsApp Micro-Animations: 4-stage status icons (clock -> single check -> double grey check -> blue check -> red error) and directional bubble entrance animations.\n• Editorial Feed App Bar: Sleek brand wordmark with instant feed/layout switcher sheet, quick Ripples launcher, Create post button, and live Notifications bell with unread badge.\n• UI Polish & Performance: High-framerate GPU-composited chat animations and native frosted glass header scroll physics.",
+    "releaseNotes": "• E2EE Sent Message Fix: Fixed sent messages reverting to 'Message encrypted' upon server echo or reload by guaranteeing sender plaintext preservation and caching across real-time events.\n• WhatsApp-Style Push Previews: Replaced raw ciphertext and internal placeholders with clean contextual notification previews (Photo, Video, Voice message, Document, Poll, or New message).\n• Background & Killed Push Delivery: Fixed push notification delivery on Android devices when app is closed or in deep sleep by preventing premature background account suppression and adding high-priority FCM notification channel payloads.",
     "isRequired": false,
-    "releaseDate": "2026-09-22T22:30:00Z"
+    "releaseDate": "2026-09-22T23:30:00Z"
   },
   "windows": {
-    "latestVersion": "1.1.30",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.30.msix",
+    "latestVersion": "1.1.31",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.31.msix",
     "abiUrls": {
-      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.30.msix"
+      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.31.msix"
     },
-    "releaseNotes": "• WhatsApp Chat Architecture: Resilient local outbox persistence with automatic FIFO retry on reconnect, one-tap retry on failed messages, and active typing presence.\n• WhatsApp Micro-Animations: 4-stage status icons (clock -> single check -> double grey check -> blue check -> red error) and directional bubble entrance animations.\n• Editorial Feed App Bar: Sleek brand wordmark with instant feed/layout switcher sheet, quick Ripples launcher, Create post button, and live Notifications bell with unread badge.\n• UI Polish & Performance: High-framerate GPU-composited chat animations and native frosted glass header scroll physics.",
+    "releaseNotes": "• E2EE Sent Message Fix: Fixed sent messages reverting to 'Message encrypted' upon server echo or reload by guaranteeing sender plaintext preservation and caching across real-time events.\n• WhatsApp-Style Push Previews: Replaced raw ciphertext and internal placeholders with clean contextual notification previews (Photo, Video, Voice message, Document, Poll, or New message).\n• Background & Killed Push Delivery: Fixed push notification delivery on Android devices when app is closed or in deep sleep by preventing premature background account suppression and adding high-priority FCM notification channel payloads.",
     "isRequired": false,
-    "releaseDate": "2026-09-22T22:30:00Z"
+    "releaseDate": "2026-09-22T23:30:00Z"
   },
   "macos": {
-    "latestVersion": "1.1.30",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.30.dmg",
+    "latestVersion": "1.1.31",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.31.dmg",
     "abiUrls": {
-      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.30.dmg"
+      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.31.dmg"
     },
-    "releaseNotes": "• WhatsApp Chat Architecture: Resilient local outbox persistence with automatic FIFO retry on reconnect, one-tap retry on failed messages, and active typing presence.\n• WhatsApp Micro-Animations: 4-stage status icons (clock -> single check -> double grey check -> blue check -> red error) and directional bubble entrance animations.\n• Editorial Feed App Bar: Sleek brand wordmark with instant feed/layout switcher sheet, quick Ripples launcher, Create post button, and live Notifications bell with unread badge.\n• UI Polish & Performance: High-framerate GPU-composited chat animations and native frosted glass header scroll physics.",
+    "releaseNotes": "• E2EE Sent Message Fix: Fixed sent messages reverting to 'Message encrypted' upon server echo or reload by guaranteeing sender plaintext preservation and caching across real-time events.\n• WhatsApp-Style Push Previews: Replaced raw ciphertext and internal placeholders with clean contextual notification previews (Photo, Video, Voice message, Document, Poll, or New message).\n• Background & Killed Push Delivery: Fixed push notification delivery on Android devices when app is closed or in deep sleep by preventing premature background account suppression and adding high-priority FCM notification channel payloads.",
     "isRequired": false,
-    "releaseDate": "2026-09-22T22:30:00Z"
+    "releaseDate": "2026-09-22T23:30:00Z"
   }
 }
