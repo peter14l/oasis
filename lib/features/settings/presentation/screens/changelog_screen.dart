@@ -41,6 +41,18 @@ class ChangelogScreen extends StatelessWidget {
                   children: [
                     _buildVersionCard(
                       context,
+                      version: '1.1.32',
+                      date: 'September 23, 2026',
+                      features: [
+                        'True WhatsApp Tick Semantics - Enforced precise message status transitions: Clock (sending) -> Single Gray Tick (sent to server) -> Double Gray Tick (delivered) -> Double Blue Tick (read receipt).',
+                      ],
+                      fixes: [
+                        'Fixed message status reverting to single tick upon app reload by ensuring server insertion echoes advance to sent status without premature delivery assumption.',
+                      ],
+                    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(height: 24),
+                    _buildVersionCard(
+                      context,
                       version: '1.1.31',
                       date: 'September 22, 2026',
                       features: [

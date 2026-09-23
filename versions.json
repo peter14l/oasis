@@ -1,35 +1,35 @@
 {
   "android": {
-    "latestVersion": "1.1.31",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.31.apk",
+    "latestVersion": "1.1.32",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.32.apk",
     "abiUrls": {
-      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.31-arm64-v8a.apk",
-      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.31-armeabi-v7a.apk",
-      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.31-x86_64.apk",
-      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.31.apk"
+      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.32-arm64-v8a.apk",
+      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.32-armeabi-v7a.apk",
+      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.32-x86_64.apk",
+      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.32.apk"
     },
-    "releaseNotes": "• E2EE Sent Message Fix: Fixed sent messages reverting to 'Message encrypted' upon server echo or reload by guaranteeing sender plaintext preservation and caching across real-time events.\n• WhatsApp-Style Push Previews: Replaced raw ciphertext and internal placeholders with clean contextual notification previews (Photo, Video, Voice message, Document, Poll, or New message).\n• Background & Killed Push Delivery: Fixed push notification delivery on Android devices when app is closed or in deep sleep by preventing premature background account suppression and adding high-priority FCM notification channel payloads.",
+    "releaseNotes": "• True WhatsApp Tick Semantics: Fixed premature double gray tick on sent messages by strictly adhering to Clock (sending) -> Single Gray Tick (sent to server) -> Double Gray Tick (delivered) -> Double Blue Tick (read receipt).\n• Message Status Persistence: Resolved issue where sent messages showed double ticks when sent but reverted to single tick upon app reload or restart.\n• E2EE Plaintext Preservation & Push Delivery: Guarantees sender plaintext preservation against server ciphertext echo and high-priority background notification delivery.",
     "isRequired": false,
-    "releaseDate": "2026-09-22T23:30:00Z"
+    "releaseDate": "2026-09-23T01:38:00Z"
   },
   "windows": {
-    "latestVersion": "1.1.31",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.31.msix",
+    "latestVersion": "1.1.32",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.32.msix",
     "abiUrls": {
-      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.31.msix"
+      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.32.msix"
     },
-    "releaseNotes": "• E2EE Sent Message Fix: Fixed sent messages reverting to 'Message encrypted' upon server echo or reload by guaranteeing sender plaintext preservation and caching across real-time events.\n• WhatsApp-Style Push Previews: Replaced raw ciphertext and internal placeholders with clean contextual notification previews (Photo, Video, Voice message, Document, Poll, or New message).\n• Background & Killed Push Delivery: Fixed push notification delivery on Android devices when app is closed or in deep sleep by preventing premature background account suppression and adding high-priority FCM notification channel payloads.",
+    "releaseNotes": "• True WhatsApp Tick Semantics: Fixed premature double gray tick on sent messages by strictly adhering to Clock (sending) -> Single Gray Tick (sent to server) -> Double Gray Tick (delivered) -> Double Blue Tick (read receipt).\n• Message Status Persistence: Resolved issue where sent messages showed double ticks when sent but reverted to single tick upon app reload or restart.\n• E2EE Plaintext Preservation & Push Delivery: Guarantees sender plaintext preservation against server ciphertext echo and high-priority background notification delivery.",
     "isRequired": false,
-    "releaseDate": "2026-09-22T23:30:00Z"
+    "releaseDate": "2026-09-23T01:38:00Z"
   },
   "macos": {
-    "latestVersion": "1.1.31",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.31.dmg",
+    "latestVersion": "1.1.32",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.32.dmg",
     "abiUrls": {
-      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.31.dmg"
+      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.32.dmg"
     },
-    "releaseNotes": "• E2EE Sent Message Fix: Fixed sent messages reverting to 'Message encrypted' upon server echo or reload by guaranteeing sender plaintext preservation and caching across real-time events.\n• WhatsApp-Style Push Previews: Replaced raw ciphertext and internal placeholders with clean contextual notification previews (Photo, Video, Voice message, Document, Poll, or New message).\n• Background & Killed Push Delivery: Fixed push notification delivery on Android devices when app is closed or in deep sleep by preventing premature background account suppression and adding high-priority FCM notification channel payloads.",
+    "releaseNotes": "• True WhatsApp Tick Semantics: Fixed premature double gray tick on sent messages by strictly adhering to Clock (sending) -> Single Gray Tick (sent to server) -> Double Gray Tick (delivered) -> Double Blue Tick (read receipt).\n• Message Status Persistence: Resolved issue where sent messages showed double ticks when sent but reverted to single tick upon app reload or restart.\n• E2EE Plaintext Preservation & Push Delivery: Guarantees sender plaintext preservation against server ciphertext echo and high-priority background notification delivery.",
     "isRequired": false,
-    "releaseDate": "2026-09-22T23:30:00Z"
+    "releaseDate": "2026-09-23T01:38:00Z"
   }
 }

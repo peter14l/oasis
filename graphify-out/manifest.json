@@ -2770,8 +2770,8 @@
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/providers/chat_provider.dart": {
-    "mtime": 1790099675.2079976,
-    "ast_hash": "a1e5721307bafa77f93065bf3f28a5a5",
+    "mtime": 1790127214.8014855,
+    "ast_hash": "459c32ed09ebc1c53ca416ad9cac4cf9",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/providers/chat_reactions_provider.dart": {
@@ -3400,8 +3400,8 @@
     "semantic_hash": ""
   },
   "lib/features/settings/presentation/screens/about_app_screen.dart": {
-    "mtime": 1790100297.2435377,
-    "ast_hash": "97836eb6084cb03263f2dae90ef80a06",
+    "mtime": 1790127488.1012106,
+    "ast_hash": "ff6281f2b64af0f346a4a7fead613d77",
     "semantic_hash": ""
   },
   "lib/features/settings/presentation/screens/account_privacy_screen.dart": {
@@ -3415,8 +3415,8 @@
     "semantic_hash": ""
   },
   "lib/features/settings/presentation/screens/changelog_screen.dart": {
-    "mtime": 1790100309.8969324,
-    "ast_hash": "8d28690647678f2ae3ad92d9baf3b212",
+    "mtime": 1790127493.140762,
+    "ast_hash": "5e521d876cf112bf501b1c8e5ef757d0",
     "semantic_hash": ""
   },
   "lib/features/settings/presentation/screens/decoy_calendar_screen.dart": {
