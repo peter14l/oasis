@@ -564,11 +564,12 @@ class ChatProvider with ChangeNotifier {
             }
 
             Map<String, MessageStatus> updatedStatuses = s.messageStatuses;
-            // If we have a status for this server message, advance to delivered
-            if (s.messageStatuses.containsKey(serverId)) {
+            // Advance pending message to sent once server confirms message insertion
+            if (s.messageStatuses.containsKey(serverId) &&
+                s.messageStatuses[serverId] == MessageStatus.sending) {
               updatedStatuses = {
                 ...s.messageStatuses,
-                serverId: MessageStatus.delivered,
+                serverId: MessageStatus.sent,
               };
             }
 
@@ -626,7 +627,7 @@ class ChatProvider with ChangeNotifier {
               messages: updated,
               messageStatuses: {
                 ...s.messageStatuses,
-                serverId: MessageStatus.delivered,
+                serverId: MessageStatus.sent,
               },
               clientIdToServerId: {
                 ...s.clientIdToServerId,
@@ -660,7 +661,7 @@ class ChatProvider with ChangeNotifier {
             messages: [...s.messages, finalOwnMessage],
             messageStatuses: {
               ...s.messageStatuses,
-              serverId: MessageStatus.delivered,
+              serverId: MessageStatus.sent,
             },
             freshMessageIds: {
               ...s.freshMessageIds,
