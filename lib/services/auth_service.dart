@@ -25,7 +25,7 @@ import 'package:oasis/features/circles/presentation/providers/circle_provider.da
 import 'package:oasis/features/notifications/presentation/providers/notification_provider.dart';
 import 'package:oasis/providers/community_provider.dart';
 import 'package:oasis/providers/presence_provider.dart';
-import 'package:oasis/features/calling/presentation/providers/call_provider.dart';
+import 'package:oasis/features/calling/call_controller.dart';
 import 'package:oasis/features/ripples/presentation/providers/ripples_provider.dart';
 import 'package:oasis/features/feed/presentation/providers/feed_provider.dart';
 import 'package:oasis/services/revenuecat_service.dart';
@@ -206,7 +206,7 @@ class AuthService with ChangeNotifier {
     context.read<NotificationProvider>().clear();
     context.read<CommunityProvider>().clear();
     context.read<PresenceProvider>().clear();
-    context.read<CallProvider>().clear();
+    context.read<CallController>().reset();
 
     // Also reset feed and ripples if available
     try {

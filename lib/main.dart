@@ -31,14 +31,12 @@ import 'package:oasis/services/vault_service.dart';
 import 'package:oasis/services/wellness_service.dart';
 import 'package:oasis/services/digital_wellbeing_service.dart';
 import 'package:flutter/services.dart' as services;
-import 'package:firebase_core/firebase_core.dart';
-import 'package:oasis/firebase_options.dart';
 import 'package:oasis/features/circles/presentation/providers/circle_provider.dart';
 import 'package:oasis/providers/conversation_provider.dart';
 import 'package:oasis/features/notifications/presentation/providers/notification_provider.dart';
 import 'package:oasis/providers/presence_provider.dart';
-import 'package:oasis/features/calling/presentation/providers/call_provider.dart';
-import 'package:oasis/features/calling/presentation/widgets/floating_call_overlay.dart';
+import 'package:oasis/features/calling/call_controller.dart';
+import 'package:oasis/features/calling/presentation/floating_call_bar.dart';
 import 'package:oasis/features/settings/presentation/providers/user_settings_provider.dart';
 import 'package:oasis/features/profile/presentation/providers/profile_provider.dart';
 import 'package:oasis/themes/theme_provider.dart';
@@ -55,8 +53,7 @@ import 'package:oasis/features/couples/data/home_checkin_repository.dart';
 import 'package:oasis/widgets/verification_dialog.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:oasis/widgets/lifecycle_manager.dart';
-import 'package:oasis/widgets/call_navigator.dart';
-import 'package:oasis/features/calling/presentation/screens/incoming_call_overlay_screen.dart';
+import 'package:oasis/features/calling/presentation/call_router.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 // ---------------------------------------------------------------------------
@@ -431,11 +428,9 @@ class _MyAppState extends State<MyApp> {
             debugPrint('[MainApp] Triggering Circle loading');
             context.read<CircleProvider>().loadCircles(userId);
 
-            if (AppConfig.enableCalls) {
-              debugPrint('[MainApp] Eagerly instantiating CallProvider');
-              // Eagerly instantiate CallProvider to attach incoming call listeners
-              context.read<CallProvider>();
-            }
+            debugPrint('[MainApp] Eagerly instantiating CallController');
+            // Eagerly instantiate CallController to attach incoming call listeners
+            context.read<CallController>();
           } else {
             debugPrint(
               '[MainApp] Widget unmounted before 500ms delay, skipping circle/canvas load',
@@ -609,7 +604,7 @@ class _MyAppState extends State<MyApp> {
                                         },
                                       ),
                                     },
-                                    child: CallNavigator(child: child!),
+                                    child: CallRouter(child: child!),
                                   ),
                                 ),
                               ),
@@ -617,7 +612,7 @@ class _MyAppState extends State<MyApp> {
                           ),
                           if (!kIsWeb && Platform.isWindows)
                             const WindowsTitleBar(height: kWin11TitleBarHeight),
-                          const FloatingCallOverlay(),
+                          const FloatingCallBar(),
                         ],
                       ),
                     );
@@ -665,14 +660,14 @@ class _MyAppState extends State<MyApp> {
                                     },
                                   ),
                                 },
-                                child: CallNavigator(child: child!),
+                                child: CallRouter(child: child!),
                               ),
                             ),
                           ),
                         ),
                       ),
                       if (!kIsWeb && Platform.isWindows) const WindowsTitleBar(height: kWin11TitleBarHeight),
-                      const FloatingCallOverlay(),
+                      const FloatingCallBar(),
                     ],
                   );
                 },
@@ -945,56 +940,3 @@ void _showErrorScreen(
   );
 }
 
-// ---------------------------------------------------------------------------
-// callingMain: Lightweight entry point for incoming calls
-// ---------------------------------------------------------------------------
-
-@pragma('vm:entry-point')
-void callingMain() async {
-  material.WidgetsFlutterBinding.ensureInitialized();
-
-  // Try to load env but don't block
-  await AppInitializer.loadEnv();
-
-  // Minimal services for calling
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } catch (e) {
-    material.debugPrint('Firebase init failed in callingMain: $e');
-  }
-
-  // We fetch intent data using a dedicated method channel we defined in OasisCallActivity
-  const channel = services.MethodChannel('oasis/call_intent');
-
-  String callerName = 'Unknown';
-  String callId = '';
-  String callerAvatar = '';
-
-  try {
-    final data = await channel.invokeMapMethod<String, dynamic>(
-      'getIncomingCallData',
-    );
-    if (data != null) {
-      callerName = data['callerName'] ?? 'Unknown';
-      callId = data['callId'] ?? '';
-      callerAvatar = data['callerAvatar'] ?? '';
-    }
-  } catch (e) {
-    material.debugPrint('Failed to get intent data: $e');
-  }
-
-  runApp(
-    material.MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark(),
-      home: IncomingCallOverlayScreen(
-        callerName: callerName,
-        callId: callId,
-        callerAvatar: callerAvatar,
-        channel: channel,
-      ),
-    ),
-  );
-}

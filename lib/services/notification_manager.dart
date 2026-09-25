@@ -13,10 +13,9 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:oasis/services/notification_decryption_service.dart';
-import 'package:oasis/services/desktop_call_notifier.dart';
+import 'package:oasis/features/calling/call_native_bridge.dart';
 import 'package:oasis/services/session_registry_service.dart';
 import 'package:oasis/services/auth_service.dart';
-import 'package:oasis/services/call_service.dart';
 import 'package:oasis/features/messages/data/encryption_service.dart';
 import 'package:oasis/core/network/supabase_client.dart';
 import 'package:oasis/services/message_send_throttler.dart';
@@ -578,8 +577,8 @@ class NotificationManager {
       debugPrint(
         '[NotificationManager] End call action triggered from notification',
       );
-      // Use the global instance to end the call
-      CallService.instance.endCall();
+      // Route through the bridge to the CallController
+      CallNativeBridge.end();
       dismissActiveCallNotification();
       return;
     }
@@ -899,12 +898,9 @@ class NotificationManager {
       if (callId == null) return;
 
       if (actionId == 'accept_call') {
-        DesktopCallNotifier.acceptFromNotification(
-          callId,
-          data['sender_id'] as String?,
-        );
+        CallNativeBridge.accept(callId);
       } else if (actionId == 'decline_call') {
-        DesktopCallNotifier.declineFromNotification(callId);
+        CallNativeBridge.decline(callId);
       }
     } catch (e) {
       debugPrint('[NotificationManager] Call action handler error: $e');
@@ -995,6 +991,7 @@ class NotificationManager {
 
   /// Cancel the active call notification.
   Future<void> dismissActiveCallNotification() async {
+    if (!_isInitialized) return;
     await _localNotificationsPlugin.cancel(_activeCallNotificationId);
   }
 
@@ -1002,6 +999,7 @@ class NotificationManager {
 
   /// Cancel the persistent incoming-call notification.
   Future<void> dismissCallNotification() async {
+    if (!_isInitialized) return;
     await _localNotificationsPlugin.cancel(_callNotificationId);
   }
 
@@ -1171,15 +1169,9 @@ class NotificationManager {
       }
 
       if (type == 'call') {
-        final callId = data['call_id'] as String?;
-        final senderId = data['actor_id'] as String?;
-        if (callId != null) {
-          AppRouter.router.pushNamed(
-            'active_call',
-            pathParameters: {'callId': callId},
-            extra: {'isIncoming': true, 'callerId': senderId},
-          );
-        }
+        // Navigation is state-driven: CallRouter pushes /call/:id when the
+        // CallController has a ringing/active call. Tapping the notification
+        // just brings the app forward.
         return;
       }
 

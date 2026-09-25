@@ -98,19 +98,6 @@
         </activity-alias>
 
         <activity
-            android:name=".OasisCallActivity"
-            android:theme="@style/LaunchTheme"
-            android:exported="false"
-            android:showOnLockScreen="true"
-            android:turnScreenOn="true"
-            android:launchMode="singleTop">
-            <meta-data
-              android:name="io.flutter.embedding.android.NormalTheme"
-              android:resource="@style/NormalTheme"
-              />
-        </activity>
-
-        <activity
             android:name="com.razorpay.CheckoutActivity"
             android:theme="@style/RazorpayTheme"
             android:exported="false"

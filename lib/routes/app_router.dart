@@ -38,7 +38,7 @@ import 'package:oasis/widgets/liquid_glass_wrapper.dart';
 import 'package:oasis/widgets/liquid_glass_bottom_nav_pill.dart';
 import 'package:oasis/widgets/security_pin_sheet.dart';
 import 'package:oasis/widgets/encryption_pin_overlay.dart';
-import 'package:oasis/features/calling/presentation/screens/calling_screen.dart';
+import 'package:oasis/features/calling/presentation/call_screen.dart';
 import 'package:oasis/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:oasis/screens/settings_screen.dart';
 import 'package:oasis/features/settings/presentation/screens/subscription_screen.dart';
@@ -1579,13 +1579,11 @@ class AppRouter {
           name: 'active_call',
           pageBuilder: (context, state) {
             final callId = state.pathParameters['callId'];
-            final extra = state.extra as Map<String, dynamic>?;
-            final isIncoming = extra?['isIncoming'] == true;
 
             return MaterialPage(
               key: state.pageKey,
               fullscreenDialog: true,
-              child: CallingScreen(callId: callId, isIncoming: isIncoming),
+              child: CallScreen(callId: callId),
             );
           },
         ),

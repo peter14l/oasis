@@ -19,7 +19,6 @@ import 'package:oasis/features/messages/data/encryption_service.dart';
 import 'package:oasis/services/notification_manager.dart';
 import 'package:oasis/core/utils/responsive_layout.dart';
 import 'package:oasis/core/utils/haptic_utils.dart';
-import 'package:go_router/go_router.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:oasis/features/messages/presentation/providers/providers.dart';
 import 'package:oasis/features/messages/data/messaging_service.dart';
@@ -45,8 +44,8 @@ import 'package:oasis/features/messages/presentation/widgets/modals/location_dur
 import 'package:oasis/core/extensions/context_extensions.dart';
 import 'package:oasis/themes/theme_provider.dart';
 
-import 'package:oasis/features/calling/presentation/providers/call_provider.dart';
-import 'package:oasis/features/calling/domain/models/call_entity.dart';
+import 'package:oasis/features/calling/call_controller.dart';
+import 'package:oasis/features/calling/call.dart';
 
 /// Fully wired ChatScreen — thin orchestrator composing extracted widgets.
 /// Replaces the 4,682-line legacy chat_screen.dart.
@@ -682,7 +681,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _initiateCall(CallType type) async {
-    final callProvider = context.read<CallProvider>();
+    final controller = context.read<CallController>();
     final currentUserId = AuthService().currentUser?.id;
     final otherUserId = widget.otherUserId ?? _chatProvider.state.otherUserId;
 
@@ -692,18 +691,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
 
     try {
-      final call = await callProvider.initiateCall(
+      final call = await controller.startCall(
         conversationId: widget.conversationId,
-        callerId: currentUserId,
         receiverId: otherUserId,
         type: type,
       );
-      if (call != null && mounted) {
-        GoRouter.of(
-          context,
-        ).pushNamed('active_call', pathParameters: {'callId': call.id});
-      } else if (mounted && callProvider.state.error != null) {
-        _showError(callProvider.state.error!);
+      // Navigation to /call/:id is state-driven (CallRouter) — no manual push.
+      if (call == null && mounted && controller.state.error != null) {
+        _showError(controller.state.error!);
       }
     } catch (e) {
       _showError('Failed to initiate call: $e');
@@ -1170,9 +1165,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                           : () => _initiateCall(CallType.video),
                       backgroundUrl: state.backgroundUrl,
                     ),
-
-                    // Floating Call Overlay (Minimized Call)
-                    // const FloatingCallOverlay(),
 
                     // Vault Lock Overlay
                     if (_vaultService.isInVaultSync(widget.conversationId) &&

@@ -1,32 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:provider/provider.dart';
-import 'package:oasis/features/calling/presentation/providers/call_provider.dart';
-import 'package:go_router/go_router.dart';
-import '../screens/calling_screen.dart';
+import 'package:oasis/features/calling/call_controller.dart';
+import 'participant_view.dart';
 
-class FloatingCallOverlay extends StatefulWidget {
-  const FloatingCallOverlay({super.key});
+/// Draggable minimized-call pill. Only visible while minimized + a call
+/// exists; tapping it restores the call route.
+class FloatingCallBar extends StatefulWidget {
+  const FloatingCallBar({super.key});
 
   @override
-  State<FloatingCallOverlay> createState() => _FloatingCallOverlayState();
+  State<FloatingCallBar> createState() => _FloatingCallBarState();
 }
 
-class _FloatingCallOverlayState extends State<FloatingCallOverlay> {
+class _FloatingCallBarState extends State<FloatingCallBar> {
   Offset _position = const Offset(20, 100);
 
   @override
   Widget build(BuildContext context) {
-    final isMinimized = context.select<CallProvider, bool>((p) => p.state.isMinimized);
-    final hasActiveCall = context.select<CallProvider, bool>((p) => p.hasActiveCall);
-    final hasIncomingCall = context.select<CallProvider, bool>((p) => p.hasIncomingCall);
+    final isMinimized =
+        context.select<CallController, bool>((c) => c.state.isMinimized);
+    final hasActiveCall =
+        context.select<CallController, bool>((c) => c.hasActiveCall);
+    final hasIncomingCall =
+        context.select<CallController, bool>((c) => c.hasIncomingCall);
 
-    if (!isMinimized ||
-        (!hasActiveCall && !hasIncomingCall)) {
+    if (!isMinimized || (!hasActiveCall && !hasIncomingCall)) {
       return const SizedBox.shrink();
     }
 
-    final callProvider = context.read<CallProvider>();
+    final controller = context.read<CallController>();
     final size = MediaQuery.of(context).size;
 
     return Positioned(
@@ -53,12 +57,12 @@ class _FloatingCallOverlayState extends State<FloatingCallOverlay> {
           });
         },
         onTap: () {
-          callProvider.toggleMinimize(value: false);
+          final call = controller.activeCall ?? controller.incomingCall;
+          if (call == null) return;
+          controller.toggleMinimize(value: false);
           context.pushNamed(
             'active_call',
-            pathParameters: {
-              'callId': (callProvider.activeCall ?? callProvider.incomingCall)!.id,
-            },
+            pathParameters: {'callId': call.id},
           );
         },
         child: Material(
@@ -79,10 +83,7 @@ class _FloatingCallOverlayState extends State<FloatingCallOverlay> {
             ),
             child: Stack(
               children: [
-                // Mini Video / Avatar
-                _buildMiniContent(callProvider),
-
-                // Status Indicator
+                _buildMiniContent(controller),
                 Positioned(
                   top: 8,
                   right: 8,
@@ -95,8 +96,6 @@ class _FloatingCallOverlayState extends State<FloatingCallOverlay> {
                     ),
                   ),
                 ),
-
-                // Controls
                 Positioned(
                   bottom: 0,
                   left: 0,
@@ -118,11 +117,13 @@ class _FloatingCallOverlayState extends State<FloatingCallOverlay> {
                       children: [
                         IconButton(
                           icon: Icon(
-                            callProvider.isMuted ? Icons.mic_off : Icons.mic,
+                            controller.state.isMuted
+                                ? Icons.mic_off
+                                : Icons.mic,
                             size: 16,
                             color: Colors.white,
                           ),
-                          onPressed: callProvider.toggleMute,
+                          onPressed: controller.toggleMute,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
@@ -132,7 +133,7 @@ class _FloatingCallOverlayState extends State<FloatingCallOverlay> {
                             size: 16,
                             color: Colors.red,
                           ),
-                          onPressed: callProvider.endCall,
+                          onPressed: controller.hangUp,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
@@ -148,43 +149,40 @@ class _FloatingCallOverlayState extends State<FloatingCallOverlay> {
     );
   }
 
-  Widget _buildMiniContent(CallProvider provider) {
-    final room = provider.room;
+  Widget _buildMiniContent(CallController controller) {
+    final room = controller.room;
     if (room == null) {
-      return _buildPlaceholder(provider);
+      return _buildPlaceholder(controller);
     }
 
     final remoteParticipant = room.remoteParticipants.values.firstOrNull;
     if (remoteParticipant != null) {
-      final videoTrack = remoteParticipant.videoTrackPublications.firstOrNull?.track;
+      final videoTrack =
+          remoteParticipant.videoTrackPublications.firstOrNull?.track;
       if (videoTrack != null && !videoTrack.muted) {
-        return VideoTrackRenderer(
-          videoTrack,
-          fit: VideoViewFit.cover,
-        );
+        return VideoTrackRenderer(videoTrack, fit: VideoViewFit.cover);
       }
     }
 
-    if (provider.isVideoOn) {
-      final localVideoTrack = room.localParticipant?.videoTrackPublications.firstOrNull?.track;
+    if (controller.state.isVideoOn) {
+      final localVideoTrack = room.localParticipant?.videoTrackPublications
+          .firstOrNull
+          ?.track;
       if (localVideoTrack != null && !localVideoTrack.muted) {
-        return VideoTrackRenderer(
-          localVideoTrack,
-          fit: VideoViewFit.cover,
-        );
+        return VideoTrackRenderer(localVideoTrack, fit: VideoViewFit.cover);
       }
     }
 
-    return _buildPlaceholder(provider);
+    return _buildPlaceholder(controller);
   }
 
-  Widget _buildPlaceholder(CallProvider provider) {
-    final call = provider.activeCall ?? provider.incomingCall;
+  Widget _buildPlaceholder(CallController controller) {
+    final call = controller.activeCall ?? controller.incomingCall;
     return Container(
       color: Colors.grey[900],
       child: Center(
         child: PulsatingParticipant(
-          userId: call?.callerId, // Placeholder logic
+          userId: call?.callerId,
           isLocal: false,
           size: 60,
         ),

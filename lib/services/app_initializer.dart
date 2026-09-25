@@ -12,13 +12,11 @@ import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
 import 'package:flutter_callkit_incoming/entities/notification_params.dart';
 import 'package:flutter_callkit_incoming/entities/android_params.dart';
 import 'package:flutter_callkit_incoming/entities/ios_params.dart';
-import 'package:oasis/routes/app_router.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:universal_io/io.dart';
 import 'package:oasis/services/sqlite_init.dart';
 
 import 'package:oasis/firebase_options.dart';
-import 'package:oasis/core/config/app_config.dart';
 import 'package:oasis/services/app_analytics.dart';
 import 'package:oasis/features/auth/presentation/providers/auth_provider.dart';
 import 'package:oasis/features/auth/data/repositories/auth_repository_impl.dart';
@@ -72,9 +70,8 @@ import 'package:oasis/features/settings/domain/usecases/settings_usecases.dart';
 import 'package:oasis/features/stories/presentation/providers/stories_provider.dart';
 import 'package:oasis/features/collections/presentation/providers/collections_provider.dart';
 import 'package:oasis/features/collections/data/repositories/collection_repository_impl.dart';
-import 'package:oasis/features/calling/data/repositories/call_repository_impl.dart';
-import 'package:oasis/features/calling/presentation/providers/call_provider.dart';
-import 'package:oasis/services/call_service.dart';
+import 'package:oasis/features/calling/call_controller.dart';
+import 'package:oasis/features/calling/call_native_bridge.dart';
 import 'package:oasis/core/storage/prefs_storage.dart';
 import 'package:oasis/features/monetization/data/services/customization_service.dart';
 import 'package:oasis/features/monetization/data/services/privacy_ad_service.dart';
@@ -365,7 +362,9 @@ class AppInitializer {
       PrefsStorage.init(),
     ]);
 
-    // Handle CallKit events (Android/iOS only — plugin doesn't exist on desktop)
+    // Handle CallKit events (Android/iOS only — plugin doesn't exist on desktop).
+    // All events funnel through CallNativeBridge; the CallController decides
+    // what happens (it may not exist yet on cold start — pendings cover that).
     if (Platform.isAndroid || Platform.isIOS) {
       FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
         if (event == null) return;
@@ -374,18 +373,8 @@ class AppInitializer {
             final data = event.body['extra'];
             if (data == null) break;
             final callId = data['call_id'];
-            final senderId = data['actor_id'];
             if (callId != null) {
-              // Ensure CallService knows we are answering
-              CallService.instance.setAnswering(callId);
-
-              Future.delayed(const Duration(milliseconds: 500), () {
-                AppRouter.router.pushNamed(
-                  'active_call',
-                  pathParameters: {'callId': callId},
-                  extra: {'isIncoming': true, 'callerId': senderId},
-                );
-              });
+              CallNativeBridge.accept(callId.toString());
             }
             break;
           case Event.actionCallDecline:
@@ -393,15 +382,12 @@ class AppInitializer {
             if (data == null) break;
             final callId = data['call_id'];
             if (callId != null) {
-              SupabaseService().client
-                  .from('calls')
-                  .update({'status': 'declined'})
-                  .eq('id', callId);
+              CallNativeBridge.decline(callId.toString());
             }
             break;
           case Event.actionCallEnded:
-            // If call was ended from native UI (e.g. Android notification)
-            CallService.instance.endCall();
+            // Ended from native UI (e.g. Android notification).
+            CallNativeBridge.end();
             break;
           default:
             break;
@@ -415,16 +401,8 @@ class AppInitializer {
           if (mostRecent is Map) {
             final extra = mostRecent['extra'] as Map<dynamic, dynamic>?;
             final callId = extra?['call_id'] ?? mostRecent['id'];
-            final senderId = extra?['actor_id'];
             if (callId != null) {
-              CallService.instance.setAnswering(callId.toString());
-              Future.delayed(const Duration(milliseconds: 500), () {
-                AppRouter.router.pushNamed(
-                  'active_call',
-                  pathParameters: {'callId': callId.toString()},
-                  extra: {'isIncoming': true, 'callerId': senderId?.toString()},
-                );
-              });
+              CallNativeBridge.accept(callId.toString());
             }
           }
         }
@@ -696,28 +674,8 @@ class AppInitializer {
         Provider<VoiceTranscriptService>(
           create: (_) => VoiceTranscriptService(),
         ),
-        ChangeNotifierProvider<CallService>(
-          create: (_) =>
-              AppConfig.enableCalls ? CallService() : DisabledCallService(),
-        ),
-        ChangeNotifierProxyProvider<CallService, CallProvider>(
-          create: (context) {
-            CallService? callService;
-            try {
-              callService = context.read<CallService>();
-            } catch (e) {
-              debugPrint(
-                'CallService not found during CallProvider creation: $e',
-              );
-            }
-
-            final repo = CallRepositoryImpl();
-            return CallProvider(
-              callService: callService ?? DisabledCallService(),
-              callRepository: repo,
-            );
-          },
-          update: (context, service, provider) => provider!,
+        ChangeNotifierProvider<CallController>(
+          create: (_) => CallController(),
         ),
       ],
       child: child,

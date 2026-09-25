@@ -1,35 +1,35 @@
 {
   "android": {
-    "latestVersion": "1.1.33",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.33.apk",
+    "latestVersion": "1.2.0",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.2.0.apk",
     "abiUrls": {
-      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.33-arm64-v8a.apk",
-      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.33-armeabi-v7a.apk",
-      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.33-x86_64.apk",
-      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.33.apk"
+      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.2.0-arm64-v8a.apk",
+      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.2.0-armeabi-v7a.apk",
+      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.2.0-x86_64.apk",
+      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.2.0.apk"
     },
-    "releaseNotes": "• E2EE Message Decryption on App Restart: Fixed critical issue where historical chat messages became unreadable Base64 ciphertext on app restart; added sender RSA encryption keys and hardened ratchet session caching.\n• Native Notification Decryption: Resolved issue where push notifications displayed generic \"New message\" instead of decrypted content; converted DM pushes to high-priority data payloads and restored E2EE metadata in notifications table.\n• Modern Storage Permissions: Fixed \"Storage permission denied\" on Android 13+ by eliminating legacy storage permission checks on SAF document & photo pickers.",
+    "releaseNotes": "• Rebuilt Calling Feature: Replaced the legacy call stack with a race-safe implementation built on a new call_sessions signaling schema, conditional status updates so only one device can win an accept, and explicit accept/decline with no auto-accept.\n• LiveKit Call Transport: New LiveKit media layer with mute, video toggle, speaker/earpiece routing, proximity ear blanking, and per-call access tokens.\n• Rebuilt Call UI: Single state-driven /call route with incoming, active and unanswered screens, minimized floating call bar, participant grid with screen-share layout, and mid-call participant invites.\n• Background Ringing: CallKit handles accept/decline from the lock screen while in-app ringback plays only while the app is in the foreground.\n• Regression Coverage: Added 45 unit and widget tests covering the ring-timeout race, answered-call protection, and call navigation.",
     "isRequired": false,
-    "releaseDate": "2026-09-25T00:30:00Z"
+    "releaseDate": "2026-09-25T21:40:00Z"
   },
   "windows": {
-    "latestVersion": "1.1.33",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.33.msix",
+    "latestVersion": "1.2.0",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.2.0.msix",
     "abiUrls": {
-      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.33.msix"
+      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.2.0.msix"
     },
-    "releaseNotes": "• E2EE Message Decryption on App Restart: Fixed critical issue where historical chat messages became unreadable Base64 ciphertext on app restart; added sender RSA encryption keys and hardened ratchet session caching.\n• Native Notification Decryption: Resolved issue where push notifications displayed generic \"New message\" instead of decrypted content; converted DM pushes to high-priority data payloads and restored E2EE metadata in notifications table.\n• Modern Storage Permissions: Fixed \"Storage permission denied\" on Android 13+ by eliminating legacy storage permission checks on SAF document & photo pickers.",
+    "releaseNotes": "• Rebuilt Calling Feature: Replaced the legacy call stack with a race-safe implementation built on a new call_sessions signaling schema, conditional status updates so only one device can win an accept, and explicit accept/decline with no auto-accept.\n• LiveKit Call Transport: New LiveKit media layer with mute, video toggle, speaker/earpiece routing, proximity ear blanking, and per-call access tokens.\n• Rebuilt Call UI: Single state-driven /call route with incoming, active and unanswered screens, minimized floating call bar, participant grid with screen-share layout, and mid-call participant invites.\n• Background Ringing: CallKit handles accept/decline from the lock screen while in-app ringback plays only while the app is in the foreground.\n• Regression Coverage: Added 45 unit and widget tests covering the ring-timeout race, answered-call protection, and call navigation.",
     "isRequired": false,
-    "releaseDate": "2026-09-25T00:30:00Z"
+    "releaseDate": "2026-09-25T21:40:00Z"
   },
   "macos": {
-    "latestVersion": "1.1.33",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.33.dmg",
+    "latestVersion": "1.2.0",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.2.0.dmg",
     "abiUrls": {
-      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.33.dmg"
+      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.2.0.dmg"
     },
-    "releaseNotes": "• E2EE Message Decryption on App Restart: Fixed critical issue where historical chat messages became unreadable Base64 ciphertext on app restart; added sender RSA encryption keys and hardened ratchet session caching.\n• Native Notification Decryption: Resolved issue where push notifications displayed generic \"New message\" instead of decrypted content; converted DM pushes to high-priority data payloads and restored E2EE metadata in notifications table.\n• Modern Storage Permissions: Fixed \"Storage permission denied\" on Android 13+ by eliminating legacy storage permission checks on SAF document & photo pickers.",
+    "releaseNotes": "• Rebuilt Calling Feature: Replaced the legacy call stack with a race-safe implementation built on a new call_sessions signaling schema, conditional status updates so only one device can win an accept, and explicit accept/decline with no auto-accept.\n• LiveKit Call Transport: New LiveKit media layer with mute, video toggle, speaker/earpiece routing, proximity ear blanking, and per-call access tokens.\n• Rebuilt Call UI: Single state-driven /call route with incoming, active and unanswered screens, minimized floating call bar, participant grid with screen-share layout, and mid-call participant invites.\n• Background Ringing: CallKit handles accept/decline from the lock screen while in-app ringback plays only while the app is in the foreground.\n• Regression Coverage: Added 45 unit and widget tests covering the ring-timeout race, answered-call protection, and call navigation.",
     "isRequired": false,
-    "releaseDate": "2026-09-25T00:30:00Z"
+    "releaseDate": "2026-09-25T21:40:00Z"
   }
 }

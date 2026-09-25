@@ -41,6 +41,24 @@ class ChangelogScreen extends StatelessWidget {
                   children: [
                     _buildVersionCard(
                       context,
+                      version: '1.2.0',
+                      date: 'September 25, 2026',
+                      features: [
+                        'Rebuilt Calling Feature - Replaced the legacy call stack with a race-safe implementation built on a new call_sessions signaling schema, conditional status updates so only one device can win an accept, and explicit accept/decline with no auto-accept.',
+                        'LiveKit Call Transport - New LiveKit media layer with mute, video toggle, speaker/earpiece routing, proximity ear blanking, and per-call access tokens.',
+                        'Rebuilt Call UI - Single state-driven /call route with incoming, active and unanswered screens, minimized floating call bar, participant grid with screen-share layout, and mid-call participant invites.',
+                        'Background Ringing - Native CallKit handles accept/decline from the lock screen while in-app ringback plays only while the app is in the foreground.',
+                      ],
+                      fixes: [
+                        'Fixed incoming calls auto-accepting on some paths and invites lost when two devices raced the same call.',
+                        'Fixed answered calls being force-ended by the caller-side ring timeout.',
+                        'Fixed the call screen crashing while the other participant had not joined yet.',
+                        'Fixed declined and missed calls leaving the ringtone or proximity sensor active.',
+                      ],
+                    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(height: 24),
+                    _buildVersionCard(
+                      context,
                       version: '1.1.33',
                       date: 'September 25, 2026',
                       features: [

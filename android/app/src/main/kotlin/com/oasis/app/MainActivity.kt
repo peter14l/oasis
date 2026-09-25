@@ -25,7 +25,6 @@ class MainActivity : FlutterFragmentActivity() {
     private var stealthMethodChannel: MethodChannel? = null
     private var memoryMethodChannel: MethodChannel? = null
     private var zeroTapMethodChannel: MethodChannel? = null
-    private var pendingCallId: String? = null
     private var pendingNotificationPayload: String? = null
     private var proximityWakeLock: android.os.PowerManager.WakeLock? = null
 
@@ -115,10 +114,6 @@ class MainActivity : FlutterFragmentActivity() {
 
         callMethodChannel?.setMethodCallHandler { call, result ->
             when (call.method) {
-                "getPendingCall" -> {
-                    result.success(pendingCallId)
-                    pendingCallId = null // Clear after retrieval
-                }
                 "setProximitySensor" -> {
                     val enable = call.argument<Boolean>("enable") ?: false
                     setProximitySensor(enable)
@@ -199,12 +194,6 @@ class MainActivity : FlutterFragmentActivity() {
 
     private fun handleIntent(intent: Intent?) {
         if (intent == null) return
-        if (intent.getBooleanExtra("accept_call", false)) {
-            val callId = intent.getStringExtra("callId")
-            pendingCallId = callId
-            callMethodChannel?.invokeMethod("onCallAccepted", mapOf("callId" to callId))
-        }
-        
         val payload = intent.getStringExtra("notification_payload")
         if (payload != null) {
             pendingNotificationPayload = payload
