@@ -41,6 +41,17 @@ class ChangelogScreen extends StatelessWidget {
                   children: [
                     _buildVersionCard(
                       context,
+                      version: '1.2.1',
+                      date: 'September 25, 2026',
+                      features: [],
+                      fixes: [
+                        'Fixed incoming call invites failing with a database error - the call notification trigger wrote to a notifications column that does not exist.',
+                        'Fixed calls connecting to the wrong LiveKit server URL.',
+                      ],
+                    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(height: 24),
+                    _buildVersionCard(
+                      context,
                       version: '1.2.0',
                       date: 'September 25, 2026',
                       features: [
