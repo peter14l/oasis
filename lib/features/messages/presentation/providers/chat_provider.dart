@@ -24,6 +24,7 @@ import 'package:oasis/features/messages/presentation/providers/chat_state.dart';
 import 'package:oasis/features/messages/data/chat_media_service.dart';
 import 'package:oasis/services/curation_tracking_service.dart';
 import 'package:oasis/services/live_location_tracker.dart';
+import 'package:oasis/features/messages/presentation/widgets/bubbles/text_bubble.dart';
 
 /// Helper class to hold encrypted content and metadata
 class EncryptedContent {
@@ -371,9 +372,19 @@ class ChatProvider with ChangeNotifier {
     final String? recipientPublicKey = _publicKeyCache[recipientId];
     if (recipientPublicKey != null) {
       try {
-        final encrypted = await _encryptionService.encryptMessage(content, [
-          recipientPublicKey,
-        ]);
+        final currentUserId = _authService.currentUser?.id;
+        final senderPublicKey = currentUserId != null
+            ? await _authService.getPublicKey(currentUserId)
+            : null;
+        final List<String> rsaRecipients = [recipientPublicKey];
+        if (senderPublicKey != null && !rsaRecipients.contains(senderPublicKey)) {
+          rsaRecipients.add(senderPublicKey);
+        }
+
+        final encrypted = await _encryptionService.encryptMessage(
+          content,
+          rsaRecipients,
+        );
         debugPrint('[ChatProvider] Used RSA encryption for $recipientId');
         return EncryptedContent(
           content: encrypted.encryptedContent,
@@ -430,20 +441,28 @@ class ChatProvider with ChangeNotifier {
       // Merge server messages with any in-flight optimistic messages
       // so rapid sends aren't wiped out by polling or reload.
       setState((s) {
-        // If server messages have locked sender messages, restore plaintext from existing in-memory state or cache
+        // If server messages have locked messages or un-decrypted ciphertext,
+        // restore plaintext from existing in-memory state or local cache
         final restored = filtered.map((m) {
-          if (m.senderId == currentUserId &&
-              (m.content.contains('🔒') || m.content.isEmpty)) {
+          final bool isUnreadable = m.content.contains('🔒') ||
+              m.content.isEmpty ||
+              !MessageTextUtils.isDisplayableCaption(m.content);
+
+          if (isUnreadable) {
             final existing = s.messages.firstWhere(
               (em) => em.id == m.id,
               orElse: () => m,
             );
-            if (!existing.content.contains('🔒') && existing.content.trim().isNotEmpty) {
+            if (!existing.content.contains('🔒') &&
+                existing.content.trim().isNotEmpty &&
+                MessageTextUtils.isDisplayableCaption(existing.content)) {
               return m.copyWith(content: existing.content);
             }
-            final cached = _sentPlaintextCache[m.id];
-            if (cached != null && cached.isNotEmpty) {
-              return m.copyWith(content: cached);
+            if (m.senderId == currentUserId) {
+              final cached = _sentPlaintextCache[m.id];
+              if (cached != null && cached.isNotEmpty) {
+                return m.copyWith(content: cached);
+              }
             }
           }
           return m;
@@ -1185,9 +1204,8 @@ class ChatProvider with ChangeNotifier {
         mediaFileName: fileName,
         mediaFileSize: fileSize,
         mediaMimeType: finalMimeType,
-        encryptedKeys: encryptedKeys ??
-            (uploadResult != null ? uploadResult.encryptedKeys : null),
-        iv: iv ?? (uploadResult != null ? uploadResult.iv : null),
+        encryptedKeys: encryptedKeys ?? uploadResult?.encryptedKeys,
+        iv: iv ?? uploadResult?.iv,
         signalMessageType: signalMessageType,
         signalSenderContent: signalSenderContent,
         whisperMode: state.whisperMode,

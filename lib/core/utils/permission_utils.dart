@@ -13,7 +13,11 @@ class PermissionUtils {
     final status = await Permission.photos.request();
     if (status.isGranted || status.isLimited) return true;
 
-    // For Android, try storage permission
+    // Check video permission on Android 13+
+    final videoStatus = await Permission.videos.request();
+    if (videoStatus.isGranted || videoStatus.isLimited) return true;
+
+    // For Android 12 and below, try storage permission
     final storageStatus = await Permission.storage.request();
     return storageStatus.isGranted || storageStatus.isLimited;
   }
@@ -33,7 +37,17 @@ class PermissionUtils {
   /// Request storage permission
   static Future<bool> requestStoragePermission() async {
     final status = await Permission.storage.request();
-    return status.isGranted || status.isLimited;
+    if (status.isGranted || status.isLimited) return true;
+
+    // On Android 13+, check photos/videos/audio permissions as storage is deprecated
+    final photos = await Permission.photos.status;
+    if (photos.isGranted || photos.isLimited) return true;
+    final videos = await Permission.videos.status;
+    if (videos.isGranted || videos.isLimited) return true;
+    final audio = await Permission.audio.status;
+    if (audio.isGranted || audio.isLimited) return true;
+
+    return false;
   }
 
   /// Check if camera permission is granted

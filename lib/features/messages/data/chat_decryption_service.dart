@@ -106,10 +106,10 @@ class ChatDecryptionService {
       // 3. Try RSA Fallback (Dual-layer for both sender and recipient)
       if (decryptedContent == null) {
         final rsaCiphertext = isSender
-            ? signalSenderContent
+            ? (signalSenderContent ?? content)
             : (signalSenderContent ?? content);
 
-        if (rsaCiphertext != null && encryptedKeys != null && iv != null) {
+        if (rsaCiphertext.isNotEmpty && encryptedKeys != null && iv != null) {
           decryptedContent = await _encryptionService.decryptMessage(
             rsaCiphertext,
             Map<String, String>.from(encryptedKeys),

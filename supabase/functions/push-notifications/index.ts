@@ -206,6 +206,7 @@ serve(async (req) => {
         dataPayload['conversation_id'] = msgData.conversation_id;
         dataPayload['sender_id'] = record.actor_id;
 
+        dataPayload['message_id'] = record.message_id;
         if (msgData.encrypted_keys) {
           dataPayload['encrypted_keys'] = typeof msgData.encrypted_keys === 'object' ? JSON.stringify(msgData.encrypted_keys) : msgData.encrypted_keys.toString();
         }
@@ -229,9 +230,10 @@ serve(async (req) => {
     }
 
     // 5. Build the final FCM payload
-    // IMPORTANT: We use a "data-only" message (NO 'notification' block)
-    // This ensures that the OS doesn't show a generic system notification,
-    // and instead wakes up our Flutter background handler to decrypt and show it properly.
+    // IMPORTANT: For encrypted DM messages, we use a "data-only" message (NO system 'notification' block).
+    // This prevents the OS from prematurely rendering a generic "New message" banner,
+    // and instead invokes the Flutter background handler to decrypt and display the real message.
+    const isDM = record.type === 'dm';
     
     // Add all metadata from the trigger payload to the FCM data payload
     if (payload.metadata) {
@@ -257,7 +259,7 @@ serve(async (req) => {
         data: dataPayload,
         android: {
           priority: "high",
-          notification: record.type !== 'call' ? {
+          notification: (record.type !== 'call' && !isDM) ? {
             title: title,
             body: cleanDisplayBody,
             channelId: "oasis_channel",
@@ -268,14 +270,14 @@ serve(async (req) => {
         apns: {
           headers: {
             "apns-priority": "10",
-            "apns-push-type": "alert",
+            "apns-push-type": isDM ? "background" : "alert",
           },
           payload: {
             aps: {
               contentAvailable: true,
               badge: 1,
               sound: "default",
-              alert: record.type !== 'call' ? {
+              alert: (record.type !== 'call' && !isDM) ? {
                 title: title,
                 body: cleanDisplayBody,
               } : undefined,

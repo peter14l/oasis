@@ -382,10 +382,9 @@ class PQAuraService {
       if (plaintextBytes == null) {
         if (kDebugMode) {
           debugPrint(
-            '[PQAura] Decryption failed for user: $senderId. Marking session as corrupt.',
+            '[PQAura] Decryption failed for user: $senderId.',
           );
         }
-        _corruptSessions.add(senderId);
         return null;
       }
 

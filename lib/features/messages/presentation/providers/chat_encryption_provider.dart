@@ -10,6 +10,7 @@ import 'package:oasis/features/messages/data/encryption_service.dart';
 import 'package:oasis/features/messages/data/signal/signal_service.dart';
 import 'package:oasis/features/messages/data/pq_aura/pq_aura_service.dart';
 import 'package:oasis/features/messages/presentation/screens/encryption_setup_screen.dart';
+import 'package:oasis/features/messages/presentation/widgets/bubbles/text_bubble.dart';
 
 /// Provider handling all encryption-related chat logic.
 /// Extracted from _ChatScreenState encryption methods in chat_screen.dart.
@@ -132,10 +133,12 @@ class ChatEncryptionProvider with ChangeNotifier {
     // 3. Try RSA Fallback (Dual-layer for both sender and recipient)
     if (decryptedContent == null) {
       final rsaCiphertext = isSender
-          ? (message.pqAuraSenderPayload ?? message.signalSenderContent)
+          ? (message.pqAuraSenderPayload ??
+              message.signalSenderContent ??
+              message.content)
           : (message.signalSenderContent ?? message.content);
 
-      if (rsaCiphertext != null &&
+      if (rsaCiphertext.isNotEmpty &&
           message.encryptedKeys != null &&
           message.iv != null) {
         try {
@@ -159,15 +162,17 @@ class ChatEncryptionProvider with ChangeNotifier {
     } else if (isSender &&
         !message.content.contains('🔒') &&
         message.content.trim().isNotEmpty &&
-        !message.content.startsWith('pqa:')) {
-      // If the current user is the sender and the message object already carries plaintext,
+        !message.content.startsWith('pqa:') &&
+        MessageTextUtils.isDisplayableCaption(message.content)) {
+      // If the current user is the sender and the message object already carries verified plaintext,
       // preserve it rather than replacing with '🔒 Message encrypted'.
     } else if (message.pqAuraHeader != null ||
         message.signalMessageType != null ||
         (message.encryptedKeys != null &&
             message.iv != null &&
             (message.messageType == MessageType.text ||
-                message.content.isNotEmpty))) {
+                message.content.isNotEmpty)) ||
+        !MessageTextUtils.isDisplayableCaption(message.content)) {
       // If we failed to decrypt a known encrypted message, set placeholder
       decryptedMessage = decryptedMessage.copyWith(
         content: '🔒 Message encrypted',
@@ -315,47 +320,5 @@ class ChatEncryptionProvider with ChangeNotifier {
       debugPrint('Error extracting colors: $e');
     }
   }
-
-  /// Helper method to decrypt using Signal protocol (fallback)
-  Future<Message> _decryptWithSignal(
-    Message message,
-    String? currentUserId,
-  ) async {
-    final isSender =
-        currentUserId != null &&
-        message.senderId.toLowerCase() == currentUserId.toLowerCase();
-
-    if (isSender &&
-        message.signalSenderContent != null &&
-        message.encryptedKeys != null &&
-        message.iv != null) {
-      final decrypted = await _encryptionService.decryptMessage(
-        message.signalSenderContent!,
-        message.encryptedKeys!,
-        message.iv!,
-      );
-      return message.copyWith(content: decrypted ?? '🔒 Message encrypted');
-    } else if (!isSender && message.signalMessageType != null) {
-      String decrypted = await SignalService().decryptMessage(
-        message.senderId,
-        message.content,
-        message.signalMessageType!,
-      );
-
-      // Fall back to RSA if Signal decryption returns encrypted marker
-      if ((decrypted.contains('🔒') || decrypted.contains('Optimizing')) &&
-          message.signalSenderContent != null &&
-          message.encryptedKeys != null &&
-          message.iv != null) {
-        final rsaDecrypted = await _encryptionService.decryptMessage(
-          message.signalSenderContent!,
-          message.encryptedKeys!,
-          message.iv!,
-        );
-        if (rsaDecrypted != null) decrypted = rsaDecrypted;
-      }
-      return message.copyWith(content: decrypted);
-    }
-    return message;
-  }
 }
+

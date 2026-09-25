@@ -1,5 +1,4 @@
 import 'package:universal_io/io.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
@@ -31,6 +30,11 @@ class ChatMediaPicker {
       if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
         final permissionGranted = await PermissionUtils.requestGalleryPermission();
         if (!permissionGranted) {
+          // On Android 13+, PhotoPicker doesn't need permissions; try picking anyway before giving up
+          try {
+            final picked = await _imagePicker.pickMultiImage(imageQuality: 85);
+            if (picked.isNotEmpty) return picked;
+          } catch (_) {}
           throw Exception('Gallery permission denied');
         }
       }
@@ -60,13 +64,8 @@ class ChatMediaPicker {
   /// Pick a file.
   Future<PlatformFile?> pickFile() async {
     try {
-      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-        final permissionGranted = await PermissionUtils.requestStoragePermission();
-        if (!permissionGranted) {
-          throw Exception('Storage permission denied');
-        }
-      }
-
+      // Note: FilePicker uses Storage Access Framework (SAF) on Android and UIDocumentPicker on iOS.
+      // Neither requires runtime READ_EXTERNAL_STORAGE permission on Android 10+ or iOS.
       final result = await FilePicker.platform.pickFiles(
         initialDirectory: await getInitialDirectory(),
       );
@@ -86,6 +85,13 @@ class ChatMediaPicker {
       if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
         final permissionGranted = await PermissionUtils.requestGalleryPermission();
         if (!permissionGranted) {
+          try {
+            final picked = await _imagePicker.pickVideo(
+              source: source,
+              maxDuration: const Duration(minutes: 5),
+            );
+            if (picked != null) return picked;
+          } catch (_) {}
           throw Exception('Gallery permission denied');
         }
       }
@@ -114,13 +120,7 @@ class ChatMediaPicker {
   /// Pick an audio file.
   Future<File?> pickAudio() async {
     try {
-      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-        final permissionGranted = await PermissionUtils.requestStoragePermission();
-        if (!permissionGranted) {
-          throw Exception('Storage permission denied');
-        }
-      }
-
+      // Audio selection uses system SAF picker without requiring obsolete storage permission
       final result = await FilePicker.platform.pickFiles(
         type: FileType.audio,
         initialDirectory: await getInitialDirectory(),

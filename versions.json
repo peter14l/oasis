@@ -1,35 +1,35 @@
 {
   "android": {
-    "latestVersion": "1.1.32",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.32.apk",
+    "latestVersion": "1.1.33",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.33.apk",
     "abiUrls": {
-      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.32-arm64-v8a.apk",
-      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.32-armeabi-v7a.apk",
-      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.32-x86_64.apk",
-      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.32.apk"
+      "arm64-v8a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.33-arm64-v8a.apk",
+      "armeabi-v7a": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.33-armeabi-v7a.apk",
+      "x86_64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.33-x86_64.apk",
+      "universal": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/oasis-v1.1.33.apk"
     },
-    "releaseNotes": "• True WhatsApp Tick Semantics: Fixed premature double gray tick on sent messages by strictly adhering to Clock (sending) -> Single Gray Tick (sent to server) -> Double Gray Tick (delivered) -> Double Blue Tick (read receipt).\n• Message Status Persistence: Resolved issue where sent messages showed double ticks when sent but reverted to single tick upon app reload or restart.\n• E2EE Plaintext Preservation & Push Delivery: Guarantees sender plaintext preservation against server ciphertext echo and high-priority background notification delivery.",
+    "releaseNotes": "• E2EE Message Decryption on App Restart: Fixed critical issue where historical chat messages became unreadable Base64 ciphertext on app restart; added sender RSA encryption keys and hardened ratchet session caching.\n• Native Notification Decryption: Resolved issue where push notifications displayed generic \"New message\" instead of decrypted content; converted DM pushes to high-priority data payloads and restored E2EE metadata in notifications table.\n• Modern Storage Permissions: Fixed \"Storage permission denied\" on Android 13+ by eliminating legacy storage permission checks on SAF document & photo pickers.",
     "isRequired": false,
-    "releaseDate": "2026-09-23T01:38:00Z"
+    "releaseDate": "2026-09-25T00:30:00Z"
   },
   "windows": {
-    "latestVersion": "1.1.32",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.32.msix",
+    "latestVersion": "1.1.33",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.33.msix",
     "abiUrls": {
-      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.32.msix"
+      "x64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.33.msix"
     },
-    "releaseNotes": "• True WhatsApp Tick Semantics: Fixed premature double gray tick on sent messages by strictly adhering to Clock (sending) -> Single Gray Tick (sent to server) -> Double Gray Tick (delivered) -> Double Blue Tick (read receipt).\n• Message Status Persistence: Resolved issue where sent messages showed double ticks when sent but reverted to single tick upon app reload or restart.\n• E2EE Plaintext Preservation & Push Delivery: Guarantees sender plaintext preservation against server ciphertext echo and high-priority background notification delivery.",
+    "releaseNotes": "• E2EE Message Decryption on App Restart: Fixed critical issue where historical chat messages became unreadable Base64 ciphertext on app restart; added sender RSA encryption keys and hardened ratchet session caching.\n• Native Notification Decryption: Resolved issue where push notifications displayed generic \"New message\" instead of decrypted content; converted DM pushes to high-priority data payloads and restored E2EE metadata in notifications table.\n• Modern Storage Permissions: Fixed \"Storage permission denied\" on Android 13+ by eliminating legacy storage permission checks on SAF document & photo pickers.",
     "isRequired": false,
-    "releaseDate": "2026-09-23T01:38:00Z"
+    "releaseDate": "2026-09-25T00:30:00Z"
   },
   "macos": {
-    "latestVersion": "1.1.32",
-    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.32.dmg",
+    "latestVersion": "1.1.33",
+    "downloadUrl": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.33.dmg",
     "abiUrls": {
-      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.32.dmg"
+      "arm64": "https://pub-367b2ec139244405b5e1c1ab74e78467.r2.dev/Oasis_1.1.33.dmg"
     },
-    "releaseNotes": "• True WhatsApp Tick Semantics: Fixed premature double gray tick on sent messages by strictly adhering to Clock (sending) -> Single Gray Tick (sent to server) -> Double Gray Tick (delivered) -> Double Blue Tick (read receipt).\n• Message Status Persistence: Resolved issue where sent messages showed double ticks when sent but reverted to single tick upon app reload or restart.\n• E2EE Plaintext Preservation & Push Delivery: Guarantees sender plaintext preservation against server ciphertext echo and high-priority background notification delivery.",
+    "releaseNotes": "• E2EE Message Decryption on App Restart: Fixed critical issue where historical chat messages became unreadable Base64 ciphertext on app restart; added sender RSA encryption keys and hardened ratchet session caching.\n• Native Notification Decryption: Resolved issue where push notifications displayed generic \"New message\" instead of decrypted content; converted DM pushes to high-priority data payloads and restored E2EE metadata in notifications table.\n• Modern Storage Permissions: Fixed \"Storage permission denied\" on Android 13+ by eliminating legacy storage permission checks on SAF document & photo pickers.",
     "isRequired": false,
-    "releaseDate": "2026-09-23T01:38:00Z"
+    "releaseDate": "2026-09-25T00:30:00Z"
   }
 }

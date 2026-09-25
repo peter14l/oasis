@@ -7,6 +7,8 @@ import 'package:oasis/services/auth_service.dart';
 import 'package:oasis/services/session_registry_service.dart';
 
 import 'package:oasis/features/notifications/domain/models/notification_entity.dart';
+import 'package:oasis/core/network/supabase_client.dart';
+import 'package:oasis/core/config/supabase_config.dart';
 
 /// Service responsible for decrypting message content in notifications.
 class NotificationDecryptionService {
@@ -21,18 +23,48 @@ class NotificationDecryptionService {
 
   /// Decrypts a notification entity (from Supabase Realtime).
   Future<String?> decryptNotification(AppNotification notification) async {
+    final Map<String, dynamic> metadata = Map<String, dynamic>.from(notification.metadata ?? {});
+
+    // If metadata is empty or missing keys, fetch directly from messages table using messageId
+    if (notification.messageId != null &&
+        (metadata['encrypted_keys'] == null &&
+            metadata['signal_message_type'] == null &&
+            metadata['pq_aura_header'] == null)) {
+      try {
+        final msg = await SupabaseService().client
+            .from(SupabaseConfig.messagesTable)
+            .select('encrypted_keys, iv, signal_message_type, signal_sender_content, pq_aura_header, pq_aura_payload, content')
+            .eq('id', notification.messageId!)
+            .maybeSingle();
+        if (msg != null) {
+          metadata['encrypted_keys'] ??= msg['encrypted_keys'];
+          metadata['iv'] ??= msg['iv'];
+          metadata['signal_message_type'] ??= msg['signal_message_type'];
+          metadata['signal_sender_content'] ??= msg['signal_sender_content'];
+          metadata['pq_aura_header'] ??= msg['pq_aura_header'];
+          metadata['pq_aura_payload'] ??= msg['pq_aura_payload'];
+          if (msg['content'] != null && (notification.message == null || notification.message == 'New message')) {
+            metadata['content'] = msg['content'];
+          }
+        }
+      } catch (e) {
+        debugPrint('[NotificationDecryption] Error fetching missing metadata: $e');
+      }
+    }
+
     final Map<String, dynamic> data = {
-      'body': notification.message,
-      'content': notification.message,
+      'body': metadata['content'] ?? notification.message,
+      'content': metadata['content'] ?? notification.message,
       'sender_id': notification.actorId,
       'actor_id': notification.actorId,
-      'encrypted_keys': notification.metadata?['encrypted_keys'],
-      'iv': notification.metadata?['iv'],
-      'signal_message_type': notification.metadata?['signal_message_type'],
-      'signal_sender_content': notification.metadata?['signal_sender_content'],
-      'message_type': notification.metadata?['message_type'],
-      'pq_aura_header': notification.metadata?['pq_aura_header'],
-      'pq_aura_payload': notification.metadata?['pq_aura_payload'],
+      'message_id': notification.messageId,
+      'encrypted_keys': metadata['encrypted_keys'],
+      'iv': metadata['iv'],
+      'signal_message_type': metadata['signal_message_type'],
+      'signal_sender_content': metadata['signal_sender_content'],
+      'message_type': metadata['message_type'],
+      'pq_aura_header': metadata['pq_aura_header'],
+      'pq_aura_payload': metadata['pq_aura_payload'],
     };
 
     return decryptMessage(data);
@@ -44,7 +76,7 @@ class NotificationDecryptionService {
     String? targetUserId,
   }) async {
     // Check if metadata is nested as a JSON string or map in 'metadata'
-    Map<String, dynamic> mergedData = Map<String, dynamic>.from(data);
+    final Map<String, dynamic> mergedData = Map<String, dynamic>.from(data);
     if (data['metadata'] != null) {
       if (data['metadata'] is String) {
         try {
@@ -55,6 +87,37 @@ class NotificationDecryptionService {
         } catch (_) {}
       } else if (data['metadata'] is Map) {
         mergedData.addAll(Map<String, dynamic>.from(data['metadata']));
+      }
+    }
+
+    // If encryption keys are missing but message_id is available, fetch metadata directly from messages table
+    final messageId = mergedData['message_id'];
+    if (messageId != null &&
+        mergedData['encrypted_keys'] == null &&
+        mergedData['signal_message_type'] == null &&
+        mergedData['pq_aura_header'] == null) {
+      try {
+        final msg = await SupabaseService().client
+            .from(SupabaseConfig.messagesTable)
+            .select('encrypted_keys, iv, signal_message_type, signal_sender_content, pq_aura_header, pq_aura_payload, content')
+            .eq('id', messageId)
+            .maybeSingle();
+        if (msg != null) {
+          mergedData['encrypted_keys'] = msg['encrypted_keys'];
+          mergedData['iv'] = msg['iv'];
+          mergedData['signal_message_type'] = msg['signal_message_type'];
+          mergedData['signal_sender_content'] = msg['signal_sender_content'];
+          mergedData['pq_aura_header'] = msg['pq_aura_header'];
+          mergedData['pq_aura_payload'] = msg['pq_aura_payload'];
+          if (msg['content'] != null &&
+              (mergedData['body'] == 'New message' ||
+                  mergedData['body'] == null ||
+                  mergedData['body'] == '')) {
+            mergedData['body'] = msg['content'];
+          }
+        }
+      } catch (e) {
+        debugPrint('[NotificationDecryption] Error fetching message from DB: $e');
       }
     }
 

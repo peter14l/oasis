@@ -2030,8 +2030,8 @@
     "semantic_hash": ""
   },
   "lib/core/utils/permission_utils.dart": {
-    "mtime": 1785438893.0284991,
-    "ast_hash": "9daafd1a43acac319cf0390f33a31f80",
+    "mtime": 1790276272.6245656,
+    "ast_hash": "3fcd270cd2916569d6667b58b7a8bdae",
     "semantic_hash": ""
   },
   "lib/core/utils/responsive_layout.dart": {
@@ -2595,8 +2595,8 @@
     "semantic_hash": ""
   },
   "lib/features/messages/data/chat_decryption_service.dart": {
-    "mtime": 1785438893.0819216,
-    "ast_hash": "7b20d95b1dadee4537c84414e0efb28e",
+    "mtime": 1790295219.7655568,
+    "ast_hash": "59dae51b246cd2e17a823e050a8d15a8",
     "semantic_hash": ""
   },
   "lib/features/messages/data/chat_media_service.dart": {
@@ -2610,8 +2610,8 @@
     "semantic_hash": ""
   },
   "lib/features/messages/data/datasources/chat_media_picker.dart": {
-    "mtime": 1785438893.0839207,
-    "ast_hash": "17ef49a1ae526f9c99140827ab09716d",
+    "mtime": 1790295236.1493142,
+    "ast_hash": "9157700ae363bd58135579aeaec89c45",
     "semantic_hash": ""
   },
   "lib/features/messages/data/datasources/conversation_remote_datasource.dart": {
@@ -2645,8 +2645,8 @@
     "semantic_hash": ""
   },
   "lib/features/messages/data/pq_aura/pq_aura_service_io.dart": {
-    "mtime": 1788673591.5951865,
-    "ast_hash": "d338fab2dc45876c9873a35a51875ee6",
+    "mtime": 1790276354.1392977,
+    "ast_hash": "3292a0f5ffe8b7ff764049815ee69e10",
     "semantic_hash": ""
   },
   "lib/features/messages/data/pq_aura/pq_aura_service_stub.dart": {
@@ -2765,13 +2765,13 @@
     "semantic_hash": "02b9f9d8e32e2561a27df346e1670d92"
   },
   "lib/features/messages/presentation/providers/chat_encryption_provider.dart": {
-    "mtime": 1790099557.418015,
-    "ast_hash": "728f9452c88bb33ccb6583d94f3f5216",
+    "mtime": 1790295564.8194726,
+    "ast_hash": "d7d74fcaae728d8584ca6f692ed4ef09",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/providers/chat_provider.dart": {
-    "mtime": 1790127214.8014855,
-    "ast_hash": "459c32ed09ebc1c53ca416ad9cac4cf9",
+    "mtime": 1790295567.3190985,
+    "ast_hash": "ec69dccd959bc3c31d11c79e578adcf9",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/providers/chat_reactions_provider.dart": {
@@ -2895,8 +2895,8 @@
     "semantic_hash": "ae76143269a2943c591cb6fa877ca986"
   },
   "lib/features/messages/presentation/widgets/bubbles/text_bubble.dart": {
-    "mtime": 1785438893.1078722,
-    "ast_hash": "d7767ba8d7cd3604fb449b3b3e4a9c61",
+    "mtime": 1790276281.0182402,
+    "ast_hash": "19160d4abc43f759368c4fee9f809b35",
     "semantic_hash": ""
   },
   "lib/features/messages/presentation/widgets/bubbles/video_bubble.dart": {
@@ -3400,8 +3400,8 @@
     "semantic_hash": ""
   },
   "lib/features/settings/presentation/screens/about_app_screen.dart": {
-    "mtime": 1790127488.1012106,
-    "ast_hash": "ff6281f2b64af0f346a4a7fead613d77",
+    "mtime": 1790296200.3644261,
+    "ast_hash": "d519e17f5ea318b50f9e70c0c11d5914",
     "semantic_hash": ""
   },
   "lib/features/settings/presentation/screens/account_privacy_screen.dart": {
@@ -3415,8 +3415,8 @@
     "semantic_hash": ""
   },
   "lib/features/settings/presentation/screens/changelog_screen.dart": {
-    "mtime": 1790127493.140762,
-    "ast_hash": "5e521d876cf112bf501b1c8e5ef757d0",
+    "mtime": 1790296207.448912,
+    "ast_hash": "d7aa175097a372a658100db85cb48989",
     "semantic_hash": ""
   },
   "lib/features/settings/presentation/screens/decoy_calendar_screen.dart": {
@@ -4110,8 +4110,8 @@
     "semantic_hash": ""
   },
   "lib/services/notification_decryption_service.dart": {
-    "mtime": 1790099732.0747943,
-    "ast_hash": "f6d35a3e5312aae26c4114027be64f5f",
+    "mtime": 1790295256.6224809,
+    "ast_hash": "cfbc4b8d66299ed3ce7b78cc42c16aaf",
     "semantic_hash": ""
   },
   "lib/services/notification_manager.dart": {
@@ -4845,8 +4845,8 @@
     "semantic_hash": "cb19a42a82393531b5f88546f77f3241"
   },
   "supabase/functions/push-notifications/index.ts": {
-    "mtime": 1790099887.484471,
-    "ast_hash": "072df6cf2f2816c11d68a30cc500738a",
+    "mtime": 1790276424.4773638,
+    "ast_hash": "2190b0303ab2bbfb9cfec93b9041f85d",
     "semantic_hash": ""
   },
   "supabase/functions/razorpay-cancel-subscription/index.ts": {
@@ -38187,6 +38187,11 @@
   "test/features/messages/chat_encryption_sender_preservation_test.dart": {
     "mtime": 1790100103.7897794,
     "ast_hash": "c57d2989f7554650a98b3300149c8247",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260925000000_fix_send_message_v3_notifications_metadata.sql": {
+    "mtime": 1790276406.0539966,
+    "ast_hash": "aca3670116e6d8d1637c4ac03bdd4eb7",
     "semantic_hash": ""
   }
 }

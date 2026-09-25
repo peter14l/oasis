@@ -41,6 +41,22 @@ class ChangelogScreen extends StatelessWidget {
                   children: [
                     _buildVersionCard(
                       context,
+                      version: '1.1.33',
+                      date: 'September 25, 2026',
+                      features: [
+                        'E2EE Message Decryption on App Restart - Hardened message decryption and local plaintext cache preservation so historical chat messages remain readable on app restart without displaying raw ciphertext.',
+                        'Native Push Notification Decryption - Converted DM notifications to high-priority data payloads and restored E2EE metadata in notifications table for instant client-side decryption.',
+                        'Modern Storage Access - Updated media picker to eliminate deprecated storage permission checks on Android 13+, resolving "Storage permission denied" when selecting files and photos.',
+                      ],
+                      fixes: [
+                        'Fixed sent messages displaying raw Base64 ciphertext blobs upon cold restart.',
+                        'Fixed system notifications displaying "New message" instead of decrypted message text.',
+                        'Fixed file and audio picker crashes on modern Android devices.',
+                      ],
+                    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(height: 24),
+                    _buildVersionCard(
+                      context,
                       version: '1.1.32',
                       date: 'September 23, 2026',
                       features: [

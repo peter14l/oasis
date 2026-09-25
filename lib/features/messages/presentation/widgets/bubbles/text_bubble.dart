@@ -14,9 +14,14 @@ class MessageTextUtils {
     if (text.isEmpty) return false;
     if (text == 'Sent attachment') return false;
     if (text.contains('🔒')) return false;
-    // Heuristic: if it looks like ciphertext (no spaces, long, and starts with ey or ends with =)
-    if (text.length > 30 && !text.contains(' ')) {
-      if (text.startsWith('ey') || text.endsWith('=')) return false;
+    if (text.startsWith('pqa:')) return false;
+    // Heuristic: if it looks like ciphertext (no spaces, long, and is base64 or starts with ey/ends with =)
+    final trimmed = text.trim();
+    if (trimmed.length > 30 && !trimmed.contains(' ') && !trimmed.contains('\n')) {
+      if (trimmed.startsWith('ey') || trimmed.endsWith('=')) return false;
+      // Check if it's a raw base64 string
+      final isBase64Like = RegExp(r'^[A-Za-z0-9+/=]+$').hasMatch(trimmed);
+      if (isBase64Like) return false;
     }
     return true;
   }
