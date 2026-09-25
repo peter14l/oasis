@@ -62,7 +62,7 @@ class AppConfig {
   static String get liveKitUrl {
     const fromEnv = String.fromEnvironment('LIVEKIT_URL');
     if (fromEnv.isNotEmpty) return fromEnv;
-    return 'wss://oasis-calling.livekit.cloud'; // Default placeholder
+    return 'wss://oasis-acr74cbi.livekit.cloud';
   }
 
   /// Supabase project URL for function calls

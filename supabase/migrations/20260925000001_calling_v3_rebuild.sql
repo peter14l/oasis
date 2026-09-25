@@ -87,7 +87,7 @@ CREATE OR REPLACE FUNCTION public.notify_call_invite()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.status = 'ringing' THEN
-        INSERT INTO public.notifications (user_id, type, actor_id, content, read)
+        INSERT INTO public.notifications (user_id, type, actor_id, content)
         VALUES (
             NEW.receiver_id,
             'call',
@@ -96,8 +96,7 @@ BEGIN
                 'call_id', NEW.id,
                 'type', NEW.type,
                 'conversation_id', NEW.conversation_id
-            )::text,
-            false
+            )::text
         );
     END IF;
     RETURN NEW;
